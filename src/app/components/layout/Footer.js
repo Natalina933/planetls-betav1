@@ -12,6 +12,7 @@ export default function Footer() {
                 <a href="/about" style={{ color: '#fff', marginRight: '1rem' }}>About</a>
                 <a href="/contact" style={{ color: '#fff' }}>Contact</a>
             </p>
+            
         </footer>
     );
 }
