@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import "../app/styles/globals.css"; // Assure-toi que le chemin est correct selon ta structure
-import Providers from "../app/context/Providers"; // Assure-toi que le chemin est correct selon ta structure
+import "./styles/globals.css";
+import Providers from "./context/Providers";
+import Header from "./components/layout/Header"; // <-- Ajout de l'import
+
 export const metadata: Metadata = {
   title: "PlanetLs",
   description: "Plateforme de mise en relation propriétaires, concierges, artisans et commerçants.",
@@ -15,6 +17,7 @@ export default function RootLayout({
     <html lang="fr">
       <body>
         <Providers>
+          <Header /> {/* Le header sera affiché sur toutes les pages */}
           {children}
         </Providers>
       </body>

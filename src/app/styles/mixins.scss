@@ -1,0 +1,49 @@
+// Centrage flex
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Texte ellipsis
+@mixin text-ellipsis {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+// Ombre portée simple
+@mixin box-shadow($color: rgba(0, 0, 0, 0.08)) {
+    box-shadow: 0 2px 8px $color;
+}
+
+// Bouton basique
+@mixin button-base {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+// Responsive
+@mixin respond-to($breakpoint) {
+    @if $breakpoint ==mobile {
+        @media (max-width: 600px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==tablet {
+        @media (max-width: 900px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==desktop {
+        @media (min-width: 901px) {
+            @content;
+        }
+    }
+}
