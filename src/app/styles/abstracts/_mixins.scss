@@ -27,6 +27,21 @@
     transition: background 0.2s;
 }
 
+// Breakpoints
+$breakpoints: (
+    "xs": 480px,
+    "sm": 600px,
+    "md": 768px,
+    "lg": 1024px,
+    "xl": 1200px
+);
+
+@mixin respond($size) {
+    @media (max-width: map-get($breakpoints, $size)) {
+        @content;
+    }
+}
+
 // Responsive
 @mixin respond-to($breakpoint) {
     @if $breakpoint ==mobile {

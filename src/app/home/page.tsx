@@ -1,7 +1,7 @@
 "use client";
 
 import Head from 'next/head';
-import Footer from '../components/layout/Footer';
+import Footer from '../components/layout/Footer/Footer';
 import CTAButton from '../components/common/Bouton';
 import ServiceList from '../services/ServiceList';
 import TestimonialList from '../components/testimonials/TestimonialList';

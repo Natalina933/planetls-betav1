@@ -13,15 +13,21 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",                        // ✅ nécessaire pour que l'alias fonctionne
+    "paths": {
+      "@/*": ["src/*"]                     // ✅ alias fonctionnel
+    },
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+, "src/app/components/layout/Header/Header.jsx"  ],
   "exclude": ["node_modules"]
 }

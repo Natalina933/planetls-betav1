@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import "./styles/globals.css";
+import "./styles/main.scss";
 import Providers from "./context/Providers";
-import Header from "./components/layout/Header"; // <-- Ajout de l'import
+import Header from "./components/layout/Header/Header"; // <-- Ajout de l'import
 
 export const metadata: Metadata = {
   title: "PlanetLs",

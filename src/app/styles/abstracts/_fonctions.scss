@@ -1,0 +1,9 @@
+// Convertit px en rem
+@function rem($px, $base: 16) {
+    @return ($px / $base) * 1rem;
+}
+
+// Ajoute une opacité à une couleur hexadécimale
+@function hex-opacity($hex, $alpha) {
+    @return rgba($hex, $alpha);
+}
