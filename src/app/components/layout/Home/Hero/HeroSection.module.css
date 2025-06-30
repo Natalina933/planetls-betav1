@@ -1,0 +1,39 @@
+.hero {
+    position: relative;
+    background-image: url('/images/hero-warm.jpg');
+    /* Ajoute une belle photo locale */
+    background-size: cover;
+    background-position: center;
+    padding: 10rem 2rem 6rem 2rem;
+    text-align: center;
+    color: #fff;
+    overflow: hidden;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.content p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}

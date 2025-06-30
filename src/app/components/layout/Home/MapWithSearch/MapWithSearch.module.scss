@@ -1,0 +1,173 @@
+// Variables SCSS "locales" (valeurs hex pour fonctions SCSS)
+$color-primary: #4a90e2;
+$color-accent: #357ABD; // Exemple, à ajuster ou synchroniser avec var(--color-accent)
+$color-accent-light: lighten($color-accent, 40%);
+$color-accent-dark: darken($color-accent, 10%);
+
+// Variables CSS (utilisées directement, sans fonctions SCSS)
+$color-text: var(--color-text);
+$color-bg: var(--color-bg);
+$color-border: var(--color-border);
+$spacing-md: var(--spacing-md);
+$radius: var(--radius);
+
+// Couleurs par catégorie (variables CSS, utilisées en couleur directe)
+$proprio-primary: var(--proprio-primary);
+$proprio-hover: var(--proprio-hover);
+$proprio-bg: var(--proprio-bg);
+$proprio-text: var(--proprio-text);
+
+$concierge-primary: var(--concierge-primary);
+$concierge-hover: var(--concierge-hover);
+$concierge-bg: var(--concierge-bg);
+$concierge-text: var(--concierge-text);
+
+$artisan-primary: var(--artisan-primary);
+$artisan-hover: var(--artisan-hover);
+$artisan-bg: var(--artisan-bg);
+$artisan-text: var(--artisan-text);
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    .controls {
+        display: flex;
+        gap: $spacing-md;
+        justify-content: center;
+        margin-bottom: $spacing-md;
+
+        select,
+        button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: 1.5px solid $color-border;
+            border-radius: $radius;
+            background-color: $color-bg;
+            color: $color-text;
+            cursor: pointer;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+
+            &:hover,
+            &:focus {
+                border-color: $color-accent;
+                background-color: $color-accent-light;
+                outline: none;
+            }
+        }
+
+        button {
+            font-weight: 600;
+            background-color: $color-accent;
+            color: white;
+
+            &:hover {
+                background-color: $color-accent-dark;
+            }
+        }
+    }
+
+    .map {
+        height: 500px;
+        width: 100%;
+        border-radius: $radius;
+        border: 1.5px solid $color-border;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+        background-color: $color-bg;
+    }
+}
+
+.iconAvailable {
+    filter: drop-shadow(0 0 3px var(--color-accent));
+    opacity: 1;
+}
+
+.iconUnavailable {
+    filter: grayscale(100%) brightness(0.7);
+    opacity: 0.6;
+}
+
+.popup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 230px;
+    padding: $spacing-md;
+    border-radius: $radius;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    background-color: $color-bg;
+
+    .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 0.5rem;
+        border: 2px solid transparent; // redéfini selon type utilisateur
+    }
+
+    h3 {
+        margin: 0.25rem 0 0.5rem 0;
+        font-size: 1.2rem;
+    }
+
+    p {
+        font-size: 0.9rem;
+        color: $color-text;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+
+    .contactBtn {
+        background-color: $color-accent;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: $radius;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background-color: $color-accent-dark;
+        }
+    }
+
+    /* Styles selon type d'utilisateur */
+    &.proprietaire {
+        border: 2px solid $proprio-primary;
+
+        h3 {
+            color: $proprio-primary;
+        }
+
+        .avatar {
+            border-color: $proprio-primary;
+        }
+    }
+
+    &.concierge {
+        border: 2px solid $concierge-primary;
+
+        h3 {
+            color: $concierge-primary;
+        }
+
+        .avatar {
+            border-color: $concierge-primary;
+        }
+    }
+
+    &.artisan {
+        border: 2px solid $artisan-primary;
+
+        h3 {
+            color: $artisan-primary;
+        }
+
+        .avatar {
+            border-color: $artisan-primary;
+        }
+    }
+}

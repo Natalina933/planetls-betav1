@@ -1,0 +1,9 @@
+<!-- Clé vintage arrondie -->
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C8A96F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="7" cy="7" r="3"/>
+  <line x1="7" y1="10" x2="7" y2="14"/>
+  <line x1="7" y1="14" x2="10" y2="14"/>
+  <line x1="10" y1="14" x2="10" y2="12"/>
+  <line x1="10" y1="12" x2="12" y2="12"/>
+</svg>
+

@@ -1,34 +1,95 @@
 .page {
   /* Couleurs de base en RGB pour alpha */
   --gray-rgb: 34, 34, 34;
-  /* gris foncé par défaut */
+
+  /* Variables de transparence */
   --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
   --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
 
-  /* Boutons */
+  /* Couleurs boutons */
   --button-primary-hover: #383838;
   --button-secondary-hover: #f2f2f2;
 
-  /* Couleurs d’arrière-plan et de texte (héritées si possible) */
+  /* Couleurs fond et texte */
   --background: #ffffff;
   --foreground: #171717;
 
-  /* Font par défaut (utilise une variable globale si définie) */
+  /* Font */
   font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 
+  /* Layout */
   display: grid;
   grid-template-rows: 20px 1fr 20px;
   align-items: center;
   justify-items: center;
+
   min-height: 100svh;
-  padding: 80px;
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
   gap: 64px;
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Boutons */
+.button-primary {
+  background-color: var(--foreground);
+  color: var(--background);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: var(--button-primary-hover);
+  }
+}
+
+.button-secondary {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 2px solid var(--foreground);
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  &:hover {
+    background-color: var(--button-secondary-hover);
+    color: var(--foreground);
+  }
+}
+
+/* Titres */
+h1, h2, h3 {
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+/* Paragraphes */
+p {
+  color: var(--foreground);
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* Liens */
+a {
+  color: var(--foreground);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--button-primary-hover);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   .page {
     --gray-rgb: 255, 255, 255;
-    /* gris clair en dark mode */
     --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
     --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
 
@@ -37,5 +98,8 @@
 
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }

@@ -1,12 +1,14 @@
 "use client";
-
-import Head from 'next/head';
+import dynamic from 'next/dynamic'; import Head from 'next/head';
 import Footer from '../components/layout/Footer/Footer';
-import CTAButton from '../components/common/Bouton';
 import ServiceList from '../services/ServiceList';
 import TestimonialList from '../components/testimonials/TestimonialList';
 import BlogPreviewList from '../components/blog/BlogPreviewList';
+import HeroSection from '../components/layout/Home/Hero/HeroSection';
 
+const MapWithSearch = dynamic(() => import('../components/layout/Home/MapWithSearch/MapWithSearch'), {
+    ssr: false,
+});
 const HomePage = () => {
     return (
         <div>
@@ -17,14 +19,9 @@ const HomePage = () => {
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
             </Head>
 
-            <main style={{ minHeight: '70vh' }}>
-                <section className="hero" style={{ textAlign: 'center', padding: '3rem 1rem 2rem 1rem' }}>
-                    <h1>Plateforme de gestion et mise en relation pour la location saisonnière</h1>
-                    <p>Propriétaires, Concierges & Artisans : simplifiez et optimisez vos échanges avec PlanetLs.</p>
-                    <CTAButton style={{ marginTop: '1.5rem' }} onClick={() => { /* TODO: handle click */ }}>
-                        Découvrir la plateforme
-                    </CTAButton>
-                </section>
+            <main>
+                <HeroSection />
+                <MapWithSearch />
 
                 <section className="services" style={{ marginTop: '3rem' }}>
                     <h2 style={{ textAlign: 'center' }}>Nos services</h2>
