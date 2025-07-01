@@ -8,8 +8,13 @@ export default function Header() {
     return (
         <header className={styles.header}>
             <div className={styles.logo}>
-                <Link href="/">PlanetLs</Link>
+                <Link href="/" className={styles.brand}>
+                    <span className={styles.logoWrapper}>
+                    <img src="/icons/logoCompletv2.svg" alt="" />
+                    </span>
+                </Link>
             </div>
+
             <Navbar />
         </header>
     );

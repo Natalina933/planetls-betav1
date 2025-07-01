@@ -1,9 +1,9 @@
+@use "sass:color";
 // Variables SCSS "locales" (valeurs hex pour fonctions SCSS)
 $color-primary: #4a90e2;
 $color-accent: #357ABD; // Exemple, à ajuster ou synchroniser avec var(--color-accent)
-$color-accent-light: lighten($color-accent, 40%);
-$color-accent-dark: darken($color-accent, 10%);
-
+$color-accent-light: color.adjust($color-accent, $lightness: 40%);
+$color-accent-dark: color.adjust($color-accent, $lightness: -10%);
 // Variables CSS (utilisées directement, sans fonctions SCSS)
 $color-text: var(--color-text);
 $color-bg: var(--color-bg);

@@ -1,12 +1,10 @@
 .hero {
     position: relative;
+    padding: 6rem 2rem;
     background-image: url('/images/hero-warm.jpg');
-    /* Ajoute une belle photo locale */
     background-size: cover;
     background-position: center;
-    padding: 10rem 2rem 6rem 2rem;
-    text-align: center;
-    color: #fff;
+    color: white;
     overflow: hidden;
 }
 
@@ -16,24 +14,37 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+}
+
+.grid {
+    display: flex;
+    flex-direction: row;
+    gap: 3rem;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    flex-wrap: wrap;
+}
+
+.carouselWrapper {
+    max-width: 320px;
 }
 
 .content {
-    position: relative;
-    z-index: 2;
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 600px;
+    font-family: var(--font-title);
+    text-align: left;
 }
 
 .content h1 {
-    font-size: 3rem;
-    font-weight: 700;
+    font-size: 2.6rem;
     margin-bottom: 1rem;
 }
 
 .content p {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     margin-bottom: 2rem;
 }

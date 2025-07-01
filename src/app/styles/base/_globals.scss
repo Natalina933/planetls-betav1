@@ -15,13 +15,53 @@ body {
   margin: 0;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-title);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
 a {
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  text-decoration: underline;
+  outline: none;
+}
+
+a:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
+  }
+
+  html,
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  html {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 }

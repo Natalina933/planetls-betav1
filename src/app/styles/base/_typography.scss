@@ -1,10 +1,23 @@
 :root {
-    /* Typographie */
-    --font-main: 'Inter', Arial, sans-serif;
-    --font-size-base: 16px;
+    /* Typographie globale */
+    --font-title: 'Felix Titling', 'Times New Roman', serif;
+    --font-text: 'High Tower Text', 'Georgia', serif;
+    --font-main: var(--font-text);
+    /* pour compatibilité existante */
+
+    /* Tailles */
+    --font-size-base: 1rem;
+    /* 16px par défaut */
+    --font-size-title-xl: 2.5rem;
+    /* Titres H1 */
     --font-size-title: 2rem;
+    /* Titres H2 */
+    --font-size-title-md: 1.5rem;
+    /* Titres H3 */
     --font-size-small: 0.9rem;
+
+    /* Interlignage et graisse */
     --line-height: 1.5;
     --font-weight-normal: 400;
     --font-weight-bold: 700;
-}   
+}
