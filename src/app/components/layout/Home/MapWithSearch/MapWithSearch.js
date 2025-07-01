@@ -116,11 +116,11 @@ export default function MapWithSearch() {
                     >
                         <Popup>
                             <div className={`${styles.popup} ${styles[profile.type]}`}>
-                                <image
-                                    src={profile.photo}
+                                <image src={profile.photo}
                                     alt={`${profile.name} avatar`}
                                     className={styles.avatar}
                                 />
+
                                 <h3>{profile.name}</h3>
                                 <p>
                                     <strong>Services :</strong>{" "}
