@@ -1,0 +1,39 @@
+.button {
+    background-color: #d4af37; // Doré principal
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-title);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    &:hover {
+        background-color: #b8932f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.4);
+    }
+}
+.button-secondary {
+    background-color: transparent;
+    color: #d4af37; // Doré principal
+    border: 2px solid #d4af37;
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    &:hover {
+        background-color: #d4af37;
+        color: white;
+    }
+}

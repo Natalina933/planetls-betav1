@@ -9,8 +9,8 @@ import styles from "./MapWithSearch.module.scss";
 
 // Icônes personnalisées Leaflet (exemple simples)
 const iconUrls = {
-    concierge: "/icons/key-icon.svg",
-    artisan: "/icons/hammer-icon.svg",
+    concierge: "/icons/Mon_logo.svg",
+    artisan: "/icons/order-1-svgrepo-com.svg",
     proprietaire: "/icons/home-icon.svg",
 };
 

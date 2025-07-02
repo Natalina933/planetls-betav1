@@ -1,3 +1,4 @@
+'use client';
 import styles from './CategoryCarousel.module.scss'; // Assurez-vous que le fichier CSS est correctement importé
 import React, { useState, useEffect } from 'react';
 
