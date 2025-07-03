@@ -27,6 +27,32 @@
     transition: background 0.2s;
 }
 
+@mixin soft-hover($color) {
+    transition: $transition;
+
+    &:hover {
+        box-shadow: 0 0 8px $color;
+        transform: translateY(-2px);
+    }
+}
+
+@mixin darkMode {
+    [data-theme="dark"] & {
+        background-color: var(--bg);
+        color: var(--text);
+        border-color: var(--border);
+    }
+}
+
+// Light mode
+@mixin lightMode {
+    [data-theme="light"] & {
+        background-color: var(--bg);
+        color: var(--text);
+        border-color: var(--border);
+    }
+}
+
 // Breakpoints
 $breakpoints: (
     "xs": 480px,

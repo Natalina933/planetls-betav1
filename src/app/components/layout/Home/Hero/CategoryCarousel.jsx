@@ -1,49 +1,90 @@
 'use client';
-import styles from './CategoryCarousel.module.scss'; // Assurez-vous que le fichier CSS est correctement importé
-import React, { useState, useEffect } from 'react';
-
-// …
-
+import React, { useState, useEffect, useRef } from 'react';
+import styles from './CategoryCarousel.module.scss';
 
 const categories = [
-    { name: "Propriétaires", image: "/images/carousel/proprio.jpeg" },
-    { name: "Conciergerie", image: "/images/carousel/concierges.jpg" },
-    { name: "Artisans", image: "/images/carousel/artisans.jpg" },
-    { name: "Commerçants", image: "/images/carousel/commercant.jpeg" },
-    { name: "Photographes", image: "/images/carousel/photographe.jpg" },
-    { name: "Jardiniers", image: "/images/carousel/jardinier.jpg" },
-    { name: "Réseaux sociaux", image: "/images/carousel/reseaux.jpeg" }
+    { key: "proprietaire", name: "Propriétaires", image: "/images/carousel/proprio.jpeg", legend: "Propriétaires locaux, engagés et à l’écoute" },
+    { key: "concierge", name: "Conciergerie", image: "/images/carousel/concierges.jpg", legend: "Concierges de quartier, service sur-mesure" },
+    { key: "artisan", name: "Artisans", image: "/images/carousel/artisans.jpg", legend: "Artisans passionnés, savoir-faire local" },
+    { key: "commercant", name: "Commerçants", image: "/images/carousel/commercant.jpeg", legend: "Commerçants de proximité, produits uniques" },
+    { key: "photographe", name: "Photographes", image: "/images/carousel/photographe.jpg", legend: "Photographes inspirés, regards neufs" },
+    { key: "jardinier", name: "Jardiniers", image: "/images/carousel/jardinier.jpg", legend: "Jardiniers urbains, espaces vivants" },
+    { key: "reseaux", name: "Réseaux sociaux", image: "/images/carousel/reseaux.jpeg", legend: "Experts réseaux sociaux, visibilité locale" },
 ];
 
-const CategoryCarousel = () => {
-    const [activeIndex, setActiveIndex] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setActiveIndex((prev) => (prev + 1) % categories.length);
-        }, 4000); // Change toutes les 4 secondes
+const categoryFilter = {
+    proprietaire: "var(--proprio-primary)",
+    concierge: "var(--concierge-primary)",
+    artisan: "var(--artisan-primary)",
+    commercant: "#c17c54",
+    photographe: "#5c89ff",
+    jardinier: "#82a27c",
+    reseaux: "#b85cff",
+};
 
-        return () => clearInterval(interval);
-    }, []);
-    const handleDotClick = (index) => {
-        setActiveIndex(index);
-    };
+export default function CategoryCarousel() {
+    const [active, setActive] = useState(0);
+    const timeoutRef = useRef();
+
+    // Autoplay effect
+    useEffect(() => {
+        timeoutRef.current = setTimeout(() => {
+            setActive((prev) => (prev + 1) % categories.length);
+        }, 3500);
+        return () => clearTimeout(timeoutRef.current);
+    }, [active]);
+
+    // Navigation
+    const goTo = (idx) => setActive(idx);
+    const prev = () => setActive((active - 1 + categories.length) % categories.length);
+    const next = () => setActive((active + 1) % categories.length);
 
     return (
         <div className={styles.carousel}>
-            <img src={categories[activeIndex].image} alt={categories[activeIndex].name} className={styles.image} />
-            <div className={styles.caption}>{categories[activeIndex].name}</div>
-            <div className={styles.dots}>
-                {categories.map((_, i) => (
+            <div className={styles.slider}>
+                {categories.map((cat, idx) => (
+                    <div
+                        key={cat.key}
+                        className={`${styles.slide} ${styles[cat.key] || ''}`}
+                        style={{
+                            display: idx === active ? 'flex' : 'none',
+                            "--color-filter": categoryFilter[cat.key] || "var(--color-accent)",
+                        }}
+                        aria-hidden={idx !== active}
+                    >
+                        <div className={styles.imageWrapper}>
+                            <img
+                                src={cat.image}
+                                alt={cat.name}
+                                className={styles.image}
+                                loading="lazy"
+                            />
+                            <div className={styles.legend}>
+                                <span>{cat.legend}</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                {/* Flèches */}
+                <button className={styles.arrow + ' ' + styles.left} onClick={prev} aria-label="Précédent">
+                    ‹
+                </button>
+                <button className={styles.arrow + ' ' + styles.right} onClick={next} aria-label="Suivant">
+                    ›
+                </button>
+            </div>
+            {/* Pagination */}
+            <div className={styles.pagination}>
+                {categories.map((_, idx) => (
                     <button
-                        key={i}
-                        onClick={() => handleDotClick(i)}
-                        className={`${styles.dot} ${i === activeIndex ? styles.active : ''}`}
-                        aria-label={`Voir ${categories[i].name}`}
+                        key={idx}
+                        className={styles.dot + (active === idx ? ' ' + styles.active : '')}
+                        onClick={() => goTo(idx)}
+                        aria-label={`Aller à la slide ${idx + 1}`}
+                        aria-current={active === idx ? "true" : undefined}
                     />
                 ))}
             </div>
         </div>
     );
-};
-
-export default CategoryCarousel;
+}

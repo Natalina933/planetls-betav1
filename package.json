@@ -9,12 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "framer-motion": "^12.23.0",
     "leaflet": "^1.9.4",
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-leaflet": "^5.0.0",
-    "sass": "^1.89.2"
+    "sass": "^1.89.2",
+    "swiper": "^11.2.10",
+    "swr": "^2.3.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

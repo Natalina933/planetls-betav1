@@ -12,9 +12,11 @@
     --color-success: #4CAF50;
     --color-error: #E53935;
     --color-accent: #FF9800;
-  /* Accent variations */
-    --color-accent-light: #ffd699; /* orange clair */
-    --color-accent-dark: #cc7a00;  /* orange foncé */
+    /* Accent variations */
+    --color-accent-light: #ffd699;
+    /* orange clair */
+    --color-accent-dark: #cc7a00;
+    /* orange foncé */
 
     /* === Catégorie : Propriétaires === */
     --proprio-primary: #5C89FF;
@@ -37,6 +39,21 @@
     --artisan-bg: #FBEFE7;
     --artisan-text: #4B2F1F;
 
+    /* Couleurs supplémentaires */
+    --hero-gradient-from: rgba(0, 0, 0, 0.5);
+    --hero-gradient-to: rgba(20, 20, 20, 0.6);
+    --hero-highlight: #d4af37;
+    --hero-highlight-hover: #b8932f;
+    --hero-overlay-bg: linear-gradient(to bottom right, var(--hero-gradient-from), var(--hero-gradient-to));
+
+    /* Fond flou semi-transparent */
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    --glass-blur: blur(6px);
+
+    /* Hero font */
+    --font-title: 'Montserrat', sans-serif;
     /* Espacements */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
@@ -47,7 +64,24 @@
     /* Radius */
     --radius: 4px;
 }
+$gold: #D4AF37;
+$deep-blue: #1E2A38;
+$cream: #FAF4EC;
+$font-elegant: 'Cormorant Garamond', serif;
 
+$radius: 12px;
+$transition: all 0.3s ease;
+/* Mode clair */
+@media (prefers-color-scheme: light) {
+    :root {
+        --color-bg: #f4f6f8;
+        --color-text: #222;
+        --color-secondary: #fff;
+        --color-border: #eaeaea;
+        --background: #ffffff;
+        --foreground: #171717;
+    }
+}
 /* Mode sombre */
 @media (prefers-color-scheme: dark) {
     :root {

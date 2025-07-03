@@ -1,4 +1,4 @@
-import Card from '../components/common/Card';
+import Card from '../components/common/Cards/Card';
 import Badge from '../components/common/Badge';
 
 export default function TradespeoplePage() {

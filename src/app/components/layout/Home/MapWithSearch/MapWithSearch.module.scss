@@ -1,31 +1,13 @@
 @use "sass:color";
-// Variables SCSS "locales" (valeurs hex pour fonctions SCSS)
-$color-primary: #4a90e2;
-$color-accent: #357ABD; // Exemple, à ajuster ou synchroniser avec var(--color-accent)
+
+$color-accent: #357ABD;
 $color-accent-light: color.adjust($color-accent, $lightness: 40%);
 $color-accent-dark: color.adjust($color-accent, $lightness: -10%);
-// Variables CSS (utilisées directement, sans fonctions SCSS)
-$color-text: var(--color-text);
-$color-bg: var(--color-bg);
-$color-border: var(--color-border);
 $spacing-md: var(--spacing-md);
 $radius: var(--radius);
-
-// Couleurs par catégorie (variables CSS, utilisées en couleur directe)
-$proprio-primary: var(--proprio-primary);
-$proprio-hover: var(--proprio-hover);
-$proprio-bg: var(--proprio-bg);
-$proprio-text: var(--proprio-text);
-
-$concierge-primary: var(--concierge-primary);
-$concierge-hover: var(--concierge-hover);
-$concierge-bg: var(--concierge-bg);
-$concierge-text: var(--concierge-text);
-
-$artisan-primary: var(--artisan-primary);
-$artisan-hover: var(--artisan-hover);
-$artisan-bg: var(--artisan-bg);
-$artisan-text: var(--artisan-text);
+$color-bg: var(--color-bg);
+$color-text: var(--color-text);
+$color-border: var(--color-border);
 
 .container {
     display: flex;
@@ -34,47 +16,59 @@ $artisan-text: var(--artisan-text);
 
     .controls {
         display: flex;
-        gap: $spacing-md;
+        flex-wrap: wrap;
+        gap: 0.75rem;
         justify-content: center;
         margin-bottom: $spacing-md;
 
         select,
+        input,
         button {
             padding: 0.5rem 1rem;
             font-size: 1rem;
-            border: 1.5px solid $color-border;
             border-radius: $radius;
+            border: 1.5px solid $color-border;
             background-color: $color-bg;
             color: $color-text;
-            cursor: pointer;
-            transition: border-color 0.3s ease, background-color 0.3s ease;
+            transition: all 0.3s ease;
+        }
 
-            &:hover,
-            &:focus {
-                border-color: $color-accent;
-                background-color: $color-accent-light;
-                outline: none;
-            }
+        input {
+            min-width: 220px;
         }
 
         button {
-            font-weight: 600;
             background-color: $color-accent;
             color: white;
+            font-weight: 600;
+            cursor: pointer;
 
             &:hover {
                 background-color: $color-accent-dark;
             }
+        }
+
+        select:focus,
+        input:focus {
+            border-color: $color-accent;
+            background-color: $color-accent-light;
+            outline: none;
         }
     }
 
     .map {
         height: 500px;
         width: 100%;
-        border-radius: $radius;
         border: 1.5px solid $color-border;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-        background-color: $color-bg;
+        border-radius: $radius;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .noResult {
+        text-align: center;
+        color: $color-text;
+        font-size: 1.1rem;
+        padding: 1rem;
     }
 }
 
@@ -93,7 +87,7 @@ $artisan-text: var(--artisan-text);
     flex-direction: column;
     align-items: center;
     max-width: 230px;
-    padding: $spacing-md;
+    padding: 1rem;
     border-radius: $radius;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     background-color: $color-bg;
@@ -104,19 +98,19 @@ $artisan-text: var(--artisan-text);
         border-radius: 50%;
         object-fit: cover;
         margin-bottom: 0.5rem;
-        border: 2px solid transparent; // redéfini selon type utilisateur
+        border: 2px solid transparent;
     }
 
     h3 {
-        margin: 0.25rem 0 0.5rem 0;
+        margin: 0.25rem 0;
         font-size: 1.2rem;
     }
 
     p {
         font-size: 0.9rem;
         color: $color-text;
-        margin-bottom: 0.75rem;
         text-align: center;
+        margin-bottom: 0.75rem;
     }
 
     .contactBtn {
@@ -127,47 +121,45 @@ $artisan-text: var(--artisan-text);
         border-radius: $radius;
         cursor: pointer;
         font-weight: 600;
-        transition: background-color 0.3s ease;
 
         &:hover {
             background-color: $color-accent-dark;
         }
     }
 
-    /* Styles selon type d'utilisateur */
-    &.proprietaire {
-        border: 2px solid $proprio-primary;
-
-        h3 {
-            color: $proprio-primary;
-        }
-
-        .avatar {
-            border-color: $proprio-primary;
-        }
-    }
-
     &.concierge {
-        border: 2px solid $concierge-primary;
+        border: 2px solid var(--concierge-primary);
 
         h3 {
-            color: $concierge-primary;
+            color: var(--concierge-primary);
         }
 
         .avatar {
-            border-color: $concierge-primary;
+            border-color: var(--concierge-primary);
         }
     }
 
     &.artisan {
-        border: 2px solid $artisan-primary;
+        border: 2px solid var(--artisan-primary);
 
         h3 {
-            color: $artisan-primary;
+            color: var(--artisan-primary);
         }
 
         .avatar {
-            border-color: $artisan-primary;
+            border-color: var(--artisan-primary);
+        }
+    }
+
+    &.proprietaire {
+        border: 2px solid var(--proprio-primary);
+
+        h3 {
+            color: var(--proprio-primary);
+        }
+
+        .avatar {
+            border-color: var(--proprio-primary);
         }
     }
 }

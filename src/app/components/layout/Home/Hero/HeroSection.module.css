@@ -1,6 +1,6 @@
 .hero {
     position: relative;
-    padding: 6rem 2rem;
+    padding: var(--spacing-xl) var(--spacing-md);
     background-image: url('/images/hero-warmv2.jpg');
     background-size: cover;
     background-position: center;
@@ -19,34 +19,37 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.5), rgba(20, 20, 20, 0.6));
+    background: var(--hero-overlay-bg);
     z-index: 0;
 }
 
 .grid {
     display: flex;
     flex-direction: row;
-    gap: 3rem;
+    gap: var(--spacing-lg);
     align-items: center;
     justify-content: center;
     position: relative;
     z-index: 2;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .carouselWrapper {
-    max-width: 320px;
-    flex-shrink: 0;
-    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    flex-shrink: 1;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(4px);
+    border: 2px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
 }
 
 .content {
+    width: 100%;
     max-width: 600px;
     text-align: left;
 
@@ -54,8 +57,8 @@
         font-size: 2.8rem;
         font-weight: 700;
         line-height: 1.2;
-        margin-bottom: 1rem;
-        border-bottom: 3px solid #d4af37;
+        margin-bottom: var(--spacing-md);
+        border-bottom: 3px solid var(--hero-highlight);
         display: inline-block;
         padding-bottom: 0.3rem;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -64,13 +67,13 @@
     p {
         font-size: 1.15rem;
         line-height: 1.6;
-        margin-bottom: 2rem;
+        margin-bottom: var(--spacing-lg);
         max-width: 95%;
         color: white;
     }
 
     button {
-        background-color: #d4af37;
+        background-color: var(--hero-highlight);
         color: white;
         border: none;
         padding: 0.75rem 1.5rem;
@@ -81,16 +84,18 @@
         transition: background-color 0.3s ease, transform 0.2s ease;
 
         &:hover {
-            background-color: #b8932f;
+            background-color: var(--hero-highlight-hover);
             transform: translateY(-2px);
         }
     }
 }
+
+/* Responsive */
 @media (max-width: 768px) {
     .grid {
         flex-direction: column-reverse;
-        gap: 2rem;
-        padding: 0 1rem;
+        gap: var(--spacing-md);
+        padding: 0 var(--spacing-sm);
     }
 
     .content {
@@ -112,7 +117,7 @@
 
 @media (max-width: 480px) {
     .hero {
-        padding: 4rem 1rem;
+        padding: 4rem var(--spacing-sm);
     }
 
     .content {

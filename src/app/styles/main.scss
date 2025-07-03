@@ -1,8 +1,17 @@
-@use './abstracts/variables';
+// Abstracts
 // @use './abstracts/functions';
 @use './abstracts/mixins';
+@use './abstracts/variables';
+@use './abstracts/themes'; // light/dark
 
-@use './base/globals';
-@use './base/typography';
+// Base
 @use './base/reset';
+@use './base/typography';
+@use './base/globals';
 
+// Layout & Components
+@use './../components/layout/Map/map';
+// @use './../components/layout/Controls/controls';
+@use './../components/common/Popups/popups';
+@use './../components/common/Inputs/inputs';
+// @use './../components/common/Cards/cards';
