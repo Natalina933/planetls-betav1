@@ -71,25 +71,3 @@ $font-elegant: 'Cormorant Garamond', serif;
 
 $radius: 12px;
 $transition: all 0.3s ease;
-/* Mode clair */
-@media (prefers-color-scheme: light) {
-    :root {
-        --color-bg: #f4f6f8;
-        --color-text: #222;
-        --color-secondary: #fff;
-        --color-border: #eaeaea;
-        --background: #ffffff;
-        --foreground: #171717;
-    }
-}
-/* Mode sombre */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-bg: #181818;
-        --color-text: #f9f9f9;
-        --color-secondary: #fff;
-        --color-border: #333;
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
-}

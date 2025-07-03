@@ -3,7 +3,7 @@
     --font-title: 'Felix Titling', 'Times New Roman', serif;
     --font-text: 'High Tower Text', 'Georgia', serif;
     --font-main: var(--font-text);
-    /* pour compatibilité existante */
+    $font-elegant: 'Cormorant Garamond', serif;
 
     /* Tailles */
     --font-size-base: 1rem;
