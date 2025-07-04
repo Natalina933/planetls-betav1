@@ -17,7 +17,8 @@ export default function RootLayout({
     <html lang="fr">
       <body>
         <Providers>
-          <Header /> {/* Le header sera affiché sur toutes les pages */}
+          <Header />
+
           {children}
         </Providers>
       </body>

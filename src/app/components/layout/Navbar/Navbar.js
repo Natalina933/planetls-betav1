@@ -28,7 +28,7 @@ export default function Navbar() {
             <ul className={`${styles.menu} ${isOpen ? styles.open : ''}`}>
                 <li><Link href="/home" onClick={closeMenu}>Accueil</Link></li>
                 <li><Link href="/how-it-works" onClick={closeMenu}>Comment ça marche</Link></li>
-                <li><Link href="/services" onClick={closeMenu}>Services</Link></li>
+                <li><Link href="/src/app/map-list" onClick={closeMenu}>Services</Link></li>
                 <li><Link href="/categories" onClick={closeMenu}>Catégories</Link></li>
                 <li><Link href="/contact" onClick={closeMenu}>Contact</Link></li>
                 <li><Link href="/login" onClick={closeMenu}>Connexion</Link></li>

@@ -5,6 +5,11 @@
     justify-content: center;
 }
 
+@mixin flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
 // Texte ellipsis
 @mixin text-ellipsis {
     overflow: hidden;
@@ -53,6 +58,16 @@
     }
 }
 
+@mixin mucha-frame($color: #d4af37,
+    $radius: 2.2rem,
+    $thickness: 2.5px) {
+    border: $thickness double $color;
+    border-radius: $radius;
+    box-shadow:
+        0 2px 16px rgba(212, 175, 55, 0.09),
+        0 0 0 8px #fffbe6;
+    background: linear-gradient(120deg, #fffbe6 80%, #f9e7c2 100%);
+}
 
 @mixin respond($size) {
     @media (max-width: map-get($breakpoints, $size)) {

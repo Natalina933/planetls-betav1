@@ -1,9 +1,12 @@
 import React from 'react';
-import CTAButton from '../../../common/Buttons/Bouton';
+import CTAButton from '../../../common/Buttons/Button/Bouton';
 import styles from './HeroSection.module.css';
 import CategoryCarousel from './CategoryCarousel';
 
 const HeroSection = () => {
+    const handleClick = () => {
+        window.scrollTo({ top: 800, behavior: "smooth" });
+    };
     return (
         <section className={styles.hero}>
             <div className={styles.overlay} />
@@ -14,7 +17,7 @@ const HeroSection = () => {
                 <div className={styles.content}>
                     <h1>Une planète de services, à votre porte</h1>
                     <p>PlanetLs connecte les propriétaires, concierges et artisans autour de la location saisonnière.</p>
-                    <CTAButton onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}>
+                    <CTAButton onClick={handleClick}>
                         Découvrir les services
                     </CTAButton>
                 </div>

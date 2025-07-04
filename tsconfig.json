@@ -28,6 +28,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "src/app/components/layout/Header/Header.jsx"  ],
+, "src/app/components/layout/Header/Header.jsx", "src/app/map-list/page.jsx"  ],
   "exclude": ["node_modules"]
 }

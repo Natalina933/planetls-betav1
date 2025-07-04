@@ -9,11 +9,10 @@ import styles from "./MapWithSearch.module.scss";
 
 // Icônes personnalisées Leaflet (exemple simples)
 const iconUrls = {
-    concierge: "/icons/Mon_logo.svg",
-    artisan: "/icons/order-1-svgrepo-com.svg",
-    proprietaire: "/icons/home-icon.svg",
+    concierge: "/icons/concierges_belle_epoque.png",
+    artisan: "/icons/artisans_belle_epoque.png",
+    proprietaire: "/icons/proprio_belle_epoque.png",
 };
-
 const createIcon = (type, available) =>
     new L.Icon({
         iconUrl: iconUrls[type] || iconUrls.proprietaire,
@@ -42,7 +41,7 @@ export default function MapWithSearch() {
             position: [48.8566, 2.3522],
             available: true,
             services: ["Gestion", "Nettoyage"],
-            photo: "/avatars/jean.jpg",
+            photo: "/avatars/jean.png",
         },
         {
             id: 2,
@@ -51,7 +50,7 @@ export default function MapWithSearch() {
             position: [48.86, 2.35],
             available: false,
             services: ["Plomberie", "Électricité"],
-            photo: "/avatars/marie.jpg",
+            photo: "/avatars/marie.jng",
         },
         {
             id: 3,
@@ -60,7 +59,7 @@ export default function MapWithSearch() {
             position: [48.855, 2.34],
             available: true,
             services: [],
-            photo: "/avatars/paul.jpg",
+            photo: "/avatars/marc.png",
         },
     ]);
 
@@ -84,18 +83,36 @@ export default function MapWithSearch() {
     return (
         <div className={styles.container}>
             <div className={styles.controls}>
-                <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    aria-label="Filtrer par type"
+                <button
+                    className={filter === "proprietaire" ? styles.active : ""}
+                    onClick={() => setFilter("proprietaire")}
+                    aria-label="Voir les propriétaires"
                 >
-                    <option value="all">Tous</option>
-                    <option value="concierge">Concierges</option>
-                    <option value="artisan">Artisans</option>
-                    <option value="proprietaire">Propriétaires</option>
-                </select>
-                <button onClick={() => userPos && setUserPos(userPos)}>🗺️ Trouver autour de moi</button>
+                    <img src="/icons/home-icon.svg" alt="" /> Propriétaires
+                </button>
+                <button
+                    className={filter === "concierge" ? styles.active : ""}
+                    onClick={() => setFilter("concierge")}
+                    aria-label="Voir les concierges"
+                >
+                    <img src="/icons/Mon_logo.svg" alt="" /> Concierges
+                </button>
+                <button
+                    className={filter === "artisan" ? styles.active : ""}
+                    onClick={() => setFilter("artisan")}
+                    aria-label="Voir les artisans"
+                >
+                    <img src="/icons/order-1-svgrepo-com.svg" alt="" /> Artisans
+                </button>
+                <button
+                    className={filter === "all" ? styles.active : ""}
+                    onClick={() => setFilter("all")}
+                    aria-label="Voir tous"
+                >
+                    Tous
+                </button>
             </div>
+
 
             <MapContainer
                 center={userPos || [48.8566, 2.3522]}
@@ -116,7 +133,7 @@ export default function MapWithSearch() {
                     >
                         <Popup>
                             <div className={`${styles.popup} ${styles[profile.type]}`}>
-                                <image src={profile.photo}
+                                <img src={profile.photo}
                                     alt={`${profile.name} avatar`}
                                     className={styles.avatar}
                                 />

@@ -1,165 +1,277 @@
+@use "src/app/styles/abstracts/_mixins" as *;
 @use "sass:color";
 
-$color-accent: #357ABD;
-$color-accent-light: color.adjust($color-accent, $lightness: 40%);
-$color-accent-dark: color.adjust($color-accent, $lightness: -10%);
-$spacing-md: var(--spacing-md);
-$radius: var(--radius);
-$color-bg: var(--color-bg);
-$color-text: var(--color-text);
-$color-border: var(--color-border);
+$color-accent: #b88b4a; // doré Mucha
+$color-accent-light: color.adjust($color-accent, $lightness: 35%);
+$color-accent-dark: color.adjust($color-accent, $lightness: -18%);
+$color-bg: #fffbe6;
+$color-text: #3a2a1a;
+$color-border: #e3cfa4;
+$radius: 2.2rem;
+$spacing-md: 1.4rem;
 
 .container {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     gap: $spacing-md;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 0;
 
     .controls {
-        display: flex;
+        @include flex-center;
         flex-wrap: wrap;
-        gap: 0.75rem;
-        justify-content: center;
+        gap: 1.1rem;
         margin-bottom: $spacing-md;
 
-        select,
-        input,
         button {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            border-radius: $radius;
-            border: 1.5px solid $color-border;
-            background-color: $color-bg;
-            color: $color-text;
-            transition: all 0.3s ease;
-        }
+            @include mucha-frame; // un mixin pour border ornementée
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: $color-bg;
+            color: $color-accent-dark;
+            border: 2.5px double $color-accent;
+            border-radius: 2em;
+            padding: 0.7em 1.7em;
+            font-size: 1.1rem;
+            font-family: var(--font-title, 'High Tower Text', serif);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            box-shadow: 0 2px 16px rgba(184, 139, 74, 0.09);
+            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.12s;
 
-        input {
-            min-width: 220px;
-        }
-
-        button {
-            background-color: $color-accent;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-
-            &:hover {
-                background-color: $color-accent-dark;
+            img {
+                width: 1.7em;
+                height: 1.7em;
+                filter: drop-shadow(0 0 2px $color-accent);
             }
-        }
 
-        select:focus,
-        input:focus {
-            border-color: $color-accent;
-            background-color: $color-accent-light;
-            outline: none;
+            &:hover,
+            &:focus {
+                background: $color-accent-light;
+                color: $color-accent;
+                border-color: $color-accent-dark;
+                outline: none;
+                transform: scale(1.05) translateY(-2px);
+            }
+
+            &.active {
+                background: linear-gradient(90deg, $color-accent-light 0%, $color-bg 100%);
+                color: $color-accent-dark;
+                border-color: $color-accent-dark;
+                box-shadow: 0 4px 18px rgba(184, 139, 74, 0.14);
+            }
         }
     }
 
     .map {
         height: 500px;
         width: 100%;
-        border: 1.5px solid $color-border;
+        border: 3.5px double $color-accent;
         border-radius: $radius;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 32px rgba(184, 139, 74, 0.11), 0 0 0 12px #fffbe6;
+        background: $color-bg;
+        overflow: hidden;
+        position: relative;
     }
 
     .noResult {
         text-align: center;
         color: $color-text;
-        font-size: 1.1rem;
-        padding: 1rem;
+        font-size: 1.13rem;
+        padding: 1.3rem;
+        background: $color-accent-light;
+        border-radius: $radius;
+        margin-top: 1.2rem;
+        font-family: var(--font-title, 'High Tower Text', serif);
+        border: 2px dashed $color-accent;
     }
 }
 
+// Markers
 .iconAvailable {
-    filter: drop-shadow(0 0 3px var(--color-accent));
+    filter: drop-shadow(0 0 5px $color-accent);
     opacity: 1;
 }
 
 .iconUnavailable {
     filter: grayscale(100%) brightness(0.7);
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
+// Popup style Mucha
 .popup {
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     align-items: center;
-    max-width: 230px;
-    padding: 1rem;
-    border-radius: $radius;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    background-color: $color-bg;
+    max-width: 260px;
+    padding: 1.2rem 1rem 1rem 1rem;
+    border-radius: 2.2rem 2.2rem 1rem 1rem;
+    background: linear-gradient(120deg, #fffbe6 80%, #f9e7c2 100%);
+    border: 2.5px double $color-accent;
+    box-shadow: 0 6px 32px rgba(184, 139, 74, 0.12);
+    position: relative;
+
+    &::before {
+        content: '';
+        display: block;
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 64px;
+        height: 10px;
+        border-radius: 8px;
+        background: linear-gradient(90deg, #d4af37 0%, #fffbe6 50%, #d4af37 100%);
+        box-shadow: 0 2px 8px rgba(212, 175, 55, 0.13);
+        opacity: 0.8;
+        z-index: 2;
+    }
 
     .avatar {
-        width: 72px;
-        height: 72px;
+        width: 78px;
+        height: 78px;
         border-radius: 50%;
         object-fit: cover;
-        margin-bottom: 0.5rem;
-        border: 2px solid transparent;
+        margin-bottom: 0.7rem;
+        border: 3px solid $color-accent;
+        box-shadow: 0 2px 8px rgba(184, 139, 74, 0.11);
+        background: #fffbe6;
     }
 
     h3 {
-        margin: 0.25rem 0;
-        font-size: 1.2rem;
+        margin: 0.2rem 0 0.3rem 0;
+        font-size: 1.22rem;
+        font-family: var(--font-title, 'High Tower Text', serif);
+        font-weight: 700;
+        color: $color-accent-dark;
+        letter-spacing: 0.01em;
+        text-align: center;
+        text-shadow: 0 2px 6px rgba(184, 139, 74, 0.08);
     }
 
     p {
-        font-size: 0.9rem;
+        font-size: 1.01rem;
         color: $color-text;
         text-align: center;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.8rem;
+        margin-top: 0.1rem;
+        font-family: var(--font-text, 'High Tower Text', serif);
     }
 
     .contactBtn {
-        background-color: $color-accent;
-        color: white;
+        background: linear-gradient(90deg, $color-accent 0%, $color-accent-dark 100%);
+        color: #fff;
         border: none;
-        padding: 0.5rem 1rem;
-        border-radius: $radius;
+        padding: 0.6rem 1.2rem;
+        border-radius: 2em;
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 1.05rem;
+        font-family: var(--font-title, 'High Tower Text', serif);
+        box-shadow: 0 2px 8px rgba(184, 139, 74, 0.11);
+        transition: background 0.22s, transform 0.12s;
 
-        &:hover {
-            background-color: $color-accent-dark;
+        &:hover,
+        &:focus {
+            background: $color-accent-dark;
+            outline: none;
+            transform: scale(1.05) translateY(-2px);
         }
     }
 
+    // Catégories
     &.concierge {
-        border: 2px solid var(--concierge-primary);
+        border-color: var(--concierge-primary, #6c4fbb);
 
         h3 {
-            color: var(--concierge-primary);
+            color: var(--concierge-primary, #6c4fbb);
         }
 
         .avatar {
-            border-color: var(--concierge-primary);
+            border-color: var(--concierge-primary, #6c4fbb);
         }
     }
 
     &.artisan {
-        border: 2px solid var(--artisan-primary);
+        border-color: var(--artisan-primary, #e6b800);
 
         h3 {
-            color: var(--artisan-primary);
+            color: var(--artisan-primary, #e6b800);
         }
 
         .avatar {
-            border-color: var(--artisan-primary);
+            border-color: var(--artisan-primary, #e6b800);
         }
     }
 
     &.proprietaire {
-        border: 2px solid var(--proprio-primary);
+        border-color: var(--proprio-primary, #b88b4a);
 
         h3 {
-            color: var(--proprio-primary);
+            color: var(--proprio-primary, #b88b4a);
         }
 
         .avatar {
-            border-color: var(--proprio-primary);
+            border-color: var(--proprio-primary, #b88b4a);
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 900px) {
+    .container {
+        .map {
+            height: 340px;
+        }
+
+        .controls {
+            gap: 0.7rem;
+        }
+    }
+
+    .popup {
+        max-width: 96vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0.6rem 0.1rem;
+
+        .map {
+            height: 220px;
+        }
+
+        .controls {
+            flex-direction: column;
+            align-items: stretch;
+
+            button {
+                font-size: 1rem;
+                padding: 0.7em 1em;
+
+                img {
+                    width: 1.2em;
+                    height: 1.2em;
+                }
+            }
+        }
+    }
+
+    .popup {
+        padding: 0.7rem 0.5rem;
+
+        .avatar {
+            width: 54px;
+            height: 54px;
+        }
+
+        h3 {
+            font-size: 1rem;
+        }
+
+        p {
+            font-size: 0.9rem;
         }
     }
 }
