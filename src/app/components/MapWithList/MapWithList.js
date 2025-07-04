@@ -1,4 +1,5 @@
 // components/MapWithList.js
+"use client";
 import { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';

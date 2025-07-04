@@ -1,4 +1,5 @@
 // pages/index.js
+"use client";
 import dynamic from 'next/dynamic';
 
 // Leaflet ne fonctionne pas bien en SSR, on charge dynamiquement
