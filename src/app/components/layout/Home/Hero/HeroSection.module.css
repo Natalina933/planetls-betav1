@@ -32,21 +32,25 @@
     position: relative;
     z-index: 2;
     flex-wrap: nowrap;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1330px;
+    margin: 54px 54px;
 }
 
 .carouselWrapper {
-    width: 100%;
-    max-width: 480px;
-    flex-shrink: 1;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 2px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
+  width: 100%;
+  max-width: 480px;
+  flex-shrink: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  background: var(--glass-bg);
+
+  /* Ajout du préfixe pour Safari */
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
+
 
 .content {
     width: 100%;

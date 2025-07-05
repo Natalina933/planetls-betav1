@@ -1,105 +1,80 @@
-.page {
-  /* Couleurs de base en RGB pour alpha */
-  --gray-rgb: 34, 34, 34;
+// homepage.module.scss
 
-  /* Variables de transparence */
-  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
-  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
 
-  /* Couleurs boutons */
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-
-  /* Couleurs fond et texte */
-  --background: #ffffff;
-  --foreground: #171717;
-
-  /* Font */
-  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
-
-  /* Layout */
-  display: grid;
-  grid-template-rows: 20px 1fr 20px;
-  align-items: center;
-  justify-items: center;
-
+.main {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'High Tower T', serif;
   min-height: 100svh;
-  padding: 40px 20px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
   gap: 64px;
-
-  background-color: var(--background);
-  color: var(--foreground);
 }
 
-/* Boutons */
-.button-primary {
-  background-color: var(--foreground);
+.section {
+  margin-top: 3rem;
+  padding: 0 1rem;
+}
+
+.centeredTitle {
+  text-align: center;
+  color: var(--foreground);
+  font-family: 'Felix Titling', serif;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.05em;
+}
+
+.buttonPrimary {
+  background: var(--foreground);
   color: var(--background);
   border: none;
   padding: 0.8rem 1.5rem;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.3s ease;
-
+  border-radius: var(--radius, 4px);
+  transition: background 0.3s;
   &:hover {
-    background-color: var(--button-primary-hover);
+    background: var(--primary-hover, #383838);
   }
 }
 
-.button-secondary {
-  background-color: transparent;
+.buttonSecondary {
+  background: transparent;
   color: var(--foreground);
   border: 2px solid var(--foreground);
   padding: 0.8rem 1.5rem;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.3s ease, color 0.3s ease;
-
+  border-radius: var(--radius, 4px);
+  transition: background 0.3s, color 0.3s;
   &:hover {
-    background-color: var(--button-secondary-hover);
-    color: var(--foreground);
+    background: var(--secondary-hover, #f2f2f2);
   }
 }
 
-/* Titres */
-h1, h2, h3 {
-  color: var(--foreground);
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
+// a {
+//   color: var(--foreground);
+//   text-decoration: underline;
+//   transition: color 0.2s;
+//   &:hover {
+//     color: var(--primary-hover, #383838);
+//   }
+// }
 
-/* Paragraphes */
-p {
-  color: var(--foreground);
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
-}
-
-/* Liens */
-a {
-  color: var(--foreground);
-  text-decoration: underline;
-
-  &:hover {
-    color: var(--button-primary-hover);
+@media (max-width: 800px) {
+  .main {
+    padding: 20px 5px;
+    gap: 32px;
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  .page {
-    --gray-rgb: 255, 255, 255;
-    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
-    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-
-    --background: #0a0a0a;
-    --foreground: #ededed;
-
-    background-color: var(--background);
-    color: var(--foreground);
+  .section {
+    margin-top: 2rem;
+    padding: 0;
+  }
+  .centeredTitle {
+    font-size: 1.2rem;
   }
 }

@@ -5,7 +5,6 @@
     width: 100%;
     padding: 1rem 2rem;
     background-color: var(--background);
-    border-bottom: 1px solid var(--color-border);
     font-family: var(--font-main);
     display: flex;
     justify-content: flex-end;
@@ -60,7 +59,7 @@
         position: relative;
         text-decoration: none;
         color: var(--color-text);
-        font-size: 1rem;
+        font-size: 1.5rem;
         font-weight: 500;
         padding: 0.5rem 0;
         transition: color 0.3s ease;
