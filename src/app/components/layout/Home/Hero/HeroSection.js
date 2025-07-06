@@ -1,5 +1,5 @@
 import React from 'react';
-import CTAButton from '../../../common/Buttons/Button/Bouton';
+import CTAButton from '@/app/components/common/buttons/CTAbutton/CTAButton';
 import styles from './HeroSection.module.css';
 import CategoryCarousel from './CategoryCarousel';
 
@@ -10,6 +10,7 @@ const HeroSection = () => {
     return (
         <section className={styles.hero}>
             <div className={styles.overlay} />
+      
             <div className={styles.grid}>
                 <div className={styles.carouselWrapper}>
                     <CategoryCarousel />

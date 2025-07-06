@@ -1,0 +1,77 @@
+@use "src/app/styles/abstracts/_mixins" as *;
+@use "sass:color";
+
+$color-accent: #b88b4a; // doré Mucha
+$color-accent-light: color.adjust($color-accent, $lightness: 35%);
+$color-accent-dark: color.adjust($color-accent, $lightness: -18%);
+$color-bg: #fffbe6;
+$color-text: #3a2a1a;
+$color-border: #e3cfa4;
+$radius: 2.2rem;
+$spacing-md: 1.4rem;
+
+.controls {
+  @include flex-center;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  margin-bottom: $spacing-md;
+
+  button {
+    @include mucha-frame;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: $color-bg;
+    color: $color-accent-dark;
+    border: 2.5px double $color-accent;
+    border-radius: 2em;
+    padding: 0.7em 1.7em;
+    font-size: 1.1rem;
+    font-family: var(--font-title, 'High Tower Text', serif);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 16px rgba(184, 139, 74, 0.09);
+    transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.12s;
+
+    img {
+      width: 1.7em;
+      height: 1.7em;
+      filter: drop-shadow(0 0 2px $color-accent);
+    }
+
+    &:hover,
+    &:focus {
+      background: $color-accent-light;
+      color: $color-accent;
+      border-color: $color-accent-dark;
+      outline: none;
+      transform: scale(1.05) translateY(-2px);
+    }
+  }
+
+  .active {
+    background: linear-gradient(90deg, $color-accent-light 0%, $color-bg 100%);
+    color: $color-accent-dark;
+    border-color: $color-accent-dark;
+    box-shadow: 0 4px 18px rgba(184, 139, 74, 0.14);
+  }
+}
+
+// Responsive
+@media (max-width: 600px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+
+    button {
+      font-size: 1rem;
+      padding: 0.7em 1em;
+
+      img {
+        width: 1.2em;
+        height: 1.2em;
+      }
+    }
+  }
+}

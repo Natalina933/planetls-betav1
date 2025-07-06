@@ -1,10 +1,12 @@
 "use client";
+import React from "react";
 
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 // import useSWR from "swr";
+import MapFilter from "./../../../Filters/MapFilter/MapFilter"; 
 import styles from "./MapWithSearch.module.scss";
 
 // Icônes personnalisées Leaflet (exemple simples)
@@ -50,7 +52,7 @@ export default function MapWithSearch() {
             position: [48.86, 2.35],
             available: false,
             services: ["Plomberie", "Électricité"],
-            photo: "/avatars/marie.jng",
+            photo: "/avatars/marie.png",
         },
         {
             id: 3,
@@ -82,37 +84,8 @@ export default function MapWithSearch() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.controls}>
-                <button
-                    className={filter === "proprietaire" ? styles.active : ""}
-                    onClick={() => setFilter("proprietaire")}
-                    aria-label="Voir les propriétaires"
-                >
-                    <img src="/icons/home-icon.svg" alt="" /> Propriétaires
-                </button>
-                <button
-                    className={filter === "concierge" ? styles.active : ""}
-                    onClick={() => setFilter("concierge")}
-                    aria-label="Voir les concierges"
-                >
-                    <img src="/icons/Mon_logo.svg" alt="" /> Concierges
-                </button>
-                <button
-                    className={filter === "artisan" ? styles.active : ""}
-                    onClick={() => setFilter("artisan")}
-                    aria-label="Voir les artisans"
-                >
-                    <img src="/icons/order-1-svgrepo-com.svg" alt="" /> Artisans
-                </button>
-                <button
-                    className={filter === "all" ? styles.active : ""}
-                    onClick={() => setFilter("all")}
-                    aria-label="Voir tous"
-                >
-                    Tous
-                </button>
-            </div>
 
+ <MapFilter filter={filter} setFilter={setFilter} />
 
             <MapContainer
                 center={userPos || [48.8566, 2.3522]}

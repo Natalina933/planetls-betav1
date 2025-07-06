@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./styles/main.scss";
 import Providers from "./context/Providers";
-import Header from "./components/layout/Header/Header"; // <-- Ajout de l'import
+import Header from "./components/layout/Header/Header";
 
 export const metadata: Metadata = {
   title: "PlanetLs",
@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="fr">
-      <body>
+      {/* Next.js va injecter le contenu du <body> ici */}
+      <body suppressHydrationWarning={true}>
         <Providers>
           <Header />
-
           {children}
         </Providers>
       </body>

@@ -6,6 +6,7 @@ import TestimonialList from '../components/testimonials/TestimonialList';
 import BlogPreviewList from '../components/blog/BlogPreviewList';
 import HeroSection from '../components/layout/Home/Hero/HeroSection';
 import styles from './page.module.scss';
+import ForWhomSection from '../components/layout/Home/ForWhomSection/ForWhomSection';
 
 // Chargement dynamique côté client uniquement
 const MapWithSearch = dynamic(
@@ -20,6 +21,8 @@ export default function HomePage() {
 
             <main>
                 <HeroSection />
+                <ForWhomSection />
+                
                 <MapWithSearch />
 
                 <section className={styles.section}>

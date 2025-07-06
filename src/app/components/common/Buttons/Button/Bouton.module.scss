@@ -1,4 +1,5 @@
-.button {
+.button,
+.button-secondary {
     background-color: #d4af37; // Doré principal
     color: white;
     border: none;
@@ -21,11 +22,14 @@
         transform: scale(0.98);
     }
 
-    &:focus {
+    &:focus,
+    &:active {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.4);
+        box-shadow: none;
+        border-color: transparent;
     }
 }
+
 .button-secondary {
     background-color: transparent;
     color: #d4af37; // Doré principal
@@ -35,5 +39,12 @@
     &:hover {
         background-color: #d4af37;
         color: white;
+    }
+
+    &:focus,
+    &:active {
+        outline: none;
+        box-shadow: none;
+        border-color: transparent;
     }
 }
