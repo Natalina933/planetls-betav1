@@ -12,13 +12,10 @@ export default function Navbar() {
 
     return (
         <nav className={styles.navbar}>
-            <button className={styles.burger} onClick={toggleMenu} aria-label="Menu">
-                <svg
-                    className={`${styles.burgerIcon} ${isOpen ? styles.open : ''}`}
-                    viewBox="0 0 100 80"
-                    width="30"
-                    height="30"
-                >
+            
+
+            <button className={`${styles.burger} ${isOpen ? styles.open : ''}`} onClick={toggleMenu} aria-label="Menu">
+                <svg viewBox="0 0 100 80" width="30" height="30">
                     <rect className={styles.bar1} width="100" height="10" rx="6" />
                     <rect className={styles.bar2} y="30" width="100" height="10" rx="6" />
                     <rect className={styles.bar3} y="60" width="100" height="10" rx="6" />

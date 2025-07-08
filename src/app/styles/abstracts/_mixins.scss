@@ -1,3 +1,7 @@
+@use "sass:map";
+@use "sass:color";
+@use "sass:math";
+
 // Centrage flex
 @mixin flex-center {
     display: flex;
@@ -49,7 +53,6 @@
     }
 }
 
-// Light mode
 @mixin lightMode {
     [data-theme="light"] & {
         background-color: var(--bg);
@@ -58,9 +61,7 @@
     }
 }
 
-@mixin mucha-frame($color: #d4af37,
-    $radius: 2.2rem,
-    $thickness: 2.5px) {
+@mixin mucha-frame($color: #d4af37, $radius: 2.2rem, $thickness: 2.5px) {
     border: $thickness double $color;
     border-radius: $radius;
     box-shadow:
@@ -70,12 +71,42 @@
 }
 
 @mixin respond($size) {
-    @media (max-width: map-get($breakpoints, $size)) {
+    @media (max-width: map.get($breakpoints, $size)) {
         @content;
     }
 }
 
-// Responsive
+@mixin mucha-corners($position: all) {
+    @if $position ==left or $position ==all {
+        &::before {
+            content: '';
+            position: absolute;
+            top: 2rem; // rem(32)
+            left: 0.75rem; // rem(12)
+            width: 10rem; // rem(160)
+            height: 10rem; // rem(160)
+            background: url('/ornements/mucha-corner-left.svg') no-repeat;
+            background-size: contain;
+            opacity: 0.12;
+        }
+    }
+
+    @if $position ==right or $position ==all {
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 2rem; // rem(32)
+            right: 0.75rem; // rem(12)
+            width: 10rem; // rem(160)
+            height: 10rem; // rem(160)
+            background: url('/src/app/assets/ornements/mucha-corner-right.svg') no-repeat;
+            background-size: contain;
+            opacity: 0.12;
+        }
+    }
+}
+
+// Responsive (alternative basique sans map)
 @mixin respond-to($breakpoint) {
     @if $breakpoint ==mobile {
         @media (max-width: 600px) {

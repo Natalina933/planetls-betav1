@@ -1,6 +1,7 @@
-// Convertit px en rem
+@use "sass:math";
+
 @function rem($px, $base: 16) {
-    @return ($px / $base) * 1rem;
+    @return #{math.div($px, $base)}rem;
 }
 
 // Ajoute une opacité à une couleur hexadécimale

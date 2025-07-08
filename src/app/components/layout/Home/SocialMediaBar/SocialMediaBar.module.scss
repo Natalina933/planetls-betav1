@@ -1,0 +1,43 @@
+@use "src/app/styles/abstracts/index" as *;
+@use "sass:color";
+
+.socialBar {
+  background-color: #fdf7ec;
+  border-top: 1px solid $gold;
+  border-bottom: 1px solid $gold;
+  padding: rem(20);
+  display: flex;
+  justify-content: center;
+  gap: rem(20);
+  transition: background-color 0.3s ease;
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: rem(44);
+    height: rem(44);
+    border: 1px solid $gold;
+    border-radius: 50%;
+    color: $gold;
+    background-color: #fffaf3;
+    transition: all 0.3s ease;
+
+    svg {
+      width: rem(24);
+      height: rem(24);
+    }
+
+    &:hover {
+      background-color: $gold;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px color.mix(black, $gold, 30%); // au lieu de rgba
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px color.adjust($gold, $alpha: -0.7); // simule rgba($gold, 0.3)
+    }
+  }
+}

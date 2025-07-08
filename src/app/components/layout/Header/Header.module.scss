@@ -1,3 +1,4 @@
+/* Styles existants pour .header et .logo */
 .header {
   display: flex;
   justify-content: space-between;
@@ -11,6 +12,9 @@
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
+    /* Aligne les éléments à gauche sur mobile */
+    padding: 1rem;
+    /* Réduit le padding sur mobile pour plus d'espace */
   }
 }
 
@@ -18,9 +22,15 @@
   display: flex;
   align-items: center;
   margin-bottom: 0;
+  flex-shrink: 0;
+  /* Empêche le logo de rétrécir prématurément */
 
   @media (max-width: 768px) {
     margin-bottom: 0.5rem;
+    width: 100%;
+    /* Assure que le conteneur du logo prend toute la largeur disponible */
+    justify-content: flex-start;
+    /* Aligne le logo à gauche */
   }
 
   a {
@@ -30,16 +40,51 @@
     font-weight: bold;
     color: var(--color-text);
     text-decoration: none;
+
+    /* Rendre la taille de la police du titre du logo responsive */
+    @media (max-width: 768px) {
+      font-size: 1.8rem;
+      /* Légèrement plus petit sur tablette */
+    }
+
+    @media (max-width: 480px) {
+      /* Pour les téléphones */
+      font-size: 1.5rem;
+      /* Encore plus petit sur les très petits écrans */
+    }
   }
 
   .logoWrapper {
     position: relative;
     display: inline-block;
+    /* Assurez-vous que le logoWrapper ne limite pas la taille de l'image */
+    line-height: 0;
+    /* Élimine l'espace sous l'image s'il y en a */
 
     img {
       display: block;
-      width: 519px; // ✅ logo agrandi ici (ex: 160px ou ajustable à ta convenance)
+      width: 280px;
+      /* Taille par défaut pour les grands écrans */
       height: auto;
+      max-width: 100%;
+      /* S'assure que l'image ne dépasse jamais son conteneur parent */
+
+      @media (max-width: 768px) {
+        width: 150px;
+        /* Réduit la taille sur les tablettes */
+      }
+
+      @media (max-width: 480px) {
+        /* Pour les téléphones */
+        width: 120px;
+        /* Taille pour les petits smartphones */
+      }
+
+      @media (max-width: 380px) {
+        /* Pour les très petits écrans (ex: iPhone SE) */
+        width: 100px;
+        /* Taille minimale pour éviter le débordement */
+      }
     }
   }
 }

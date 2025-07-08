@@ -1,5 +1,4 @@
 :root {
-
     /* Couleurs neutres */
     --color-text: #222;
     --color-bg: #f4f6f8;
@@ -7,39 +6,32 @@
     --background: #ffffff;
     --foreground: #171717;
 
-
     /* Couleurs système */
     --color-success: #4CAF50;
     --color-error: #E53935;
     --color-accent: #FFC107;
-    /* Accent variations */
     --color-accent-light: #ffd699;
-    /* orange clair */
     --color-accent-dark: #cc7a00;
-    /* orange foncé */
     --color-accent-hover: #ffb84d;
-    
+
     --color-secondary: rgba(32, 95, 120, 0.5);
     --color-secondary-light: #F7FBFE;
     --color-secondary-dark: #0E1A2A;
 
-    /* === Catégorie : Propriétaires === */
+    /* Catégorie : Propriétaires */
     --proprio-primary: #205F78;
-    /* bleu doux */
     --proprio-hover: rgba(32, 95, 120, 0.5);
     --proprio-bg: #EAF1FF;
     --proprio-text: #1C3A77;
 
-    /* === Catégorie : Concierges === */
+    /* Catégorie : Concierges */
     --concierge-primary: #82A27C;
-    /* vert sauge */
     --concierge-hover: #6A8C65;
     --concierge-bg: #F2F7F3;
     --concierge-text: #344B3C;
 
-    /* === Catégorie : Artisans / Commerçants === */
+    /* Catégorie : Artisans / Commerçants */
     --artisan-primary: #C17C54;
-    /* terre cuivrée */
     --artisan-hover: #A7643C;
     --artisan-bg: #FBEFE7;
     --artisan-text: #4B2F1F;
@@ -57,8 +49,11 @@
     --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
     --glass-blur: blur(6px);
 
-    /* Hero font */
+    /* Fonts */
     --font-title: 'Montserrat', sans-serif;
+    --font-text: 'Open Sans', sans-serif;
+    --font-elegant: 'Cormorant Garamond', serif;
+
     /* Espacements */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
@@ -69,11 +64,32 @@
     /* Radius */
     --radius: 4px;
 }
+
+// --- NOUVELLES VARIABLES SASS ---
+$proprio-primary-sass: #205F78; // Correspond à --proprio-primary
+$proprio-hover-sass: rgba(32, 95, 120, 0.5); // Correspond à --proprio-hover
+
+$color-secondary-dark-sass: #0E1A2A; // Correspond à --color-secondary-dark
+
+$primary-dark-color-sass: #171717; // Correspond à --foreground, qui semble être une couleur foncée générale
+// Ou choisissez une autre couleur foncée pertinente de votre :root
+// ---------------------------------
+
+// === Couleurs principales ===
 $gold: #D4AF37;
+$gold-rgba-10: rgba(#D4AF37, 0.1);
+$gold-rgba-30: rgba(#D4AF37, 0.3);
+$gold-rgba-50: rgba(#D4AF37, 0.5);
+
 $deep-blue: #1E2A38;
 $cream: #FAF4EC;
-$font-elegant: 'Cormorant Garamond', serif;
 
+// === Typographie ===
+$font-elegant: 'Cormorant Garamond', serif;
+$font-text: 'Open Sans', sans-serif;
+$font-title: 'Montserrat', sans-serif;
+
+// === Rayons, ombres, transitions ===
 $radius: 12px;
 $transition: all 0.3s ease;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

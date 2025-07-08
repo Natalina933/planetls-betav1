@@ -1,0 +1,243 @@
+@use "sass:math";
+@use "sass:color";
+@use "src/app/styles/abstracts/index" as *;
+
+.forWhomSection {
+    position: relative;
+    overflow: hidden;
+    padding: 4.5rem 1.25rem;
+    background: linear-gradient(to bottom, #fefaf2, #f6efe2);
+
+    // 🎨 Ornement central illustratif
+    &::before {
+        content: '';
+        position: absolute;
+        top: 7px;
+        left: -47px;
+        width: 40%;
+        height: 30%;
+        background: url('/ornements/ornement.png') no-repeat center / contain;
+        opacity: 0.25;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+
+    // 🪶 Ornement de coin bas droite (discret)
+    &::after {
+        content: '';
+        position: absolute;
+        top: 7px;
+        right: 0;
+        width: 30%;
+        height: 30%;
+        background: url('/ornements/ornement-right.svg') no-repeat bottom right / contain;
+        opacity: 0.25;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+
+    // 📦 Conteneur principal
+    .content {
+        position: relative;
+        z-index: 1;
+        max-width: 1000px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2.5rem;
+        text-align: center;
+    }
+
+    // 🏷️ Titre principal
+    .title {
+        font-family: $font-elegant;
+        font-size: 2.375rem;
+        color: $gold;
+        position: relative;
+        animation: fadeInTitle 0.6s ease both;
+
+        &::after {
+            content: '';
+            display: block;
+            margin: 0.5rem auto 0;
+            width: 5rem;
+            height: 0.25rem;
+            background-color: $gold;
+        }
+    }
+
+    // 📝 Sous-titre
+    .subtitle {
+        font-style: italic;
+        font-size: 1.25rem;
+        color: $gold;
+        opacity: 0.8;
+    }
+
+    // ✅ Liste des bénéfices
+    .benefits {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: 2rem;
+        z-index: 1;
+
+        li {
+            background-color: #fffaf4;
+            border: 2px solid $gold;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.4s ease, opacity 0.3s ease;
+            animation: fadeInUp 0.8s ease both;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+
+            img {
+                width: 3rem;
+                height: 3rem;
+            }
+
+            strong {
+                font-family: $font-elegant;
+                font-size: 1.125rem;
+                color: $gold;
+                font-weight: bold;
+            }
+
+            p {
+                font-size: 1rem;
+                line-height: 1.5;
+                color: var(--color-text);
+            }
+        }
+    }
+
+    .divider {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        height: 40px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        opacity: 0;
+        animation: fadeInDivider 1.2s ease 0.5s forwards;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+
+    // 🔘 Actions & CTA
+    .heroActions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .buttonsRow {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .ctaTertiary {
+        font-size: 1rem;
+        color: $gold;
+        text-decoration: underline;
+        transition: color 0.3s ease;
+
+        &:hover {
+            color: var(--color-text);
+        }
+    }
+
+    .securityNote {
+        font-size: 0.875rem;
+        margin-top: 0.75rem;
+        color: var(--color-text);
+        opacity: 0.75;
+    }
+}
+
+// 🎬 Animation fadeInUp
+@keyframes fadeInUp {
+    from {
+        transform: translateY(1.25rem);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+// 🪶 Animation pour l'ornement de coin
+@keyframes fadeInUp {
+    from {
+        transform: translateY(1.25rem);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInTitle {
+    from {
+        transform: translateY(-1rem);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInSubtitle {
+    from {
+        transform: translateY(-0.5rem);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDivider {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
