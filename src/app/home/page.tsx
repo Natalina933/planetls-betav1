@@ -24,9 +24,9 @@ export default function HomePage() {
         <div>
             <main>
                 <HeroSection />
+                <MapWithSearch />
                 <ForWhomSection />
                 <HowItWorksSection />
-                <MapWithSearch />
                 <ShopSection />
                 <section className={styles.section}>
                     <h2 className={styles.centeredTitle}>Nos services</h2>

@@ -2,6 +2,23 @@
 @use "sass:color";
 @use "sass:math";
 
+@use "src/app/styles/abstracts/breakpoints" as bp;
+
+@mixin mq($size) {
+    @media (max-width: map.get(bp.$breakpoints, $size)) {
+        @content;
+    }
+}
+
+@mixin container($max-width: 1200px, $padding: 1rem) {
+    width: 100%;
+    max-width: $max-width;
+    margin: 0 auto;
+    padding-left: $padding;
+    padding-right: $padding;
+}
+
+
 // Centrage flex
 @mixin flex-center {
     display: flex;
@@ -26,6 +43,76 @@
     box-shadow: 0 2px 8px $color;
 }
 
+// Animation de fondu en entrée
+// Cette animation fait apparaître un élément avec un effet de fondu et de translation vers le
+@mixin fade-in($duration: 0.4s, $easing: ease-in-out) {
+    animation: fadeIn $duration $easing both;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Visually hidden mixin for accessibility
+// This mixin hides elements visually but keeps them accessible to screen readers.
+
+@mixin visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+// Clearfix mixin
+// This mixin is used to clear floats in a container, ensuring that it contains floated children
+@mixin clearfix {
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+// Heading styles mixin
+// This mixin applies consistent styles to headings based on their level.
+@mixin heading-style($level: 1) {
+    font-family: var(--font-title, 'High Tower Text', serif);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+
+    @if $level ==1 {
+        font-size: 2.6rem;
+    }
+
+    @else if $level ==2 {
+        font-size: 2rem;
+    }
+
+    @else if $level ==3 {
+        font-size: 1.5rem;
+    }
+}
+
+@mixin grid($columns: 2, $gap: 1rem) {
+    display: grid;
+    grid-template-columns: repeat($columns, 1fr);
+    gap: $gap;
+}
+
 // Bouton basique
 @mixin button-base {
     padding: 0.75rem 1.5rem;
@@ -37,7 +124,7 @@
 }
 
 @mixin soft-hover($color) {
-    transition: $transition;
+    transition: var(--transition, 0.2s ease-in-out); // Utilise une variable CSS si définie, sinon fallback
 
     &:hover {
         box-shadow: 0 0 8px $color;
@@ -70,6 +157,8 @@
     background: linear-gradient(120deg, #fffbe6 80%, #f9e7c2 100%);
 }
 
+// Le mixin 'respond' est déjà défini et utilise la carte $breakpoints.
+// Je n'ai pas modifié son nom car il était fourni, mais 'mq' est souvent préféré pour la clarté.
 @mixin respond($size) {
     @media (max-width: map.get($breakpoints, $size)) {
         @content;
@@ -81,10 +170,10 @@
         &::before {
             content: '';
             position: absolute;
-            top: 2rem; // rem(32)
-            left: 0.75rem; // rem(12)
-            width: 10rem; // rem(160)
-            height: 10rem; // rem(160)
+            top: 2rem;
+            left: 0.75rem;
+            width: 10rem;
+            height: 10rem;
             background: url('/ornements/mucha-corner-left.svg') no-repeat;
             background-size: contain;
             opacity: 0.12;
@@ -95,34 +184,13 @@
         &::after {
             content: '';
             position: absolute;
-            bottom: 2rem; // rem(32)
-            right: 0.75rem; // rem(12)
-            width: 10rem; // rem(160)
-            height: 10rem; // rem(160)
+            bottom: 2rem;
+            right: 0.75rem;
+            width: 10rem;
+            height: 10rem;
             background: url('/src/app/assets/ornements/mucha-corner-right.svg') no-repeat;
             background-size: contain;
             opacity: 0.12;
-        }
-    }
-}
-
-// Responsive (alternative basique sans map)
-@mixin respond-to($breakpoint) {
-    @if $breakpoint ==mobile {
-        @media (max-width: 600px) {
-            @content;
-        }
-    }
-
-    @else if $breakpoint ==tablet {
-        @media (max-width: 900px) {
-            @content;
-        }
-    }
-
-    @else if $breakpoint ==desktop {
-        @media (min-width: 901px) {
-            @content;
         }
     }
 }

@@ -1,7 +1,8 @@
 $breakpoints: (
-    "xs": 480px,
-    "sm": 600px,
-    "md": 768px,
-    "lg": 1024px,
-    "xl": 1200px
+ xs: 0,
+    sm: 576px,
+    md: 768px, // Point de rupture "md" utilisé dans l'erreur
+    lg: 992px,
+    xl: 1200px,
+    xxl: 1400px,
 );

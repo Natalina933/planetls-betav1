@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./MapFilter.module.scss";
+import styles from "./CategoriesFilter.module.scss";
 
 const FILTERS = [
     {
@@ -28,7 +28,7 @@ const FILTERS = [
     },
 ];
 
-export default function MapFilter({ filter, setFilter }) {
+export default function CategoriesFilter({ filter, setFilter }) {
     return (
         <div className={styles.controls}>
             {FILTERS.map(({ key, label, icon, aria }) => (
