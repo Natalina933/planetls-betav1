@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import styles from "./MapWithSearch.module.scss";
-import { FaHome, FaBell, FaTools, FaGlobe, FaSearchLocation } from 'react-icons/fa'; // Ajout de FaSearchLocation
+import { FaHome, FaBell, FaTools, FaGlobe, FaSearchLocation } from 'react-icons/fa';
 
 const CATEGORY_CONFIG = [
     {
@@ -27,12 +27,11 @@ const CATEGORY_CONFIG = [
     },
 ];
 
-
 export default function MapWithSearch() {
     const [filter, setFilter] = useState("all");
-    const [location, setLocation] = useState(""); // Nouveau state pour la localisation de recherche
+    const [location, setLocation] = useState("");
     const activeCategory = CATEGORY_CONFIG.find(cat => cat.key === filter) || CATEGORY_CONFIG[0];
-    // Les profils restent pour la démo des filtres de catégorie, même sans carte
+
     const profiles = [
         {
             id: 1,
@@ -68,28 +67,35 @@ export default function MapWithSearch() {
         : profiles.filter((p) => p.type === filter);
 
     const handleSearch = () => {
-        // Logique de recherche à implémenter ici
-        // Pour l'instant, simule une redirection ou un traitement
         alert(`Recherche lancée pour : "${location}" dans la catégorie "${filter}".\nRedirection vers la page de résultats...`);
-        // Ici, vous implémenteriez la logique de navigation vers votre page de résultats de recherche
-        // Par exemple: router.push(`/search-results?location=${location}&category=${filter}`);
+        // router.push(`/search-results?location=${location}&category=${filter}`);
     };
 
     return (
-        <div className={styles.container}>
+        <div className={styles.mapWithSearchSection}>
             <header className={styles.intro}>
                 <h2>
                     Bienvenue sur PlanetLS :<br />
                     <span className={styles.introSub}>La plateforme de mise en relation pour la location saisonnière.</span>
                 </h2>
                 <p className={styles.introDescription}>
-                    Connectez-vous avec les acteurs clés de la location saisonnière et découvrez de nouvelles opportunités professionnelles. Que vous soyez propriétaire, concierge ou artisan, trouvez le partenaire idéal pour vos projets en quelques clics.
+                    Connectez-vous à un réseau dynamique d'acteurs clés de la location saisonnière. Que vous soyez propriétaire optimisant vos biens, concierge indépendant étendant votre portefeuille ou artisan qualifié recherchant de nouvelles opportunités, PlanetLS est votre solution.
+                    **Rejoignez-nous dès aujourd'hui et transformez vos projets en succès, en quelques clics.**
                 </p>
 
                 <section className={styles.categorySearchSection}>
                     <div className={styles.bubblesRow}>
                         {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }) => (
-                            <div key={key} className={`${styles.bubbleBlock} ${filter === key ? styles.active : ""}`}>
+                            <div
+                                key={key}
+                                className={`${styles.bubbleBlock} ${filter === key ? styles.active : ""}`}
+                                style={{
+                                    '--bubble-primary': `var(--${key}-primary)`,
+                                    '--bubble-hover': `var(--${key}-hover)`,
+                                    '--bubble-bg': `var(--${key}-bg)`,
+                                    '--bubble-text': `var(--${key}-text)`,
+                                }}
+                            >
                                 <button
                                     className={styles.bubbleBtn}
                                     onClick={() => setFilter(key)}
@@ -98,26 +104,34 @@ export default function MapWithSearch() {
                                 >
                                     <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
                                 </button>
-                                <div className={styles.bubbleLabel}>{label}</div>
-                                <div className={styles.bubbleDescription}>{description}</div>
-                                <div className={styles.categoryTextBubble} style={{ color: activeCategory.textColor }}>
-                                    <h3>{activeCategory.label}</h3>
-                                    <p>
-                                        {activeCategory.key === "proprietaire" && "Gérez, louez, centralisez : trouvez des partenaires fiables pour chaque étape de votre location saisonnière."}
-                                        {activeCategory.key === "concierge" && "Développez votre activité, gérez vos missions, accédez à de nouveaux clients et gagnez en autonomie."}
-                                        {activeCategory.key === "artisan" && "Gagnez en visibilité, touchez de nouveaux clients, proposez vos offres locales et bénéficiez de la crédibilité de la plateforme."}
-                                    </p>
-                                </div>
+                                {/* <div className={styles.bubbleLabel}>{label}</div> */}
+                                {/* <div className={styles.bubbleDescription}>{description}</div> */}
+                                {/* Texte additionnel affiché seulement si actif */}
+                                {filter === key && (
+                                    <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
+                                        <h3>{label}</h3>
+                                        <p>{description}</p>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
                     <div className={styles.imageCol}>
-                        <img
-                            src={activeCategory.image}
-                            alt={`Visuel ${activeCategory.label}`}
-                            className={styles.categoryImage}
-                        />
+                        <div className={styles.imageCard} style={{
+                            '--image-glow': `var(--${activeCategory.key}-primary, var(--color-accent))`
+                        }}>
+                            <img
+                                src={activeCategory.image}
+                                alt={`Visuel ${activeCategory.label}`}
+                                className={styles.categoryImage}
+                            />
+                            {/* Badge optionnel */}
+                            <span className={styles.imageBadge}>{activeCategory.label}</span>
+                            {/* Motif artistique flottant */}
+                            <div className={styles.artisticBg}></div>
+                        </div>
                     </div>
+
                 </section>
             </header>
 
@@ -142,9 +156,6 @@ export default function MapWithSearch() {
                 </p>
             </section>
 
-
-            {/* La section des profils visibles peut être conservée pour illustrer le filtrage,
-                même si elle ne s'affiche pas directement sur une carte */}
             <div className={styles.profilesDisplay}>
                 {visibleProfiles.length > 0 ? (
                     <ul className={styles.profileList}>

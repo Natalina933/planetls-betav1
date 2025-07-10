@@ -1,35 +1,92 @@
 @use "sass:math";
 @use "sass:color";
-@use "src/app/styles/abstracts/index" as *;
+@use "src/app/styles/abstracts/index" as *; // Assurez-vous que ce chemin est correct
 
-.container {
-    @include flex-column;
-    gap: var(--spacing-md);
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 2rem 0;
+.mapWithSearchSection {
+    position: relative;
+    overflow: hidden;
+    padding: 4.5rem 1.25rem 0 1.25rem; // Padding pour l'espacement supérieur
+    background: linear-gradient(to bottom, #fefaf2, #f6efe2); // Fond dégradé
+
+    // Ornement central illustratif (ajusté pour un meilleur placement)
+    &::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: -80px;
+        width: 35%;
+        height: 25%;
+        background: url('/ornements/ornement.png') no-repeat center / contain;
+        opacity: 0.2;
+        z-index: 0;
+        pointer-events: none;
+
+        @include mq(md) {
+            top: 5px;
+            left: -30px;
+            width: 25%;
+            height: 20%;
+        }
+    }
+
+    // Ornement de coin bas droite (discret) (ajusté pour un meilleur placement)
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 20px;
+        right: -80px;
+        width: 30%;
+        height: 30%;
+        background: url('/ornements/ornement-bottom-right.svg') no-repeat bottom right / contain;
+        opacity: 0.15;
+        z-index: 0;
+        pointer-events: none;
+
+        @include mq(md) {
+            bottom: 5px;
+            right: -30px;
+            width: 20%;
+            height: 20%;
+        }
+    }
+
+    // Place le contenu au-dessus des ornements
+    >* {
+        position: relative;
+        z-index: 1;
+    }
 }
 
 .intro {
+    max-width: 980px;
+    margin: 0 auto 2rem auto; // Centrage et marge sous l'intro
+    padding: 0 var(--spacing-sm); // Ajouter un padding pour les petits écrans
     text-align: center;
-    margin-bottom: 2rem; // Plus d'espace sous l'intro
 
     h2 {
         font-family: var(--font-title, 'High Tower Text', serif);
-        font-size: 2.2rem; // Légèrement plus grand
+        font-size: 2.2rem;
         color: var(--color-accent-dark);
         margin-bottom: 0.5rem;
         font-weight: 700;
         letter-spacing: 0.02em;
+
+        @include mq(sm) {
+            font-size: 1.8rem;
+        }
     }
 
     .introSub {
         display: block;
-        font-size: 1.3rem; // Légèrement plus grand
+        font-size: 1.3rem;
         color: var(--color-text);
         margin-top: 0.2rem;
         font-family: var(--font-text, 'High Tower Text', serif);
         font-weight: 400;
+
+        @include mq(sm) {
+            font-size: 1.1rem;
+        }
     }
 
     .introDescription {
@@ -40,50 +97,48 @@
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
-    }
-}
 
-.categoriesBar {
-    display: flex;
-    justify-content: center;
-    gap: 1.1rem; // Espace réduit
-    margin: 2rem 0 2.5rem 0;
-    flex-wrap: wrap;
+        @include mq(sm) {
+            font-size: 0.95rem;
+        }
+    }
 }
 
 .categorySearchSection {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: var(--spacing-xl);
+    gap: var(--spacing-xl); // Espace entre les bulles et l'image
     max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-xl) var(--spacing-lg);
+    margin: var(--spacing-xl) auto; // Marge pour centrer la section
+    padding: var(--spacing-md) var(--spacing-lg); // Padding interne
 
-    @media (max-width: 900px) {
+    @include mq(md) {
         flex-direction: column;
+        align-items: center; // Centrer les éléments en colonne
         gap: var(--spacing-lg);
-        padding: var(--spacing-lg) var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-sm);
     }
 }
 
 .bubblesRow {
     display: flex;
-    flex-direction: row;
-    gap: var(--spacing-lg);
-    align-items: flex-end;
+    flex-direction: row; // Par défaut en ligne
+    gap: var(--spacing-xl); // Espacement entre les bulles
+    align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
     justify-content: flex-start;
-    flex: 1 1 0;
+    flex: 1 1 0; // Permet de prendre l'espace disponible
 
-    @media (max-width: 900px) {
-        flex-direction: column;
-        align-items: center;
+    @include mq(md) {
+        flex-direction: column; // En colonne sur les écrans moyens
+        align-items: center; // Centrer les bulles en colonne
         gap: var(--spacing-md);
     }
 }
 
 .bubbleBlock {
-    // Valeurs par défaut (fallback)
+    // Les variables --bubble-primary, --bubble-hover, etc., sont passées via le style inline en React
+    // Nous définissons des valeurs par défaut ici si elles ne sont pas fournies.
     --bubble-primary: var(--color-accent);
     --bubble-hover: var(--color-accent-hover);
     --bubble-bg: #fff;
@@ -94,8 +149,9 @@
     align-items: center;
     min-width: 160px;
     max-width: 200px;
-    transition: transform 0.18s;
+    transition: transform 0.18s ease-out; // Transition plus douce
     position: relative;
+    padding-bottom: 1rem; // Espace pour la bulle de texte flottante
 
     .bubbleBtn {
         width: 110px;
@@ -103,16 +159,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2.5px solid var(--bubble-primary);
+        border: 2.5px solid var(--bubble-primary); // Utilise la couleur dynamique
         border-radius: 50%;
-        background: var(--bubble-bg);
-        transition: background 0.18s, border-color 0.18s, transform 0.13s;
+        background: var(--bubble-bg); // Utilise la couleur dynamique
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.13s ease;
         cursor: pointer;
         margin-bottom: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); // Légère ombre
 
         &:hover,
         &:focus-visible {
-            border-color: var(--bubble-hover);
+            border-color: var(--bubble-hover); // Utilise la couleur dynamique
             background: color-mix(in srgb, var(--bubble-bg) 80%, var(--bubble-hover) 20%);
             outline: 3px solid var(--bubble-hover);
             outline-offset: 2px;
@@ -129,32 +186,34 @@
         svg {
             width: 60px;
             height: 60px;
-            color: var(--bubble-primary);
-            transition: color 0.2s;
+            color: var(--bubble-primary); // Utilise la couleur dynamique
+            transition: color 0.2s ease;
         }
     }
 
     .bubbleLabel {
         font-family: var(--font-title);
         font-size: 1rem;
-        color: var(--bubble-primary);
+        color: var(--bubble-primary); // Utilise la couleur dynamique
         font-weight: 600;
         margin-bottom: 0.3rem;
         text-align: center;
-        transition: color 0.2s;
+        transition: color 0.2s ease;
     }
 
     .bubbleDescription {
         font-family: var(--font-text);
         font-size: 0.98rem;
-        color: var(--bubble-text);
+        color: var(--bubble-text); // Utilise la couleur dynamique
         text-align: center;
         margin-top: 0.2rem;
         max-width: 170px;
-        min-height: 3.2em;
+        min-height: 3.2em; // Assure une hauteur minimale pour alignement
         display: flex;
         align-items: center;
         justify-content: center;
+        line-height: 1.4;
+        word-break: break-word; // Ajouté pour gérer les mots longs
     }
 
     &.active {
@@ -168,184 +227,14 @@
         .bubbleLabel {
             color: var(--bubble-primary);
         }
-    }
-}
 
-
-
-.imageCol {
-    flex: 0 0 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 320px;
-    min-height: 320px;
-    padding: var(--spacing-lg);
-    background: linear-gradient(135deg, var(--color-bg) 60%, var(--color-accent-light) 100%);
-    border-radius: 2rem;
-    box-shadow: 0 8px 40px rgba(32, 95, 120, 0.08), 0 1.5px 12px rgba(212, 175, 55, 0.06);
-    position: relative;
-    overflow: hidden;
-    transition: background 0.35s cubic-bezier(.4, 0, .2, 1), box-shadow 0.3s;
-
-    &::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 2rem;
-        box-shadow: 0 0 80px 10px var(--color-accent-light);
-        opacity: 0.12;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    @media (max-width: 900px) {
-        min-width: 100%;
-        margin-top: var(--spacing-lg);
-        padding: var(--spacing-md);
-        border-radius: 1.2rem;
-    }
-
-    .categoryImage {
-        width: 100%;
-        max-width: 380px;
-        min-height: 260px;
-        border-radius: 1.5rem;
-        box-shadow:
-            0 8px 32px rgba(32, 95, 120, 0.12),
-            0 1.5px 12px rgba(212, 175, 55, 0.08);
-        object-fit: cover;
-        background: var(--color-bg);
-        aspect-ratio: 4/3;
-        transition:
-            box-shadow 0.3s cubic-bezier(.4, 0, .2, 1),
-            transform 0.3s cubic-bezier(.4, 0, .2, 1);
-        position: relative;
-        z-index: 2;
-
-        &:hover,
-        &:focus {
-            box-shadow:
-                0 16px 48px rgba(32, 95, 120, 0.18),
-                0 4px 24px rgba(212, 175, 55, 0.12);
-            transform: scale(1.025) translateY(-4px);
-        }
-    }
-}
-
-
-.categorySearchSection {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--spacing-sm);
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-xl) var(--spacing-lg);
-
-    @media (max-width: 900px) {
-        flex-direction: column;
-        gap: var(--spacing-lg);
-        padding: var(--spacing-lg) var(--spacing-sm);
-    }
-}
-
-.bubblesRow {
-    display: flex;
-    flex-direction: row;
-    gap: var(--spacing-xl);
-    align-items: flex-end;
-    justify-content: flex-start;
-    flex: 1 1 0;
-
-    @media (max-width: 900px) {
-        flex-direction: column;
-        align-items: center;
-        gap: var(--spacing-md);
-    }
-}
-
-.bubbleBlock {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 160px;
-    max-width: 200px;
-    transition: transform 0.18s;
-    position: relative;
-
-    &.active {
-        .bubbleBtn {
-            border-color: var(--color-accent-dark);
-            background: var(--color-accent-light);
-            transform: scale(1.08) translateY(-3px);
-            z-index: 2;
-        }
-
-        .bubbleLabel {
-            color: var(--color-accent-dark);
-        }
-
+        // Activation de la bulle de texte flottante
         .categoryTextBubble {
             opacity: 1;
             pointer-events: auto;
-            transform: translateY(0);
+            transform: translate(-50%, 0);
         }
     }
-}
-
-.bubbleBtn {
-    width: 110px;
-    height: 110px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2.5px solid var(--color-accent);
-    border-radius: 50%;
-    background: #fff;
-    transition: background 0.18s, border-color 0.18s, transform 0.13s;
-    cursor: pointer;
-    margin-bottom: 0.5rem;
-
-    &:hover,
-    &:focus-visible {
-        border-color: var(--color-accent-dark);
-        background: var(--color-accent-light);
-        outline: 3px solid var(--color-accent-dark);
-        outline-offset: 2px;
-    }
-}
-
-.bubbleIcon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-
-    svg {
-        width: 60px;
-        height: 60px;
-        color: var(--color-accent-dark);
-    }
-}
-
-.bubbleLabel {
-    font-family: var(--font-title);
-    font-size: 1rem;
-    color: var(--color-accent-dark);
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    text-align: center;
-}
-
-.bubbleDescription {
-    font-family: var(--font-text);
-    font-size: 0.98rem;
-    color: var(--color-text);
-    text-align: center;
-    margin-top: 0.2rem;
-    max-width: 170px;
 }
 
 .categoryTextBubble {
@@ -353,17 +242,15 @@
     pointer-events: none;
     position: absolute;
     left: 50%;
-    top: 115%;
-    transform: translate(-50%, 10px);
+    top: 100%; // Position juste en dessous de la bulle
+    transform: translate(-50%, 15px); // Décalage initial pour l'animation
     min-width: 220px;
     max-width: 260px;
     background: #fff;
-    border-radius: 20px 20px 20px 0;
+    border-radius: 20px 20px 20px 0; // Forme de bulle
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
     padding: 1.1rem 1.3rem;
     font-family: var(--font-text);
-    font-size: 1.04rem;
-    color: var(--color-text);
     z-index: 10;
     transition:
         opacity 0.3s cubic-bezier(.4, 0, .2, 1),
@@ -373,68 +260,121 @@
         font-family: var(--font-title);
         font-size: 1.13rem;
         margin-bottom: 0.4rem;
-        color: var(--color-accent-dark);
+        color: var(--bubble-primary); // Utilise la couleur dynamique de la bulle active
         font-weight: 700;
         text-align: left;
     }
 
     p {
         margin: 0;
-        color: var(--color-text);
+        color: var(--bubble-text); // Utilise la couleur dynamique de la bulle active
         font-size: 1rem;
         line-height: 1.5;
         text-align: left;
+        word-break: break-word; // Ajouté pour gérer les mots longs
     }
 
-    @media (max-width: 900px) {
+    @include mq(md) {
+        // Ajustements pour les écrans moyens
         left: 50%;
-        top: 110%;
+        top: 110%; // Ajuster la position si nécessaire en mode colonne
         min-width: 180px;
         max-width: 90vw;
     }
 }
 
-.imageCol {
-    flex: 0 0 380px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 320px;
-    min-height: 320px;
+// .imageCol {
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   min-height: 400px;
+//   padding: 2rem 0;
+//   background: none;
+// }
 
-    @media (max-width: 900px) {
-        min-width: 100%;
-        margin-top: var(--spacing-lg);
-    }
+// .imageCard {
+//   position: relative;
+//   border-radius: 2rem;
+//   overflow: visible;
+//   box-shadow:
+//     0 8px 32px rgba(32, 95, 120, 0.09),
+//     0 0 0 6px var(--image-glow, #e9c46a);
+//   background: #fff;
+//   transition: box-shadow 0.3s cubic-bezier(.4,0,.2,1), transform 0.3s cubic-bezier(.4,0,.2,1);
+//   display: flex;
+//   align-items: flex-end;
+//   justify-content: center;
+//   min-width: 340px;
+//   min-height: 320px;
+//   padding: 2rem 2rem 1.5rem 2rem;
 
-    .categoryImage {
-        width: 100%;
-        max-width: 380px;
-        border-radius: 24px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
-        object-fit: cover;
-        background: var(--color-bg);
-        aspect-ratio: 4/3;
-        transition: box-shadow 0.2s;
-    }
-}
+//   &:hover {
+//     box-shadow:
+//       0 18px 48px rgba(32, 95, 120, 0.18),
+//       0 0 0 10px var(--image-glow, #e9c46a);
+//     transform: translateY(-6px) scale(1.025);
+//   }
+// }
+
+// .categoryImage {
+//   width: 100%;
+//   max-width: 420px;
+//   aspect-ratio: 4/3;
+//   object-fit: cover;
+//   border-radius: 1.5rem;
+//   box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+//   z-index: 2;
+//   position: relative;
+//   background: var(--color-bg);
+//   transition: box-shadow 0.3s, transform 0.3s;
+// }
+
+// .imageBadge {
+//   position: absolute;
+//   top: 1.1rem;
+//   left: 1.5rem;
+//   background: var(--image-glow, #e9c46a);
+//   color: #fff;
+//   font-family: var(--font-title, 'Montserrat', sans-serif);
+//   font-size: 1rem;
+//   padding: 0.4em 1.2em;
+//   border-radius: 2em;
+//   box-shadow: 0 2px 12px rgba(32, 95, 120, 0.13);
+//   letter-spacing: 0.04em;
+//   z-index: 3;
+//   font-weight: 600;
+//   text-shadow: 0 1px 4px rgba(0,0,0,0.08);
+// }
 
 
-/* NOUVEAU: Styles pour la section de recherche */
+
+
+
+
+/* Styles pour la section de recherche */
 .searchSection {
+    max-width: 980px;
+    margin: 3rem auto 0 auto; // Centrage et marge supérieure
     background: var(--color-bg);
-    border: 3px double var(--color-accent);
+    border: 3px double var(--color-accent); // Double bordure élégante
     border-radius: var(--radius);
     padding: 2.5rem;
     text-align: center;
-    box-shadow: 0 4px 32px rgba(184, 139, 74, 0.11), 0 0 0 12px #fffbe6;
-    margin-top: 2rem;
+    box-shadow: 0 4px 32px rgba(184, 139, 74, 0.11), 0 0 0 12px #fffbe6; // Ombre et bordure externe
+
+    @include mq(sm) {
+        padding: 1.8rem;
+    }
 
     h3 {
         font-family: var(--font-title, 'High Tower Text', serif);
         font-size: 1.8rem;
         color: var(--color-accent-dark);
         margin-bottom: 1.5rem;
+
+        @include mq(sm) {
+            font-size: 1.5rem;
+        }
     }
 
     .searchInputGroup {
@@ -449,11 +389,20 @@
         border: 1px solid var(--color-border);
         padding: 8px 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+        @include mq(sm) {
+            flex-wrap: wrap; // Permet aux éléments de passer à la ligne
+            padding: 6px 10px;
+        }
     }
 
     .searchIcon {
         color: var(--color-text-light);
         font-size: 1.2em;
+
+        @include mq(sm) {
+            font-size: 1em;
+        }
     }
 
     .locationInput {
@@ -463,6 +412,12 @@
         padding: 8px 0;
         font-size: 1.05rem;
         color: var(--color-text);
+
+        @include mq(sm) {
+            flex-basis: 100%; // Prend toute la largeur sur mobile
+            padding: 8px;
+            text-align: center;
+        }
 
         &::placeholder {
             color: var(--color-text-light);
@@ -481,6 +436,11 @@
         font-weight: 600;
         transition: background-color 0.2s ease, transform 0.1s ease;
 
+        @include mq(sm) {
+            width: 100%;
+            padding: 12px;
+        }
+
         &:hover {
             background-color: var(--color-accent-dark);
             transform: translateY(-1px);
@@ -495,27 +455,36 @@
         font-size: 0.95rem;
         color: var(--color-text-light);
         margin-top: 1rem;
+
+        @include mq(sm) {
+            font-size: 0.85rem;
+        }
     }
 }
 
-/* NOUVEAU: Styles pour l'affichage des profils (liste, pas carte) */
+/* Styles pour l'affichage des profils (liste) */
 .profilesDisplay {
-    margin-top: 3rem;
+    max-width: 980px;
+    margin: 3rem auto var(--spacing-xl) auto; // Centrage et marges
     padding: 1.5rem;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 
+    @include mq(sm) {
+        padding: 1rem;
+    }
+
     .profileList {
         list-style: none;
         padding: 0;
         margin: 0;
         display: grid;
-        gap: 1.5rem;
+        gap: 1.5rem; // Espacement entre les items de la grille
 
         @include mq(md) {
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); // Ajuste les colonnes
         }
     }
 
@@ -540,11 +509,13 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 1rem;
-            border: 2px solid;
+            border: 2px solid; // Bordure dynamique via JS
+            flex-shrink: 0; // Empêche l'avatar de rétrécir
         }
 
+        // Couleurs de bordure des avatars selon le type de profil
         &.proprietaire .profileAvatar {
-            border-color: var(--proprio-primary);
+            border-color: var(--proprietaire-primary);
         }
 
         &.concierge .profileAvatar {
@@ -562,12 +533,20 @@
                 margin: 0 0 0.5rem 0;
                 color: var(--foreground);
                 font-size: 1.1em;
+
+                @include mq(sm) {
+                    font-size: 1em;
+                }
             }
 
             p {
                 margin: 0 0 0.8rem 0;
                 color: var(--color-text);
                 font-size: 0.9em;
+
+                @include mq(sm) {
+                    font-size: 0.85em;
+                }
             }
 
             .profileContactBtn {
@@ -596,4 +575,9 @@
     border: 1px dashed var(--color-border);
     border-radius: var(--radius);
     margin-top: 2rem;
+
+    @include mq(sm) {
+        font-size: 1em;
+        padding: 1.5rem;
+    }
 }

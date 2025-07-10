@@ -5,12 +5,14 @@ import Footer from '../components/layout/Footer/Footer';
 import ServiceList from '../services/ServiceList';
 import TestimonialList from '../components/testimonials/TestimonialList';
 import BlogPreviewList from '../components/blog/BlogPreviewList';
-import HeroSection from '../components/layout/Home/Hero/HeroSection';
+// import HeroSection from '../components/layout/Home/Hero/HeroSection';
 import ForWhomSection from '../components/layout/Home/ForWhomSection/ForWhomSection';
 import styles from './page.module.scss';
 import { HowItWorksSection } from "../components/layout/Home/HowItWorksSection/HowItWorksSection";
 import { ShopSection } from '../components/layout/Home/ShopSection/ShopSection';
-import {SocialMediaBar} from '../components/layout/Home/SocialMediaBar/SocialMediaBar';
+import Settings from '../components/Settings/Settings';
+import FirstVisit from '../components/layout/Home/FirsteVisit/FirstVisit'; //
+// import {SocialMediaBar} from '../components/layout/Home/SocialMediaBar/SocialMediaBar';
 // import TrustSection from '../components/layout/Home/TrustSection/TrustSection';
 
 // Chargement dynamique côté client uniquement
@@ -23,10 +25,12 @@ export default function HomePage() {
     return (
         <div>
             <main>
-                <HeroSection />
+                <Settings />
+                <FirstVisit />
+                {/* <HeroSection /> */}
                 <MapWithSearch />
-                <ForWhomSection />
                 <HowItWorksSection />
+                <ForWhomSection />
                 <ShopSection />
                 <section className={styles.section}>
                     <h2 className={styles.centeredTitle}>Nos services</h2>
@@ -41,7 +45,7 @@ export default function HomePage() {
                     <h2 className={styles.centeredTitle}>Derniers conseils & actualités</h2>
                     <BlogPreviewList />
                 </section>
-                <SocialMediaBar />
+                {/* <SocialMediaBar /> */}
                 <Footer />
             </main>
         </div>
