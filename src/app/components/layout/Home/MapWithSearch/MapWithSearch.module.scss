@@ -51,72 +51,372 @@
     flex-wrap: wrap;
 }
 
-.categoryBtn {
-    width: 120px;   // Anciennement 88px
-  height: 120px;  // Anciennement 88px
+.categorySearchSection {
     display: flex;
-    flex-direction: column;
-    align-items: center; // Centre les éléments horizontalement (pour une colonne)
-    justify-content: center; // Centre les éléments verticalement
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--spacing-xl);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl) var(--spacing-lg);
 
-    background: var(--color-bg);
-    border: 2.5px solid var(--color-accent);
-    border-radius: 50%;
-    width: 150px;
-    height: 150px;
-    box-shadow: 0 3px 15px rgba(184, 139, 74, 0.12);
-    transition: background 0.18s, border-color 0.18s, transform 0.13s;
-    cursor: pointer;
-    outline: none;
-    padding: 0;
-    position: relative;
-
-    &:hover,
-    &.active {
-        background: var(--color-accent-light);
-        border-color: var(--color-accent-dark);
-        transform: scale(1.08) translateY(-3px);
-        z-index: 1;
-    }
-
-    &:focus-visible {
-        outline: 3px solid var(--color-accent-dark);
-        outline-offset: 4px;
+    @media (max-width: 900px) {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-lg) var(--spacing-sm);
     }
 }
 
-.categoryCircle {
-    // Renommé de .categoryIcon pour correspondre au JSX
+.bubblesRow {
     display: flex;
-    align-items: center; // Centre l'icône SVG verticalement dans ce conteneur
-    justify-content: center; // Centre l'icône SVG horizontalement dans ce conteneur
-    width: 100%; // Prend toute la largeur du bouton parent
-    height: 35px;
-    margin-top: 14px; // Supprimé pour un meilleur centrage global
-    margin-bottom: 0.25rem; // Maintient l'espace entre l'icône et le label
+    flex-direction: row;
+    gap: var(--spacing-lg);
+    align-items: flex-end;
+    justify-content: flex-start;
+    flex: 1 1 0;
+
+    @media (max-width: 900px) {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+}
+
+.bubbleBlock {
+    // Valeurs par défaut (fallback)
+    --bubble-primary: var(--color-accent);
+    --bubble-hover: var(--color-accent-hover);
+    --bubble-bg: #fff;
+    --bubble-text: var(--color-text);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 160px;
+    max-width: 200px;
+    transition: transform 0.18s;
+    position: relative;
+
+    .bubbleBtn {
+        width: 110px;
+        height: 110px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2.5px solid var(--bubble-primary);
+        border-radius: 50%;
+        background: var(--bubble-bg);
+        transition: background 0.18s, border-color 0.18s, transform 0.13s;
+        cursor: pointer;
+        margin-bottom: 0.5rem;
+
+        &:hover,
+        &:focus-visible {
+            border-color: var(--bubble-hover);
+            background: color-mix(in srgb, var(--bubble-bg) 80%, var(--bubble-hover) 20%);
+            outline: 3px solid var(--bubble-hover);
+            outline-offset: 2px;
+        }
+    }
+
+    .bubbleIcon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+
+        svg {
+            width: 60px;
+            height: 60px;
+            color: var(--bubble-primary);
+            transition: color 0.2s;
+        }
+    }
+
+    .bubbleLabel {
+        font-family: var(--font-title);
+        font-size: 1rem;
+        color: var(--bubble-primary);
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        text-align: center;
+        transition: color 0.2s;
+    }
+
+    .bubbleDescription {
+        font-family: var(--font-text);
+        font-size: 0.98rem;
+        color: var(--bubble-text);
+        text-align: center;
+        margin-top: 0.2rem;
+        max-width: 170px;
+        min-height: 3.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &.active {
+        .bubbleBtn {
+            border-color: var(--bubble-primary);
+            background: color-mix(in srgb, var(--bubble-bg) 70%, var(--bubble-primary) 30%);
+            transform: scale(1.08) translateY(-3px);
+            z-index: 2;
+        }
+
+        .bubbleLabel {
+            color: var(--bubble-primary);
+        }
+    }
+}
+
+
+
+.imageCol {
+    flex: 0 0 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 320px;
+    min-height: 320px;
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, var(--color-bg) 60%, var(--color-accent-light) 100%);
+    border-radius: 2rem;
+    box-shadow: 0 8px 40px rgba(32, 95, 120, 0.08), 0 1.5px 12px rgba(212, 175, 55, 0.06);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.35s cubic-bezier(.4, 0, .2, 1), box-shadow 0.3s;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 2rem;
+        box-shadow: 0 0 80px 10px var(--color-accent-light);
+        opacity: 0.12;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    @media (max-width: 900px) {
+        min-width: 100%;
+        margin-top: var(--spacing-lg);
+        padding: var(--spacing-md);
+        border-radius: 1.2rem;
+    }
+
+    .categoryImage {
+        width: 100%;
+        max-width: 380px;
+        min-height: 260px;
+        border-radius: 1.5rem;
+        box-shadow:
+            0 8px 32px rgba(32, 95, 120, 0.12),
+            0 1.5px 12px rgba(212, 175, 55, 0.08);
+        object-fit: cover;
+        background: var(--color-bg);
+        aspect-ratio: 4/3;
+        transition:
+            box-shadow 0.3s cubic-bezier(.4, 0, .2, 1),
+            transform 0.3s cubic-bezier(.4, 0, .2, 1);
+        position: relative;
+        z-index: 2;
+
+        &:hover,
+        &:focus {
+            box-shadow:
+                0 16px 48px rgba(32, 95, 120, 0.18),
+                0 4px 24px rgba(212, 175, 55, 0.12);
+            transform: scale(1.025) translateY(-4px);
+        }
+    }
+}
+
+
+.categorySearchSection {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-xl) var(--spacing-lg);
+
+    @media (max-width: 900px) {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-lg) var(--spacing-sm);
+    }
+}
+
+.bubblesRow {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-xl);
+    align-items: flex-end;
+    justify-content: flex-start;
+    flex: 1 1 0;
+
+    @media (max-width: 900px) {
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+}
+
+.bubbleBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 160px;
+    max-width: 200px;
+    transition: transform 0.18s;
+    position: relative;
+
+    &.active {
+        .bubbleBtn {
+            border-color: var(--color-accent-dark);
+            background: var(--color-accent-light);
+            transform: scale(1.08) translateY(-3px);
+            z-index: 2;
+        }
+
+        .bubbleLabel {
+            color: var(--color-accent-dark);
+        }
+
+        .categoryTextBubble {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+    }
+}
+
+.bubbleBtn {
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2.5px solid var(--color-accent);
     border-radius: 50%;
-    // overflow: hidden;
+    background: #fff;
+    transition: background 0.18s, border-color 0.18s, transform 0.13s;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--color-accent-dark);
+        background: var(--color-accent-light);
+        outline: 3px solid var(--color-accent-dark);
+        outline-offset: 2px;
+    }
+}
+
+.bubbleIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
 
     svg {
         width: 60px;
         height: 60px;
         color: var(--color-accent-dark);
-        display: block;
-        // margin: 0 auto; // N'est plus strictement nécessaire avec flex centering sur le parent, mais ne nuit pas.
     }
 }
 
-.categoryLabel {
-    font-family: var(--font-title, 'High Tower Text', serif);
-    font-size: 0.93rem;
+.bubbleLabel {
+    font-family: var(--font-title);
+    font-size: 1rem;
     color: var(--color-accent-dark);
-    text-align: center;
     font-weight: 600;
-    letter-spacing: 0.01em;
-    margin-top: 0.2rem; // Géré par le margin-bottom du .categoryCircle
-    line-height: 1.2;
-    max-width: 90px;
-    word-break: break-word;
+    margin-bottom: 0.3rem;
+    text-align: center;
+}
+
+.bubbleDescription {
+    font-family: var(--font-text);
+    font-size: 0.98rem;
+    color: var(--color-text);
+    text-align: center;
+    margin-top: 0.2rem;
+    max-width: 170px;
+}
+
+.categoryTextBubble {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    top: 115%;
+    transform: translate(-50%, 10px);
+    min-width: 220px;
+    max-width: 260px;
+    background: #fff;
+    border-radius: 20px 20px 20px 0;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+    padding: 1.1rem 1.3rem;
+    font-family: var(--font-text);
+    font-size: 1.04rem;
+    color: var(--color-text);
+    z-index: 10;
+    transition:
+        opacity 0.3s cubic-bezier(.4, 0, .2, 1),
+        transform 0.3s cubic-bezier(.4, 0, .2, 1);
+
+    h3 {
+        font-family: var(--font-title);
+        font-size: 1.13rem;
+        margin-bottom: 0.4rem;
+        color: var(--color-accent-dark);
+        font-weight: 700;
+        text-align: left;
+    }
+
+    p {
+        margin: 0;
+        color: var(--color-text);
+        font-size: 1rem;
+        line-height: 1.5;
+        text-align: left;
+    }
+
+    @media (max-width: 900px) {
+        left: 50%;
+        top: 110%;
+        min-width: 180px;
+        max-width: 90vw;
+    }
+}
+
+.imageCol {
+    flex: 0 0 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 320px;
+    min-height: 320px;
+
+    @media (max-width: 900px) {
+        min-width: 100%;
+        margin-top: var(--spacing-lg);
+    }
+
+    .categoryImage {
+        width: 100%;
+        max-width: 380px;
+        border-radius: 24px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+        object-fit: cover;
+        background: var(--color-bg);
+        aspect-ratio: 4/3;
+        transition: box-shadow 0.2s;
+    }
 }
 
 

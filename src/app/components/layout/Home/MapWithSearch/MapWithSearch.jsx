@@ -1,26 +1,37 @@
 "use client";
 import React, { useState } from "react";
-// Supprimez les imports de Leaflet et react-leaflet
-// import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-// import L from "leaflet";
-// import "leaflet/dist/leaflet.css";
 import styles from "./MapWithSearch.module.scss";
-
-// Importez les icônes de Font Awesome (via react-icons/fa)
 import { FaHome, FaBell, FaTools, FaGlobe, FaSearchLocation } from 'react-icons/fa'; // Ajout de FaSearchLocation
 
 const CATEGORY_CONFIG = [
-    { key: "proprietaire", label: "Propriétaires", iconComponent: FaHome },
-    { key: "concierge", label: "Concierges", iconComponent: FaBell },
-    { key: "artisan", label: "Artisans & Commerçants", iconComponent: FaTools },
+    {
+        key: "proprietaire",
+        label: "Propriétaires",
+        iconComponent: FaHome,
+        image: "/images/carousel/proprio.jpeg",
+        description: "Propriétaires locaux, engagés et à l’écoute",
+    },
+    {
+        key: "concierge",
+        label: "Conciergerie",
+        iconComponent: FaBell,
+        image: "/images/carousel/concierges.jpg",
+        description: "Concierges de quartier, service sur-mesure",
+    },
+    {
+        key: "artisan",
+        label: "Artisans",
+        iconComponent: FaTools,
+        image: "/images/carousel/artisans.jpg",
+        description: "Artisans passionnés, savoir-faire local",
+    },
 ];
 
-// Supprimez la fonction getCustomIcon car elle n'est plus nécessaire sans la carte
 
 export default function MapWithSearch() {
     const [filter, setFilter] = useState("all");
     const [location, setLocation] = useState(""); // Nouveau state pour la localisation de recherche
-
+    const activeCategory = CATEGORY_CONFIG.find(cat => cat.key === filter) || CATEGORY_CONFIG[0];
     // Les profils restent pour la démo des filtres de catégorie, même sans carte
     const profiles = [
         {
@@ -75,22 +86,39 @@ export default function MapWithSearch() {
                     Connectez-vous avec les acteurs clés de la location saisonnière et découvrez de nouvelles opportunités professionnelles. Que vous soyez propriétaire, concierge ou artisan, trouvez le partenaire idéal pour vos projets en quelques clics.
                 </p>
 
-                <nav className={styles.categoriesBar}>
-                    {[...CATEGORY_CONFIG, { key: "all", label: "Toutes les catégories", iconComponent: FaGlobe }].map(({ key, label, iconComponent: Icon }) => (
-                        <button
-                            key={key}
-                            className={`${styles.categoryBtn} ${filter === key ? styles.active : ""}`}
-                            onClick={() => setFilter(key)}
-                            aria-label={label}
-                            type="button"
-                        >
-                            <span className={styles.categoryIcon}> {/* Ancien categoryCircle, renommé pour clarté */}
-                                <Icon size="2.2em" />
-                            </span>
-                            <span className={styles.categoryLabel}>{label}</span>
-                        </button>
-                    ))}
-                </nav>
+                <section className={styles.categorySearchSection}>
+                    <div className={styles.bubblesRow}>
+                        {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }) => (
+                            <div key={key} className={`${styles.bubbleBlock} ${filter === key ? styles.active : ""}`}>
+                                <button
+                                    className={styles.bubbleBtn}
+                                    onClick={() => setFilter(key)}
+                                    aria-label={label}
+                                    type="button"
+                                >
+                                    <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
+                                </button>
+                                <div className={styles.bubbleLabel}>{label}</div>
+                                <div className={styles.bubbleDescription}>{description}</div>
+                                <div className={styles.categoryTextBubble} style={{ color: activeCategory.textColor }}>
+                                    <h3>{activeCategory.label}</h3>
+                                    <p>
+                                        {activeCategory.key === "proprietaire" && "Gérez, louez, centralisez : trouvez des partenaires fiables pour chaque étape de votre location saisonnière."}
+                                        {activeCategory.key === "concierge" && "Développez votre activité, gérez vos missions, accédez à de nouveaux clients et gagnez en autonomie."}
+                                        {activeCategory.key === "artisan" && "Gagnez en visibilité, touchez de nouveaux clients, proposez vos offres locales et bénéficiez de la crédibilité de la plateforme."}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className={styles.imageCol}>
+                        <img
+                            src={activeCategory.image}
+                            alt={`Visuel ${activeCategory.label}`}
+                            className={styles.categoryImage}
+                        />
+                    </div>
+                </section>
             </header>
 
             <section className={styles.searchSection}>
