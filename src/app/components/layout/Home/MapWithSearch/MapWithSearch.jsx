@@ -74,14 +74,8 @@ export default function MapWithSearch() {
     return (
         <div className={styles.mapWithSearchSection}>
             <header className={styles.intro}>
-                <h2>
-                    Bienvenue sur PlanetLS :<br />
-                    <span className={styles.introSub}>La plateforme de mise en relation pour la location saisonnière.</span>
-                </h2>
-                <p className={styles.introDescription}>
-                    Connectez-vous à un réseau dynamique d'acteurs clés de la location saisonnière. Que vous soyez propriétaire optimisant vos biens, concierge indépendant étendant votre portefeuille ou artisan qualifié recherchant de nouvelles opportunités, PlanetLS est votre solution.
-                    **Rejoignez-nous dès aujourd'hui et transformez vos projets en succès, en quelques clics.**
-                </p>
+                <h1>Recherchez un professionnel dans votre région</h1>
+                <p>Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.</p>
 
                 <section className={styles.categorySearchSection}>
                     <div className={styles.bubblesRow}>
@@ -136,7 +130,6 @@ export default function MapWithSearch() {
             </header>
 
             <section className={styles.searchSection}>
-                <h3>Recherchez un professionnel dans votre région</h3>
                 <div className={styles.searchInputGroup}>
                     <FaSearchLocation className={styles.searchIcon} />
                     <input

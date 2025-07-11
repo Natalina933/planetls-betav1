@@ -2,7 +2,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Facebook, Instagram, Linkedin } from "lucide-react";
 import styles from "./LandingPage.module.scss";
 
 export default function ComingSoonPage() {

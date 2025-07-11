@@ -62,6 +62,9 @@ export default function CategoryCarousel() {
                             <div className={styles.legend}>
                                 <span>{cat.legend}</span>
                             </div>
+                            <div className={styles.badge} style={{ backgroundColor: categoryFilter[cat.key] }}>
+                                {cat.name}
+                            </div>
                         </div>
                     </div>
                 ))}

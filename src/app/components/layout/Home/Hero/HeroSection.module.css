@@ -75,65 +75,78 @@
     color: white;
   }
 
-  button {
-    background-color: var(--hero-highlight);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+  .buttonsRow {
+    display: flex;
+    gap: 1rem;
 
-    &:hover {
-      background-color: var(--hero-highlight-hover);
-      transform: translateY(-2px);
-    }
-  }
-}
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
 
-/* Responsive */
-@media (max-width: 768px) {
-  .grid {
-    flex-direction: column-reverse;
-    gap: var(--spacing-md);
-    padding: 0 var(--spacing-sm);
-  }
-
-  .content {
-    text-align: center;
-
-    h1 {
-      font-size: 2.2rem;
-    }
-
-    p {
+    button {
+      background-color: var(--hero-highlight);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
       font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+
+      &:hover {
+        background-color: var(--hero-highlight-hover);
+        transform: translateY(-2px);
+      }
     }
   }
 
-  .carouselWrapper {
-    max-width: 280px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero {
-    padding: 4rem var(--spacing-sm);
-  }
-
-  .content {
-    h1 {
-      font-size: 1.8rem;
+  /* Responsive */
+  @media (max-width: 768px) {
+    .grid {
+      flex-direction: column-reverse;
+      gap: var(--spacing-md);
+      padding: 0 var(--spacing-sm);
     }
 
-    p {
-      font-size: 0.9rem;
+    .content {
+      text-align: center;
+
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+    }
+
+    .carouselWrapper {
+      max-width: 280px;
     }
   }
 
-  .carouselWrapper {
-    max-width: 240px;
+  @media (max-width: 480px) {
+    .hero {
+      padding: 4rem var(--spacing-sm);
+    }
+
+    .content {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+    }
+
+    .carouselWrapper {
+      max-width: 240px;
+    }
   }
+
 }
