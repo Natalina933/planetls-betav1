@@ -5,15 +5,19 @@ import CTAButton from "@/app/components/common/buttons/CTAbutton/CTAButton";
 const ForWhomSection = () => (
   <section id="pour-qui" className={styles.forWhomSection} aria-label="À qui s’adresse PlanetLS">
     <div className={styles.content}>
-      <h2 className={styles.title}>Pour qui&nbsp;?</h2>
-      <p className={styles.subtitle}>PlanetLS s’adresse à&nbsp;:</p>
+      <h2 className={styles.title}>PlanetLS s’adresse à&nbsp;
+        qui :</h2>
 
       <div className={styles.blocks}>
         {/* 🔷 Bloc Homeowners */}
         <div className={styles.blockHomeowner}>
           <Image src="/icons/proprio_belle_epoque.png" alt="Icône Homeowners" width={64} height={64} className={styles.icon} />
           <h3>Homeowners</h3>
-          <p>Propriétaire : Connectez-vous à des professionnels qualifiés pour gérer, entretenir ou valoriser votre propriété.</p>
+          <p>
+            Vous êtes propriétaire d’un bien en location saisonnière ? Rejoignez PlanetLS et simplifiez votre gestion locative.
+            Accédez à une sélection de conciergeries indépendantes de confiance, prêtes à valoriser votre bien, optimiser vos revenus,
+            et offrir une expérience exceptionnelle à vos voyageurs. Notre réseau vous connecte aux bons professionnels, au bon moment.
+          </p>
           <CTAButton variant="primary">Trouver une conciergerie</CTAButton>
         </div>
 
@@ -21,7 +25,11 @@ const ForWhomSection = () => (
         <div className={styles.blockManager}>
           <Image src="/icons/concierges_belle_epoque.png" alt="Icône Property Managers" width={64} height={64} className={styles.icon} />
           <h3>Property Managers</h3>
-          <p>Concierges : Développez votre activité, gérez vos missions en toute autonomie et accédez à plus de clients.</p>
+          <p>
+            Vous gérez des biens en location courte durée ou souhaitez élargir votre clientèle ? PlanetLS vous aide à développer votre réseau local
+            et à renforcer votre activité. Grâce à notre plateforme, vous pouvez proposer vos services en toute autonomie,
+            gérer vos missions, et échanger avec des propriétaires à la recherche de partenaires fiables et professionnels.
+          </p>
           <CTAButton variant="primary">Développer mon réseau</CTAButton>
         </div>
 
@@ -29,16 +37,20 @@ const ForWhomSection = () => (
         <div className={styles.blockPartner}>
           <Image src="/icons/artisans_belle_epoque.png" alt="Icône Partners" width={64} height={64} className={styles.icon} />
           <h3>Partners</h3>
-          <p>Proposez vos services aux acteurs de la location saisonnière et augmentez votre visibilité locale.</p>
+          <p>
+            Vous êtes artisan, commerçant ou professionnel de proximité ? PlanetLS vous permet de mettre en avant votre savoir-faire
+            auprès d’une communauté active dans la location saisonnière. Développez votre visibilité locale, proposez vos services aux propriétaires et conciergeries,
+            et contribuez à une expérience voyageur unique et authentique.
+          </p>
           <CTAButton variant="primary">Proposer mon savoir-faire</CTAButton>
         </div>
       </div>
 
       <div className={styles.heroActions}>
-        <div className={styles.buttonsRow}>
+        {/* <div className={styles.buttonsRow}>
           <CTAButton variant="primary">Proposer un service</CTAButton>
           <CTAButton variant="secondary">Rechercher un prestataire</CTAButton>
-        </div>
+        </div> */}
         <a href="#fonctionnement" className={styles.ctaTertiary}>Découvrir comment ça marche</a>
       </div>
 

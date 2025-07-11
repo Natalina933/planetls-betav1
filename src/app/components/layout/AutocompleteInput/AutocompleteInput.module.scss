@@ -1,0 +1,48 @@
+@use "src/app/styles/abstracts/index" as *;
+
+.autocompleteContainer {
+  position: relative;
+  width: 100%;
+
+  .input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    outline: none;
+    transition: $transition;
+
+    &:focus {
+      border-color: var(--color-primary);
+    }
+  }
+
+  .suggestionsList {
+    position: absolute;
+    width: 100%;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+    z-index: 10;
+    box-shadow: $shadow;
+  }
+
+  .suggestionItem {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background-color: var(--color-primary-light);
+    }
+  }
+
+  .selected {
+    background-color: var(--color-primary);
+    color: white;
+  }
+}

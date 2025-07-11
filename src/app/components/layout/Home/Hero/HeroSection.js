@@ -20,7 +20,7 @@ const HeroSection = () => {
 
                 <div className={styles.content}>
                     <h1>Bienvenue sur PlanetLS</h1>
-                    <p>La plateforme de mise en relation pour la location saisonnière.</p>
+                    <p>La plateforme de mise en relation pour les acteurs de la location saisonnière.</p>
                     <div className={styles.buttonsRow}>
                         <CTAButton variant="primary" onClick={() => {/* lien vers inscription */ }}>
                             Inscription gratuite

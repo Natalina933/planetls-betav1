@@ -74,7 +74,8 @@ export default function MapWithSearch() {
     return (
         <div className={styles.mapWithSearchSection}>
             <header className={styles.intro}>
-                <h1>Recherchez un professionnel dans votre région</h1>
+                <h1>Regroupement des Besoins pour la Location saisonnière</h1>
+                <h2>Recherchez un professionnel dans votre région</h2>
                 <p>Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.</p>
 
                 <section className={styles.categorySearchSection}>
