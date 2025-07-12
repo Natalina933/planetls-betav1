@@ -74,7 +74,10 @@ $color-secondary-dark-sass: #0E1A2A; // Correspond à --color-secondary-dark
 $primary-dark-color-sass: #171717; // Correspond à --foreground, qui semble être une couleur foncée générale
 // Ou choisissez une autre couleur foncée pertinente de votre :root
 // ---------------------------------
-
+// === Couleurs neutres ===
+$neutral-text: var(--color-text);
+$default-bubble-primary: var(--color-accent);
+$default-bubble-secondary: var(--color-secondary);
 // === Couleurs principales ===
 $gold: #D4AF37;
 $gold-rgba-10: rgba(#D4AF37, 0.1);

@@ -3,285 +3,377 @@
 @use "src/app/styles/abstracts/index" as *; // Assurez-vous que ce chemin est correct
 
 .mapWithSearchSection {
-    position: relative;
-    overflow: hidden;
-    padding: 4.5rem 1.25rem 0 1.25rem; // Padding pour l'espacement supérieur
-    background: linear-gradient(to bottom, #fefaf2, #f6efe2); // Fond dégradé
+    background: linear-gradient(to bottom, #fdfaf3, #f6f0e5);
+  padding: 4rem 1.5rem;
+  text-align: center;
+  font-family: $font-elegant;
+  position: relative;
 
-    // Ornement central illustratif (ajusté pour un meilleur placement)
-    &::before {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: -80px;
-        width: 35%;
-        height: 25%;
-        // background: url('/ornements/ornement.png') no-repeat center / contain;
-        opacity: 0.2;
-        z-index: 0;
-        pointer-events: none;
-
-        @include mq(md) {
-            top: 5px;
-            left: -30px;
-            width: 25%;
-            height: 20%;
-        }
-    }
-
-    // Ornement de coin bas droite (discret) (ajusté pour un meilleur placement)
-    &::after {
-        content: '';
-        position: absolute;
-        bottom: 20px;
-        right: -80px;
-        width: 30%;
-        height: 30%;
-        // background: url('/ornements/ornement-bottom-right.svg') no-repeat bottom right / contain;
-        opacity: 0.15;
-        z-index: 0;
-        pointer-events: none;
-
-        @include mq(md) {
-            bottom: 5px;
-            right: -30px;
-            width: 20%;
-            height: 20%;
-        }
-    }
-
-    // Place le contenu au-dessus des ornements
-    >* {
+    h2 {
+        font-size: 2.25rem; // 36px
+        color: $gold;
+        margin-bottom: 3rem; // 48px
         position: relative;
-        z-index: 1;
+        display: inline-block;
+    
+        &::after {
+        content: '';
+        display: block;
+        margin: 0.75rem auto 0; // 12px
+        width: 5rem; // 80px
+        height: 0.25rem; // 4px
+        background-color: $gold;
+        }
     }
+
+  // Ornement central illustratif (ajusté pour un meilleur placement)
+  &::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: -80px;
+    width: 35%;
+    height: 25%;
+    // background: url('/ornements/ornement.png') no-repeat center / contain;
+    opacity: 0.2;
+    z-index: 0;
+    pointer-events: none;
+
+    @include mq(md) {
+      top: 5px;
+      left: -30px;
+      width: 25%;
+      height: 20%;
+    }
+  }
+
+  // Ornement de coin bas droite (discret) (ajusté pour un meilleur placement)
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 20px;
+    right: -80px;
+    width: 30%;
+    height: 30%;
+    // background: url('/ornements/ornement-bottom-right.svg') no-repeat bottom right / contain;
+    opacity: 0.15;
+    z-index: 0;
+    pointer-events: none;
+
+    @include mq(md) {
+      bottom: 5px;
+      right: -30px;
+      width: 20%;
+      height: 20%;
+    }
+  }
+
+  // Place le contenu au-dessus des ornements
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .intro {
-    max-width: 980px;
-    margin: 0 auto 2rem auto; // Centrage et marge sous l'intro
-    padding: 0 var(--spacing-sm); // Ajouter un padding pour les petits écrans
-    text-align: center;
+  max-width: 980px;
+  margin: 0 auto 2rem auto; // Centrage et marge sous l'intro
+  padding: 0 var(--spacing-sm); // Ajouter un padding pour les petits écrans
+  text-align: center;
 
-    h2 {
-        font-family: var(--font-title, 'High Tower Text', serif);
-        font-size: 2.2rem;
-        color: var(--color-accent-dark);
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
+  h2 {
+    font-family: var(--font-title, "High Tower Text", serif);
+    font-size: 2.2rem;
+    color: var(--color-accent-dark);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 
-        @include mq(sm) {
-            font-size: 1.8rem;
-        }
+    @include mq(sm) {
+      font-size: 1.8rem;
     }
+  }
 
-    .introSub {
-        display: block;
-        font-size: 1.3rem;
-        color: var(--color-text);
-        margin-top: 0.2rem;
-        font-family: var(--font-text, 'High Tower Text', serif);
-        font-weight: 400;
+  .introSub {
+    display: block;
+    font-size: 1.3rem;
+    color: var(--color-text);
+    margin-top: 0.2rem;
+    font-family: var(--font-text, "High Tower Text", serif);
+    font-weight: 400;
 
-        @include mq(sm) {
-            font-size: 1.1rem;
-        }
+    @include mq(sm) {
+      font-size: 1.1rem;
     }
+  }
 
-    .introDescription {
-        font-size: 1.05rem;
-        color: var(--color-text-light);
-        margin-top: 1.5rem;
-        line-height: 1.6;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
+  .introDescription {
+    font-size: 1.05rem;
+    color: var(--color-text-light);
+    margin-top: 1.5rem;
+    line-height: 1.6;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 
-        @include mq(sm) {
-            font-size: 0.95rem;
-        }
+    @include mq(sm) {
+      font-size: 0.95rem;
     }
+  }
 }
 
 .categorySearchSection {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--spacing-xl); // Espace entre les bulles et l'image
-    max-width: 1200px;
-    margin: var(--spacing-xl) auto; // Marge pour centrer la section
-    padding: var(--spacing-md) var(--spacing-lg); // Padding interne
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-lg); // Espace entre les bulles et l'image
+  max-width: 1200px;
+  margin: var(--spacing-xl) auto; // Marge pour centrer la section
+  padding: var(--spacing-md) var(--spacing-lg); // Padding interne
+   flex-wrap: wrap;
 
-    @include mq(md) {
-        flex-direction: column;
-        align-items: center; // Centrer les éléments en colonne
-        gap: var(--spacing-lg);
-        padding: var(--spacing-md) var(--spacing-sm);
-    }
+  @include mq(md) {
+    flex-direction: column;
+    align-items: center; // Centrer les éléments en colonne
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
 }
+.categoryInstructionWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 1.5rem;
 
+  .categoryInstruction {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary, #333);
+    text-align: center;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
 .bubblesRow {
-    display: flex;
-    flex-direction: row; // Par défaut en ligne
-    gap: var(--spacing-xl); // Espacement entre les bulles
-    align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
-    justify-content: flex-start;
-    flex: 1 1 0; // Permet de prendre l'espace disponible
+  display: flex;
+  flex-direction: row; // Par défaut en ligne
+  gap: var(--spacing-xl); // Espacement entre les bulles
+  align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
+  justify-content: flex-start;
+  flex: 1 1 0; // Permet de prendre l'espace disponible
 
-    @include mq(md) {
-        flex-direction: column; // En colonne sur les écrans moyens
-        align-items: center; // Centrer les bulles en colonne
-        gap: var(--spacing-md);
-    }
+  @include mq(md) {
+    flex-direction: column; // En colonne sur les écrans moyens
+    align-items: center; // Centrer les bulles en colonne
+    gap: var(--spacing-md);
+  }
 }
 
 .bubbleBlock {
-    // Les variables --bubble-primary, --bubble-hover, etc., sont passées via le style inline en React
-    // Nous définissons des valeurs par défaut ici si elles ne sont pas fournies.
-    --bubble-primary: var(--color-accent);
-    --bubble-hover: var(--color-accent-hover);
-    --bubble-bg: #fff;
-    --bubble-text: var(--color-text);
+  // Les variables --bubble-primary, --bubble-hover, etc., sont passées via le style inline en React
+  // Nous définissons des valeurs par défaut ici si elles ne sont pas fournies.
+  --bubble-primary: var(--color-accent);
+  --bubble-hover: var(--color-accent-hover);
+  --bubble-bg: #fff;
+  --bubble-text: var(--color-text);
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 160px;
+  max-width: 200px;
+  transition: transform 0.18s ease-out; // Transition plus douce
+  position: relative;
+  padding-bottom: 1rem; // Espace pour la bulle de texte flottante
+
+  .bubbleBtn {
+    width: 110px;
+    height: 110px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    min-width: 160px;
-    max-width: 200px;
-    transition: transform 0.18s ease-out; // Transition plus douce
-    position: relative;
-    padding-bottom: 1rem; // Espace pour la bulle de texte flottante
+    justify-content: center;
+    border: 2.5px solid var(--bubble-primary); // Utilise la couleur dynamique
+    border-radius: 50%;
+    background: var(--bubble-bg); // Utilise la couleur dynamique
+    transition: background 0.18s ease, border-color 0.18s ease,
+      transform 0.13s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); // Légère ombre
 
-    .bubbleBtn {
-        width: 110px;
-        height: 110px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2.5px solid var(--bubble-primary); // Utilise la couleur dynamique
-        border-radius: 50%;
-        background: var(--bubble-bg); // Utilise la couleur dynamique
-        transition: background 0.18s ease, border-color 0.18s ease, transform 0.13s ease;
-        cursor: pointer;
-        margin-bottom: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); // Légère ombre
-
-        &:hover,
-        &:focus-visible {
-            border-color: var(--bubble-hover); // Utilise la couleur dynamique
-            background: color-mix(in srgb, var(--bubble-bg) 80%, var(--bubble-hover) 20%);
-            outline: 3px solid var(--bubble-hover);
-            outline-offset: 2px;
-        }
+    &:hover,
+    &:focus-visible {
+      border-color: var(--bubble-hover); // Utilise la couleur dynamique
+      background: color-mix(
+        in srgb,
+        var(--bubble-bg) 80%,
+        var(--bubble-hover) 20%
+      );
+      outline: 3px solid var(--bubble-hover);
+      outline-offset: 2px;
     }
+  }
 
-    .bubbleIcon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 60px;
-        height: 60px;
+  .bubbleIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
 
-        svg {
-            width: 60px;
-            height: 60px;
-            color: var(--bubble-primary); // Utilise la couleur dynamique
-            transition: color 0.2s ease;
-        }
+    svg {
+      width: 60px;
+      height: 60px;
+      color: var(--bubble-primary); // Utilise la couleur dynamique
+      transition: color 0.2s ease;
+    }
+  }
+
+  .bubbleLabel {
+    font-family: var(--font-title);
+    font-size: 1rem;
+    color: var(--bubble-primary); // Utilise la couleur dynamique
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    text-align: center;
+    transition: color 0.2s ease;
+  }
+
+  .bubbleDescription {
+    font-family: var(--font-text);
+    font-size: 0.98rem;
+    color: var(--bubble-text); // Utilise la couleur dynamique
+    text-align: center;
+    margin-top: 0.2rem;
+    max-width: 170px;
+    min-height: 3.2em; // Assure une hauteur minimale pour alignement
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4;
+    word-break: break-word; // Ajouté pour gérer les mots longs
+  }
+
+  &.active {
+    .bubbleBtn {
+      border-color: var(--bubble-primary);
+      background: color-mix(
+        in srgb,
+        var(--bubble-bg) 70%,
+        var(--bubble-primary) 30%
+      );
+      transform: scale(1.08) translateY(-3px);
+      z-index: 2;
     }
 
     .bubbleLabel {
-        font-family: var(--font-title);
-        font-size: 1rem;
-        color: var(--bubble-primary); // Utilise la couleur dynamique
-        font-weight: 600;
-        margin-bottom: 0.3rem;
-        text-align: center;
-        transition: color 0.2s ease;
+      color: var(--bubble-primary);
     }
 
-    .bubbleDescription {
-        font-family: var(--font-text);
-        font-size: 0.98rem;
-        color: var(--bubble-text); // Utilise la couleur dynamique
-        text-align: center;
-        margin-top: 0.2rem;
-        max-width: 170px;
-        min-height: 3.2em; // Assure une hauteur minimale pour alignement
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1.4;
-        word-break: break-word; // Ajouté pour gérer les mots longs
+    // Activation de la bulle de texte flottante
+    .categoryTextBubble {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
     }
-
-    &.active {
-        .bubbleBtn {
-            border-color: var(--bubble-primary);
-            background: color-mix(in srgb, var(--bubble-bg) 70%, var(--bubble-primary) 30%);
-            transform: scale(1.08) translateY(-3px);
-            z-index: 2;
-        }
-
-        .bubbleLabel {
-            color: var(--bubble-primary);
-        }
-
-        // Activation de la bulle de texte flottante
-        .categoryTextBubble {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translate(-50%, 0);
-        }
-    }
+  }
+}
+.categoryInstruction {
+  font-size: 1.25rem; // Plus grand que le texte courant
+  font-weight: 600; // Texte semi-gras pour la visibilité
+  margin-bottom: 1rem; // Espace sous le paragraphe
+  color: var(--color-text-primary, #333); // Bonne lisibilité
 }
 
 .categoryTextBubble {
-    opacity: 0;
-    pointer-events: none;
-    position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  top: 100%; // Position juste en dessous de la bulle
+  transform: translate(-50%, 15px); // Décalage initial pour l'animation
+  min-width: 220px;
+  max-width: 260px;
+  background: #fff;
+  border-radius: 20px 20px 20px 0; // Forme de bulle
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  padding: 1rem 1rem;
+  font-family: var(--font-text);
+  z-index: 10;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  h3 {
+    font-family: var(--font-title);
+    font-size: 1.13rem;
+    margin-bottom: 0.4rem;
+    color: var(
+      --bubble-primary
+    ); // Utilise la couleur dynamique de la bulle active
+    font-weight: 700;
+    text-align: left;
+  }
+
+  p {
+    margin: 0;
+    color: var(
+      --bubble-text
+    ); // Utilise la couleur dynamique de la bulle active
+    font-size: 1rem;
+    line-height: 1.5;
+    text-align: left;
+    word-break: break-word; // Ajouté pour gérer les mots longs
+  }
+
+  @include mq(md) {
+    // Ajustements pour les écrans moyens
     left: 50%;
-    top: 100%; // Position juste en dessous de la bulle
-    transform: translate(-50%, 15px); // Décalage initial pour l'animation
-    min-width: 220px;
-    max-width: 260px;
-    background: #fff;
-    border-radius: 20px 20px 20px 0; // Forme de bulle
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
-    padding: 1.1rem 1.3rem;
-    font-family: var(--font-text);
-    z-index: 10;
-    transition:
-        opacity 0.3s cubic-bezier(.4, 0, .2, 1),
-        transform 0.3s cubic-bezier(.4, 0, .2, 1);
-
-    h3 {
-        font-family: var(--font-title);
-        font-size: 1.13rem;
-        margin-bottom: 0.4rem;
-        color: var(--bubble-primary); // Utilise la couleur dynamique de la bulle active
-        font-weight: 700;
-        text-align: left;
-    }
-
-    p {
-        margin: 0;
-        color: var(--bubble-text); // Utilise la couleur dynamique de la bulle active
-        font-size: 1rem;
-        line-height: 1.5;
-        text-align: left;
-        word-break: break-word; // Ajouté pour gérer les mots longs
-    }
-
-    @include mq(md) {
-        // Ajustements pour les écrans moyens
-        left: 50%;
-        top: 110%; // Ajuster la position si nécessaire en mode colonne
-        min-width: 180px;
-        max-width: 90vw;
-    }
+    top: 110%; // Ajuster la position si nécessaire en mode colonne
+    min-width: 180px;
+    max-width: 90vw;
+  }
 }
+.searchBtn {
+  background-color: var(--color-accent);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  @include mq(sm) {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin-top: 0.75rem;
+  }
+}
+
+/* Message ou résultats sous la recherche */
+.searchResults {
+  margin-top: 2rem;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  color: var(--color-text-light);
+  text-align: left;
+
+  @include mq(sm) {
+    text-align: center;
+    font-size: 0.95rem;
+  }
+}
+
 
 // .imageCol {
 //   display: flex;
@@ -346,238 +438,242 @@
 //   text-shadow: 0 1px 4px rgba(0,0,0,0.08);
 // }
 
-
-
-
-
-
 /* Styles pour la section de recherche */
 .searchSection {
-    max-width: 980px;
-    margin: 3rem auto 0 auto; // Centrage et marge supérieure
-    background: var(--color-bg);
-    border: 3px double var(--color-accent); // Double bordure élégante
-    border-radius: var(--radius);
-    padding: 2.5rem;
-    text-align: center;
-    box-shadow: 0 4px 32px rgba(184, 139, 74, 0.11), 0 0 0 12px #fffbe6; // Ombre et bordure externe
+  max-width: 980px;
+  margin: 3rem auto 0 auto; // Centrage et marge supérieure
+  background: var(--color-bg);
+  border: 3px double var(--color-accent); // Double bordure élégante
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  text-align: center;
+  box-shadow: 0 4px 32px rgba(184, 139, 74, 0.11), 0 0 0 12px #fffbe6; // Ombre et bordure externe
+
+  @include mq(sm) {
+    padding: 1.8rem;
+  }
+
+  h3 {
+    font-family: var(--font-title, "High Tower Text", serif);
+    font-size: 1.8rem;
+    color: var(--color-accent-dark);
+    margin-bottom: 1.5rem;
 
     @include mq(sm) {
-        padding: 1.8rem;
+      font-size: 1.5rem;
+    }
+  }
+
+  .searchInputGroup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto 1.5rem auto;
+    background-color: #fff;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    @include mq(sm) {
+      flex-wrap: wrap; // Permet aux éléments de passer à la ligne
+      padding: 6px 10px;
+    }
+  }
+
+  .searchIcon {
+    color: var(--color-text-light);
+    font-size: 1.2em;
+
+    @include mq(sm) {
+      font-size: 1em;
+    }
+  }
+
+  .locationInput {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    padding: 8px 0;
+    font-size: 1.05rem;
+    color: var(--color-text);
+
+    @include mq(sm) {
+      flex-basis: 100%; // Prend toute la largeur sur mobile
+      padding: 8px;
+      text-align: center;
     }
 
-    h3 {
-        font-family: var(--font-title, 'High Tower Text', serif);
-        font-size: 1.8rem;
-        color: var(--color-accent-dark);
-        margin-bottom: 1.5rem;
+    &::placeholder {
+      color: var(--color-text-light);
+      opacity: 0.7;
+    }
+  }
 
-        @include mq(sm) {
-            font-size: 1.5rem;
-        }
+  .searchBtn {
+    background-color: var(--color-accent);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 1.05rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+
+    @include mq(sm) {
+      width: 100%;
+      padding: 12px;
     }
 
-    .searchInputGroup {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        max-width: 600px;
-        margin: 0 auto 1.5rem auto;
-        background-color: #fff;
-        border-radius: var(--radius);
-        border: 1px solid var(--color-border);
-        padding: 8px 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-        @include mq(sm) {
-            flex-wrap: wrap; // Permet aux éléments de passer à la ligne
-            padding: 6px 10px;
-        }
+    &:hover {
+      background-color: var(--color-accent-dark);
+      transform: translateY(-1px);
     }
 
-    .searchIcon {
-        color: var(--color-text-light);
-        font-size: 1.2em;
-
-        @include mq(sm) {
-            font-size: 1em;
-        }
+    &:active {
+      transform: translateY(0);
     }
+  }
 
-    .locationInput {
-        flex-grow: 1;
-        border: none;
-        outline: none;
-        padding: 8px 0;
-        font-size: 1.05rem;
-        color: var(--color-text);
+  .searchGuidance {
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    margin-top: 1rem;
 
-        @include mq(sm) {
-            flex-basis: 100%; // Prend toute la largeur sur mobile
-            padding: 8px;
-            text-align: center;
-        }
-
-        &::placeholder {
-            color: var(--color-text-light);
-            opacity: 0.7;
-        }
+    @include mq(sm) {
+      font-size: 0.85rem;
     }
-
-    .searchBtn {
-        background-color: var(--color-accent);
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: var(--radius);
-        cursor: pointer;
-        font-size: 1.05rem;
-        font-weight: 600;
-        transition: background-color 0.2s ease, transform 0.1s ease;
-
-        @include mq(sm) {
-            width: 100%;
-            padding: 12px;
-        }
-
-        &:hover {
-            background-color: var(--color-accent-dark);
-            transform: translateY(-1px);
-        }
-
-        &:active {
-            transform: translateY(0);
-        }
-    }
-
-    .searchGuidance {
-        font-size: 0.95rem;
-        color: var(--color-text-light);
-        margin-top: 1rem;
-
-        @include mq(sm) {
-            font-size: 0.85rem;
-        }
-    }
+  }
 }
 
 /* Styles pour l'affichage des profils (liste) */
 .profilesDisplay {
-    max-width: 980px;
-    margin: 3rem auto var(--spacing-xl) auto; // Centrage et marges
-    padding: 1.5rem;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
+  max-width: 980px;
+  margin: 3rem auto var(--spacing-xl) auto; // Centrage et marges
+  padding: 1.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+  @include mq(sm) {
+    padding: 1rem;
+  }
+
+  .profileList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1.5rem; // Espacement entre les items de la grille
+
+    @include mq(md) {
+      grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+      ); // Ajuste les colonnes
+    }
+  }
+
+  .profileItem {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border: 1px solid var(--color-border-light);
     border-radius: var(--radius);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-    @include mq(sm) {
-        padding: 1rem;
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .profileList {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: grid;
-        gap: 1.5rem; // Espacement entre les items de la grille
+    .profileAvatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 1rem;
+      border: 2px solid; // Bordure dynamique via JS
+      flex-shrink: 0; // Empêche l'avatar de rétrécir
+    }
 
-        @include mq(md) {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); // Ajuste les colonnes
+    // Couleurs de bordure des avatars selon le type de profil
+    &.proprietaire .profileAvatar {
+      border-color: var(--proprietaire-primary);
+    }
+
+    &.concierge .profileAvatar {
+      border-color: var(--concierge-primary);
+    }
+
+    &.artisan .profileAvatar {
+      border-color: var(--artisan-primary);
+    }
+
+    .profileDetails {
+      flex-grow: 1;
+
+      h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--foreground);
+        font-size: 1.1em;
+
+        @include mq(sm) {
+          font-size: 1em;
         }
-    }
+      }
 
-    .profileItem {
-        display: flex;
-        align-items: center;
-        background-color: #fff;
-        border: 1px solid var(--color-border-light);
-        border-radius: var(--radius);
-        padding: 1rem;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      p {
+        margin: 0 0 0.8rem 0;
+        color: var(--color-text);
+        font-size: 0.9em;
+
+        @include mq(sm) {
+          font-size: 0.85em;
+        }
+      }
+
+      .profileContactBtn {
+        background-color: var(--color-accent);
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background-color 0.2s ease;
 
         &:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          background-color: var(--color-accent-dark);
         }
-
-        .profileAvatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 1rem;
-            border: 2px solid; // Bordure dynamique via JS
-            flex-shrink: 0; // Empêche l'avatar de rétrécir
-        }
-
-        // Couleurs de bordure des avatars selon le type de profil
-        &.proprietaire .profileAvatar {
-            border-color: var(--proprietaire-primary);
-        }
-
-        &.concierge .profileAvatar {
-            border-color: var(--concierge-primary);
-        }
-
-        &.artisan .profileAvatar {
-            border-color: var(--artisan-primary);
-        }
-
-        .profileDetails {
-            flex-grow: 1;
-
-            h4 {
-                margin: 0 0 0.5rem 0;
-                color: var(--foreground);
-                font-size: 1.1em;
-
-                @include mq(sm) {
-                    font-size: 1em;
-                }
-            }
-
-            p {
-                margin: 0 0 0.8rem 0;
-                color: var(--color-text);
-                font-size: 0.9em;
-
-                @include mq(sm) {
-                    font-size: 0.85em;
-                }
-            }
-
-            .profileContactBtn {
-                background-color: var(--color-accent);
-                color: white;
-                padding: 8px 15px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 0.9em;
-                transition: background-color 0.2s ease;
-
-                &:hover {
-                    background-color: var(--color-accent-dark);
-                }
-            }
-        }
+      }
     }
+  }
 }
 
 .noResult {
-    text-align: center;
-    color: var(--color-text-light);
-    padding: 2rem;
-    font-size: 1.1em;
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius);
-    margin-top: 2rem;
+  text-align: center;
+  color: var(--color-text-light);
+  padding: 2rem;
+  font-size: 1.1em;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  margin-top: 2rem;
 
-    @include mq(sm) {
-        font-size: 1em;
-        padding: 1.5rem;
-    }
+  @include mq(sm) {
+    font-size: 1em;
+    padding: 1.5rem;
+  }
+}
+@media (prefers-contrast: more) {
+  .bubbleBtn {
+    border-width: 3px;
+    outline: 2px solid currentColor;
+  }
 }

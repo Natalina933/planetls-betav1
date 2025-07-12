@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import styles from "./MapWithSearch.module.scss";
 import { FaHome, FaBell, FaTools, FaGlobe, FaSearchLocation } from 'react-icons/fa';
+// import { useRouter } from 'next/navigation';
+// const router = useRouter();
 
 const CATEGORY_CONFIG = [
     {
@@ -24,6 +26,13 @@ const CATEGORY_CONFIG = [
         iconComponent: FaTools,
         image: "/images/carousel/artisans.jpg",
         description: "Artisans passionnés, savoir-faire local",
+    },
+    {
+        key: "all",
+        label: "Tous",
+        iconComponent: FaGlobe,
+        image: "/images/carousel/all.jpg",
+        description: "Tous les professionnels de la location saisonnière",
     },
 ];
 
@@ -74,11 +83,26 @@ export default function MapWithSearch() {
     return (
         <div className={styles.mapWithSearchSection}>
             <header className={styles.intro}>
-                <h1>Regroupement des Besoins pour la Location saisonnière</h1>
-                <h2>Recherchez un professionnel dans votre région</h2>
+                {/* ✅ Ajout du conteneur visuel avec image en fond */}
+                <div className={styles.headerVisualContainer}>
+                    <h1>Regroupement des Besoins pour la Location saisonnière</h1>
+                    <img
+                        src={activeCategory.image}
+                        alt=""
+                        className={styles.headerBackgroundImage}
+                        aria-hidden="true"
+                    />
+                </div>
+
                 <p>Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.</p>
 
                 <section className={styles.categorySearchSection}>
+                    <div className={styles.categoryInstructionWrapper}>
+                        <h2 className={styles.categoryInstruction}>
+                            Utilisez les filtres de catégorie ci-dessous et entrez votre localisation pour affiner votre recherche.
+                        </h2>
+                    </div>
+
                     <div className={styles.bubblesRow}>
                         {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }) => (
                             <div
@@ -99,9 +123,6 @@ export default function MapWithSearch() {
                                 >
                                     <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
                                 </button>
-                                {/* <div className={styles.bubbleLabel}>{label}</div> */}
-                                {/* <div className={styles.bubbleDescription}>{description}</div> */}
-                                {/* Texte additionnel affiché seulement si actif */}
                                 {filter === key && (
                                     <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
                                         <h3>{label}</h3>
@@ -111,26 +132,28 @@ export default function MapWithSearch() {
                             </div>
                         ))}
                     </div>
+
                     <div className={styles.imageCol}>
-                        <div className={styles.imageCard} style={{
-                            '--image-glow': `var(--${activeCategory.key}-primary, var(--color-accent))`
-                        }}>
+                        <div
+                            className={styles.imageCard}
+                            style={{
+                                '--image-glow': `var(--${activeCategory.key}-primary, var(--color-accent))`
+                            }}
+                        >
                             <img
                                 src={activeCategory.image}
                                 alt={`Visuel ${activeCategory.label}`}
                                 className={styles.categoryImage}
                             />
-                            {/* Badge optionnel */}
                             <span className={styles.imageBadge}>{activeCategory.label}</span>
-                            {/* Motif artistique flottant */}
                             <div className={styles.artisticBg}></div>
                         </div>
                     </div>
-
                 </section>
             </header>
 
             <section className={styles.searchSection}>
+                <h2>Recherchez un professionnel dans votre région</h2>
                 <div className={styles.searchInputGroup}>
                     <FaSearchLocation className={styles.searchIcon} />
                     <input
@@ -145,9 +168,6 @@ export default function MapWithSearch() {
                         Rechercher
                     </button>
                 </div>
-                <p className={styles.searchGuidance}>
-                    Utilisez les filtres de catégorie ci-dessus et entrez votre localisation pour affiner votre recherche.
-                </p>
             </section>
 
             <div className={styles.profilesDisplay}>
