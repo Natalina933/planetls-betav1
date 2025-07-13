@@ -1,75 +1,86 @@
 :root {
-    /* Couleurs neutres */
-    --color-text: #222;
-    --color-bg: #f4f6f8;
-    --color-border: #eaeaea;
-    --background: #ffffff;
-    --foreground: #171717;
+  /* Couleurs neutres */
+  --color-text: #222;
+  --color-bg: #f4f6f8;
+  --color-border: #eaeaea;
+  --background: #ffffff;
+  --foreground: #171717;
 
-    /* Couleurs système */
-    --color-success: #4CAF50;
-    --color-error: #E53935;
-    --color-accent: #FFC107;
-    --color-accent-light: #ffd699;
-    --color-accent-dark: #cc7a00;
-    --color-accent-hover: #ffb84d;
+  /* Couleurs système */
+  --color-success: #4caf50;
+  --color-error: #e53935;
+  --color-accent: #ffc107;
+  --color-accent-light: #ffd699;
+  --color-accent-dark: #cc7a00;
+  --color-accent-hover: #ffb84d;
 
-    --color-secondary: rgba(32, 95, 120, 0.5);
-    --color-secondary-light: #F7FBFE;
-    --color-secondary-dark: #0E1A2A;
+  --color-secondary: rgba(32, 95, 120, 0.5);
+  --color-secondary-light: #f7fbfe;
+  --color-secondary-dark: #0e1a2a;
 
-    /* Catégorie : Propriétaires */
-    --proprietaire-primary: #205F78;
-    --proprietaire-hover: rgba(32, 95, 120, 0.5);
-    --proprietaire-bg: #EAF1FF;
-    --proprietaire-text: #1C3A77;
+  /* Catégorie : Propriétaires */
+  --proprietaire-primary: #205f78;
+  --proprietaire-hover: rgba(32, 95, 120, 0.5);
+  --proprietaire-bg: #eaf1ff;
+  --proprietaire-text: #1c3a77;
 
-    /* Catégorie : Concierges */
-    --concierge-primary: #82A27C;
-    --concierge-hover: #6A8C65;
-    --concierge-bg: #F2F7F3;
-    --concierge-text: #344B3C;
+  /* Catégorie : Concierges */
+  --concierge-primary: #82a27c;
+  --concierge-hover: #6a8c65;
+  --concierge-bg: #f2f7f3;
+  --concierge-text: #344b3c;
 
-    /* Catégorie : Artisans / Commerçants */
-    --artisan-primary: #C17C54;
-    --artisan-hover: #A7643C;
-    --artisan-bg: #FBEFE7;
-    --artisan-text: #4B2F1F;
+  /* Catégorie : Artisans / Commerçants */
+  --artisan-primary: #c17c54;
+  --artisan-hover: #a7643c;
+  --artisan-bg: #fbefe7;
+  --artisan-text: #4b2f1f;
 
-    /* Couleurs supplémentaires */
-    --hero-gradient-from: rgba(0, 0, 0, 0.5);
-    --hero-gradient-to: rgba(20, 20, 20, 0.6);
-    --hero-highlight: #b3d4d5;
-    --hero-highlight-hover: #a4b6b6;
-    --hero-overlay-bg: linear-gradient(to bottom right, var(--hero-gradient-from), var(--hero-gradient-to));
+  /* Catégorie : Tous */
+  /* Catégorie : Tous */
+  --all-primary: #ffd700; // Or (Gold)
+  --all-hover: #ffd723; // Or doré (Goldenrod) pour le survol
+  --all-bg: #fffbe6; // Crème très clair pour le fond de la bulle
+  --all-text: #8b4513; // Brun doré pour le texte
 
-    /* Fond flou semi-transparent */
-    --glass-bg: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-    --glass-blur: blur(6px);
+  /* Couleurs supplémentaires */
+  --hero-gradient-from: rgba(0, 0, 0, 0.5);
+  --hero-gradient-to: rgba(20, 20, 20, 0.6);
+  --hero-highlight: #b3d4d5;
+  --hero-highlight-hover: #a4b6b6;
+  --hero-overlay-bg: linear-gradient(
+    to bottom right,
+    var(--hero-gradient-from),
+    var(--hero-gradient-to)
+  );
 
-    /* Fonts */
-    --font-title: 'Montserrat', sans-serif;
-    --font-text: 'Open Sans', sans-serif;
-    --font-elegant: 'Cormorant Garamond', serif;
+  /* Fond flou semi-transparent */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --glass-blur: blur(6px);
 
-    /* Espacements */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 2rem;
-    --spacing-xl: 4rem;
+  /* Fonts */
+  --font-title: "Montserrat", sans-serif;
+  --font-text: "Open Sans", sans-serif;
+  --font-elegant: "Cormorant Garamond", serif;
 
-    /* Radius */
-    --radius: 4px;
+  /* Espacements */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 4rem;
+
+  /* Radius */
+  --radius: 4px;
 }
 
 // --- NOUVELLES VARIABLES SASS ---
-$proprio-primary-sass: #205F78; // Correspond à --proprio-primary
+$proprio-primary-sass: #205f78; // Correspond à --proprio-primary
 $proprio-hover-sass: rgba(32, 95, 120, 0.5); // Correspond à --proprio-hover
 
-$color-secondary-dark-sass: #0E1A2A; // Correspond à --color-secondary-dark
+$color-secondary-dark-sass: #0e1a2a; // Correspond à --color-secondary-dark
 
 $primary-dark-color-sass: #171717; // Correspond à --foreground, qui semble être une couleur foncée générale
 // Ou choisissez une autre couleur foncée pertinente de votre :root
@@ -79,18 +90,18 @@ $neutral-text: var(--color-text);
 $default-bubble-primary: var(--color-accent);
 $default-bubble-secondary: var(--color-secondary);
 // === Couleurs principales ===
-$gold: #D4AF37;
-$gold-rgba-10: rgba(#D4AF37, 0.1);
-$gold-rgba-30: rgba(#D4AF37, 0.3);
-$gold-rgba-50: rgba(#D4AF37, 0.5);
+$gold: #d4af37;
+$gold-rgba-10: rgba(#d4af37, 0.1);
+$gold-rgba-30: rgba(#d4af37, 0.3);
+$gold-rgba-50: rgba(#d4af37, 0.5);
 
-$deep-blue: #1E2A38;
-$cream: #FAF4EC;
+$deep-blue: #1e2a38;
+$cream: #faf4ec;
 
 // === Typographie ===
-$font-elegant: 'Cormorant Garamond', serif;
-$font-text: 'Open Sans', sans-serif;
-$font-title: 'Montserrat', sans-serif;
+$font-elegant: "Cormorant Garamond", serif;
+$font-text: "Open Sans", sans-serif;
+$font-title: "Montserrat", sans-serif;
 
 // === Rayons, ombres, transitions ===
 $radius: 12px;

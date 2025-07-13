@@ -1,7 +1,9 @@
 "use client";
 import React, { useState } from "react";
+// import Head from 'next/head'; // Uncomment if you are using Next.js App Router for <head> management
 import styles from "./MapWithSearch.module.scss";
 import { FaHome, FaBell, FaTools, FaGlobe, FaSearchLocation } from 'react-icons/fa';
+import { FaPeopleGroup } from "react-icons/fa6";
 // import { useRouter } from 'next/navigation';
 // const router = useRouter();
 
@@ -30,7 +32,14 @@ const CATEGORY_CONFIG = [
     {
         key: "all",
         label: "Tous",
-        iconComponent: FaGlobe,
+        // Modifier ceci pour un composant qui rendra les deux icônes
+        iconComponent: () => (
+            <div style={{ position: 'relative', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FaGlobe style={{ position: 'absolute', fontSize: '4.5em', color: 'white', opacity: 1 }} />
+                {/* Garde FaPeopleGroup en or spécifique ou changez-le si vous voulez aussi qu'il suive la variable */}
+                <FaPeopleGroup style={{ position: 'absolute', fontSize: '2em', color: 'gold', zIndex: 1 }} />
+            </div>
+        ),
         image: "/images/carousel/all.jpg",
         description: "Tous les professionnels de la location saisonnière",
     },
@@ -82,81 +91,86 @@ export default function MapWithSearch() {
 
     return (
         <div className={styles.mapWithSearchSection}>
+            {/* If using Next.js App Router, uncomment and use Head for SEO metadata */}
+            {/*
+            <Head>
+                <title>Trouvez des professionnels pour votre location saisonnière - LocationFacile</title>
+                <meta name="description" content="Découvrez et contactez des propriétaires, concierges et artisans locaux pour tous vos besoins en matière de location saisonnière." />
+                <meta name="keywords" content="location saisonnière, propriétaires, concierges, artisans, recherche locale, gestion immobilière" />
+                <meta property="og:title" content="Trouvez des professionnels pour votre location saisonnière" />
+                <meta property="og:description" content="Découvrez et contactez des propriétaires, concierges et artisans locaux pour tous vos besoins en matière de location saisonnière." />
+                <meta property="og:image" content="/images/social-share.jpg" /> // Replace with an actual social share image
+                <meta property="og:url" content="YOUR_WEBSITE_URL/map-with-search" /> // Replace with your actual page URL
+            </Head>
+            */}
+
             <header className={styles.intro}>
-                {/* ✅ Ajout du conteneur visuel avec image en fond */}
-                <div className={styles.headerVisualContainer}>
-                    <h1>Regroupement des Besoins pour la Location saisonnière</h1>
+                <div className={styles.headerContentWrapper}>
+                    <h2>Regroupement des Besoins pour la Location saisonnière</h2>
+                    <p className={styles.introSub}>Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.</p>
+                    <p className={styles.introDescription}>
+                        Que vous soyez un propriétaire à la recherche d'un concierge fiable, un voyageur ayant besoin d'un artisan pour une réparation rapide,
+                        ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.
+                        Simplifiez la gestion de vos propriétés et profitez d'un service de qualité.
+                    </p>
+                </div>
+                <div className={styles.headerImageCol}>
                     <img
                         src={activeCategory.image}
-                        alt=""
+                        alt={`Image illustrative pour la catégorie ${activeCategory.label}`}
                         className={styles.headerBackgroundImage}
-                        aria-hidden="true"
                     />
+                    <div className={styles.imageWaveEffect} aria-hidden="true"></div>
+                </div>
+            </header>
+
+            <section className={styles.categorySearchSection}>
+                <div className={styles.categoryInstructionWrapper}>
+                    <h2 className={styles.categoryInstruction}>
+                        Utilisez les filtres de catégorie ci-dessous et entrez votre localisation pour affiner votre recherche.
+                    </h2>
                 </div>
 
-                <p>Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.</p>
-
-                <section className={styles.categorySearchSection}>
-                    <div className={styles.categoryInstructionWrapper}>
-                        <h2 className={styles.categoryInstruction}>
-                            Utilisez les filtres de catégorie ci-dessous et entrez votre localisation pour affiner votre recherche.
-                        </h2>
-                    </div>
-
-                    <div className={styles.bubblesRow}>
-                        {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }) => (
-                            <div
-                                key={key}
-                                className={`${styles.bubbleBlock} ${filter === key ? styles.active : ""}`}
-                                style={{
-                                    '--bubble-primary': `var(--${key}-primary)`,
-                                    '--bubble-hover': `var(--${key}-hover)`,
-                                    '--bubble-bg': `var(--${key}-bg)`,
-                                    '--bubble-text': `var(--${key}-text)`,
-                                }}
-                            >
-                                <button
-                                    className={styles.bubbleBtn}
-                                    onClick={() => setFilter(key)}
-                                    aria-label={label}
-                                    type="button"
-                                >
-                                    <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
-                                </button>
-                                {filter === key && (
-                                    <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
-                                        <h3>{label}</h3>
-                                        <p>{description}</p>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className={styles.imageCol}>
+                <div className={styles.bubblesRow}>
+                    {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }) => (
                         <div
-                            className={styles.imageCard}
+                            key={key}
+                            className={`${styles.bubbleBlock} ${filter === key ? styles.active : ""}`}
                             style={{
-                                '--image-glow': `var(--${activeCategory.key}-primary, var(--color-accent))`
+                                '--bubble-primary': `var(--${key}-primary)`,
+                                '--bubble-hover': `var(--${key}-hover)`,
+                                '--bubble-bg': `var(--${key}-bg)`,
+                                '--bubble-text': `var(--${key}-text)`,
                             }}
                         >
-                            <img
-                                src={activeCategory.image}
-                                alt={`Visuel ${activeCategory.label}`}
-                                className={styles.categoryImage}
-                            />
-                            <span className={styles.imageBadge}>{activeCategory.label}</span>
-                            <div className={styles.artisticBg}></div>
+                            <button
+                                className={styles.bubbleBtn}
+                                onClick={() => setFilter(key)}
+                                aria-label={`Filtrer par ${label}`}
+                                type="button"
+                            >
+                                <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
+                            </button>
+                            {/* <p className={styles.bubbleLabel}>{label}</p> Added label below bubble */}
+                            {/* <p className={styles.bubbleDescription}>{description}</p> Added description below label */}
+                            {filter === key && (
+                                <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
+                                    <h3>{label}</h3>
+                                    <p>{description}</p>
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </section>
-            </header>
+                    ))}
+                </div>
+            </section>
 
             <section className={styles.searchSection}>
                 <h2>Recherchez un professionnel dans votre région</h2>
                 <div className={styles.searchInputGroup}>
-                    <FaSearchLocation className={styles.searchIcon} />
+                    <FaSearchLocation className={styles.searchIcon} aria-hidden="true" />
+                    <label htmlFor="location-input" className="sr-only">Saisir une ville, code postal...</label>
                     <input
+                        id="location-input"
                         type="text"
                         placeholder="Saisir une ville, code postal..."
                         value={location}
@@ -164,10 +178,13 @@ export default function MapWithSearch() {
                         className={styles.locationInput}
                         aria-label="Saisir une ville ou un code postal"
                     />
-                    <button onClick={handleSearch} className={styles.searchBtn} type="button">
+                    <button onClick={handleSearch} className={styles.searchButton} type="button"> {/* Changed to searchButton */}
                         Rechercher
                     </button>
                 </div>
+                <p className={styles.searchGuidance}>
+                    Entrez votre emplacement pour trouver les professionnels disponibles près de chez vous.
+                </p>
             </section>
 
             <div className={styles.profilesDisplay}>
@@ -175,9 +192,9 @@ export default function MapWithSearch() {
                     <ul className={styles.profileList}>
                         {visibleProfiles.map(({ id, name, type, photo, services }) => (
                             <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
-                                <img src={photo} alt={`Avatar de ${name}`} className={styles.profileAvatar} />
+                                <img src={photo} alt={`Avatar de ${name}, ${type}`} className={styles.profileAvatar} />
                                 <div className={styles.profileDetails}>
-                                    <h4>{name} ({type})</h4>
+                                    <h4>{name} ({type.charAt(0).toUpperCase() + type.slice(1)})</h4> {/* Capitalize type for display */}
                                     <p>Services : {services.length ? services.join(", ") : "Non renseignés"}</p>
                                     <button className={styles.profileContactBtn}>Contacter</button>
                                 </div>
