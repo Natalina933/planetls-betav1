@@ -1,11 +1,15 @@
+// src/app/components/layout/Home/MapWithSearch/MapWithSearch.jsx
 "use client";
 import React, { useState } from "react";
-// import Head from 'next/head'; // Uncomment if you are using Next.js App Router for <head> management
+// Importez uniquement les styles généraux de MapWithSearch.module.scss
 import styles from "./MapWithSearch.module.scss";
-import { FaHome, FaBell, FaTools, FaGlobe, FaSearchLocation } from 'react-icons/fa';
+// Importez uniquement les icônes nécessaires pour le reste du composant
+import { FaHome, FaBell, FaTools, FaGlobe } from 'react-icons/fa';
 import { FaPeopleGroup } from "react-icons/fa6";
-// import { useRouter } from 'next/navigation';
-// const router = useRouter();
+// Importez le nouveau composant SearchSection
+import SearchSection from './SearchSection';
+// Importez le nouveau composant ProfilesDisplay
+import ProfilesDisplay from './ProfilesDisplay'; // <-- Nouvelle importation
 
 const CATEGORY_CONFIG = [
     {
@@ -32,11 +36,9 @@ const CATEGORY_CONFIG = [
     {
         key: "all",
         label: "Tous",
-        // Modifier ceci pour un composant qui rendra les deux icônes
         iconComponent: () => (
             <div style={{ position: 'relative', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <FaGlobe style={{ position: 'absolute', fontSize: '4.5em', color: 'white', opacity: 1 }} />
-                {/* Garde FaPeopleGroup en or spécifique ou changez-le si vous voulez aussi qu'il suive la variable */}
                 <FaPeopleGroup style={{ position: 'absolute', fontSize: '2em', color: 'gold', zIndex: 1 }} />
             </div>
         ),
@@ -86,24 +88,10 @@ export default function MapWithSearch() {
 
     const handleSearch = () => {
         alert(`Recherche lancée pour : "${location}" dans la catégorie "${filter}".\nRedirection vers la page de résultats...`);
-        // router.push(`/search-results?location=${location}&category=${filter}`);
     };
 
     return (
         <div className={styles.mapWithSearchSection}>
-            {/* If using Next.js App Router, uncomment and use Head for SEO metadata */}
-            {/*
-            <Head>
-                <title>Trouvez des professionnels pour votre location saisonnière - LocationFacile</title>
-                <meta name="description" content="Découvrez et contactez des propriétaires, concierges et artisans locaux pour tous vos besoins en matière de location saisonnière." />
-                <meta name="keywords" content="location saisonnière, propriétaires, concierges, artisans, recherche locale, gestion immobilière" />
-                <meta property="og:title" content="Trouvez des professionnels pour votre location saisonnière" />
-                <meta property="og:description" content="Découvrez et contactez des propriétaires, concierges et artisans locaux pour tous vos besoins en matière de location saisonnière." />
-                <meta property="og:image" content="/images/social-share.jpg" /> // Replace with an actual social share image
-                <meta property="og:url" content="YOUR_WEBSITE_URL/map-with-search" /> // Replace with your actual page URL
-            </Head>
-            */}
-
             <header className={styles.intro}>
                 <div className={styles.headerContentWrapper}>
                     <h2>Regroupement des Besoins pour la Location saisonnière</h2>
@@ -151,8 +139,6 @@ export default function MapWithSearch() {
                             >
                                 <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
                             </button>
-                            {/* <p className={styles.bubbleLabel}>{label}</p> Added label below bubble */}
-                            {/* <p className={styles.bubbleDescription}>{description}</p> Added description below label */}
                             {filter === key && (
                                 <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
                                     <h3>{label}</h3>
@@ -164,47 +150,15 @@ export default function MapWithSearch() {
                 </div>
             </section>
 
-            <section className={styles.searchSection}>
-                <h2>Recherchez un professionnel dans votre région</h2>
-                <div className={styles.searchInputGroup}>
-                    <FaSearchLocation className={styles.searchIcon} aria-hidden="true" />
-                    <label htmlFor="location-input" className="sr-only">Saisir une ville, code postal...</label>
-                    <input
-                        id="location-input"
-                        type="text"
-                        placeholder="Saisir une ville, code postal..."
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        className={styles.locationInput}
-                        aria-label="Saisir une ville ou un code postal"
-                    />
-                    <button onClick={handleSearch} className={styles.searchButton} type="button"> {/* Changed to searchButton */}
-                        Rechercher
-                    </button>
-                </div>
-                <p className={styles.searchGuidance}>
-                    Entrez votre emplacement pour trouver les professionnels disponibles près de chez vous.
-                </p>
-            </section>
+            {/* Utilisation du nouveau composant SearchSection */}
+            <SearchSection
+                location={location}
+                setLocation={setLocation}
+                handleSearch={handleSearch}
+            />
 
-            <div className={styles.profilesDisplay}>
-                {visibleProfiles.length > 0 ? (
-                    <ul className={styles.profileList}>
-                        {visibleProfiles.map(({ id, name, type, photo, services }) => (
-                            <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
-                                <img src={photo} alt={`Avatar de ${name}, ${type}`} className={styles.profileAvatar} />
-                                <div className={styles.profileDetails}>
-                                    <h4>{name} ({type.charAt(0).toUpperCase() + type.slice(1)})</h4> {/* Capitalize type for display */}
-                                    <p>Services : {services.length ? services.join(", ") : "Non renseignés"}</p>
-                                    <button className={styles.profileContactBtn}>Contacter</button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <div className={styles.noResult}>Aucun profil trouvé dans cette catégorie pour la démo.</div>
-                )}
-            </div>
+            {/* Utilisation du nouveau composant ProfilesDisplay */}
+            <ProfilesDisplay visibleProfiles={visibleProfiles} /> {/* <-- Nouvelle utilisation */}
         </div>
     );
 }

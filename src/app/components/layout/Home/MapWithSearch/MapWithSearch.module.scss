@@ -11,13 +11,13 @@
 
   h2 {
     font-size: 2.25rem; // 36px
-    color: $gold;
+    color: $gold; // Assurez-vous que $gold est défini quelque part ou utilisez une variable CSS
     margin-bottom: 3rem; // 48px
     position: relative;
     display: inline-block;
 
     &::after {
-      content: '';
+      content: "";
       display: block;
       margin: 0.75rem auto 0; // 12px
       width: 5rem; // 80px
@@ -101,7 +101,8 @@
     min-width: 100%;
   }
 
-  h2 { // Changed from h1 for SEO
+  h2 {
+    // Changed from h1 for SEO
     font-family: var(--font-title, "High Tower Text", serif);
     font-size: 2.8rem; // Plus grand pour un titre principal
     color: var(--color-accent-dark);
@@ -205,7 +206,6 @@
   }
 }
 
-
 .categorySearchSection {
   display: flex;
   flex-direction: column; // Changer en colonne par défaut pour une meilleure gestion du contenu
@@ -256,10 +256,12 @@
 .bubbleBlock {
   // Les variables --bubble-primary, --bubble-hover, etc., sont passées via le style inline en React
   // Nous définissons des valeurs par défaut ici si elles ne sont pas fournies.
-  --bubble-primary: var(--color-accent);
-  --bubble-hover: var(--color-accent-hover);
-  --bubble-bg: #fff;
-  --bubble-text: var(--color-text);
+  --bubble-primary: var(
+    --color-accent
+  ); // Fallback, sera écrasé par les variables --{key}-primary
+  --bubble-hover: var(--color-accent-hover); // Fallback
+  --bubble-bg: #fff; // Fallback
+  --bubble-text: var(--color-text); // Fallback
 
   display: flex;
   flex-direction: column;
@@ -276,9 +278,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2.5px solid var(--bubble-primary); // Utilise la couleur dynamique
+    // Utilise les variables spécifiques à la catégorie définies dans :root
+    border: 2.5px solid var(--bubble-primary);
     border-radius: 50%;
-    background: var(--bubble-bg); // Utilise la couleur dynamique
+    background: var(--bubble-bg);
     transition: background 0.18s ease, border-color 0.18s ease,
       transform 0.13s ease;
     cursor: pointer;
@@ -286,7 +289,9 @@
 
     &:hover,
     &:focus-visible {
-      border-color: var(--bubble-hover); // Utilise la couleur dynamique
+      border-color: var(
+        --bubble-hover
+      ); // Utilise la couleur de survol spécifique à la catégorie
       background: color-mix(
         in srgb,
         var(--bubble-bg) 80%,
@@ -305,9 +310,8 @@
     height: 60px;
 
     svg {
-      width: 60px;
-      height: 60px;
-      color: var(--bubble-primary); // Utilise la couleur dynamique
+      // Les icônes utilisent aussi --bubble-primary pour leur couleur principale
+      color: var(--bubble-primary);
       transition: color 0.2s ease;
     }
   }
@@ -339,7 +343,9 @@
 
   &.active {
     .bubbleBtn {
-      border-color: var(--bubble-primary);
+      border-color: var(
+        --bubble-primary
+      ); // Reste sur la couleur primaire active
       background: color-mix(
         in srgb,
         var(--bubble-bg) 70%,
@@ -416,7 +422,8 @@
     max-width: 90vw;
   }
 }
-.searchButton { /* Renamed from searchBtn for clarity in SCSS */
+.searchButton {
+  /* Renamed from searchBtn for clarity in SCSS */
   background-color: var(--color-accent);
   color: white;
   padding: 10px 20px;
@@ -457,133 +464,18 @@
   }
 }
 
-
-
-/* Styles pour la section de recherche */
-.searchSection {
-  max-width: 980px;
-  // Adjusted margin-top to create more space
-  margin: 8rem auto 0 auto; // Increased from 3rem to 8rem
-  background: var(--color-bg);
-  border: 3px double var(--color-accent); // Double bordure élégante
-  border-radius: var(--radius);
-  padding: 2.5rem;
-  text-align: center;
-  box-shadow: 0 8px 32px rgba(184, 139, 74, 0.15), 0 0 0 12px #fffbe6; // Enhanced shadow
-
-  @include mq(sm) {
-    padding: 1.8rem;
-    margin-top: 6rem; // Adjusted for smaller screens too
-  }
-
-  h2 { // Changed from h3 to h2 for semantic structure
-    font-family: var(--font-title, "High Tower Text", serif);
-    font-size: 1.8rem;
-    color: var(--color-accent-dark);
-    margin-bottom: 1.5rem;
-
-    @include mq(sm) {
-      font-size: 1.5rem;
-    }
-  }
-
-  .searchInputGroup {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    max-width: 600px;
-    margin: 0 auto 1.5rem auto;
-    background-color: #fff;
-    border-radius: var(--radius);
-    border: 1px solid var(--color-border);
-    padding: 8px 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-    @include mq(sm) {
-      flex-wrap: wrap; // Permet aux éléments de passer à la ligne
-      padding: 6px 10px;
-    }
-  }
-
-  .searchIcon {
-    color: var(--color-text-light);
-    font-size: 1.2em;
-
-    @include mq(sm) {
-      font-size: 1em;
-    }
-  }
-
-  .locationInput {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    padding: 8px 0;
-    font-size: 1.05rem;
-    color: var(--color-text);
-
-    @include mq(sm) {
-      flex-basis: 100%; // Prend toute la largeur sur mobile
-      padding: 8px;
-      text-align: center;
-    }
-
-    &::placeholder {
-      color: var(--color-text-light);
-      opacity: 0.7;
-    }
-  }
-
-  .searchButton { /* Used the renamed class here */
-    background-color: var(--color-accent);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 1.05rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-
-    @include mq(sm) {
-      width: 100%;
-      padding: 12px;
-    }
-
-    &:hover {
-      background-color: var(--color-accent-dark);
-      transform: translateY(-1px);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
-
-  .searchGuidance {
-    font-size: 0.95rem;
-    color: var(--color-text-light);
-    margin-top: 1rem;
-
-    @include mq(sm) {
-      font-size: 0.85rem;
-    }
-  }
-}
-
 /* Styles pour l'affichage des profils (liste) */
 .profilesDisplay {
   max-width: 980px;
-  margin: 3rem auto var(--spacing-xl) auto; // Centrage et marges
-  padding: 1.5rem;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  margin: 3rem auto var(--spacing-xl) auto;
+  padding: 2rem; // Plus de padding
+  background: #fff; // Fond blanc pour une meilleure clarté
+  border: 1px solid var(--color-border); // Bordure un peu plus visible
   border-radius: var(--radius);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); // Ombre plus profonde et plus douce
 
   @include mq(sm) {
-    padding: 1rem;
+    padding: 1.5rem;
   }
 
   .profileList {
@@ -591,13 +483,11 @@
     padding: 0;
     margin: 0;
     display: grid;
-    gap: 1.5rem; // Espacement entre les items de la grille
+    gap: 2rem; // Espacement légèrement augmenté entre les items de la grille
 
     @include mq(md) {
-      grid-template-columns: repeat(
-        auto-fit,
-        minmax(280px, 1fr)
-      ); // Ajuste les colonnes
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; // Réduit l'espacement sur les écrans moyens
     }
   }
 
@@ -607,23 +497,23 @@
     background-color: #fff;
     border: 1px solid var(--color-border-light);
     border-radius: var(--radius);
-    padding: 1rem;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    padding: 1.2rem; // Plus de padding
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06); // Ombre par défaut légèrement plus prononcée
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px); // Effet de survol plus prononcé
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12); // Ombre plus prononcée au survol
     }
 
     .profileAvatar {
-      width: 60px;
-      height: 60px;
+      width: 70px; // Légèrement plus grand
+      height: 70px; // Légèrement plus grand
       border-radius: 50%;
       object-fit: cover;
-      margin-right: 1rem;
-      border: 2px solid; // Bordure dynamique via JS
-      flex-shrink: 0; // Empêche l'avatar de rétrécir
+      margin-right: 1.2rem; // Espacement ajusté
+      border: 3px solid; // Bordure légèrement plus épaisse
+      flex-shrink: 0;
     }
 
     // Couleurs de bordure des avatars selon le type de profil
@@ -643,37 +533,45 @@
       flex-grow: 1;
 
       h4 {
-        margin: 0 0 0.5rem 0;
-        color: var(--foreground);
-        font-size: 1.1em;
+        margin: 0 0 0.6rem 0; // Espacement ajusté
+        color: var(--color-text); // Utilise une couleur de texte plus standard
+        font-size: 1.2em; // Légèrement plus grand
+        font-weight: 700; // Plus gras
+        line-height: 1.3;
 
         @include mq(sm) {
-          font-size: 1em;
+          font-size: 1.1em;
         }
       }
 
       p {
-        margin: 0 0 0.8rem 0;
-        color: var(--color-text);
-        font-size: 0.9em;
+        margin: 0 0 1rem 0; // Espacement ajusté
+        color: var(--color-text-light); // Plus clair
+        font-size: 0.95em; // Légèrement plus grand
+        line-height: 1.4;
 
         @include mq(sm) {
-          font-size: 0.85em;
+          font-size: 0.9em;
         }
       }
 
       .profileContactBtn {
         background-color: var(--color-accent);
         color: white;
-        padding: 8px 15px;
+        padding: 9px 18px; // Plus de padding
         border: none;
-        border-radius: 4px;
+        border-radius: 6px; // Bordure plus arrondie
         cursor: pointer;
-        font-size: 0.9em;
-        transition: background-color 0.2s ease;
+        font-size: 0.95em; // Légèrement plus grand
+        font-weight: 600;
+        transition: background-color 0.2s ease, transform 0.1s ease,
+          box-shadow 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); // Ombre par défaut
 
         &:hover {
-          background-color: var(--color-accent-dark);
+          background-color: var(--color-accent-hover);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12); // Ombre au survol
         }
       }
     }
@@ -683,15 +581,15 @@
 .noResult {
   text-align: center;
   color: var(--color-text-light);
-  padding: 2rem;
-  font-size: 1.1em;
-  border: 1px dashed var(--color-border);
+  padding: 2.5rem; // Plus de padding
+  font-size: 1.2em; // Plus grand
+  border: 2px dashed var(--color-border); // Bordure plus épaisse
   border-radius: var(--radius);
-  margin-top: 2rem;
+  margin-top: 2.5rem; // Plus de marge
 
   @include mq(sm) {
-    font-size: 1em;
-    padding: 1.5rem;
+    font-size: 1.1em;
+    padding: 2rem;
   }
 }
 @media (prefers-contrast: more) {
