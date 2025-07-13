@@ -1,15 +1,11 @@
 // src/app/components/layout/Home/MapWithSearch/MapWithSearch.jsx
 "use client";
 import React, { useState } from "react";
-// Importez uniquement les styles généraux de MapWithSearch.module.scss
+import { useRouter } from 'next/navigation'; // <-- Changed import for App Router
 import styles from "./MapWithSearch.module.scss";
-// Importez uniquement les icônes nécessaires pour le reste du composant
 import { FaHome, FaBell, FaTools, FaGlobe } from 'react-icons/fa';
 import { FaPeopleGroup } from "react-icons/fa6";
-// Importez le nouveau composant SearchSection
 import SearchSection from './SearchSection';
-// Importez le nouveau composant ProfilesDisplay
-import ProfilesDisplay from './ProfilesDisplay'; // <-- Nouvelle importation
 
 const CATEGORY_CONFIG = [
     {
@@ -51,43 +47,12 @@ export default function MapWithSearch() {
     const [filter, setFilter] = useState("all");
     const [location, setLocation] = useState("");
     const activeCategory = CATEGORY_CONFIG.find(cat => cat.key === filter) || CATEGORY_CONFIG[0];
-
-    const profiles = [
-        {
-            id: 1,
-            name: "Jean Dupont",
-            type: "concierge",
-            position: [48.8566, 2.3522],
-            available: true,
-            services: ["Gestion", "Nettoyage"],
-            photo: "/avatars/jean.png",
-        },
-        {
-            id: 2,
-            name: "Marie Artisan",
-            type: "artisan",
-            position: [48.86, 2.35],
-            available: false,
-            services: ["Plomberie", "Électricité"],
-            photo: "/avatars/marie.png",
-        },
-        {
-            id: 3,
-            name: "Paul Proprio",
-            type: "proprietaire",
-            position: [48.855, 2.34],
-            available: true,
-            services: [],
-            photo: "/avatars/marc.png",
-        },
-    ];
-
-    const visibleProfiles = filter === "all"
-        ? profiles
-        : profiles.filter((p) => p.type === filter);
+    const router = useRouter();
 
     const handleSearch = () => {
-        alert(`Recherche lancée pour : "${location}" dans la catégorie "${filter}".\nRedirection vers la page de résultats...`);
+        // Redirige vers la page map-list avec les paramètres de recherche dans l'URL
+        // Note: Dans l'App Router, les query params sont ajoutés directement à l'URL.
+        router.push(`/map-list?filter=${filter}&location=${encodeURIComponent(location)}`);
     };
 
     return (
@@ -150,15 +115,11 @@ export default function MapWithSearch() {
                 </div>
             </section>
 
-            {/* Utilisation du nouveau composant SearchSection */}
             <SearchSection
                 location={location}
                 setLocation={setLocation}
                 handleSearch={handleSearch}
             />
-
-            {/* Utilisation du nouveau composant ProfilesDisplay */}
-            <ProfilesDisplay visibleProfiles={visibleProfiles} /> {/* <-- Nouvelle utilisation */}
         </div>
     );
 }

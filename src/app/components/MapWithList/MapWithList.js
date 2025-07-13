@@ -1,3 +1,4 @@
+// src/app/components/MapWithList/MapWithList.jsx
 "use client";
 import React from "react";
 
@@ -5,6 +6,7 @@ import { useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import ProfilesDisplay from "../layout/Home/MapWithSearch/ProfilesDisplay";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -21,13 +23,29 @@ const generateRandomProperties = (count) => {
   const latMax = 48.9;
   const lngMin = 2.3;
   const lngMax = 2.4;
+  const types = ["proprietaire", "conciergerie", "artisan"];
+  const servicesList = [
+    "Nettoyage",
+    "Maintenance",
+    "Accueil",
+    "Gestion",
+    "Photographie",
+  ];
+
   const properties = [];
   for (let i = 0; i < count; i++) {
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const randomServices = servicesList
+      .sort(() => 0.5 - Math.random())
+      .slice(0, Math.floor(Math.random() * 3) + 1);
     properties.push({
       id: i,
-      title: `Bien n°${i + 1}`,
+      name: `Profil ${i + 1}`,
+      type: randomType,
       lat: latMin + Math.random() * (latMax - latMin),
       lng: lngMin + Math.random() * (lngMax - lngMin),
+      photo: `https://i.pravatar.cc/100?img=${i + 1}`,
+      services: randomServices,
     });
   }
   return properties;
@@ -57,24 +75,11 @@ export default function MapWithList() {
           borderRight: "1px solid #ccc",
           padding: "10px",
         }}>
-        <h2>Liste des biens</h2>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {properties.map((p) => (
-            <li
-              key={p.id}
-              onMouseEnter={() => setHoveredId(p.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              style={{
-                padding: "8px",
-                cursor: "pointer",
-                backgroundColor: hoveredId === p.id ? "#def" : "transparent",
-                borderRadius: "4px",
-                marginBottom: "4px",
-              }}>
-              {p.title}
-            </li>
-          ))}
-        </ul>
+        <ProfilesDisplay
+          visibleProfiles={properties}
+          onHover={(id) => setHoveredId(id)}
+          onLeave={() => setHoveredId(null)}
+        />
       </div>
 
       {/* Carte */}

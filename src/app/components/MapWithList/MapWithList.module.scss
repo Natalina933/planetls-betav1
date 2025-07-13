@@ -1,0 +1,98 @@
+// src/app/components/MapWithList/MapWithList.module.scss
+@use "sass:math";
+@use "sass:color";
+@use "src/app/styles/abstracts/index" as *; // Assurez-vous que ce chemin est correct
+
+.mapListContainer {
+  display: flex;
+  flex-direction: column; // Par défaut, empile les éléments pour les petits écrans
+  max-width: 1400px; // Augmente la largeur maximale du conteneur
+  margin: 3rem auto;
+  padding: 1.5rem;
+  gap: 2.5rem; // Espacement entre la carte et la liste
+
+  @include mq(lg) {
+    flex-direction: row; // Disposition côte à côte sur les grands écrans
+    padding: 2.5rem;
+    gap: 3rem;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--color-heading);
+    margin-bottom: 2rem;
+
+    @include mq(lg) {
+      grid-column: 1 / -1; // Pour centrer le titre si on utilise une grille
+      margin-bottom: 0; // Réinitialiser pour le mode grille
+    }
+  }
+}
+
+.mapContainer {
+  flex: 2; // La carte prendra 2 parts de l'espace disponible
+  min-height: 400px; // Hauteur minimale pour la carte
+  background-color: var(--color-bg-light); // Couleur de fond pour le placeholder
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden; // S'assurer que le contenu de la carte ne déborde pas
+
+  @include mq(lg) {
+    min-height: 600px; // Hauteur plus grande sur les grands écrans
+  }
+}
+
+.profilesListColumn {
+  flex: 1; // La liste des profils prendra 1 part de l'espace disponible
+  // Pas besoin de styles supplémentaires ici, car .profilesDisplay gère déjà l'apparence.
+  // Cependant, on peut ajuster le padding ou la largeur max si besoin
+  max-width: 100%; // Pour éviter le débordement sur petits écrans
+  
+  @include mq(lg) {
+    max-width: 450px; // Largeur maximale pour la colonne des profils sur grands écrans
+    // Vous pouvez également utiliser un flex-basis précis ici, ex: flex-basis: 400px;
+  }
+}
+
+// Styles spécifiques pour les marqueurs de carte (si vous utilisez des marqueurs HTML/SVG custom)
+// Si vous utilisez une bibliothèque de cartes (Leaflet, Google Maps) qui génère ses propres éléments de marqueurs,
+// vous devrez cibler leurs classes spécifiques. Ceci est un exemple générique.
+
+.customMapMarker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: white;
+  border: 3px solid;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease-out;
+
+  &:hover {
+    transform: scale(1.1);
+    z-index: 1000;
+  }
+}
+
+// Couleurs des marqueurs par catégorie
+.customMapMarker-proprietaire {
+  background-color: var(--proprietaire-primary);
+  border-color: var(--proprietaire-dark); // Une couleur de bordure plus foncée
+}
+
+.customMapMarker-concierge {
+  background-color: var(--concierge-primary);
+  border-color: var(--concierge-dark);
+}
+
+.customMapMarker-artisan {
+  background-color: var(--artisan-primary);
+  border-color: var(--artisan-dark);
+}
+
+// Vous pourriez ajouter des icônes à l'intérieur via CSS si nécessaire
+// ex: .customMapMarker-concierge::before { content: "🛎️"; }
