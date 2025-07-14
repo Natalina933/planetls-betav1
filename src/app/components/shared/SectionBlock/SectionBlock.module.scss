@@ -1,0 +1,50 @@
+// src/app/components/shared/SectionBlock/SectionBlock.module.scss
+@use "sass:math";
+@use "src/app/styles/abstracts/index" as *;
+@use "sass:color";
+
+// Styles de la section générique
+.section {
+  padding: 4rem 1.5rem; // Plus de padding vertical
+  margin: 0 auto; // Centre la section
+  max-width: $max-content-width; // Définissez une variable $max-content-width dans vos abstracts, par exemple 1200px
+  text-align: center; // Par défaut, centre le contenu des sections
+
+  @include mq(md) {
+    padding: 6rem 3rem; // Plus de padding sur les écrans plus grands
+  }
+
+  
+  &:nth-of-type(odd) {
+    background-color: var(--color-bg-light); // Ou une couleur spécifique
+  }
+
+  &:nth-of-type(even) {
+    background-color: var(--color-bg-dark); // Ou laissez-le transparent
+  }
+}
+
+// Styles du titre centré
+.centeredTitle {
+  font-size: 2.5rem; // Taille de police légèrement plus grande
+  color: var(--color-heading); // Utilise votre couleur de titre définie
+  margin-bottom: 3.5rem; // Plus d'espace en dessous du titre
+  position: relative;
+  display: inline-block; // Pour que le pseudo-élément after soit centré sous le titre
+  font-family: $font-elegant; // Si ce n'est pas déjà dans var(--color-heading)
+
+  @include mq(md) {
+    font-size: 3rem;
+    margin-bottom: 4.5rem;
+  }
+
+  &::after {
+    content: '';
+    display: block;
+    width: 6rem; // Longueur de la ligne décorative
+    height: 0.3rem; // Épaisseur de la ligne
+    background-color: $gold; // Couleur dorée pour la ligne
+    margin: 1rem auto 0; // Centre la ligne sous le titre et lui donne un espacement
+    border-radius: 2px; // Bords légèrement arrondis
+  }
+}

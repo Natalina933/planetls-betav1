@@ -79,6 +79,11 @@
   /* Radius */
   --radius: 4px;
 }
+// Largeurs maximales de contenu
+$max-content-width: 1200px; 
+$max-content-width-md: 960px; // Pour les écrans moyens
+$max-content-width-sm: 720px; // Pour les écrans petits
+$min-content-width: 320px; // Pour les écrans très petits
 
 // --- NOUVELLES VARIABLES SASS ---
 $proprio-primary-sass: #205f78; // Correspond à --proprio-primary

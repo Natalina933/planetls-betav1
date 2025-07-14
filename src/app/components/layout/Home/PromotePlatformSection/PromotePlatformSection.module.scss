@@ -1,0 +1,115 @@
+// src/app/components/layout/Home/PromotePlatformSection/PromotePlatformSection.module.scss
+@use "sass:math";
+@use "sass:color";
+@use "src/app/styles/abstracts/index" as *;
+.platformSectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl) var(--spacing-md);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-text);
+  max-width: $max-content-width;
+  margin: 0 auto;
+}
+
+.heroBanner {
+  background: linear-gradient(to right, var(--proprietaire-primary), var(--color-secondary-dark));
+  color: #fff;
+  padding: var(--spacing-lg);
+  border-radius: $radius;
+  box-shadow: $shadow;
+  text-align: center;
+
+  .heroTitle {
+    font-family: var(--font-title);
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .heroSubtitle {
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--hero-highlight);
+  }
+
+  .heroButton {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    background-color: #fff;
+    color: var(--proprietaire-primary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: $transition;
+
+    &:hover {
+      background-color: var(--proprietaire-bg);
+      color: var(--proprietaire-text);
+      box-shadow: 0 2px 8px var(--color-border-subtle-accent);
+    }
+  }
+}
+
+.introBox {
+  background-color: var(--background);
+  border-left: 4px solid var(--proprietaire-primary);
+  padding: var(--spacing-lg);
+  border-radius: $radius;
+  box-shadow: $shadow;
+
+  h3 {
+    font-family: var(--font-title);
+    font-size: 1.8rem;
+    margin-bottom: var(--spacing-sm);
+    color: var(--proprietaire-text);
+  }
+
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text-light);
+  }
+}
+
+.pillarsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-lg);
+
+  .pillarItem {
+    background-color: var(--background);
+    padding: var(--spacing-lg);
+    border-radius: $radius;
+    text-align: center;
+    box-shadow: $shadow;
+    transition: $transition;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 16px var(--color-border-subtle-accent);
+    }
+
+    img {
+      width: 64px;
+      height: auto;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    h4 {
+      font-size: 1.4rem;
+      color: var(--proprietaire-primary);
+      font-family: var(--font-title);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    p {
+      font-size: 1rem;
+      color: var(--color-text-light);
+    }
+  }
+}

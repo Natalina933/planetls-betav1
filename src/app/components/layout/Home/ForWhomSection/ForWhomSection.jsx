@@ -5,8 +5,10 @@ import CTAButton from "@/app/components/common/buttons/CTAbutton/CTAButton";
 const ForWhomSection = () => (
   <section id="pour-qui" className={styles.forWhomSection} aria-label="À qui s’adresse PlanetLS">
     <div className={styles.content}>
-      <h2 className={styles.title}>PlanetLS s’adresse à&nbsp;
-        qui :</h2>
+      <h2 className={styles.planetLSTitle}>Rejoignez PlanetLS</h2>
+      <p className={styles.planetLSIntro}>
+        Une plateforme collaborative qui connecte tous les acteurs de la location saisonnière.
+      </p>
 
       <div className={styles.blocks}>
         {/* 🔷 Bloc Homeowners */}
@@ -45,17 +47,13 @@ const ForWhomSection = () => (
           <CTAButton variant="primary">Proposer mon savoir-faire</CTAButton>
         </div>
       </div>
-
+      <span>Notre mission est de créer un pont fiable et efficace, permettant aux propriétaires de trouver la conciergerie idéale pour leurs biens, et aux concierges de développer leur portefeuille client avec des opportunités qualifiées.</span>
       <div className={styles.heroActions}>
         {/* <div className={styles.buttonsRow}>
           <CTAButton variant="primary">Proposer un service</CTAButton>
           <CTAButton variant="secondary">Rechercher un prestataire</CTAButton>
         </div> */}
         <a href="#fonctionnement" className={styles.ctaTertiary}>Découvrir comment ça marche</a>
-      </div>
-
-      <div className={styles.securityNote}>
-        ✔️ Profils vérifiés &nbsp;|&nbsp; Paiement sécurisé &nbsp;|&nbsp; Inscription gratuite
       </div>
     </div>
   </section>
