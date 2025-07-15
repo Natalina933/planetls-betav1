@@ -1,50 +1,142 @@
-// src/app/components/shared/SectionBlock/SectionBlock.module.scss
 @use "sass:math";
 @use "src/app/styles/abstracts/index" as *;
 @use "sass:color";
 
-// Styles de la section générique
 .section {
-  padding: 4rem 1.5rem; // Plus de padding vertical
-  margin: 0 auto; // Centre la section
-  max-width: $max-content-width; // Définissez une variable $max-content-width dans vos abstracts, par exemple 1200px
-  text-align: center; // Par défaut, centre le contenu des sections
+  max-width: $max-content-width;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+  background: linear-gradient(120deg, #fffbe6 0%, #f8f3e9 100%);
+  border-radius: 2.5rem;
+  box-shadow: 0 8px 38px rgba(191, 164, 90, 0.11);
+  text-align: center;
 
   @include mq(md) {
-    padding: 6rem 3rem; // Plus de padding sur les écrans plus grands
+    padding: 6rem 3rem;
   }
 
-  
   &:nth-of-type(odd) {
-    background-color: var(--color-bg-light); // Ou une couleur spécifique
+    background: linear-gradient(110deg, #f9f7ef 10%, #fffbe6 100%);
   }
 
   &:nth-of-type(even) {
-    background-color: var(--color-bg-dark); // Ou laissez-le transparent
+    background: #fffdf8;
   }
 }
 
-// Styles du titre centré
-.centeredTitle {
-  font-size: 2.5rem; // Taille de police légèrement plus grande
-  color: var(--color-heading); // Utilise votre couleur de titre définie
-  margin-bottom: 3.5rem; // Plus d'espace en dessous du titre
+.sectionTitle {
+  font-family: var(--font-title, "Montserrat", serif);
+  font-size: 2.45rem;
+  color: #b0934f;
+  font-weight: 800;
+  letter-spacing: 0.017em;
+  text-align: center;
+  line-height: 1.16;
+  display: inline-block;
   position: relative;
-  display: inline-block; // Pour que le pseudo-élément after soit centré sous le titre
-  font-family: $font-elegant; // Si ce n'est pas déjà dans var(--color-heading)
-
-  @include mq(md) {
-    font-size: 3rem;
-    margin-bottom: 4.5rem;
-  }
+  padding: 0.44em 2.7em;
+  margin-bottom: 1.7rem;
+  background: linear-gradient(92deg, #fffbe6 50%, #f7e7b8 110%);
+  border: 3px solid #bfa45a;
+  border-radius: 1.62em;
+  box-shadow: 0 4px 22px rgba(191, 164, 90, 0.13), 0 0 0 8px #fffbe6;
+  transition: background 0.36s, color 0.22s, box-shadow 0.22s;
 
   &::after {
     content: '';
     display: block;
-    width: 6rem; // Longueur de la ligne décorative
-    height: 0.3rem; // Épaisseur de la ligne
-    background-color: $gold; // Couleur dorée pour la ligne
-    margin: 1rem auto 0; // Centre la ligne sous le titre et lui donne un espacement
-    border-radius: 2px; // Bords légèrement arrondis
+    margin: 1.1rem auto 0;
+    width: 5.5rem;
+    height: 0.32rem;
+    background: linear-gradient(90deg, #b0934f 85%, #eacb8c 100%);
+    border-radius: 3px;
+    opacity: 0.94;
   }
+
+  &:hover,
+  &:focus-visible {
+    background: linear-gradient(93deg, #fffbe6 35%, #ffeabf 95%);
+    box-shadow: 0 10px 36px rgba(191, 164, 90, 0.18), 0 0 0 18px #fffbe6;
+    color: #a6780d;
+  }
+
+  @include mq(md) {
+    font-size: 2.05rem;
+    padding: 0.29em 1.35em;
+  }
+
+  @include mq(sm) {
+    font-size: 1.27rem;
+    padding: 0.21em 0.6em;
+
+    &::after {
+      width: 3.2rem;
+      margin: 0.7rem auto 0;
+    }
+  }
+}
+
+// Pour encadrer l’ensemble des bulles/services :
+.serviceList,
+.bubblesRow {
+  border: 3px solid #bfa45a;
+  border-radius: 1.7em;
+  background: #fffdf7;
+  padding: 2.4rem 1.2rem;
+  margin: 2.5rem auto 0 auto;
+  max-width: 980px;
+  box-shadow: 0 2px 18px rgba(191, 164, 90, 0.07);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.2rem;
+  justify-content: center;
+}
+
+.serviceItem,
+.bubbleBlock {
+  background: #fff;
+  border-radius: 1em;
+  box-shadow: 0 1px 8px rgba(191, 164, 90, 0.06);
+  padding: 1.7rem 1.2rem 1.2rem 1.2rem;
+  text-align: center;
+  min-width: 240px;
+  max-width: 340px;
+  flex: 1 1 250px;
+  transition: transform 0.16s, box-shadow 0.14s;
+
+  &:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 22px rgba(191, 164, 90, 0.13);
+    background: #fffbe6;
+  }
+}
+
+.serviceIcon,
+.bubbleIcon {
+  margin-bottom: 1rem;
+  background: #fffbe9;
+  border-radius: 50%;
+  border: 2.1px solid #bfa45a;
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(191, 164, 90, 0.05);
+}
+
+.serviceTitle,
+.bubbleLabel {
+  font-size: 1.19rem;
+  font-weight: 700;
+  color: #bfa45a;
+  margin-bottom: 0.35em;
+  letter-spacing: 0.01em;
+}
+
+.serviceDescription,
+.bubbleDescription {
+  color: #46433e;
+  font-size: 1rem;
+  opacity: 0.97;
 }

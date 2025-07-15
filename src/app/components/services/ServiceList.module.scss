@@ -1,0 +1,117 @@
+@use "sass:math";
+@use "src/app/styles/abstracts/index" as *;
+@use "sass:color";
+
+.platformSection {
+    background: linear-gradient(120deg, #fffbe6 0%, #f8f3e9 100%);
+    border-radius: 2em;
+    border: 2.5px solid #bfa45a;
+    padding: 3.5rem 2rem 2.8rem 2rem;
+    box-shadow: 0 8px 38px rgba(191, 164, 90, 0.10);
+    margin-bottom: 2.5rem;
+}
+
+.sectionTitle {
+    font-family: var(--font-title, "Montserrat", serif);
+    font-size: 2.3rem;
+    color: #b0934f;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.014em;
+    position: relative;
+    line-height: 1.18;
+
+    &::after {
+        content: "";
+        display: block;
+        width: 4rem;
+        height: 0.18em;
+        background: linear-gradient(90deg, #b0934f 80%, #eacb8c 100%);
+        margin: 0.9rem auto 0 auto;
+        border-radius: 0.55em;
+        opacity: 0.88;
+    }
+}
+
+.sectionIntro {
+    text-align: center;
+    color: #444;
+    font-size: 1.13rem;
+    max-width: 680px;
+    margin: 0 auto 1.6rem auto;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.keyPoints {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2.2em;
+    margin: 1.6em auto 2.5em auto;
+    list-style: disc inside;
+    color: #a67c22;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.serviceList {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.serviceItem {
+    background: #fff;
+    border: 1.5px solid #e5c573;
+    border-radius: 1.3em;
+    box-shadow: 0 2px 18px rgba(184, 139, 74, .07);
+    padding: 2.2rem 1.3rem 1.6rem 1.3rem;
+    text-align: center;
+    flex: 1 1 250px;
+    max-width: 330px;
+    transition: transform 0.19s, box-shadow 0.18s;
+
+    &:hover {
+        transform: translateY(-7px) scale(1.03);
+        box-shadow: 0 10px 32px rgba(184, 139, 74, 0.12);
+        border-color: #bfa45a;
+        background: #fffbf2;
+    }
+}
+
+.iconCircle {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 1rem auto;
+    background: #fffbe9;
+    border: 2px solid #bfa45a;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(191, 164, 90, 0.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.serviceTitle {
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: #bfa45a;
+    margin: 0.5em 0 0.35em 0;
+}
+
+.serviceDescription {
+    font-size: 1rem;
+    color: #484848;
+    opacity: 0.94;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+.icon {
+    color: #bfa45a; // la couleur est héritée mais on garantit le style ici
+    width: 36px;
+    height: 36px;
+}

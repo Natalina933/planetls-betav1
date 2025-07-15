@@ -37,8 +37,8 @@ export default function HomePage() {
                     <HeroSection />
                     <HowItWorksSection />
                     <MapWithSearch />
-                    <ForWhomSection />
                     <ServicesSection />
+                    <ForWhomSection />
                     <PromotePlatformSection />
                     <TrustSection />
                     <BlogNewsSection />

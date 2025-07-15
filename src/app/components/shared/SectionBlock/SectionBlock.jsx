@@ -12,7 +12,7 @@ import styles from './SectionBlock.module.scss'; // Ses propres styles
 export default function SectionBlock({ title, children }) {
     return (
         <section className={styles.section}>
-            <h2 className={styles.centeredTitle}>{title}</h2>
+            <h2 className={styles.sectionTitle}>{title}</h2>
             {children}
         </section>
     );

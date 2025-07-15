@@ -239,19 +239,25 @@
 }
 .bubblesRow {
   display: flex;
-  flex-direction: row; // Par défaut en ligne
-  gap: var(--spacing-xl); // Espacement entre les bulles
-  align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
-  justify-content: center; // Centrer les bulles
-  flex: 1 1 0; // Permet de prendre l'espace disponible
-  flex-wrap: wrap; // Permet aux bulles de passer à la ligne si nécessaire
+  flex-direction: row;
+  gap: var(--spacing-xl);
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 1 1 0;
+  padding: 1rem 1rem; // Padding pour laisser de l'espace entre la bordure et les bulles
+
+  border: 1px solid #bfa45a; // Couleur dorée approximative (or)
+  border-radius: 2rem;      // Border radius arrondi sur toutes les coins
+  box-shadow: 0 0 12px rgba(191, 164, 90, 0.5); // Ombre dorée légère optionnelle pour effet premium
 
   @include mq(md) {
-    flex-direction: column; // En colonne sur les écrans moyens
-    align-items: center; // Centrer les bulles en colonne
+    flex-direction: column;
+    align-items: center;
     gap: var(--spacing-md);
+    padding: 1rem;
   }
 }
+
 
 .bubbleBlock {
   // Les variables --bubble-primary, --bubble-hover, etc., sont passées via le style inline en React
@@ -273,8 +279,8 @@
   padding-bottom: 1rem; // Espace pour la bulle de texte flottante
 
   .bubbleBtn {
-    width: 110px;
-    height: 110px;
+    width: 98px;
+    height: 98px;
     display: flex;
     align-items: center;
     justify-content: center;
