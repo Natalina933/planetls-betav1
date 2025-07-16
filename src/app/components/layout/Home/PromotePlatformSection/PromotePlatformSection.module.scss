@@ -2,114 +2,203 @@
 @use "sass:math";
 @use "sass:color";
 @use "src/app/styles/abstracts/index" as *;
+
+
 .platformSectionContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-xl) var(--spacing-md);
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-text);
   max-width: $max-content-width;
   margin: 0 auto;
+  padding: var(--spacing-lg) 0; // Padding interne au SectionBlock
+  text-align: center;
+
+  @include mq(md) {
+    padding: var(--spacing-md) 0;
+  }
 }
 
 .heroBanner {
-  background: linear-gradient(to right, var(--proprietaire-primary), var(--color-secondary-dark));
-  color: #fff;
-  padding: var(--spacing-lg);
-  border-radius: $radius;
-  box-shadow: $shadow;
-  text-align: center;
+  background: linear-gradient(135deg, var(--concierge-primary), var(--concierge-primary-darker)); /* Corrigé */
+  color: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 40px rgba(var(--concierge-primary-rgb), 0.4);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
 
-  .heroTitle {
-    font-family: var(--font-title);
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: var(--spacing-sm);
+  @include mq(md) {
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+  @include mq(sm) {
+    padding: var(--spacing-md);
+  }
+}
+
+.heroTitle {
+  font-family: var(--font-title, sans-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+
+  @include mq(md) {
+    font-size: 2rem;
   }
 
-  .heroSubtitle {
-    font-size: 1.3rem;
-    margin-bottom: var(--spacing-md);
-    color: var(--hero-highlight);
+  @include mq(sm) {
+    font-size: 1.7rem;
+  }
+}
+
+.heroSubtitle {
+  font-family: var(--font-text, sans-serif);
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.9;
+
+  @include mq(md) {
+    font-size: 1.1rem;
   }
 
-  .heroButton {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    background-color: #fff;
-    color: var(--proprietaire-primary);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: $transition;
+  @include mq(sm) {
+    font-size: 1rem;
+  }
+}
 
-    &:hover {
-      background-color: var(--proprietaire-bg);
-      color: var(--proprietaire-text);
-      box-shadow: 0 2px 8px var(--color-border-subtle-accent);
-    }
+.heroButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0.8rem 1.8rem;
+  background-color: var(--color-accent);
+  /* Utilisation de la couleur accent pour le bouton */
+  color: var(--foreground);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-text, sans-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(var(--color-accent-rgb), 0.3);
+
+  &:hover {
+    background-color: var(--color-accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(var(--color-accent-rgb), 0.4);
+  }
+
+  svg {
+    font-size: 1.2em;
+  }
+
+  @include mq(sm) {
+    font-size: 1rem;
+    padding: 0.7rem 1.5rem;
   }
 }
 
 .introBox {
-  background-color: var(--background);
-  border-left: 4px solid var(--proprietaire-primary);
+  background: var(--color-secondary-light);
+  border: 1px solid var(--color-border-subtle-accent);
+  border-radius: var(--radius-md);
   padding: var(--spacing-lg);
-  border-radius: $radius;
-  box-shadow: $shadow;
+  margin: var(--spacing-xl) auto;
+  max-width: 700px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+
+  @include mq(md) {
+    padding: var(--spacing-md);
+    margin: var(--spacing-lg) auto;
+  }
 
   h3 {
-    font-family: var(--font-title);
-    font-size: 1.8rem;
+    font-family: var(--font-title, serif);
+    font-size: 2rem;
+    color: var(--color-secondary-dark);
     margin-bottom: var(--spacing-sm);
-    color: var(--proprietaire-text);
+
+    @include mq(md) {
+      font-size: 1.7rem;
+    }
+
+    @include mq(sm) {
+      font-size: 1.5rem;
+    }
   }
 
   p {
-    font-size: 1.1rem;
+    font-family: var(--font-text, sans-serif);
+    font-size: 1.05rem;
+    color: var(--color-text);
     line-height: 1.6;
-    color: var(--color-text-light);
+
+    @include mq(md) {
+      font-size: 1rem;
+    }
   }
 }
 
 .pillarsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  max-width: $max-content-width-md;
+  margin-left: auto;
+  margin-right: auto;
 
-  .pillarItem {
-    background-color: var(--background);
-    padding: var(--spacing-lg);
-    border-radius: $radius;
-    text-align: center;
-    box-shadow: $shadow;
-    transition: $transition;
+  @include mq(md) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+  }
+}
 
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 16px var(--color-border-subtle-accent);
+.pillarItem {
+  background: var(--background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  // Styles pour les icônes (lucide-react ou react-icons)
+  svg {
+    font-size: 3.5rem;
+    color: var(--color-primary); // Utilisation de la couleur primaire pour les icônes
+    margin-bottom: var(--spacing-sm);
+    stroke-width: 1.5; // Pour les icônes Lucide (plus fines)
+  }
+
+  h4 {
+    font-family: var(--font-title, serif);
+    font-size: 1.4rem;
+    color: var(--foreground);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 700;
+
+    @include mq(sm) {
+      font-size: 1.2rem;
     }
+  }
 
-    img {
-      width: 64px;
-      height: auto;
-      margin-bottom: var(--spacing-sm);
-    }
-
-    h4 {
-      font-size: 1.4rem;
-      color: var(--proprietaire-primary);
-      font-family: var(--font-title);
-      margin-bottom: var(--spacing-xs);
-    }
-
-    p {
-      font-size: 1rem;
-      color: var(--color-text-light);
-    }
+  p {
+    font-family: var(--font-text, sans-serif);
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    line-height: 1.6;
   }
 }

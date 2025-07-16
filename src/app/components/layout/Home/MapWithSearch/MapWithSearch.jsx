@@ -1,11 +1,13 @@
 // src/app/components/layout/Home/MapWithSearch/MapWithSearch.jsx
 "use client";
 import React, { useState } from "react";
-import { useRouter } from 'next/navigation'; // <-- Changed import for App Router
+import { useRouter } from 'next/navigation';
 import styles from "./MapWithSearch.module.scss";
-import { FaHome, FaBell, FaTools, FaGlobe } from 'react-icons/fa';
+// Remis aux icônes d'origine (Fa) comme dans votre code le plus récent
+import { FaHome, FaBell, FaTools, FaGlobe, FaSearch } from 'react-icons/fa';
 import { FaPeopleGroup } from "react-icons/fa6";
-import SearchSection from './SearchSection';
+// SearchSection n'est pas utilisé dans le code fourni, je l'ai laissé commenté si vous n'en avez pas besoin.
+// import SearchSection from './SearchSection';
 
 const CATEGORY_CONFIG = [
     {
@@ -33,14 +35,14 @@ const CATEGORY_CONFIG = [
         key: "all",
         label: "Tous",
         iconComponent: () => (
-            <div style={{ position: 'relative', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <FaGlobe style={{ position: 'absolute', fontSize: '4.5em', color: 'white', opacity: 1 }} />
                 <FaPeopleGroup style={{ position: 'absolute', fontSize: '2em', color: 'gold', zIndex: 1 }} />
             </div>
         ),
         image: "/images/carousel/all.jpg",
         description: "Tous les professionnels de la location saisonnière",
-    },
+    }
 ];
 
 export default function MapWithSearch() {
@@ -50,8 +52,6 @@ export default function MapWithSearch() {
     const router = useRouter();
 
     const handleSearch = () => {
-        // Redirige vers la page map-list avec les paramètres de recherche dans l'URL
-        // Note: Dans l'App Router, les query params sont ajoutés directement à l'URL.
         router.push(`/map-list?filter=${filter}&location=${encodeURIComponent(location)}`);
     };
 
@@ -60,10 +60,12 @@ export default function MapWithSearch() {
             <header className={styles.intro}>
                 <div className={styles.headerContentWrapper}>
                     <h2>Regroupement des Besoins pour la Location saisonnière</h2>
-                    <p className={styles.introSub}>Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.</p>
+                    <p className={styles.introSub}>
+                        Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.
+                    </p>
                     <p className={styles.introDescription}>
                         Que vous soyez un propriétaire à la recherche d'un concierge fiable, un voyageur ayant besoin d'un artisan pour une réparation rapide,
-                        ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.
+                        ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.<br />
                         Simplifiez la gestion de vos propriétés et profitez d'un service de qualité.
                     </p>
                 </div>
@@ -79,21 +81,24 @@ export default function MapWithSearch() {
 
             <section className={styles.categorySearchSection}>
                 <div className={styles.categoryInstructionWrapper}>
-                    <h2 className={styles.categoryInstruction}>
-                        Utilisez les filtres de catégorie ci-dessous et entrez votre localisation pour affiner votre recherche.
-                    </h2>
+
+                    <h3 className={styles.categoryInstruction}>
+                        Trouvez des artisans, concierges et propriétaires locaux pour vos besoins
+                    </h3>
                 </div>
 
                 <div className={styles.bubblesRow}>
-                    {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }) => (
+                    {CATEGORY_CONFIG.map(({ key, label, iconComponent: Icon, description }, index) => (
                         <div
                             key={key}
                             className={`${styles.bubbleBlock} ${filter === key ? styles.active : ""}`}
                             style={{
-                                '--bubble-primary': `var(--${key}-primary)`,
-                                '--bubble-hover': `var(--${key}-hover)`,
-                                '--bubble-bg': `var(--${key}-bg)`,
-                                '--bubble-text': `var(--${key}-text)`,
+                                '--bubble-primary': `var(--${key}-primary, var(--color-primary))`,
+                                '--bubble-hover': `var(--${key}-hover, var(--color-primary-light))`,
+                                '--bubble-bg': `var(--${key}-bg, #fff)`,
+                                '--bubble-text': `var(--${key}-text, var(--color-text))`,
+                                // Passage de l'index pour l'animation échelonnée
+                                animationDelay: `${index * 0.1}s`
                             }}
                         >
                             <button
@@ -104,6 +109,8 @@ export default function MapWithSearch() {
                             >
                                 <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
                             </button>
+                            {/* Le bubbleLabel était commenté dans votre version, il reste commenté pour maintenir votre intention */}
+                            {/* <div className={`${styles.bubbleLabel}`}>{label}</div> */}
                             {filter === key && (
                                 <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
                                     <h3>{label}</h3>
@@ -113,13 +120,32 @@ export default function MapWithSearch() {
                         </div>
                     ))}
                 </div>
+
+                <div className={styles.searchBarWrapper}>
+                <span className={styles.categoryInstruction}>
+                    Utilisez les filtres de catégorie ci-dessus et entrez votre localisation pour affiner votre recherche.
+                </span>
+                    <div className={styles.searchBar}>
+                        <input
+                            type="text"
+                            placeholder="Où recherchez-vous ?"
+                            value={location}
+                            onChange={e => setLocation(e.target.value)}
+                            className={styles.searchInput}
+                        />
+                        <button
+                            className={styles.searchButton}
+                            onClick={handleSearch}
+                            aria-label="Rechercher"
+                            type="button"
+                        >
+                            <FaSearch size="1em" />
+                            <span>Rechercher</span>
+                        </button>
+                    </div>
+                </div>
             </section>
 
-            <SearchSection
-                location={location}
-                setLocation={setLocation}
-                handleSearch={handleSearch}
-            />
         </div>
     );
 }

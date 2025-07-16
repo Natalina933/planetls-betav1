@@ -9,43 +9,54 @@
   /* Couleurs système */
   --color-success: #4caf50;
   --color-error: #e53935;
-  --color-accent: #ffc107;
+  --color-accent: #ffc107; /* Or */
   --color-accent-light: #ffd699;
   --color-accent-dark: #cc7a00;
   --color-accent-hover: #ffb84d;
+  --color-primary: #d4af37; /* Utilisation de l'or comme couleur primaire pour l'esthétique générale */
+  --color-primary-rgb: 212, 175, 55; /* RGB de --color-primary pour les opacités */
+  --color-primary-light: #ffe099; /* Version plus claire de la couleur primaire */
+  --color-primary-darker: #b99b2e; /* Nouvelle variable: #d4af37 assombri de 15.28% */
+  --color-text-primary: #333; /* Texte plus foncé pour les titres */
 
   --color-secondary: rgba(32, 95, 120, 0.5);
   --color-secondary-light: #f7fbfe;
   --color-secondary-dark: #0e1a2a;
-    // Couleurs par défaut (fallback si non surchargées)
   --color-text-light: #666;
-  --color-border-light: #f0f0f0; // Ajouté pour des bordures plus légères
-  --color-border-subtle-accent: #d3c7b3; // Un ton clair de l'or/brun pour la bordure
+  --color-border-light: #f0f0f0;
+  --color-border-subtle-accent: #d3c7b3;
 
-
-  /* Catégorie : Propriétaires */
+    /* Catégorie : Propriétaires */
   --proprietaire-primary: #205f78;
+  --proprietaire-primary-rgb: 32, 95, 120;
+  --proprietaire-primary-dark: #1a4c60; /* Nouvelle variable: #205f78 assombri de 10% */
   --proprietaire-hover: rgba(32, 95, 120, 0.5);
   --proprietaire-bg: #eaf1ff;
   --proprietaire-text: #1c3a77;
 
-  /* Catégorie : Concierges */
+   /* Catégorie : Concierges */
   --concierge-primary: #82a27c;
-  --concierge-hover: #6a8c65;
+  --concierge-primary-rgb: 130, 162, 124;
+  --concierge-primary-dark: #75926d; /* Assombri de 10% */
+  --concierge-primary-darker: #6a8a65; /* Nouvelle variable: #82a27c assombri de 15% */
+  --concierge-hover: #6a8c65; /* NOTE: Cette variable n'est pas utilisée pour le darken() mais existait */
   --concierge-bg: #f2f7f3;
   --concierge-text: #344b3c;
 
   /* Catégorie : Artisans / Commerçants */
   --artisan-primary: #c17c54;
+  --artisan-primary-rgb: 193, 124, 84;
+  --artisan-primary-dark: #a7643c; /* Nouvelle variable: #c17c54 assombri de 10% */
   --artisan-hover: #a7643c;
   --artisan-bg: #fbefe7;
   --artisan-text: #4b2f1f;
 
   /* Catégorie : Tous */
-  --all-primary: #ffd700; // Or (Gold)
-  --all-hover: #ffd723; // Or doré (Goldenrod) pour le survol
-  --all-bg: #fffbe6; // Crème très clair pour le fond de la bulle
-  --all-text: #8b4513; // Brun doré pour le texte
+  --all-primary: #ffd700;
+  --all-primary-rgb: 255, 215, 0;
+  --all-hover: #ffd723;
+  --all-bg: #fffbe6;
+  --all-text: #8b4513;
 
   /* Couleurs supplémentaires */
   --hero-gradient-from: rgba(0, 0, 0, 0.5);
@@ -66,8 +77,8 @@
 
   /* Fonts */
   --font-title: "Montserrat", sans-serif;
+  --font-primary: "Cormorant Garamond", serif;
   --font-text: "Open Sans", sans-serif;
-  --font-elegant: "Cormorant Garamond", serif;
 
   /* Espacements */
   --spacing-xs: 0.25rem;
@@ -78,41 +89,49 @@
 
   /* Radius */
   --radius: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 500px;
+
+  /* Focus ring */
+  --color-focus-ring: #ffe09b;
 }
+
 // Largeurs maximales de contenu
-$max-content-width: 1200px; 
-$max-content-width-md: 960px; // Pour les écrans moyens
-$max-content-width-sm: 720px; // Pour les écrans petits
-$min-content-width: 320px; // Pour les écrans très petits
+$max-content-width: 1200px;
+$max-content-width-md: 960px;
+$max-content-width-sm: 720px;
+$min-content-width: 320px;
 
 // --- NOUVELLES VARIABLES SASS ---
-$proprio-primary-sass: #205f78; // Correspond à --proprio-primary
-$proprio-hover-sass: rgba(32, 95, 120, 0.5); // Correspond à --proprio-hover
+$proprio-primary-sass: #205f78;
+$proprio-hover-sass: rgba(32, 95, 120, 0.5);
 
-$color-secondary-dark-sass: #0e1a2a; // Correspond à --color-secondary-dark
+$color-secondary-dark-sass: #0e1a2a;
 
-$primary-dark-color-sass: #171717; // Correspond à --foreground, qui semble être une couleur foncée générale
-// Ou choisissez une autre couleur foncée pertinente de votre :root
+$primary-dark-color-sass: #171717;
 // ---------------------------------
 // === Couleurs neutres ===
 $neutral-text: var(--color-text);
 $default-bubble-primary: var(--color-accent);
 $default-bubble-secondary: var(--color-secondary);
 // === Couleurs principales ===
-$gold: #d4af37;
-$gold-rgba-10: rgba(#d4af37, 0.1);
-$gold-rgba-30: rgba(#d4af37, 0.3);
-$gold-rgba-50: rgba(#d4af37, 0.5);
+$gold: var(--color-primary);
+$gold-rgba-10: rgba(var(--color-primary-rgb), 0.1);
+$gold-rgba-30: rgba(var(--color-primary-rgb), 0.3);
+$gold-rgba-50: rgba(var(--color-primary-rgb), 0.5);
 
 $deep-blue: #1e2a38;
 $cream: #faf4ec;
 
 // === Typographie ===
-$font-elegant: "Cormorant Garamond", serif;
-$font-text: "Open Sans", sans-serif;
-$font-title: "Montserrat", sans-serif;
+$font-elegant: var(--font-primary);
+$font-text: var(--font-text);
+$font-title: var(--font-title);
 
 // === Rayons, ombres, transitions ===
-$radius: 12px;
+$radius: var(--radius-md);
 $transition: all 0.3s ease;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
