@@ -12,7 +12,7 @@ export default function ServicesSection() {
     return (
         <section className={styles.servicesSection}>
             <SectionBlock
-                title="PlaneteLs : Une Plateforme de gestion tout-en-un"
+                title="Découvrer notre Plateforme de gestion tout-en-un"
                 subtitle="La solution en ligne pour l’ensemble des acteurs de la location saisonnière"
                 description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
             >

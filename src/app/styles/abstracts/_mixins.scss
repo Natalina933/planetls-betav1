@@ -1,7 +1,7 @@
 @use "sass:map";
 @use "sass:color";
 @use "sass:math";
-
+@use "sass:meta";
 @use "src/app/styles/abstracts/breakpoints" as bp;
 
 @mixin mq($size) {
@@ -94,7 +94,37 @@
         clear: both;
     }
 }
+// ------------------------------------------------------------------
+// Backdrop blur mixin
+// Usage:
+//   @include backdrop-blur();                      // blur 4px, bg fallback
+//   @include backdrop-blur(6px);                   // custom blur
+//   @include backdrop-blur(3px, rgba(255,255,255,.9));
+//   @include backdrop-blur(5px, var(--glass-bg), var(--glass-border));
+//
+// Params:
+//   $amount          -> blur size (default 4px)
+//   $fallback-bg     -> background shown when blur unsupported (default rgba white .85)
+//   $fallback-border -> optional border color (null = none)
+// ------------------------------------------------------------------
+@mixin backdrop-blur(
+  $amount: 4px,
+  $fallback-bg: rgba(255, 255, 255, 0.85),
+  $fallback-border: null
+) {
+  // Fallback styles visible partout
+  background: $fallback-bg;
 
+  @if $fallback-border != null {
+    border: 1px solid $fallback-border;
+  }
+
+  // Applique le blur uniquement si supporté (évite warnings LightningCSS)
+  @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
+    -webkit-backdrop-filter: blur($amount);
+    backdrop-filter: blur($amount);
+  }
+}
 // Heading styles mixin
 // This mixin applies consistent styles to headings based on their level.
 @mixin heading-style($level: 1) {

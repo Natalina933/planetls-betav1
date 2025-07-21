@@ -1,3 +1,6 @@
+// ===================================
+// Variables CSS :root (pour runtime)
+// ===================================
 :root {
   /* Couleurs neutres */
   --color-text: #222;
@@ -13,11 +16,11 @@
   --color-accent-light: #ffd699;
   --color-accent-dark: #cc7a00;
   --color-accent-hover: #ffb84d;
-  --color-primary: #d4af37; /* Utilisation de l'or comme couleur primaire pour l'esthétique générale */
-  --color-primary-rgb: 212, 175, 55; /* RGB de --color-primary pour les opacités */
-  --color-primary-light: #ffe099; /* Version plus claire de la couleur primaire */
-  --color-primary-darker: #b99b2e; /* Nouvelle variable: #d4af37 assombri de 15.28% */
-  --color-text-primary: #333; /* Texte plus foncé pour les titres */
+  --color-primary: #d4af37;
+  --color-primary-rgb: 212, 175, 55;
+  --color-primary-light: #ffe099;
+  --color-primary-darker: #b99b2e;
+  --color-text-primary: #333;
 
   --color-secondary: rgba(32, 95, 120, 0.5);
   --color-secondary-light: #f7fbfe;
@@ -26,27 +29,27 @@
   --color-border-light: #f0f0f0;
   --color-border-subtle-accent: #d3c7b3;
 
-    /* Catégorie : Propriétaires */
+  /* Catégorie : Propriétaires */
   --proprietaire-primary: #205f78;
   --proprietaire-primary-rgb: 32, 95, 120;
-  --proprietaire-primary-dark: #1a4c60; /* Nouvelle variable: #205f78 assombri de 10% */
+  --proprietaire-primary-dark: #1a4c60;
   --proprietaire-hover: rgba(32, 95, 120, 0.5);
   --proprietaire-bg: #eaf1ff;
   --proprietaire-text: #1c3a77;
 
-   /* Catégorie : Concierges */
+  /* Catégorie : Concierges */
   --concierge-primary: #82a27c;
   --concierge-primary-rgb: 130, 162, 124;
-  --concierge-primary-dark: #75926d; /* Assombri de 10% */
-  --concierge-primary-darker: #6a8a65; /* Nouvelle variable: #82a27c assombri de 15% */
-  --concierge-hover: #6a8c65; /* NOTE: Cette variable n'est pas utilisée pour le darken() mais existait */
+  --concierge-primary-dark: #75926d;
+  --concierge-primary-darker: #6a8a65;
+  --concierge-hover: #6a8c65;
   --concierge-bg: #f2f7f3;
   --concierge-text: #344b3c;
 
   /* Catégorie : Artisans / Commerçants */
   --artisan-primary: #c17c54;
   --artisan-primary-rgb: 193, 124, 84;
-  --artisan-primary-dark: #a7643c; /* Nouvelle variable: #c17c54 assombri de 10% */
+  --artisan-primary-dark: #a7643c;
   --artisan-hover: #a7643c;
   --artisan-bg: #fbefe7;
   --artisan-text: #4b2f1f;
@@ -99,24 +102,29 @@
   --color-focus-ring: #ffe09b;
 }
 
-// Largeurs maximales de contenu
+// ===================================
+// Variables SCSS (compile-time)
+// ===================================
+
+// --- Dimensions ---
 $max-content-width: 1200px;
 $max-content-width-md: 960px;
 $max-content-width-sm: 720px;
 $min-content-width: 320px;
 
-// --- NOUVELLES VARIABLES SASS ---
+// --- Catégorie propriétaire ---
 $proprio-primary-sass: #205f78;
 $proprio-hover-sass: rgba(32, 95, 120, 0.5);
 
+// --- Autres couleurs SCSS ---
 $color-secondary-dark-sass: #0e1a2a;
-
 $primary-dark-color-sass: #171717;
-// ---------------------------------
+
 // === Couleurs neutres ===
 $neutral-text: var(--color-text);
 $default-bubble-primary: var(--color-accent);
 $default-bubble-secondary: var(--color-secondary);
+
 // === Couleurs principales ===
 $gold: var(--color-primary);
 $gold-rgba-10: rgba(var(--color-primary-rgb), 0.1);
@@ -131,7 +139,14 @@ $font-elegant: var(--font-primary);
 $font-text: var(--font-text);
 $font-title: var(--font-title);
 
-// === Rayons, ombres, transitions ===
-$radius: var(--radius-md);
+// === Radius (SCSS) ===
+$radius-xs: 4px;
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 24px;
+$radius-pill: 500px;
+
+// === Transitions et ombres ===
 $transition: all 0.3s ease;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

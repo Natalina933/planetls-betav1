@@ -83,7 +83,7 @@ export default function MapWithSearch() {
                 <div className={styles.categoryInstructionWrapper}>
 
                     <h3 className={styles.categoryInstruction}>
-                        Trouvez des artisans, concierges et propriétaires locaux pour vos besoins
+                        Trouvez des propriétaires, concierges et  artisans locaux pour vos besoins
                     </h3>
                 </div>
 
@@ -109,7 +109,7 @@ export default function MapWithSearch() {
                             >
                                 <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
                             </button>
-                            {/* Le bubbleLabel était commenté dans votre version, il reste commenté pour maintenir votre intention */}
+
                             {/* <div className={`${styles.bubbleLabel}`}>{label}</div> */}
                             {filter === key && (
                                 <div className={styles.categoryTextBubble} style={{ color: `var(--${key}-text)` }}>
@@ -122,9 +122,9 @@ export default function MapWithSearch() {
                 </div>
 
                 <div className={styles.searchBarWrapper}>
-                <span className={styles.categoryInstruction}>
-                    Utilisez les filtres de catégorie ci-dessus et entrez votre localisation pour affiner votre recherche.
-                </span>
+                    <span className={styles.categoryInstruction}>
+                        Utilisez les filtres de catégorie ci-dessus et entrez votre localisation.
+                    </span>
                     <div className={styles.searchBar}>
                         <input
                             type="text"

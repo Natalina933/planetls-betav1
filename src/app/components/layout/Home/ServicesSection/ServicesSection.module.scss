@@ -6,9 +6,6 @@
 @use "src/app/styles/abstracts/_variables" as *; // Assurez-vous que ce chemin est correct
 
 .servicesSection {
-    background: linear-gradient(to top, var(--color-bg), var(--color-secondary-light));
-    padding: var(--spacing-xl) var(--spacing-md);
-    /* Corrigé */
     text-align: center;
     border-bottom: 1px solid var(--color-border);
     position: relative;
