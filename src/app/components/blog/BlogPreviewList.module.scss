@@ -1,0 +1,95 @@
+.blog-preview-list {
+    display: grid;
+    gap: 2rem;
+    margin-top: 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    padding: 0 1rem;
+
+    .blog-preview-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.09);
+        padding: 2rem 2.5rem;
+        text-decoration: none;
+        color: #191a1d;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.3s;
+        will-change: transform, box-shadow;
+
+        &:hover,
+        &:focus-visible {
+            transform: translateY(-8px) scale(1.025) rotate(-0.5deg);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+
+            .blog-card-arrow {
+                transform: translateX(8px);
+                opacity: 1;
+            }
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 4px;
+            background: linear-gradient(90deg, #8bd4ff 0%, #4971fa 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s cubic-bezier(.34, 1.56, .64, 1);
+            transform-origin: left;
+            z-index: 2;
+        }
+
+        &:hover::after {
+            transform: scaleX(1);
+        }
+
+        h3 {
+            margin: 0 0 0.75rem 0;
+            color: #2777ff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            transition: color 0.2s;
+        }
+
+        p {
+            margin: 0;
+            color: #415168;
+            font-size: 1.06rem;
+            opacity: .92;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .blog-card-date {
+            margin-top: 1.2rem;
+            font-size: 0.98rem;
+            color: #8c9aaa;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            &::before {
+                content: '';
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #4971fa;
+                margin-right: 0.5rem;
+            }
+        }
+
+        .blog-card-arrow {
+            position: absolute;
+            right: 1.8rem;
+            bottom: 1.8rem;
+            font-size: 1.3rem;
+            color: #8bd4ff;
+            transition: transform 0.3s, opacity 0.3s;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    }
+}
