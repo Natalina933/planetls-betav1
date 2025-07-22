@@ -8,7 +8,7 @@ import { HowItWorksSection } from "../components/layout/Home/HowItWorksSection/H
 import { ShopSection } from '../components/layout/Home/ShopSection/ShopSection';
 import FirstVisit from '../components/layout/Home/FirstVisit/FirstVisit';
 import Head from 'next/head';
-
+import VideoIntro from '../components/layout/Home/VideoIntro/VideoIntro';
 // Import des composants de section spécifiques
 import PromotePlatformSection from '../components/layout/Home/PromotePlatformSection/PromotePlatformSection'; // <-- NOUVEAU
 import ServicesSection from '../components/layout/Home/ServicesSection/ServicesSection';
@@ -42,8 +42,8 @@ export default function HomePage() {
                     <PromotePlatformSection />
                     <TrustSection />
                     <BlogNewsSection />
-                    <ShopSection />    
-                                        
+                    <ShopSection />
+                    <VideoIntro />
                     <Footer />
                 </main>
             </div>

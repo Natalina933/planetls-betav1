@@ -23,13 +23,13 @@
         }
 
         // Utilise :focus-visible pour un comportement d'accessibilité amélioré
-        &:focus-visible {
+        // &:focus-visible {
             // Appliquez un style personnalisé pour indiquer le focus au clavier
             // Par exemple, une ombre ou une bordure interne subtile
-            box-shadow: 0 0 0 2px color.change($primary-dark-color-sass, $alpha: 0.5), 0 0 0 4px $gold; // Ou une simple outline dashed:
+            // box-shadow: 0 0 0 2px color.change($primary-dark-color-sass, $alpha: 0.5), 0 0 0 4px $gold; // Ou une simple outline dashed:
             // outline: 2px dashed $gold;
             // outline-offset: 2px; // Un petit décalage pour ne pas superposer le contenu
-        }
+        // }
     }
 }
 

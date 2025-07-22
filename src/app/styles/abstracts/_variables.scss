@@ -12,7 +12,8 @@
   /* Couleurs système */
   --color-success: #4caf50;
   --color-error: #e53935;
-  --color-accent: #ffc107; /* Or */
+  --color-accent: #ffc107;
+  /* Or */
   --color-accent-light: #ffd699;
   --color-accent-dark: #cc7a00;
   --color-accent-hover: #ffb84d;
@@ -66,11 +67,9 @@
   --hero-gradient-to: rgba(20, 20, 20, 0.6);
   --hero-highlight: #b3d4d5;
   --hero-highlight-hover: #a4b6b6;
-  --hero-overlay-bg: linear-gradient(
-    to bottom right,
-    var(--hero-gradient-from),
-    var(--hero-gradient-to)
-  );
+  --hero-overlay-bg: linear-gradient(to bottom right,
+      var(--hero-gradient-from),
+      var(--hero-gradient-to));
 
   /* Fond flou semi-transparent */
   --glass-bg: rgba(255, 255, 255, 0.08);
@@ -130,7 +129,19 @@ $gold: var(--color-primary);
 $gold-rgba-10: rgba(var(--color-primary-rgb), 0.1);
 $gold-rgba-30: rgba(var(--color-primary-rgb), 0.3);
 $gold-rgba-50: rgba(var(--color-primary-rgb), 0.5);
+$gold-soft: #E1A624 !default; // Doré doux (coins décoratifs)
+$gold-alt: #F0BE86 !default; // Doré alternatif (ornements secondaires)
 
+
+$mucha-cream: #FAF8F3 !default; // Fond crème clair
+$mucha-paper: #FFFFFF !default; // Papier blanc / cartes
+$mucha-accent: #A67C52 !default;
+$mucha-ink: #2E2B26 !default;
+/* --- Couleurs générales --- */
+$primary-color: #3C6E71 !default;
+$primary-color-light: #70A9A1 !default;
+$text-light: #ffffff !default;
+$text-muted: #6B6B6B !default;
 $deep-blue: #1e2a38;
 $cream: #faf4ec;
 
@@ -138,10 +149,19 @@ $cream: #faf4ec;
 $font-elegant: var(--font-primary);
 $font-text: var(--font-text);
 $font-title: var(--font-title);
-
+$font-family-base: 'Inter', sans-serif !default;
+$font-title: 'Playfair Display', serif !default;
+$font-size-base: 1rem !default;
+$font-size-title-xl: 2.5rem !default;
+$font-size-title: 2rem !default;
+$font-size-title-md: 1.5rem !default;
+$font-size-small: 0.9rem !default;
+$line-height: 1.5 !default;
+$font-weight-normal: 400 !default;
+$font-weight-bold: 700 !default;
 // === Radius (SCSS) ===
 $radius-xs: 4px;
-$radius-sm: 8px;
+$radius-sm: 2px !default;
 $radius-md: 12px;
 $radius-lg: 16px;
 $radius-xl: 24px;
@@ -150,3 +170,10 @@ $radius-pill: 500px;
 // === Transitions et ombres ===
 $transition: all 0.3s ease;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* --- Espacements --- */
+$spacing-xs: 0.25rem !default;
+$spacing-sm: 0.5rem !default;
+$spacing-md: 1rem !default;
+$spacing-lg: 2rem !default;
+$spacing-xl: 4rem !default;
+

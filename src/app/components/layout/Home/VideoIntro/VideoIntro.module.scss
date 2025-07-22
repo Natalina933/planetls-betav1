@@ -1,0 +1,95 @@
+.videoIntroSection {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    background-color: #f9fafe;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+}
+
+.videoImage {
+    max-width: 480px;
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.videoContent {
+    flex: 1;
+    min-width: 280px;
+}
+
+.videoHeading {
+    font-size: 1.8rem;
+    color: #1c2d4a;
+    margin-bottom: 1rem;
+}
+
+.videoDescription {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.featureList {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0;
+}
+
+.featureList li {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2d415d;
+}
+
+.ctaButton {
+    display: inline-block;
+    background-color: #0075f2;
+    color: #fff;
+    font-weight: bold;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.ctaButton:hover,
+.ctaButton:focus {
+    transform: scale(1.05);
+    background-color: #005ec2;
+    outline: none;
+}
+
+.ctaButton:focus-visible {
+    box-shadow: 0 0 0 4px rgba(0, 117, 242, 0.3);
+}
+
+.joinMessage {
+    font-size: 0.95rem;
+    color: #1c2d4a;
+    margin-top: 1rem;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .videoIntroSection {
+        flex-direction: column;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .videoImage {
+        max-width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .ctaButton {
+        width: 100%;
+        text-align: center;
+    }
+}

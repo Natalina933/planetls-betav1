@@ -21,22 +21,24 @@ const HeroSection = () => {
         <div className={styles.content}>
           <h1>Bienvenue sur PlanetLS</h1>
           <p>
-            La plateforme de mise en relation pour les acteurs de la location
+            La plateforme de mise en relation qui connecte tous les acteurs de la location
             saisonnière.
           </p>
-          <span className={styles.highlight}>
-            4,5 millions de loueur et de professionnels partout en France
-          </span>
+          {/* <span className={styles.highlight}>
+            4,5 millions de loueurs et de professionnels partout en France
+          </span> */}
+          <p>
+            « Simplifiez la gestion, optimisez vos revenus, trouvez les meilleurs services locaux en un clic »
+          </p>
           <div className={styles.buttonsRow}>
             <CTAButton
               variant="primary"
               onClick={() => {
-                /* lien vers inscription */
               }}>
-              Inscription gratuite
+              Découvrir comment ça marche
             </CTAButton>
             <CTAButton variant="secondary" onClick={scrollToCommunity}>
-              Créer un compte
+              Inscription gratuite
             </CTAButton>
           </div>
         </div>
