@@ -3,17 +3,16 @@
 import dynamic from 'next/dynamic';
 import Footer from '../components/layout/Footer/Footer';
 import HeroSection from '../components/layout/Home/Hero/HeroSection';
-import ForWhomSection from '../components/layout/Home/ForWhomSection/ForWhomSection';
 import { HowItWorksSection } from "../components/layout/Home/HowItWorksSection/HowItWorksSection";
-import { ShopSection } from '../components/layout/Home/ShopSection/ShopSection';
 import FirstVisit from '../components/layout/Home/FirstVisit/FirstVisit';
 import Head from 'next/head';
 import VideoIntro from '../components/layout/Home/VideoIntro/VideoIntro';
-// Import des composants de section spécifiques
-import PromotePlatformSection from '../components/layout/Home/PromotePlatformSection/PromotePlatformSection'; // <-- NOUVEAU
 import ServicesSection from '../components/layout/Home/ServicesSection/ServicesSection';
-import {TrustSection} from '../components/layout/Home/TrustSection/TrustSection';
-import BlogNewsSection from '../components/layout/Home/BlogNewsSection/BlogNewsSection';
+// import ForWhomSection from '../components/layout/Home/ForWhomSection/ForWhomSection';
+// import { ShopSection } from '../components/layout/Home/ShopSection/ShopSection';
+// import PromotePlatformSection from '../components/layout/Home/PromotePlatformSection/PromotePlatformSection'; // <-- NOUVEAU
+// import {TrustSection} from '../components/layout/Home/TrustSection/TrustSection';
+// import BlogNewsSection from '../components/layout/Home/BlogNewsSection/BlogNewsSection';
 
 // Chargement dynamique côté client uniquement
 const MapWithSearch = dynamic(
@@ -35,15 +34,15 @@ export default function HomePage() {
                 <main>
                     <FirstVisit />
                     <HeroSection />
-                    <HowItWorksSection />
                     <MapWithSearch />
                     <ServicesSection />
-                    <ForWhomSection />
+                    <HowItWorksSection />
+                    <VideoIntro />
+                    {/* <ForWhomSection />
                     <PromotePlatformSection />
                     <TrustSection />
                     <BlogNewsSection />
-                    <ShopSection />
-                    <VideoIntro />
+                    <ShopSection /> */}
                     <Footer />
                 </main>
             </div>

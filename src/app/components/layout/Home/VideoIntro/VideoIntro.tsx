@@ -1,14 +1,21 @@
 import React from 'react';
 import styles from './VideoIntro.module.scss';
+import Image from 'next/image';
 
 const VideoIntro = () => (
     <div className={styles.videoIntroSection}>
         {/* Remarque : <img />, et non <image /> */}
-        {/* <image
-            "
+        <Image
+            src="/images/plateform.jpg"
+            width={900}
+            height={275}
+            loading="lazy"
+            decoding="async"
+            title="Découvrez PlanetLS en 1 minute"
+            aria-labelledby="video-intro-title"
             alt="Présentation de PlanetLS"
             className={styles.videoImage}
-        /> */}
+        />
 
         <div className={styles.videoContent}>
             <h2 className={styles.videoHeading}>🎥 Découvrez PlanetLS en 1 minute</h2>

@@ -58,25 +58,27 @@ export default function MapWithSearch() {
     return (
         <div className={styles.mapWithSearchSection}>
             <header className={styles.intro}>
-                <div className={styles.headerContentWrapper}>
-                    <h2>Regroupement des Besoins pour la Location saisonnière</h2>
-                    <p className={styles.introSub}>
-                        Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.
-                    </p>
-                    <p className={styles.introDescription}>
-                        Que vous soyez un propriétaire à la recherche d'un concierge fiable, un voyageur ayant besoin d'un artisan pour une réparation rapide,
-                        ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.<br />
-                        Simplifiez la gestion de vos propriétés et profitez d'un service de qualité.
-                    </p>
-                </div>
-                <div className={styles.headerImageCol}>
+                <section className={styles.headerContent}>
+                    <div className={styles.headerContentWrapper}>
+                        <h2>Pour tous les acteurs de la location saisonnière</h2>
+                        <p className={styles.introSub}>
+                            Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.
+                        </p>
+                        <p className={styles.introDescription}>
+                            Que vous soyez un propriétaire à la recherche d'un concierge fiable, un voyageur ayant besoin d'un artisan pour une réparation rapide,
+                            ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.<br />
+                            Simplifiez la gestion de vos propriétés et profitez d'un service de qualité.
+                        </p>
+                    </div>
+                </section>
+                {/* <div className={styles.headerImageCol}>
                     <img
                         src={activeCategory.image}
                         alt={`Image illustrative pour la catégorie ${activeCategory.label}`}
                         className={styles.headerBackgroundImage}
                     />
                     <div className={styles.imageWaveEffect} aria-hidden="true"></div>
-                </div>
+                </div> */}
             </header>
 
             <section className={styles.categorySearchSection}>

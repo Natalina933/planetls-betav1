@@ -4,7 +4,8 @@
 @use "sass:color";
 
 .howItWorks {
-    background: linear-gradient(to bottom, #fdfaf3, #f6f0e5);
+    background: linear-gradient(to bottom, #fdfaf3, #eeb03d);
+    background-image:url("/ornements/mucha-background-pattern.png");
     padding: 4rem 1.5rem; // 64px / 24px
     text-align: center;
     font-family: $font-elegant;
@@ -12,7 +13,6 @@
 
     h2 {
         font-size: 2.25rem; // 36px
-        color: $gold;
         margin-bottom: 3rem; // 48px
         position: relative;
         display: inline-block;

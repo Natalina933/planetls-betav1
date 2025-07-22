@@ -1,7 +1,7 @@
 @use "src/app/styles/abstracts/_variables" as *;
 
 .platformSection {
-    // Expose les custom props CSS si besoin côté runtime
+    // Expose les custom properties CSS pour runtime ou JS si besoin
     --mucha-gold: #{$gold-soft};
     --mucha-gold-alt: #{$gold-alt};
     --mucha-ink: #{$mucha-ink};
@@ -20,36 +20,20 @@
     overflow: hidden;
     font-family: $font-family-base;
 
-    &::before,
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background-repeat: no-repeat;
-        background-size: 80px 80px;
-    }
-
-    &::before {
-        background-image:
-            url("data:image/svg+xml,%3Csvg.../svg%3E"), // adapte l’URL si besoin
-            url("data:image/svg+xml,%3Csvg.../svg%3E");
-        background-position: left top, right bottom;
-    }
-
-    &::after {
-        background-image:
-            url("data:image/svg+xml,%3Csvg.../svg%3E"),
-            url("data:image/svg+xml,%3Csvg.../svg%3E");
-        background-position: right top, left bottom;
-    }
+    background-color: $gold-soft;
+    background-image: radial-gradient(circle at 50% 40%, rgb(124, 90, 2) 10%, transparent 70%),
+        url("/ornements/mucha-background-patternv3.png");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 .platformHeader {
+    background-color: beige;
     max-width: 700px;
     margin: 0 auto $spacing-lg;
     padding: $spacing-md $spacing-sm;
-;
     border: 1px solid $gold;
     border-radius: $radius-lg;
     position: relative;
@@ -166,6 +150,7 @@
 }
 
 // Chips de points clés
+
 .keyPoints {
     list-style: none;
     margin: 0 auto $spacing-lg;
@@ -211,7 +196,7 @@
 
 .keyPointChip {
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform .15s ease, background .25s ease, color .25s ease;
 }
 
 .keyPointChip:hover {
@@ -220,10 +205,14 @@
     color: white;
 }
 
+.keyPointChip:focus-visible {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+}
+
 .isActive {
     background: var(--mucha-accent);
-    color: white;
-    font-weight: 600;
+    color: $text-light;
     transform: translateY(-2px);
 }
 
@@ -286,7 +275,7 @@
 }
 
 .serviceCardTitle {
-    margin: 0 0 .75rem;
+    margin: 0 0 0.75rem;
     font-size: 1.25rem;
     font-weight: 600;
     color: $mucha-ink;

@@ -1,46 +1,52 @@
-import { CalendarCheck, Shield, FileText, UserCheck, Users } from "lucide-react";
+import {
+  CalendarCheck,
+  Shield,
+  FileText,
+  UserCheck,
+  Zap,
+} from "lucide-react";
 
 export interface Service {
   title: string;
   description: string;
   icon: React.ElementType;
-  keyPoint: string;
+  keyPoint: string; // clé d'appartenance
 }
 
 export const services: Service[] = [
   {
     title: "Tableau de bord centralisé",
     description:
-      "Pilotez toutes vos activités en un coup d'œil, visualisez les données clés en temps réel et prenez des décisions éclairées, quel que soit votre rôle.",
+      "Pilotez toutes vos activités en un coup d'œil et prenez des décisions éclairées.",
     icon: CalendarCheck,
     keyPoint: "Gain de temps",
   },
   {
     title: "Pilotage intelligent & automatisation",
     description:
-      "Optimisez votre organisation grâce à un planning partagé intuitif, des automatisations intelligentes et des rapports détaillés pour gagner du temps.",
-    icon: Shield,
+      "Planification intelligente, rappels, tâches récurrentes — tout est synchronisé.",
+    icon: Zap,
     keyPoint: "Automatisation",
   },
   {
     title: "Sécurité renforcée & gestion documentaire",
     description:
-      "Sécurisez vos accès, centralisez vos documents sensibles et profitez d'une gestion simplifiée, transparente et conforme, en toute sérénité.",
-    icon: FileText,
+      "Contrats, factures, accès sécurisés : tout est chiffré et centralisé.",
+    icon: Shield,
     keyPoint: "Accès sécurisé",
   },
   {
     title: "Espace membre & support dédié",
     description:
-      "Un espace membre privé avec un accompagnement personnalisé et une assistance réactive, pour une expérience utilisateur fluide et sécurisée.",
+      "Assistance réactive, espace privé, gestion de profil et historique des missions.",
     icon: UserCheck,
     keyPoint: "Support dédié",
   },
   {
-    title: "Gestion multi-profils",
+    title: "Plateforme adaptable à tous",
     description:
-      "Gérez facilement les accès et les permissions selon chaque rôle (propriétaire, concierge, artisan, etc.) pour une solution vraiment polyvalente.",
-    icon: Users,
+      "Fonctionnalités adaptées propriétaires, concierges et artisans.",
+    icon: FileText,
     keyPoint: "Pour tous les profils",
   },
 ];

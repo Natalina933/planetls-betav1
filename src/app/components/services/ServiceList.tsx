@@ -4,22 +4,18 @@ import Head from "next/head";
 import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 
-// Styles
 import styles from "./ServiceList.module.scss";
-
-// Données
 import { services } from "../../data/services/services";
 
 export default function PlatformIntroSection() {
   const [selectedKeyPoint, setSelectedKeyPoint] = useState<string | null>(null);
 
-  // Récupère les keyPoints uniques à partir des services
-  const keyPoints = [...new Set(services.map((service) => service.keyPoint))];
+  const keyPoints = [...new Set(services.map((s) => s.keyPoint).filter(Boolean))];
 
-  // Filtre les services en fonction du keyPoint sélectionné (ou tout afficher si null)
-  const filteredServices = selectedKeyPoint
-    ? services.filter((service) => service.keyPoint === selectedKeyPoint)
-    : [];
+  const visibleServices =
+    selectedKeyPoint === null
+      ? services
+      : services.filter((s) => s.keyPoint === selectedKeyPoint);
 
   return (
     <>
@@ -29,10 +25,7 @@ export default function PlatformIntroSection() {
           name="description"
           content="Plateforme centralisée, sécurisée et intelligente pour propriétaires, concierges et artisans."
         />
-        <meta
-          property="og:title"
-          content="Plateforme de Gestion Intuitive pour Tous Vos Besoins"
-        />
+        <meta property="og:title" content="Plateforme de Gestion Intuitive pour Tous Vos Besoins" />
         <meta
           property="og:description"
           content="Centralisez, automatisez, sécurisez vos activités de location saisonnière."
@@ -44,20 +37,9 @@ export default function PlatformIntroSection() {
 
       <section className={styles.platformSection} aria-labelledby="platform-title">
         <header id="platform-title" className={styles.platformHeader}>
-          <h2 className={styles.sectionTitle}>
-            Votre Plateforme de Gestion Unique et Intuitive
-          </h2>
+          <h2 className={styles.sectionTitle}>Votre Plateforme de Gestion Unique et Intuitive</h2>
           <p className={styles.sectionIntro}>
-            Conçue pour{" "}
-            <span className={styles.highlightText}>
-              simplifier la vie de toutes les catégories professionnelles
-            </span>
-            , notre plateforme centralise vos outils, automatise vos tâches et
-            sécurise vos données. Que vous soyez{" "}
-            <strong className={styles.userCategory}>
-              propriétaire, concierge ou artisan
-            </strong>
-            , gagnez en efficacité et en sérénité.
+            Conçue pour <span className={styles.highlightText}>simplifier la vie de toutes les catégories professionnelles</span>, notre plateforme centralise vos outils, automatise vos tâches et sécurise vos données. Que vous soyez <strong className={styles.userCategory}>propriétaire, concierge ou artisan</strong>, gagnez en efficacité et en sérénité.
           </p>
           <a href="#contact" className={styles.ctaButton}>
             Découvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
@@ -69,6 +51,16 @@ export default function PlatformIntroSection() {
           className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
           aria-label="Points clés de la plateforme"
         >
+          {/* <li
+            key="__all"
+            onClick={() => setSelectedKeyPoint(null)}
+            className={clsx(styles.keyPointChip, selectedKeyPoint === null && styles.isActive)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && setSelectedKeyPoint(null)}
+          >
+            Tous
+          </li> */}
           {keyPoints.map((point) => (
             <li
               key={point}
@@ -86,20 +78,18 @@ export default function PlatformIntroSection() {
           ))}
         </ul>
 
-        {/* Affichage conditionnel des services */}
-        {selectedKeyPoint && (
-          <div className={styles.serviceGrid}>
-            {filteredServices.map(({ title, description, icon: Icon }) => (
-              <div key={title} className={styles.serviceCard}>
-                <span className={styles.serviceCardIconWrap} aria-hidden="true">
-                  <Icon className={styles.serviceCardIcon} />
-                </span>
-                <h3 className={styles.serviceCardTitle}>{title}</h3>
-                <p className={styles.serviceCardDesc}>{description}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Toujour afficher la grille */}
+        <div className={styles.serviceGrid}>
+          {visibleServices.map(({ title, description, icon: Icon }) => (
+            <div key={title} className={styles.serviceCard}>
+              <span className={styles.serviceCardIconWrap} aria-hidden="true">
+                <Icon className={styles.serviceCardIcon} />
+              </span>
+              <h3 className={styles.serviceCardTitle}>{title}</h3>
+              <p className={styles.serviceCardDesc}>{description}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </>
   );
