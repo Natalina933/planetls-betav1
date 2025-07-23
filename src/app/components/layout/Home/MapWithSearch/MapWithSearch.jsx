@@ -56,35 +56,34 @@ export default function MapWithSearch() {
 
     return (
         <div className={styles.mapWithSearchSection}>
-            <header className={styles.intro}>
+            {/* <header className={styles.intro}>
                 <section className={styles.headerContent}>
                     <div className={styles.headerContentWrapper}>
-                        <h2>Pour tous les acteurs de la location saisonnière</h2>
-                        {/* <p className={styles.introSub}>
-                            Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.
-                        </p> */}
-                        <p className={styles.introDescription}>
-                            Que vous soyez un propriétaire à la recherche d'un concierge fiable, un voyageur ayant besoin d'un artisan pour une réparation rapide,
-                            ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.<br />
-                            Simplifiez la gestion de vos propriétés et profitez d'un service de qualité.
-                        </p>
+                        <h2>
+                            Mise en relation entre tous les acteurs de la location saisonnière
+                        </h2>
+                        <span className={styles.introDescription}>
+                            Trouvez en un clin d’œil <strong>propriétaires</strong>, <strong>concierges</strong> et
+                            <strong> artisans locaux</strong> prêts à vous aider. Publiez vos services et entrez en
+                            contact rapidement.
+                        </span>
                     </div>
                 </section>
-                {/* <div className={styles.headerImageCol}>
+                <div className={styles.headerImageCol}>
                     <img
                         src={activeCategory.image}
                         alt={`Image illustrative pour la catégorie ${activeCategory.label}`}
                         className={styles.headerBackgroundImage}
                     />
                     <div className={styles.imageWaveEffect} aria-hidden="true"></div>
-                </div> */}
-            </header>
+                </div>
+            </header> */}
 
             <section className={styles.categorySearchSection}>
                 <div className={styles.categoryInstructionWrapper}>
 
                     <h3 className={styles.categoryInstruction}>
-                            Trouvez des artisans, concierges et propriétaires locaux selon vos besoins.
+                        Trouvez des artisans, concierges et propriétaires locaux selon vos besoins.
                     </h3>
                 </div>
 

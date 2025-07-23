@@ -36,8 +36,8 @@ export default function CategoryCarousel() {
 
     // Navigation
     const goTo = (idx) => setActive(idx);
-    const prev = () => setActive((active - 1 + categories.length) % categories.length);
-    const next = () => setActive((active + 1) % categories.length);
+    // const prev = () => setActive((active - 1 + categories.length) % categories.length);
+    // const next = () => setActive((active + 1) % categories.length);
 
     return (
         <div className={styles.carousel}>
@@ -69,12 +69,12 @@ export default function CategoryCarousel() {
                     </div>
                 ))}
                 {/* Flèches */}
-                <button className={styles.arrow + ' ' + styles.left} onClick={prev} aria-label="Précédent">
+                {/* <button className={styles.arrow + ' ' + styles.left} onClick={prev} aria-label="Précédent">
                     ‹
                 </button>
                 <button className={styles.arrow + ' ' + styles.right} onClick={next} aria-label="Suivant">
                     ›
-                </button>
+                </button> */}
             </div>
             {/* Pagination */}
             <div className={styles.pagination}>

@@ -35,8 +35,8 @@ export default function HomePage() {
                     <FirstVisit />
                     <HeroSection />
                     <MapWithSearch />
-                    <ServicesSection />
                     <HowItWorksSection />
+                    <ServicesSection />
                     <VideoIntro />
                     {/* <ForWhomSection />
                     <PromotePlatformSection />

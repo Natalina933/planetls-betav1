@@ -117,34 +117,34 @@
         }
     }
 
-    .arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10;
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 2rem;
-        color: var(--color-text);
-        background: rgba(255, 255, 255, 0.85);
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-        transition: background 0.2s;
+    // .arrow {
+    //     position: absolute;
+    //     top: 50%;
+    //     transform: translateY(-50%);
+    //     z-index: 10;
+    //     width: 2.5rem;
+    //     height: 2.5rem;
+    //     font-size: 2rem;
+    //     color: var(--color-text);
+    //     background: rgba(255, 255, 255, 0.85);
+    //     border: none;
+    //     border-radius: 50%;
+    //     cursor: pointer;
+    //     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    //     transition: background 0.2s;
 
-        &:hover {
-            background: var(--color-accent-light);
-        }
+    //     &:hover {
+    //         background: var(--color-accent-light);
+    //     }
 
-        &.left {
-            left: 1rem;
-        }
+    //     &.left {
+    //         left: 1rem;
+    //     }
 
-        &.right {
-            right: 1rem;
-        }
-    }
+    //     &.right {
+    //         right: 1rem;
+    //     }
+    // }
 
     .pagination {
         display: flex;

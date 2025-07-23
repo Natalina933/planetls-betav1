@@ -1,152 +1,152 @@
-.hero {
-  position: relative;
-  padding: var(--spacing-xl) var(--spacing-md);
-  background-image: url("/images/hero-warmv2.jpg");
-  background-size: cover;
-  background-position: center;
-  color: white;
-  overflow: hidden;
-  font-family: var(--font-title);
+// .hero {
+//   position: relative;
+//   padding: var(--spacing-xl) var(--spacing-md);
+//   background-image: url("/images/hero-warmv2.jpg");
+//   background-size: cover;
+//   background-position: center;
+//   color: white;
+//   overflow: hidden;
+//   font-family: var(--font-title);
 
-  * {
-    color: white;
-  }
-}
+//   * {
+//     color: white;
+//   }
+// }
 
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--hero-overlay-bg);
-  z-index: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-}
+// .overlay {
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   background: var(--hero-overlay-bg);
+//   z-index: 0;
+//   background-color: rgba(0, 0, 0, 0.5);
+// }
 
-.grid {
-  display: flex;
-  flex-direction: row;
-  gap: var(--spacing-lg);
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  z-index: 2;
-  flex-wrap: nowrap;
-  max-width: 1330px;
-}
+// .grid {
+//   display: flex;
+//   flex-direction: row;
+//   gap: var(--spacing-lg);
+//   align-items: center;
+//   justify-content: space-between;
+//   position: relative;
+//   z-index: 2;
+//   flex-wrap: nowrap;
+//   max-width: 1330px;
+// }
 
-.carouselWrapper {
-  width: 100%;
-  max-width: 480px;
-  flex-shrink: 1;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 2px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  background: var(--glass-bg);
+// .carouselWrapper {
+//   width: 100%;
+//   max-width: 480px;
+//   flex-shrink: 1;
+//   border-radius: 20px;
+//   overflow: hidden;
+//   border: 2px solid var(--glass-border);
+//   box-shadow: var(--glass-shadow);
+//   background: var(--glass-bg);
 
-  /* Ajout du préfixe pour Safari */
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-}
+//   /* Ajout du préfixe pour Safari */
+//   -webkit-backdrop-filter: var(--glass-blur);
+//   backdrop-filter: var(--glass-blur);
+// }
 
-.content {
-  width: 100%;
-  max-width: 600px;
-  text-align: left;
+// .content {
+//   width: 100%;
+//   max-width: 600px;
+//   text-align: left;
 
-  h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: var(--spacing-md);
-    border-bottom: 3px solid var(--hero-highlight);
-    display: inline-block;
-    padding-bottom: 0.3rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
+//   h1 {
+//     font-size: 2.8rem;
+//     font-weight: 700;
+//     line-height: 1.2;
+//     margin-bottom: var(--spacing-md);
+//     border-bottom: 3px solid var(--hero-highlight);
+//     display: inline-block;
+//     padding-bottom: 0.3rem;
+//     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+//   }
 
-  p {
-    font-size: 1.15rem;
-    line-height: 1.6;
-    margin-bottom: var(--spacing-lg);
-    max-width: 95%;
-    color: white;
-  }
+//   p {
+//     font-size: 1.15rem;
+//     line-height: 1.6;
+//     margin-bottom: var(--spacing-lg);
+//     max-width: 95%;
+//     color: white;
+//   }
 
-  .buttonsRow {
-    display: flex;
-    gap: 1rem;
+//   .buttonsRow {
+//     display: flex;
+//     gap: 1rem;
 
-    margin-top: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    justify-content: flex-start;
-    align-items: center;
-    flex-wrap: wrap;
-    width: 100%;
+//     margin-top: var(--spacing-lg);
+//     margin-bottom: var(--spacing-lg);
+//     justify-content: flex-start;
+//     align-items: center;
+//     flex-wrap: wrap;
+//     width: 100%;
 
-    button {
-      background-color: var(--hero-highlight);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, transform 0.2s ease;
+//     button {
+//       background-color: var(--hero-highlight);
+//       color: white;
+//       border: none;
+//       padding: 0.75rem 1.5rem;
+//       font-size: 1rem;
+//       font-weight: 600;
+//       border-radius: 8px;
+//       cursor: pointer;
+//       transition: background-color 0.3s ease, transform 0.2s ease;
 
-      &:hover {
-        background-color: var(--hero-highlight-hover);
-        transform: translateY(-2px);
-      }
-    }
-  }
+//       &:hover {
+//         background-color: var(--hero-highlight-hover);
+//         transform: translateY(-2px);
+//       }
+//     }
+//   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .grid {
-      flex-direction: column-reverse;
-      gap: var(--spacing-md);
-      padding: 0 var(--spacing-sm);
-    }
+//   /* Responsive */
+//   @media (max-width: 768px) {
+//     .grid {
+//       flex-direction: column-reverse;
+//       gap: var(--spacing-md);
+//       padding: 0 var(--spacing-sm);
+//     }
 
-    .content {
-      text-align: center;
+//     .content {
+//       text-align: center;
 
-      h1 {
-        font-size: 2.2rem;
-      }
+//       h1 {
+//         font-size: 2.2rem;
+//       }
 
-      p {
-        font-size: 1rem;
-      }
-    }
+//       p {
+//         font-size: 1rem;
+//       }
+//     }
 
-    .carouselWrapper {
-      max-width: 280px;
-    }
-  }
+//     .carouselWrapper {
+//       max-width: 280px;
+//     }
+//   }
 
-  @media (max-width: 480px) {
-    .hero {
-      padding: 4rem var(--spacing-sm);
-    }
+//   @media (max-width: 480px) {
+//     .hero {
+//       padding: 4rem var(--spacing-sm);
+//     }
 
-    .content {
-      h1 {
-        font-size: 1.8rem;
-      }
+//     .content {
+//       h1 {
+//         font-size: 1.8rem;
+//       }
 
-      p {
-        font-size: 0.9rem;
-      }
-    }
+//       p {
+//         font-size: 0.9rem;
+//       }
+//     }
 
-    .carouselWrapper {
-      max-width: 240px;
-    }
-  }
+//     .carouselWrapper {
+//       max-width: 240px;
+//     }
+//   }
 
-}
+// }
