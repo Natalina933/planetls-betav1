@@ -31,24 +31,23 @@ const CATEGORY_CONFIG = [
         image: "/images/carousel/artisans.jpg",
         description: "Artisans passionnés, savoir-faire local",
     },
-    {
-        key: "all",
-        label: "Tous",
-        iconComponent: () => (
-            <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <FaGlobe style={{ position: 'absolute', fontSize: '4.5em', color: 'white', opacity: 1 }} />
-                <FaPeopleGroup style={{ position: 'absolute', fontSize: '2em', color: 'gold', zIndex: 1 }} />
-            </div>
-        ),
-        image: "/images/carousel/all.jpg",
-        description: "Tous les professionnels de la location saisonnière",
-    }
+    // {
+    //     key: "all",
+    //     label: "Tous",
+    //     iconComponent: () => (
+    //         <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    //             <FaGlobe style={{ position: 'absolute', fontSize: '4.5em', color: 'white', opacity: 1 }} />
+    //             <FaPeopleGroup style={{ position: 'absolute', fontSize: '2em', color: 'gold', zIndex: 1 }} />
+    //         </div>
+    //     ),
+    //     image: "/images/carousel/all.jpg",
+    //     description: "Tous les professionnels de la location saisonnière",
+    // }
 ];
 
 export default function MapWithSearch() {
     const [filter, setFilter] = useState("all");
     const [location, setLocation] = useState("");
-    const activeCategory = CATEGORY_CONFIG.find(cat => cat.key === filter) || CATEGORY_CONFIG[0];
     const router = useRouter();
 
     const handleSearch = () => {
@@ -61,9 +60,9 @@ export default function MapWithSearch() {
                 <section className={styles.headerContent}>
                     <div className={styles.headerContentWrapper}>
                         <h2>Pour tous les acteurs de la location saisonnière</h2>
-                        <p className={styles.introSub}>
+                        {/* <p className={styles.introSub}>
                             Trouvez des artisans, concierges et propriétaires locaux pour vos besoins.
-                        </p>
+                        </p> */}
                         <p className={styles.introDescription}>
                             Que vous soyez un propriétaire à la recherche d'un concierge fiable, un voyageur ayant besoin d'un artisan pour une réparation rapide,
                             ou simplement désireux de découvrir les professionnels locaux, notre plateforme vous connecte avec les bonnes personnes.<br />
@@ -85,7 +84,7 @@ export default function MapWithSearch() {
                 <div className={styles.categoryInstructionWrapper}>
 
                     <h3 className={styles.categoryInstruction}>
-                        Trouvez des propriétaires, concierges et  artisans locaux pour vos besoins
+                            Trouvez des artisans, concierges et propriétaires locaux selon vos besoins.
                     </h3>
                 </div>
 
@@ -109,7 +108,7 @@ export default function MapWithSearch() {
                                 aria-label={`Filtrer par ${label}`}
                                 type="button"
                             >
-                                <span className={styles.bubbleIcon}><Icon size="2.2em" /></span>
+                                <span className={styles.bubbleIcon}><Icon size="1.7em" /></span>
                             </button>
 
                             {/* <div className={`${styles.bubbleLabel}`}>{label}</div> */}

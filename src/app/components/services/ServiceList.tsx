@@ -37,7 +37,6 @@ export default function PlatformIntroSection() {
 
       <section className={styles.platformSection} aria-labelledby="platform-title">
         <header id="platform-title" className={styles.platformHeader}>
-          <h2 className={styles.sectionTitle}>Votre Plateforme de Gestion Unique et Intuitive</h2>
           <p className={styles.sectionIntro}>
             Conçue pour <span className={styles.highlightText}>simplifier la vie de toutes les catégories professionnelles</span>, notre plateforme centralise vos outils, automatise vos tâches et sécurise vos données. Que vous soyez <strong className={styles.userCategory}>propriétaire, concierge ou artisan</strong>, gagnez en efficacité et en sérénité.
           </p>

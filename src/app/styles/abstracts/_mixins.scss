@@ -4,22 +4,35 @@
 @use "sass:meta";
 @use "src/app/styles/abstracts/breakpoints" as bp;
 
+// --------------------------------------------------
+// Media queries
+// --------------------------------------------------
+// Usage :
+//   @include mq('md') { ... }
+// --------------------------------------------------
 @mixin mq($size) {
     @media (max-width: map.get(bp.$breakpoints, $size)) {
         @content;
     }
 }
 
+// --------------------------------------------------
+// Container centré avec padding
+// --------------------------------------------------
+// Usage :
+//   @include container();
+//   @include container(1400px, 2rem);
+// --------------------------------------------------
 @mixin container($max-width: 1200px, $padding: 1rem) {
     width: 100%;
     max-width: $max-width;
     margin: 0 auto;
-    padding-left: $padding;
-    padding-right: $padding;
+    padding-inline: $padding;
 }
 
-
-// Centrage flex
+// --------------------------------------------------
+// Flexbox
+// --------------------------------------------------
 @mixin flex-center {
     display: flex;
     align-items: center;
@@ -31,22 +44,62 @@
     flex-direction: column;
 }
 
-// Texte ellipsis
+// --------------------------------------------------
+// Texte ellipsé
+// --------------------------------------------------
 @mixin text-ellipsis {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
-// Ombre portée simple
+// --------------------------------------------------
+// Ombres
+// --------------------------------------------------
+// Ombre douce standard
 @mixin box-shadow($color: rgba(0, 0, 0, 0.08)) {
     box-shadow: 0 2px 8px $color;
 }
 
-// Animation de fondu en entrée
-// Cette animation fait apparaître un élément avec un effet de fondu et de translation vers le
+// Ombre "soft hover" (effet au survol)
+// Usage :
+//   @include soft-hover(rgba(0,0,0,0.2));
+@mixin soft-hover($color) {
+    transition: var(--transition, 0.2s ease-in-out);
+
+    &:hover {
+        box-shadow: 0 0 8px $color;
+        transform: translateY(-2px);
+    }
+}
+
+// --------------------------------------------------
+// Animations
+// --------------------------------------------------
+// Animation fade-in
 @mixin fade-in($duration: 0.4s, $easing: ease-in-out) {
     animation: fadeIn $duration $easing both;
+}
+
+@mixin fadeIn($translateY: 1.5rem, $duration: 0.8s) {
+    animation: fadeInUp $duration ease both;
+}
+
+@keyframes fadeInUp {
+    0% {
+        transform: translateY(1.5rem);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+// Animation de fondu
+@mixin fade($duration: 0.4s, $easing: ease-in-out) {
+    animation: fade $duration $easing both;
 }
 
 @keyframes fadeIn {
@@ -61,9 +114,10 @@
     }
 }
 
-// Visually hidden mixin for accessibility
-// This mixin hides elements visually but keeps them accessible to screen readers.
-
+// --------------------------------------------------
+// Accessibilité
+// --------------------------------------------------
+// Cache visuellement mais reste lisible par les lecteurs d’écran
 @mixin visually-hidden {
     position: absolute !important;
     width: 1px;
@@ -76,17 +130,20 @@
     border: 0;
 }
 
-// Centered section mixin
-// This mixin centers a section with a maximum width and adds padding.  
+// --------------------------------------------------
+// Sections centrées
+// --------------------------------------------------
+// Usage :
+//   @include centered-section(1200px);
 @mixin centered-section($max-width: 1200px) {
-  max-width: $max-width;
-  margin-left: auto;
-  margin-right: auto;
-  padding: var(--spacing-md) var(--spacing-lg);
+    max-width: $max-width;
+    margin-inline: auto;
+    padding: var(--spacing-md) var(--spacing-lg);
 }
 
-// Clearfix mixin
-// This mixin is used to clear floats in a container, ensuring that it contains floated children
+// --------------------------------------------------
+// Clearfix
+// --------------------------------------------------
 @mixin clearfix {
     &::after {
         content: "";
@@ -94,39 +151,28 @@
         clear: both;
     }
 }
-// ------------------------------------------------------------------
-// Backdrop blur mixin
-// Usage:
-//   @include backdrop-blur();                      // blur 4px, bg fallback
-//   @include backdrop-blur(6px);                   // custom blur
-//   @include backdrop-blur(3px, rgba(255,255,255,.9));
-//   @include backdrop-blur(5px, var(--glass-bg), var(--glass-border));
-//
-// Params:
-//   $amount          -> blur size (default 4px)
-//   $fallback-bg     -> background shown when blur unsupported (default rgba white .85)
-//   $fallback-border -> optional border color (null = none)
-// ------------------------------------------------------------------
-@mixin backdrop-blur(
-  $amount: 4px,
-  $fallback-bg: rgba(255, 255, 255, 0.85),
-  $fallback-border: null
-) {
-  // Fallback styles visible partout
-  background: $fallback-bg;
 
-  @if $fallback-border != null {
-    border: 1px solid $fallback-border;
-  }
+// --------------------------------------------------
+// Backdrop Blur
+// --------------------------------------------------
+@mixin backdrop-blur($amount: 4px,
+    $fallback-bg: rgba(255, 255, 255, 0.85),
+    $fallback-border: null) {
+    background: $fallback-bg;
 
-  // Applique le blur uniquement si supporté (évite warnings LightningCSS)
-  @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
-    -webkit-backdrop-filter: blur($amount);
-    backdrop-filter: blur($amount);
-  }
+    @if $fallback-border !=null {
+        border: 1px solid $fallback-border;
+    }
+
+    @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
+        -webkit-backdrop-filter: blur($amount);
+        backdrop-filter: blur($amount);
+    }
 }
-// Heading styles mixin
-// This mixin applies consistent styles to headings based on their level.
+
+// --------------------------------------------------
+// Typographie : titres
+// --------------------------------------------------
 @mixin heading-style($level: 1) {
     font-family: var(--font-title, 'High Tower Text', serif);
     font-weight: 700;
@@ -146,13 +192,18 @@
     }
 }
 
+// --------------------------------------------------
+// Grilles
+// --------------------------------------------------
 @mixin grid($columns: 2, $gap: 1rem) {
     display: grid;
     grid-template-columns: repeat($columns, 1fr);
     gap: $gap;
 }
 
-// Bouton basique
+// --------------------------------------------------
+// Boutons
+// --------------------------------------------------
 @mixin button-base {
     padding: 0.75rem 1.5rem;
     border: none;
@@ -162,15 +213,9 @@
     transition: background 0.2s;
 }
 
-@mixin soft-hover($color) {
-    transition: var(--transition, 0.2s ease-in-out); // Utilise une variable CSS si définie, sinon fallback
-
-    &:hover {
-        box-shadow: 0 0 8px $color;
-        transform: translateY(-2px);
-    }
-}
-
+// --------------------------------------------------
+// Modes clair/sombre
+// --------------------------------------------------
 @mixin darkMode {
     [data-theme="dark"] & {
         background-color: var(--bg);
@@ -187,54 +232,52 @@
     }
 }
 
+// --------------------------------------------------
+// Style Mucha
+// --------------------------------------------------
+// Cadre ornemental
 @mixin mucha-frame($color: #d4af37, $radius: 2.2rem, $thickness: 2.5px) {
     border: $thickness double $color;
     border-radius: $radius;
-    box-shadow:
-        0 2px 16px rgba(212, 175, 55, 0.09),
+    box-shadow: 0 2px 16px rgba(212, 175, 55, 0.09),
         0 0 0 8px #fffbe6;
     background: linear-gradient(120deg, #fffbe6 80%, #f9e7c2 100%);
 }
 
-// Le mixin 'respond' est déjà défini et utilise la carte $breakpoints.
-// Je n'ai pas modifié son nom car il était fourni, mais 'mq' est souvent préféré pour la clarté.
-@mixin respond($size) {
-    @media (max-width: map.get($breakpoints, $size)) {
-        @content;
-    }
-}
-// Mixin pour les coins de style Mucha
-// Utilise des SVG pour les coins, avec des options pour la position (gauche, droite, ou les deux).
-// Les coins sont positionnés en absolu et ont une opacité réduite pour un effet subtil.
-// Le mixin accepte un paramètre optionnel pour spécifier la position des coins (left, right, or all).
-// Par défaut, il applique les coins aux deux côtés.
-
+// Coins Mucha
 @mixin mucha-corners($position: all) {
+    position: relative;
+
     @if $position ==left or $position ==all {
         &::before {
-            content: '';
-            position: absolute;
-            top: 2rem;
-            left: 0.75rem;
-            width: 10rem;
-            height: 10rem;
-            background: url('/ornements/mucha-corner-left.svg') no-repeat;
-            background-size: contain;
-            opacity: 0.12;
+            @include mucha-corner-shape('left');
         }
     }
 
     @if $position ==right or $position ==all {
         &::after {
-            content: '';
-            position: absolute;
-            bottom: 2rem;
-            right: 0.75rem;
-            width: 10rem;
-            height: 10rem;
-            background: url('/src/app/assets/ornements/mucha-corner-right.svg') no-repeat;
-            background-size: contain;
-            opacity: 0.12;
+            @include mucha-corner-shape('right');
         }
+    }
+}
+
+@mixin mucha-corner-shape($side) {
+    content: '';
+    position: absolute;
+    width: 10rem;
+    height: 10rem;
+    background-size: contain;
+    opacity: 0.12;
+
+    @if $side =='left' {
+        top: 2rem;
+        left: 0.75rem;
+        background: url('/ornements/mucha-corner-left.svg') no-repeat;
+    }
+
+    @else if $side =='right' {
+        bottom: 2rem;
+        right: 0.75rem;
+        background: url('/src/app/assets/ornements/mucha-corner-right.svg') no-repeat;
     }
 }

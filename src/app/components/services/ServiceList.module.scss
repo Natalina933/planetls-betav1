@@ -20,13 +20,18 @@
     overflow: hidden;
     font-family: $font-family-base;
 
-    background-color: $gold-soft;
-    background-image: radial-gradient(circle at 50% 40%, rgb(124, 90, 2) 10%, transparent 70%),
+    background-color: rgba($gold-soft, 0.45);
+    background-image:
+        linear-gradient(rgb(255, 255, 255),
+            /* couche claire */
+            rgba(255, 255, 255, 0.5)),
+        radial-gradient(circle at 50% 60%, rgb(124, 90, 2) 10%, transparent 70%),
         url("/ornements/mucha-background-patternv3.png");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    background-attachment: fixed;
+    // background-attachment: fixed;
+    background-blend-mode: screen;
 }
 
 .platformHeader {
