@@ -11,7 +11,6 @@ export default function PlatformIntroSection() {
   const [selectedKeyPoint, setSelectedKeyPoint] = useState<string | null>(null);
 
   const keyPoints = [...new Set(services.map((s) => s.keyPoint).filter(Boolean))];
-
   const visibleServices =
     selectedKeyPoint === null
       ? services
@@ -40,44 +39,32 @@ export default function PlatformIntroSection() {
           <p className={styles.sectionIntro}>
             Conçue pour <span className={styles.highlightText}>simplifier la vie de toutes les catégories professionnelles</span>, notre plateforme centralise vos outils, automatise vos tâches et sécurise vos données. Que vous soyez <strong className={styles.userCategory}>propriétaire, concierge ou artisan</strong>, gagnez en efficacité et en sérénité.
           </p>
+
           <a href="#contact" className={styles.ctaButton}>
             Découvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
           </a>
         </header>
 
-        {/* KeyPoints interactifs */}
         <ul
           className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
           aria-label="Points clés de la plateforme"
         >
-          {/* <li
-            key="__all"
-            onClick={() => setSelectedKeyPoint(null)}
-            className={clsx(styles.keyPointChip, selectedKeyPoint === null && styles.isActive)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && setSelectedKeyPoint(null)}
-          >
-            Tous
-          </li> */}
           {keyPoints.map((point) => (
-            <li
-              key={point}
-              onClick={() => setSelectedKeyPoint(point)}
-              className={clsx(
-                styles.keyPointChip,
-                selectedKeyPoint === point && styles.isActive
-              )}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setSelectedKeyPoint(point)}
-            >
-              {point}
+            <li key={point} className={styles.keyPointChipWrapper}>
+              <button
+                onClick={() => setSelectedKeyPoint(point)}
+                className={clsx(
+                  styles.keyPointChip,
+                  selectedKeyPoint === point && styles.isActive
+                )}
+                aria-pressed={selectedKeyPoint === point}
+              >
+                {point}
+              </button>
             </li>
           ))}
         </ul>
 
-        {/* Toujour afficher la grille */}
         <div className={styles.serviceGrid}>
           {visibleServices.map(({ title, description, icon: Icon }) => (
             <div key={title} className={styles.serviceCard}>

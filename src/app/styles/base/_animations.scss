@@ -1,0 +1,23 @@
+@keyframes fadeIn {
+    0% {
+        transform: translateY(1.5rem);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(1.5rem);
+        opacity: 0;
+    }
+}

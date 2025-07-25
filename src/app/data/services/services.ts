@@ -4,6 +4,8 @@ import {
   FileText,
   UserCheck,
   Zap,
+  GraduationCap,
+  Leaf,
 } from "lucide-react";
 
 export interface Service {
@@ -48,5 +50,19 @@ export const services: Service[] = [
       "Fonctionnalités adaptées propriétaires, concierges et artisans.",
     icon: FileText,
     keyPoint: "Pour tous les profils",
+  },
+  {
+  title: "Apprentissage et savoir-faire",
+  description:
+    "Partage d’expertise, tutoriels, échanges de bonnes pratiques : développez vos compétences.",
+  icon: GraduationCap,
+  keyPoint: "Valorisation du savoir",
+},
+  {
+    title: "Collaboration locale et éthique",
+    description:
+      "Favorisez les échanges de proximité, soutenez l'économie locale et collaborez en toute confiance.",
+    icon: Leaf,
+    keyPoint: "Collaboration locale",
   },
 ];

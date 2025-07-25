@@ -85,6 +85,8 @@ export default function MapWithList() {
       {/* Carte */}
       <div style={{ flex: 2 }}>
         <MapContainer
+          aria-label="Carte des profils"
+          loading="lazy"
           center={[48.85, 2.35]}
           zoom={13}
           style={{ height: "100%", width: "100%" }}>
@@ -97,7 +99,7 @@ export default function MapWithList() {
               key={p.id}
               position={[p.lat, p.lng]}
               opacity={hoveredId === p.id ? 1 : 0.5}>
-              <Popup>{p.title}</Popup>
+              <Popup>{p.name}</Popup>
             </Marker>
           ))}
         </MapContainer>

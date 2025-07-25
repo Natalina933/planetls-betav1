@@ -446,7 +446,7 @@ __turbopack_context__.v({
   "concierge": "CategoryCarousel-module-scss-module__YkXiyq__concierge",
   "dot": "CategoryCarousel-module-scss-module__YkXiyq__dot",
   "fadeIn": "CategoryCarousel-module-scss-module__YkXiyq__fadeIn",
-  "fadeInUp": "CategoryCarousel-module-scss-module__YkXiyq__fadeInUp",
+  "fadeIn": "CategoryCarousel-module-scss-module__YkXiyq__fadeIn",
   "image": "CategoryCarousel-module-scss-module__YkXiyq__image",
   "imageWrapper": "CategoryCarousel-module-scss-module__YkXiyq__imageWrapper",
   "jardinier": "CategoryCarousel-module-scss-module__YkXiyq__jardinier",
@@ -823,7 +823,7 @@ __turbopack_context__.v({
   "fadeInDivider": "ForWhomSection-module-scss-module__A2CSpa__fadeInDivider",
   "fadeInSubtitle": "ForWhomSection-module-scss-module__A2CSpa__fadeInSubtitle",
   "fadeInTitle": "ForWhomSection-module-scss-module__A2CSpa__fadeInTitle",
-  "fadeInUp": "ForWhomSection-module-scss-module__A2CSpa__fadeInUp",
+  "fadeIn": "ForWhomSection-module-scss-module__A2CSpa__fadeIn",
   "forWhomSection": "ForWhomSection-module-scss-module__A2CSpa__forWhomSection",
   "heroActions": "ForWhomSection-module-scss-module__A2CSpa__heroActions",
   "icon": "ForWhomSection-module-scss-module__A2CSpa__icon",
@@ -1061,9 +1061,9 @@ var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.v({
   "fadeIn": "HowItWorksSection-module-scss-module__ag7PMG__fadeIn",
-  "fadeInStep": "HowItWorksSection-module-scss-module__ag7PMG__fadeInStep",
+  "fadeIn: "HowItWorksSection-module-scss-module__ag7PMG__fadeIn",
   "fadeInTitle": "HowItWorksSection-module-scss-module__ag7PMG__fadeInTitle",
-  "fadeInUp": "HowItWorksSection-module-scss-module__ag7PMG__fadeInUp",
+  "fadeIn": "HowItWorksSection-module-scss-module__ag7PMG__fadeIn",
   "howItWorks": "HowItWorksSection-module-scss-module__ag7PMG__howItWorks",
   "icon": "HowItWorksSection-module-scss-module__ag7PMG__icon",
   "step": "HowItWorksSection-module-scss-module__ag7PMG__step",
@@ -1204,7 +1204,7 @@ var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.v({
   "fadeIn": "ShopSection-module-scss-module__ZI7Sbq__fadeIn",
-  "fadeInUp": "ShopSection-module-scss-module__ZI7Sbq__fadeInUp",
+  "fadeIn": "ShopSection-module-scss-module__ZI7Sbq__fadeIn",
   "shop": "ShopSection-module-scss-module__ZI7Sbq__shop",
   "shopButton": "ShopSection-module-scss-module__ZI7Sbq__shopButton",
   "shopContent": "ShopSection-module-scss-module__ZI7Sbq__shopContent",

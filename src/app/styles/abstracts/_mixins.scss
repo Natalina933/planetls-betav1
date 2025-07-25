@@ -82,10 +82,10 @@
 }
 
 @mixin fadeIn($translateY: 1.5rem, $duration: 0.8s) {
-    animation: fadeInUp $duration ease both;
+    animation: fadeIn $duration ease both;
 }
 
-@keyframes fadeInUp {
+@keyframes fadeIn {
     0% {
         transform: translateY(1.5rem);
         opacity: 0;
@@ -112,6 +112,12 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+@mixin grid-template($template, $gap: var(--spacing-md)) {
+    display: grid;
+    grid-template-columns: $template;
+    gap: $gap;
 }
 
 // --------------------------------------------------
@@ -245,39 +251,19 @@
 }
 
 // Coins Mucha
-@mixin mucha-corners($position: all) {
-    position: relative;
+// @mixin mucha-corners($position: all) {
+//     position: relative;
 
-    @if $position ==left or $position ==all {
-        &::before {
-            @include mucha-corner-shape('left');
-        }
-    }
+//     @if $position ==left or $position ==all {
+//         &::before {
+//             @include mucha-corner-shape('left');
+//         }
+//     }
 
-    @if $position ==right or $position ==all {
-        &::after {
-            @include mucha-corner-shape('right');
-        }
-    }
-}
+//     @if $position ==right or $position ==all {
+//         &::after {
+//             @include mucha-corner-shape('right');
+//         }
+//     }
+// }
 
-@mixin mucha-corner-shape($side) {
-    content: '';
-    position: absolute;
-    width: 10rem;
-    height: 10rem;
-    background-size: contain;
-    opacity: 0.12;
-
-    @if $side =='left' {
-        top: 2rem;
-        left: 0.75rem;
-        background: url('/ornements/mucha-corner-left.svg') no-repeat;
-    }
-
-    @else if $side =='right' {
-        bottom: 2rem;
-        right: 0.75rem;
-        background: url('/src/app/assets/ornements/mucha-corner-right.svg') no-repeat;
-    }
-}

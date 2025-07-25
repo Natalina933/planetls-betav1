@@ -22,7 +22,8 @@ const steps = [
         title: "Je collabore",
         description: "En toute confiance grâce à notre plateforme locale et éthique.",
         link: "/a-propos"
-    }
+    }, 
+    
 ];
 
 export function HowItWorksSection() {

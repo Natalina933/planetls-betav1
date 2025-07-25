@@ -81,9 +81,14 @@ export default function MapWithSearch() {
 
             <section className={styles.categorySearchSection}>
                 <div className={styles.categoryInstructionWrapper}>
+                    <h2 className={styles.categoryTitle}>
+                        Trouvez les bons partenaires pour votre activité saisonnière
+                    </h2>
 
                     <h3 className={styles.categoryInstruction}>
-                        Trouvez des artisans, concierges et propriétaires locaux selon vos besoins.
+                        Accélérez vos projets grâce à un réseau de professionnels engagés dans l’économie de proximité.
+                        Recherchez facilement des partenaires de confiance autour de vous : services de conciergerie, interventions artisanales, collaborations entre loueurs, et bien plus.
+
                     </h3>
                 </div>
 
@@ -123,7 +128,9 @@ export default function MapWithSearch() {
 
                 <div className={styles.searchBarWrapper}>
                     <span className={styles.categoryInstruction}>
-                        Utilisez les filtres de catégorie ci-dessus et entrez votre localisation.
+                        Utilisez les filtres de catégorie ci-dessus et entrez votre localisation,
+
+                        et trouvez rapidement les bons contacts.
                     </span>
                     <div className={styles.searchBar}>
                         <input
@@ -134,15 +141,14 @@ export default function MapWithSearch() {
                             className={styles.searchInput}
                         />
                         <button
-                            className={styles.searchButton}
                             onClick={handleSearch}
                             aria-label="Rechercher"
                             type="button"
                         >
-                            <FaSearch size="1em" />
-                            <span>Rechercher</span>
+                            <FaSearch />
                         </button>
                     </div>
+
                 </div>
             </section>
 
