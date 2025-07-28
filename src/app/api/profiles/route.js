@@ -1,24 +1,35 @@
-// import mysql from 'mysql2/promise';
+import { NextResponse } from "next/server";
+import db from "../../lib/db";
 
-// export async function GET() {
-//     const connection = await mysql.createConnection({ /* configs */ });
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const category = searchParams.get("category");
 
-//     const [rows] = await connection.query(`
-//     SELECT p.id, p.name, p.type, p.latitude, p.longitude, p.available, p.photo,
-//         GROUP_CONCAT(ps.service) AS services
-//     FROM profiles p
-//     LEFT JOIN profile_services ps ON ps.profile_id = p.id
-//     GROUP BY p.id
-//   `);
+  let query = `
+        SELECT p.id, p.name, p.type, p.photo,
+            GROUP_CONCAT(ps.service) AS services
+        FROM profiles p
+        LEFT JOIN profile_services ps ON p.id = ps.profile_id
+    `;
 
-//     const profiles = rows.map(r => ({
-//         ...r,
-//         services: r.services ? r.services.split(',') : []
-//     }));
+  const params = [];
 
-//     await connection.end();
+  if (category && category !== "all") {
+    query += " WHERE p.type = ?";
+    params.push(category);
+  }
 
-//     return new Response(JSON.stringify(profiles), {
-//         headers: { 'Content-Type': 'application/json' },
-//     });
-// }
+  query += " GROUP BY p.id ORDER BY p.name";
+
+  const [rows] = await db.execute(query, params);
+
+  const profiles = rows.map((p) => ({
+    id: p.id,
+    name: p.name,
+    type: p.type,
+    photo: p.photo,
+    services: p.services ? p.services.split(",") : [],
+  }));
+
+  return NextResponse.json(profiles);
+}

@@ -1,6 +1,6 @@
 // src/app/components/layout/Home/MapWithSearch/ProfilesDisplay.jsx
 import React from "react";
-import styles from "./MapWithSearch.module.scss"; // Réutilisation des styles existants
+import styles from "./ProfilesDisplay.module.scss"; 
 
 export default function ProfilesDisplay({ visibleProfiles }) {
     return (

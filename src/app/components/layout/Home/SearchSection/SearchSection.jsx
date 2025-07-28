@@ -1,9 +1,7 @@
-// src/app/components/layout/Home/MapWithSearch/SearchSection.jsx
-"use client"; // Indique que ce composant est un Client Component dans Next.js
+"use client"; 
 
-import React from 'react';
 import { FaSearchLocation } from 'react-icons/fa';
-import styles from './SearchSection.module.scss'; // Importe le SCSS dédié à cette section
+import styles from './SearchSection.module.scss'; 
 
 /**
  * Composant SearchSection pour la recherche de professionnels par localisation.

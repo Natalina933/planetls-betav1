@@ -6,7 +6,7 @@ import { useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import ProfilesDisplay from "../layout/Home/MapWithSearch/ProfilesDisplay";
+import ProfilesDisplay from "../layout/Home/ProfilesDisplay/ProfilesDisplay";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
