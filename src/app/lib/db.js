@@ -9,5 +9,8 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
+pool.getConnection()
+  .then(() => console.log("Connexion OK ✅"))
+  .catch((err) => console.error("Échec de connexion ❌", err));
 
 export default pool;

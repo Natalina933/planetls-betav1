@@ -1,12 +1,12 @@
-// src/app/components/MapWithList/MapWithList.jsx
 "use client";
-import React from "react";
-
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import useSWR from "swr";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import ProfilesDisplay from "../layout/Home/MapWithSearch/ProfilesDisplay";
+import ProfilesDisplay from "../layout/Home/ProfilesDisplay/ProfilesDisplay";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -18,92 +18,83 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const generateRandomProperties = (count) => {
-  const latMin = 48.8;
-  const latMax = 48.9;
-  const lngMin = 2.3;
-  const lngMax = 2.4;
-  const types = ["proprietaire", "conciergerie", "artisan"];
-  const servicesList = [
-    "Nettoyage",
-    "Maintenance",
-    "Accueil",
-    "Gestion",
-    "Photographie",
-  ];
-
-  const properties = [];
-  for (let i = 0; i < count; i++) {
-    const randomType = types[Math.floor(Math.random() * types.length)];
-    const randomServices = servicesList
-      .sort(() => 0.5 - Math.random())
-      .slice(0, Math.floor(Math.random() * 3) + 1);
-    properties.push({
-      id: i,
-      name: `Profil ${i + 1}`,
-      type: randomType,
-      lat: latMin + Math.random() * (latMax - latMin),
-      lng: lngMin + Math.random() * (lngMax - lngMin),
-      photo: `https://i.pravatar.cc/100?img=${i + 1}`,
-      services: randomServices,
-    });
-  }
-  return properties;
+const fetcher = async (url) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Réponse serveur invalide");
+  const text = await res.text();
+  if (!text) throw new Error("Réponse vide du serveur");
+  return JSON.parse(text);
 };
 
 export default function MapWithList() {
-  const [properties, setProperties] = useState([]);
+  const { data: properties, error } = useSWR("/api/profiles", fetcher);
   const [hoveredId, setHoveredId] = useState(null);
 
-  // Génération aléatoire UNIQUEMENT côté client
-  React.useEffect(() => {
-    setProperties(generateRandomProperties(30));
-  }, []);
+  useEffect(() => {
+    if (error) {
+      toast.error(`Erreur API : ${error.message}`);
+    }
+  }, [error]);
 
-  // Tant que les propriétés ne sont pas prêtes, affiche un loader ou rien
-  if (properties.length === 0) {
-    return <div>Chargement de la carte...</div>;
+  if (!properties) {
+    return (
+      <>
+        <ToastContainer />
+        <div>⏳ Chargement de la carte...</div>
+      </>
+    );
   }
 
   return (
-    <div style={{ display: "flex", height: "600px" }}>
-      {/* Liste des biens */}
-      <div
-        style={{
-          flex: "1",
-          overflowY: "auto",
-          borderRight: "1px solid #ccc",
-          padding: "10px",
-        }}>
-        <ProfilesDisplay
-          visibleProfiles={properties}
-          onHover={(id) => setHoveredId(id)}
-          onLeave={() => setHoveredId(null)}
-        />
-      </div>
-
-      {/* Carte */}
-      <div style={{ flex: 2 }}>
-        <MapContainer
-          aria-label="Carte des profils"
-          loading="lazy"
-          center={[48.85, 2.35]}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}>
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    <>
+      <ToastContainer />
+      <div style={{ display: "flex", height: "600px" }}>
+        {/* Liste des profils */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            borderRight: "1px solid #ccc",
+            padding: "10px",
+          }}
+        >
+          <ProfilesDisplay
+            visibleProfiles={properties}
+            onHover={(id) => setHoveredId(id)}
+            onLeave={() => setHoveredId(null)}
           />
-          {properties.map((p) => (
-            <Marker
-              key={p.id}
-              position={[p.lat, p.lng]}
-              opacity={hoveredId === p.id ? 1 : 0.5}>
-              <Popup>{p.name}</Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        </div>
+
+        {/* Carte */}
+        <div style={{ flex: 2 }}>
+          <MapContainer
+            aria-label="Carte des profils"
+            center={[48.85, 2.35]}
+            zoom={13}
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {properties.map((p) => (
+              <Marker
+                key={p.id}
+                position={[p.latitude, p.longitude]}
+                opacity={hoveredId === p.id ? 1 : 0.5}
+              >
+                <Popup>
+                  <strong>{p.name}</strong>
+                  <br />
+                  {p.type}
+                  <br />
+                  {p.services.join(", ")}
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
