@@ -14,8 +14,10 @@ export default function MapWithSearch() {
   const [profiles, setProfiles] = useState([]);
   const [categories, setCategories] = useState([]);
 
+  // Charger les catégories dynamiquement
   useEffect(() => {
     const fetchCategories = async () => {
+      
       try {
         const res = await fetch("/api/categories");
         if (!res.ok) throw new Error(`Status ${res.status}`);
@@ -31,6 +33,7 @@ export default function MapWithSearch() {
     fetchCategories();
   }, []);
 
+  // Charger les profils selon la catégorie sélectionnée
   useEffect(() => {
     if (!selectedCategory) return;
 
@@ -64,14 +67,19 @@ export default function MapWithSearch() {
     ]
     : categories;
 
+  // Sélection libre
   const handleCategoryClick = (key) => {
+    setSelectedCategory(key);
+  };
+
+  // Vérification uniquement lors du clic sur "Rechercher"
+  const handleSearchClick = () => {
     if (!location.trim()) {
       toast.warn("Veuillez renseigner une localisation avant de lancer la recherche 📍");
       return;
     }
 
-    setSelectedCategory(key);
-    router.push(`/map-list?filter=${key}&location=${encodeURIComponent(location)}`);
+    router.push(`/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`);
   };
 
   const getCategoryStyles = (key, index) => ({
@@ -98,7 +106,7 @@ export default function MapWithSearch() {
 
         <div className={styles.bubblesRow}>
           {displayCategories.map(({ key, label, icon, description }, index) => {
-            const Icon = iconMap[icon]; // récupère le bon composant React
+            const Icon = iconMap[icon];
 
             return (
               <div
@@ -141,7 +149,7 @@ export default function MapWithSearch() {
               onChange={(e) => setLocation(e.target.value)}
               className={styles.searchInput}
             />
-            <button onClick={() => handleCategoryClick(selectedCategory)} type="button" aria-label="Rechercher">
+            <button onClick={handleSearchClick} type="button" aria-label="Rechercher">
               <FaSearch />
             </button>
           </div>
