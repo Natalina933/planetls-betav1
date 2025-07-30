@@ -7,6 +7,10 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import ProfilesDisplay from "../layout/Home/ProfilesDisplay/ProfilesDisplay";
+import { useSearchParams } from "next/navigation";
+import styles from "./MapWithList.module.scss";
+import Loader from "../common/Loader/Loader";
+
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -25,11 +29,16 @@ const fetcher = async (url) => {
   if (!text) throw new Error("Réponse vide du serveur");
   return JSON.parse(text);
 };
-
 export default function MapWithList() {
-  const { data: properties, error } = useSWR("/api/profiles", fetcher);
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter") || "proprietaire"; // Valeur par défaut si non définie
+  const location = searchParams.get("location") || "";
+  const { data: properties, error } = useSWR(
+    `/api/profiles?category=${filter}&location=${location}`,
+    fetcher
+  );
   const [hoveredId, setHoveredId] = useState(null);
-
+  const [selectedFilter, setSelectedFilter] = useState(filter);
   useEffect(() => {
     if (error) {
       toast.error(`Erreur API : ${error.message}`);
@@ -40,7 +49,7 @@ export default function MapWithList() {
     return (
       <>
         <ToastContainer />
-        <div>⏳ Chargement de la carte...</div>
+        <Loader showText={true} text="Chargement des profils..." />
       </>
     );
   }

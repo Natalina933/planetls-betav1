@@ -1,6 +1,5 @@
-// src/app/components/layout/Home/MapWithSearch/ProfilesDisplay.jsx
 import React from "react";
-import styles from "./ProfilesDisplay.module.scss"; 
+import styles from "./ProfilesDisplay.module.scss";
 
 export default function ProfilesDisplay({ visibleProfiles }) {
     return (
@@ -9,7 +8,11 @@ export default function ProfilesDisplay({ visibleProfiles }) {
                 <ul className={styles.profileList}>
                     {visibleProfiles.map(({ id, name, type, photo, services }) => (
                         <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
-                            <img src={photo} alt={`Avatar de ${name}, ${type}`} className={styles.profileAvatar} />
+                            <img
+                                src={photo || "/default-profile.png"}
+                                alt={`Avatar de ${name}, ${type}`}
+                                className={styles.profileAvatar}
+                            />
                             <div className={styles.profileDetails}>
                                 <h4>{name} ({type.charAt(0).toUpperCase() + type.slice(1)})</h4>
                                 <p>Services : {services.length ? services.join(", ") : "Non renseignés"}</p>
