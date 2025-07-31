@@ -27,12 +27,26 @@ export default function CategoryCarousel() {
     const timeoutRef = useRef();
 
     // Autoplay effect
-    useEffect(() => {
+useEffect(() => {
+    try {
+        if (categories.length === 0) return;
+
         timeoutRef.current = setTimeout(() => {
             setActive((prev) => (prev + 1) % categories.length);
         }, 3500);
-        return () => clearTimeout(timeoutRef.current);
-    }, [active]);
+    } catch (error) {
+        console.error("❌ Erreur dans l'autoplay du carousel :", error);
+    }
+
+    return () => {
+        try {
+            clearTimeout(timeoutRef.current);
+        } catch (error) {
+            console.warn("⚠️ Erreur lors du nettoyage du timeout :", error);
+        }
+    };
+}, [active, categories]);
+
 
     // Navigation
     const goTo = (idx) => setActive(idx);

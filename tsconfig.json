@@ -29,6 +29,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "src/app/components/layout/Header/Header.jsx", "src/app/map-list/page.jsx", "src/app/components/layout/Home/MapWithSearch/MapWithSearch.jsx"  ],
+, "src/app/components/layout/Header/Header.jsx", "src/app/map-list/page.jsx", "src/app/components/layout/Home/MapWithSearch/MapWithSearch.jsx", "src/app/components/MapWithList/MapWithList.jsx"  ],
   "exclude": ["node_modules"]
 }

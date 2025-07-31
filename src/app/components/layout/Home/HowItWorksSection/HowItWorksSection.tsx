@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lightbulb, Users, Handshake } from "lucide-react";
 import styles from "./HowItWorksSection.module.scss";
@@ -22,11 +23,22 @@ const steps = [
         title: "Je collabore",
         description: "En toute confiance grâce à notre plateforme locale et éthique.",
         link: "/a-propos"
-    }, 
-    
+    },
 ];
 
 export function HowItWorksSection() {
+    const router = useRouter();
+
+    const handleNavigation = (link: string) => {
+        try {
+            if (!link) throw new Error("Lien invalide");
+            router.push(link);
+        } catch (error) {
+            console.error("Erreur de navigation :", (error as Error).message);
+            // TODO: Ajouter un toast ou feedback utilisateur
+        }
+    };
+
     return (
         <section className={styles.howItWorks}>
             <motion.h2
@@ -41,7 +53,11 @@ export function HowItWorksSection() {
                 {steps.map((step, index) => (
                     <motion.div
                         key={index}
+                        role="button"
+                        tabIndex={0}
                         className={styles.step}
+                        onClick={() => handleNavigation(step.link)}
+                        onKeyDown={(e) => e.key === "Enter" && handleNavigation(step.link)}
                         initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
@@ -72,8 +88,6 @@ export function HowItWorksSection() {
                             {step.description}
                         </motion.p>
                     </motion.div>
-
-
                 ))}
             </div>
         </section>

@@ -12,6 +12,7 @@ import styles from "./MapWithList.module.scss";
 import Loader from "../common/Loader/Loader";
 
 
+// Fix des icônes Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -23,12 +24,22 @@ L.Icon.Default.mergeOptions({
 });
 
 const fetcher = async (url) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Réponse serveur invalide");
-  const text = await res.text();
-  if (!text) throw new Error("Réponse vide du serveur");
-  return JSON.parse(text);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Erreur serveur : ${response.status}`);
+    }
+    const text = await response.text();
+    if (!text.trim()) {
+      throw new Error("Réponse vide du serveur");
+    }
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Erreur lors du fetch :", error);
+    throw error;
+  }
 };
+
 export default function MapWithList() {
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter") || "proprietaire"; // Valeur par défaut si non définie
@@ -38,7 +49,7 @@ export default function MapWithList() {
     fetcher
   );
   const [hoveredId, setHoveredId] = useState(null);
-  const [selectedFilter, setSelectedFilter] = useState(filter);
+  // const [selectedFilter, setSelectedFilter] = useState(filter);
   useEffect(() => {
     if (error) {
       toast.error(`Erreur API : ${error.message}`);

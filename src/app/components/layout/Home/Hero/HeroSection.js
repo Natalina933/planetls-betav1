@@ -7,8 +7,13 @@ import CategoryCarousel from "./CategoryCarousel";
 
 const HeroSection = () => {
   const scrollToCommunity = () => {
-    window.scrollTo({ top: 800, behavior: "smooth" });
+    try {
+      window.scrollTo({ top: 800, behavior: "smooth" });
+    } catch (error) {
+      console.error("⛔ Échec du scroll :", error);
+    }
   };
+
 
   return (
     <section className={styles.hero}>
@@ -42,9 +47,17 @@ const HeroSection = () => {
             <CTAButton
               variant="primary"
               onClick={() => {
+                try {
+                  // Exemple : ouvrir une page ou lancer une modale
+                  console.log("✅ Bouton cliqué !");
+                  // navigate("/a-propos"); // si tu utilises `useRouter()`
+                } catch (error) {
+                  console.error("⛔ Action échouée :", error);
+                }
               }}>
               Découvrir comment ça marche
             </CTAButton>
+
             <CTAButton variant="secondary" onClick={scrollToCommunity}>
               Inscription gratuite
             </CTAButton>

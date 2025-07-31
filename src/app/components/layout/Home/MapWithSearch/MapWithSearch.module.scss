@@ -192,6 +192,77 @@
 //   // }
 // }
 
+.categoryTextBubble1900 {
+  // Fond ancien parchemin moderne
+  background: linear-gradient(135deg, #fffbe7 85%, #f7ecd0 100%);
+  border: 1.5px solid #d4af37;
+  border-radius: 18px;
+  box-shadow:
+    0 2px 40px rgba(212, 175, 55, 0.07),
+    0 0 0 6px rgba(212, 175, 55, 0.12) inset;
+  position: relative;
+  margin: 1.5rem auto 0.7rem auto;
+  max-width: 410px;
+  padding: 1.75rem 2rem 1.4rem 2rem;
+  text-align: center;
+  font-family: var(--font-title, 'Playfair Display', serif);
+  color: #5a4320;
+  // Fines lignes dorées façon ornement
+  &::before, &::after {
+    content: "";
+    display: block;
+    height: 2px;
+    width: 36%;
+    background: linear-gradient(
+      to right, 
+      transparent 0%, 
+      #d4af37 45%, 
+      #d4af37 55%, 
+      transparent 100%
+    );
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    opacity: 0.37;
+  }
+  &::before {
+    top: 11px;
+  }
+  &::after {
+    bottom: 9px;
+  }
+  // Petits motifs anciens dans les coins
+  & > .cornerOrnament {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    opacity: 0.27;
+    pointer-events: none;
+  }
+  & > .ornament-tl { top: 7px; left: 14px; }
+  & > .ornament-tr { top: 7px; right: 14px; transform: scaleX(-1);}
+  & > .ornament-bl { bottom: 7px; left: 14px; transform: scaleY(-1);}
+  & > .ornament-br { bottom: 7px; right: 14px; transform: scale(-1,-1);}
+  h3 {
+    font-size: 1.35rem;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+    color: #b88b4a;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 3px #fffbe7aa;
+    font-family: inherit;
+  }
+  p {
+    font-size: 1.06rem;
+    color: #63502d;
+    margin: 0;
+    line-height: 1.55;
+    font-family: inherit;
+  }
+}
+
+
 /* CATEGORY BUBBLES */
 .categorySearchSection {
   background-color: #fffaf1;
