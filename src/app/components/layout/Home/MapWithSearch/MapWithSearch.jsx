@@ -42,7 +42,10 @@ export default function MapWithSearch() {
         const res = await fetch(`/api/profiles?category=${selectedCategory}`);
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const data = await res.json();
-        setProfiles(data);
+   // Extraire uniquement les 3 grandes catégories principales (group_key === key)
+      const rootCategories = data.filter((cat) => cat.group_key === cat.key);
+      setProfiles(rootCategories);
+      setSelectedCategory(rootCategories[0]?.key || "");
       } catch (err) {
         console.error("Erreur chargement des profils :", err);
         toast.error("Impossible de charger les profils 😢");

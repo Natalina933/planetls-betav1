@@ -4,10 +4,11 @@ import db from "../../lib/db";
 export async function GET() {
     try {
         const [rows] = await db.execute(`
-        SELECT id, \`key\`, label, icon, image, description
-        FROM categories
-        ORDER BY label
-    `);
+            SELECT id, \`key\`, label, icon, image, description
+            FROM categories
+            WHERE \`key\` = \`group_key\`
+            ORDER BY label
+        `);
 
         const categories = rows.map((cat) => ({
             id: cat.id,
