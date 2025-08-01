@@ -41,6 +41,11 @@ export default function MapWithSearch() {
     }
     router.push(`/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`);
   };
+const handleKeyDown = (e) => {
+  if (e.key === "Enter") {
+    handleSearchClick();
+  }
+};
 
   // Cherche la catégorie sélectionnée pour l'afficher en-dessous
   const selectedCat = categories.find((cat) => cat.key === selectedCategory);
@@ -129,6 +134,8 @@ export default function MapWithSearch() {
               placeholder="Où recherchez-vous ?"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              onKeyDown={handleKeyDown}
+              aria-label="Rechercher une localisation"
               className={styles.searchInput}
             />
             <button onClick={handleSearchClick} type="button" aria-label="Rechercher">

@@ -4,84 +4,29 @@
 @use "src/app/styles/abstracts/_functions" as *;
 @use "src/app/styles/abstracts/_variables" as *;
 
+// === SECTION PRINCIPALE ===
 .mapWithSearchSection {
-  // Fond légèrement texturé, effet parchemin
-  background-color: #f8f5ec;
-  background-image:
-    radial-gradient(rgba(212, 175, 55, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom right, rgba(240, 176, 16, 0.062), rgba(245, 235, 210, 0.2));
-  background-size: 6px 6px, 100% 100%;
-  background-blend-mode: overlay;
-
-  padding: 3rem 2rem;
-  font-family: var(--font-primary, serif);
-  border-top: 3px double #d4af37;
-  border-bottom: 3px double #d4af37;
-  box-shadow: 0 6px 30px rgba(var(--color-primary-rgb), 0.1);
-  position: relative;
-  overflow: hidden;
-  text-align: center;
-
-  // Ornement décoratif en arrière-plan
-  // &::before {
-  //   content: "";
-  //   position: absolute;
-  //   top: -30px;
-  //   right: -30px;
-  //   width: 180px;
-  //   height: 180px;
-  //   background: url("/ornements/ligne-right.svg") no-repeat center/contain;
-  //   opacity: 0.19;
-  //   z-index: 0;
-  // }
-
-  // &::after {
-  //   content: "";
-  //   position: absolute;
-  //   bottom: -20px;
-  //   left: -20px;
-  //   width: 160px;
-  //   height: 160px;
-  //   background: url("/ornements/ligne-left.svg") no-repeat center/contain;
-  //   opacity: 0.07;
-  //   z-index: 0;
-  // }
-
-  h2 {
-    font-size: 2.5rem;
-    font-family: var(--font-title, serif);
-    color: var(--color-text-primary);
-    margin-bottom: 2rem;
-    position: relative;
-    z-index: 1;
-
-    &::after {
-      content: "";
-      width: 4rem;
-      height: 0.25rem;
-      background-color: var(--color-accent);
-      display: block;
-      margin: 1rem auto 0;
-    }
-  }
+  max-width: 1400px;
+  margin: 3rem auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
+// === HEADER & INTRO ===
 .headerContent {
   background: linear-gradient(180deg, #fffdf6 0%, #f8f6ee 100%);
-  border: 2.5px solid #b88b4a; // doré profond, ajustable selon ta charte
+  border: 2.5px solid #b88b4a;
   border-radius: 1.25rem;
   box-shadow: 0 8px 40px rgba(184, 139, 74, 0.07);
-  // max-width: 613px;
   width: 100%;
-  // padding: 1rem 2rem;
   height: 100%;
   margin: 0 auto;
-  // padding: 1rem 2.1rem;
   text-align: center;
   position: relative;
   overflow: hidden;
   font-family: var(--font-title, serif);
-
 
   @media (max-width: 700px) {
     padding: 1.7rem 0.6rem;
@@ -90,9 +35,9 @@
 }
 
 .intro {
-  display: flex; // ou grid
+  display: flex;
   align-items: stretch;
-  min-height: 328px; // hauteur minimale pour donner de l’impact
+  min-height: 328px;
   position: relative;
 
   @include mq(md) {
@@ -111,7 +56,6 @@
   position: relative;
 
   h2 {
-    // margin-bottom: 1rem;
     font-size: 3rem;
 
     @include mq(md) {
@@ -123,7 +67,6 @@
   .introSub {
     font-size: 1.3rem;
     color: var(--color-text);
-    font-family: inherit;
     margin-top: 0.5rem;
     font-weight: 500;
 
@@ -145,125 +88,43 @@
   }
 }
 
-// .headerImageCol {
-//   flex: 0 0 38%;
-//   max-width: 38%;
-//   position: relative;
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   border-radius: var(--radius-xl);
-//   overflow: hidden;
-//   box-shadow: 0 12px 30px rgba(var(--color-primary-rgb), 0.25);
-
-//   @include mq(md) {
-//     flex: 1 0 100%;
-//     max-width: 100%;
-//     margin-top: 1.5rem;
-//     min-height: 250px;
-//   }
-
-//   .headerBackgroundImage {
-//     position: absolute;
-//     inset: 0; // top:0; left:0; right:0; bottom:0
-//     width: 100%;
-//     height: 100%;
-//     object-fit: cover; // Couvre la zone sans déformer
-//     z-index: 1;
-//     display: block;
-//   }
-
-//   // Effet 
-//   .imageWaveEffect {
-//     position: absolute;
-//     inset: 0;
-//     z-index: 2;
-//     pointer-events: none;
-//     // décoratif (ex: gradient, masque SVG...)
-//   }
-
-//   // Effet au survol plus subtil
-//   // &:hover {
-//   //   .headerBackgroundImage {
-//   //     opacity: 0.75;
-//   //     filter: blur(0.4px) brightness(1.08) contrast(0.9) saturate(1);
-//   //     transform: scale(1.02);
-//   //   }
-//   // }
-// }
-
-.categoryTextBubble1900 {
-  // Fond ancien parchemin moderne
-  background: linear-gradient(135deg, #fffbe7 85%, #f7ecd0 100%);
-  border: 1.5px solid #d4af37;
-  border-radius: 18px;
-  box-shadow:
-    0 2px 40px rgba(212, 175, 55, 0.07),
-    0 0 0 6px rgba(212, 175, 55, 0.12) inset;
+.headerImageCol {
+  flex: 0 0 38%;
+  max-width: 38%;
   position: relative;
-  margin: 1.5rem auto 0.7rem auto;
-  max-width: 410px;
-  padding: 1.75rem 2rem 1.4rem 2rem;
-  text-align: center;
-  font-family: var(--font-title, 'Playfair Display', serif);
-  color: #5a4320;
-  // Fines lignes dorées façon ornement
-  &::before, &::after {
-    content: "";
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(var(--color-primary-rgb), 0.25);
+
+  @include mq(md) {
+    flex: 1 0 100%;
+    max-width: 100%;
+    margin-top: 1.5rem;
+    min-height: 250px;
+  }
+
+  .headerBackgroundImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
     display: block;
-    height: 2px;
-    width: 36%;
-    background: linear-gradient(
-      to right, 
-      transparent 0%, 
-      #d4af37 45%, 
-      #d4af37 55%, 
-      transparent 100%
-    );
+  }
+
+  .imageWaveEffect {
     position: absolute;
-    left: 0;
-    right: 0;
-    margin: auto;
-    opacity: 0.37;
-  }
-  &::before {
-    top: 11px;
-  }
-  &::after {
-    bottom: 9px;
-  }
-  // Petits motifs anciens dans les coins
-  & > .cornerOrnament {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    opacity: 0.27;
+    inset: 0;
+    z-index: 2;
     pointer-events: none;
-  }
-  & > .ornament-tl { top: 7px; left: 14px; }
-  & > .ornament-tr { top: 7px; right: 14px; transform: scaleX(-1);}
-  & > .ornament-bl { bottom: 7px; left: 14px; transform: scaleY(-1);}
-  & > .ornament-br { bottom: 7px; right: 14px; transform: scale(-1,-1);}
-  h3 {
-    font-size: 1.35rem;
-    letter-spacing: 0.02em;
-    font-weight: 700;
-    color: #b88b4a;
-    margin: 0 0 0.5rem 0;
-    text-shadow: 0 2px 3px #fffbe7aa;
-    font-family: inherit;
-  }
-  p {
-    font-size: 1.06rem;
-    color: #63502d;
-    margin: 0;
-    line-height: 1.55;
-    font-family: inherit;
   }
 }
 
-
-/* CATEGORY BUBBLES */
+// === CATEGORY BUBBLES ===
 .categorySearchSection {
   background-color: #fffaf1;
   background-image:
@@ -316,8 +177,8 @@
 .bubblesRow {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; // ✅ Centrage horizontal
-  align-items: center; // ✅ Centrage vertical
+  justify-content: center;
+  align-items: center;
   gap: var(--spacing-md);
   margin-top: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
@@ -333,7 +194,7 @@
   --bubble-primary-rgb: var(--color-primary-rgb);
   display: flex;
   flex-direction: column;
-  align-items: center; // ✅ Centrer l’icône et le texte
+  align-items: center;
   justify-content: flex-start;
   text-align: center;
   position: relative;
@@ -394,8 +255,6 @@
   transition: transform .25s cubic-bezier(.54, 1.7, .55, 1),
     background .2s,
     border-color .2s;
-
-  // Utilisation de votre mixin backdrop-blur
   @include backdrop-blur(3px, var(--glass-bg, rgba(255, 255, 255, 0.85)), var(--glass-border, rgba(255, 255, 255, 0.2)));
 
   svg {
@@ -436,11 +295,11 @@
 
   @include mq(sm) {
     margin-left: auto;
-    margin-right: auto; // ✅ Centré aussi le texte
+    margin-right: auto;
   }
 }
 
-/* SEARCHBAR premium */
+// === SEARCHBAR ===
 .searchBarWrapper {
   width: 100%;
   max-width: 500px;
@@ -476,7 +335,6 @@
     gap: 0.5rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
-
   }
 
   @media (max-width: 600px) {
@@ -490,8 +348,7 @@
   }
 }
 
-
-/* ACCESSIBILITÉ SUPÉRIEURE */
+// === ACCESSIBILITÉ ===
 .bubbleBtn:focus-visible,
 .searchButton:focus-visible {
   outline: 3px solid var(--color-focus-ring, #ffe09b);
@@ -499,7 +356,7 @@
   border-radius: var(--radius-pill);
 }
 
-// ✨ Animations du modèle "How It Works"
+// === ANIMATIONS ===
 @keyframes fadeIn {
   0% {
     transform: translateY(1.5rem);
@@ -524,6 +381,7 @@
   }
 }
 
+// === RESPONSIVE ===
 @media (max-width: 900px) {
   .intro {
     flex-direction: column;
