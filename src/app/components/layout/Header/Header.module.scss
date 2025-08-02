@@ -76,13 +76,13 @@
 
       @media (max-width: 480px) {
         /* Pour les téléphones */
-        width: 120px;
+        width: 220px;
         /* Taille pour les petits smartphones */
       }
 
       @media (max-width: 380px) {
         /* Pour les très petits écrans (ex: iPhone SE) */
-        width: 100px;
+        width: 190px;
         /* Taille minimale pour éviter le débordement */
       }
     }

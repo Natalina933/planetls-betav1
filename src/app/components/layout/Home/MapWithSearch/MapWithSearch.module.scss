@@ -84,10 +84,11 @@
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--color-text-primary, #333);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
 
     @include mq(md) {
       font-size: 1rem;
+      margin-top: 32px;
     }
   }
 }
@@ -102,7 +103,6 @@
   flex-wrap: wrap; // Permet aux bulles de passer à la ligne si nécessaire
 
   @include mq(md) {
-    flex-direction: column; // En colonne sur les écrans moyens
     align-items: center; // Centrer les bulles en colonne
     gap: var(--spacing-md);
   }

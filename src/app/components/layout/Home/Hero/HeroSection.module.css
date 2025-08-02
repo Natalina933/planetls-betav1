@@ -144,7 +144,7 @@
     backdrop-filter: var(--glass-blur);
 
     @media (max-width: 992px) {
-      max-width: 320px;
+      max-width: 550px;
     }
 
     @media (max-width: 576px) {

@@ -17,7 +17,7 @@ export default function MapWithSearch() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("/api/categories");
+        const res = await fetch("/api/categories/groups");
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const data = await res.json();
         setCategories(data);
@@ -41,11 +41,11 @@ export default function MapWithSearch() {
     }
     router.push(`/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`);
   };
-const handleKeyDown = (e) => {
-  if (e.key === "Enter") {
-    handleSearchClick();
-  }
-};
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearchClick();
+    }
+  };
 
   // Cherche la catégorie sélectionnée pour l'afficher en-dessous
   const selectedCat = categories.find((cat) => cat.key === selectedCategory);
@@ -65,11 +65,10 @@ const handleKeyDown = (e) => {
       <section className={styles.categorySearchSection}>
         <header className={styles.categoryInstructionWrapper}>
           <h2 className={styles.categoryTitle}>
-            Trouvez les bons partenaires pour votre activité saisonnière
-          </h2>
+            Connectez-vous aux bons partenaires de la location saisonnière          </h2>
           <h3 className={styles.categoryInstruction}>
-            Recherchez facilement conciergeries, artisans, et collaborateurs locaux pour propulser vos projets.
-          </h3>
+            Choisissez selon vos besoins : propriétaire, conciergerie, artisan, commerçant…  recherchant ou proposant leurs services dans votre région. </h3>
+
         </header>
 
         {/* Rangée de bulles */}
@@ -111,14 +110,24 @@ const handleKeyDown = (e) => {
             borderRadius: "20px",
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             marginTop: "1rem",
-            color: "var(--color-text)",}}
+            color: "var(--color-text)",
+          }}
         >
           {selectedCat && (
             <>
-              <h3>{selectedCat.label}</h3>
-              <p>{selectedCat.description}</p>
+              {/* <h3>{selectedCat.label}</h3> */}
+              <p>
+                {selectedCat.key === "proprietaire" &&
+                  "Trouvez des propriétaires à la recherche d'une conciergerie fiable pour gérer et valoriser leur bien en location saisonnière."}
+                {selectedCat.key === "concierge" &&
+                  "Trouvez des conciergeries — indépendantes ou professionnelles — cherchant à étendre leur réseau de biens saisonniers dans votre région."}
+                {selectedCat.key === "artisan" &&
+                  "Découvrez les artisans et commerçants locaux offrant des produits ou prestations adaptés à la location saisonnière — paniers d’accueil, kits personnalisés, services sur mesure."}
+              </p>
             </>
           )}
+
+
         </div>
 
 
