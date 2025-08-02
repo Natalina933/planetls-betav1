@@ -21,3 +21,14 @@
         opacity: 0;
     }
 }
+@keyframes fadeInTitle {
+    0% {
+        opacity: 0;
+        transform: translateY(1.5rem);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

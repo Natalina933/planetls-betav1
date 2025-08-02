@@ -113,6 +113,9 @@
         transform: translateY(0);
     }
 }
+@mixin fadeInTitle($duration: 0.5s, $delay: 0s) {
+  animation: fadeInTitle $duration ease-out $delay both;
+}
 
 @mixin grid-template($template, $gap: var(--spacing-md)) {
     display: grid;

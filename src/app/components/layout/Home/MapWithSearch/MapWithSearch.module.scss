@@ -3,21 +3,48 @@
 @use "src/app/styles/abstracts/_mixins" as *;
 @use "src/app/styles/abstracts/_functions" as *;
 @use "src/app/styles/abstracts/_variables" as *;
+@use "src/app/styles/abstracts/_breakpoints" as mq;
+@use "../../../../styles/base/animations" as *;
 
 // === SECTION PRINCIPALE ===
 .mapWithSearchSection {
-  max-width: 1400px;
-  margin: 3rem auto;
-  padding: 2rem;
+  background: linear-gradient(to bottom, #fdfaf3, #f6f0e5);
+  font-family: $font-elegant;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  text-align: center;
+  position: relative;
+  border-top: 2.5px solid #b88b4a;
+  border-bottom: 2.5px solid #b88b4a;
+  h2 {
+    font-size: 2.5rem;
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    font-weight: 700;
+    text-align: center;
+    @include fadeInTitle(0.5s, 0.2s);
+
+    @include mq(md) {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    &::after {
+      content: "";
+      display: block;
+      margin: 1.75rem auto 0;
+      width: 50%;
+      height: 0.25rem;
+      background-color: $gold;
+    }
+  }
 }
 
 // === HEADER & INTRO ===
 .headerContent {
   background: linear-gradient(180deg, #fffdf6 0%, #f8f6ee 100%);
-  border: 2.5px solid #b88b4a;
+
   border-radius: 1.25rem;
   box-shadow: 0 8px 40px rgba(184, 139, 74, 0.07);
   width: 100%;
@@ -34,125 +61,17 @@
   }
 }
 
-.intro {
-  display: flex;
-  align-items: stretch;
-  min-height: 328px;
-  position: relative;
-
-  @include mq(md) {
-    flex-direction: column;
-    gap: 1rem;
-  }
-}
-
-.headerContentWrapper {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 2rem 3rem;
-  z-index: 2;
-  position: relative;
-
-  h2 {
-    font-size: 3rem;
-
-    @include mq(md) {
-      font-size: 1.2rem;
-      text-align: center;
-    }
-  }
-
-  .introSub {
-    font-size: 1.3rem;
-    color: var(--color-text);
-    margin-top: 0.5rem;
-    font-weight: 500;
-
-    @include mq(md) {
-      font-size: 1rem;
-      text-align: center;
-    }
-  }
-
-  .introDescription {
-    font-size: 1rem;
-    color: var(--color-text-light);
-    margin-top: 1.3rem;
-    line-height: 1.7;
-
-    @include mq(md) {
-      text-align: center;
-    }
-  }
-}
-
-.headerImageCol {
-  flex: 0 0 38%;
-  max-width: 38%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: 0 12px 30px rgba(var(--color-primary-rgb), 0.25);
-
-  @include mq(md) {
-    flex: 1 0 100%;
-    max-width: 100%;
-    margin-top: 1.5rem;
-    min-height: 250px;
-  }
-
-  .headerBackgroundImage {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-    display: block;
-  }
-
-  .imageWaveEffect {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-  }
-}
-
-// === CATEGORY BUBBLES ===
+// === CATEGORY SECTION ===
 .categorySearchSection {
-  background-color: #fffaf1;
-  background-image:
-    linear-gradient(to top, #fffaf1 0%, #fbe2b7 100%),
-    url("/textures/elegant-fibers.png");
-  background-repeat: no-repeat, repeat;
-  background-size: cover, 300px;
-  background-blend-mode: overlay;
-  padding: 2rem 1.5rem;
-  margin: 0.5rem auto 2rem;
-  border: 1.5px solid #d4af37;
-  border-radius: 1.2rem;
-  box-shadow: 0 10px 35px rgba(var(--color-primary-rgb), 0.15);
-  position: relative;
-  z-index: 1;
-  @include fadeIn(1.5rem, 0.8s);
+  display: flex;
+  flex-direction: column; // Changer en colonne par défaut pour une meilleure gestion du contenu
+  align-items: center;
+  justify-content: center; // Centrer le contenu
+  // gap: var(--spacing-lg);
+  flex-wrap: wrap; // Permettre le retour à la ligne
 
-  &::before {
-    content: "";
-    position: absolute;
-    top: -25px;
-    right: -25px;
-    width: 160px;
-    height: 160px;
-    background: url("/ornements/ligne-left.svg") no-repeat center/contain;
-    opacity: 0.18;
-    pointer-events: none;
-    z-index: 0;
+  @include mq(md) {
+    padding: var(--spacing-md) var(--spacing-sm);
   }
 }
 
@@ -163,10 +82,9 @@
   .categoryInstruction {
     font-family: var(--font-title, serif);
     font-size: 1.5rem;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--color-text-primary, #333);
-    margin: 0 0 1.5rem 0;
-    line-height: 1;
+    margin-bottom: 1.5rem;
 
     @include mq(md) {
       font-size: 1rem;
@@ -176,57 +94,47 @@
 
 .bubblesRow {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  flex-direction: row-reverse; // Par défaut en ligne
+  gap: var(--spacing-xl); // Espacement entre les bulles
+  align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
+  justify-content: center; // Centrer les bulles
+  flex: 1 1 0; // Permet de prendre l'espace disponible
+  flex-wrap: wrap; // Permet aux bulles de passer à la ligne si nécessaire
 
-  @include mq(sm) {
-    flex-direction: column;
-    gap: var(--spacing-sm);
+  @include mq(md) {
+    flex-direction: column; // En colonne sur les écrans moyens
+    align-items: center; // Centrer les bulles en colonne
+    gap: var(--spacing-md);
   }
 }
 
 .bubbleBlock {
-  --bubble-primary: var(--color-primary);
-  --bubble-primary-rgb: var(--color-primary-rgb);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   text-align: center;
   position: relative;
+  min-width: 160px;
+  max-width: 200px;
   animation: fadeInStep 0.6s ease forwards;
-  transition: transform 0.3s ease;
   cursor: pointer;
-  animation: fadeInStep 0.6s ease both;
+  transition: transform 0.3s ease;
 
   &:nth-child(1) {
     --index: 0;
     --bubble-primary-rgb: var(--proprietaire-primary-rgb);
     --bubble-primary: var(--proprietaire-primary);
   }
-
   &:nth-child(2) {
     --index: 1;
     --bubble-primary-rgb: var(--concierge-primary-rgb);
     --bubble-primary: var(--concierge-primary);
   }
-
   &:nth-child(3) {
     --index: 2;
     --bubble-primary-rgb: var(--artisan-primary-rgb);
     --bubble-primary: var(--artisan-primary);
   }
-
-  &:nth-child(4) {
-    --index: 3;
-    --bubble-primary-rgb: var(--all-primary-rgb);
-    --bubble-primary: var(--all-primary);
-  }
-
   animation-delay: calc(0.1s * var(--index));
 
   &.active {
@@ -235,7 +143,6 @@
       background: linear-gradient(135deg, #ffeecd 80%, #fffbe7 100%);
       box-shadow: 0 0 0 4px rgba(var(--bubble-primary-rgb), 0.3);
     }
-
     .bubbleLabel {
       color: var(--bubble-primary);
       font-weight: 700;
@@ -244,18 +151,21 @@
 }
 
 .bubbleBtn {
-  width: 75px;
-  height: 75px;
+  width: clamp(55px, 6vw, 75px);
+  height: clamp(55px, 6vw, 75px);
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 50%;
   box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
-  outline: none;
-  transition: transform .25s cubic-bezier(.54, 1.7, .55, 1),
-    background .2s,
-    border-color .2s;
-  @include backdrop-blur(3px, var(--glass-bg, rgba(255, 255, 255, 0.85)), var(--glass-border, rgba(255, 255, 255, 0.2)));
+  border: 2.5px solid var(--bubble-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  @include backdrop-blur(
+    3px,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0.2)
+  );
 
   svg {
     font-size: 1.9rem;
@@ -272,13 +182,11 @@
 
 .bubbleLabel {
   font-family: var(--font-title, serif);
-  margin-top: 1.2rem;
+  margin: 1.2rem 0 0.35rem;
   font-size: 1.15rem;
-  color: var(--bubble-primary);
-  text-align: center;
   font-weight: 600;
-  margin-bottom: 0.35rem;
   letter-spacing: 0.015em;
+  color: var(--bubble-primary);
   transition: color 0.2s ease;
 }
 
@@ -290,8 +198,8 @@
   border-radius: 12px;
   border: 1px solid var(--bubble-primary);
   color: var(--bubble-text, var(--color-text));
-  text-align: center;
   max-width: 280px;
+  text-align: center;
 
   @include mq(sm) {
     margin-left: auto;
@@ -307,11 +215,9 @@
 }
 
 .searchBar {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
   display: flex;
   align-items: center;
+  position: relative;
 
   input {
     flex: 1;
@@ -319,7 +225,6 @@
     font-size: 1rem;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    outline: none;
   }
 
   button {
@@ -356,32 +261,7 @@
   border-radius: var(--radius-pill);
 }
 
-// === ANIMATIONS ===
-@keyframes fadeIn {
-  0% {
-    transform: translateY(1.5rem);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeInTitle {
-  0% {
-    opacity: 0;
-    transform: translateY(1.5rem);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// === RESPONSIVE ===
+// === RESPONSIVE (doublon évité) ===
 @media (max-width: 900px) {
   .intro {
     flex-direction: column;
