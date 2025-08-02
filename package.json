@@ -19,7 +19,6 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
-    "react-router-dom": "^7.6.3",
     "react-toastify": "^11.0.5",
     "sass": "^1.89.2",
     "swiper": "^11.2.10",
@@ -30,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "typescript": "^5"

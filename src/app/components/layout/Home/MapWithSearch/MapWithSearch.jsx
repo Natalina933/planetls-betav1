@@ -89,7 +89,7 @@ const handleKeyDown = (e) => {
                   type="button"
                 >
                   <span className={styles.bubbleIcon}>
-                    {Icon ? <Icon size="1.7em" /> : <FaSearch size="1.7em" />}
+                    {Icon ? <Icon size="1em" /> : <FaSearch size="1.7em" />}
                   </span>
                 </button>
               </div>

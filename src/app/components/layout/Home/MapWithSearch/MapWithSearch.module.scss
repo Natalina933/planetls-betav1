@@ -181,14 +181,14 @@
 }
 
 .bubbleLabel {
-  font-family: var(--font-title, serif);
-  margin: 1.2rem 0 0.35rem;
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.015em;
-  color: var(--bubble-primary);
-  transition: color 0.2s ease;
-}
+font-family: var(--font-title);
+    font-size: 1rem;
+    color: var(--bubble-primary); // Utilise la couleur dynamique
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    text-align: center;
+    transition: color 0.2s ease;
+  }
 
 .categoryTextBubble {
   margin-top: 0.75rem;
