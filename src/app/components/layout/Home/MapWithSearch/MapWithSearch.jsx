@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./MapWithSearch.module.scss";
@@ -13,7 +14,6 @@ export default function MapWithSearch() {
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
 
-  // Charger les catégories principales (families)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -27,6 +27,7 @@ export default function MapWithSearch() {
         toast.error("Impossible de charger les catégories 😢");
       }
     };
+
     fetchCategories();
   }, []);
 
@@ -36,18 +37,21 @@ export default function MapWithSearch() {
 
   const handleSearchClick = () => {
     if (!location.trim()) {
-      toast.warn("Veuillez renseigner une localisation avant de lancer la recherche 📍");
+      toast.warn("Veuillez renseigner une localisation 📍");
       return;
     }
-    router.push(`/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`);
+
+    router.push(
+      `/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`
+    );
   };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSearchClick();
     }
   };
 
-  // Cherche la catégorie sélectionnée pour l'afficher en-dessous
   const selectedCat = categories.find((cat) => cat.key === selectedCategory);
 
   const getCategoryStyles = (key, index) => ({
@@ -65,20 +69,22 @@ export default function MapWithSearch() {
       <section className={styles.categorySearchSection}>
         <header className={styles.categoryInstructionWrapper}>
           <h2 className={styles.categoryTitle}>
-            Connectez-vous aux bons partenaires de la location saisonnière          </h2>
+            Connectez-vous aux bons partenaires de la location saisonnière
+          </h2>
           <h3 className={styles.categoryInstruction}>
-            Choisissez selon vos besoins : propriétaire, conciergerie, artisan, commerçant…  recherchant ou proposant leurs services dans votre région. </h3>
-
+            Choisissez selon vos besoins : propriétaire, conciergerie, artisan,
+            commerçant… recherchant ou proposant leurs services dans votre région.
+          </h3>
         </header>
 
-        {/* Rangée de bulles */}
         <div className={styles.bubblesRow}>
           {categories.map(({ key, label, icon }, index) => {
             const Icon = iconMap[icon];
             return (
               <div
                 key={key}
-                className={`${styles.bubbleBlock} ${selectedCategory === key ? styles.active : ""}`}
+                className={`${styles.bubbleBlock} ${selectedCategory === key ? styles.active : ""
+                  }`}
                 style={getCategoryStyles(key, index)}
               >
                 <button
@@ -96,42 +102,31 @@ export default function MapWithSearch() {
           })}
         </div>
 
-        {/* Texte de la catégorie sélectionnée sous la ligne */}
-        <div
-          className={styles.categoryTextBubble1900}
-          style={{
-            backgroundImage: "url('/ornements/mucha-background-pattern-light.png')",
-            backgroundRepeat: "repeat",
-            backgroundPosition: "center",
-            backgroundSize: "250px 250px",
-            position: "relative",
-            padding: "1rem",
-            opacity: 0.9,
-            borderRadius: "20px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            marginTop: "1rem",
-            color: "var(--color-text)",
-          }}
-        >
-          {selectedCat && (
-            <>
-              {/* <h3>{selectedCat.label}</h3> */}
-              <p>
-                {selectedCat.key === "proprietaire" &&
-                  "Trouvez des propriétaires à la recherche d'une conciergerie fiable pour gérer et valoriser leur bien en location saisonnière."}
-                {selectedCat.key === "concierge" &&
-                  "Trouvez des conciergeries — indépendantes ou professionnelles — cherchant à étendre leur réseau de biens saisonniers dans votre région."}
-                {selectedCat.key === "artisan" &&
-                  "Découvrez les artisans et commerçants locaux offrant des produits ou prestations adaptés à la location saisonnière — paniers d’accueil, kits personnalisés, services sur mesure."}
-              </p>
-            </>
-          )}
+        {selectedCat && (
+          <div className={styles.categoryTextBubble1900}>
+            <p>
+              {selectedCat.key === "proprietaire" && (
+                <>
+                  <span className={styles.highlightGold}>Trouvez des propriétaires</span> à la recherche d'une conciergerie fiable pour gérer et valoriser leur bien en location saisonnière.
+                </>
+              )}
 
+              {selectedCat.key === "concierge" && (
+                <>
+                  <span className={styles.highlightGold}>Trouvez une conciergerie</span>, indépendante ou professionnelle, cherchant à étendre son réseau de biens saisonniers dans votre région.
+                </>
+              )}
 
-        </div>
+              {selectedCat.key === "artisan" && (
+                <>
+                  <span className={styles.highlightGold}>Découvrez les artisans et commerçants locaux</span> offrant des produits ou prestations adaptés à la location saisonnière, paniers d’accueil, kits personnalisés...
+                </>
+              )}
+            </p>
 
+          </div>
+        )}
 
-        {/* Barre de recherche */}
         <div className={styles.searchBarWrapper}>
           <span className={styles.categoryInstruction}>
             Utilisez les filtres ci-dessus et indiquez votre localisation.

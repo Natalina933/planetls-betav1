@@ -74,6 +74,44 @@
     padding: var(--spacing-md) var(--spacing-sm);
   }
 }
+.categoryTextBubble1900 {
+  p {
+    line-height: 1.5em;
+    font-family: var(--font-text, sans-serif);
+    font-size: 1.1em;
+    color: #fff; // texte blanc franc
+    margin: 0 auto;
+    max-width: 550px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0); // ombrage du texte pour contraste
+  }
+
+  background-image: linear-gradient(
+      rgba(255, 200, 100, 0.55),
+      rgba(139, 69, 19, 0.6)
+    ),
+    url("/ornements/mucha-background-pattern.png");
+  background-blend-mode: soft-light;
+  background-repeat: repeat;
+  background-position: center;
+  background-size: 250px 250px;
+
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 2px solid #d4af37;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px #d4af37;
+
+  opacity: 1;
+  max-width: 500px;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+
+  margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 .categoryInstructionWrapper {
   width: 100%;
@@ -96,7 +134,7 @@
 .bubblesRow {
   display: flex;
   flex-direction: row-reverse; // Par défaut en ligne
-  gap: var(--spacing-xl); // Espacement entre les bulles
+  gap: var(--spacing-sm); // Espacement entre les bulles
   align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
   justify-content: center; // Centrer les bulles
   flex: 1 1 0; // Permet de prendre l'espace disponible
@@ -181,14 +219,14 @@
 }
 
 .bubbleLabel {
-font-family: var(--font-title);
-    font-size: 1rem;
-    color: var(--bubble-primary); // Utilise la couleur dynamique
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    text-align: center;
-    transition: color 0.2s ease;
-  }
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--bubble-primary); // Utilise la couleur dynamique
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  text-align: center;
+  transition: color 0.2s ease;
+}
 
 .categoryTextBubble {
   margin-top: 0.75rem;
@@ -206,49 +244,104 @@ font-family: var(--font-title);
     margin-right: auto;
   }
 }
+.highlightGold {
+  position: relative;
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgb(0, 0, 0); // ombrage du texte
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #ffd700;
+    animation: underlineExpand 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+}
+
+@keyframes underlineExpand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
 
 // === SEARCHBAR ===
 .searchBarWrapper {
-  width: 100%;
-  max-width: 500px;
-  margin: 2rem auto;
-}
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  @include box-shadow(rgba(212, 175, 55, 0.08));
+  @include fade-in(0.6s);
 
-.searchBar {
-  display: flex;
-  align-items: center;
-  position: relative;
-
-  input {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+  .categoryInstruction {
+    display: block;
+    font-family: var(--font-primary);
+    font-size: 1.1rem;
+    color: var(--mucha-accent);
   }
 
-  button {
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.2rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+  .searchBar {
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+    gap: var(--spacing-sm);
 
-  @media (max-width: 600px) {
-    input {
-      padding-right: 2.5rem;
+   width: 500px;
+
+    margin-inline: auto;
+    border-radius: var(--radius-pill);
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--color-border-light);
+    transition: box-shadow 0.3s ease;
+
+    &:focus-within {
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    }
+
+    .searchInput {
+      flex: 1;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: var(--radius-pill);
+      font-size: 1rem;
+      font-family: var(--font-text);
+      background-color: transparent;
+      color: var(--color-text);
+      outline: none;
+
+      &::placeholder {
+        color: var(--color-text-light);
+      }
     }
 
     button {
-      font-size: 1.1rem;
+      padding: 0.65rem 1rem;
+      border: none;
+      background: linear-gradient(to right, $gold, $gold-alt);
+      border-radius: var(--radius-pill);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease, transform 0.2s ease;
+
+      &:hover {
+        background: linear-gradient(to right, $gold-accent, $gold-alt);
+        transform: scale(1.05);
+      }
+
+      svg {
+        vertical-align: middle;
+        font-size: 1.2rem;
+      }
     }
   }
 }
