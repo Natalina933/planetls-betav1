@@ -8,13 +8,17 @@ import styles from "./ServiceList.module.scss";
 import { services } from "../../data/services/services";
 
 export default function PlatformIntroSection() {
-  const [selectedKeyPoint, setSelectedKeyPoint] = useState<string | null>(null);
+  const [flippedCards, setFlippedCards] = useState<string[]>([]);
 
   const keyPoints = [...new Set(services.map((s) => s.keyPoint).filter(Boolean))];
-  const visibleServices =
-    selectedKeyPoint === null
-      ? services
-      : services.filter((s) => s.keyPoint === selectedKeyPoint);
+
+  const handleKeyPointClick = (point: string) => {
+    setFlippedCards((prev) =>
+      prev.includes(point)
+        ? prev.filter((p) => p !== point)
+        : [...prev, point]
+    );
+  };
 
   return (
     <>
@@ -45,19 +49,14 @@ export default function PlatformIntroSection() {
           </a>
         </header>
 
-        <ul
-          className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
-          aria-label="Points clés de la plateforme"
-        >
+        <ul className={clsx(styles.keyPoints, styles["keyPoints--chips"])} aria-label="Points clés de la plateforme">
           {keyPoints.map((point) => (
             <li key={point} className={styles.keyPointChipWrapper}>
               <button
-                onClick={() => setSelectedKeyPoint(point)}
-                className={clsx(
-                  styles.keyPointChip,
-                  selectedKeyPoint === point && styles.isActive
-                )}
-                aria-pressed={selectedKeyPoint === point}
+                onClick={() => handleKeyPointClick(point)}
+                className={clsx(styles.keyPointChip, {
+                  [styles.isActive]: flippedCards.includes(point),
+                })}
               >
                 {point}
               </button>
@@ -66,15 +65,28 @@ export default function PlatformIntroSection() {
         </ul>
 
         <div className={styles.serviceGrid}>
-          {visibleServices.map(({ title, description, icon: Icon }) => (
-            <div key={title} className={styles.serviceCard}>
-              <span className={styles.serviceCardIconWrap} aria-hidden="true">
-                <Icon className={styles.serviceCardIcon} />
-              </span>
-              <h3 className={styles.serviceCardTitle}>{title}</h3>
-              <p className={styles.serviceCardDesc}>{description}</p>
-            </div>
-          ))}
+          {services.map(({ title, description, icon: Icon, keyPoint, quote }) => {
+            const isFlipped = flippedCards.includes(keyPoint);
+            return (
+              <div key={title} className={clsx(styles.flippable, { [styles.flipped]: isFlipped })}>
+                <div className={styles.cardInner}>
+                  {/* Face avant */}
+                  <div className={styles.cardFront}>
+                    <span className={styles.serviceCardIconWrap} aria-hidden="true">
+                      <Icon className={styles.goldenIcon} />
+                    </span>
+                    <h3 className={styles.serviceCardTitle}>{title}</h3>
+                    <p className={styles.serviceCardDesc}>{description}</p>
+                  </div>
+
+                  {/* Face arrière */}
+                  <div className={styles.cardBack}>
+                    <blockquote className={styles.cardQuote}>{quote}</blockquote>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
     </>
