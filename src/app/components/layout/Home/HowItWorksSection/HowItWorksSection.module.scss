@@ -17,6 +17,13 @@
         margin-bottom: 3rem; // 48px
         position: relative;
         display: inline-block;
+        background-color: antiquewhite;
+        border-radius: 2.2rem; // 35px
+        padding: 0.5rem 1.5rem; // 8px /
+        font-family: $font-title;
+        font-weight: 700;
+        width: 740px; // 1184px
+        max-width: 100%;
 
         &::after {
             content: '';
