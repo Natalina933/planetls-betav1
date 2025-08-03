@@ -84,13 +84,13 @@
         drop-shadow(0 0 0 2px var(--color-filter, transparent));
       transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s;
 
-      @media (hover: hover) {
-        &:hover {
-          transform: scale(1.04);
-          filter: grayscale(0) brightness(1.03)
-            drop-shadow(0 0 16px var(--color-filter, transparent));
-        }
-      }
+    //   @media (hover: hover) {
+    //     &:hover {
+    //       transform: scale(1.04);
+    //       filter: grayscale(0) brightness(1.03)
+    //         drop-shadow(0 0 16px var(--color-filter, transparent));
+    //     }
+    //   }
     }
 
     .legend {

@@ -200,7 +200,35 @@
         font-size: 1.5rem;
     }
 }
+// --------------------------------------------------
+// Typographie : texte gold soukigné
+// --------------------------------------------------
+@mixin highlight-gold($color: #ffd700, $duration: 2.5s) {
+  position: relative;
+  color: $color;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgb(0, 0, 0);
 
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: $color;
+    animation: underlineExpand $duration cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+}
+
+@keyframes underlineExpand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
 // --------------------------------------------------
 // Grilles
 // --------------------------------------------------

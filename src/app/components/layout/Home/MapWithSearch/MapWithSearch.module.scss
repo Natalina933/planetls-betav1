@@ -244,31 +244,9 @@
     margin-right: auto;
   }
 }
+
 .highlightGold {
-  position: relative;
-  color: #ffd700;
-  font-weight: bold;
-  text-shadow: 0 1px 3px rgb(0, 0, 0); // ombrage du texte
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: #ffd700;
-    animation: underlineExpand 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  }
-}
-
-@keyframes underlineExpand {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
+  @include highlight-gold();
 }
 
 // === SEARCHBAR ===
@@ -285,6 +263,8 @@
     font-family: var(--font-primary);
     font-size: 1.1rem;
     color: var(--mucha-accent);
+    font-style: italic;
+    letter-spacing: 0.03em;
   }
 
   .searchBar {
@@ -293,7 +273,7 @@
     align-items: center;
     gap: var(--spacing-sm);
 
-   width: 500px;
+    width: 500px;
 
     margin-inline: auto;
     border-radius: var(--radius-pill);
