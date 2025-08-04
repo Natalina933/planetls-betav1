@@ -17,6 +17,7 @@
   position: relative;
   border-top: 2.5px solid #b88b4a;
   border-bottom: 2.5px solid #b88b4a;
+
   h2 {
     font-size: 2.5rem;
     color: var(--color-text-primary);
@@ -44,7 +45,6 @@
 // === HEADER & INTRO ===
 .headerContent {
   background: linear-gradient(180deg, #fffdf6 0%, #f8f6ee 100%);
-
   border-radius: 1.25rem;
   box-shadow: 0 8px 40px rgba(184, 139, 74, 0.07);
   width: 100%;
@@ -64,50 +64,47 @@
 // === CATEGORY SECTION ===
 .categorySearchSection {
   display: flex;
-  flex-direction: column; // Changer en colonne par défaut pour une meilleure gestion du contenu
+  flex-direction: column;
   align-items: center;
-  justify-content: center; // Centrer le contenu
-  // gap: var(--spacing-lg);
-  flex-wrap: wrap; // Permettre le retour à la ligne
+  justify-content: center;
+  flex-wrap: wrap;
 
   @include mq(md) {
     padding: var(--spacing-md) var(--spacing-sm);
   }
 }
+
 .categoryTextBubble1900 {
   p {
     line-height: 1.5em;
     font-family: var(--font-text, sans-serif);
     font-size: 1.1em;
-    color: #fff; // texte blanc franc
     margin: 0 auto;
     max-width: 550px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0); // ombrage du texte pour contraste
+    background-color: #ffe09b;
+    padding: 1.2rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
   }
 
-  background-image: linear-gradient(
-      rgba(255, 200, 100, 0.55),
-      rgba(139, 69, 19, 0.6)
-    ),
-    url("/ornements/mucha-background-pattern.png");
+  background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
+    url("/ornements/mucha-background-pattern-light.png");
   background-blend-mode: soft-light;
   background-repeat: repeat;
   background-position: center;
   background-size: 250px 250px;
-
   position: relative;
   padding: 1.5rem;
   border-radius: 20px;
   border: 2px solid #d4af37;
   box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px #d4af37;
-
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 0 10px #d4af37;
   opacity: 1;
   max-width: 500px;
-  width: 100%;
-  height: auto;
+  height: 170px;
   overflow: visible;
-
   margin-top: 1rem;
   margin-left: auto;
   margin-right: auto;
@@ -133,60 +130,114 @@
 
 .bubblesRow {
   display: flex;
-  flex-direction: row-reverse; // Par défaut en ligne
-  gap: var(--spacing-sm); // Espacement entre les bulles
-  align-items: flex-start; // Alignement des bulles par le bas (pour le texte additionnel)
-  justify-content: center; // Centrer les bulles
-  flex: 1 1 0; // Permet de prendre l'espace disponible
-  flex-wrap: wrap; // Permet aux bulles de passer à la ligne si nécessaire
+  flex-direction: row-reverse;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  border: $gold 1px double;
+  border-radius: 35px;
+  padding: 4px;
+
+  @include mq(sm) {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
 
   @include mq(md) {
-    align-items: center; // Centrer les bulles en colonne
+    align-items: center;
     gap: var(--spacing-md);
   }
 }
-
-.bubbleBlock {
+.tripleToggleGroup {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  justify-content: center;
+  gap: 1rem;
+  background: #fff8e1;
+  border: 2px solid $gold;
+  border-radius: var(--radius-pill);
+  padding: 0.4rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 700px;
+  margin: 0 auto;
   position: relative;
-  min-width: 160px;
-  max-width: 200px;
-  animation: fadeInStep 0.6s ease forwards;
-  cursor: pointer;
-  transition: transform 0.3s ease;
+}
 
-  &:nth-child(1) {
-    --index: 0;
-    --bubble-primary-rgb: var(--proprietaire-primary-rgb);
-    --bubble-primary: var(--proprietaire-primary);
+.tripleToggleButton {
+  flex: 1;
+  padding: 0.6rem 1.2rem;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: $gold;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
+  position: relative;
+  z-index: 1;
+
+  &:hover {
+    background: rgba(255, 224, 155, 0.3);
+    color: $gold;
   }
-  &:nth-child(2) {
-    --index: 1;
-    --bubble-primary-rgb: var(--concierge-primary-rgb);
-    --bubble-primary: var(--concierge-primary);
-  }
-  &:nth-child(3) {
-    --index: 2;
-    --bubble-primary-rgb: var(--artisan-primary-rgb);
-    --bubble-primary: var(--artisan-primary);
-  }
-  animation-delay: calc(0.1s * var(--index));
 
   &.active {
-    .bubbleBtn {
-      border-color: var(--bubble-primary);
-      background: linear-gradient(135deg, #ffeecd 80%, #fffbe7 100%);
-      box-shadow: 0 0 0 4px rgba(var(--bubble-primary-rgb), 0.3);
-    }
-    .bubbleLabel {
-      color: var(--bubble-primary);
-      font-weight: 700;
-    }
+    background: linear-gradient(to right, $gold, $gold-alt);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
+    z-index: 2;
   }
 }
+
+// .bubbleBlock {
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   text-align: center;
+//   position: relative;
+//   min-width: 160px;
+//   max-width: 200px;
+//   cursor: pointer;
+//   transition: transform 0.3s ease;
+//   animation: fadeInSlideRight 0.6s ease forwards;
+//   animation-delay: calc(0.1s * var(--index));
+
+//   @include mq(sm) {
+//     animation: fadeInSlideBottom 0.6s ease forwards;
+//   }
+
+//   &:nth-child(1) {
+//     --index: 0;
+//     --bubble-primary-rgb: var(--proprietaire-primary-rgb);
+//     --bubble-primary: var(--proprietaire-primary);
+//   }
+//   &:nth-child(2) {
+//     --index: 1;
+//     --bubble-primary-rgb: var(--concierge-primary-rgb);
+//     --bubble-primary: var(--concierge-primary);
+//   }
+//   &:nth-child(3) {
+//     --index: 2;
+//     --bubble-primary-rgb: var(--artisan-primary-rgb);
+//     --bubble-primary: var(--artisan-primary);
+//   }
+
+//   &.active {
+//     .bubbleBtn {
+//       border-color: var(--bubble-primary);
+//       background: linear-gradient(135deg, #ffeecd 80%, #fffbe7 100%);
+//       box-shadow: 0 0 0 4px rgba(var(--bubble-primary-rgb), 0.3);
+//     }
+
+//     .bubbleLabel {
+//       color: var(--bubble-primary);
+//       font-weight: 700;
+//     }
+//   }
+// }
 
 .bubbleBtn {
   width: clamp(55px, 6vw, 75px);
@@ -199,11 +250,7 @@
   border: 2.5px solid var(--bubble-primary);
   cursor: pointer;
   transition: all 0.3s ease;
-  @include backdrop-blur(
-    3px,
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 255, 255, 0.2)
-  );
+  @include backdrop-blur(3px, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.2));
 
   svg {
     font-size: 1.9rem;
@@ -221,7 +268,7 @@
 .bubbleLabel {
   font-family: var(--font-title);
   font-size: 1rem;
-  color: var(--bubble-primary); // Utilise la couleur dynamique
+  color: var(--bubble-primary);
   font-weight: 600;
   margin-bottom: 0.3rem;
   text-align: center;
@@ -249,22 +296,18 @@
   @include highlight-gold();
 }
 
-// === SEARCHBAR ===
 .searchBarWrapper {
   margin-top: var(--spacing-sm);
   text-align: center;
   padding: var(--spacing-sm) var(--spacing-sm);
   border-radius: var(--radius-lg);
-  @include box-shadow(rgba(212, 175, 55, 0.08));
-  @include fade-in(0.6s);
 
   .categoryInstruction {
     display: block;
     font-family: var(--font-primary);
-    font-size: 1.1rem;
+    font-size: 0.9em;
     color: var(--mucha-accent);
     font-style: italic;
-    letter-spacing: 0.03em;
   }
 
   .searchBar {
@@ -272,9 +315,7 @@
     justify-content: center;
     align-items: center;
     gap: var(--spacing-sm);
-
     width: 500px;
-
     margin-inline: auto;
     border-radius: var(--radius-pill);
     padding: 0.5rem;
@@ -290,7 +331,7 @@
     .searchInput {
       flex: 1;
       padding: 0.7rem 1.2rem;
-      border: none;
+      border: $gold 1px solid;
       border-radius: var(--radius-pill);
       font-size: 1rem;
       font-family: var(--font-text);
@@ -326,7 +367,6 @@
   }
 }
 
-// === ACCESSIBILITÉ ===
 .bubbleBtn:focus-visible,
 .searchButton:focus-visible {
   outline: 3px solid var(--color-focus-ring, #ffe09b);
@@ -334,7 +374,6 @@
   border-radius: var(--radius-pill);
 }
 
-// === RESPONSIVE (doublon évité) ===
 @media (max-width: 900px) {
   .intro {
     flex-direction: column;

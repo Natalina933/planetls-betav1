@@ -17,7 +17,8 @@
         margin-bottom: 3rem; // 48px
         position: relative;
         display: inline-block;
-        background-color: antiquewhite;
+        background-color: white;
+        border: $gold 7px solid;
         border-radius: 2.2rem; // 35px
         padding: 0.5rem 1.5rem; // 8px /
         font-family: $font-title;
@@ -25,14 +26,14 @@
         width: 740px; // 1184px
         max-width: 100%;
 
-        &::after {
-            content: '';
-            display: block;
-            margin: 0.75rem auto 0; // 12px
-            width: 5rem; // 80px
-            height: 0.25rem; // 4px
-            background-color: $gold;
-        }
+        // &::after {
+        //     content: '';
+        //     display: block;
+        //     margin: 0.75rem auto 0; // 12px
+        //     width: 5rem; // 80px
+        //     height: 0.25rem; // 4px
+        //     background-color: $gold;
+        // }
     }
 
     .steps {
@@ -88,41 +89,5 @@
     }
 }
 
-// ✨ Animation douce façon Mucha
-@keyframes fadeIn {
-    0% {
-        transform: translateY(1.5rem); // 24px
-        opacity: 0;
-    }
 
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
 
-// ✨ Animation pour le titre
-@keyframes fadeInTitle {
-    0% {
-        opacity: 0;
-        transform: translateY(1.5rem);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-// ✨ Animation pour les étapes
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(1.5rem); // 24px
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}

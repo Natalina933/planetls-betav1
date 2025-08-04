@@ -9,7 +9,7 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
-  padding: 4rem 2rem;
+  padding: 2rem 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -32,7 +32,7 @@
     font-size: rem(21);
     line-height: $line-height;
     color: var(--color-text);
-    @include fade-in(0.6s);
+    margin-bottom: var(--spacing-md);
   }
 
   .highlightText {
@@ -57,7 +57,7 @@
     background: linear-gradient(to right, $gold, $gold-alt);
     color: $primary-dark-color-sass;
     font-weight: 600;
-    font-size: 2.05rem;
+    font-size: 1.5em;
     box-shadow: $shadow;
     transition: transform 0.2s ease;
 
@@ -84,7 +84,7 @@
 
   .keyPointChip {
     @include button-base;
-    font-size: rem(21);
+    font-size: rem(17);
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-pill);
     background-color: var(--all-bg);
@@ -107,8 +107,8 @@
 }
 
 .goldenIcon {
-  width: rem(88);
-  height: rem(88);
+  width: rem(60);
+  height: rem(70);
   stroke: $gold;
   stroke-width: 1.2;
   transition: fill 0.3s ease, transform 0.3s ease;
@@ -179,7 +179,7 @@
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
-    padding: var(--spacing-xl);
+    padding: 1.5em;
     text-align: center;
   }
 
@@ -190,10 +190,11 @@
 
   .cardBack {
     transform: rotateY(180deg);
-    background-image: url("/ornements/mucha-background-pattern.png");
+    background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)), url(/ornements/mucha-background-pattern-light.png);
     background-size: cover;
-    background-repeat: no-repeat;
+    background-repeat: repeat;
     background-position: center;
+    background-blend-mode: soft-light;
     color: $gold-accent;
     border: 3px solid $gold;
     position: relative;
@@ -204,9 +205,6 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.45); // voile noir semi-transparent
-      -webkit-backdrop-filter: blur(3px);
-      backdrop-filter: blur(3px); // flou élégant
       z-index: 1;
       border-radius: inherit;
     }
@@ -215,12 +213,11 @@
       position: relative;
       z-index: 2;
       font-family: $font-elegant;
-      font-size: rem(22);
+      font-size: rem(21);
       font-style: italic;
-      line-height: 1.6;
-      max-width: 90%;
+      line-height: 1.15;
       margin: 0 auto;
-      color: antiquewhite;
+      color: #22180a;
       text-align: center;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
@@ -242,7 +239,7 @@
   }
 
   .serviceCardDesc {
-    font-size: rem(21);
+    font-size: rem(17);
     color: $gold-accent;
     opacity: 0.95;
   }
@@ -258,6 +255,7 @@
     justify-content: flex-start;
   }
 }
+
 // Ajustements responsives pour les petits écrans
 @include mq("xs") {
   .platformSection {
@@ -278,6 +276,7 @@
 
   .keyPoints {
     justify-content: center;
+
     .keyPointChip {
       font-size: clamp(0.8rem, 3.5vw, 0.95rem);
       padding: 0.5rem 1rem;

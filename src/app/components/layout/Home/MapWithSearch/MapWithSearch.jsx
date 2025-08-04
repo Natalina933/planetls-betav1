@@ -10,7 +10,9 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function MapWithSearch() {
   const router = useRouter();
+
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [animationKey, setAnimationKey] = useState(0); // Clé pour relancer l'animation underline
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
 
@@ -23,16 +25,15 @@ export default function MapWithSearch() {
         setCategories(data);
         setSelectedCategory(data[0]?.key || "");
       } catch (err) {
-        console.error("Erreur chargement des catégories :", err);
         toast.error("Impossible de charger les catégories 😢");
       }
     };
-
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (key) => {
+  const handleToggleClick = (key) => {
     setSelectedCategory(key);
+    setAnimationKey((prev) => prev + 1); // recrée le span pour relancer l'animation
   };
 
   const handleSearchClick = () => {
@@ -40,7 +41,6 @@ export default function MapWithSearch() {
       toast.warn("Veuillez renseigner une localisation 📍");
       return;
     }
-
     router.push(
       `/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`
     );
@@ -52,15 +52,33 @@ export default function MapWithSearch() {
     }
   };
 
-  const selectedCat = categories.find((cat) => cat.key === selectedCategory);
-
-  const getCategoryStyles = (key, index) => ({
-    "--bubble-primary": `var(--${key}-primary, var(--color-primary))`,
-    "--bubble-hover": `var(--${key}-hover, var(--color-primary-light))`,
-    "--bubble-bg": `var(--${key}-bg, #fff)`,
-    "--bubble-text": `var(--${key}-text, var(--color-text))`,
-    animationDelay: `${index * 0.1}s`,
-  });
+  // Descriptions associées à chaque catégorie avec clé dynamique sur span highlight
+  const descriptions = {
+    proprietaire: (
+      <>
+        <span key={animationKey} className={styles.highlightGold}>
+          Trouvez des propriétaires
+        </span>{" "}
+        à la recherche d'une conciergerie fiable pour gérer et valoriser leur bien en location saisonnière.
+      </>
+    ),
+    concierge: (
+      <>
+        <span key={animationKey} className={styles.highlightGold}>
+          Trouvez une conciergerie
+        </span>
+        , indépendante ou professionnelle, cherchant à étendre son réseau de biens saisonniers dans votre région.
+      </>
+    ),
+    artisan: (
+      <>
+        <span key={animationKey} className={styles.highlightGold}>
+          Découvrez les artisans et commerçants locaux
+        </span>{" "}
+        offrant des produits ou prestations adaptés à la location saisonnière.
+      </>
+    ),
+  };
 
   return (
     <div className={styles.mapWithSearchSection}>
@@ -77,55 +95,33 @@ export default function MapWithSearch() {
           </h3>
         </header>
 
-        <div className={styles.bubblesRow}>
-          {categories.map(({ key, label, icon }, index) => {
+        {/* Toggle Group */}
+        <div className={styles.tripleToggleGroup}>
+          {categories.slice(0, 3).map(({ key, label, icon }) => {
             const Icon = iconMap[icon];
             return (
-              <div
+              <button
                 key={key}
-                className={`${styles.bubbleBlock} ${selectedCategory === key ? styles.active : ""
-                  }`}
-                style={getCategoryStyles(key, index)}
+                className={`${styles.tripleToggleButton} ${
+                  selectedCategory === key ? styles.active : ""
+                }`}
+                onClick={() => handleToggleClick(key)}
+                type="button"
+                aria-label={`Filtrer par ${label}`}
               >
-                <button
-                  className={styles.bubbleBtn}
-                  onClick={() => handleCategoryClick(key)}
-                  aria-label={`Filtrer par ${label}`}
-                  type="button"
-                >
-                  <span className={styles.bubbleIcon}>
-                    {Icon ? <Icon size="1em" /> : <FaSearch size="1.7em" />}
-                  </span>
-                </button>
-              </div>
+                {Icon ? (
+                  <Icon size="1.3em" style={{ marginRight: 6, verticalAlign: "middle" }} />
+                ) : null}
+                {label}
+              </button>
             );
           })}
         </div>
 
-        {selectedCat && (
-          <div className={styles.categoryTextBubble1900}>
-            <p>
-              {selectedCat.key === "proprietaire" && (
-                <>
-                  <span className={styles.highlightGold}>Trouvez des propriétaires</span> à la recherche d'une conciergerie fiable pour gérer et valoriser leur bien en location saisonnière.
-                </>
-              )}
-
-              {selectedCat.key === "concierge" && (
-                <>
-                  <span className={styles.highlightGold}>Trouvez une conciergerie</span>, indépendante ou professionnelle, cherchant à étendre son réseau de biens saisonniers dans votre région.
-                </>
-              )}
-
-              {selectedCat.key === "artisan" && (
-                <>
-                  <span className={styles.highlightGold}>Découvrez les artisans et commerçants locaux</span> offrant des produits ou prestations adaptés à la location saisonnière, paniers d’accueil, kits personnalisés...
-                </>
-              )}
-            </p>
-
-          </div>
-        )}
+        {/* Texte descriptif sous les boutons */}
+        <div className={styles.categoryTextBubble1900}>
+          <p>{descriptions[selectedCategory]}</p>
+        </div>
 
         <div className={styles.searchBarWrapper}>
           <span className={styles.categoryInstruction}>
