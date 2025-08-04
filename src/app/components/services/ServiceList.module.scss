@@ -57,7 +57,7 @@
     background: linear-gradient(to right, $gold, $gold-alt);
     color: $primary-dark-color-sass;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 2.05rem;
     box-shadow: $shadow;
     transition: transform 0.2s ease;
 
@@ -67,7 +67,7 @@
     }
 
     .ctaIcon {
-      font-size: rem(18);
+      font-size: rem(32);
     }
   }
 }
@@ -84,7 +84,7 @@
 
   .keyPointChip {
     @include button-base;
-    font-size: rem(15);
+    font-size: rem(21);
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-pill);
     background-color: var(--all-bg);
@@ -107,8 +107,8 @@
 }
 
 .goldenIcon {
-  width: rem(38);
-  height: rem(38);
+  width: rem(88);
+  height: rem(88);
   stroke: $gold;
   stroke-width: 1.2;
   transition: fill 0.3s ease, transform 0.3s ease;
@@ -134,19 +134,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-// .cardQuote {
-//     position: relative;
-//     z-index: 2;
-//     font-family: $font-elegant;
-//     font-size: rem(18);
-//     font-style: italic;
-//     line-height: 1.6;
-//     max-width: 90%;
-//     margin: 0 auto;
-//     color: $gold-accent;
-//     text-align: center;
-//     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-//   }
+
 
 // Cartes flip
 .serviceCard,
@@ -200,43 +188,43 @@
     color: var(--color-text-light);
   }
 
-.cardBack {
-  transform: rotateY(180deg);
-  background-image: url("/ornements/mucha-background-pattern.png");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  color: $gold-accent;
-  border: 3px solid $gold;
-  position: relative;
-  overflow: hidden;
-  @include box-shadow(rgba(0, 0, 0, 0.1));
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45); // voile noir semi-transparent
-    -webkit-backdrop-filter: blur(3px); 
-    backdrop-filter: blur(3px);     // flou élégant
-    z-index: 1;
-    border-radius: inherit;
-  }
-
-  .cardQuote {
+  .cardBack {
+    transform: rotateY(180deg);
+    background-image: url("/ornements/mucha-background-pattern.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: $gold-accent;
+    border: 3px solid $gold;
     position: relative;
-    z-index: 2;
-    font-family: $font-elegant;
-    font-size: rem(22);
-    font-style: italic;
-    line-height: 1.6;
-    max-width: 90%;
-    margin: 0 auto;
-    color: antiquewhite;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    @include box-shadow(rgba(0, 0, 0, 0.1));
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45); // voile noir semi-transparent
+      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(3px); // flou élégant
+      z-index: 1;
+      border-radius: inherit;
+    }
+
+    .cardQuote {
+      position: relative;
+      z-index: 2;
+      font-family: $font-elegant;
+      font-size: rem(22);
+      font-style: italic;
+      line-height: 1.6;
+      max-width: 90%;
+      margin: 0 auto;
+      color: antiquewhite;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
   }
-}
 
   .cardBackContent {
     width: 100%;
@@ -254,7 +242,7 @@
   }
 
   .serviceCardDesc {
-    font-size: rem(16);
+    font-size: rem(21);
     color: $gold-accent;
     opacity: 0.95;
   }
@@ -268,5 +256,56 @@
 
   .keyPoints {
     justify-content: flex-start;
+  }
+}
+// Ajustements responsives pour les petits écrans
+@include mq("xs") {
+  .platformSection {
+    padding: 2rem 1rem;
+  }
+
+  .platformHeader {
+    .sectionIntro {
+      font-size: clamp(0.95rem, 4vw, 1.05rem);
+      line-height: 1.6;
+    }
+
+    .ctaButton {
+      font-size: 0.95rem;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+  }
+
+  .keyPoints {
+    justify-content: center;
+    .keyPointChip {
+      font-size: clamp(0.8rem, 3.5vw, 0.95rem);
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  .serviceGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .flippable,
+  .serviceCard {
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .cardBack .cardQuote {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    padding: 1rem;
+  }
+
+  .serviceCardTitle {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+  }
+
+  .serviceCardDesc {
+    font-size: clamp(0.85rem, 3.5vw, 1rem);
   }
 }

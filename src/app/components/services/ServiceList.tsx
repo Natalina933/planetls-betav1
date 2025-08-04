@@ -10,7 +10,9 @@ import { services } from "../../data/services/services";
 export default function PlatformIntroSection() {
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
 
-  const keyPoints = [...new Set(services.map((s) => s.keyPoint).filter(Boolean))];
+  const keyPoints = [
+    ...new Set(services.map((s) => s.keyPoint).filter(Boolean)),
+  ];
 
   const handleKeyPointClick = (point: string) => {
     setFlippedCards((prev) =>
@@ -28,7 +30,10 @@ export default function PlatformIntroSection() {
           name="description"
           content="Plateforme centralisée, sécurisée et intelligente pour propriétaires, concierges et artisans."
         />
-        <meta property="og:title" content="Plateforme de Gestion Intuitive pour Tous Vos Besoins" />
+        <meta
+          property="og:title"
+          content="Plateforme de Gestion Intuitive pour Tous Vos Besoins"
+        />
         <meta
           property="og:description"
           content="Centralisez, automatisez, sécurisez vos activités de location saisonnière."
@@ -41,7 +46,16 @@ export default function PlatformIntroSection() {
       <section className={styles.platformSection} aria-labelledby="platform-title">
         <header id="platform-title" className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
-            Conçue pour <span className={styles.highlightText}>simplifier la vie de toutes les catégories professionnelles</span>, notre plateforme centralise vos outils, automatise vos tâches et sécurise vos données. Que vous soyez <strong className={styles.userCategory}>propriétaire, concierge ou artisan</strong>, gagnez en efficacité et en sérénité.
+            Conçue pour{" "}
+            <span className={styles.highlightText}>
+              simplifier la vie de toutes les catégories professionnelles
+            </span>
+            , notre plateforme centralise vos outils, automatise vos tâches et
+            sécurise vos données. Que vous soyez{" "}
+            <strong className={styles.userCategory}>
+              propriétaire, concierge ou artisan
+            </strong>
+            , gagnez en efficacité et en sérénité.
           </p>
 
           <a href="#contact" className={styles.ctaButton}>
@@ -49,7 +63,10 @@ export default function PlatformIntroSection() {
           </a>
         </header>
 
-        <ul className={clsx(styles.keyPoints, styles["keyPoints--chips"])} aria-label="Points clés de la plateforme">
+        <ul
+          className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
+          aria-label="Points clés de la plateforme"
+        >
           {keyPoints.map((point) => (
             <li key={point} className={styles.keyPointChipWrapper}>
               <button
@@ -65,15 +82,36 @@ export default function PlatformIntroSection() {
         </ul>
 
         <div className={styles.serviceGrid}>
-          {services.map(({ title, description, icon: Icon, keyPoint, quote }) => {
+          {services.map((service, index) => {
+            const {
+              title = "Service sans titre",
+              description = "Aucune description disponible.",
+              icon: Icon,
+              keyPoint = `key-${index}`,
+              quote = "Citation manquante.",
+            } = service;
+
             const isFlipped = flippedCards.includes(keyPoint);
+
             return (
-              <div key={title} className={clsx(styles.flippable, { [styles.flipped]: isFlipped })}>
+              <div
+                key={title + index}
+                className={clsx(styles.flippable, {
+                  [styles.flipped]: isFlipped,
+                })}
+              >
                 <div className={styles.cardInner}>
                   {/* Face avant */}
                   <div className={styles.cardFront}>
-                    <span className={styles.serviceCardIconWrap} aria-hidden="true">
-                      <Icon className={styles.goldenIcon} />
+                    <span
+                      className={styles.serviceCardIconWrap}
+                      aria-hidden="true"
+                    >
+                      {Icon ? (
+                        <Icon className={styles.goldenIcon} />
+                      ) : (
+                        <span className={styles.goldenIcon}>❓</span>
+                      )}
                     </span>
                     <h3 className={styles.serviceCardTitle}>{title}</h3>
                     <p className={styles.serviceCardDesc}>{description}</p>
