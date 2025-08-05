@@ -46,40 +46,37 @@
 }
 
 .ctaButton {
+    background: linear-gradient(to right, var(--color-primary), #f0be86);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 1rem 2.5rem;
+    font-weight: 700;
+    font-family: var(--font-title, sans-serif);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.3);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem 2.5rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    color: white;
-    text-decoration: none;
-    font-family: var(--font-title, sans-serif);
-    font-size: 1.25rem;
-    font-weight: 700;
-    border-radius: var(--radius-pill);
-    box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.3);
-    transition: all 0.3s ease;
-    min-width: 250px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    gap: 0.5rem;
 
-    &:hover {
-        background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+    &:hover,
+    &:focus-visible {
+        background: linear-gradient(to right, #f0be86, var(--color-primary));
+        color: #fff;
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 12px 35px rgba(var(--color-primary-rgb), 0.4);
+        outline: none;
     }
 
-    &:focus-visible {
-        outline: 3px solid var(--color-focus-ring);
-        outline-offset: 4px;
-    }
-
-    @include mq(sm) {
-        font-size: 1.1rem;
-        padding: 0.9rem 2rem;
-        min-width: unset;
+    &:active {
+        transform: scale(0.97);
+        box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.25);
     }
 }
+
 
 .ctaSub {
     font-family: var(--font-text, sans-serif);
