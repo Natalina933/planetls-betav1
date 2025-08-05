@@ -82,6 +82,7 @@ export default function MapWithSearch() {
 
   return (
     <div className={styles.mapWithSearchSection}>
+
       <ToastContainer position="top-right" autoClose={4000} />
 
       <section className={styles.categorySearchSection}>

@@ -212,31 +212,39 @@
         content: "";
         position: absolute;
         left: 0;
-        bottom: -3px;
-        height: 0.23em;
-        width: 100%;
-        background: linear-gradient(90deg, #ffe09b 70%, #d4af37 100%);
-        border-radius: 3px;
-        opacity: 0.7;
-        z-index: -1;
-
-        // Sera animée dynamiquement depuis React
+        bottom: -2px; // un peu plus bas pour un look raffiné
+        height: 0.30em;
         width: 0;
-        animation: underlineExpand 0.6s cubic-bezier(.64, .08, .61, 1.49) forwards;
+        background: linear-gradient(90deg,
+                #fceabb 20%,
+                #f8d98f 30%,
+                #d4af37 60%,
+                #b88b4a 100%);
+        border-radius: 4px;
+        opacity: 0.8;
+        box-shadow: 0 1px 4px rgba(212, 175, 55, 0.4); // petite lueur dorée
+        transform-origin: left;
+        animation: underlineExpandElegant 1.52s cubic-bezier(0.77, 0, 0.175, 1) forwards;
     }
 }
 
-
-
-@keyframes underlineExpand {
-    from {
+@keyframes underlineExpandElegant {
+    0% {
         width: 0;
+        opacity: 0;
+        transform: scaleX(0);
     }
 
-    to {
+    50% {
+        opacity: 1;
+    }
+
+    100% {
         width: 100%;
+        transform: scaleX(1);
     }
 }
+
 
 // --------------------------------------------------
 // Grilles
