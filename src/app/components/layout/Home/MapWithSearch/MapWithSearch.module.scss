@@ -13,10 +13,12 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  padding: 2rem;
   text-align: center;
   position: relative;
   border-top: 2.5px solid #b88b4a;
   border-bottom: 2.5px solid #b88b4a;
+  background-color: #fdf7ef;
 
   h2 {
     font-size: 2.5rem;
@@ -39,6 +41,9 @@
       height: 0.25rem;
       background-color: $gold;
     }
+  }
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 }
 
@@ -68,6 +73,7 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
+  
 
   @include mq(md) {
     padding: var(--spacing-md) var(--spacing-sm);
@@ -89,7 +95,7 @@
   }
 
   background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
-    url("/ornements/mucha-background-pattern-light.png");
+  url("/ornements/mucha-background-pattern-light.png");
   background-blend-mode: soft-light;
   background-repeat: repeat;
   background-position: center;
@@ -99,8 +105,8 @@
   border-radius: 20px;
   border: 2px solid #d4af37;
   box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.25),
-    0 0 10px #d4af37;
+  0 4px 12px rgba(0, 0, 0, 0.25),
+  0 0 10px #d4af37;
   opacity: 1;
   max-width: 500px;
   height: 170px;
@@ -151,6 +157,7 @@
     gap: var(--spacing-md);
   }
 }
+
 .tripleToggleGroup {
   display: flex;
   justify-content: center;
@@ -178,6 +185,9 @@
   transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
   position: relative;
   z-index: 1;
+  width: 200px;
+  
+  
 
   &:hover {
     background: rgba(255, 224, 155, 0.3);
@@ -185,6 +195,7 @@
   }
 
   &.active {
+    padding: 0.6rem 0.8rem; // réduit à gauche/droite
     background: linear-gradient(to right, $gold, $gold-alt);
     color: #fff;
     box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
@@ -294,7 +305,7 @@
 
 .highlightGold {
   @include highlight-gold();
-   position: relative;
+  position: relative;
   display: inline-block;
   z-index: 1;
 }
@@ -377,20 +388,81 @@
   border-radius: var(--radius-pill);
 }
 
+// === MEDIA QUERIES ===
 @media (max-width: 900px) {
-  .intro {
-    flex-direction: column;
-
-    .headerContentWrapper,
-    .headerImageCol {
-      min-width: 0;
-      width: 100%;
-      padding: 1.25rem 1rem;
-    }
-
-    .headerBackgroundImage {
-      min-height: 200px;
-      max-height: 320px;
-    }
+  .mapWithSearchSection {
+    gap: 1rem;
   }
+
+  .headerContent {
+    padding: 1rem 0.5rem;
+    font-size: 1rem;
+  }
+
+  .categorySearchSection {
+    padding: 1rem 0.5rem;
+    max-width: 100vw;
+  }
+
+  .bubblesRow {
+    flex-direction: column;
+    gap: $spacing-sm;
+    align-items: center;
+    border-radius: 20px;
+    padding: 1px;
+  }
+
+  .tripleToggleGroup {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem;
+  }
+
+  .tripleToggleButton {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .categoryTextBubble1900 {
+    max-width: 95vw;
+    height: auto;
+    padding: 1rem;
+    font-size: 1em;
+  }
+
+  .searchBarWrapper .searchBar {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.3rem;
+  }
+}
+@media (max-width: 768px) {
+  .mapWithSearchSection {
+    padding: 1rem;
+  }
+
+  .headerContent {
+    padding: 1.7rem 0.6rem;
+    font-size: 1.07rem;
+  }
+
+  .categorySearchSection {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .bubblesRow {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+}
+@media screen and (max-width: 600px) {
+  .categorySearchSection {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+  
+  
 }

@@ -67,7 +67,7 @@
     }
 
     .ctaIcon {
-      font-size: rem(32);
+      font-size: rem(25);
     }
   }
 }
@@ -113,27 +113,29 @@
   stroke-width: 1.2;
   transition: fill 0.3s ease, transform 0.3s ease;
 
-  &:hover {
-    fill: $gold-accent;
-    transform: scale(1.05);
-  }
+  // &:hover {
+  //   fill: $gold-accent;
+  //   transform: scale(1.05);
+  // }
 }
 
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: var(--spacing-xl);
+  grid-template-columns: repeat(3, minmax(0, 1fr)); // ✅ 3 colonnes fixes
+  gap: var(--spacing-md); // espacement cohérent avec ton design
   margin-top: var(--spacing-lg);
   justify-items: center;
-
-  @include mq("md") {
-    grid-template-columns: 1fr;
-  }
+  align-items: start; // aligne les cartes en haut
 
   @include mq("lg") {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr)); // 2 colonnes sur tablette
+  }
+
+  @include mq("md") {
+    grid-template-columns: 1fr; // 1 colonne sur mobile
   }
 }
+
 
 
 // Cartes flip
@@ -152,13 +154,29 @@
 
 .flippable {
   perspective: 1000px;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 4 / 3;
+  border: 3px solid $gold;
+  border-radius: var(--radius-2xl);
+  background-color: $mucha-paper;
+  overflow: hidden;
+  box-sizing: border-box;
+  box-shadow: rgba(0, 0, 0, 0.08) 0 4px 12px;
+  cursor: pointer;
+  outline-offset: 2px;
+
+  &:focus-visible {
+    outline: 3px solid $gold-alt;
+    outline-offset: 4px;
+  }
 
   .cardInner {
     position: relative;
     width: 100%;
     height: 100%;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
-    transition: transform 0.8s ease;
   }
 
   &.flipped .cardInner {
@@ -168,8 +186,6 @@
   .cardFront,
   .cardBack {
     position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
@@ -178,49 +194,79 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-sizing: border-box;
     padding: 1.5em;
-    text-align: center;
+    box-sizing: border-box;
   }
 
   .cardFront {
     background-color: $mucha-paper;
     color: var(--color-text-light);
+    z-index: 2;
   }
 
   .cardBack {
-    transform: rotateY(180deg);
-    background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)), url(/ornements/mucha-background-pattern-light.png);
+    background: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
+      url("/ornements/mucha-background-pattern-light.png");
     background-size: cover;
     background-repeat: repeat;
     background-position: center;
     background-blend-mode: soft-light;
     color: $gold-accent;
     border: 3px solid $gold;
-    position: relative;
+    transform: rotateY(180deg);
+    z-index: 1;
     overflow: hidden;
-    @include box-shadow(rgba(0, 0, 0, 0.1));
+    box-shadow: rgba(0, 0, 0, 0.1) 0 4px 14px;
 
-    &::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      border-radius: inherit;
-    }
 
     .cardQuote {
       position: relative;
       z-index: 2;
       font-family: $font-elegant;
-      font-size: rem(21);
+      font-size: rem(18);
       font-style: italic;
-      line-height: 1.15;
+      line-height: 1;
       margin: 0 auto;
       color: #22180a;
       text-align: center;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      background-color: antiquewhite;
+      border: 2px double $gold;
+      padding: 1.5rem; // un peu plus de padding haut/bas pour les guillemets
+      border-radius: 1.2rem;
+      overflow: hidden; // au cas où
+
+      &::before {
+        content: "❝";
+        display: inline;
+        font-size: 1.3em; // adapte à la hauteur de la police
+        vertical-align: top;
+        margin-right: 0.415em;
+        color: $gold;
+        opacity: 0.6;
+        font-family: $font-elegant;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      &::after {
+        content: "❞";
+        display: inline;
+        font-size: 1.3em;
+        vertical-align: bottom;
+        // margin-left: 0.15em;
+        color: $gold;
+        opacity: 0.6;
+        font-family: $font-elegant;
+        pointer-events: none;
+      }
+
+      @media (min-width: 1200px) {
+        // écran large desktop
+        font-size: rem(18); // réduction à 18px (ajuste à ta convenance)
+      }
     }
+
   }
 
   .cardBackContent {
@@ -232,7 +278,7 @@
   }
 
   .serviceCardTitle {
-    @include heading-style(3);
+    @include heading-style(4);
     font-style: italic;
     color: $gold-accent;
     margin-bottom: var(--spacing-sm);
