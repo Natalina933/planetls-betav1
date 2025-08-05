@@ -49,10 +49,10 @@ const ForWhomSection = () => (
       </div>
       <span>Notre mission est de créer un pont fiable et efficace, permettant aux propriétaires de trouver la conciergerie idéale pour leurs biens, et aux concierges de développer leur portefeuille client avec des opportunités qualifiées.</span>
       <div className={styles.heroActions}>
-        {/* <div className={styles.buttonsRow}>
+        <div className={styles.buttonsRow}>
           <CTAButton variant="primary">Proposer un service</CTAButton>
           <CTAButton variant="secondary">Rechercher un prestataire</CTAButton>
-        </div> */}
+        </div>
         <a href="#fonctionnement" className={styles.ctaTertiary}>Découvrir comment ça marche</a>
       </div>
     </div>

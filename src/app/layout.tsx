@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./styles/main.scss";
+import "./styles/abstracts/variables.css";
 import Providers from "./context/Providers";
 import Header from "./components/layout/Header/Header";
 
@@ -15,7 +16,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      {/* Next.js va injecter le contenu du <body> ici */}
       <body suppressHydrationWarning={true}>
         <Providers>
           <Header />

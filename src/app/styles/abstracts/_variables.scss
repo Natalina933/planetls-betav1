@@ -1,180 +1,54 @@
-// ===================================
-// Variables CSS :root (pour runtime)
-// ===================================
-:root {
-  /* Couleurs neutres */
-  --color-text: #222;
-  --color-bg: #f4f6f8;
-  --color-border: #eaeaea;
-  --background: #ffffff;
-  --foreground: #171717;
+// styles/variables.scss
 
-  /* Couleurs système */
-  --color-success: #4caf50;
-  --color-error: #e53935;
-  --color-accent: #ffc107;
-  /* Or */
-  --color-accent-light: #ffd699;
-  --color-accent-dark: #cc7a00;
-  --color-accent-hover: #ffb84d;
-  --color-primary: #d4af37;
-  --color-primary-rgb: 212, 175, 55;
-  --color-primary-light: #ffe099;
-  --color-primary-darker: #b99b2e;
-  --color-text-primary: #333;
-
-  --color-secondary: rgba(32, 95, 120, 0.5);
-  --color-secondary-light: #f7fbfe;
-  --color-secondary-dark: #0e1a2a;
-  --color-text-light: #666;
-  --color-border-light: #f0f0f0;
-  --color-border-subtle-accent: #d3c7b3;
-
-  /* Catégorie : Propriétaires */
-  --proprietaire-primary: #205f78;
-  --proprietaire-primary-rgb: 32, 95, 120;
-  --proprietaire-primary-dark: #1a4c60;
-  --proprietaire-hover: rgba(32, 95, 120, 0.5);
-  --proprietaire-bg: #eaf1ff;
-  --proprietaire-text: #1c3a77;
-
-  /* Catégorie : Concierges */
-  --concierge-primary: #82a27c;
-  --concierge-primary-rgb: 130, 162, 124;
-  --concierge-primary-dark: #75926d;
-  --concierge-primary-darker: #6a8a65;
-  --concierge-hover: #6a8c65;
-  --concierge-bg: #f2f7f3;
-  --concierge-text: #344b3c;
-
-  /* Catégorie : Artisans / Commerçants */
-  --artisan-primary: #c17c54;
-  --artisan-primary-rgb: 193, 124, 84;
-  --artisan-primary-dark: #a7643c;
-  --artisan-hover: #a7643c;
-  --artisan-bg: #fbefe7;
-  --artisan-text: #4b2f1f;
-
-  /* Catégorie : Tous */
-  --all-primary: #ffd700;
-  --all-primary-rgb: 255, 215, 0;
-  --all-hover: #ffd723;
-  --all-bg: #fffbe6;
-  --all-text: #8b4513;
-
-  /* Couleurs supplémentaires */
-  --hero-gradient-from: rgba(0, 0, 0, 0.5);
-  --hero-gradient-to: rgba(20, 20, 20, 0.6);
-  --hero-highlight: #b3d4d5;
-  --hero-highlight-hover: #a4b6b6;
-  --hero-overlay-bg: linear-gradient(to bottom right,
-      var(--hero-gradient-from),
-      var(--hero-gradient-to));
-
-  /* Fond flou semi-transparent */
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  --glass-blur: blur(6px);
-
-  /* Fonts */
-  --font-title: "Montserrat", sans-serif;
-  --font-primary: "Cormorant Garamond", serif;
-  --font-text: "Open Sans", sans-serif;
-
-  /* Espacements */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 2rem;
-  --spacing-xl: 4rem;
-
-  /* Radius */
-  --radius: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-pill: 500px;
-
-  /* Focus ring */
-  --color-focus-ring: #ffe09b;
-}
-
-// ===================================
-// Variables SCSS (compile-time)
-// ===================================
-
-// --- Dimensions ---
+// Dimensions
 $max-content-width: 1200px;
 $max-content-width-md: 960px;
 $max-content-width-sm: 720px;
 $min-content-width: 320px;
 
-// --- Catégorie propriétaire ---
-$proprio-primary-sass: #205f78;
-$proprio-hover-sass: rgba(32, 95, 120, 0.5);
+$primary-dark-color-sass: #1a1a1a;
+$primary-light-color-sass: #f5f5f5;
 
-// --- Autres couleurs SCSS ---
-$color-secondary-dark-sass: #0e1a2a;
-$primary-dark-color-sass: #171717;
+$mucha-paper: #fdfdfd;
 
-// === Couleurs neutres ===
-$neutral-text: var(--color-text);
-$default-bubble-primary: var(--color-accent);
-$default-bubble-secondary: var(--color-secondary);
 
-$bg-light: #fdfaf3;
-$bg-light-alt: #f6f0e5;
+// Couleurs SCSS (pour usage uniquement dans SCSS)
+$gold: #d4af37;
+$gold-alt: #d4af37;
+$gold-accent: #d4af37;
+$gold-light: #f5e6c7;
+$gold-rgba: rgba(212, 175, 55, 1);
+$gold-rgba-10: rgba(212, 175, 55, 0.1);
+$gold-rgba-30: rgba(212, 175, 55, 0.3);
 
-// === Couleurs principales ===
-$gold: var(--color-primary);
-$gold-rgba-10: rgba(var(--color-primary-rgb), 0.1);
-$gold-rgba-30: rgba(var(--color-primary-rgb), 0.3);
-$gold-rgba-50: rgba(var(--color-primary-rgb), 0.5);
-$gold-soft: #E1A624; // Doré doux (coins décoratifs)
-$gold-alt: #F0BE86; // Doré alternatif (ornements secondaires)
-$gold-accent: #b88b4a;
+// Typographie
+$font-elegant: 'Cormorant Garamond', serif;
+$font-text: 'Open Sans', sans-serif;
+$font-title: 'Montserrat', sans-serif;
 
-$mucha-cream: #FAF8F3; // Fond crème clair
-$mucha-paper: #FFFFFF; // Papier blanc / cartes
-$mucha-accent: #A67C52;
-$mucha-ink: #2E2B26;
-/* --- Couleurs générales --- */
-$primary-color: #3C6E71;
-$primary-color-light: #70A9A1;
-$text-light: #ffffff;
-$text-muted: #6B6B6B;
-$deep-blue: #1e2a38;
-$cream: #faf4ec;
-
-// === Typographie ===
-$font-elegant: var(--font-primary);
-$font-text: var(--font-text);
-$font-title: var(--font-title);
-$font-family-base: 'Inter', sans-serif;
-$font-title: 'Playfair Display', serif;
 $font-size-base: 1rem;
 $font-size-title-xl: 2.5rem;
 $font-size-title: 2rem;
 $font-size-title-md: 1.5rem;
 $font-size-small: 0.9rem;
+
 $line-height: 1.5;
 $font-weight-normal: 400;
 $font-weight-bold: 700;
-// === Radius (SCSS) ===
+
+// Rayons
 $radius-xs: 4px;
-$radius-sm: 2px;
+$radius-sm: 8px;
 $radius-md: 12px;
 $radius-lg: 16px;
 $radius-xl: 24px;
 $radius-pill: 500px;
 
-// === Transitions et ombres ===
+// Transitions - ombres etc.
 $transition: all 0.3s ease;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-/* --- Espacements --- */
-$spacing-xs: 0.25rem;
+
+// Et autres variables SCSS pour mixins/fonctions
 $spacing-sm: 0.5rem;
 $spacing-md: 1rem;
 $spacing-lg: 2rem;
