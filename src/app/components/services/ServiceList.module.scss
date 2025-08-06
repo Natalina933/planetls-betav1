@@ -280,14 +280,14 @@
 
   .serviceCardTitle {
     @include heading-style(4);
-    font-style: italic;
-    color: $gold-accent;
+    color: var(--color-text);
     margin-bottom: var(--spacing-sm);
   }
 
   .serviceCardDesc {
     font-size: rem(17);
-    color: $gold-accent;
+        font-style: italic;
+
     opacity: 0.95;
   }
 }
