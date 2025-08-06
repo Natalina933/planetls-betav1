@@ -1,5 +1,8 @@
+@use "sass:math";
 @use "sass:color";
-@use "@/styles/abstracts/index" as *; // Alias vers ton dossier abstracts
+@use "src/app/styles/abstracts/_mixins" as *;
+@use "src/app/styles/abstracts/_functions" as *;
+@use "src/app/styles/abstracts/_variables" as *;
 
 .navbar {
   width: 100%;
@@ -26,6 +29,7 @@
   @media (max-width: 768px) {
     font-size: 1.8rem;
   }
+
   @media (max-width: 480px) {
     font-size: 1.5rem;
   }
@@ -55,9 +59,11 @@
   &.open span:nth-child(1) {
     transform: rotate(45deg) translate(5px, 5px);
   }
+
   &.open span:nth-child(2) {
     opacity: 0;
   }
+
   &.open span:nth-child(3) {
     transform: rotate(-45deg) translate(5px, -5px);
   }
@@ -100,6 +106,7 @@
     &:hover,
     &:focus-visible {
       color: $gold;
+
       &::after {
         width: 100%;
         opacity: 1;

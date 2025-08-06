@@ -3,6 +3,7 @@
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
+    "checkJs": false,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -14,9 +15,9 @@
     "jsx": "preserve",
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",                        // ✅ nécessaire pour que l'alias fonctionne
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]                     // ✅ alias fonctionnel
+      "@/*": ["src/*"]
     },
     "plugins": [
       {
@@ -24,11 +25,6 @@
       }
     ]
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-, "src/app/components/layout/Header/Header.jsx", "src/app/map-list/page.jsx", "src/app/components/layout/Home/MapWithSearch/MapWithSearch.jsx", "src/app/components/MapWithList/MapWithList.jsx"  ],
+  "include": ["next-env.d.ts", "**/*"],
   "exclude": ["node_modules"]
 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./MapWithSearch.module.scss";
-import iconMap from "@/lib/iconMap";
+import iconMap from "@/app/lib/iconMap";
 import { FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

@@ -2,7 +2,7 @@ import React from "react";
 // import Image from 'next/image';
 import styles from "./HeroSection.module.css";
 import CategoryCarousel from "./CategoryCarousel";
-import CTAButton from "@/common/Buttons/CTAButton/CTAButton"
+import CTAButton from "@/app/components/common/Buttons/CTAButton/CTAButton";
 
 const HeroSection = () => {
   const scrollToCommunity = () => {
