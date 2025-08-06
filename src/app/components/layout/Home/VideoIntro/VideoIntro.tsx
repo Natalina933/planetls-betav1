@@ -31,7 +31,7 @@ const VideoIntro = () => (
             </ul>
             <a
                 href="/concierge-guide"
-                className={styles.ctaButton}
+                className={styles.CTAButton}
                 role="button"
                 aria-label="Créer votre profil gratuitement sur PlanetLS"
             >

@@ -48,7 +48,7 @@
     color: var(--color-accent-dark);
   }
 
-  .ctaButton {
+  .CTAButton {
     @include button-base;
     display: inline-flex;
     align-items: center;
@@ -315,7 +315,7 @@
       line-height: 1.6;
     }
 
-    .ctaButton {
+    .CTAButton {
       font-size: 0.95rem;
       padding: var(--spacing-sm) var(--spacing-md);
     }

@@ -1,6 +1,15 @@
-// src/app/page.tsx
-import { redirect } from 'next/navigation';
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    async redirects() {
+        return [
+            {
+                source: '/',
+                destination: '/home',
+                permanent: true, // 308 redirect
+            },
+        ];
+    },
+};
 
-export default function RootPage() {
-    redirect('/home');
-}
+module.exports = nextConfig;

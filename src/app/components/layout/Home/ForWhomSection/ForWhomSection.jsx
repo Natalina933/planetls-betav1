@@ -1,6 +1,6 @@
 import Image from "next/image";
 import styles from "./ForWhomSection.module.scss";
-import CTAButton from "@/app/components/common/buttons/CTAbutton/CTAButton";
+import CTAButton from "@/app/components/common/Buttons/CTAButton/CTAButton";
 
 const ForWhomSection = () => (
   <section id="pour-qui" className={styles.forWhomSection} aria-label="À qui s’adresse PlanetLS">

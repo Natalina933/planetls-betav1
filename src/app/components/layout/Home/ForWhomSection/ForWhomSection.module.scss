@@ -146,7 +146,7 @@
     }
 
     // Styles pour le CTAButton, qui est un composant externe
-    .ctaButton {
+    .CTAButton {
         width: 100%; // Pour que le bouton prenne toute la largeur du bloc
         margin-top: auto; // Pousse le bouton vers le bas du bloc
     }
@@ -154,24 +154,57 @@
 
 // Couleurs spécifiques par catégorie
 .blockHomeowner {
-  border-color: var(--proprietaire-primary);
-  h3 { color: var(--proprietaire-primary); }
-  .icon { filter: drop-shadow(0 4px 8px rgba(var(--proprietaire-primary-rgb), 0.3)); }
-  &:hover { border-color: var(--proprietaire-primary-dark); } /* Corrigé */
+    border-color: var(--proprietaire-primary);
+
+    h3 {
+        color: var(--proprietaire-primary);
+    }
+
+    .icon {
+        filter: drop-shadow(0 4px 8px rgba(var(--proprietaire-primary-rgb), 0.3));
+    }
+
+    &:hover {
+        border-color: var(--proprietaire-primary-dark);
+    }
+
+    /* Corrigé */
 }
 
 .blockManager {
-  border-color: var(--concierge-primary);
-  h3 { color: var(--concierge-primary); }
-  .icon { filter: drop-shadow(0 4px 8px rgba(var(--concierge-primary-rgb), 0.3)); }
-  &:hover { border-color: var(--concierge-primary-dark); } /* Corrigé */
+    border-color: var(--concierge-primary);
+
+    h3 {
+        color: var(--concierge-primary);
+    }
+
+    .icon {
+        filter: drop-shadow(0 4px 8px rgba(var(--concierge-primary-rgb), 0.3));
+    }
+
+    &:hover {
+        border-color: var(--concierge-primary-dark);
+    }
+
+    /* Corrigé */
 }
 
 .blockPartner {
-  border-color: var(--artisan-primary);
-  h3 { color: var(--artisan-primary); }
-  .icon { filter: drop-shadow(0 4px 8px rgba(var(--artisan-primary-rgb), 0.3)); }
-  &:hover { border-color: var(--artisan-primary-dark); } /* Corrigé */
+    border-color: var(--artisan-primary);
+
+    h3 {
+        color: var(--artisan-primary);
+    }
+
+    .icon {
+        filter: drop-shadow(0 4px 8px rgba(var(--artisan-primary-rgb), 0.3));
+    }
+
+    &:hover {
+        border-color: var(--artisan-primary-dark);
+    }
+
+    /* Corrigé */
 }
 
 

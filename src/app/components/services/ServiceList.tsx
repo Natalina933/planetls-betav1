@@ -58,7 +58,7 @@ export default function PlatformIntroSection() {
             , gagnez en efficacité et en sérénité.
           </p>
 
-          <a href="#contact" className={styles.ctaButton}>
+          <a href="#contact" className={styles.CTAButton}>
             Découvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
           </a>
         </header>

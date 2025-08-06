@@ -47,7 +47,7 @@
     color: #2d415d;
 }
 
-.ctaButton {
+.CTAButton {
     display: inline-block;
     background-color: #0075f2;
     color: #fff;
@@ -58,14 +58,14 @@
     transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
-.ctaButton:hover,
-.ctaButton:focus {
+.CTAButton:hover,
+.CTAButton:focus {
     transform: scale(1.05);
     background-color: #005ec2;
     outline: none;
 }
 
-.ctaButton:focus-visible {
+.CTAButton:focus-visible {
     box-shadow: 0 0 0 4px rgba(0, 117, 242, 0.3);
 }
 
@@ -88,7 +88,7 @@
         margin-bottom: 1rem;
     }
 
-    .ctaButton {
+    .CTAButton {
         width: 100%;
         text-align: center;
     }

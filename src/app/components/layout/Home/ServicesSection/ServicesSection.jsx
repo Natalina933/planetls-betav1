@@ -18,7 +18,7 @@ export default function ServicesSection() {
             >
                 <ServiceList />
                 <div className={styles.ctaZone}>
-                    <a className={styles.ctaButton} href="/inscription" aria-label="Essayer la plateforme gratuitement" >
+                    <a className={styles.CTAButton} href="/inscription" aria-label="Essayer la plateforme gratuitement" >
                         Essayer gratuitement
                     </a>
                     <span className={styles.ctaSub}>
