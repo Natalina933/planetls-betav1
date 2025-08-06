@@ -1,6 +1,6 @@
 import React from "react";
 // import Image from 'next/image';
-import CTAButton from "@/app/components/common/Buttons/CTAButton/CTAButton";
+import CTAButton from "../../../common/Buttons/CTAButton/CTAButton";
 import styles from "./HeroSection.module.css";
 import CategoryCarousel from "./CategoryCarousel";
 // import Image from "next/image";
