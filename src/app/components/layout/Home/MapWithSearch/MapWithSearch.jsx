@@ -12,7 +12,6 @@ export default function MapWithSearch() {
   const router = useRouter();
 
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [animationKey, setAnimationKey] = useState(0); // Clé pour relancer l'animation underline
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
 
@@ -33,7 +32,6 @@ export default function MapWithSearch() {
 
   const handleToggleClick = (key) => {
     setSelectedCategory(key);
-    setAnimationKey((prev) => prev + 1); // recrée le span pour relancer l'animation
   };
 
   const handleSearchClick = () => {
@@ -56,7 +54,7 @@ export default function MapWithSearch() {
   const descriptions = {
     proprietaire: (
       <>
-        <span key={animationKey} className={styles.highlightGold}>
+        <span key={selectedCategory} className={styles.highlightGold}>
           Trouvez des propriétaires
         </span>{" "}
         à la recherche d'une conciergerie fiable pour gérer et valoriser leur bien en location saisonnière.
@@ -64,7 +62,7 @@ export default function MapWithSearch() {
     ),
     concierge: (
       <>
-        <span key={animationKey} className={styles.highlightGold}>
+        <span key={selectedCategory} className={styles.highlightGold}>
           Trouvez une conciergerie
         </span>
         , indépendante ou professionnelle, cherchant à étendre son réseau de biens saisonniers dans votre région.
@@ -72,7 +70,7 @@ export default function MapWithSearch() {
     ),
     artisan: (
       <>
-        <span key={animationKey} className={styles.highlightGold}>
+        <span key={selectedCategory} className={styles.highlightGold}>
           Découvrez les artisans et commerçants locaux
         </span>{" "}
         offrant des produits ou prestations adaptés à la location saisonnière.
@@ -103,9 +101,8 @@ export default function MapWithSearch() {
             return (
               <button
                 key={key}
-                className={`${styles.tripleToggleButton} ${
-                  selectedCategory === key ? styles.active : ""
-                }`}
+                className={`${styles.tripleToggleButton} ${selectedCategory === key ? styles.active : ""
+                  }`}
                 onClick={() => handleToggleClick(key)}
                 type="button"
                 aria-label={`Filtrer par ${label}`}
