@@ -1,0 +1,66 @@
+// styles/abstracts/_root.scss
+// Ce fichier centralise TOUTES les variables CSS globales (custom properties).
+
+:root {
+    // --- Couleurs ---
+    // Neutres
+    --color-text: #222;
+    --color-bg: #f4f6f8;
+    --color-border: #eaeaea;
+    --background: #ffffff;
+    --foreground: #171717;
+
+    // Système
+    --color-success: #4caf50;
+    --color-error: #e53935;
+    --color-accent: #ffc107;
+    
+    // Thème Principal (Or)
+    --color-primary: #d4af37;
+    --color-primary-rgb: 212, 175, 55;
+    --couleur-primaire-claire: #ffe099;
+    --couleur-primaire-foncée: #b99b2e;
+    --couleur-texte-primaire: #333;
+
+    // Thème Secondaire
+    --couleur-secondaire: rgba(32, 95, 120, 0.5);
+    --couleur-secondaire-claire: #f7fbfe;
+    --couleur-secondaire-foncée: #0e1a2a;
+
+    // Focus Ring pour l'accessibilité
+    --color-focus-ring: #ffe09b;
+
+    // --- Typographie ---
+    // Familles de polices (déjà chargées dans layout.tsx)
+    --font-title: "Montserrat", sans-serif;
+    --font-primary: "Cormorant Garamond", serif;
+    --font-text: "Open Sans", sans-serif;
+    --font-main: var(--font-text); // Variable principale pour le body
+
+    // Tailles de police
+    --font-size-base: 1rem;       // 16px par défaut
+    --font-size-title-xl: 2.5rem; // Titres H1
+    --font-size-title: 2rem;      // Titres H2
+    --font-size-title-md: 1.5rem; // Titres H3
+    --font-size-small: 0.9rem;
+
+    // Interlignage et graisse
+    --line-height: 1.5;
+    --font-weight-normal: 400;
+    --font-weight-bold: 700;
+
+    // --- Espacements ---
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 4rem;
+
+    // --- Rayons (Border Radius) ---
+    --radius: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-pill: 500px;
+}

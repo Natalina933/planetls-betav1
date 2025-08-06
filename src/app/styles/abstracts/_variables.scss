@@ -1,56 +1,51 @@
-// styles/variables.scss
+// styles/abstracts/_variables.scss
+// Ce fichier contient les variables UTILISÉES UNIQUEMENT PAR SCSS (mixins, functions, etc.).
+// Elles ne sont pas compilées directement en CSS.
 
-// Dimensions
-$max-content-width: 1200px;
-$max-content-width-md: 960px;
-$max-content-width-sm: 720px;
-$min-content-width-s: 320px;
+// --- Breakpoints ---
+$breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+);
 
-$primary-dark-color-sass: #1a1a1a;
-$primary-light-color-sass: #f5f5f5;
-
-$mucha-paper: #fdfdfd;
-
-
-// Couleurs SCSS (pour usage uniquement dans SCSS)
-$gold: #d4af37;
-$gold-alt: #d4af37;
-$gold-accent: #d4af37;
-$gold-light: #f5e6c7;
-$gold-rgba: rgba(212, 175, 55, 1);
-$gold-rgba-10: rgba(212, 175, 55, 0.1);
-$gold-rgba-30: rgba(212, 175, 55, 0.3);
-
-// Typographie
+// --- Typographie (Variables Sass restaurées) ---
+// Ces variables sont utilisées par vos composants existants.
 $font-elegant: 'Cormorant Garamond', serif;
 $font-text: 'Open Sans', sans-serif;
 $font-title: 'Montserrat', sans-serif;
-
-$font-size-base: 1rem;
-$font-size-title-xl: 2.5rem;
-$font-size-title: 2rem;
-$font-size-title-md: 1.5rem;
-$font-size-small: 0.9rem;
-
-$line-height: 1.5;
-$font-weight-normal: 400;
 $font-weight-bold: 700;
+$font-weight-normal: 400;
 
-// Rayons
-$radius-xs: 4px;
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 24px;
-$radius-pill: 500px;
+// --- Couleurs SCSS ---
+$primary-dark-color-sass: #b99b2e; // Couleur primaire foncée
+$primary-color-sass: #d4af37; // Couleur primaire
+$primary-light-color-sass: #ffe099; // Couleur primaire claire
+// Utiles pour les manipulations de couleurs dans les mixins.
+$gold: #d4af37;
+$gold-dark: #b99b2e;
+$gold-accent: #ffe099;
+$gold-alt: #ffe099;
+$gold-light: #f5e6c7;
 
-// Transitions - ombres etc.
+$mucha-paper: #f7fbfe; // Couleur de fond pour la section Platform
+// --- Dimensions ---
+$max-content-width: 1200px;
+$max-content-width-md: 960px;
+$max-content-width-sm: 720px;
+
+// --- Transitions & Ombres ---
 $transition: all 0.3s ease;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-// Et autres variables SCSS pour mixins/fonctions
+// --- Espacements (pour les mixins qui en auraient besoin) ---
 $spacing-xs: 0.25rem;
 $spacing-sm: 0.5rem;
 $spacing-md: 1rem;
 $spacing-lg: 2rem;
 $spacing-xl: 4rem;
+
+$line-height: 1.6;

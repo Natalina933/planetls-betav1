@@ -1,6 +1,25 @@
-@use './abstracts/index' as *;
-@use './base/index' as *;
-@use './../components/index.scss' as *;
-@use "../styles/abstracts/variables.css" as *;
+// styles/main.scss
+// Point d'entrée principal pour tous les styles SCSS.
 
+// 1. Abstracts : Outils, variables, fonctions, mixins.
+// Ne produisent pas de CSS directement.
+@use 'abstracts/variables' as *; // Variables SCSS ($)
+@use 'abstracts/functions';
+@use 'abstracts/mixins';
 
+// 2. Base : Styles globaux, reset, typographie de base.
+// Produisent le CSS de base.
+@use 'abstracts/root'; // Contient toutes les variables CSS (--)
+@use 'base/reset';
+@use 'base/typography';
+@use 'base/animations'; // Si animations.scss contient des classes globales.
+
+// 3. Components : Styles pour les composants réutilisables.
+// Décommentez ou ajoutez des imports pour vos composants.
+// @use '../components/Button/Button.scss';
+// @use '../components/Card/Card.scss';
+// @use '../components/MapWithList/MapWithList.module.scss'; // Attention aux modules
+
+// 4. Layout : Styles pour les sections principales de la page (header, footer, etc.).
+// @use '../components/layout/Header/Header.scss';
+// @use '../components/layout/Footer/Footer.scss';

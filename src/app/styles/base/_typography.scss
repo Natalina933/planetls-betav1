@@ -1,23 +1,28 @@
-:root {
-    /* Typographie globale */
-    --font-title: 'Felix Titling', 'Times New Roman', serif;
-    --font-text: 'High Tower Text', 'Georgia', serif;
-    --font-main: var(--font-text);
-    
-    /* Tailles */
-    --font-size-base: 1rem;
-    /* 16px par défaut */
-    --font-size-title-xl: 2.5rem;
-    /* Titres H1 */
-    --font-size-title: 2rem;
-    /* Titres H2 */
-    --font-size-title-md: 1.5rem;
-    /* Titres H3 */
-    --font-size-small: 0.9rem;
-    
-    /* Interlignage et graisse */
-    --line-height: 1.5;
-    --font-weight-normal: 400;
-    --font-weight-bold: 700;
+// styles/base/_typography.scss
+// Applique les styles typographiques de base aux éléments HTML.
+
+body {
+    font-family: var(--font-main);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height);
+    font-weight: var(--font-weight-normal);
 }
-    $font-elegant: 'Cormorant Garamond', serif;
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-title);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+}
+
+h1 { font-size: var(--font-size-title-xl); }
+h2 { font-size: var(--font-size-title); }
+h3 { font-size: var(--font-size-title-md); }
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    
+    &:hover {
+        text-decoration: underline;
+    }
+}
