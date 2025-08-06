@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true, // Active le mode strict React
-  swcMinify: true, // Utilise le minifieur SWC (plus rapide)
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -14,16 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "cdn.planetls.com",
       },
     ],
-    formats: ["image/webp", "image/avif"], // Formats d’images supportés
+    formats: ["image/webp", "image/avif"],
   },
   experimental: {
-    scrollRestoration: true, // Restauration de la position de défilement
+    scrollRestoration: true,
   },
-  i18n: {
-    locales: ["fr", "en"],
-    defaultLocale: "fr",
-  },
-  // Ajoute d'autres options selon tes besoins
 };
 
 export default nextConfig;
