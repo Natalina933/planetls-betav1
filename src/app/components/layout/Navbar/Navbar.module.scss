@@ -1,8 +1,5 @@
 @use "sass:color";
-
-@use "src/app/styles/abstracts/index" as *;
-
-
+@use "@/styles/abstracts/index" as *; // Alias vers ton dossier abstracts
 
 .navbar {
   width: 100%;
@@ -10,7 +7,6 @@
   align-items: center;
   justify-content: space-between;
 
-  // Sur desktop, les éléments sont en ligne
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -21,12 +17,12 @@
   font-size: 2rem;
   font-weight: bold;
   color: $gold;
+
   a {
     text-decoration: none;
     color: inherit;
   }
 
-  // Responsive logo font-size, reprend les styles du parent si besoin
   @media (max-width: 768px) {
     font-size: 1.8rem;
   }
@@ -59,11 +55,9 @@
   &.open span:nth-child(1) {
     transform: rotate(45deg) translate(5px, 5px);
   }
-
   &.open span:nth-child(2) {
     opacity: 0;
   }
-
   &.open span:nth-child(3) {
     transform: rotate(-45deg) translate(5px, -5px);
   }
@@ -128,19 +122,17 @@
     transform: translateY(-10%);
     transition: all 0.4s ease;
     z-index: 100;
+
+    li a {
+      font-size: 1.15rem;
+      padding: 0.75rem 0;
+      width: 100%;
+    }
   }
 
   &.open {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
-  }
-
-  @media (max-width: 768px) {
-    li a {
-      font-size: 1.15rem;
-      padding: 0.75rem 0;
-      width: 100%;
-    }
   }
 }
