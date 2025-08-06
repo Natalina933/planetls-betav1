@@ -1,6 +1,6 @@
 import Card from '../components/common/Cards/Card';
 import Badge from '../components/common/Badge';
-import styles from './page.module.css';
+import styles from './page.module.scss';
 
 export default function TradespeoplePage() {
     return (
