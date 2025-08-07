@@ -1,348 +1,348 @@
-// --------------------------------------
-@use "sass:map";
-@use "sass:color";
-@use "sass:math";
-@use "sass:meta";
-@use "src/app/styles/abstracts/index" as *;
-@use "src/app/styles/abstracts/variables" as vars;
+// // --------------------------------------
+// @use "sass:map";
+// @use "sass:color";
+// @use "sass:math";
+// @use "sass:meta";
+// @use "src/app/styles/abstracts/index" as *;
+// @use "src/app/styles/abstracts/variables" as vars;
 
-// SECTION PRINCIPALE
+// // SECTION PRINCIPALE
 
-.platformSection {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  padding: 2rem 2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background-color: #fdf7ef;
-  font-family: "High Tower Text", serif;
-  border: 3px double $gold;
-  border-radius: 2rem;
-  box-shadow: 0 2px 16px rgba(212, 175, 55, 0.12);
-  scroll-behavior: smooth;
-  overflow: hidden;
-}
+// .platformSection {
+//   position: relative;
+//   width: 100%;
+//   min-height: 100vh;
+//   padding: 2rem 2rem;
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: center;
+//   background-color: #fdf7ef;
+//   font-family: "High Tower Text", serif;
+//   border: 3px double $gold;
+//   border-radius: 2rem;
+//   box-shadow: 0 2px 16px rgba(212, 175, 55, 0.12);
+//   scroll-behavior: smooth;
+//   overflow: hidden;
+// }
 
-// HEADER
+// // HEADER
 
-.platformHeader {
-  @include container(820px, $spacing-md);
-  text-align: center;
-  margin-bottom: $spacing-lg;
+// .platformHeader {
+//   @include container(820px, $spacing-md);
+//   text-align: center;
+//   margin-bottom: $spacing-lg;
 
-  .sectionIntro {
-    font-family: $font-elegant;
-    font-size: rem(21);
-    line-height: $line-height;
-    color: vars.$color-text;
-    margin-bottom: $spacing-md;
-  }
+//   .sectionIntro {
+//     font-family: $font-elegant;
+//     font-size: rem(21);
+//     line-height: $line-height;
+//     color: vars.$color-text;
+//     margin-bottom: $spacing-md;
+//   }
 
-  .highlightText {
-    background: linear-gradient(to right, $gold, $gold-alt);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    font-weight: $font-weight-bold;
-  }
+//   .highlightText {
+//     background: linear-gradient(to right, $gold, $gold-alt);
+//     background-clip: text;
+//     -webkit-background-clip: text;
+//     color: transparent;
+//     font-weight: $font-weight-bold;
+//   }
 
-  .userCategory {
-    font-style: italic;
-    color: $color-accent-dark;
-  }
+//   .userCategory {
+//     font-style: italic;
+//     color: $color-accent-dark;
+//   }
 
-  .CTAButton {
-    @include button-base;
-    display: inline-flex;
-    align-items: center;
-    gap: $spacing-sm;
-    padding: $spacing-sm $spacing-md;
-    border-radius: $radius-pill;
-    background: linear-gradient(to right, $gold, $gold-alt);
-    color: $primary-dark-color-sass;
-    font-weight: 600;
-    font-size: 1.5em;
-    box-shadow: $shadow;
-    transition: transform 0.2s ease;
+//   .CTAButton {
+//     @include button-base;
+//     display: inline-flex;
+//     align-items: center;
+//     gap: $spacing-sm;
+//     padding: $spacing-sm $spacing-md;
+//     border-radius: $radius-pill;
+//     background: linear-gradient(to right, $gold, $gold-alt);
+//     color: $primary-dark-color-sass;
+//     font-weight: 600;
+//     font-size: 1.5em;
+//     box-shadow: $shadow;
+//     transition: transform 0.2s ease;
 
-    &:hover {
-      background: linear-gradient(to right, $gold-accent, $gold-alt);
-      transform: translateY(-2px);
-    }
+//     &:hover {
+//       background: linear-gradient(to right, $gold-accent, $gold-alt);
+//       transform: translateY(-2px);
+//     }
 
-    .ctaIcon {
-      font-size: rem(25);
-    }
-  }
-}
+//     .ctaIcon {
+//       font-size: rem(25);
+//     }
+//   }
+// }
 
-// KEYPOINTS
+// // KEYPOINTS
 
-.keyPoints {
-  @include flex-center;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-md;
+// .keyPoints {
+//   @include flex-center;
+//   flex-wrap: wrap;
+//   gap: $spacing-sm;
+//   margin-bottom: $spacing-md;
 
-  .keyPointChipWrapper {
-    display: flex;
-  }
+//   .keyPointChipWrapper {
+//     display: flex;
+//   }
 
-  .keyPointChip {
-    @include button-base;
-    font-size: rem(17);
-    padding: $spacing-sm $spacing-md;
-    border-radius: $radius-pill;
-    background-color: $all-bg;
-    border: 2px solid $gold;
-    color: $color-text;
-    @include box-shadow();
-    transition: $transition;
+//   .keyPointChip {
+//     @include button-base;
+//     font-size: rem(17);
+//     padding: $spacing-sm $spacing-md;
+//     border-radius: $radius-pill;
+//     background-color: $all-bg;
+//     border: 2px solid $gold;
+//     color: $color-text;
+//     @include box-shadow();
+//     transition: $transition;
 
-    &:hover {
-      background-color: $color-accent-hover;
-      transform: translateY(-1px);
-    }
+//     &:hover {
+//       background-color: $color-accent-hover;
+//       transform: translateY(-1px);
+//     }
 
-    &.isActive {
-      background: linear-gradient(to right, $gold, $gold-alt);
-      color: #fff;
-      border-color: $gold;
-    }
-  }
-}
+//     &.isActive {
+//       background: linear-gradient(to right, $gold, $gold-alt);
+//       color: #fff;
+//       border-color: $gold;
+//     }
+//   }
+// }
 
-// ICONE DORÉE
+// // ICONE DORÉE
 
-.goldenIcon {
-  width: rem(60);
-  height: rem(70);
-  stroke: $gold;
-  stroke-width: 1.2;
-  transition: fill 0.3s ease, transform 0.3s ease;
-}
+// .goldenIcon {
+//   width: rem(60);
+//   height: rem(70);
+//   stroke: $gold;
+//   stroke-width: 1.2;
+//   transition: fill 0.3s ease, transform 0.3s ease;
+// }
 
-// GRILLE DE SERVICES
+// // GRILLE DE SERVICES
 
-.serviceGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: $spacing-md;
-  margin-top: $spacing-lg;
-  justify-items: center;
-  align-items: start;
+// .serviceGrid {
+//   display: grid;
+//   grid-template-columns: repeat(3, minmax(0, 1fr));
+//   gap: $spacing-md;
+//   margin-top: $spacing-lg;
+//   justify-items: center;
+//   align-items: start;
 
-  @include mq("lg") {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+//   @include mq("lg") {
+//     grid-template-columns: repeat(2, minmax(0, 1fr));
+//   }
 
-  @include mq("md") {
-    grid-template-columns: 1fr;
-  }
-}
+//   @include mq("md") {
+//     grid-template-columns: 1fr;
+//   }
+// }
 
-// CARTES FLIP
+// // CARTES FLIP
 
-.serviceCard,
-.flippable {
-  width: 100%;
-  max-width: 500px;
-  aspect-ratio: 4 / 3;
-  border: 3px solid $gold;
-  border-radius: $radius-2xl;
-  background-color: $mucha-paper;
-  overflow: hidden;
-  @include box-shadow(rgba(0, 0, 0, 0.08));
-  box-sizing: border-box;
-}
+// .serviceCard,
+// .flippable {
+//   width: 100%;
+//   max-width: 500px;
+//   aspect-ratio: 4 / 3;
+//   border: 3px solid $gold;
+//   border-radius: $radius-2xl;
+//   background-color: $mucha-paper;
+//   overflow: hidden;
+//   @include box-shadow(rgba(0, 0, 0, 0.08));
+//   box-sizing: border-box;
+// }
 
-.flippable {
-  perspective: 1000px;
-  cursor: pointer;
-  outline-offset: 2px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+// .flippable {
+//   perspective: 1000px;
+//   cursor: pointer;
+//   outline-offset: 2px;
+//   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
-  &:focus-visible {
-    outline: 3px solid $gold-alt;
-    outline-offset: 4px;
-  }
+//   &:focus-visible {
+//     outline: 3px solid $gold-alt;
+//     outline-offset: 4px;
+//   }
 
-  .cardInner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-  }
+//   .cardInner {
+//     position: relative;
+//     width: 100%;
+//     height: 100%;
+//     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+//     transform-style: preserve-3d;
+//   }
 
-  &.flipped .cardInner {
-    transform: rotateY(180deg);
-  }
+//   &.flipped .cardInner {
+//     transform: rotateY(180deg);
+//   }
 
-  .cardFront,
-  .cardBack {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: $radius-2xl;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 1.5em;
-    box-sizing: border-box;
-  }
+//   .cardFront,
+//   .cardBack {
+//     position: absolute;
+//     width: 100%;
+//     height: 100%;
+//     backface-visibility: hidden;
+//     border-radius: $radius-2xl;
+//     display: flex;
+//     flex-direction: column;
+//     justify-content: center;
+//     align-items: center;
+//     padding: 1.5em;
+//     box-sizing: border-box;
+//   }
 
-  .cardFront {
-    background-color: $mucha-paper;
-    color: $color-text-light;
-    z-index: 2;
-  }
+//   .cardFront {
+//     background-color: $mucha-paper;
+//     color: $color-text-light;
+//     z-index: 2;
+//   }
 
-  .cardBack {
-    background: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
-      url("/ornements/mucha-background-pattern-light.png");
-    background-size: cover;
-    background-repeat: repeat;
-    background-position: center;
-    background-blend-mode: soft-light;
-    color: $gold-accent;
-    border: 3px solid $gold;
-    transform: rotateY(180deg);
-    z-index: 1;
-    overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+//   .cardBack {
+//     background: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
+//       url("/ornements/mucha-background-pattern-light.png");
+//     background-size: cover;
+//     background-repeat: repeat;
+//     background-position: center;
+//     background-blend-mode: soft-light;
+//     color: $gold-accent;
+//     border: 3px solid $gold;
+//     transform: rotateY(180deg);
+//     z-index: 1;
+//     overflow: hidden;
+//     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 
-    .cardQuote {
-      position: relative;
-      z-index: 2;
-      font-family: $font-elegant;
-      font-size: rem(18);
-      font-style: italic;
-      line-height: 1;
-      margin: 0 auto;
-      color: #22180a;
-      text-align: center;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      background-color: antiquewhite;
-      border: 2px double $gold;
-      padding: 1.5rem;
-      border-radius: 1.2rem;
-      overflow: hidden;
+//     .cardQuote {
+//       position: relative;
+//       z-index: 2;
+//       font-family: $font-elegant;
+//       font-size: rem(18);
+//       font-style: italic;
+//       line-height: 1;
+//       margin: 0 auto;
+//       color: #22180a;
+//       text-align: center;
+//       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+//       background-color: antiquewhite;
+//       border: 2px double $gold;
+//       padding: 1.5rem;
+//       border-radius: 1.2rem;
+//       overflow: hidden;
 
-      &::before {
-        content: "❝";
-        display: inline;
-        font-size: 1.3em;
-        vertical-align: top;
-        margin-right: 0.415em;
-        color: $gold;
-        opacity: 0.6;
-        font-family: $font-elegant;
-        pointer-events: none;
-        user-select: none;
-      }
+//       &::before {
+//         content: "❝";
+//         display: inline;
+//         font-size: 1.3em;
+//         vertical-align: top;
+//         margin-right: 0.415em;
+//         color: $gold;
+//         opacity: 0.6;
+//         font-family: $font-elegant;
+//         pointer-events: none;
+//         user-select: none;
+//       }
 
-      &::after {
-        content: "❞";
-        display: inline;
-        font-size: 1.3em;
-        vertical-align: bottom;
-        color: $gold;
-        opacity: 0.6;
-        font-family: $font-elegant;
-        pointer-events: none;
-      }
+//       &::after {
+//         content: "❞";
+//         display: inline;
+//         font-size: 1.3em;
+//         vertical-align: bottom;
+//         color: $gold;
+//         opacity: 0.6;
+//         font-family: $font-elegant;
+//         pointer-events: none;
+//       }
 
-      @media (min-width: 1200px) {
-        font-size: rem(18);
-      }
-    }
-  }
+//       @media (min-width: 1200px) {
+//         font-size: rem(18);
+//       }
+//     }
+//   }
 
-  .cardBackContent {
-    width: 100%;
-    max-width: 90%;
-    padding: $spacing-xl;
-    text-align: center;
-    box-sizing: border-box;
-  }
+//   .cardBackContent {
+//     width: 100%;
+//     max-width: 90%;
+//     padding: $spacing-xl;
+//     text-align: center;
+//     box-sizing: border-box;
+//   }
 
-  .serviceCardTitle {
-    @include heading-style(4);
-    color: $color-text;
-    margin-bottom: $spacing-sm;
-  }
+//   .serviceCardTitle {
+//     @include heading-style(4);
+//     color: $color-text;
+//     margin-bottom: $spacing-sm;
+//   }
 
-  .serviceCardDesc {
-    font-size: rem(17);
-    font-style: italic;
-    opacity: 0.95;
-  }
-}
+//   .serviceCardDesc {
+//     font-size: rem(17);
+//     font-style: italic;
+//     opacity: 0.95;
+//   }
+// }
 
-// RESPONSIVE
-@include mq("md") {
-  .platformHeader .sectionIntro {
-    font-size: rem(17);
-  }
+// // RESPONSIVE
+// @include mq("md") {
+//   .platformHeader .sectionIntro {
+//     font-size: rem(17);
+//   }
 
-  .keyPoints {
-    justify-content: flex-start;
-  }
-}
+//   .keyPoints {
+//     justify-content: flex-start;
+//   }
+// }
 
-@include mq("xs") {
-  .platformSection {
-    padding: 2rem 1rem;
-  }
+// @include mq("xs") {
+//   .platformSection {
+//     padding: 2rem 1rem;
+//   }
 
-  .platformHeader {
-    .sectionIntro {
-      font-size: clamp(0.95rem, 4vw, 1.05rem);
-      line-height: 1.6;
-    }
+//   .platformHeader {
+//     .sectionIntro {
+//       font-size: clamp(0.95rem, 4vw, 1.05rem);
+//       line-height: 1.6;
+//     }
 
-    .CTAButton {
-      font-size: 0.95rem;
-      padding: $spacing-sm $spacing-md;
-    }
-  }
+//     .CTAButton {
+//       font-size: 0.95rem;
+//       padding: $spacing-sm $spacing-md;
+//     }
+//   }
 
-  .keyPoints {
-    justify-content: center;
+//   .keyPoints {
+//     justify-content: center;
 
-    .keyPointChip {
-      font-size: clamp(0.8rem, 3.5vw, 0.95rem);
-      padding: 0.5rem 1rem;
-    }
-  }
+//     .keyPointChip {
+//       font-size: clamp(0.8rem, 3.5vw, 0.95rem);
+//       padding: 0.5rem 1rem;
+//     }
+//   }
 
-  .serviceGrid {
-    grid-template-columns: 1fr;
-    gap: $spacing-lg;
-  }
+//   .serviceGrid {
+//     grid-template-columns: 1fr;
+//     gap: $spacing-lg;
+//   }
 
-  .flippable,
-  .serviceCard {
-    aspect-ratio: 4 / 3;
-    max-width: 100%;
-    margin: 0 auto;
-  }
+//   .flippable,
+//   .serviceCard {
+//     aspect-ratio: 4 / 3;
+//     max-width: 100%;
+//     margin: 0 auto;
+//   }
 
-  .cardBack .cardQuote {
-    font-size: clamp(1rem, 4vw, 1.2rem);
-    padding: 1rem;
-  }
+//   .cardBack .cardQuote {
+//     font-size: clamp(1rem, 4vw, 1.2rem);
+//     padding: 1rem;
+//   }
 
-  .serviceCardTitle {
-    font-size: clamp(1rem, 4vw, 1.3rem);
-  }
+//   .serviceCardTitle {
+//     font-size: clamp(1rem, 4vw, 1.3rem);
+//   }
 
-  .serviceCardDesc {
-    font-size: clamp(0.85rem, 3.5vw, 1rem);
-  }
-}
+//   .serviceCardDesc {
+//     font-size: clamp(0.85rem, 3.5vw, 1rem);
+//   }
+// }
