@@ -17,7 +17,7 @@
   position: relative;
   border-top: 2.5px solid #b88b4a;
   border-bottom: 2.5px solid #b88b4a;
-  background-color: #fdf7ef;
+  background: var(--background);
 
   h2 {
     font-size: 2.5rem;
@@ -25,6 +25,7 @@
     margin-bottom: 1rem;
     font-weight: 700;
     text-align: center;
+
     @include fadeInTitle(0.5s, 0.2s);
 
     @include mq(md) {
@@ -41,6 +42,7 @@
       background-color: $gold;
     }
   }
+
   @media (max-width: 768px) {
     padding: 1rem;
   }
@@ -72,49 +74,48 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  
 
   @include mq(md) {
     padding: var(--spacing-md) var(--spacing-sm);
   }
 }
 
+// === Texte descriptif avec décor ===
 .categoryTextBubble1900 {
+  max-width: 500px;
+  height: 200px;
+  margin: 1rem auto 0;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 2px solid #d4af37;
+  background-image:
+    linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
+    url("/ornements/mucha-background-pattern-light.png");
+  background-blend-mode: soft-light;
+  background-repeat: repeat;
+  background-position: center;
+  background-size: 250px 250px;
+  box-shadow:
+    inset 0 0 10px rgba(255, 255, 255, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 0 10px #d4af37;
+  opacity: 1;
+  overflow: visible;
+
   p {
-    line-height: 1.5em;
     font-family: var(--font-text, sans-serif);
     font-size: 1.1em;
+    line-height: 1.5em;
     margin: 0 auto;
-    max-width: 550px;
     background-color: #ffe09b;
     padding: 1.2rem 1.5rem;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
   }
-
-  background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
-  url("/ornements/mucha-background-pattern-light.png");
-  background-blend-mode: soft-light;
-  background-repeat: repeat;
-  background-position: center;
-  background-size: 250px 250px;
-  position: relative;
-  padding: 1.5rem;
-  border-radius: 20px;
-  border: 2px solid #d4af37;
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
-  0 4px 12px rgba(0, 0, 0, 0.25),
-  0 0 10px #d4af37;
-  opacity: 1;
-  max-width: 500px;
-  height: 170px;
-  overflow: visible;
-  margin-top: 1rem;
-  margin-left: auto;
-  margin-right: auto;
 }
 
+// === Instructions catégorie ===
 .categoryInstructionWrapper {
   width: 100%;
   text-align: center;
@@ -133,14 +134,15 @@
   }
 }
 
+// === Conteneur boutons bulles ===
 .bubblesRow {
   display: flex;
   flex-direction: row-reverse;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: flex-start;
   justify-content: center;
   flex: 1 1 0;
-  flex-wrap: wrap;
   border: $gold 1px double;
   border-radius: 35px;
   padding: 4px;
@@ -157,22 +159,33 @@
   }
 }
 
+// === Groupe des boutons triple toggle ===
 .tripleToggleGroup {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  background: #fff8e1;
-  border: 2px solid $gold;
-  border-radius: var(--radius-pill);
-  padding: 0.4rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 700px;
   margin: 0 auto;
   position: relative;
+  padding: 0.4rem;
+  background: #fff8e1;
+  border: 2px solid $gold;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+  @include mq(sm) {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem;
+  }
 }
 
+// === Boutons toggle ===
 .tripleToggleButton {
   flex: 1;
+  width: 200px;
   padding: 0.6rem 1.2rem;
   font-family: var(--font-title);
   font-size: 1rem;
@@ -181,12 +194,9 @@
   border: none;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
   position: relative;
   z-index: 1;
-  width: 200px;
-  
-  
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
 
   &:hover {
     background: rgba(255, 224, 155, 0.3);
@@ -194,61 +204,21 @@
   }
 
   &.active {
-    padding: 0.6rem 0.8rem; // réduit à gauche/droite
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
     background: linear-gradient(to right, $gold, $gold-alt);
     color: #fff;
     box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
     z-index: 2;
   }
+
+  @include mq(sm) {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.7rem;
+  }
 }
 
-// .bubbleBlock {
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   text-align: center;
-//   position: relative;
-//   min-width: 160px;
-//   max-width: 200px;
-//   cursor: pointer;
-//   transition: transform 0.3s ease;
-//   animation: fadeInSlideRight 0.6s ease forwards;
-//   animation-delay: calc(0.1s * var(--index));
-
-//   @include mq(sm) {
-//     animation: fadeInSlideBottom 0.6s ease forwards;
-//   }
-
-//   &:nth-child(1) {
-//     --index: 0;
-//     --bubble-primary-rgb: var(--proprietaire-primary-rgb);
-//     --bubble-primary: var(--proprietaire-primary);
-//   }
-//   &:nth-child(2) {
-//     --index: 1;
-//     --bubble-primary-rgb: var(--concierge-primary-rgb);
-//     --bubble-primary: var(--concierge-primary);
-//   }
-//   &:nth-child(3) {
-//     --index: 2;
-//     --bubble-primary-rgb: var(--artisan-primary-rgb);
-//     --bubble-primary: var(--artisan-primary);
-//   }
-
-//   &.active {
-//     .bubbleBtn {
-//       border-color: var(--bubble-primary);
-//       background: linear-gradient(135deg, #ffeecd 80%, #fffbe7 100%);
-//       box-shadow: 0 0 0 4px rgba(var(--bubble-primary-rgb), 0.3);
-//     }
-
-//     .bubbleLabel {
-//       color: var(--bubble-primary);
-//       font-weight: 700;
-//     }
-//   }
-// }
-
+// === Bulles boutons avec effet ===
 .bubbleBtn {
   width: clamp(55px, 6vw, 75px);
   height: clamp(55px, 6vw, 75px);
@@ -256,11 +226,11 @@
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
   border: 2.5px solid var(--bubble-primary);
+  box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
   cursor: pointer;
   transition: all 0.3s ease;
-  @include backdrop-blur(3px, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.2));
+  @include backdrop-blur(3px, rgba(255,255,255,0.85), rgba(255,255,255,0.2));
 
   svg {
     font-size: 1.9rem;
@@ -273,8 +243,15 @@
     transform: scale(1.1) translateY(-5px);
     border-color: var(--bubble-primary);
   }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring, #ffe09b);
+    outline-offset: 3px;
+    border-radius: var(--radius-pill);
+  }
 }
 
+// === Label pour bulles ===
 .bubbleLabel {
   font-family: var(--font-title);
   font-size: 1rem;
@@ -285,23 +262,24 @@
   transition: color 0.2s ease;
 }
 
+// === Autres bulles classiques ===
 .categoryTextBubble {
-  margin-top: 0.75rem;
+  max-width: 280px;
+  margin: 0.75rem auto 0;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
-  background: var(--bubble-bg, #fff);
+  text-align: center;
   border-radius: 12px;
   border: 1px solid var(--bubble-primary);
+  background: var(--bubble-bg, #fff);
   color: var(--bubble-text, var(--color-text));
-  max-width: 280px;
-  text-align: center;
 
   @include mq(sm) {
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 100%;
   }
 }
 
+// === Highlight Gold ===
 .highlightGold {
   @include highlight-gold();
   position: relative;
@@ -309,11 +287,11 @@
   z-index: 1;
 }
 
+// === Wrapper barre de recherche ===
 .searchBarWrapper {
   margin-top: var(--spacing-sm);
   text-align: center;
-  padding: var(--spacing-sm) var(--spacing-sm);
-  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
 
   .categoryInstruction {
     display: block;
@@ -332,13 +310,13 @@
     margin-inline: auto;
     border-radius: var(--radius-pill);
     padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    background: rgba(255,255,255,0.9);
     border: 1px solid var(--color-border-light);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     transition: box-shadow 0.3s ease;
 
     &:focus-within {
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+      box-shadow: 0 0 0 3px rgba(212,175,55,0.2);
     }
 
     .searchInput {
@@ -376,92 +354,87 @@
         vertical-align: middle;
         font-size: 1.2rem;
       }
+
+      &:focus-visible {
+        outline: 3px solid var(--color-focus-ring, #ffe09b);
+        outline-offset: 3px;
+        border-radius: var(--radius-pill);
+      }
     }
   }
 }
 
-.bubbleBtn:focus-visible,
-.searchButton:focus-visible {
-  outline: 3px solid var(--color-focus-ring, #ffe09b);
-  outline-offset: 3px;
-  border-radius: var(--radius-pill);
-}
-
 // === MEDIA QUERIES ===
-@media (max-width: 900px) {
-  .mapWithSearchSection {
-    gap: 1rem;
-  }
+// @include mq(max-width: 900px) {
+//   .mapWithSearchSection {
+//     gap: 1rem;
+//   }
+//   .headerContent {
+//     padding: 1rem 0.5rem;
+//     font-size: 1rem;
+//   }
+//   .categorySearchSection {
+//     padding: 1rem 0.5rem;
+//     max-width: 100vw;
+//   }
+//   .bubblesRow {
+//     flex-direction: column;
+//     gap: $spacing-sm;
+//     align-items: center;
+//     border-radius: 20px;
+//     padding: 1px;
+//   }
+//   .tripleToggleGroup {
+//     width: 100%;
+//     flex-direction: column;
+//     align-items: center;
+//     gap: 0.5rem;
+//     padding: 0.2rem;
+//   }
+//   .tripleToggleButton {
+//     font-size: 0.95rem;
+//     padding: 0.5rem 0.7rem;
+//   }
+//   .categoryTextBubble1900 {
+//     max-width: 95vw;
+//     height: auto;
+//     padding: 1rem;
+//     font-size: 1em;
+//   }
+//   .searchBarWrapper .searchBar {
+//     width: 100%;
+//     flex-direction: column;
+//     gap: 0.5rem;
+//     padding: 0.3rem;
+//   }
+// }
 
-  .headerContent {
-    padding: 1rem 0.5rem;
-    font-size: 1rem;
-  }
+// @include mq(max-width: 768px) {
+//   .mapWithSearchSection {
+//     padding: 1rem;
+//   }
+//   .headerContent {
+//     padding: 1.7rem 0.6rem;
+//     font-size: 1.07rem;
+//   }
+//   .categorySearchSection {
+//     padding: var(--spacing-md) var(--spacing-sm);
+//   }
+//   .bubblesRow {
+//     flex-direction: column;
+//     align-items: center;
+//     gap: var(--spacing-sm);
+//   }
+// }
 
-  .categorySearchSection {
-    padding: 1rem 0.5rem;
-    max-width: 100vw;
-  }
+// @include mq(max-width: 600px) {
+//   .categorySearchSection {
+//     padding: var(--spacing-md) var(--spacing-sm);
+//   }
+// }
 
-  .bubblesRow {
-    flex-direction: column;
-    gap: $spacing-sm;
-    align-items: center;
-    border-radius: 20px;
-    padding: 1px;
-  }
-
-  .tripleToggleGroup {
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.2rem;
-  }
-
-  .tripleToggleButton {
-    font-size: 0.95rem;
-    padding: 0.5rem 0.7rem;
-  }
-
-  .categoryTextBubble1900 {
-    max-width: 95vw;
-    height: auto;
-    padding: 1rem;
-    font-size: 1em;
-  }
-
-  .searchBarWrapper .searchBar {
-    width: 100%;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.3rem;
-  }
-}
-@media (max-width: 768px) {
-  .mapWithSearchSection {
-    padding: 1rem;
-  }
-
-  .headerContent {
-    padding: 1.7rem 0.6rem;
-    font-size: 1.07rem;
-  }
-
-  .categorySearchSection {
-    padding: var(--spacing-md) var(--spacing-sm);
-  }
-
-  .bubblesRow {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-  }
-}
-@media screen and (max-width: 600px) {
-  .categorySearchSection {
-    padding: var(--spacing-md) var(--spacing-sm);
-  }
-  
-  
-}
+// @include mq(max-width: 480px) {
+//   .categorySearchSection {
+//     padding: var(--spacing-md) var(--spacing-sm);
+//   }
+// }
