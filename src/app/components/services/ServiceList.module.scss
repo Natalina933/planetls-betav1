@@ -5,7 +5,7 @@
 @use "src/app/styles/abstracts/index" as *;
 @use "src/app/styles/abstracts/variables" as vars;
 
-// SECTION PRINCIPALE
+// === SECTION PRINCIPALE ===
 
 .platformSection {
   position: relative;
@@ -23,7 +23,8 @@
   scroll-behavior: smooth;
   overflow: hidden;
 }
-// HEADER
+
+// === HEADER ===
 
 .platformHeader {
   @include container(820px, $spacing-md);
@@ -76,7 +77,7 @@
   }
 }
 
-// KEYPOINTS
+// === KEYPOINTS ===
 
 .keyPoints {
   @include flex-center;
@@ -112,7 +113,7 @@
   }
 }
 
-// ICONE DORÉE
+// === ICONE DORÉE ===
 
 .goldenIcon {
   width: rem(60);
@@ -122,7 +123,7 @@
   transition: fill 0.3s ease, transform 0.3s ease;
 }
 
-// GRILLE DE SERVICES
+// === GRILLE DE SERVICES ===
 
 .serviceGrid {
   display: grid;
@@ -141,7 +142,7 @@
   }
 }
 
-// CARTES FLIP
+// === CARTES FLIP ===
 
 .serviceCard,
 .flippable {
@@ -282,7 +283,7 @@
   }
 }
 
-// RESPONSIVE
+// === RESPONSIVE ===
 
 @include mq("md") {
   .platformHeader .sectionIntro {
