@@ -1,100 +1,100 @@
-@use "src/app/styles/abstracts/_mixins" as *;
-@use "src/app/styles/abstracts/_functions" as *;
-@use "src/app/styles/abstracts/_variables" as *;
-@use "sass:color";
+// @use "src/app/styles/abstracts/_mixins" as *;
+// @use "src/app/styles/abstracts/_functions" as *;
+// @use "src/app/styles/abstracts/_variables" as *;
+// @use "sass:color";
 
-.shop {
-    background-color: #fdf8ee;
-    padding: rem(72) rem(24);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+// .shop {
+//     background-color: #fdf8ee;
+//     padding: rem(72) rem(24);
+//     text-align: center;
+//     position: relative;
+//     overflow: hidden;
 
-    h2 {
-        font-size: rem(36);
-        font-family: $font-elegant;
-        color: $gold;
-        margin-bottom: rem(32);
+//     h2 {
+//         font-size: rem(36);
+//         font-family: $font-elegant;
+//         color: $gold;
+//         margin-bottom: rem(32);
 
-        &::after {
-            content: '';
-            display: block;
-            margin: rem(8) auto 0;
-            width: rem(60);
-            height: rem(4);
-            background: $gold;
-        }
-    }
+//         &::after {
+//             content: '';
+//             display: block;
+//             margin: rem(8) auto 0;
+//             width: rem(60);
+//             height: rem(4);
+//             background: $gold;
+//         }
+//     }
 
-    .shopContent {
-        max-width: rem(640);
-        margin: 0 auto;
-        background: #fffaf4;
-        border: 2px solid $gold;
-        border-radius: rem(12);
-        padding: rem(40) rem(28);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-        animation: fadeIn 0.6s ease both;
+//     .shopContent {
+//         max-width: rem(640);
+//         margin: 0 auto;
+//         background: #fffaf4;
+//         border: 2px solid $gold;
+//         border-radius: rem(12);
+//         padding: rem(40) rem(28);
+//         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+//         animation: fadeIn 0.6s ease both;
 
-        svg {
-            margin-bottom: rem(20);
-            color: $gold;
-        }
+//         svg {
+//             margin-bottom: rem(20);
+//             color: $gold;
+//         }
 
-        p {
-            font-size: rem(18);
-            line-height: 1.6;
-            color: var(--color-text);
-            opacity: 0.85;
-            font-family: $font-text;
-            margin-bottom: rem(28);
-        }
-    }
+//         p {
+//             font-size: rem(18);
+//             line-height: 1.6;
+//             color: var(--color-text);
+//             opacity: 0.85;
+//             font-family: $font-text;
+//             margin-bottom: rem(28);
+//         }
+//     }
 
-    .shopButton {
-        background-color: $gold;
-        color: #fff;
-        font-family: $font-title;
-        font-size: rem(16);
-        padding: rem(12) rem(24);
-        border: none;
-        border-radius: rem(32);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+//     .shopButton {
+//         background-color: $gold;
+//         color: #fff;
+//         font-family: $font-title;
+//         font-size: rem(16);
+//         padding: rem(12) rem(24);
+//         border: none;
+//         border-radius: rem(32);
+//         cursor: pointer;
+//         transition: all 0.3s ease;
+//         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-        // &:hover {
-        //     background-color: color.scale($gold, $lightness: -15.28%);
-        //     transform: translateY(-2px);
-        // }
+//         // &:hover {
+//         //     background-color: color.scale($gold, $lightness: -15.28%);
+//         //     transform: translateY(-2px);
+//         // }
 
-        &:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba($gold, 0.4);
-        }
-    }
-}
+//         &:focus {
+//             outline: none;
+//             box-shadow: 0 0 0 3px rgba($gold, 0.4);
+//         }
+//     }
+// }
 
-// 🎬 Animation d’apparition
-@keyframes fadeIn {
-    0% {
-        transform: translateY(rem(24));
-        opacity: 0;
-    }
+// // 🎬 Animation d’apparition
+// @keyframes fadeIn {
+//     0% {
+//         transform: translateY(rem(24));
+//         opacity: 0;
+//     }
 
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
+//     100% {
+//         transform: translateY(0);
+//         opacity: 1;
+//     }
+// }
 
-// ✨ Effet de vague
-@keyframes wave {
-    0% {
-        transform: translateX(-100%);
-    }
+// // ✨ Effet de vague
+// @keyframes wave {
+//     0% {
+//         transform: translateX(-100%);
+//     }
 
-    100% {
-        transform: translateX(100%);
-    }
-}
+//     100% {
+//         transform: translateX(100%);
+//     }
+// }
