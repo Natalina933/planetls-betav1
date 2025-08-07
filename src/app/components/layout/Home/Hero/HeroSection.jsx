@@ -2,7 +2,6 @@ import React from "react";
 // import Image from 'next/image';
 import styles from "./HeroSection.module.css";
 import CategoryCarousel from "./CategoryCarousel";
-import CTAButton from "@/app/components/common/Buttons/CTAButton/CTAButton";
 const HeroSection = () => {
   const scrollToCommunity = () => {
     try {
@@ -42,8 +41,8 @@ const HeroSection = () => {
             « Simplifiez la gestion, optimisez vos revenus, trouvez les meilleurs services locaux en un clic »
           </p>
           <div className={styles.buttonsRow}>
-            <CTAButton
-              variant="primary"
+            <button
+              className={styles.CTAButton}
               onClick={() => {
                 try {
                   // Exemple : ouvrir une page ou lancer une modale
@@ -54,11 +53,20 @@ const HeroSection = () => {
                 }
               }}>
               Découvrir comment ça marche
-            </CTAButton>
+            </button>
 
-            <CTAButton variant="secondary" onClick={scrollToCommunity}>
+            <button
+              className={styles.CTAButton}
+              onClick={() => {
+                try {
+                  window.scrollTo({ top: 800, behavior: "smooth" });
+                } catch (error) {
+                  console.error("⛔ Échec du scroll :", error);
+                }
+              }}
+            >
               Inscription gratuite
-            </CTAButton>
+            </button>
           </div>
         </div>
       </div>
