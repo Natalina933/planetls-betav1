@@ -36,7 +36,7 @@
     font-family: $font-elegant;
     font-size: rem(21);
     line-height: $line-height;
-    color: $color-text;
+    color: vars.$color-text;
     margin-bottom: $spacing-md;
   }
 
