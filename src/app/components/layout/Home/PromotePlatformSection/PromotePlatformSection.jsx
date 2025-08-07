@@ -3,9 +3,9 @@ import React from 'react';
 import { TbPackages } from "react-icons/tb";
 import SectionBlock from '../../../shared/SectionBlock/SectionBlock';
 import styles from "./PromotePlatformSection.module.scss";
-import { ChevronRight } from 'lucide-react'; 
+import { ChevronRight } from 'lucide-react';
 import { AiOutlineWechat } from "react-icons/ai";
-import { MdAutoMode } from "react-icons/md"; 
+import { MdAutoMode } from "react-icons/md";
 
 export default function PromotePlatformSection() {
     return (
@@ -43,7 +43,7 @@ export default function PromotePlatformSection() {
                         <p>Des experts à vos côtés pour piloter votre projet de A à Z.</p>
                     </div>
                     <div className={styles.pillarItem}>
-<MdAutoMode />
+                        <MdAutoMode />
                         <h4>AUTOMATISATION</h4>
                         <p>Libérez du temps en automatisant les tâches répétitives.</p>
                     </div>
