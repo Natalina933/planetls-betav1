@@ -1,4 +1,3 @@
-// --------------------------------------
 @use "sass:map";
 @use "sass:color";
 @use "sass:math";
@@ -18,7 +17,7 @@
   justify-content: center;
   background-color: #fdf7ef;
   font-family: "High Tower Text", serif;
-  border: 3px double $gold;
+  border: 3px double vars.$gold;
   border-radius: 2rem;
   box-shadow: 0 2px 16px rgba(212, 175, 55, 0.12);
   scroll-behavior: smooth;
@@ -41,7 +40,7 @@
   }
 
   .highlightText {
-    background: linear-gradient(to right, $gold, $gold-alt);
+    background: linear-gradient(to right, vars.$gold, vars.$gold-alt);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -60,7 +59,7 @@
     gap: $spacing-sm;
     padding: $spacing-sm $spacing-md;
     border-radius: $radius-pill;
-    background: linear-gradient(to right, $gold, $gold-alt);
+    background: linear-gradient(to right, vars.$gold, vars.$gold-alt);
     color: $primary-dark-color-sass;
     font-weight: 600;
     font-size: 1.5em;
@@ -68,7 +67,7 @@
     transition: transform 0.2s ease;
 
     &:hover {
-      background: linear-gradient(to right, $gold-accent, $gold-alt);
+      background: linear-gradient(to right, vars.$gold-accent, vars.$gold-alt);
       transform: translateY(-2px);
     }
 
@@ -96,7 +95,7 @@
     padding: $spacing-sm $spacing-md;
     border-radius: $radius-pill;
     background-color: $all-bg;
-    border: 2px solid $gold;
+    border: 2px solid vars.$gold;
     color: $color-text;
     @include box-shadow();
     transition: $transition;
@@ -107,9 +106,9 @@
     }
 
     &.isActive {
-      background: linear-gradient(to right, $gold, $gold-alt);
+      background: linear-gradient(to right, vars.$gold, vars.$gold-alt);
       color: #fff;
-      border-color: $gold;
+      border-color: vars.$gold;
     }
   }
 }
@@ -119,7 +118,7 @@
 .goldenIcon {
   width: rem(60);
   height: rem(70);
-  stroke: $gold;
+  stroke: vars.$gold;
   stroke-width: 1.2;
   transition: fill 0.3s ease, transform 0.3s ease;
 }
@@ -150,7 +149,7 @@
   width: 100%;
   max-width: 500px;
   aspect-ratio: 4 / 3;
-  border: 3px solid $gold;
+  border: 3px solid vars.$gold;
   border-radius: $radius-2xl;
   background-color: $mucha-paper;
   overflow: hidden;
@@ -165,7 +164,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
   &:focus-visible {
-    outline: 3px solid $gold-alt;
+    outline: 3px solid vars.$gold-alt;
     outline-offset: 4px;
   }
 
@@ -210,7 +209,7 @@
     background-position: center;
     background-blend-mode: soft-light;
     color: $gold-accent;
-    border: 3px solid $gold;
+    border: 3px solid vars.$gold;
     transform: rotateY(180deg);
     z-index: 1;
     overflow: hidden;
@@ -228,7 +227,7 @@
       text-align: center;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       background-color: antiquewhite;
-      border: 2px double $gold;
+      border: 2px double vars.$gold;
       padding: 1.5rem;
       border-radius: 1.2rem;
       overflow: hidden;
@@ -239,7 +238,7 @@
         font-size: 1.3em;
         vertical-align: top;
         margin-right: 0.415em;
-        color: $gold;
+        color: vars.$gold;
         opacity: 0.6;
         font-family: $font-elegant;
         pointer-events: none;
@@ -251,7 +250,7 @@
         display: inline;
         font-size: 1.3em;
         vertical-align: bottom;
-        color: $gold;
+        color: vars.$gold;
         opacity: 0.6;
         font-family: $font-elegant;
         pointer-events: none;
@@ -285,6 +284,7 @@
 }
 
 // RESPONSIVE
+
 @include mq("md") {
   .platformHeader .sectionIntro {
     font-size: rem(17);
