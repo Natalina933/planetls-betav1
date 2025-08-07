@@ -21,9 +21,19 @@ $font-weight-bold: 700;
 $font-weight-normal: 400;
 
 // --- Couleurs SCSS ---
+// Couleur de texte principale
+$color-text: #333;
+$color-text-light: #555;
+$color-text-hover: #d4af37;
+$color-accent-dark: #555; // Couleur d'accentuation foncée
+$color-accent: #feca53; // Couleur d'accentuation
+$color-accent-hover: #f7d48f; // Couleur d'accentuation au survol
 $primary-dark-color-sass: #b99b2e; // Couleur primaire foncée
 $primary-color-sass: #d4af37; // Couleur primaire
 $primary-light-color-sass: #ffe099; // Couleur primaire claire
+
+$all-bg: #f7fbfe; // Couleur de fond générale
+
 // Utiles pour les manipulations de couleurs dans les mixins.
 $gold: #d4af37;
 $gold-dark: #b99b2e;
@@ -51,3 +61,6 @@ $spacing-lg: 2rem;
 $spacing-xl: 4rem;
 
 $line-height: 1.6;
+
+$radius-pill: 50px; // Pour les boutons et éléments arrondis
+$radius-2xl: 1.5rem; // Pour les éléments avec des coins arrondis

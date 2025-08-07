@@ -16,7 +16,7 @@
 
 // 3. Components : Styles pour les composants réutilisables.
 // Décommentez ou ajoutez des imports pour vos composants.
-// @use '../components/Button/Button.scss';
+@use '../components/common/Buttons/CTAButton/CTAButton.module.scss';
 // @use '../components/Card/Card.scss';
 // @use '../components/MapWithList/MapWithList.module.scss'; // Attention aux modules
 

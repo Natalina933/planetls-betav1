@@ -1,9 +1,12 @@
+// --------------------------------------
 @use "sass:map";
 @use "sass:color";
 @use "sass:math";
 @use "sass:meta";
 @use "src/app/styles/abstracts/index" as *;
+@use "src/app/styles/abstracts/variables" as vars;
 
+// SECTION PRINCIPALE
 
 .platformSection {
   position: relative;
@@ -15,45 +18,48 @@
   justify-content: center;
   background-color: #fdf7ef;
   font-family: "High Tower Text", serif;
-  border: 3px double #d4af37;
+  border: 3px double $gold;
   border-radius: 2rem;
   box-shadow: 0 2px 16px rgba(212, 175, 55, 0.12);
   scroll-behavior: smooth;
   overflow: hidden;
 }
 
+// HEADER
+
 .platformHeader {
-  @include container(820px, var(--spacing-md));
+  @include container(820px, $spacing-md);
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: $spacing-lg;
 
   .sectionIntro {
     font-family: $font-elegant;
     font-size: rem(21);
     line-height: $line-height;
-    color: var(--color-text);
-    margin-bottom: var(--spacing-md);
+    color: $color-text;
+    margin-bottom: $spacing-md;
   }
 
   .highlightText {
     background: linear-gradient(to right, $gold, $gold-alt);
     background-clip: text;
+    -webkit-background-clip: text;
     color: transparent;
     font-weight: $font-weight-bold;
   }
 
   .userCategory {
     font-style: italic;
-    color: var(--color-accent-dark);
+    color: $color-accent-dark;
   }
 
   .CTAButton {
     @include button-base;
     display: inline-flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-pill);
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-pill;
     background: linear-gradient(to right, $gold, $gold-alt);
     color: $primary-dark-color-sass;
     font-weight: 600;
@@ -72,11 +78,13 @@
   }
 }
 
+// KEYPOINTS
+
 .keyPoints {
   @include flex-center;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
 
   .keyPointChipWrapper {
     display: flex;
@@ -85,16 +93,16 @@
   .keyPointChip {
     @include button-base;
     font-size: rem(17);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-pill);
-    background-color: var(--all-bg);
+    padding: $spacing-sm $spacing-md;
+    border-radius: $radius-pill;
+    background-color: $all-bg;
     border: 2px solid $gold;
-    color: var(--color-text);
+    color: $color-text;
     @include box-shadow();
     transition: $transition;
 
     &:hover {
-      background-color: var(--color-accent-hover);
+      background-color: $color-accent-hover;
       transform: translateY(-1px);
     }
 
@@ -106,46 +114,44 @@
   }
 }
 
+// ICONE DORÉE
+
 .goldenIcon {
   width: rem(60);
   height: rem(70);
   stroke: $gold;
   stroke-width: 1.2;
   transition: fill 0.3s ease, transform 0.3s ease;
-
-  // &:hover {
-  //   fill: $gold-accent;
-  //   transform: scale(1.05);
-  // }
 }
+
+// GRILLE DE SERVICES
 
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); // ✅ 3 colonnes fixes
-  gap: var(--spacing-md); // espacement cohérent avec ton design
-  margin-top: var(--spacing-lg);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
   justify-items: center;
-  align-items: start; // aligne les cartes en haut
+  align-items: start;
 
   @include mq("lg") {
-    grid-template-columns: repeat(2, minmax(0, 1fr)); // 2 colonnes sur tablette
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   @include mq("md") {
-    grid-template-columns: 1fr; // 1 colonne sur mobile
+    grid-template-columns: 1fr;
   }
 }
 
+// CARTES FLIP
 
-
-// Cartes flip
 .serviceCard,
 .flippable {
   width: 100%;
   max-width: 500px;
   aspect-ratio: 4 / 3;
   border: 3px solid $gold;
-  border-radius: var(--radius-2xl);
+  border-radius: $radius-2xl;
   background-color: $mucha-paper;
   overflow: hidden;
   @include box-shadow(rgba(0, 0, 0, 0.08));
@@ -154,17 +160,9 @@
 
 .flippable {
   perspective: 1000px;
-  width: 100%;
-  max-width: 500px;
-  aspect-ratio: 4 / 3;
-  border: 3px solid $gold;
-  border-radius: var(--radius-2xl);
-  background-color: $mucha-paper;
-  overflow: hidden;
-  box-sizing: border-box;
-  box-shadow: rgba(0, 0, 0, 0.08) 0 4px 12px;
   cursor: pointer;
   outline-offset: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
   &:focus-visible {
     outline: 3px solid $gold-alt;
@@ -189,7 +187,7 @@
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
-    border-radius: var(--radius-2xl);
+    border-radius: $radius-2xl;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -200,7 +198,7 @@
 
   .cardFront {
     background-color: $mucha-paper;
-    color: var(--color-text-light);
+    color: $color-text-light;
     z-index: 2;
   }
 
@@ -216,8 +214,7 @@
     transform: rotateY(180deg);
     z-index: 1;
     overflow: hidden;
-    box-shadow: rgba(0, 0, 0, 0.1) 0 4px 14px;
-
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 
     .cardQuote {
       position: relative;
@@ -232,14 +229,14 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       background-color: antiquewhite;
       border: 2px double $gold;
-      padding: 1.5rem; // un peu plus de padding haut/bas pour les guillemets
+      padding: 1.5rem;
       border-radius: 1.2rem;
-      overflow: hidden; // au cas où
+      overflow: hidden;
 
       &::before {
         content: "❝";
         display: inline;
-        font-size: 1.3em; // adapte à la hauteur de la police
+        font-size: 1.3em;
         vertical-align: top;
         margin-right: 0.415em;
         color: $gold;
@@ -254,7 +251,6 @@
         display: inline;
         font-size: 1.3em;
         vertical-align: bottom;
-        // margin-left: 0.15em;
         color: $gold;
         opacity: 0.6;
         font-family: $font-elegant;
@@ -262,36 +258,33 @@
       }
 
       @media (min-width: 1200px) {
-        // écran large desktop
-        font-size: rem(18); // réduction à 18px (ajuste à ta convenance)
+        font-size: rem(18);
       }
     }
-
   }
 
   .cardBackContent {
     width: 100%;
     max-width: 90%;
-    padding: var(--spacing-xl);
+    padding: $spacing-xl;
     text-align: center;
     box-sizing: border-box;
   }
 
   .serviceCardTitle {
     @include heading-style(4);
-    color: var(--color-text);
-    margin-bottom: var(--spacing-sm);
+    color: $color-text;
+    margin-bottom: $spacing-sm;
   }
 
   .serviceCardDesc {
     font-size: rem(17);
-        font-style: italic;
-
+    font-style: italic;
     opacity: 0.95;
   }
 }
 
-// Responsive
+// RESPONSIVE
 @include mq("md") {
   .platformHeader .sectionIntro {
     font-size: rem(17);
@@ -302,7 +295,6 @@
   }
 }
 
-// Ajustements responsives pour les petits écrans
 @include mq("xs") {
   .platformSection {
     padding: 2rem 1rem;
@@ -316,7 +308,7 @@
 
     .CTAButton {
       font-size: 0.95rem;
-      padding: var(--spacing-sm) var(--spacing-md);
+      padding: $spacing-sm $spacing-md;
     }
   }
 
@@ -331,7 +323,7 @@
 
   .serviceGrid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+    gap: $spacing-lg;
   }
 
   .flippable,
