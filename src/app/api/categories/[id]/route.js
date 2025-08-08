@@ -3,7 +3,7 @@ import {
     getCategoryById,
     updateCategoryById,
     deleteCategoryById,
-} from '@/lib/api/categories';
+} from '../../../lib/db';
 
 export async function GET(request, { params }) {
     const { id } = params;
