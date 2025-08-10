@@ -26,7 +26,7 @@
   /* Police de titre pour la cohérence */
   font-size: 2.6rem;
   /* Grande taille pour les titres de section principaux */
-  color: var(--color-primary);
+  color: #836517;
   /* Couleur primaire pour les titres */
   margin-bottom: var(--spacing-lg);
   /* Espace sous le titre */
@@ -38,7 +38,7 @@
   /* Animation si définie globalement */
 
   &::after {
-    content: '';
+    content: "";
     display: block;
     margin: var(--spacing-sm) auto 0;
     /* Espacement entre le titre et l'underline */

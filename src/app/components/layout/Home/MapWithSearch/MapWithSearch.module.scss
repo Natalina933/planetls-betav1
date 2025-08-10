@@ -182,15 +182,15 @@
   }
 }
 
-// === Boutons toggle ===
+// === Groupe des boutons triple toggle ===
 .tripleToggleButton {
   flex: 1;
   width: 200px;
   padding: 0.6rem 1.2rem;
   font-family: var(--font-title);
   font-size: 1rem;
-  color: $gold;
-  background: transparent;
+  color: #6b5210; // Patch ici !
+  background: #fff8e1;
   border: none;
   border-radius: var(--radius-pill);
   cursor: pointer;
@@ -199,8 +199,8 @@
   transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
 
   &:hover {
+    color: #5a430c; // Patch sur hover
     background: rgba(255, 224, 155, 0.3);
-    color: $gold;
   }
 
   &.active {
@@ -285,7 +285,9 @@
 
 // === Highlight Gold ===
 .highlightGold {
-  @include highlight-gold();
+  color: #775717;
+  background: #ffe09b;
+  font-weight: bold;
   position: relative;
   display: inline-block;
   z-index: 1;
@@ -373,7 +375,6 @@
 
 /* Classe pour cacher visuellement un label mais visible aux lecteurs d'écran */
 .srOnly {
-
   position: absolute !important;
   width: 1px;
   height: 1px;

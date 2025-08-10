@@ -2,28 +2,42 @@ import React from "react";
 import styles from "./ProfilesDisplay.module.scss";
 
 export default function ProfilesDisplay({ visibleProfiles }) {
-    return (
-        <div className={styles.profilesDisplay}>
-            {visibleProfiles.length > 0 ? (
-                <ul className={styles.profileList}>
-                    {visibleProfiles.map(({ id, name, type, photo, services }) => (
-                        <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
-                            <img
-                                src={photo || "/default-profile.png"}
-                                alt={`Avatar de ${name}, ${type}`}
-                                className={styles.profileAvatar}
-                            />
-                            <div className={styles.profileDetails}>
-                                <h4>{name} ({type.charAt(0).toUpperCase() + type.slice(1)})</h4>
-                                <p>Services : {services.length ? services.join(", ") : "Non renseignés"}</p>
-                                <button className={styles.profileContactBtn}>Contacter</button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <div className={styles.noResult}>Aucun profil trouvé dans cette catégorie pour la démo.</div>
-            )}
+  return (
+    <div className={styles.profilesDisplay}>
+      {visibleProfiles.length > 0 ? (
+        <ul className={styles.profileList}>
+          {visibleProfiles.map(({ id, name, type, photo, services }) => (
+            <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
+              <img
+                src={photo || "/default-profile.png"}
+                alt={`Avatar de ${name}, ${type}`}
+                className={styles.profileAvatar}
+              />
+              <div className={styles.profileDetails}>
+                <h4>
+                  {name} ({type.charAt(0).toUpperCase() + type.slice(1)})
+                </h4>
+                <p>
+                  Services :{" "}
+                  {Array.isArray(services) && services.length
+                    ? services.join(", ")
+                    : "Non renseignés"}
+                </p>
+                <button
+                  className={styles.profileContactBtn}
+                  aria-label={`Contacter ${name} (${type})`}
+                >
+                  Contacter
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className={styles.noResult}>
+          Aucun profil trouvé dans cette catégorie pour la démo.
         </div>
-    );
+      )}
+    </div>
+  );
 }

@@ -10,9 +10,10 @@ export default function Header() {
             <div className={styles.logo}>
                 <Link href="/" className={styles.brand}>
                     <span className={styles.logoWrapper}>
-                    <img src="/icons/logoCompletv2.svg" alt="" />
+                        <img src="/icons/logoCompletv2.svg" alt="PlanetLs – Accueil" />
                     </span>
                 </Link>
+
             </div>
 
             <Navbar />
