@@ -1,7 +1,8 @@
 import React from "react";
-// import Image from 'next/image';
-import styles from "./HeroSection.module.css";
+import Image from 'next/image';
+import styles from "./HeroSection.module.scss";
 import CategoryCarousel from "./CategoryCarousel";
+
 const HeroSection = () => {
   const scrollToCommunity = () => {
     try {
@@ -14,13 +15,14 @@ const HeroSection = () => {
 
   return (
     <section className={styles.hero}>
-      {/* <Image
+      <Image
         src="/images/hero-warmv2.jpg"
-        alt="Image décorative"
+        alt="Décor de la page d'accueil"
         fill
         priority
-        style={{ objectFit: "cover", zIndex: -1 }}
-      /> */}
+        style={{ objectFit: "cover"}}
+        className={styles.heroImage}
+      />
       <div className={styles.overlay} />
 
       <div className={styles.grid}>

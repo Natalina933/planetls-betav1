@@ -70,7 +70,7 @@ export default function MapWithSearch() {
       <ToastContainer position="top-right" autoClose={4000} />
 
       <section className={styles.categorySearchSection}>
-      
+
         <h2 className={styles.categoryTitle}>
           Connectez-vous aux bons partenaires
         </h2>
@@ -106,21 +106,31 @@ export default function MapWithSearch() {
             Utilisez les filtres ci-dessus et indiquez votre localisation.
           </span>
 
-          <div className={styles.searchBar}>
+          <form
+            onSubmit={(e) => { e.preventDefault(); onSearch(); }}
+            className={styles.searchBar}
+          >
+            <label htmlFor="location-search" className={styles.srOnly}>
+              Recherche de localisation
+            </label>
             <input
-              type="text"
+              type="search"
+              id="location-search"
+              name="location"
               placeholder="Où recherchez-vous ?"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               onKeyDown={onKeyDown}
-              aria-label="Rechercher une localisation"
+              required
               className={styles.searchInput}
             />
-            <button onClick={onSearch} type="button" aria-label="Rechercher">
-              <FaSearch />
+            <button type="submit" aria-label="Rechercher">
+              <FaSearch aria-hidden="true" />
             </button>
-          </div>
+          </form>
         </div>
+
+
       </section>
     </div>
   );

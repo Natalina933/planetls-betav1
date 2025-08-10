@@ -88,17 +88,17 @@
   padding: 1.5rem;
   border-radius: 20px;
   border: 2px solid #d4af37;
-  background-image:
-    linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
+  background-image: linear-gradient(
+      rgba(255, 200, 100, 0.55),
+      rgba(139, 69, 19, 0.6)
+    ),
     url("/ornements/mucha-background-pattern-light.png");
   background-blend-mode: soft-light;
   background-repeat: repeat;
   background-position: center;
   background-size: 250px 250px;
-  box-shadow:
-    inset 0 0 10px rgba(255, 255, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.25),
-    0 0 10px #d4af37;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px #d4af37;
   opacity: 1;
   overflow: visible;
 
@@ -230,7 +230,11 @@
   box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
   cursor: pointer;
   transition: all 0.3s ease;
-  @include backdrop-blur(3px, rgba(255,255,255,0.85), rgba(255,255,255,0.2));
+  @include backdrop-blur(
+    3px,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0.2)
+  );
 
   svg {
     font-size: 1.9rem;
@@ -299,6 +303,7 @@
     font-size: 0.9em;
     color: var(--mucha-accent);
     font-style: italic;
+    margin-bottom: var(--spacing-sm);
   }
 
   .searchBar {
@@ -306,17 +311,18 @@
     justify-content: center;
     align-items: center;
     gap: var(--spacing-sm);
-    width: 500px;
+    width: 100%;
+    max-width: 500px; /* pour responsive */
     margin-inline: auto;
     border-radius: var(--radius-pill);
     padding: 0.5rem;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--color-border-light);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: box-shadow 0.3s ease;
 
     &:focus-within {
-      box-shadow: 0 0 0 3px rgba(212,175,55,0.2);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
     }
 
     .searchInput {
@@ -329,6 +335,7 @@
       background-color: transparent;
       color: var(--color-text);
       outline: none;
+      line-height: 1.2;
 
       &::placeholder {
         color: var(--color-text-light);
@@ -362,6 +369,20 @@
       }
     }
   }
+}
+
+/* Classe pour cacher visuellement un label mais visible aux lecteurs d'écran */
+.srOnly {
+
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 // === MEDIA QUERIES ===

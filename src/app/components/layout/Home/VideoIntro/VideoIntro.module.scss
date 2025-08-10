@@ -11,10 +11,11 @@
 }
 
 .videoImage {
-    max-width: 480px;
-    width: 100%;
-    border-radius: 8px;
-    object-fit: cover;
+  max-width: 480px;
+  width: 100%;
+  height: auto; /* ✅ garde le ratio naturel */
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .videoContent {
@@ -77,19 +78,21 @@
 
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
-    .videoIntroSection {
-        flex-direction: column;
-        padding: 1.5rem;
-        text-align: center;
-    }
+  .videoIntroSection {
+    flex-direction: column;
+    padding: 1.5rem;
+    text-align: center;
+  }
 
-    .videoImage {
-        max-width: 100%;
-        margin-bottom: 1rem;
-    }
+  .videoImage {
+    max-width: 100%;
+    width: 100%;
+    height: auto; /* ✅ ajouté aussi ici */
+    margin-bottom: 1rem;
+  }
 
-    .CTAButton {
-        width: 100%;
-        text-align: center;
-    }
+  .CTAButton {
+    width: 100%;
+    text-align: center;
+  }
 }
