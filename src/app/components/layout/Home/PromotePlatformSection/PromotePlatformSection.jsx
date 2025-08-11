@@ -2,7 +2,7 @@
 
 import React from 'react';
 import dynamic from "next/dynamic";
-import SectionBlock from '../../../shared/SectionBlock/SectionBlock';
+import SectionBlock from '../SectionBlock/SectionBlock';
 import styles from "./PromotePlatformSection.module.scss";
 
 // Import dynamique et lazy loading des icônes

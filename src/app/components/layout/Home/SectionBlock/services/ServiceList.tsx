@@ -4,10 +4,11 @@ import Head from "next/head";
 import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 
+import SectionBlock from "../SectionBlock"; // Assurez-vous que le chemin est correct
 import styles from "./ServiceList.module.scss";
-import { services } from "../../data/services/services";
+import { services } from "../../../../../data/services/services";
 
-export default function PlatformIntroSection() {
+export default function ServiceList() {
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
 
   const keyPoints = [
@@ -43,8 +44,12 @@ export default function PlatformIntroSection() {
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
 
-      <section className={styles.platformSection} aria-labelledby="platform-title">
-        <header id="platform-title" className={styles.platformHeader}>
+      <SectionBlock
+        title="Découvrer notre Plateforme de gestion tout-en-un"
+        subtitle="La solution en ligne pour l’ensemble des acteurs de la location saisonnière"
+        description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
+      >
+        <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
             Conçue pour{" "}
             <span className={styles.highlightText}>
@@ -94,7 +99,6 @@ export default function PlatformIntroSection() {
 
             const isFlipped = flippedCards.includes(safeKeyPoint);
 
-            // Gestion clic + clavier sur la carte entière
             const toggleFlip = () => handleKeyPointClick(safeKeyPoint);
             const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -148,7 +152,16 @@ export default function PlatformIntroSection() {
             );
           })}
         </div>
-      </section>
+
+        <div className={styles.ctaZone}>
+          <a className={styles.CTAButton} href="/inscription" aria-label="Essayer la plateforme gratuitement">
+            Essayer gratuitement
+          </a>
+          <span className={styles.ctaSub}>
+            Assistance personnalisée & offres sans commission.
+          </span>
+        </div>
+      </SectionBlock>
     </>
   );
 }

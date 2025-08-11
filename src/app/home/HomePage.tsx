@@ -7,11 +7,11 @@ import { HowItWorksSection } from "../components/layout/Home/HowItWorksSection/H
 import FirstVisit from '../components/layout/Home/FirstVisit/FirstVisit';
 import Head from 'next/head';
 import VideoIntro from '../components/layout/Home/VideoIntro/VideoIntro';
-import ServicesSection from '../components/layout/Home/ServicesSection/ServicesSection';
+import ServicesSection from '../components/layout/Home/SectionBlock/ServicesSection/ServicesSection';
 import ForWhomSection from '../components/layout/Home/ForWhomSection/ForWhomSection';
 import { ShopSection } from '../components/layout/Home/ShopSection/ShopSection';
-import PromotePlatformSection from '../components/layout/Home/PromotePlatformSection/PromotePlatformSection'; 
-import {TrustSection} from '../components/layout/Home/TrustSection/TrustSection';
+import PromotePlatformSection from '../components/layout/Home/PromotePlatformSection/PromotePlatformSection';
+import { TrustSection } from '../components/layout/Home/TrustSection/TrustSection';
 import BlogNewsSection from '../components/layout/Home/BlogNewsSection/BlogNewsSection';
 
 // Chargement dynamique côté client uniquement

@@ -6,8 +6,6 @@
 @use "src/app/styles/abstracts/_variables" as *; // Assurez-vous que ce chemin est correct
 
 .section {
-  padding: var(--spacing-xl) var(--spacing-md);
-  /* Espacement vertical générique pour toutes les sections */
   text-align: center;
   background-color: var(--background);
   /* Couleur de fond neutre */

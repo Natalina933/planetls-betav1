@@ -1,36 +1,32 @@
-// src/app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat, Cormorant_Garamond, Open_Sans } from 'next/font/google';
 import "./styles/main.scss";
 import Providers from "./context/Providers";
 import Header from "./components/layout/Header/Header";
 
-// Configuration des fonts
-const inter = Inter({ 
+const inter = Inter({
     subsets: ['latin'],
     variable: '--font-inter',
     display: 'swap',
 });
-
 const montserrat = Montserrat({
     subsets: ['latin'],
     variable: '--font-title',
     display: 'swap',
 });
-
 const cormorant = Cormorant_Garamond({
     subsets: ['latin'],
     weight: ['300', '400', '500', '600', '700'],
     variable: '--font-primary',
     display: 'swap',
 });
-
 const openSans = Open_Sans({
     subsets: ['latin'],
     variable: '--font-text',
     display: 'swap',
 });
 
+// PATCH PWA METADATA
 export const metadata: Metadata = {
     title: {
         default: 'PlanetLs',
@@ -40,10 +36,22 @@ export const metadata: Metadata = {
     keywords: ['propriétaires', 'concierges', 'artisans', 'commerçants', 'mise en relation'],
     authors: [{ name: 'PlanetLs Team' }],
     creator: 'PlanetLs',
+    icons: {
+        icon: '/favicon.ico',
+        shortcut: '/favicon.ico',
+        apple: '/icons/icon-192x192.png'
+    },
+    manifest: '/manifest.json',//app web installable, hors-ligne, mobile-friendly (PWA)
+    applicationName: 'PlanetLs',
+    appleWebApp: {
+        capable: true,
+        title: "PlanetLs",
+        statusBarStyle: "default"
+    },
     openGraph: {
         type: 'website',
         locale: 'fr_FR',
-        url: 'https://votre-domaine.com',
+        // url: 'https://votre-domaine.com',
         title: 'PlanetLs',
         description: 'Plateforme de mise en relation propriétaires, concierges, artisans et commerçants.',
         siteName: 'PlanetLs',
@@ -59,16 +67,20 @@ export const metadata: Metadata = {
             'max-snippet': -1,
         },
     },
+    twitter: {
+        card: "summary",
+        title: "PlanetLs"
+    }
 };
 
-export default function RootLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+    themeColor: "#f2c200ff"
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html 
-            lang="fr" 
+        <html
+            lang="fr"
             className={`${inter.variable} ${montserrat.variable} ${cormorant.variable} ${openSans.variable}`}
         >
             <body suppressHydrationWarning={true}>

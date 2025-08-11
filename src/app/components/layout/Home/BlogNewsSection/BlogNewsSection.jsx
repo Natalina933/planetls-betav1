@@ -1,7 +1,7 @@
 // src/app/components/layout/Home/BlogNewsSection/BlogNewsSection.jsx
 "use client";
 import React from 'react';
-import SectionBlock from '../../../shared/SectionBlock/SectionBlock'; // Assurez-vous que le chemin est correct
+import SectionBlock from '../SectionBlock/SectionBlock'; // Assurez-vous que le chemin est correct
 import BlogPreviewList from '../../../blog/BlogPreviewList'; // Assurez-vous que le chemin est correct vers votre BlogPreviewList
 
 /**

@@ -1,0 +1,182 @@
+// 🎨 Variables
+$color-bg: #ffffff;
+$color-primary: #2c2c2c;
+$color-accent: #d4af37;
+$color-muted: #666;
+$color-hover: #f5f5f5;
+
+$font-title: 'Playfair Display', serif;
+$font-body: 'Inter', sans-serif;
+
+.platformSection {
+  background-color: $color-bg;
+  padding: 5rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.platformHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sectionIntro {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  font-family: $font-body;
+  color: $color-muted;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+}
+
+.highlightText {
+  color: $color-accent;
+  font-weight: 600;
+}
+
+.userCategory {
+  color: $color-primary;
+  font-weight: bold;
+}
+
+.CTAButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: $color-accent;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background-color: darken($color-accent, 10%);
+  }
+}
+
+.ctaIcon {
+  stroke: #fff;
+  width: 20px;
+  height: 20px;
+}
+
+// 🟡 Chips
+.keyPoints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+
+  &--chips {
+    list-style: none;
+    padding: 0;
+  }
+}
+
+.keyPointChipWrapper {
+  display: inline-block;
+}
+
+.keyPointChip {
+  background-color: $color-hover;
+  border: 1px solid $color-accent;
+  color: $color-primary;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: $color-accent;
+    color: #fff;
+  }
+}
+
+.isActive {
+  background-color: $color-accent;
+  color: #fff;
+}
+
+// 🧩 Cartes de service
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.flippable {
+  perspective: 1000px;
+  cursor: pointer;
+  outline: none;
+}
+
+.cardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flipped .cardInner {
+  transform: rotateY(180deg);
+}
+
+.cardFront,
+.cardBack {
+  position: absolute;
+  width: 100%;
+  backface-visibility: hidden;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 2rem;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.cardFront {
+  z-index: 2;
+}
+
+.cardBack {
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.serviceCardIconWrap {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.goldenIcon {
+  stroke: $color-accent;
+  width: 32px;
+  height: 32px;
+}
+
+.serviceCardTitle {
+  font-family: $font-title;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: $color-primary;
+}
+
+.serviceCardDesc {
+  font-family: $font-body;
+  font-size: 1rem;
+  color: $color-muted;
+}
+
+.cardQuote {
+  font-style: italic;
+  font-size: 1.1rem;
+  color: $color-primary;
+  text-align: center;
+  max-width: 90%;
+}
