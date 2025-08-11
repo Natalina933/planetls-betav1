@@ -1,0 +1,136 @@
+// Variables globales (à importer depuis un fichier global si possible)
+$transition-duration: 0.6s;
+$transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+$card-width: 280px;
+$card-height: 360px;
+$border-radius: 12px;
+$box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+$golden-color: #d4af37; // doré
+
+.card {
+    width: $card-width;
+    height: $card-height;
+    perspective: 1200px; // donne la profondeur 3D pour l'effet flip
+    cursor: pointer;
+    outline: none; // on gère le focus explicitement
+
+    &:focus-visible {
+        outline: 3px solid $golden-color;
+        outline-offset: 4px;
+    }
+
+    // Conteneur interne qui va tourner
+    .inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: $border-radius;
+        box-shadow: $box-shadow;
+        transition: transform $transition-duration $transition-timing;
+        transform-style: preserve-3d;
+    }
+
+    &.flipped .inner {
+        transform: rotateY(180deg);
+    }
+
+    // Faces avant et arrière de la carte
+    .front,
+    .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: $border-radius;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 24px;
+        box-sizing: border-box;
+        background-color: #fff;
+    }
+
+    .front {
+        color: #222;
+        border: 2px solid #eee;
+
+        .icon {
+            display: inline-flex;
+            margin-bottom: 16px;
+
+            svg {
+                width: 48px;
+                height: 48px;
+                stroke: $golden-color;
+            }
+        }
+
+        h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111;
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.4;
+            color: #444;
+            flex-grow: 1;
+        }
+    }
+
+    .back {
+        transform: rotateY(180deg);
+        background-color: #f7f7f7;
+        border: 2px solid $golden-color;
+        color: #555;
+
+        blockquote {
+            font-style: italic;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0 8px;
+            color: darken($golden-color, 20%);
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+    }
+
+    // Interaction au focus pour meilleure UX
+    &:hover .inner,
+    &:focus-visible .inner {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        transition-duration: 0.3s;
+    }
+}
+
+// Responsive : plus petit sur mobile
+@media (max-width: 480px) {
+    .card {
+        width: 220px;
+        height: 300px;
+
+        .front,
+        .back {
+            padding: 16px;
+
+            h3 {
+                font-size: 1.1rem;
+            }
+
+            p,
+            blockquote {
+                font-size: 0.9rem;
+            }
+
+            .icon svg {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    }
+}
