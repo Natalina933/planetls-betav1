@@ -93,7 +93,7 @@ $golden-color: #d4af37; // doré
             line-height: 1.5;
             margin: 0;
             padding: 0 8px;
-            color: darken($golden-color, 20%);
+            // color: color.adjust($golden-color, $lightness: -20%);
             display: flex;
             align-items: center;
             height: 100%;
