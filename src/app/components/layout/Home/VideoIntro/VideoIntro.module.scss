@@ -1,98 +1,134 @@
 .videoIntroSection {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 2rem;
-    padding: 2rem;
-    background-color: #f9fafe;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    flex-wrap: wrap;
+  background: linear-gradient(180deg, #fffdf6 0%, #f8f6ee 100%);
+  border: 2px solid #b88b4a;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 36px rgba(184, 139, 74, 0.09);
+  padding: 2.3rem 1.3rem 3rem 1.3rem;
+  max-width: 980px;
+  margin: 2.5rem auto 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 1.2rem;
+    left: 1.2rem;
+    width: 64px;
+    height: 64px;
+    // background: url("/ornaments/mucha-gold-small.svg") no-repeat center/contain;
+    opacity: 0.13;
+    pointer-events: none;
+  }
 }
 
-.videoImage {
-  max-width: 480px;
-  width: 100%;
-  height: auto; /* ✅ garde le ratio naturel */
-  border-radius: 8px;
-  object-fit: cover;
+.videoPlayer {
+  width: 96%;
+  max-width: 900px;
+  max-height: 520px;
+  border-radius: 1.1rem;
+  border: 2px solid #b88b4a;
+  background: #fffbe6;
+  box-shadow: 0 8px 36px rgba(184, 139, 74, 0.12);
+  margin: 0 auto 2rem auto;
+  aspect-ratio: 16/9;
+  display: block;
 }
 
 .videoContent {
-    flex: 1;
-    min-width: 280px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .videoHeading {
-    font-size: 1.8rem;
-    color: #1c2d4a;
-    margin-bottom: 1rem;
+  font-size: 2.2rem;
+  color: #1a2130;
+  font-family: var(--font-title, serif);
+  font-weight: 700;
+  margin-bottom: 1.15rem;
 }
 
 .videoDescription {
-    font-size: 1rem;
-    color: #333;
-    margin-bottom: 1rem;
-    line-height: 1.6;
+  font-size: 1.14rem;
+  color: #786e5e;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
 }
 
 .featureList {
-    list-style: none;
-    padding-left: 0;
-    margin: 1rem 0;
-}
+  list-style: none;
+  margin: 0 0 1.6rem 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
 
-.featureList li {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #2d415d;
+  li {
+    background: linear-gradient(90deg, #ffeecd 0%, #fffbe7 100%);
+    border-radius: 999px;
+    color: #b88b4a;
+    padding: 0.55rem 1.25rem;
+    font-weight: 600;
+    font-size: 1.02rem;
+    box-shadow: 0 2px 7px rgba(184, 139, 74, 0.07);
+  }
 }
 
 .CTAButton {
-  display: inline-block;
-  background-color: #0069d6; // 🔹 plus foncé qu'avant → contraste > 4.5:1
+  background: linear-gradient(90deg, #b88b4a 0%, #d1a868 100%);
   color: #fff;
-  font-weight: bold;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1.18rem;
+  padding: 1.1rem 2.4rem;
+  border-radius: 999px;
   text-decoration: none;
-  transition: transform 0.2s ease, background-color 0.3s ease;
-}
+  box-shadow: 0 8px 20px rgba(184, 139, 74, 0.21);
+  margin: 0.6rem auto 1.2rem auto;
+  transition: background 0.25s, transform 0.18s, box-shadow 0.18s;
+  display: inline-block;
+  letter-spacing: 0.01em;
 
-.CTAButton:hover,
-.CTAButton:focus {
-  transform: scale(1.05);
-  background-color: #005ec2; // hover encore plus foncé
-  outline: none;
-}
-
-.CTAButton:focus-visible {
-  box-shadow: 0 0 0 4px rgba(0, 117, 242, 0.3);
+  &:hover,
+  &:focus-visible {
+    background: linear-gradient(90deg, #d1a868 0%, #b88b4a 100%);
+    box-shadow: 0 16px 36px rgba(184, 139, 74, 0.28);
+    transform: translateY(-2px) scale(1.04);
+    outline: none;
+  }
 }
 
 .joinMessage {
-    font-size: 0.95rem;
-    color: #1c2d4a;
-    margin-top: 1rem;
+  font-size: 1.02rem;
+  color: #b88b4a;
+  margin-top: 0.45rem;
+  font-style: italic;
 }
 
-/* Responsive adjustments */
-@media screen and (max-width: 768px) {
+@media (max-width: 700px) {
   .videoIntroSection {
-    flex-direction: column;
-    padding: 1.5rem;
-    text-align: center;
+    padding: 1rem 0.3rem 2rem 0.3rem;
   }
 
-  .videoImage {
-    max-width: 100%;
+  .videoPlayer {
     width: 100%;
-    height: auto; /* ✅ ajouté aussi ici */
-    margin-bottom: 1rem;
+    max-width: 100vw;
+    min-height: 180px;
   }
 
-  .CTAButton {
-    width: 100%;
-    text-align: center;
+  .featureList {
+    gap: 0.5rem;
+
+    li {
+      font-size: 0.94rem;
+    }
+  }
+
+  .videoHeading {
+    font-size: 1.38rem;
   }
 }
