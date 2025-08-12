@@ -80,10 +80,13 @@ $radius: 1.2rem;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   perspective: 1500px;
-  
+  /* Ajout d'une couleur claire semi-transparente pour adoucir la texture */
+  background-color: rgba(255, 255, 255, 0.8); // blanc avec 80% d'opacité
   background-image: url('/textures/mucha-background-pattern.png');
+  background-blend-mode: lighten; // ou "overlay", "soft-light" selon l'effet
   background-attachment: local;
   padding: 0.5rem;
+  border: 2.5px solid #b88b4a;
 }
 
 
@@ -103,12 +106,15 @@ $radius: 1.2rem;
   &.flipped {
     transform: rotateY(180deg);
   }
+
   &.card-size--small {
     min-height: 220px;
   }
+
   &.card-size--medium {
     min-height: 280px;
   }
+
   &.card-size--large {
     min-height: 360px;
   }

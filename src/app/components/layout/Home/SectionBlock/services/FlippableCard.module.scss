@@ -53,7 +53,7 @@ $golden-color: #d4af37; // doré
 
     .front {
         color: #222;
-        border: 2px solid #eee;
+        border: 2px solid $golden-color;
 
         .icon {
             display: inline-flex;
