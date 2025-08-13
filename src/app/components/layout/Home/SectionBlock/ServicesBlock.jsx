@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import styles from './SectionBlock.module.scss';
+import styles from './ServicesBlock.module.scss';
 
 /**
  * Composant générique pour une section de contenu avec un titre centré.
@@ -10,7 +10,7 @@ import styles from './SectionBlock.module.scss';
  * @param {string} [props.description] - La description de la section.
  * @param {React.ReactNode} props.children - Le contenu à afficher à l'intérieur de la section.
  */
-export default function SectionBlock({ title, subtitle, description, children }) {
+export default function ServicesBlock({ title, subtitle, description, children }) {
     return (
         <section className={styles.section}>
             <h2 className={styles.sectionTitle}>{title}</h2>

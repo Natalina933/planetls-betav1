@@ -24,7 +24,7 @@ const VideoIntro = () => {
                 ref={videoRef}
                 className={styles.videoPlayer}
                 src="/videos/PlanetLs.mp4"
-                poster="/assets/images/plateform.jpg"
+                poster="/images/plateform.jpg"
                 controls
                 playsInline
                 autoPlay

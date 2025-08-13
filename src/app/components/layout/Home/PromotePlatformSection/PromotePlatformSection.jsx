@@ -2,7 +2,7 @@
 
 import React from 'react';
 import dynamic from "next/dynamic";
-import SectionBlock from '../SectionBlock/SectionBlock';
+import ServicesBlock from '../SectionBlock/ServicesBlock';
 import styles from "./PromotePlatformSection.module.scss";
 
 // Import dynamique et lazy loading des icônes
@@ -15,7 +15,7 @@ const Icons = {
 
 export default function PromotePlatformSection() {
   return (
-    <SectionBlock title="La Puissance de la Gestion en Ligne">
+    <ServicesBlock title="La Puissance de la Gestion en Ligne">
       <div className={styles.platformSectionContent}>
 
         {/* Bloc de mise en avant */}
@@ -55,6 +55,6 @@ export default function PromotePlatformSection() {
           </div>
         </div>
       </div>
-    </SectionBlock>
+    </ServicesBlock>
   );
 }

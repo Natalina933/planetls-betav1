@@ -1,15 +1,16 @@
 "use client";
 import React from "react";
+import clsx from "clsx";
 import styles from "./FlippableCard.module.scss";
 
 interface FlippableCardProps {
     title: string;
     description: string;
     quote: string;
-    icon: React.ElementType | null;  // correspond à ton type icon dans services
+    icon: React.ElementType | null;
     isFlipped: boolean;
     onToggle: () => void;
-    className?: string;
+    sizeClass?: string;
 }
 
 export default function FlippableCard({
@@ -19,6 +20,7 @@ export default function FlippableCard({
     icon: Icon,
     isFlipped,
     onToggle,
+    sizeClass,
 }: FlippableCardProps) {
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -32,7 +34,7 @@ export default function FlippableCard({
             tabIndex={0}
             role="button"
             aria-pressed={isFlipped}
-            className={`${styles.card} ${isFlipped ? styles.flipped : ""}`}
+            className={clsx(styles.card, styles[sizeClass || ""], { [styles.flipped]: isFlipped })}
             onClick={onToggle}
             onKeyDown={onKeyDown}
         >

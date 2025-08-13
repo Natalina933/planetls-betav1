@@ -4,7 +4,7 @@ import Head from "next/head";
 import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 
-import SectionBlock from "../SectionBlock";
+import ServicesBlock from "../ServicesBlock";
 import FlippableCard from "./FlippableCard";
 import styles from "./ServiceList.module.scss";
 import { services } from "../../../../../data/services/services";
@@ -20,11 +20,13 @@ export default function ServiceList() {
     );
   };
 
-  const getCardSize = (index: number) => {
-    if (index % 3 === 0) return styles["card-size--large"];
-    if (index % 3 === 1) return styles["card-size--medium"];
-    return styles["card-size--small"];
-  };
+const getCardSizeClass = (index: number) => {
+  if (index === services.length - 1) return "card-size--tall";
+  if (index % 3 === 0) return "card-size--large";
+  if (index % 3 === 1) return "card-size--medium";
+  return "card-size--small";
+};
+
 
   return (
     <>
@@ -34,10 +36,9 @@ export default function ServiceList() {
           name="description"
           content="Plateforme centralisée, sécurisée et intelligente pour propriétaires, concierges et artisans."
         />
-        {/* autres meta tags */}
       </Head>
 
-      <SectionBlock
+      <ServicesBlock
         title="Découvrer notre Plateforme de gestion tout-en-un"
         subtitle="La solution en ligne pour l’ensemble des acteurs de la location saisonnière"
         description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
@@ -60,10 +61,7 @@ export default function ServiceList() {
           </a>
         </header>
 
-        <ul
-          className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
-          aria-label="Points clés de la plateforme"
-        >
+        <ul className={clsx(styles.keyPoints, styles["keyPoints--chips"])} aria-label="Points clés de la plateforme">
           {keyPoints.map((point) => (
             <li key={point} className={styles.keyPointChipWrapper}>
               <button
@@ -93,23 +91,15 @@ export default function ServiceList() {
                 icon={icon}
                 isFlipped={isFlipped}
                 onToggle={() => handleKeyPointClick(safeKeyPoint)}
-                className={clsx(
-                  getCardSize(index),
-                  styles.flippable,
-                  { [styles.flipped]: isFlipped }
-                )}
+                sizeClass={getCardSizeClass(index)}
               />
             );
           })}
         </div>
-      </SectionBlock>
+      </ServicesBlock>
 
       <div className={styles.ctaZone}>
-        <a
-          className={styles.CTAButton}
-          href="/inscription"
-          aria-label="Essayer la plateforme gratuitement"
-        >
+        <a className={styles.CTAButton} href="/inscription" aria-label="Essayer la plateforme gratuitement">
           Essayer gratuitement
         </a>
         <span className={styles.ctaSub}>

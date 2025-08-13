@@ -9,7 +9,7 @@
   // Bordure avec la variable CSS définie précédemment dans :root
   border: 1px solid var(--color-border-subtle-accent);
   border-radius: var(--radius);
-  padding: 2.5rem;
+  padding: 1.5rem;
   text-align: center;
   // Ombre plus grande et plus douce avec un halo clair
   box-shadow: 0 12px 40px rgba(184, 139, 74, 0.25), 0 0 0 10px #fffbe6;
@@ -25,6 +25,17 @@
     font-size: 1.8rem;
     color: var(--color-accent-dark);
     margin-bottom: 1.5rem;
+    position: relative;
+
+    &::after {
+      content: "";
+      display: block;
+      width: 4rem;
+      height: 0.25rem;
+      background-color: var(--color-accent);
+      margin: 0.4rem auto 0;
+      border-radius: 2px;
+    }
 
     @include mq(sm) {
       font-size: 1.5rem;
