@@ -34,7 +34,9 @@ export default function FlippableCard({
             tabIndex={0}
             role="button"
             aria-pressed={isFlipped}
-            className={clsx(styles.card, styles[sizeClass || ""], { [styles.flipped]: isFlipped })}
+            className={clsx(styles.card, styles[sizeClass || ""], {
+                [styles.flipped]: isFlipped,
+            })}
             onClick={onToggle}
             onKeyDown={onKeyDown}
         >
@@ -47,7 +49,7 @@ export default function FlippableCard({
                     <p>{description}</p>
                 </div>
                 <div className={styles.back}>
-                    <blockquote>{quote}</blockquote>
+                    <blockquote className={styles.quote}>{quote}</blockquote>
                 </div>
             </div>
         </div>

@@ -77,7 +77,7 @@ $radius: 1.2rem;
 // Grid
 .serviceGrid {
   display: grid;
-  gap: 2.5rem;
+  gap: 2rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   perspective: 1500px;
   /* Ajout d'une couleur claire semi-transparente pour adoucir la texture */
@@ -109,18 +109,22 @@ $radius: 1.2rem;
   }
 
   &.card-size--small {
-    min-height: 220px;
+    min-height: 200px;
   }
 
   &.card-size--medium {
-    min-height: 280px;
+    min-height: 250px;
   }
 
   &.card-size--large {
-    min-height: 360px;
+    min-height: 300px;
   }
 
-  
+  &.card-size--tall {
+    min-height: 420px;
+  }
+
+
 }
 
 .cardInner {

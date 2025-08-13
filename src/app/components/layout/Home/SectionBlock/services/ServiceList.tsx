@@ -20,12 +20,12 @@ export default function ServiceList() {
     );
   };
 
-const getCardSizeClass = (index: number) => {
-  if (index === services.length - 1) return "card-size--tall";
-  if (index % 3 === 0) return "card-size--large";
-  if (index % 3 === 1) return "card-size--medium";
-  return "card-size--small";
-};
+  const getCardSizeClass = (index: number) => {
+    if (index === services.length - 1) return "card-size--tall";
+    if (index % 3 === 0) return "card-size--large";
+    if (index % 3 === 1) return "card-size--medium";
+    return "card-size--small";
+  };
 
 
   return (
@@ -39,10 +39,16 @@ const getCardSizeClass = (index: number) => {
       </Head>
 
       <ServicesBlock
-        title="Découvrer notre Plateforme de gestion tout-en-un"
+        title={
+          <>
+            Découvrer notre Plateforme <br />
+            de gestion tout-en-un
+          </>
+        }
         subtitle="La solution en ligne pour l’ensemble des acteurs de la location saisonnière"
         description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
       >
+
         <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
             Conçue pour{" "}
