@@ -6,6 +6,7 @@ import {
   Zap,
   GraduationCap,
   Leaf,
+  ShoppingCart,
 } from "lucide-react";
 
 export interface Service {
@@ -13,7 +14,7 @@ export interface Service {
   description: string;
   icon: React.ElementType;
   keyPoint: string;
-  quote: string; // citation dynamique
+  quote: string;
 }
 
 export const services: Service[] = [
@@ -23,7 +24,8 @@ export const services: Service[] = [
       "Pilotez toutes vos activités en un coup d'œil et prenez des décisions éclairées.",
     icon: CalendarCheck,
     keyPoint: "Gain de temps",
-    quote: "Ce que l'on conçoit bien s’énonce clairement, et les décisions s’éclairent d’un simple regard.",
+    quote:
+      "Ce que l'on conçoit bien s’énonce clairement, et les décisions s’éclairent d’un simple regard.",
   },
   {
     title: "Pilotage intelligent & automatisation",
@@ -31,7 +33,8 @@ export const services: Service[] = [
       "Planification intelligente, rappels, tâches récurrentes — tout est synchronisé.",
     icon: Zap,
     keyPoint: "Automatisation",
-    quote: "Automatise ce qui est répétitif, pour te consacrer à ce qui compte.",
+    quote:
+      "Automatise ce qui est répétitif, pour te consacrer à ce qui compte.",
   },
   {
     title: "Sécurité renforcée & gestion documentaire",
@@ -39,7 +42,8 @@ export const services: Service[] = [
       "Contrats, factures, accès sécurisés : tout est chiffré et centralisé.",
     icon: Shield,
     keyPoint: "Accès sécurisé",
-    quote: "La confiance naît là où la sécurité est invisible mais omniprésente.",
+    quote:
+      "La confiance naît là où la sécurité est invisible mais omniprésente.",
   },
   {
     title: "Espace membre & support dédié",
@@ -71,6 +75,16 @@ export const services: Service[] = [
       "Favorisez les échanges de proximité, soutenez l'économie locale et collaborez en toute confiance.",
     icon: Leaf,
     keyPoint: "Collaboration locale",
-    quote: "Ce qui est proche est précieux. Ensemble, nous faisons vivre le territoire.",
+    quote:
+      "Ce qui est proche est précieux. Ensemble, nous faisons vivre le territoire.",
+  },
+  {
+    title: "Boutique PlanetLS",
+    description:
+      "Accédez à nos packs premium pour booster votre activité : outils avancés, support prioritaire, et offres exclusives.",
+    icon: ShoppingCart,
+    keyPoint: "Offres premium",
+    quote:
+      "Investir dans les bons outils, c’est accélérer votre réussite.",
   },
 ];

@@ -1,0 +1,88 @@
+$golden-color: #d4af37;
+$border-radius: 12px;
+$box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+.card {
+    perspective: 1000px;
+    cursor: pointer;
+    transition: transform 0.6s ease;
+    transform-style: preserve-3d;
+    position: relative;
+
+    &.flipped .inner {
+        transform: rotateY(180deg);
+    }
+
+    .inner {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s ease;
+        transform-style: preserve-3d;
+        position: relative;
+    }
+
+    .front,
+    .back {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .front {
+        background-color: #fff;
+        border: 2px solid $golden-color;
+    }
+
+    .back {
+        transform: rotateY(180deg);
+        background-color: #f7f7f7;
+        border: 2px solid $golden-color;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .quote {
+            font-style: italic;
+            font-size: 1rem;
+            color: #444;
+            text-align: center;
+            padding: 0 1rem;
+            line-height: 1.5;
+        }
+    }
+}
+
+// Taille des cartes
+
+
+.card-size--small {
+    grid-row: span 1;
+    grid-column: span 1;
+    aspect-ratio: 3 / 2;
+}
+
+.card-size--medium {
+    grid-row: span 2;
+    grid-column: span 1;
+    aspect-ratio: 4 / 3;
+}
+
+.card-size--large {
+    grid-row: span 2;
+    grid-column: span 2;
+    aspect-ratio: 5 / 3;
+}
+
+.card-size--tall {
+    grid-row: span 3;
+    grid-column: span 1;
+    aspect-ratio: 2 / 3;
+    align-self: start;
+    margin-top: -9.5rem; // ajuste selon l’effet souhaité
+    z-index: 2; // pour qu’elle passe devant si besoin
+}

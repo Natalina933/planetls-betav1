@@ -1,0 +1,225 @@
+@use "sass:color";
+@use "sass:math";
+
+// Variables
+$gold: #d4af37;
+$bg-light: #f7f6f3;
+$bg-dark: #1a1a1a;
+$text-dark: #2b2b2b;
+$text-light: #fff;
+$transition-speed: 0.6s;
+$radius: 1.2rem;
+
+// Mixins
+@mixin card-shadow {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+@mixin golden-gradient {
+  background: linear-gradient(135deg, $gold, color.scale($gold, $lightness: 20%));
+}
+
+// Section Header
+.platformHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+  max-width: 800px;
+  margin-inline: auto;
+
+  .sectionIntro {
+    font-size: 1.2rem;
+    color: $text-dark;
+    line-height: 1.6;
+  }
+
+  .highlightText {
+    @include golden-gradient;
+    background-clip: text;
+    color: transparent;
+    font-weight: bold;
+  }
+
+  .userCategory {
+    font-style: italic;
+    color: $gold;
+  }
+}
+
+// Chips
+.keyPoints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  list-style: none;
+
+  &--chips {
+    .keyPointChip {
+      border: 1px solid $gold;
+      border-radius: 50px;
+      padding: 0.5rem 1rem;
+      background-color: transparent;
+      color: $gold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover,
+      &.isActive {
+        background-color: $gold;
+        color: $text-light;
+      }
+    }
+  }
+}
+
+// Grid
+.serviceGrid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  perspective: 1500px;
+  /* Ajout d'une couleur claire semi-transparente pour adoucir la texture */
+  background-color: rgba(255, 255, 255, 0.8); // blanc avec 80% d'opacité
+  background-image: url('/textures/mucha-background-pattern.png');
+  background-blend-mode: lighten; // ou "overlay", "soft-light" selon l'effet
+  background-attachment: local;
+  padding: 0.5rem;
+  border: 2.5px solid #b88b4a;
+  justify-content: center;
+}
+
+
+// Flippable Cards
+.flippable {
+  @include card-shadow;
+  border-radius: $radius;
+  background-color: $bg-light;
+  transform-style: preserve-3d;
+  transition: transform $transition-speed ease-in-out;
+  cursor: pointer;
+
+  &:focus {
+    outline: 2px solid $gold;
+  }
+
+  &.flipped {
+    transform: rotateY(180deg);
+  }
+
+  &.card-size--small {
+    min-height: 200px;
+  }
+
+  &.card-size--medium {
+    min-height: 250px;
+  }
+
+  &.card-size--large {
+    min-height: 300px;
+  }
+
+  &.card-size--tall {
+    min-height: 420px;
+  }
+
+
+}
+
+.cardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.cardFront,
+.cardBack {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: $radius;
+  padding: 1.5rem;
+}
+
+.cardFront {
+  background-color: $bg-light;
+  text-align: center;
+
+  .serviceCardIconWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    .goldenIcon {
+      color: $gold;
+      font-size: 2.5rem;
+    }
+  }
+
+  .serviceCardTitle {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.8rem;
+    color: $text-dark;
+  }
+
+  .serviceCardDesc {
+    font-size: 0.95rem;
+    color: color.scale($text-dark, $lightness: 20%);
+    line-height: 1.5;
+  }
+}
+
+.cardBack {
+  transform: rotateY(180deg);
+  @include golden-gradient;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .cardQuote {
+    font-style: italic;
+    color: $text-light;
+    font-size: 1.1rem;
+    text-align: center;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+}
+
+.serviceList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+// CTA Zone
+.ctaZone {
+  text-align: center;
+  margin-top: 3rem;
+
+  .CTAButton {
+    @include golden-gradient;
+    color: $text-light;
+    padding: 0.8rem 1.6rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  .ctaSub {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: $text-dark;
+  }
+}

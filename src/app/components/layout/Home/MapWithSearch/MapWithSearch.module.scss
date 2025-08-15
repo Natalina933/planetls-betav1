@@ -36,7 +36,7 @@
     &::after {
       content: "";
       display: block;
-      margin: 1.75rem auto 0;
+      margin: 0.5rem auto 0;
       width: 50%;
       height: 0.25rem;
       background-color: $gold;
@@ -88,11 +88,9 @@
   padding: 1.5rem;
   border-radius: 20px;
   border: 2px solid #d4af37;
-  background-image: linear-gradient(
-      rgba(255, 200, 100, 0.55),
-      rgba(139, 69, 19, 0.6)
-    ),
-    url("/ornements/mucha-background-pattern-light.png");
+  background-image: linear-gradient(rgba(255, 200, 100, 0.55),
+      rgba(139, 69, 19, 0.6)),
+    url("/textures/mucha-background-pattern.png");
   background-blend-mode: soft-light;
   background-repeat: repeat;
   background-position: center;
@@ -104,11 +102,16 @@
 
   p {
     font-family: var(--font-text, sans-serif);
+    height: 150px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
     font-size: 1.1em;
     line-height: 1.5em;
     margin: 0 auto;
     background-color: #ffe09b;
-    padding: 1.2rem 1.5rem;
+    padding: 1.2rem 0.5rem;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -137,7 +140,6 @@
 // === Conteneur boutons bulles ===
 .bubblesRow {
   display: flex;
-  flex-direction: row-reverse;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   align-items: flex-start;
@@ -162,6 +164,8 @@
 // === Groupe des boutons triple toggle ===
 .tripleToggleGroup {
   display: flex;
+  flex-direction: row-reverse;
+
   justify-content: center;
   gap: 1rem;
   width: 700px;
@@ -230,11 +234,9 @@
   box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
   cursor: pointer;
   transition: all 0.3s ease;
-  @include backdrop-blur(
-    3px,
+  @include backdrop-blur(3px,
     rgba(255, 255, 255, 0.85),
-    rgba(255, 255, 255, 0.2)
-  );
+    rgba(255, 255, 255, 0.2));
 
   svg {
     font-size: 1.9rem;
@@ -298,6 +300,7 @@
   margin-top: var(--spacing-sm);
   text-align: center;
   padding: var(--spacing-sm);
+  width: 550px;
 
   .categoryInstruction {
     display: block;
@@ -305,7 +308,6 @@
     font-size: 0.9em;
     color: var(--mucha-accent);
     font-style: italic;
-    margin-bottom: var(--spacing-sm);
   }
 
   .searchBar {
@@ -314,10 +316,10 @@
     align-items: center;
     gap: var(--spacing-sm);
     width: 100%;
-    max-width: 500px; /* pour responsive */
+    max-width: 500px;
+    /* pour responsive */
     margin-inline: auto;
     border-radius: var(--radius-pill);
-    padding: 0.5rem;
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--color-border-light);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -353,6 +355,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background 0.3s ease, transform 0.2s ease;
+      width: 90px;
 
       &:hover {
         background: linear-gradient(to right, $gold-accent, $gold-alt);
