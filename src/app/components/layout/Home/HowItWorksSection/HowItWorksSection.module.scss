@@ -4,92 +4,285 @@
 @use "sass:color";
 
 .howItWorks {
-  background-color: rgba(255, 255, 255, 0.8); // blanc avec 80% d'opacité
-  background-image: url('/textures/mucha-background-pattern.png');
-  background-blend-mode: lighten; // ou "overlay", "soft-light" selon l'effet
+  background-color: rgba(255, 255, 255, 0.8);
+  font-family: "Montserrat", $font-elegant, sans-serif; // Montserrat + fallback
+  background-image: url("/textures/mucha-background-pattern.png");
+  background-blend-mode: lighten;
   background-attachment: local;
-    padding: 4rem 1.5rem; // 64px / 24px
-    text-align: center;
-    font-family: $font-elegant;
-    position: relative;
-    border-bottom: 2.5px solid #b88b4a;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  font-family: $font-elegant;
+  position: relative;
+  border-bottom: 2.5px solid #b88b4a;
+  max-width: 100%;
 
-    h2 {
-        font-size: 2.25rem; // 36px
-        margin-bottom: 3rem; // 48px
-        position: relative;
-        display: inline-block;
-        background-color: white;
-        border: $gold 5px solid;
-        border-radius: 2.2rem; // 35px
-        padding: 0.5rem 1.5rem; // 8px /
-        font-family: $font-title;
-        font-weight: 700;
-        width: 740px; // 1184px
-        max-width: 100%;
+  h2 {
+    font-size: 2.25rem;
+    margin-bottom: 3rem;
+    display: inline-block;
+    background-color: white;
+    border: 5px solid $gold;
+    border-radius: 2.2rem;
+    padding: 0.5rem 1.5rem;
+    font-family: $font-title;
+    font-weight: 700;
+    width: 740px;
+    max-width: 100%;
+    color: var(--color-text);
 
-        // &::after {
-        //     content: '';
-        //     display: block;
-        //     margin: 0.75rem auto 0; // 12px
-        //     width: 5rem; // 80px
-        //     height: 0.25rem; // 4px
-        //     background-color: $gold;
-        // }
+    @include no-select;
+  }
+
+.tabsList {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: 1rem;
+  width: 700px;
+  margin: 0 auto 2.5rem;
+  position: relative;
+  padding: 0.4rem;
+  background: #fff8e1;
+  border: 2px solid $gold;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+  @include mq(sm) {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem;
+  }
+}
+
+.tabTrigger {
+  flex: 1;
+  width: 200px;
+  padding: 0.6rem 1.2rem;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: #6b5210;
+  background: #fff8e1;
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &:hover {
+    color: #5a430c;
+    background: rgba(255, 224, 155, 0.3);
+  }
+
+  &[data-state="active"] {
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+    background: linear-gradient(to right, $gold, $gold-alt);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
+    z-index: 2;
+
+    .tabIcon {
+      color: #fff;
+      transform: scale(1.1);
     }
+  }
 
-    .steps {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); // 240px
-        gap: 2rem; // 32px
-        max-width: 60rem; // 960px
-        margin: 0 auto;
-    }
+  .tabIcon {
+    color: $gold;
+    transition: transform 0.3s ease, color 0.3s ease;
+    flex-shrink: 0;
+  }
 
-    .step {
-        background-color: #fffdf7;
-        border: 3px solid $gold;
-        border-radius: 0.75rem; // 12px
-        padding: 1.5rem; // 24px
-        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.04);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        animation: fadeIn 0.6s ease both;
-
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0.375rem 1.5rem rgba(0, 0, 0, 0.08);
-        }
-
-        .icon {
-            margin-bottom: 1rem; // 16px
-            color: $gold;
-            background-color: #f9f5ed;
-            border: 1px solid $gold;
-            border-radius: 50%;
-            width: 4rem; // 64px
-            height: 4rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        h3 {
-            font-size: 1.25rem; // 20px
-            color: var(--color-text);
-            font-family: $font-elegant;
-            margin-bottom: 0.75rem; // 12px
-        }
-
-        p {
-            font-size: 1rem; // 16px
-            line-height: 1.6;
-            color: var(--color-text);
-            opacity: 0.85;
-        }
-    }
+  @include mq(sm) {
+    font-size: 0.95rem;
+    padding: 0.5rem 0.7rem;
+    width: 100%;
+  }
 }
 
 
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 60rem;
+    margin: 0 auto;
 
+    @media (min-width: 768px) {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+    }
+  }
+
+  .step {
+    background-color: #fffdf7;
+    border: 3px solid $gold;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    text-align: left;
+    @include no-select;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover,
+    &:focus-visible {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      outline: none;
+      border-color: color.scale($gold, $lightness: -10%);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background-color: #fdf8f1;
+      border: 2px solid $gold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      color: $gold;
+      transition: transform 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      font-size: 1.5rem;
+
+      // Animation au survol du parent
+      .step:hover &,
+      .step:focus-visible & {
+        transform: scale(1.05);
+        color: color.scale($gold, $lightness: -10%);
+        border-color: color.scale($gold, $lightness: -10%);
+      }
+
+      // Responsive
+      @media (max-width: 600px) {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 0.8rem;
+      }
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      color: var(--color-text);
+      font-family: $font-elegant;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--color-text);
+      opacity: 0.85;
+      margin: 0;
+    }
+  }
+
+  .cta,
+  .ctaAlt {
+    display: block;
+    max-width: 320px;
+    margin: 2.5rem auto 0;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    cursor: pointer;
+    @include no-select;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .cta {
+    background-color: $gold;
+    color: #fff;
+
+    &:hover,
+    &:focus-visible {
+      background-color: color.scale($gold, $lightness: -8%);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+      outline: none;
+    }
+  }
+
+  .ctaAlt {
+    background-color: #00a86b;
+    color: #fff;
+
+    &:hover,
+    &:focus-visible {
+      background-color: color.scale(#00a86b, $lightness: -8%);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+      outline: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 3rem 1rem;
+
+    h2 {
+      font-size: 1.75rem;
+      width: auto;
+      padding: 0.4rem 1rem;
+      border-width: 4px;
+      border-radius: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .tabsList {
+      max-width: 100%;
+      border-radius: 6px;
+    }
+
+    .tabTrigger {
+      font-size: 1rem;
+      padding: 0.8rem 0;
+    }
+
+    .steps {
+      gap: 1.25rem;
+    }
+
+    .step {
+      padding: 1.2rem;
+
+      h3 {
+        font-size: 1.1rem;
+      }
+
+      p {
+        font-size: 0.95rem;
+      }
+
+      .icon {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 0.8rem;
+      }
+    }
+
+    .cta,
+    .ctaAlt {
+      max-width: 100%;
+      font-size: 1rem;
+      padding: 0.9rem 0;
+      border-radius: 6px;
+      margin-top: 2rem;
+    }
+  }
+}

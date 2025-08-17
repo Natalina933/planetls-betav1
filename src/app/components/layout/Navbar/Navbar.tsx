@@ -8,6 +8,7 @@ import styles from "./Navbar.module.scss";
 // Import dynamique de l'icône utilisateur
 const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then(mod => mod.FaUser), { ssr: false }),
+  FaSearch: dynamic(() => import("react-icons/fa").then(mod => mod.FaSearch), { ssr: false }),
 };
 
 export default function Navbar() {
@@ -32,6 +33,10 @@ export default function Navbar() {
 
       {/* Menu items */}
       <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
+        <li className={styles["nav-seach"]}>
+          <Icons.FaSearch size={18} />
+          <Link href="/recherche">Recherche</Link>
+        </li>
         <li className={styles["auth-inscription"]}>
           <Link href="/inscription">S’inscrire</Link>
         </li>

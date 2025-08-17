@@ -1,6 +1,6 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+// import dynamic from 'next/dynamic';
 import Footer from '../components/layout/Footer/Footer';
 import HeroSection from '../components/layout/Home/Hero/HeroSection';
 import { HowItWorksSection } from "../components/layout/Home/HowItWorksSection/HowItWorksSection";
@@ -13,12 +13,13 @@ import PromotePlatformSection from '../components/layout/Home/PromotePlatformSec
 import { TrustSection } from '../components/layout/Home/TrustSection/TrustSection';
 import BlogNewsSection from '../components/layout/Home/BlogNewsSection/BlogNewsSection';
 import ServiceList from '../components/layout/Home/SectionBlock/services/ServiceList';
+import MapPopup from '../components/layout/MapPopup/MapPopup';
 
 // Chargement dynamique côté client uniquement
-const MapWithSearch = dynamic(
-    () => import('../components/layout/Home/MapWithSearch/MapWithSearch'),
-    { ssr: false }
-);
+// const MapWithSearch = dynamic(
+//     () => import('../components/layout/Home/MapWithSearch/MapWithSearch'),
+//     { ssr: false }
+// );
 
 export default function HomePage() {
     return (
@@ -34,7 +35,7 @@ export default function HomePage() {
                 <main>
                     <FirstVisit />
                     <HeroSection />
-                    <MapWithSearch />
+                    <MapPopup />
                     <HowItWorksSection />
                     <ServiceList />
                     <VideoIntro />

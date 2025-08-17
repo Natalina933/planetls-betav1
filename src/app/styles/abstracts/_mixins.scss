@@ -275,3 +275,20 @@
         0 0 0 8px #fffbe6;
     background: linear-gradient(120deg, #fffbe6 80%, #f9e7c2 100%);
 }
+@mixin no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == "mobile" {
+    @media (max-width: 600px) {
+      @content;
+    }
+  }
+  @else if $breakpoint == "tablet" {
+    @media (min-width: 601px) and (max-width: 1023px) {
+      @content;
+    }
+  }
+}

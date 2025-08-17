@@ -1,8 +1,8 @@
 .hero {
   position: relative;
   padding: var(--spacing-xl) var(--spacing-md);
- min-height: 80vh; 
- width: 100%;
+  min-height: 80vh;
+  width: 100%;
   font-family: var(--font-title);
   color: white;
   overflow: hidden;
@@ -14,7 +14,7 @@
   .overlay {
     position: absolute;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.55);
     z-index: 0;
   }
 
@@ -44,15 +44,48 @@
       font-size: clamp(2rem, 4vw, 2.8rem);
       font-weight: 700;
       margin-bottom: var(--spacing-md);
-      padding-bottom: 0.3rem;
-      border-bottom: 3px solid var(--hero-highlight);
+      line-height: 1.2;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+
+      .highlight {
+        color: #d4af37; // doré premium
+      }
     }
 
-    p {
-      font-size: 1.1rem;
-      line-height: 1.6;
+    .subHeadline {
+      font-size: 1.2rem;
+      color: #f0f0f0;
+      margin-bottom: 1rem;
+    }
+
+    .valueProp {
+      font-size: 1rem;
+      color: #e0e0e0;
       margin-bottom: var(--spacing-lg);
+    }
+
+    .socialProof {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+      color: #fff;
+
+      .badge {
+        background: #d4af37;
+        color: #111;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 576px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
     }
 
     .buttonsRow {
@@ -61,73 +94,40 @@
       gap: 1rem;
       margin-top: var(--spacing-md);
       margin-bottom: var(--spacing-lg);
-
       justify-content: flex-start;
 
       @media (max-width: 992px) {
         justify-content: center;
       }
 
-      button {
-        background-color: var(--hero-highlight);
-        color: white;
-        padding: 0.75rem 1.5rem;
+      .CTAButton {
+        padding: 0.8rem 1.6rem;
+        border-radius: 50px;
+        font-weight: bold;
         font-size: 1rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 8px;
         cursor: pointer;
-        transition: 0.3s ease;
+        transition: all 0.3s ease;
+        min-width: 200px;
 
-        &:hover {
-          background-color: var(--hero-highlight-hover);
-          transform: translateY(-2px);
-        }
-      }
-    }
+        &.primary {
+          background: #d4af37;
+          color: #111;
+          border: none;
 
-    .searchBar {
-      display: flex;
-      flex-wrap: nowrap;
-      margin-top: var(--spacing-md);
-
-      input {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        border: none;
-        border-radius: 6px 0 0 6px;
-        outline: none;
-      }
-
-      button {
-        background-color: var(--hero-highlight);
-        color: white;
-        padding: 0 1.2rem;
-        font-size: 1rem;
-        border: none;
-        border-radius: 0 6px 6px 0;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-
-        &:hover {
-          background-color: var(--hero-highlight-hover);
-        }
-      }
-
-      @media (max-width: 576px) {
-        flex-direction: column;
-        width: 100%;
-
-        input {
-          border-radius: 6px;
-          margin-bottom: 0.5rem;
-          width: 100%;
+          &:hover {
+            background: #c19b2c;
+            transform: translateY(-2px);
+          }
         }
 
-        button {
-          border-radius: 6px;
-          width: 100%;
+        &.secondary {
+          background: transparent;
+          border: 2px solid #d4af37;
+          color: #d4af37;
+
+          &:hover {
+            background: rgba(212, 175, 55, 0.1);
+          }
         }
       }
     }
@@ -144,6 +144,35 @@
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
 
+
+
+
+/* ---- Responsive XXL (≥1500px) ---- */
+@media (min-width: 1500px) {
+  .hero {
+    .grid {
+      max-width: 1600px;
+      gap: 4rem;
+    }
+
+    .content {
+      h1 {
+        font-size: clamp(2.8rem, 3vw, 3.5rem);
+      }
+
+      p {
+        font-size: 1.25rem;
+        line-height: 1.7;
+      }
+    }
+
+    .carouselWrapper {
+      max-width: 600px;
+    }
+  }
+}
+
+    
     @media (max-width: 992px) {
       max-width: 550px;
     }

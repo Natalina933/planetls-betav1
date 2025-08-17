@@ -4,7 +4,6 @@ body {
   min-width: 400px;
   overflow-x: hidden;
   color: var(--color-text);
-  background: var(--color-bg);
   font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
