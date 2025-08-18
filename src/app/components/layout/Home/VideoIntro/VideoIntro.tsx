@@ -61,10 +61,10 @@ export default function VideoIntro() {
                 </h2>
 
                 <p id="video-intro-description" className={styles.videoDescription}>
-                    Une plateforme <strong>simple, intuitive et professionnelle</strong> pour gérer votre activité locative courte durée.
+                    Une plateforme <strong>simple, intuitive et professionnelle</strong> pour gérer votre activité locative saisonnière.
                 </p>
 
-                <div className={styles.featureList}>
+                {/* <div className={styles.featureList}>
                     <div className={styles.featureItem}>
                         <Image
                             src="/icons/check-gold-light.png"
@@ -98,7 +98,7 @@ export default function VideoIntro() {
                         />
                         <span><strong>Des centaines de pros</strong> à proximité</span>
                     </div>
-                </div>
+                </div> */}
 
                 <a
                     href="/concierge-guide"
