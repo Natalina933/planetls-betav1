@@ -1,35 +1,54 @@
 /* styles/variables.scss */
 
 :root {
-    /* Couleurs neutres */
-    --color-text: #222;
-    --color-bg: #f9f9f9;
+    /* 🎨 Couleurs neutres */
+    --color-text: #2b2b2b;
+    --color-bg: #f8f9fb;
+    --color-text-secondary: #555;
     --color-border: #eaeaea;
     --background: #ffffff;
     --foreground: #171717;
 
-    /* Couleurs système */
+    /* 🎨 Couleurs système */
     --color-success: #4caf50;
     --color-error: #e53935;
     --color-accent: #ffc107;
+    --color-focus-ring: #ffe09b;
+
+    /* 🎨 Couleurs principales */
     --color-primary: #d4af37;
+    /* Or principal */
+    --color-primary-hover: #b8912f;
     --color-primary-rgb: 212, 175, 55;
 
-    /* Autres variables ... */
+    /* 🌟 Accents par catégorie */
+    --color-accent-homeowners: #d4a017;
+    /* Or doux */
+    --color-accent-managers: #3c91e6;
+    /* Bleu lumineux */
+    --color-accent-partners: #e76f51;
+    /* Terre cuite */
 
-    /* Typographies */
+    /* ✨ Effet "verre" */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --glass-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+
+    /* 🖋 Typographies */
     --font-title: "Montserrat", sans-serif;
     --font-primary: "Cormorant Garamond", serif;
     --font-text: "Open Sans", sans-serif;
 
-    /* Espacements */
+    /* 📏 Espacements */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
     --spacing-md: 1rem;
     --spacing-lg: 2rem;
     --spacing-xl: 4rem;
+    --spacing-xxl: 6rem;
 
-    /* Radius */
+    /* 🟦 Radius */
     --radius: 4px;
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -37,10 +56,17 @@
     --radius-xl: 24px;
     --radius-pill: 500px;
 
-    /* Focus ring */
-    --color-focus-ring: #ffe09b;
+    /* 🌙 Dark mode (optionnel) */
+    @media (prefers-color-scheme: dark) {
+        --color-bg: #1c1c1c;
+        --color-text: #f5f5f5;
+        --color-text-secondary: #bbb;
+        --glass-bg: rgba(40, 40, 40, 0.8);
+        --glass-border: rgba(255, 255, 255, 0.1);
+    }
 }
 
+/* 🔄 Animation spinner */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -51,6 +77,7 @@
     }
 }
 
+/* Loader global */
 .loaderWrapper {
     display: flex;
     align-items: center;
@@ -70,5 +97,5 @@
 .loadingText {
     margin-top: 0.75rem;
     font-size: 0.9rem;
-    color: #555;
+    color: var(--color-text-secondary);
 }

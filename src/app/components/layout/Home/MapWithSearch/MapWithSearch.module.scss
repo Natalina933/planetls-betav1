@@ -1,8 +1,8 @@
 @use "sass:math";
 @use "sass:color";
-@use "src/app/styles/abstracts/_mixins" as *;
-@use "src/app/styles/abstracts/_functions" as *;
-@use "src/app/styles/abstracts/_variables" as *;
+@use "src/app/styles/abstracts/mixins" as *;
+@use "src/app/styles/abstracts/functions" as *;
+@use "src/app/styles/abstracts/variables" as *;
 @use "../../../../styles/base/animations" as *;
 
 // === SECTION PRINCIPALE ===
