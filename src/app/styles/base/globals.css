@@ -49,7 +49,6 @@ a:focus {
 
   html,
   body {
-    background: var(--color-bg);
     color: var(--color-text);
   }
 }
@@ -61,7 +60,6 @@ a:focus {
 
   html,
   body {
-    background: var(--color-bg);
     color: var(--color-text);
   }
 }

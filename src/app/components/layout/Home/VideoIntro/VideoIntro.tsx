@@ -1,71 +1,104 @@
-import React, { useRef, useState } from 'react';
-import styles from './VideoIntro.module.scss';
+"use client";
 
-const VideoIntro = () => {
-    // Typage explicite de la ref HTMLVideoElement ou null au départ
-    const videoRef = useRef<HTMLVideoElement | null>(null);
+import React, { useState } from "react";
+import styles from "./VideoIntro.module.scss";
+import Image from "next/image";
+import { PlayCircle } from "lucide-react";
 
-    const [isMuted, setIsMuted] = useState(true);
 
-    const toggleMute = () => {
-        if (videoRef.current) {
-            const newMuted = !isMuted;
-            videoRef.current.muted = newMuted;
-            setIsMuted(newMuted);
-            if (!newMuted) {
-                videoRef.current.play();
-            }
-        }
+export default function VideoIntro() {
+    const [showVideo, setShowVideo] = useState(false);
+
+    const handlePlayClick = () => {
+        setShowVideo(true);
     };
 
     return (
-        <div className={styles.videoIntroSection}>
-            <video
-                ref={videoRef}
-                className={styles.videoPlayer}
-                src="/videos/PlanetLs.mp4"
-                poster="/images/plateform.jpg"
-                controls
-                playsInline
-                autoPlay
-                muted={isMuted}
-                preload="metadata"
-                width={900}
-                height={510}
-                aria-labelledby="video-intro-title"
-                style={{
-                    borderRadius: '1.1rem',
-                    border: '2px solid #b88b4a',
-                    background: '#fffbe6',
-                    boxShadow: '0 8px 36px rgba(184,139,74,0.12)'
-                }}
-            >
-                Votre navigateur ne supporte pas la lecture vidéo.
-            </video>
-
-            <button
-                onClick={toggleMute}
-                aria-pressed={!isMuted}
-                className={styles.soundToggleBtn}
-            >
-                {isMuted ? 'Activer le son' : 'Couper le son'}
-            </button>
+        <section className={styles.videoIntroSection} aria-labelledby="video-intro-title">
+            <div className={styles.videoWrapper}>
+                {showVideo ? (
+                    <video
+                        className={styles.videoPlayer}
+                        src="/videos/PlanetLs.mp4"
+                        poster="/images/plateform.jpg"
+                        controls
+                        playsInline
+                        autoPlay
+                        muted
+                        preload="metadata"
+                        width={900}
+                        height={510}
+                        aria-describedby="video-intro-description"
+                    >
+                        Votre navigateur ne supporte pas la lecture vidéo.
+                    </video>
+                ) : (
+<div className={styles.videoPlaceholder}>
+  <Image
+    src="/videos/Gemini_Generated_Image_mv7njvmv7njvmv7n.png"
+    alt="Aperçu vidéo PlanetLS"
+    fill
+    className={styles.videoPoster}
+    priority
+  />
+  <PlayCircle
+    size={64}
+    strokeWidth={2}
+    className={styles.playButton}
+    role="button"
+    tabIndex={0}
+    aria-label="Lire la vidéo de présentation"
+    onClick={handlePlayClick}
+    onKeyDown={(e) => e.key === "Enter" && handlePlayClick()}
+  />
+</div>
+                )}
+            </div>
 
             <div className={styles.videoContent}>
                 <h2 id="video-intro-title" className={styles.videoHeading}>
                     🎥 Découvrez PlanetLS en 1 minute
                 </h2>
-                <p className={styles.videoDescription}>
-                    Une plateforme <strong>simple, intuitive et professionnelle</strong> pour gérer votre activité locative courte durée.<br />
-                    📅 Planning • 🧼 Ménage • 🔧 Maintenance • 📊 Comptabilité…<br />
-                    Tout est centralisé, accessible depuis mobile ou web.
+
+                <p id="video-intro-description" className={styles.videoDescription}>
+                    Une plateforme <strong>simple, intuitive et professionnelle</strong> pour gérer votre activité locative courte durée.
                 </p>
 
-                <ul className={styles.featureList}>
-                    <li>✅ Solution <strong>sécurisée et personnalisée</strong></li>
-                    <li>✅ Interface <strong>mobile & web fluide</strong></li>
-                    <li>✅ <strong>Des centaines de pros</strong> à proximité</li>
-                </ul>
+                <div className={styles.featureList}>
+                    <div className={styles.featureItem}>
+                        <Image
+                            src="/icons/check-gold-light.png"
+                            alt=""
+                            aria-hidden="true"
+                            width={24}
+                            height={24}
+                            className={styles.checkIcon}
+                        />
+                        <span>Solution <strong>sécurisée et personnalisée</strong></span>
+                    </div>
+                    <div className={styles.featureItem}>
+                        <Image
+                            src="/icons/check-gold-light.png"
+                            alt=""
+                            aria-hidden="true"
+                            width={24}
+                            height={24}
+                            className={styles.checkIcon}
+                        />
+                        <span>Interface <strong>mobile & web fluide</strong></span>
+                    </div>
+                    <div className={styles.featureItem}>
+                        <Image
+                            src="/icons/check-gold-light.png"
+                            alt=""
+                            aria-hidden="true"
+                            width={24}
+                            height={24}
+                            className={styles.checkIcon}
+                        />
+                        <span><strong>Des centaines de pros</strong> à proximité</span>
+                    </div>
+                </div>
 
                 <a
                     href="/concierge-guide"
@@ -78,9 +111,6 @@ const VideoIntro = () => {
                 <p className={styles.joinMessage}>
                     📣 <em>Rejoignez-nous dès aujourd’hui sur PlanetLS.com</em>
                 </p>
-            </div>
-        </div>
+            </div>        </section>
     );
-};
-
-export default VideoIntro;
+}
