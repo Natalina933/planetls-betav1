@@ -4,11 +4,14 @@ import db from "../../lib/db";
 
 export async function GET() {
     try {
-        const [rows] = await db.execute(`
-            SELECT id, \`key\`, label, icon, image, description
-            FROM categories
-            ORDER BY label
-        `);
+        const { data: rows, error } = await db
+            .from('categories')
+            .select('id, key, label, icon, image, description')
+            .order('label');
+
+        if (error) {
+            throw error;
+        }
 
         return NextResponse.json(rows);
     } catch (error) {

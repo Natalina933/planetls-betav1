@@ -9,9 +9,9 @@ const places = [
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
-    const q = searchParams.get('q')?.toLowerCase() || '';
+    const q = searchParams.get('q')?.toLowerCase().trim() || '';
 
-    if (!q || q.length < 2) {
+    if (q.length < 2) {
         return NextResponse.json([]);
     }
 

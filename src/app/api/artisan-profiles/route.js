@@ -21,34 +21,42 @@ export async function GET(req) {
         const limit = parseInt(searchParams.get("limit")) || 100;
         const offset = parseInt(searchParams.get("offset")) || 0;
 
-        const [categoryRows] = await db.execute(`
-      SELECT id, \`key\`, label, icon, image, description
-      FROM categories
-      WHERE group_key = 'artisan' AND \`key\` != 'artisan'
-      ORDER BY label
-    `);
+        // Récupérer les catégories du groupe 'artisan' sauf 'artisan' lui-même
+        const { data: categoryRows, error: catError } = await db
+            .from('categories')
+            .select('id, key, label, icon, image, description')
+            .eq('group_key', 'artisan')
+            .neq('key', 'artisan')
+            .order('label');
+
+        if (catError) throw catError;
 
         const categories = [];
 
+        // Pour chaque catégorie, récupérer les profils associés
         for (const cat of categoryRows) {
-            const [profileRows] = await db.execute(`
-        SELECT id, name, latitude, longitude, photo
-        FROM profiles
-        WHERE type = ? AND available = 1
-        LIMIT ? OFFSET ?
-      `, [cat.key, limit, offset]);
+            const { data: profileRows, error: profError } = await db
+                .from('profiles')
+                .select('id, name, latitude, longitude, photo')
+                .eq('type', cat.key)
+                .eq('available', true)
+                .range(offset, offset + limit - 1);
+
+            if (profError) throw profError;
 
             const profiles = [];
 
             for (const prof of profileRows) {
-                const [serviceRows] = await db.execute(`
-          SELECT service
-          FROM profile_services
-          WHERE profile_id = ?
-        `, [prof.id]);
+                const { data: serviceRows, error: servError } = await db
+                    .from('profile_services')
+                    .select('service')
+                    .eq('profile_id', prof.id);
+
+                if (servError) throw servError;
 
                 const services = serviceRows.map(s => s.service);
 
+                // Filtrer sur service si demandé
                 if (serviceFilter && !services.includes(serviceFilter)) {
                     continue;
                 }

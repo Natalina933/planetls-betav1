@@ -1,16 +1,8 @@
-import mysql from "mysql2/promise";
+import { createClient } from '@supabase/supabase-js';
 
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-pool.getConnection()
-  .then(() => console.log("Connexion OK ✅"))
-  .catch((err) => console.error("Échec de connexion ❌", err));
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export default pool;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default supabase;

@@ -3,21 +3,25 @@ import db from "../../../lib/db";
 
 export async function GET() {
     try {
-        const [rows] = await db.execute(`
-            SELECT id, \`key\`, label, icon, image, description
-            FROM categories
-            WHERE \`key\` = \`group_key\`
-            ORDER BY label
-        `);
+        // On récupère toutes les catégories, y compris la colonne group_key
+        const { data: rows, error } = await db
+            .from('categories')
+            .select('id, key, label, icon, image, description, group_key')
+            .order('label');
 
-        const categories = rows.map((cat) => ({
-            id: cat.id,
-            key: cat.key,
-            label: cat.label,
-            icon: cat.icon,
-            image: cat.image,
-            description: cat.description,
-        }));
+        if (error) throw error;
+
+        // On filtre en JS pour ne garder que les lignes où key === group_key
+        const categories = rows
+            .filter(cat => cat.key === cat.group_key)
+            .map((cat) => ({
+                id: cat.id,
+                key: cat.key,
+                label: cat.label,
+                icon: cat.icon,
+                image: cat.image,
+                description: cat.description,
+            }));
 
         return NextResponse.json(categories);
     } catch (error) {

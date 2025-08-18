@@ -6,25 +6,41 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
 
-    let query = `
-      SELECT p.id, p.name, p.type, p.photo, p.latitude, p.longitude, p.available,
-            GROUP_CONCAT(ps.service) AS services
-      FROM profiles p
-      LEFT JOIN profile_services ps ON p.id = ps.profile_id
-    `;
-
-    const params = [];
+    // Récupération des profils avec filtre sur type, si besoin
+    let query = db.from('profiles').select('id, name, type, photo, latitude, longitude, available');
 
     if (category && category !== "all") {
-      query += " WHERE p.type = ?";
-      params.push(category);
+      query = query.eq('type', category);
     }
 
-    query += " GROUP BY p.id ORDER BY p.name";
+    const { data: profiles, error: profilesError } = await query.order('name');
 
-    const [rows] = await db.execute(query, params);
+    if (profilesError) throw profilesError;
 
-    const profiles = rows.map((p) => ({
+    // Récupérer les services de tous les profils en une requête (pour optimisation)
+    const profileIds = profiles.map(p => p.id);
+    let services = [];
+    if (profileIds.length > 0) {
+      const { data: serviceRows, error: servicesError } = await db
+        .from('profile_services')
+        .select('profile_id, service')
+        .in('profile_id', profileIds);
+
+      if (servicesError) throw servicesError;
+      services = serviceRows;
+    }
+
+    // Regroupe les services par profil
+    const servicesByProfile = {};
+    services.forEach(({ profile_id, service }) => {
+      if (!servicesByProfile[profile_id]) {
+        servicesByProfile[profile_id] = [];
+      }
+      servicesByProfile[profile_id].push(service);
+    });
+
+    // Compose la réponse finale
+    const result = profiles.map(p => ({
       id: p.id,
       name: p.name,
       type: p.type,
@@ -32,10 +48,10 @@ export async function GET(req) {
       latitude: p.latitude,
       longitude: p.longitude,
       available: Boolean(p.available),
-      services: p.services ? p.services.split(",") : [],
+      services: servicesByProfile[p.id] || []
     }));
 
-    return NextResponse.json(profiles);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("⛔ Erreur API /api/profiles :", error);
     return NextResponse.json(
