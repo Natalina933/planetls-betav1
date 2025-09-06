@@ -1,161 +1,162 @@
 // src/app/components/layout/Home/ForWhomSection/ForWhomSection.module.scss
 @use "src/app/styles/abstracts/index" as *;
+@use 'sass:color'; // Pour les fonctions de manipulation des couleurs
 
 .forWhomSection {
-    background: linear-gradient(120deg, #fcfbf7 80%, #f7efd7 100%);
-    border-radius: 2.2rem;
-    box-shadow: 0 4px 24px #e5e4e0;
-    padding: 3rem 1.5rem;
-    margin: 2rem 0;
-    overflow: hidden;
+  background: linear-gradient(120deg, #fcfbf7 80%, #f7efd7 100%);
+  border-radius: 2.2rem;
+  box-shadow: 0 4px 24px #e5e4e0;
+  padding: 3rem 1.5rem;
+  margin: 2rem 0;
+  overflow: hidden;
 
-    .content {
-        max-width: 1000px;
-        margin: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+  .content {
+    max-width: 1000px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .planetLSTitle {
+    font-family: var(--font-title, "High Tower Text", serif);
+    font-weight: 700;
+    font-size: 2.4rem;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.02em;
+    color: #b88b4a;
+    text-align: center;
+    @include highlight-gold(); // si tu veux accentuer le style doré
+  }
+
+  .planetLSIntro {
+    color: #646464;
+    font-size: 1.2rem;
+    max-width: 700px;
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .blocks {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+
+    @include respond-to("sm") {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+
+  [class^="block"] {
+    background: #fff;
+    border-radius: 1.3rem;
+    box-shadow: 0 2px 16px #e5e4e077;
+    padding: 2rem 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: 370px;
+    position: relative;
+    transition: box-shadow 0.22s;
+
+    &:hover {
+      box-shadow: 0 4px 32px #d4af3744;
+      transform: translateY(-6px) scale(1.025);
     }
 
-    .planetLSTitle {
-        font-family: var(--font-title, 'High Tower Text', serif);
-        font-weight: 700;
-        font-size: 2.4rem;
-        margin-bottom: 1.2rem;
-        letter-spacing: 0.02em;
+    h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #b88b4a;
+      margin: 1rem 0 0.6rem;
+    }
+
+    p {
+      color: #484848;
+      font-size: 1.07rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .icon {
+      margin-bottom: 1.1rem;
+      border-radius: 1.2rem;
+      background: #fcfaf2;
+      padding: 0.4rem;
+      width: 64px;
+      height: 64px;
+      box-shadow: 0 1px 8px #d4af3722;
+      object-fit: contain;
+    }
+
+    .CTAButton {
+      @include button(#b88b4a, #fff, none, 32px, 0.5rem 1.4rem);
+      font-size: 1rem;
+      margin-top: auto;
+      box-shadow: 0 2px 14px #d4af3722;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+
+      &:hover,
+      &:focus {
+        background: color.scale(#b88b4a, $lightness: 10%);
+        color: #fffbe6;
+        transform: translateY(-2px) scale(1.03);
+      }
+    }
+  }
+
+  .sectionMission {
+    display: block;
+    color: #83704b;
+    font-size: 1.08rem;
+    background: #fcf6e0;
+    padding: 1rem 1.5rem;
+    margin: 2rem 0 1.3rem 0;
+    border-radius: 16px;
+    box-shadow: 0 1px 6px #d4af3722;
+    text-align: center;
+  }
+
+  .heroActions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .buttonsRow {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.7rem;
+
+      .CTAButton,
+      .CTAButtonSecondary {
+        @include button();
+        background: #fffbe7;
         color: #b88b4a;
-        text-align: center;
-        @include highlight-gold(); // si tu veux accentuer le style doré
+        font-weight: 600;
+
+        &.CTAButtonSecondary {
+          background: #f9f9f9;
+          border: 1.5px solid #b88b4a;
+          color: #967342;
+        }
+      }
     }
 
-    .planetLSIntro {
-        color: #646464;
-        font-size: 1.2rem;
-        max-width: 700px;
-        text-align: center;
-        margin-bottom: 2.5rem;
+    .ctaTertiary {
+      color: #b88b4a;
+      font-size: 0.99rem;
+      text-decoration: underline dotted;
+      cursor: pointer;
+      padding: 0.4rem 0.8rem;
+      transition: color 0.18s;
+
+      &:hover {
+        color: #967342;
+      }
     }
-
-    .blocks {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        margin-bottom: 2.5rem;
-
-        @include respond-to("sm") {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-    }
-
-    [class^="block"] {
-        background: #fff;
-        border-radius: 1.3rem;
-        box-shadow: 0 2px 16px #e5e4e077;
-        padding: 2rem 1.25rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        min-height: 370px;
-        position: relative;
-        transition: box-shadow .22s;
-
-        &:hover {
-            box-shadow: 0 4px 32px #d4af3744;
-            transform: translateY(-6px) scale(1.025);
-        }
-
-        h3 {
-            font-size: 1.35rem;
-            font-weight: 600;
-            color: #b88b4a;
-            margin: 1rem 0 0.6rem;
-        }
-
-        p {
-            color: #484848;
-            font-size: 1.07rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .icon {
-            margin-bottom: 1.1rem;
-            border-radius: 1.2rem;
-            background: #fcfaf2;
-            padding: 0.4rem;
-            width: 64px;
-            height: 64px;
-            box-shadow: 0 1px 8px #d4af3722;
-            object-fit: contain;
-        }
-
-        .CTAButton {
-            @include button(#b88b4a, #fff, none, 32px, 0.5rem 1.4rem);
-            font-size: 1rem;
-            margin-top: auto;
-            box-shadow: 0 2px 14px #d4af3722;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-
-            &:hover,
-            &:focus {
-                background: lighten(#b88b4a, 10%);
-                color: #fffbe6;
-                transform: translateY(-2px) scale(1.03);
-            }
-        }
-    }
-
-    .sectionMission {
-        display: block;
-        color: #83704b;
-        font-size: 1.08rem;
-        background: #fcf6e0;
-        padding: 1rem 1.5rem;
-        margin: 2rem 0 1.3rem 0;
-        border-radius: 16px;
-        box-shadow: 0 1px 6px #d4af3722;
-        text-align: center;
-    }
-
-    .heroActions {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
-        .buttonsRow {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 0.7rem;
-
-            .CTAButton,
-            .CTAButtonSecondary {
-                @include button();
-                background: #fffbe7;
-                color: #b88b4a;
-                font-weight: 600;
-
-                &.CTAButtonSecondary {
-                    background: #f9f9f9;
-                    border: 1.5px solid #b88b4a;
-                    color: #967342;
-                }
-            }
-        }
-
-        .ctaTertiary {
-            color: #b88b4a;
-            font-size: 0.99rem;
-            text-decoration: underline dotted;
-            cursor: pointer;
-            padding: 0.4rem 0.8rem;
-            transition: color .18s;
-
-            &:hover {
-                color: #967342;
-            }
-        }
-    }
+  }
 }

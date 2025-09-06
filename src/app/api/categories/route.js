@@ -1,21 +1,29 @@
-// /app/api/categories/route.js
 import { NextResponse } from "next/server";
 import db from "../../lib/db";
 
-export async function GET() {
-    try {
-        const { data: rows, error } = await db
-            .from('categories')
-            .select('id, key, label, icon, image, description')
-            .order('label');
+export async function GET(request) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const filter = searchParams.get("filter") || "";
 
-        if (error) {
-            throw error;
-        }
+    let query = db.from("categories").select("*");
 
-        return NextResponse.json(rows);
-    } catch (error) {
-        console.error("⛔ Erreur API /api/categories :", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    if (filter) {
+      query = query.eq("key", filter);
     }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Erreur BDD:", error);
+      return NextResponse.json({ error: error.message }, { status: 502 });
+    }
+
+    console.log("Données récupérées :", data.length, "enregistrements");
+
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("Erreur générale dans GET /api/categories :", err);
+    return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 });
+  }
 }

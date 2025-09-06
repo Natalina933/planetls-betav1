@@ -15,20 +15,23 @@ export default function MapWithSearch() {
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState([]);
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch("/api/categories/groups");
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-        const data = await res.json();
-        setCategories(data);
-        setSelectedCategory(data[0]?.key || "");
-      } catch {
-        toast.error("Impossible de charger les catégories 😢");
-      }
+useEffect(() => {
+  async function fetchCategories() {
+    try {
+      const res = await fetch("/api/categories/groups");
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const data = await res.json();
+      console.log("Fetched categories:", data);
+      const cats = Array.isArray(data) ? data : data?.categories || [];
+      setCategories(cats);
+      setSelectedCategory(cats[0]?.key || "");
+    } catch {
+      toast.error("Impossible de charger les catégories 😢");
     }
-    fetchCategories();
-  }, []);
+  }
+  fetchCategories();
+}, []);
+
 
   const descriptions = {
     proprietaire: (
