@@ -3,7 +3,8 @@ import { Inter, Montserrat, Cormorant_Garamond, Open_Sans } from 'next/font/goog
 import "./styles/main.scss";
 import Providers from "./context/Providers";
 import Header from "./components/layout/Header/Header";
-
+import { SearchPopupProvider } from "./context/SearchPopupContext";
+import MapPopup from "./components/layout/MapPopup/MapPopup";
 const inter = Inter({
     subsets: ['latin'],
     variable: '--font-inter',
@@ -85,10 +86,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
             <body suppressHydrationWarning={true}>
                 <Providers>
-                    <Header />
-                    <main>
-                        {children}
-                    </main>
+                    <SearchPopupProvider>
+                        <Header />
+                        <main>{children}</main>
+                        <MapPopup /> {/* Popup global */}
+                    </SearchPopupProvider>
                 </Providers>
             </body>
         </html>

@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import styles from "./Navbar.module.scss";
+import { useSearchPopup } from "../../../context/SearchPopupContext";
 
-// Import dynamique de l'icône utilisateur
 const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then(mod => mod.FaUser), { ssr: false }),
   FaSearch: dynamic(() => import("react-icons/fa").then(mod => mod.FaSearch), { ssr: false }),
@@ -13,17 +12,13 @@ const Icons = {
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const { openSearchPopup } = useSearchPopup();
 
   return (
     <nav className={styles.navbar}>
-      {/* Burger menu */}
       <button
         className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
-        onClick={toggleMenu}
+        onClick={() => setMenuOpen(!menuOpen)}
         aria-label="Menu"
       >
         <span></span>
@@ -31,19 +26,15 @@ export default function Navbar() {
         <span></span>
       </button>
 
-      {/* Menu items */}
       <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
         <li className={styles["nav-seach"]}>
-          <Icons.FaSearch size={18} />
-          <Link href="/recherche">Recherche</Link>
+          <button onClick={openSearchPopup} className={styles.searchBtn}>
+            <Icons.FaSearch size={18} /> Recherche
+          </button>
         </li>
-        <li className={styles["auth-inscription"]}>
-          <Link href="/inscription">S’inscrire</Link>
-        </li>
+        <li className={styles["auth-inscription"]}><a href="/inscription">S’inscrire</a></li>
         <li className={styles["auth-connexion"]}>
-          <Link href="/connexion">
-            <Icons.FaUser size={18} /> Se connecter
-          </Link>
+          <a href="/connexion"><Icons.FaUser size={18} /> Se connecter</a>
         </li>
       </ul>
     </nav>

@@ -9,96 +9,127 @@ $charcoal: #333;
 $rose: #eac9c1;
 
 .profilesDisplay {
-    background-color: $cream;
-    font-family: 'Playfair Display', serif;
-    padding: 2rem;
+  background-color: $cream;
+  font-family: 'Playfair Display', serif;
+  padding: 2rem;
+  border: 1px solid $gold;
+  border-radius: 16px;
+  box-shadow: 0 0 16px rgba(197, 166, 108, 0.2);
+  color: $charcoal;
+  position: relative; // Pour positionner la cloche en absolu si besoin
+
+  .profileList {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 0;
+    margin: 0;
+  }
+
+  .profileItem {
+    background-color: #fff;
     border: 1px solid $gold;
-    border-radius: 16px;
-    box-shadow: 0 0 16px rgba(197, 166, 108, 0.2);
-    color: $charcoal;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba($gold, 0.15);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 
-    .profileList {
-        list-style: none;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        padding: 0;
-        margin: 0;
+    &:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 16px rgba($gold, 0.2);
+    }
+  }
+
+  .profileAvatar {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid $gold;
+  }
+
+  .profileDetails {
+    padding: 1rem;
+    text-align: center;
+
+    h4 {
+      margin-bottom: 0.5rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: $gold;
     }
 
-    .profileItem {
-        background-color: #fff;
-        border: 1px solid $gold;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba($gold, 0.15);
-        transition: transform 0.3s ease;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-
-        &:hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 16px rgba($gold, 0.2);
-        }
+    p {
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      color: $charcoal;
     }
+  }
 
-    .profileAvatar {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-bottom: 1px solid $gold;
+  .profileContactBtn {
+    background: linear-gradient(to right, $rose, $soft-blue);
+    border: none;
+    border-radius: 24px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: linear-gradient(to right, $soft-blue, $rose);
     }
+  }
 
-    .profileDetails {
-        padding: 1rem;
-        text-align: center;
+ .noResultAlert {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2.5rem 0.75rem 1.5rem;
+  font-style: italic;
+  color: color.adjust($soft-blue, $lightness: -20%);
+  cursor: pointer;
+  border: 1px solid $soft-blue;
+  border-radius: 8px;
+  background-color: #f0f8ff;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
 
-        h4 {
-            margin-bottom: 0.5rem;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: $gold;
-        }
+  svg {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.8rem;
+    color: $gold; /* couleur dorée */
+    filter: drop-shadow(0 0 2px rgba(255,215,0,0.7));
+    transition: color 0.3s ease;
+  }
 
-        p {
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
-            color: $charcoal;
-        }
+  &:hover {
+    background-color: color.adjust(#f0f8ff, $lightness: -10%);
+    color: darken($soft-blue, 15%);
+
+    svg {
+      color: darken($gold, 15%);
     }
+  }
+}
 
-    .profileContactBtn {
-        background: linear-gradient(to right, $rose, $soft-blue);
-        border: none;
-        border-radius: 24px;
-        padding: 0.6rem 1.2rem;
-        font-size: 0.95rem;
-        color: white;
-        cursor: pointer;
-        transition: background 0.3s ease;
 
-        &:hover {
-            background: linear-gradient(to right, $soft-blue, $rose);
-        }
-    }
-
-    .noResult {
-        text-align: center;
-        font-style: italic;
-        color: color.adjust($soft-blue, $lightness: -20%);
-        padding: 2rem;
-    }
-
-    // Exemple spécifique de style par type (optionnel)
-    .proprietaire {
-        border-left: 4px solid $gold;
-    }
-
-    .concierge {
-        border-left: 4px solid $soft-blue;
-    }
-
-    .artisan {
-        border-left: 4px solid $rose;
-    }
+  // Styles par type (optionnels)
+  .proprietaire {
+    border-left: 4px solid $gold;
+  }
+  .concierge {
+    border-left: 4px solid $soft-blue;
+  }
+  .artisan {
+    border-left: 4px solid $rose;
+  }
 }

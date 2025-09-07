@@ -15,6 +15,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.overlay.hide {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .popup {
@@ -26,11 +39,21 @@
   overflow-y: auto;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   position: relative;
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
-.popup:focus {
-  outline: 2px solid $gold;
-  outline-offset: 4px;
+
+.popup.show {
+  transform: scale(1);
+  opacity: 1;
 }
+
+.popup.hide {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
 .close {
   position: absolute;
   top: 1rem;
@@ -40,3 +63,4 @@
   font-size: 1.5rem;
   cursor: pointer;
 }
+

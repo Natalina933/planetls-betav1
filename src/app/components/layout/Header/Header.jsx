@@ -13,7 +13,6 @@ export default function Header() {
                         <img src="/icons/logoCompletv2.svg" alt="PlanetLs – Accueil" />
                     </span>
                 </Link>
-
             </div>
 
             <Navbar />

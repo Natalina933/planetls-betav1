@@ -1,67 +1,98 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import styles from "./MapPopup.module.scss";
-
-// Import dynamique du composant MapWithSearch
-const MapWithSearch = dynamic(() => import("../Home/MapWithSearch/MapWithSearch"), { ssr: false });
+import { useSearchPopup } from "../../../context/SearchPopupContext";
+const MapWithSearch = dynamic(
+  () => import("../Home/MapWithSearch/MapWithSearch"),
+  { ssr: false }
+);
 
 export default function MapPopup() {
-  const [visible, setVisible] = useState(false);
-  const [hasBeenClosed, setHasBeenClosed] = useState(false);
+  const { searchOpen, openSearchPopup, closeSearchPopup } = useSearchPopup();
   const popupRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (hasBeenClosed) return;
+  // Empêche l'ouverture multiple
+  const [hasTriggered, setHasTriggered] = useState(false);
+  // Empêche la réouverture après fermeture
+  const [hasBeenClosed, setHasBeenClosed] = useState(false);
+  // Pour animation
+  const [visible, setVisible] = useState(false);
 
-    const timer = setTimeout(() => setVisible(true), 120000); // 2 min
+  // Gestion scroll / timer
+  useEffect(() => {
+    if (hasTriggered || hasBeenClosed) return;
+
+    const timer = setTimeout(() => {
+      openSearchPopup();
+      setHasTriggered(true);
+    }, 120000); // 2 min
 
     const handleScroll = () => {
-      if (window.scrollY > 600) setVisible(true);
+      if (!hasTriggered && window.scrollY > 600) {
+        openSearchPopup();
+        setHasTriggered(true);
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [hasBeenClosed]);
+  }, [hasTriggered, hasBeenClosed, openSearchPopup]);
 
+  // Gestion ouverture/fermeture avec animation
   useEffect(() => {
+    if (searchOpen) setVisible(true);
+    else setVisible(false);
+  }, [searchOpen]);
+
+  // Gestion touche ESC
+  useEffect(() => {
+    if (!searchOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setVisible(false);
+        closeSearchPopup();
         setHasBeenClosed(true);
       }
     };
 
-    if (visible) {
-      document.addEventListener("keydown", handleKeyDown);
-      popupRef.current?.focus();
-    }
+    document.addEventListener("keydown", handleKeyDown);
+    popupRef.current?.focus();
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [visible]);
+  }, [searchOpen, closeSearchPopup]);
 
-  const closePopup = () => {
-    setVisible(false);
+  if (!searchOpen && !visible) return null;
+
+  const handleClose = () => {
+    closeSearchPopup();
     setHasBeenClosed(true);
   };
 
-  if (!visible) return null;
-
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
+    <div
+      className={`${styles.overlay} ${visible ? styles.show : styles.hide}`}
+      role="dialog"
+      aria-modal="true"
+    >
       <div
-        className={styles.popup}
+        className={`${styles.popup} ${visible ? styles.show : styles.hide}`}
         ref={popupRef}
         tabIndex={-1}
         aria-label="Fenêtre de recherche"
       >
-        <button className={styles.close} onClick={closePopup} aria-label="Fermer la fenêtre">
+        <button
+          className={styles.close}
+          onClick={handleClose}
+          aria-label="Fermer la fenêtre"
+        >
           ✕
         </button>
         <MapWithSearch />
