@@ -19,11 +19,14 @@ export async function GET(request) {
       return NextResponse.json({ error: error.message }, { status: 502 });
     }
 
-    console.log("Données récupérées :", data.length, "enregistrements");
+    // console.log("Données récupérées :", data.length, "enregistrements");
 
     return NextResponse.json(data);
   } catch (err) {
     console.error("Erreur générale dans GET /api/categories :", err);
-    return NextResponse.json({ error: "Erreur interne du serveur" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erreur interne du serveur" },
+      { status: 500 }
+    );
   }
 }

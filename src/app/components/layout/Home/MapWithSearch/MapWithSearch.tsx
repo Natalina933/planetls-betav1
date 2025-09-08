@@ -1,21 +1,29 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import iconMap from "@/app/lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+const supabase = createClientComponentClient();
 
-// 1. Définir un type pour les données des catégories
+// Définition du type pour les catégories
 interface Category {
   key: string;
   label: string;
-  icon: keyof typeof iconMap; // Assure que l'icône existe dans iconMap
+  icon: keyof typeof iconMap;
+}
+interface Profile {
+  id: string;
+  name: string;
+  type: "proprietaire" | "concierge" | "artisan";
+  photo?: string;
+  services?: string[];
 }
 
-// Objet des descriptions, inchangé mais pourrait venir de l'API
+// Descriptions dynamiques
 const DESCRIPTIONS = {
   proprietaire: (
     <>
@@ -35,26 +43,26 @@ const DESCRIPTIONS = {
 };
 
 export default function MapWithSearch() {
-  const router = useRouter();
 
-  // 2. Gestion d'état groupée et typée
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
+  const [visibleProfiles, setVisibleProfiles] = useState<Profile[]>([]);
+  const [alertConfirmed, setAlertConfirmed] = useState(false);
+
+  // --- Récupération des catégories ---
   useEffect(() => {
     const fetchCategories = async () => {
       setStatus("loading");
       try {
         const res = await fetch("/api/categories/groups");
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
-        
+
         const data: Category[] = await res.json();
         setCategories(data);
-        if (data.length > 0) {
-          setSelectedCategory(data[0].key);
-        }
+        if (data.length > 0) setSelectedCategory(data[0].key);
         setStatus("success");
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -64,19 +72,26 @@ export default function MapWithSearch() {
     };
 
     fetchCategories();
-  }, []); // Le tableau vide est correct, l'effet ne s'exécute qu'une fois
+  }, []);
 
-  // 3. Fonctions mémoisées avec useCallback
-  const handleSearch = useCallback((e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault(); // Empêche le rechargement de la page par le formulaire
+  // --- Fonction de recherche ---
+  const handleSearch = useCallback(async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     if (!location.trim()) {
       toast.warn("Veuillez renseigner une localisation 📍");
       return;
     }
-    router.push(`/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`);
-  }, [location, selectedCategory, router]);
 
-  // Rendu des boutons de catégorie
+    try {
+      const res = await fetch(`/api/profiles?category=${selectedCategory}&location=${encodeURIComponent(location)}`);
+      const data = await res.json();
+      setVisibleProfiles(data.profiles || []);
+    } catch {
+      toast.error("Erreur lors de la recherche 😢");
+    }
+  }, [location, selectedCategory]);
+
+  // --- Boutons de catégorie ---
   const renderCategoryToggles = () => {
     if (status === "loading") return <p>Chargement des filtres...</p>;
     if (status === "error") return <p>Erreur lors du chargement des filtres.</p>;
@@ -99,16 +114,48 @@ export default function MapWithSearch() {
     });
   };
 
+  // --- Fonction pour créer une alerte ---
+  const handleAlertClick = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.warn("Vous devez être connecté(e) pour créer une alerte !");
+        return;
+      }
+
+      const message = `Alerte : ${selectedCategory} à ${location} non trouvé`;
+
+      const response = await fetch("/api/alertes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          message,
+          category: selectedCategory,
+          location
+        }),
+      });
+
+      if (response.ok) {
+        setAlertConfirmed(true);
+        setTimeout(() => setAlertConfirmed(false), 5000);
+      } else {
+        toast.error("Impossible d’enregistrer l’alerte 😢");
+      }
+    } catch {
+      toast.error("Erreur réseau lors de l’enregistrement de l’alerte");
+    }
+  };
+
   return (
     <div className={styles.mapWithSearchSection}>
       <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
+
       <section className={styles.categorySearchSection}>
         <h2 className={styles.categoryTitle}>Connectez-vous aux bons partenaires</h2>
 
-        <div className={styles.tripleToggleGroup}>
-          {renderCategoryToggles()}
-        </div>
-        
+        <div className={styles.tripleToggleGroup}>{renderCategoryToggles()}</div>
+
         {status === "success" && (
           <div className={styles.categoryTextBubble1900}>
             <p>{DESCRIPTIONS[selectedCategory as keyof typeof DESCRIPTIONS]}</p>
@@ -119,7 +166,6 @@ export default function MapWithSearch() {
           <span className={styles.categoryInstruction}>
             Utilisez les filtres ci-dessus et indiquez votre localisation.
           </span>
-          {/* 4. Le formulaire gère la soumission, plus besoin de onKeyDown */}
           <form onSubmit={handleSearch} className={styles.searchBar}>
             <label htmlFor="location-search" className={styles.srOnly}>
               Recherche de localisation
@@ -139,6 +185,19 @@ export default function MapWithSearch() {
             </button>
           </form>
         </div>
+
+        {/* --- Aucun profil trouvé --- */}
+        {visibleProfiles.length === 0 && location.trim() !== "" && (
+          <button
+            className={styles.noResultAlert}
+            onClick={handleAlertClick}
+            aria-label={alertConfirmed ? "Alerte prise en compte" : "Créer une alerte"}
+            type="button"
+          >
+            Aucun profil trouvé {alertConfirmed ? "✅" : "🔔"}
+          </button>
+        )}
+
       </section>
     </div>
   );
