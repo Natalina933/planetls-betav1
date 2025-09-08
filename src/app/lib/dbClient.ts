@@ -1,8 +1,10 @@
 "use client";
 
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { Database } from "./types"; // optionnel si tu veux TS
+import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "./types"; // garde ton fichier types.ts
 
-const supabase = createClientComponentClient<Database>();
-
-export default supabase;
+export const supabaseBrowser = () =>
+  createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );

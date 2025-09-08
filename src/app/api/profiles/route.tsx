@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer"; // ton client serveur
-import type { Database } from "@/app/lib/types";
+import { db } from "@/app/lib/dbServer"; // utiliser le client serveur typé
+// import type { ProfileRow } from "@/app/lib/types";
 
 export async function GET(req: Request) {
   try {
@@ -8,27 +8,24 @@ export async function GET(req: Request) {
     const category = searchParams.get("category");
 
     let query = db
-      .from<Database["public"]["Tables"]["profiles"]["Row"]>("profiles")
+      .from("profiles") // ✅ Type reconnu via <Database>
       .select("id, name, type, photo, latitude, longitude, available");
 
+    // Filtrer sur category uniquement si ce n’est pas "all"
     if (category && category !== "all") {
-      query = query.eq("type", category);
+      query = query.eq("type", category); // ✅ TypeScript sait que type est correct
     }
 
     const { data: profiles, error } = await query.order("name");
+
     if (error) throw error;
 
     return NextResponse.json(profiles);
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Erreur API /profiles:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    } else {
-      console.error("Erreur API /profiles inconnue:", error);
-      return NextResponse.json(
-        { error: "Erreur interne du serveur" },
-        { status: 500 }
-      );
-    }
+    console.error(error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Erreur serveur" },
+      { status: 500 }
+    );
   }
 }

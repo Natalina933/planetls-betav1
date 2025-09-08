@@ -6,8 +6,8 @@ import { toast, ToastContainer } from "react-toastify";
 import iconMap from "@/app/lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-const supabase = createClientComponentClient();
+import { createBrowserClient } from "@supabase/ssr";
+const supabase = createBrowserClient();
 
 // Définition du type pour les catégories
 interface Category {

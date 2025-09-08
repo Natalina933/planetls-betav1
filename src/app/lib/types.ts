@@ -7,7 +7,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          type: string;
+          type: "proprietaire" | "concierge" | "artisan"; // mieux que string simple
           photo: string | null;
           latitude: number | null;
           longitude: number | null;
@@ -15,7 +15,7 @@ export interface Database {
         };
         Insert: {
           name: string;
-          type: string;
+          type: "proprietaire" | "concierge" | "artisan";
           photo?: string | null;
           latitude?: number | null;
           longitude?: number | null;
@@ -23,13 +23,14 @@ export interface Database {
         };
         Update: {
           name?: string;
-          type?: string;
+          type?: "proprietaire" | "concierge" | "artisan";
           photo?: string | null;
           latitude?: number | null;
           longitude?: number | null;
           available?: boolean;
         };
       };
+
       profile_services: {
         Row: {
           profile_id: string;
@@ -44,6 +45,7 @@ export interface Database {
           service?: string;
         };
       };
+
       alertes: {
         Row: {
           id: string;
@@ -63,3 +65,11 @@ export interface Database {
     };
   };
 }
+
+// Aliases pratiques
+export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+
+export type ProfileServiceRow = Database["public"]["Tables"]["profile_services"]["Row"];
+export type AlerteRow = Database["public"]["Tables"]["alertes"]["Row"];
