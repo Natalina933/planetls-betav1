@@ -7,7 +7,10 @@ import iconMap from "@/app/lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
 import { createBrowserClient } from "@supabase/ssr";
-const supabase = createBrowserClient();
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // Définition du type pour les catégories
 interface Category {
