@@ -13,7 +13,7 @@ import PromotePlatformSection from '../components/layout/Home/PromotePlatformSec
 import { TrustSection } from '../components/layout/Home/TrustSection/TrustSection';
 import BlogNewsSection from '../components/layout/Home/BlogNewsSection/BlogNewsSection';
 import ServiceList from '../components/layout/Home/SectionBlock/services/ServiceList';
-import MapPopup from '../components/layout/MapPopup/MapPopup';
+// import MapPopup from '../components/layout/MapPopup/MapPopup';
 
 // Chargement dynamique côté client uniquement
 // const MapWithSearch = dynamic(
@@ -35,7 +35,7 @@ export default function HomePage() {
                 <main>
                     <FirstVisit />
                     <HeroSection />
-                    <MapPopup />
+                    {/* <MapPopup /> */}
                     <HowItWorksSection />
                     <ServiceList />
                     <VideoIntro />

@@ -11,11 +11,12 @@ const Icons = {
 };
 
 export default function Navbar() {
+  const { setSearchOpen } = useSearchPopup();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { openSearchPopup } = useSearchPopup();
 
   return (
     <nav className={styles.navbar}>
+      {/* Burger Menu */}
       <button
         className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
         onClick={() => setMenuOpen(!menuOpen)}
@@ -26,15 +27,24 @@ export default function Navbar() {
         <span></span>
       </button>
 
-      <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
-        <li className={styles["nav-seach"]}>
-          <button onClick={openSearchPopup} className={styles.searchBtn}>
+      {/* Menu Items */}
+      <ul className={`${styles.menu} ${menuOpen ? styles.show : ""}`}>
+        <li className={styles["nav-search"]}>
+          <button
+            onClick={() => setSearchOpen(true)}
+            className={`${styles.searchBtn} ${styles.navButton}`}
+            aria-label="Ouvrir la recherche"
+          >
             <Icons.FaSearch size={18} /> Recherche
           </button>
         </li>
-        <li className={styles["auth-inscription"]}><a href="/inscription">S’inscrire</a></li>
+        <li className={styles["auth-inscription"]}>
+          <a href="/inscription">S’inscrire</a>
+        </li>
         <li className={styles["auth-connexion"]}>
-          <a href="/connexion"><Icons.FaUser size={18} /> Se connecter</a>
+          <a href="/connexion">
+            <Icons.FaUser size={18} /> Se connecter
+          </a>
         </li>
       </ul>
     </nav>

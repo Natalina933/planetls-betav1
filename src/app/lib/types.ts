@@ -51,15 +51,29 @@ export interface Database {
           id: string;
           user_id: string;
           message: string;
+          category: string;
+          location: string;
+          latitude: number | null;
+          longitude: number | null;
           created_at: string;
         };
         Insert: {
           user_id: string;
           message: string;
+          category: string;
+          location: string;
+          latitude?: number | null;
+          longitude?: number | null;
+          created_at?: string;
         };
         Update: {
           user_id?: string;
           message?: string;
+          category?: string;
+          location?: string;
+          latitude?: number | null;
+          longitude?: number | null;
+          created_at?: string;
         };
       };
     };

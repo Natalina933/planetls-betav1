@@ -1,22 +1,19 @@
 "use client";
+
 import { createContext, useContext, useState, ReactNode } from "react";
 
-interface SearchPopupContextType {
+interface SearchPopupContextProps {
   searchOpen: boolean;
-  openSearchPopup: () => void;
-  closeSearchPopup: () => void;
+  setSearchOpen: (open: boolean) => void;
 }
 
-const SearchPopupContext = createContext<SearchPopupContextType | undefined>(undefined);
+const SearchPopupContext = createContext<SearchPopupContextProps | undefined>(undefined);
 
 export const SearchPopupProvider = ({ children }: { children: ReactNode }) => {
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const openSearchPopup = () => setSearchOpen(true);
-  const closeSearchPopup = () => setSearchOpen(false);
-
   return (
-    <SearchPopupContext.Provider value={{ searchOpen, openSearchPopup, closeSearchPopup }}>
+    <SearchPopupContext.Provider value={{ searchOpen, setSearchOpen }}>
       {children}
     </SearchPopupContext.Provider>
   );
@@ -24,6 +21,6 @@ export const SearchPopupProvider = ({ children }: { children: ReactNode }) => {
 
 export const useSearchPopup = () => {
   const context = useContext(SearchPopupContext);
-  if (!context) throw new Error("useSearchPopup must be used within a SearchPopupProvider");
+  if (!context) throw new Error("useSearchPopup must be used within SearchPopupProvider");
   return context;
 };

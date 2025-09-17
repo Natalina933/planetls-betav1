@@ -102,6 +102,29 @@ $border-color: var(--color-border);
 }
 
 }
+// Style pour le bouton Recherche
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  height: 36px;
+  border-radius: 50px;
+  border: 1px solid $gold;
+  background: transparent;
+  color: $gold;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: $gold-light;
+    color: rgb(133, 81, 3);
+    box-shadow: 0 0 6px rgba($gold, 0.4);
+  }
+}
+
 /* Burger */
 .burger {
   display: none;

@@ -88,8 +88,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Providers>
                     <SearchPopupProvider>
                         <Header />
-                        <main>{children}</main>
                         <MapPopup /> {/* Popup global */}
+                        <main>{children}</main>
                     </SearchPopupProvider>
                 </Providers>
             </body>

@@ -7,45 +7,9 @@
 
 // === SECTION PRINCIPALE ===
 .mapWithSearchSection {
-  background: linear-gradient(to bottom, #fdfaf3, #f6f0e5);
-  font-family: $font-elegant;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
-  text-align: center;
-  position: relative;
-  border-top: 2.5px solid #b88b4a;
-  border-bottom: 2.5px solid #b88b4a;
-  background: var(--background);
-
-  h2 {
-    font-size: 2.5rem;
-    color: var(--color-text-primary);
-    margin-bottom: 1rem;
-    font-weight: 700;
-    text-align: center;
-
-    @include fadeInTitle(0.5s, 0.2s);
-
-    @include mq(md) {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      margin: 0.5rem auto 0;
-      width: 50%;
-      height: 0.25rem;
-      background-color: $gold;
-    }
-  }
-
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
+  /* Ne pas définir de border-radius ici (ou hérite du parent) */
+  border-radius: 0; /* pour éviter chevauchement */
+  background: transparent; /* ou garde le background du popup parent */
 }
 
 // === POPUP MODE ===
