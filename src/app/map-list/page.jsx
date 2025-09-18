@@ -1,14 +1,17 @@
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+// src/app/map-list/page.jsx
+"use client";
 
-const MapListContent = dynamic(() => import('@/components/MapWithList/MapListContent'), {
-  ssr: false,
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
+const MapWithList = dynamic(() => import("../components/MapWithList/MapWithList"), {
+  ssr: false, // ⛔ désactive le rendu côté serveur
 });
 
-export default function MapWithListPage() {
+export default function MapListPage() {
   return (
     <Suspense fallback={<div>Chargement de la carte...</div>}>
-      <MapListContent />
+      <MapWithList />
     </Suspense>
   );
 }

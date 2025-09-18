@@ -108,8 +108,9 @@ export default function MapWithList() {
                   <br />
                   {p.type}
                   <br />
-                  {p.services.join(", ")}
+                  {Array.isArray(p.services) ? p.services.join(", ") : "Non renseignés"}
                 </Popup>
+
               </Marker>
             ))}
           </MapContainer>

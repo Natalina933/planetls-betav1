@@ -1,15 +1,20 @@
+"use client";
 import React, { useState } from "react";
 import { FaBell, FaBellSlash } from "react-icons/fa";
 import styles from "./ProfilesDisplay.module.scss";
+import { useSearchParams } from "next/navigation";
 
 export default function ProfilesDisplay({ visibleProfiles }) {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("filter") || "proprietaire";
+  const location = searchParams.get("location") || "non précisée";
+
   const [alertConfirmed, setAlertConfirmed] = useState(false);
 
   const handleAlertClick = async () => {
     try {
-      const userId = "a1b2c3d4-1234-5678-90ab-cdef12345678"; // UUID format
-      // récupère l’id utilisateur connecté dynamiquement si possible
-      const message = "Alerte profil non trouvé";
+      const userId = "a1b2c3d4-1234-5678-90ab-cdef12345678"; // TODO: remplacer par l’ID du user connecté
+      const message = `Alerte : aucun profil trouvé pour ${category} à ${location}`;
 
       const response = await fetch("/api/alertes", {
         method: "POST",
@@ -28,8 +33,6 @@ export default function ProfilesDisplay({ visibleProfiles }) {
     }
   };
 
-
-
   return (
     <div className={styles.profilesDisplay}>
       {visibleProfiles.length > 0 ? (
@@ -47,7 +50,7 @@ export default function ProfilesDisplay({ visibleProfiles }) {
                 </h4>
                 <p>
                   Services :{" "}
-                  {Array.isArray(services) && services.length
+                  {Array.isArray(services) && services.length > 0
                     ? services.join(", ")
                     : "Non renseignés"}
                 </p>
