@@ -1,138 +1,312 @@
-@use "sass:math";
 @use "sass:color";
+@use "sass:math";
 @use "src/app/styles/abstracts/_mixins" as *;
 @use "src/app/styles/abstracts/_functions" as *;
 @use "src/app/styles/abstracts/_variables" as *;
 
-$soft-blue: #b0c4de;
-$charcoal: #333;
-$rose: #eac9c1;
-
 .profilesDisplay {
-  background-color: $cream;
-  font-family: 'Playfair Display', serif;
-  padding: 2rem;
-  border: 1px solid $gold;
-  border-radius: 16px;
-  box-shadow: 0 0 16px rgba(197, 166, 108, 0.2);
-  color: $charcoal;
-  position: relative; // Pour positionner la cloche en absolu si besoin
+  background: linear-gradient(
+    135deg,
+    $mucha-paper 0%,
+    color.scale($cream, $lightness: 20%) 100%
+  );
+  font-family: $font-elegant;
+  padding: $spacing-lg;
+  border: 2px solid $gold;
+  border-radius: $radius-2xl;
+  box-shadow: 0 8px 24px rgba($gold-dark, 0.15);
+  color: $mucha-ink;
 
   .profileList {
     list-style: none;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
+    gap: $spacing-lg;
     padding: 0;
     margin: 0;
   }
 
   .profileItem {
-    background-color: #fff;
-    border: 1px solid $gold;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba($gold, 0.15);
-    transition: transform 0.3s ease;
-    overflow: hidden;
+    background: $gold-soft;
+    border: 1px solid $gold-light;
+    border-radius: $radius-lg;
+    padding: $spacing-md;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    transition: $transition;
 
     &:hover {
-      transform: scale(1.03);
-      box-shadow: 0 8px 16px rgba($gold, 0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba($gold-dark, 0.2);
     }
   }
 
   .profileAvatar {
-    width: 100%;
-    height: 200px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
     object-fit: cover;
-    border-bottom: 1px solid $gold;
+    border: 2px solid $primary-color-sass;
+    margin-bottom: $spacing-sm;
   }
 
   .profileDetails {
-    padding: 1rem;
-    text-align: center;
-
     h4 {
-      margin-bottom: 0.5rem;
-      font-size: 1.3rem;
-      font-weight: 600;
+      font-family: $font-title;
+      font-size: 1.2rem;
+      font-weight: $font-weight-bold;
       color: $gold;
+      margin-bottom: $spacing-xs;
+      text-shadow: 0 0 4px rgba($gold, 0.25);
     }
 
-    p {
-      font-size: 0.95rem;
-      margin-bottom: 1rem;
-      color: $charcoal;
-    }
-  }
-
-  .profileContactBtn {
-    background: linear-gradient(to right, $rose, $soft-blue);
-    border: none;
-    border-radius: 24px;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.95rem;
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s ease;
-
-    &:hover {
-      background: linear-gradient(to right, $soft-blue, $rose);
+    .categoryLabel {
+      font-size: 0.9rem;
+      font-weight: $font-weight-normal;
+      color: $color-text-light;
     }
   }
 
-  .noResultAlert {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+  .categoryDescription {
+    font-family: $font-text;
+    font-size: 0.9rem;
+    color: $text-light;
+    margin-bottom: $spacing-sm;
+  }
+
+  .services {
+    margin-bottom: $spacing-sm;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    padding: 0.75rem 2.5rem 0.75rem 1.5rem;
-    font-style: italic;
-    color: color.adjust($soft-blue, $lightness: -20%);
-    cursor: pointer;
-    border: 1px solid $soft-blue;
-    border-radius: 8px;
-    background-color: #f0f8ff;
-    font-weight: 600;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    transition: all 0.3s ease;
+    gap: $spacing-xs;
 
-    svg {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      font-size: 1.8rem;
-      color: $gold;
-      /* couleur dorée */
-      filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.7));
-      transition: color 0.3s ease;
+    .serviceBadge {
+      background: $primary-light-color-sass;
+      color: $mucha-ink;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: $radius-pill;
+      font-weight: 600;
+      border: 1px solid $primary-color-sass;
     }
 
-    &:hover {
-      background-color: color.adjust(#f0f8ff, $lightness: -10%);
-      color: color.adjust($soft-blue, $lightness: -15%);
+    .more {
+      background: $gold-dark;
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: $radius-pill;
+    }
 
-      svg {
-        color: color.adjust($gold, $lightness: -15%);
+    .serviceNone {
+      font-style: italic;
+      color: $text-light;
+    }
+  }
+
+  .location {
+    font-size: 0.9rem;
+    color: $text-dark;
+    margin: $spacing-xs 0;
+  }
+
+  .experience {
+    font-size: 0.85rem;
+    color: $color-text-light;
+    margin-bottom: $spacing-sm;
+  }
+
+  .status {
+    margin-bottom: $spacing-md;
+
+    .available {
+      color: green;
+      font-weight: 600;
+    }
+
+    .unavailable {
+      color: red;
+      font-weight: 600;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: $spacing-sm;
+    justify-content: center;
+
+    .profileContactBtn,
+    .profileMoreBtn {
+      background: $primary-color-sass;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: $radius-pill;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: $transition;
+
+      &:hover {
+        background: $primary-dark-color-sass;
+      }
+    }
+
+    .profileMoreBtn {
+      background: $gold-accent;
+      color: $mucha-ink;
+
+      &:hover {
+        background: $gold-dark;
+        color: white;
       }
     }
   }
 
+  .profileContactBtn {
+    background: linear-gradient(90deg, $gold-alt, $gold-accent);
+    border: none;
+    border-radius: $radius-pill;
+    padding: 0.6rem 1.4rem;
+    font-size: 0.95rem;
+    font-weight: $font-weight-bold;
+    color: $mucha-ink;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 3px 8px rgba($gold-dark, 0.2);
+    transition: $transition;
 
-  // Styles par type (optionnels)
+    &:hover {
+      background: linear-gradient(90deg, $gold-accent, $gold-alt);
+      box-shadow: 0 5px 12px rgba($gold-dark, 0.3);
+      transform: translateY(-2px);
+    }
+  }
+
+  .noResultAlert {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 2rem;
+    font-style: italic;
+    color: color.scale($gold-dark, $lightness: -10%);
+    border: 1px solid $gold-dark;
+    border-radius: $radius-lg;
+    background-color: $gold-soft;
+    font-weight: $font-weight-bold;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: $transition;
+
+    svg {
+      margin-left: 0.5rem;
+      font-size: 1.5rem;
+      color: $gold;
+      filter: drop-shadow(0 0 2px rgba($gold, 0.6));
+      transition: color 0.3s ease;
+    }
+
+    &:hover {
+      background-color: color.scale($gold-soft, $lightness: -10%);
+      color: $gold-dark;
+
+      svg {
+        color: $gold-dark;
+      }
+    }
+  }
+
+  .confirmationMessage {
+    font-family: $font-text;
+    font-size: 0.95rem;
+    color: $primary-dark-color-sass;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  // Styles par type (codes couleurs inspirés 1900)
   .proprietaire {
-    border-left: 4px solid $gold;
+    border-top: 3px solid $gold;
   }
 
   .concierge {
-    border-left: 4px solid $soft-blue;
+    border-top: 3px solid $gold-accent;
   }
 
   .artisan {
-    border-left: 4px solid $rose;
+    border-top: 3px solid $gold-light;
+  }
+}
+@media (max-width: 600px) {
+  .profilesDisplay {
+    padding: $spacing-md;
+
+    .profileList {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-md;
+    }
+
+    .profileItem {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .profileAvatar {
+      width: 80px;
+      height: 80px;
+      margin-bottom: $spacing-sm;
+    }
+
+    .profileDetails {
+      h4 {
+        font-size: 1rem;
+      }
+
+      .categoryLabel {
+        font-size: 0.85rem;
+      }
+    }
+
+    .services {
+      flex-direction: column;
+      align-items: center;
+      gap: $spacing-xs;
+    }
+
+    .location,
+    .experience,
+    .status {
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .actions {
+      flex-direction: column;
+      gap: $spacing-xs;
+      width: 100%;
+
+      .profileContactBtn,
+      .profileMoreBtn {
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+
+    .noResultAlert {
+      flex-direction: column;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.85rem;
+
+      svg {
+        margin-top: 0.5rem;
+        margin-left: 0;
+      }
+    }
   }
 }

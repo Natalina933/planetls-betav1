@@ -48,11 +48,12 @@ const DESCRIPTIONS = {
 };
 
 export default function MapWithSearch() {
-
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [location, setLocation] = useState("");
+  const [availableDate, setAvailableDate] = useState(""); // ✅ ici à l'intérieur du composant
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const router = useRouter();
 
   // const [visibleProfiles, setVisibleProfiles] = useState<Profile[]>([]);
   // const [alertConfirmed, setAlertConfirmed] = useState(false);
@@ -80,21 +81,22 @@ export default function MapWithSearch() {
   }, []);
 
   // --- Fonction de recherche ---
-const router = useRouter();
 
-const handleSearch = useCallback(
-  async (e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault();
-    if (!location.trim()) {
-      toast.warn("Veuillez renseigner une localisation 📍");
-      return;
-    }
+  const handleSearch = useCallback(
+    async (e?: React.FormEvent<HTMLFormElement>) => {
+      e?.preventDefault();
+      if (!location.trim()) {
+        toast.warn("Veuillez renseigner une localisation 📍");
+        return;
+      }
 
-    // Redirection vers la page avec les paramètres
-    router.push(`/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}`);
-  },
-  [location, selectedCategory, router]
+      // Redirection vers la page avec les paramètres
+router.push(
+  `/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}&date=${availableDate}`
 );
+    },
+  [location, selectedCategory, availableDate, router]
+  );
 
 
   // --- Boutons de catégorie ---
@@ -121,37 +123,37 @@ const handleSearch = useCallback(
   };
 
   // --- Fonction pour créer une alerte ---
-// const handleAlertClick = async () => {
-//   try {
-//     const { data: { user } } = await supabase.auth.getUser();
-//     if (!user) {
-//       toast.warn("Vous devez être connecté(e) pour créer une alerte !");
-//       return;
-//     }
+  // const handleAlertClick = async () => {
+  //   try {
+  //     const { data: { user } } = await supabase.auth.getUser();
+  //     if (!user) {
+  //       toast.warn("Vous devez être connecté(e) pour créer une alerte !");
+  //       return;
+  //     }
 
-//     const message = `Alerte : ${selectedCategory} à ${location} non trouvé`;
+  //     const message = `Alerte : ${selectedCategory} à ${location} non trouvé`;
 
-//     const response = await fetch("/api/alertes", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({
-//         userId: user.id,
-//         message,
-//         category: selectedCategory,
-//         location
-//       }),
-//     });
+  //     const response = await fetch("/api/alertes", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         userId: user.id,
+  //         message,
+  //         category: selectedCategory,
+  //         location
+  //       }),
+  //     });
 
-//     if (response.ok) {
-//       setAlertConfirmed(true);
-//       setTimeout(() => setAlertConfirmed(false), 5000);
-//     } else {
-//       toast.error("Impossible d’enregistrer l’alerte 😢");
-//     }
-//   } catch {
-//     toast.error("Erreur réseau lors de l’enregistrement de l’alerte");
-//   }
-// };
+  //     if (response.ok) {
+  //       setAlertConfirmed(true);
+  //       setTimeout(() => setAlertConfirmed(false), 5000);
+  //     } else {
+  //       toast.error("Impossible d’enregistrer l’alerte 😢");
+  //     }
+  //   } catch {
+  //     toast.error("Erreur réseau lors de l’enregistrement de l’alerte");
+  //   }
+  // };
 
 
 
@@ -192,6 +194,19 @@ const handleSearch = useCallback(
               <FaSearch aria-hidden="true" />
             </button>
           </form>
+        </div>
+        <div className={styles.datePickerWrapper}>
+          <label htmlFor="availability-date" className={styles.srOnly}>
+            Date de disponibilité
+          </label>
+          <input
+            type="date"
+            id="availability-date"
+            name="availability"
+            value={availableDate}
+            onChange={(e) => setAvailableDate(e.target.value)}
+            className={styles.dateInput}
+          />
         </div>
 
 

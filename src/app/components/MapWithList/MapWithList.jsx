@@ -44,6 +44,8 @@ export default function MapWithList() {
   const searchParams = useSearchParams();
   const filter = searchParams.get("filter") || "proprietaire"; // Valeur par défaut si non définie
   const location = searchParams.get("location") || "";
+  const date = searchParams.get("date") || "";
+
   const { data: properties, error } = useSWR(
     `/api/profiles?category=${filter}&location=${location}`,
     fetcher

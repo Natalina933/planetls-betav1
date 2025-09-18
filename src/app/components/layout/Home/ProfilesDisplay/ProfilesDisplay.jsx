@@ -4,6 +4,22 @@ import { FaBell, FaBellSlash } from "react-icons/fa";
 import styles from "./ProfilesDisplay.module.scss";
 import { useSearchParams } from "next/navigation";
 
+// Exemple de mapping catégories (à récupérer depuis ta BDD / API)
+const categoriesMap = {
+  proprietaire: {
+    label: "Propriétaire",
+    description: "Propriétaires locaux, engagés et à l’écoute",
+  },
+  concierge: {
+    label: "Conciergerie",
+    description: "Concierges de quartier, service sur-mesure",
+  },
+  artisan: {
+    label: "Artisan",
+    description: "Artisans passionnés, savoir-faire local",
+  },
+};
+
 export default function ProfilesDisplay({ visibleProfiles }) {
   const searchParams = useSearchParams();
   const category = searchParams.get("filter") || "proprietaire";
@@ -37,32 +53,73 @@ export default function ProfilesDisplay({ visibleProfiles }) {
     <div className={styles.profilesDisplay}>
       {visibleProfiles.length > 0 ? (
         <ul className={styles.profileList}>
-          {visibleProfiles.map(({ id, name, type, photo, services }) => (
-            <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
-              <img
-                src={photo || "/default-profile.png"}
-                alt={`Avatar de ${name}, ${type}`}
-                className={styles.profileAvatar}
-              />
-              <div className={styles.profileDetails}>
-                <h4>
-                  {name} ({type.charAt(0).toUpperCase() + type.slice(1)})
-                </h4>
-                <p>
-                  Services :{" "}
-                  {Array.isArray(services) && services.length > 0
-                    ? services.join(", ")
-                    : "Non renseignés"}
-                </p>
-                <button
-                  className={styles.profileContactBtn}
-                  aria-label={`Contacter ${name} (${type})`}
-                >
-                  Contacter
-                </button>
-              </div>
-            </li>
-          ))}
+          {visibleProfiles.map(
+            ({ id, name, type, photo, services = [], available, created_at }) => {
+              const categoryInfo = categoriesMap[type] || {
+                label: type,
+                description: "Professionnel local",
+              };
+
+              return (
+                <li key={id} className={`${styles.profileItem} ${styles[type]}`}>
+                  <img
+                    src={photo || "/default-profile.png"}
+                    alt={`Avatar de ${name}, ${type}`}
+                    className={styles.profileAvatar}
+                  />
+
+                  <div className={styles.profileDetails}>
+                    {/* Nom + catégorie */}
+                    <h4>
+                      {name} <span className={styles.categoryLabel}>({categoryInfo.label})</span>
+                    </h4>
+                    <p className={styles.categoryDescription}>{categoryInfo.description}</p>
+
+                    {/* Services principaux */}
+                    <div className={styles.services}>
+                      {Array.isArray(services) && services.length > 0 ? (
+                        <>
+                          {services.slice(0, 3).map((srv, i) => (
+                            <span key={i} className={styles.serviceBadge}>
+                              {srv}
+                            </span>
+                          ))}
+                          {services.length > 3 && (
+                            <span className={styles.more}>+{services.length - 3}</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className={styles.serviceNone}>Aucun service renseigné</span>
+                      )}
+                    </div>
+
+                    {/* Localisation + année d'inscription */}
+                    <p className={styles.location}>📍 Secteur : {location}</p>
+                    {created_at && (
+                      <p className={styles.experience}>
+                        Membre depuis {new Date(created_at).getFullYear()}
+                      </p>
+                    )}
+
+                    {/* Disponibilité */}
+                    <div className={styles.status}>
+                      {available ? (
+                        <span className={styles.available}>🟢 Disponible</span>
+                      ) : (
+                        <span className={styles.unavailable}>🔴 Indisponible</span>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className={styles.actions}>
+                      <button className={styles.profileContactBtn}>Contacter</button>
+                      <button className={styles.profileMoreBtn}>Voir profil</button>
+                    </div>
+                  </div>
+                </li>
+              );
+            }
+          )}
         </ul>
       ) : (
         <>
