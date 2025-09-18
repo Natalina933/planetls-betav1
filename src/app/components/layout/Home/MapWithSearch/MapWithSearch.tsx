@@ -6,8 +6,12 @@ import { toast, ToastContainer } from "react-toastify";
 import iconMap from "@/app/lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
-// import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-// const supabase = createClientComponentClient();
+import { createBrowserClient } from '@supabase/ssr';
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // Définition du type pour les catégories
 interface Category {
@@ -32,7 +36,7 @@ const DESCRIPTIONS = {
   ),
   concierge: (
     <>
-      <span className={styles.highlightGold}>Trouvez une conciergerie</span>, indépendante ou professionnelle.
+      <span className={styles.highlightGold}>Trouvez une conciergerie,</span> indépendante ou professionnelle.
     </>
   ),
   artisan: (
@@ -115,37 +119,39 @@ export default function MapWithSearch() {
   };
 
   // --- Fonction pour créer une alerte ---
-  const handleAlertClick = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.warn("Vous devez être connecté(e) pour créer une alerte !");
-        return;
-      }
-
-      const message = `Alerte : ${selectedCategory} à ${location} non trouvé`;
-
-      const response = await fetch("/api/alertes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          message,
-          category: selectedCategory,
-          location
-        }),
-      });
-
-      if (response.ok) {
-        setAlertConfirmed(true);
-        setTimeout(() => setAlertConfirmed(false), 5000);
-      } else {
-        toast.error("Impossible d’enregistrer l’alerte 😢");
-      }
-    } catch {
-      toast.error("Erreur réseau lors de l’enregistrement de l’alerte");
+const handleAlertClick = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.warn("Vous devez être connecté(e) pour créer une alerte !");
+      return;
     }
-  };
+
+    const message = `Alerte : ${selectedCategory} à ${location} non trouvé`;
+
+    const response = await fetch("/api/alertes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id,
+        message,
+        category: selectedCategory,
+        location
+      }),
+    });
+
+    if (response.ok) {
+      setAlertConfirmed(true);
+      setTimeout(() => setAlertConfirmed(false), 5000);
+    } else {
+      toast.error("Impossible d’enregistrer l’alerte 😢");
+    }
+  } catch {
+    toast.error("Erreur réseau lors de l’enregistrement de l’alerte");
+  }
+};
+
+
 
   return (
     <div className={styles.mapWithSearchSection}>
