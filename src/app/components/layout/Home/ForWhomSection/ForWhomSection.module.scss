@@ -1,5 +1,5 @@
 // src/app/components/layout/Home/ForWhomSection/ForWhomSection.module.scss
-@use "src/app/styles/abstracts/index" as *;
+@use "src/app/styles/abstracts/_variables" as *;
 @use 'sass:color'; // Pour les fonctions de manipulation des couleurs
 
 .forWhomSection {

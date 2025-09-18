@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import db from "../../lib/db";
+import db from "../../lib/dbServer";
 
 const haversineDistance = (lat1, lng1, lat2, lng2) => {
   const R = 6371; // Rayon de la Terre en km
