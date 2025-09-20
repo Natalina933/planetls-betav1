@@ -35,16 +35,14 @@ export default function SearchFormPage() {
 
   // Remplissage initial depuis l'URL
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      category: searchParams.get("category") || "",
-      option: searchParams.get("option") || "",
-      location: searchParams.get("location") || "",
-    }));
+    const category = searchParams.get("category") || "";
+    const option = searchParams.get("option") || "";
+    const location = searchParams.get("location") || "";
+    setFormData((prev) => ({ ...prev, category, option, location }));
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
@@ -62,17 +60,15 @@ export default function SearchFormPage() {
       <aside className={styles.sidebar}>
         <h2>Définition de ma recherche</h2>
         <ul className={styles.steps}>
-          {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map(
-            (label, idx) => (
-              <li key={idx} className={step === idx + 1 ? styles.activeStep : ""}>
-                <span>{idx + 1}</span> {label}
-              </li>
-            )
-          )}
+          {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map((label, idx) => (
+            <li key={idx} className={step === idx + 1 ? styles.activeStep : ""}>
+              <span>{idx + 1}</span> {label}
+            </li>
+          ))}
         </ul>
       </aside>
 
-      {/* Contenu principal */}
+      {/* Formulaire principal */}
       <main className={styles.mainContent}>
         <h1>Encore quelques infos pour trouver le partenaire idéal</h1>
         <p className={styles.subtitle}>Cela ne prendra que quelques minutes.</p>
@@ -82,13 +78,7 @@ export default function SearchFormPage() {
             <div className={styles.step}>
               <label>
                 Où recherchez-vous ?
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  required
-                />
+                <input type="text" name="location" value={formData.location} onChange={handleChange} required />
               </label>
               <label>
                 Catégorie
@@ -105,12 +95,7 @@ export default function SearchFormPage() {
               </label>
               <label>
                 Description / détails supplémentaires
-                <textarea
-                  name="additionalInfo"
-                  value={formData.additionalInfo}
-                  onChange={handleChange}
-                  placeholder="Précisez votre besoin"
-                />
+                <textarea name="additionalInfo" value={formData.additionalInfo} onChange={handleChange} placeholder="Précisez votre besoin" />
               </label>
             </div>
           )}
@@ -149,7 +134,6 @@ export default function SearchFormPage() {
             </div>
           )}
 
-          {/* Navigation étapes */}
           <div className={styles.buttons}>
             {step > 1 && <button type="button" onClick={prevStep}>Précédent</button>}
             {step < 4 && <button type="button" onClick={nextStep}>Suivant</button>}

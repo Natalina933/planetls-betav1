@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import styles from "./MapPopup.module.scss";
 import MapWithSearch from "../Home/MapWithSearch/MapWithSearch";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
 import { useRouter } from "next/navigation";
@@ -12,6 +11,7 @@ export default function MapPopup() {
   const hasTriggeredRef = useRef(false);
   const router = useRouter();
 
+  // Ouverture auto (scroll ou timer)
   useEffect(() => {
     if (hasTriggeredRef.current) return;
 
@@ -34,6 +34,7 @@ export default function MapPopup() {
     };
   }, [setSearchOpen]);
 
+  // Fermeture via touche Escape
   useEffect(() => {
     if (!searchOpen) return;
 
@@ -52,6 +53,7 @@ export default function MapPopup() {
     };
   }, [searchOpen, setSearchOpen, router]);
 
+  // Gestion du forceClose (depuis le contexte)
   useEffect(() => {
     if (forceClose) {
       setSearchOpen(false);
@@ -59,29 +61,9 @@ export default function MapPopup() {
     }
   }, [forceClose, setSearchOpen, setForceClose]);
 
+  // ⚡ Ne rien rendre si searchOpen est faux
   if (!searchOpen) return null;
 
-  return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
-      <div
-        className={styles.popup}
-        ref={popupRef}
-        tabIndex={-1}
-        aria-label="Fenêtre de recherche"
-      >
-        <button
-          className={styles.close}
-          onClick={() => {
-            setSearchOpen(false);
-            router.push("/");
-          }}
-          aria-label="Fermer la fenêtre"
-        >
-          ✕
-        </button>
-
-        <MapWithSearch />
-      </div>
-    </div>
-  );
+  // ⚡ MapWithSearch gère son overlay interne
+  return <MapWithSearch onClose={() => setSearchOpen(false)} />;
 }

@@ -42,23 +42,73 @@
     width: 95%;
   }
 }
+.mapWithSearchSection {
+  position: relative; // ⚡ nécessaire pour que la croix se place à l’intérieur
+  padding: 2rem;
+}
+.mapWithSearchContainer {
+  position: relative;
+  padding: 2rem;
+}
 
-.closeBtn {
+.closeButton {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: transparent;
+  background: none;
   border: none;
-  font-size: 1.5rem;
+  color: var(--color-text);
+  font-size: 1.8rem;
   cursor: pointer;
-  color: #333;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 
   &:hover {
-    color: $gold;
-    transform: scale(1.1);
+    color: var(--color-accent);
   }
 }
+
+/* CategoryPopup et AccessPopup */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); // overlay semi-transparent
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; // au-dessus de MapWithSearch
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--color-accent);
+  }
+}
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); // semi-transparent
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; // au-dessus de tout
+}
+
 
 @keyframes popupFade {
   from {
