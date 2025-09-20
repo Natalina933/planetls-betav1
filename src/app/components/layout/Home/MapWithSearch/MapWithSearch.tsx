@@ -3,41 +3,28 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
+import { useRouter } from "next/navigation";
 import iconMap from "../../../../lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
-// import { createBrowserClient } from '@supabase/ssr';
-import { useRouter } from "next/navigation";
+import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
+import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
 
-// const supabase = createBrowserClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-// );
-
-// Définition du type pour les catégories
 interface Category {
   key: string;
   label: string;
   icon: keyof typeof iconMap;
 }
-// interface Profile {
-//   id: string;
-//   name: string;
-//   type: "proprietaire" | "concierge" | "artisan";
-//   photo?: string;
-//   services?: string[];
-// }
 
-// Descriptions dynamiques
 const DESCRIPTIONS = {
   proprietaire: (
     <>
-      <span className={styles.highlightGold}>Trouvez des propriétaires</span> à la recherche d&apos;une conciergerie fiable.
+      <span className={styles.highlightGold}>Trouvez une conciergerie,</span> indépendante ou professionnelle.
     </>
   ),
   concierge: (
     <>
-      <span className={styles.highlightGold}>Trouvez une conciergerie,</span> indépendante ou professionnelle.
+      <span className={styles.highlightGold}>Trouvez des propriétaires</span> à la recherche d&apos;une conciergerie fiable.
     </>
   ),
   artisan: (
@@ -51,14 +38,14 @@ export default function MapWithSearch() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [location, setLocation] = useState("");
-  const [availableDate, setAvailableDate] = useState(""); // ✅ ici à l'intérieur du composant
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [showCategoryPopup, setShowCategoryPopup] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [showAccessPopup, setShowAccessPopup] = useState(false);
+  const [hideMainSection, setHideMainSection] = useState(false);
+
   const router = useRouter();
 
-  // const [visibleProfiles, setVisibleProfiles] = useState<Profile[]>([]);
-  // const [alertConfirmed, setAlertConfirmed] = useState(false);
-
-  // --- Récupération des catégories ---
   useEffect(() => {
     const fetchCategories = async () => {
       setStatus("loading");
@@ -67,8 +54,8 @@ export default function MapWithSearch() {
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
         const data: Category[] = await res.json();
-        setCategories(data);
         if (data.length > 0) setSelectedCategory(data[0].key);
+        setCategories(data);
         setStatus("success");
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -80,26 +67,37 @@ export default function MapWithSearch() {
     fetchCategories();
   }, []);
 
-  // --- Fonction de recherche ---
-
   const handleSearch = useCallback(
-    async (e?: React.FormEvent<HTMLFormElement>) => {
+    (e?: React.FormEvent<HTMLFormElement>) => {
       e?.preventDefault();
       if (!location.trim()) {
         toast.warn("Veuillez renseigner une localisation 📍");
         return;
       }
 
-      // Redirection vers la page avec les paramètres
-router.push(
-  `/map-list?filter=${selectedCategory}&location=${encodeURIComponent(location)}&date=${availableDate}`
-);
+      if (!selectedCategory) {
+        toast.warn("Veuillez sélectionner une catégorie 🧭");
+        return;
+      }
+
+      setShowCategoryPopup(true);
+      setHideMainSection(true); // cache la section principale
     },
-  [location, selectedCategory, availableDate, router]
+    [location, selectedCategory]
   );
 
+  const handleOptionSelect = (option: string) => {
+    setSelectedOption(option);
+    setShowCategoryPopup(false);
+    setShowAccessPopup(true);
+  };
 
-  // --- Boutons de catégorie ---
+  const handleClosePopup = () => {
+    setShowCategoryPopup(false);
+    setHideMainSection(false); // réaffiche la section si on revient
+    router.push("/"); // redirection vers la page d’accueil
+  };
+
   const renderCategoryToggles = () => {
     if (status === "loading") return <p>Chargement des filtres...</p>;
     if (status === "error") return <p>Erreur lors du chargement des filtres.</p>;
@@ -122,95 +120,62 @@ router.push(
     });
   };
 
-  // --- Fonction pour créer une alerte ---
-  // const handleAlertClick = async () => {
-  //   try {
-  //     const { data: { user } } = await supabase.auth.getUser();
-  //     if (!user) {
-  //       toast.warn("Vous devez être connecté(e) pour créer une alerte !");
-  //       return;
-  //     }
-
-  //     const message = `Alerte : ${selectedCategory} à ${location} non trouvé`;
-
-  //     const response = await fetch("/api/alertes", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         userId: user.id,
-  //         message,
-  //         category: selectedCategory,
-  //         location
-  //       }),
-  //     });
-
-  //     if (response.ok) {
-  //       setAlertConfirmed(true);
-  //       setTimeout(() => setAlertConfirmed(false), 5000);
-  //     } else {
-  //       toast.error("Impossible d’enregistrer l’alerte 😢");
-  //     }
-  //   } catch {
-  //     toast.error("Erreur réseau lors de l’enregistrement de l’alerte");
-  //   }
-  // };
-
-
-
   return (
     <div className={styles.mapWithSearchSection}>
       <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
 
-      <section className={styles.categorySearchSection}>
-        <h2 className={styles.categoryTitle}>Connectez-vous aux bons partenaires</h2>
+      {!hideMainSection && (
+        <section className={styles.categorySearchSection}>
+          <h2 className={styles.categoryTitle}>Connectez-vous aux bons partenaires</h2>
 
-        <div className={styles.tripleToggleGroup}>{renderCategoryToggles()}</div>
+          <div className={styles.tripleToggleGroup}>{renderCategoryToggles()}</div>
 
-        {status === "success" && (
-          <div className={styles.categoryTextBubble1900}>
-            <p>{DESCRIPTIONS[selectedCategory as keyof typeof DESCRIPTIONS]}</p>
+          {status === "success" && (
+            <div className={styles.categoryTextBubble1900}>
+              <p>{DESCRIPTIONS[selectedCategory as keyof typeof DESCRIPTIONS]}</p>
+            </div>
+          )}
+
+          <div className={styles.searchBarWrapper}>
+            <span className={styles.categoryInstruction}>
+              Utilisez les filtres ci-dessus et indiquez votre localisation.
+            </span>
+            <form onSubmit={handleSearch} className={styles.searchBar}>
+              <label htmlFor="location-search" className={styles.srOnly}>
+                Recherche de localisation
+              </label>
+              <input
+                type="search"
+                id="location-search"
+                name="location"
+                placeholder="Où recherchez-vous ?"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+                className={styles.searchInput}
+              />
+              <button type="submit" aria-label="Rechercher">
+                <FaSearch aria-hidden="true" />
+              </button>
+            </form>
           </div>
-        )}
+        </section>
+      )}
 
-        <div className={styles.searchBarWrapper}>
-          <span className={styles.categoryInstruction}>
-            Utilisez les filtres ci-dessus et indiquez votre localisation.
-          </span>
-          <form onSubmit={handleSearch} className={styles.searchBar}>
-            <label htmlFor="location-search" className={styles.srOnly}>
-              Recherche de localisation
-            </label>
-            <input
-              type="search"
-              id="location-search"
-              name="location"
-              placeholder="Où recherchez-vous ?"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              required
-              className={styles.searchInput}
-            />
-            <button type="submit" aria-label="Rechercher">
-              <FaSearch aria-hidden="true" />
-            </button>
-          </form>
-        </div>
-        <div className={styles.datePickerWrapper}>
-          <label htmlFor="availability-date" className={styles.srOnly}>
-            Date de disponibilité
-          </label>
-          <input
-            type="date"
-            id="availability-date"
-            name="availability"
-            value={availableDate}
-            onChange={(e) => setAvailableDate(e.target.value)}
-            className={styles.dateInput}
-          />
-        </div>
+      {showCategoryPopup && selectedCategory && (
+        <CategoryPopup
+          category={selectedCategory}
+          onClose={handleClosePopup}
+          onNext={handleOptionSelect}
+        />
+      )}
 
-
-      </section>
+      {showAccessPopup && selectedOption && (
+        <AccessPopup
+          selectedOption={selectedOption}
+          onClose={() => setShowAccessPopup(false)}
+        />
+      )}
     </div>
   );
 }

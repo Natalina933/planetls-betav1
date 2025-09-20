@@ -1,0 +1,149 @@
+@use "sass:math";
+@use "sass:color";
+@use "../../../styles/abstracts/variables" as *;
+
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba($color-text, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popupContent {
+  background: $gold-soft;
+  padding: $spacing-lg;
+  border-radius: $radius-2xl;
+  max-width: $max-content-width-sm;
+  width: 90%;
+  box-shadow: $shadow;
+  font-family: $font-text;
+  color: $color-text;
+  position: relative;
+}
+
+.optionList {
+  list-style: none;
+  padding: 0;
+  margin: $spacing-md 0;
+
+  li {
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.optionButton {
+  background-color: $primary-light-color-sass;
+  border: none;
+  padding: $spacing-sm $spacing-md;
+  width: 100%;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: $font-title;
+  color: $color-text;
+  transition: $transition;
+
+  &:hover {
+    background-color: $primary-color-sass;
+    color: white;
+  }
+}
+
+.closeButton,
+.backButton {
+  margin-top: $spacing-md;
+  background: none;
+  border: none;
+  color: $color-text-light;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: $color-text-hover;
+  }
+}
+
+.highlight {
+  color: $primary-color-sass;
+  font-weight: $font-weight-bold;
+}
+
+.intro {
+  font-size: 1rem;
+  margin-bottom: $spacing-md;
+  font-family: $font-title;
+  color: $color-text-light;
+}
+
+.profileList {
+  list-style: none;
+  padding: 0;
+  margin: $spacing-md 0;
+
+  li {
+    margin-bottom: $spacing-sm;
+    font-size: 0.95rem;
+
+    strong {
+      color: $primary-dark-color-sass;
+    }
+
+    span {
+      color: $color-text-light;
+    }
+  }
+}
+
+.form {
+  margin-top: $spacing-md;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-sm;
+    font-weight: $font-weight-bold;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: $spacing-sm;
+    border-radius: $radius-lg;
+    border: 1px solid $color-accent-dark;
+    margin-top: $spacing-xs;
+    font-family: $font-text;
+    font-size: 0.95rem;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  button {
+    background-color: $primary-color-sass;
+    color: white;
+    padding: $spacing-sm $spacing-md;
+    border: none;
+    border-radius: $radius-pill;
+    cursor: pointer;
+    margin-top: $spacing-md;
+    transition: $transition;
+
+    &:hover {
+      background-color: $primary-dark-color-sass;
+    }
+  }
+}
+
+.legal {
+  font-size: 0.8rem;
+  color: $text-light;
+  margin-top: $spacing-sm;
+}

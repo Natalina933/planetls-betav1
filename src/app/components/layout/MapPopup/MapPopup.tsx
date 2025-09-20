@@ -4,25 +4,26 @@ import { useEffect, useRef } from "react";
 import styles from "./MapPopup.module.scss";
 import MapWithSearch from "../Home/MapWithSearch/MapWithSearch";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
+import { useRouter } from "next/navigation";
 
 export default function MapPopup() {
-  const { searchOpen, setSearchOpen } = useSearchPopup();
+  const { searchOpen, setSearchOpen, forceClose, setForceClose } = useSearchPopup();
   const popupRef = useRef<HTMLDivElement>(null);
-  const hasTriggeredRef = useRef(false); // pour savoir si le scroll/timer a déjà déclenché l'ouverture
+  const hasTriggeredRef = useRef(false);
+  const router = useRouter();
 
-  // Auto-ouverture après 2 min ou scroll
   useEffect(() => {
     if (hasTriggeredRef.current) return;
 
     const timer = setTimeout(() => {
       setSearchOpen(true);
-      hasTriggeredRef.current = true; // marque comme déclenché
-    }, 120000); // 2 min
+      hasTriggeredRef.current = true;
+    }, 120000);
 
     const handleScroll = () => {
       if (!hasTriggeredRef.current && window.scrollY > 600) {
         setSearchOpen(true);
-        hasTriggeredRef.current = true; // marque comme déclenché
+        hasTriggeredRef.current = true;
       }
     };
 
@@ -33,12 +34,14 @@ export default function MapPopup() {
     };
   }, [setSearchOpen]);
 
-  // ESC pour fermer
   useEffect(() => {
     if (!searchOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSearchOpen(false);
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        router.push("/");
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -47,7 +50,14 @@ export default function MapPopup() {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [searchOpen, setSearchOpen]);
+  }, [searchOpen, setSearchOpen, router]);
+
+  useEffect(() => {
+    if (forceClose) {
+      setSearchOpen(false);
+      setForceClose(false);
+    }
+  }, [forceClose, setSearchOpen, setForceClose]);
 
   if (!searchOpen) return null;
 
@@ -61,13 +71,15 @@ export default function MapPopup() {
       >
         <button
           className={styles.close}
-          onClick={() => setSearchOpen(false)}
+          onClick={() => {
+            setSearchOpen(false);
+            router.push("/");
+          }}
           aria-label="Fermer la fenêtre"
         >
           ✕
         </button>
 
-        {/* Contenu de la popup */}
         <MapWithSearch />
       </div>
     </div>
