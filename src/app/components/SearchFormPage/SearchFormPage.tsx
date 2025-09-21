@@ -57,16 +57,20 @@ export default function SearchFormPage() {
   return (
     <div className={styles.pageContainer}>
       {/* Menu latéral */}
-      <aside className={styles.sidebar}>
-        <h2>Définition de ma recherche</h2>
-        <ul className={styles.steps}>
-          {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map((label, idx) => (
-            <li key={idx} className={step === idx + 1 ? styles.activeStep : ""}>
-              <span>{idx + 1}</span> {label}
-            </li>
-          ))}
-        </ul>
-      </aside>
+<ul className={styles.steps}>
+  {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map(
+    (label, idx) => (
+      <li
+        key={idx}
+        className={step === idx + 1 ? styles.activeStep : ""}
+        aria-current={step === idx + 1 ? "step" : undefined}
+      >
+        <span>{idx + 1}</span> {label}
+      </li>
+    )
+  )}
+</ul>
+
 
       {/* Formulaire principal */}
       <main className={styles.mainContent}>

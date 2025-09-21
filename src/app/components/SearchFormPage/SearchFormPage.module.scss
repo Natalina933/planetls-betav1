@@ -1,0 +1,202 @@
+@use "@/styles/variables" as *; // Tes variables globales Sass
+
+.pageContainer {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg, #f6f7f9);
+  font-family: var(--font-body, "Lora", serif);
+  color: var(--color-text, #333);
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  width: 280px;
+  padding: 2rem;
+  background: linear-gradient(
+    to bottom,
+    var(--color-bg-dark, #e0e3e6),
+    var(--color-bg, #f6f7f9)
+  );
+  border-right: 2px solid var(--color-accent-gold, #d4af37);
+
+  h2 {
+    font-family: var(--font-heading, "Playfair Display", serif);
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-accent-gold, #d4af37);
+    border-bottom: 1px solid var(--color-accent-gold, #d4af37);
+    padding-bottom: 0.5rem;
+  }
+
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--color-border, #ccc);
+      border-radius: 8px;
+      background: var(--color-bg-light, #fff);
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        margin-right: 0.8rem;
+        border-radius: 50%;
+        border: 2px solid var(--color-accent-gold, #d4af37);
+        color: var(--color-accent-gold, #d4af37);
+        font-weight: bold;
+        background: #fff;
+      }
+
+      &.activeStep {
+        border-color: var(--color-accent-gold, #d4af37);
+        background: var(--color-accent-gold, #d4af37);
+        color: #fff;
+
+        span {
+          background: #fff;
+          color: var(--color-accent-gold, #d4af37);
+        }
+      }
+    }
+  }
+}
+
+/* --- Main Content --- */
+.mainContent {
+  flex: 1;
+  padding: 3rem 4rem;
+
+  h1 {
+    font-family: var(--font-heading, "Playfair Display", serif);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text, #222);
+  }
+
+  .subtitle {
+    font-style: italic;
+    color: var(--color-text-muted, #666);
+    margin-bottom: 2rem;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: var(--color-text, #333);
+
+      input,
+      textarea {
+        margin-top: 0.5rem;
+        padding: 0.7rem 1rem;
+        border: 1px solid var(--color-border, #ccc);
+        border-radius: 10px;
+        background: var(--color-bg-light, #fff);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: var(--color-accent-gold, #d4af37);
+          box-shadow: 0 0 5px rgba(212, 175, 55, 0.4);
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+
+      button {
+        padding: 0.7rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 12px;
+        border: 2px solid var(--color-accent-gold, #d4af37);
+        background: var(--color-bg-light, #fff);
+        color: var(--color-accent-gold, #d4af37);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: var(--color-accent-gold, #d4af37);
+          color: #fff;
+        }
+
+        &:last-child {
+          background: var(--color-accent-gold, #d4af37);
+          color: #fff;
+
+          &:hover {
+            background: #b38e2f;
+          }
+        }
+      }
+    }
+  }
+
+  /* Résumé */
+  .summary {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    border: 2px dashed var(--color-accent-gold, #d4af37);
+    border-radius: 12px;
+    background: #fff;
+
+    h3 {
+      font-family: var(--font-heading, "Playfair Display", serif);
+      margin-bottom: 1rem;
+      color: var(--color-accent-gold, #d4af37);
+    }
+
+    p {
+      margin: 0.3rem 0;
+      font-size: 1rem;
+
+      strong {
+        color: var(--color-text, #222);
+      }
+    }
+  }
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+  .pageContainer {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid var(--color-accent-gold, #d4af37);
+  }
+
+  .mainContent {
+    padding: 2rem;
+  }
+}
