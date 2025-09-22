@@ -1,173 +1,88 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import styles from "./SearchFormPage.module.scss";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./AccessPopup.module.scss";
 
-interface FormData {
-  location: string;
+interface AccessPopupProps {
+  selectedOptions: string[]; // <--- tableau
   category: string;
-  option: string;
-  startDate: string;
-  endDate: string;
-  additionalInfo: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
+  location: string;
+  onClose?: () => void;
 }
 
-export default function SearchFormPage() {
-  const searchParams = useSearchParams();
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
-    location: "",
-    category: "",
-    option: "",
-    startDate: "",
-    endDate: "",
-    additionalInfo: "",
+const sampleProfiles = [
+  { name: "Sandrine", role: "conciergerie indépendante", location: "à Paris 4ème" },
+  { name: "Danaé", role: "conciergerie professionnelle", location: "à Paris 13ème" },
+  { name: "Margaux", role: "gestion complète", location: "à Paris 12ème" },
+];
+
+export default function AccessPopup({ selectedOptions, category, location, onClose }: AccessPopupProps) {
+  const router = useRouter();
+  const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    additionalInfo: "",
   });
 
-  // Remplissage initial depuis l'URL
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      category: searchParams.get("category") || "",
-      option: searchParams.get("option") || "",
-      location: searchParams.get("location") || "",
-    }));
-  }, [searchParams]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Votre recherche a été enregistrée !");
+  const handleProceed = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const params = {
+      category,
+      option: selectedOptions.join(","), // join -> "A,B"
+      location,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      phone: form.phone,
+      additionalInfo: form.additionalInfo,
+    };
+    const qs = new URLSearchParams(params).toString();
+    router.push(`/search-form?${qs}`);
   };
 
   return (
-    <div className={styles.pageContainer}>
-      {/* Menu latéral */}
-      <aside className={styles.sidebar}>
-        <h2>Définition de ma recherche</h2>
-        <ul className={styles.steps}>
-          {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map(
-            (label, idx) => (
-              <li key={idx} className={step === idx + 1 ? styles.activeStep : ""}>
-                <span>{idx + 1}</span> {label}
-              </li>
-            )
-          )}
+    <div className={styles.overlay}>
+      <div className={styles.popup}>
+        <button className={styles.close} onClick={() => onClose?.()} aria-label="Fermer">✕</button>
+
+        <h2>Accès aux annonces pour :</h2>
+        <p className={styles.highlight}>{selectedOptions.join(" — ")}</p>
+
+        <ul className={styles.profileList}>
+          {sampleProfiles.map((p, i) => (
+            <li key={i}><strong>{p.name}</strong> – {p.role} <span>{p.location}</span></li>
+          ))}
         </ul>
-      </aside>
 
-      {/* Contenu principal */}
-      <main className={styles.mainContent}>
-        <h1>Encore quelques infos pour trouver le partenaire idéal</h1>
-        <p className={styles.subtitle}>Cela ne prendra que quelques minutes.</p>
+        <form className={styles.form} onSubmit={handleProceed}>
+          <label>Prénom
+            <input name="firstName" value={form.firstName} onChange={handleChange} required />
+          </label>
+          <label>Nom
+            <input name="lastName" value={form.lastName} onChange={handleChange} required />
+          </label>
+          <label>Email
+            <input name="email" type="email" value={form.email} onChange={handleChange} required />
+          </label>
+          <label>Téléphone
+            <input name="phone" value={form.phone} onChange={handleChange} />
+          </label>
+          <label>Votre besoin
+            <textarea name="additionalInfo" value={form.additionalInfo} onChange={handleChange} />
+          </label>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {step === 1 && (
-            <div className={styles.step}>
-              <label>
-                Où recherchez-vous ?
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-              <label>
-                Catégorie
-                <input type="text" name="category" value={formData.category} readOnly />
-              </label>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className={styles.step}>
-              <label>
-                Quel est votre besoin ?
-                <input type="text" name="option" value={formData.option} readOnly />
-              </label>
-              <label>
-                Description / détails supplémentaires
-                <textarea
-                  name="additionalInfo"
-                  value={formData.additionalInfo}
-                  onChange={handleChange}
-                  placeholder="Précisez votre besoin"
-                />
-              </label>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className={styles.step}>
-              <label>
-                Date de début
-                <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
-              </label>
-              <label>
-                Date de fin
-                <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
-              </label>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className={styles.step}>
-              <label>
-                Prénom
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
-              </label>
-              <label>
-                Nom
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
-              </label>
-              <label>
-                Email
-                <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-              </label>
-              <label>
-                Téléphone
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} />
-              </label>
-            </div>
-          )}
-
-          {/* Navigation étapes */}
-          <div className={styles.buttons}>
-            {step > 1 && <button type="button" onClick={prevStep}>Précédent</button>}
-            {step < 4 && <button type="button" onClick={nextStep}>Suivant</button>}
-            {step === 4 && <button type="submit">Envoyer ma recherche</button>}
+          <div className={styles.actions}>
+            <button type="button" onClick={() => onClose?.()}>Retour</button>
+            <button type="submit">Continuer vers le formulaire</button>
           </div>
         </form>
-
-        {/* Résumé dynamique */}
-        <div className={styles.summary}>
-          <h3>Résumé de votre sélection :</h3>
-          <p>Je recherche : <strong>{formData.category}</strong></p>
-          <p>Pour : <strong>{formData.option}</strong></p>
-          <p>Localisation : <strong>{formData.location}</strong></p>
-          {formData.startDate && formData.endDate && (
-            <p>Pour la période : <strong>{formData.startDate} → {formData.endDate}</strong></p>
-          )}
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

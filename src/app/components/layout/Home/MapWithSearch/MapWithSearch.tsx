@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, JSX } from "react";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { useRouter } from "next/navigation";
 import iconMap from "../../../../lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
+
 import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
+import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
 
 interface Category {
-  key: string;
+  key: "proprietaire" | "concierge" | "artisan";
   label: string;
   icon: keyof typeof iconMap;
 }
@@ -19,23 +20,37 @@ interface MapWithSearchProps {
   onClose: () => void;
 }
 
-const DESCRIPTIONS: Record<string, React.ReactNode> = {
-  proprietaire: <>Trouvez une conciergerie indépendante ou professionnelle.</>,
-  concierge: <>Trouvez des propriétaires à la recherche d&apos;une conciergerie fiable.</>,
-  artisan: <>Découvrez les artisans et commerçants locaux pour vos besoins.</>,
+const DESCRIPTIONS: Record<"proprietaire" | "concierge" | "artisan", JSX.Element> = {
+  proprietaire: (
+    <>
+      <span className={styles.highlightGold}>Trouvez une conciergerie,</span> indépendante ou professionnelle.
+    </>
+  ),
+  concierge: (
+    <>
+      <span className={styles.highlightGold}>Trouvez des propriétaires</span> à la recherche d&apos;une conciergerie fiable.
+    </>
+  ),
+  artisan: (
+    <>
+      <span className={styles.highlightGold}>Découvrez les artisans et commerçants locaux</span> pour vos besoins.
+    </>
+  ),
 };
 
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<"" | "proprietaire" | "concierge" | "artisan">("");
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
-  const router = useRouter();
+  const [showAccessPopup, setShowAccessPopup] = useState(false);
 
-  const isPopupOpen = showCategoryPopup;
+  // options choisies
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  // Chargement des catégories
+  // --> Supprimé : const isPopupOpen = showCategoryPopup;
+
   useEffect(() => {
     const fetchCategories = async () => {
       setStatus("loading");
@@ -55,29 +70,24 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     fetchCategories();
   }, []);
 
-  // Soumission du formulaire
   const handleSearch = useCallback(
     (e?: React.FormEvent<HTMLFormElement>) => {
       e?.preventDefault();
-      if (!location.trim()) return toast.warn("Veuillez renseigner une localisation 📍");
-      if (!selectedCategory) return toast.warn("Veuillez sélectionner une catégorie 🧭");
+      if (!location.trim())
+        return toast.warn("Veuillez renseigner une localisation 📍");
+      if (!selectedCategory)
+        return toast.warn("Veuillez sélectionner une catégorie 🧭");
       setShowCategoryPopup(true);
     },
     [location, selectedCategory]
   );
 
-  // Gestion de la sélection dans le popup
-  const handleOptionSelect = (option: string) => {
-    // Redirection vers la page formulaire avec query
-    const params = new URLSearchParams({
-      category: selectedCategory,
-      option,
-      location,
-    }).toString();
-    router.push(`/search-form?${params}`);
+  const handleOptionSelect = (options: string[]) => {
+    setSelectedOptions(options);
+    setShowCategoryPopup(false);
+    setShowAccessPopup(true);
   };
 
-  // Affichage des boutons catégories
   const renderCategoryToggles = () => {
     if (status === "loading") return <p>Chargement des filtres...</p>;
     if (status === "error") return <p>Erreur lors du chargement des filtres.</p>;
@@ -103,23 +113,24 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   return (
     <>
       {/* Section principale */}
-      {!isPopupOpen && (
+      {!showCategoryPopup && !showAccessPopup && (
         <div className={styles.mapWithSearchContainer}>
           <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
-          <button className={styles.closeButton} onClick={onClose} aria-label="Fermer la recherche">
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Fermer la recherche"
+          >
             <FaTimes />
           </button>
-
           <section className={styles.categorySearchSection}>
             <h2>Connectez-vous aux bons partenaires</h2>
             <div className={styles.tripleToggleGroup}>{renderCategoryToggles()}</div>
-
             {status === "success" && selectedCategory && (
               <div className={styles.categoryTextBubble1900}>
-                {DESCRIPTIONS[selectedCategory]}
+                {DESCRIPTIONS[selectedCategory as keyof typeof DESCRIPTIONS]}
               </div>
             )}
-
             <form onSubmit={handleSearch} className={styles.searchBar}>
               <input
                 type="search"
@@ -142,6 +153,16 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           category={selectedCategory}
           onClose={() => setShowCategoryPopup(false)}
           onNext={handleOptionSelect}
+        />
+      )}
+
+      {/* Popup accès */}
+      {showAccessPopup && selectedCategory && (
+        <AccessPopup
+          selectedOptions={selectedOptions}
+          category={selectedCategory}
+          location={location}
+          onClose={() => setShowAccessPopup(false)}
         />
       )}
     </>

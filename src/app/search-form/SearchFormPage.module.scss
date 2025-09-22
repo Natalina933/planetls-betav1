@@ -1,4 +1,6 @@
-@use "@/styles/variables" as *; // Tes variables globales Sass
+@use "sass:math";
+@use "sass:color";
+@use "../styles/abstracts/variables" as *;
 
 .pageContainer {
   display: flex;

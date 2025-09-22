@@ -34,11 +34,31 @@ export default function SearchFormPage() {
   });
 
   // Remplissage initial depuis l'URL
+  // dans useEffect(...)
   useEffect(() => {
     const category = searchParams.get("category") || "";
-    const option = searchParams.get("option") || "";
+    const optionParam = searchParams.get("option") || "";
     const location = searchParams.get("location") || "";
-    setFormData((prev) => ({ ...prev, category, option, location }));
+    const firstName = searchParams.get("firstName") || "";
+    const lastName = searchParams.get("lastName") || "";
+    const email = searchParams.get("email") || "";
+    const phone = searchParams.get("phone") || "";
+    const additionalInfo = searchParams.get("additionalInfo") || "";
+
+    const optionsArray = optionParam ? optionParam.split(",") : [];
+    const optionDisplay = optionsArray.length ? optionsArray.join(", ") : "";
+
+    setFormData((prev) => ({
+      ...prev,
+      category,
+      option: optionDisplay,
+      location,
+      firstName,
+      lastName,
+      email,
+      phone,
+      additionalInfo,
+    }));
   }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -57,20 +77,19 @@ export default function SearchFormPage() {
   return (
     <div className={styles.pageContainer}>
       {/* Menu latéral */}
-<ul className={styles.steps}>
-  {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map(
-    (label, idx) => (
-      <li
-        key={idx}
-        className={step === idx + 1 ? styles.activeStep : ""}
-        aria-current={step === idx + 1 ? "step" : undefined}
-      >
-        <span>{idx + 1}</span> {label}
-      </li>
-    )
-  )}
-</ul>
-
+      <ul className={styles.steps}>
+        {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map(
+          (label, idx) => (
+            <li
+              key={idx}
+              className={step === idx + 1 ? styles.activeStep : ""}
+              aria-current={step === idx + 1 ? "step" : undefined}
+            >
+              <span>{idx + 1}</span> {label}
+            </li>
+          )
+        )}
+      </ul>
 
       {/* Formulaire principal */}
       <main className={styles.mainContent}>
