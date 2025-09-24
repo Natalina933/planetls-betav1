@@ -1,7 +1,8 @@
-"use client"; // nécessaire pour les hooks côté client
+"use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // hook de Next.js
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import styles from "./FirstVisit.module.scss";
 
 const FirstVisit = () => {
@@ -9,10 +10,10 @@ const FirstVisit = () => {
     const router = useRouter();
 
     useEffect(() => {
-        const hasVisited = localStorage.getItem("hasVisited");
+        const hasVisited = Cookies.get("hasVisited");
         if (!hasVisited) {
             setIsFirstVisit(true);
-            localStorage.setItem("hasVisited", "true");
+            Cookies.set("hasVisited", "true", { expires: 30 }); // expire dans 30 jours
         }
     }, []);
 

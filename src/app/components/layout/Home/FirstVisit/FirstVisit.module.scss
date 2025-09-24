@@ -1,12 +1,15 @@
 .firstVisitOverlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    background: linear-gradient(135deg, #faf3e0, #f4e7d4);
-    animation: fadeIn 0.6s ease-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeInUp 0.6s ease-out;
 }
 
 .card {
