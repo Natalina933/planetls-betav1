@@ -1,41 +1,42 @@
 @use "sass:math";
 @use "sass:color";
 @use "../../../styles/abstracts/variables" as *;
-
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba($color-text, 0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
 .popup {
-  background: $all-bg;
-  padding: $spacing-lg;
-  border-radius: $radius-2xl;
-  max-width: $max-content-width-sm;
-  width: 90%;
-  box-shadow: $shadow;
-  font-family: $font-text;
-  color: $color-text;
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 90%; /* s’adapte aux petits écrans */
+  max-height: 90vh;
+  overflow-y: auto; /* permet de scroller si le contenu est trop grand */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
   position: relative;
 }
-
 .close {
   position: absolute;
-  top: $spacing-sm;
-  right: $spacing-sm;
+  top: 0.75rem;
+  right: 0.75rem;
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: $color-text;
   cursor: pointer;
+}
+
+.highlight {
+  font-weight: bold;
+  color: #0a6d9b;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .intro {
@@ -65,11 +66,6 @@
   }
 }
 
-.highlight {
-  font-weight: $font-weight-bold;
-  color: $gold;
-  margin: $spacing-md 0;
-}
 
 .form {
   margin-top: $spacing-md;
@@ -117,4 +113,12 @@
   font-size: 0.8rem;
   color: $text-light;
   margin-top: $spacing-sm;
+}
+
+/* Pour les petits écrans */
+@media (max-width: 480px) {
+  .popup {
+    padding: 1rem;
+    max-width: 95%;
+  }
 }
