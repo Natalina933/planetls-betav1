@@ -4,23 +4,29 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./SearchFormPage.module.scss";
 
-interface FormData {
-  location: string;
-  category: string;
-  option: string;
-  startDate: string;
-  endDate: string;
-  additionalInfo: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-}
+const stepList = [
+  {
+    label: "Qui et où ?",
+    help: "Indique la localisation et la catégorie recherchée.",
+  },
+  {
+    label: "Quel est votre besoin ?",
+    help: "Décris précisément ton besoin ou sélectionne une option.",
+  },
+  {
+    label: "Infos complémentaires",
+    help: "Ajoute les dates ou renseignements utiles à ta demande.",
+  },
+  {
+    label: "Coordonnées",
+    help: "Précise tes coordonnées pour finaliser l’inscription.",
+  },
+];
 
 export default function SearchFormPage() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     location: "",
     category: "",
     option: "",
@@ -33,7 +39,7 @@ export default function SearchFormPage() {
     phone: "",
   });
 
-  // Remplissage initial depuis l'URL
+  // Remplir depuis l’URL
   useEffect(() => {
     const category = searchParams.get("category") || "";
     const optionParam = searchParams.get("option") || "";
@@ -60,81 +66,97 @@ export default function SearchFormPage() {
     }));
   }, [searchParams]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+  const nextStep = () => setStep((s) => Math.min(s + 1, stepList.length));
+  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Votre recherche a été enregistrée !");
+    // Envoie réel à implémenter ici
+    alert("Votre inscription a été enregistrée !");
   };
 
   return (
     <div className={styles.pageContainer}>
-      {/* Menu latéral */}
-      <ul className={styles.steps}>
-        {["Qui et où ?", "Quel est votre besoin ?", "Infos complémentaires", "Coordonnées"].map(
-          (label, idx) => (
+      {/* Barre latérale de progression */}
+      <aside className={styles.sideNav} aria-label="Progression">
+        <ul className={styles.steps}>
+          {stepList.map((item, idx) => (
             <li
-              key={idx}
+              key={item.label}
               className={step === idx + 1 ? styles.activeStep : ""}
               aria-current={step === idx + 1 ? "step" : undefined}
             >
-              <span>{idx + 1}</span> {label}
+              <span className={styles.stepNumber}>{idx + 1}</span>
+              {item.label}
             </li>
-          )
-        )}
-      </ul>
+          ))}
+        </ul>
+      </aside>
 
-      {/* Formulaire principal */}
+      {/* Contenu principal et résumé */}
       <main className={styles.mainContent}>
-        <h1>Encore quelques infos pour trouver le partenaire idéal</h1>
-        <p className={styles.subtitle}>Cela ne prendra que quelques minutes.</p>
+        <h1 className={styles.title}>Inscription étape par étape</h1>
+        <p className={styles.stepHelp}>{stepList[step - 1]?.help}</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           {step === 1 && (
-            <div className={styles.step}>
+            <section className={styles.step}>
               <label>
-                Où recherchez-vous ?
+                Localisation
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
+                  placeholder="Ville ou région"
                   required
                 />
               </label>
               <label>
                 Catégorie
-                <input type="text" name="category" value={formData.category} readOnly />
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  readOnly
+                  required
+                />
               </label>
-            </div>
+            </section>
           )}
 
           {step === 2 && (
-            <div className={styles.step}>
+            <section className={styles.step}>
               <label>
-                Quel est votre besoin ?
-                <input type="text" name="option" value={formData.option} readOnly />
+                Besoin
+                <input
+                  type="text"
+                  name="option"
+                  value={formData.option}
+                  readOnly
+                  required
+                />
               </label>
               <label>
-                Description / détails supplémentaires
+                Détails supplémentaires
                 <textarea
                   name="additionalInfo"
                   value={formData.additionalInfo}
                   onChange={handleChange}
-                  placeholder="Précisez votre besoin"
+                  placeholder="Précise ton besoin"
                 />
               </label>
-            </div>
+            </section>
           )}
 
           {step === 3 && (
-            <div className={styles.step}>
+            <section className={styles.step}>
               <label>
                 Date de début
                 <input
@@ -153,11 +175,11 @@ export default function SearchFormPage() {
                   onChange={handleChange}
                 />
               </label>
-            </div>
+            </section>
           )}
 
           {step === 4 && (
-            <div className={styles.step}>
+            <section className={styles.step}>
               <label>
                 Prénom
                 <input
@@ -197,29 +219,40 @@ export default function SearchFormPage() {
                   onChange={handleChange}
                 />
               </label>
-            </div>
+            </section>
           )}
 
           <div className={styles.buttons}>
-            {step > 1 && <button type="button" onClick={prevStep}>Précédent</button>}
-            {step < 4 && <button type="button" onClick={nextStep}>Suivant</button>}
-            {step === 4 && <button type="submit">Envoyer ma recherche</button>}
+            {step > 1 && (
+              <button type="button" onClick={prevStep}>Précédent</button>
+            )}
+            {step < stepList.length && (
+              <button type="button" onClick={nextStep}>Suivant</button>
+            )}
+            {step === stepList.length && (
+              <button type="submit">Envoyer</button>
+            )}
           </div>
         </form>
 
         {/* Résumé dynamique */}
-        <div className={styles.summary}>
-          <h3>Résumé de votre sélection :</h3>
-          <p>Je recherche : <strong>{formData.category}</strong></p>
-          <p>Pour : <strong>{formData.option}</strong></p>
-          <p>Localisation : <strong>{formData.location}</strong></p>
-          {formData.startDate && formData.endDate && (
-            <p>
-              Pour la période :{" "}
-              <strong>{formData.startDate} → {formData.endDate}</strong>
-            </p>
-          )}
-        </div>
+        <aside className={styles.summarySection}>
+          <h2>Résumé de votre inscription</h2>
+          <dl className={styles.summaryList}>
+            <dt>Catégorie</dt>
+            <dd>{formData.category || "–"}</dd>
+            <dt>Besoin</dt>
+            <dd>{formData.option || "–"}</dd>
+            <dt>Localisation</dt>
+            <dd>{formData.location || "–"}</dd>
+            <dt>Période</dt>
+            <dd>
+              {formData.startDate && formData.endDate
+                ? `${formData.startDate} → ${formData.endDate}`
+                : "–"}
+            </dd>
+          </dl>
+        </aside>
       </main>
     </div>
   );

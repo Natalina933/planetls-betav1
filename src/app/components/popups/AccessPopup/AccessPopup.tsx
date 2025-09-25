@@ -41,6 +41,7 @@ export default function AccessPopup({
     };
     const qs = new URLSearchParams(params).toString();
     router.push(`/search-form?${qs}`);
+    onClose?.();
   };
 
   // 🔑 exemple de profils dynamiques (à récupérer via API)

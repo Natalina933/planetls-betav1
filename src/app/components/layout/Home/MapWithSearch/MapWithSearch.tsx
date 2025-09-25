@@ -49,7 +49,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   // options choisies
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  // --> Supprimé : const isPopupOpen = showCategoryPopup;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -162,7 +161,10 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           selectedOptions={selectedOptions}
           category={selectedCategory}
           location={location}
-          onClose={() => setShowAccessPopup(false)}
+          onClose={() => {
+            setShowAccessPopup(false);
+            onClose(); // <-- ferme aussi la popup globale MapWithSearch
+          }}
         />
       )}
     </>
