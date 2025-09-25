@@ -88,7 +88,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Providers>
                     <SearchPopupProvider>
                         <Header />
-                        <MapPopup /> {/* Popup global */}
+                        {/* -----------------------------------------------
+                            Si vous voulez ajouter des props, 
+                            vous devez le faire comme ceci :
+                        ------------------------------------------------ */}
+                        {/* <MapPopup showOn={["/"]} />  */}
+
+                        {/* Mais puisque vous l'avez retirée, ce code est correct : */}
+                        <MapPopup /> 
+
                         <main>{children}</main>
                     </SearchPopupProvider>
                 </Providers>

@@ -1,259 +1,235 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import styles from "./SearchFormPage.module.scss";
 
-const stepList = [
-  {
-    label: "Qui et où ?",
-    help: "Indique la localisation et la catégorie recherchée.",
-  },
-  {
-    label: "Quel est votre besoin ?",
-    help: "Décris précisément ton besoin ou sélectionne une option.",
-  },
-  {
-    label: "Infos complémentaires",
-    help: "Ajoute les dates ou renseignements utiles à ta demande.",
-  },
-  {
-    label: "Coordonnées",
-    help: "Précise tes coordonnées pour finaliser l’inscription.",
-  },
-];
+interface FormData {
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface QueryData {
+  category: string;
+  option: string;
+  location: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  additionalInfo: string;
+}
 
 export default function SearchFormPage() {
   const searchParams = useSearchParams();
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    location: "",
+  const router = useRouter();
+
+  const [queryData, setQueryData] = useState<QueryData>({
     category: "",
     option: "",
-    startDate: "",
-    endDate: "",
-    additionalInfo: "",
+    location: "",
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    additionalInfo: "",
   });
 
-  // Remplir depuis l’URL
+  const [formData, setFormData] = useState<FormData>({
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Gestion erreurs temps réel
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   useEffect(() => {
-    const category = searchParams.get("category") || "";
-    const optionParam = searchParams.get("option") || "";
-    const location = searchParams.get("location") || "";
-    const firstName = searchParams.get("firstName") || "";
-    const lastName = searchParams.get("lastName") || "";
-    const email = searchParams.get("email") || "";
-    const phone = searchParams.get("phone") || "";
-    const additionalInfo = searchParams.get("additionalInfo") || "";
-
-    const optionsArray = optionParam ? optionParam.split(",") : [];
-    const optionDisplay = optionsArray.length ? optionsArray.join(", ") : "";
-
-    setFormData((prev) => ({
-      ...prev,
-      category,
-      option: optionDisplay,
-      location,
-      firstName,
-      lastName,
-      email,
-      phone,
-      additionalInfo,
-    }));
+    setQueryData({
+      category: searchParams.get("category") || "",
+      option: searchParams.get("option") || "",
+      location: searchParams.get("location") || "",
+      firstName: searchParams.get("firstName") || "",
+      lastName: searchParams.get("lastName") || "",
+      email: searchParams.get("email") || "",
+      phone: searchParams.get("phone") || "",
+      additionalInfo: searchParams.get("additionalInfo") || "",
+    });
   }, [searchParams]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const validate = (name: string, value: string) => {
+    let message = "";
+    if (name === "username" && value.trim().length < 3) {
+      message = "Le nom d’utilisateur doit contenir au moins 3 caractères.";
+    }
+    if (name === "password" && value.length < 6) {
+      message = "Le mot de passe doit contenir au moins 6 caractères.";
+    }
+    if (name === "confirmPassword" && value !== formData.password) {
+      message = "Les mots de passe ne correspondent pas.";
+    }
+    setErrors((prev) => ({ ...prev, [name]: message }));
   };
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, stepList.length));
-  const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    validate(name, value);
+  };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const canSubmit = () =>
+    formData.username.trim().length >= 3 &&
+    formData.password.length >= 6 &&
+    formData.password === formData.confirmPassword &&
+    Object.values(errors).every((err) => err === "");
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Envoie réel à implémenter ici
-    alert("Votre inscription a été enregistrée !");
+    if (!canSubmit()) {
+      return alert("⚠️ Corrigez les erreurs avant de continuer.");
+    }
+    alert("✅ Inscription finalisée avec succès !");
+    router.push("/");
   };
 
   return (
     <div className={styles.pageContainer}>
-      {/* Barre latérale de progression */}
-      <aside className={styles.sideNav} aria-label="Progression">
-        <ul className={styles.steps}>
-          {stepList.map((item, idx) => (
-            <li
-              key={item.label}
-              className={step === idx + 1 ? styles.activeStep : ""}
-              aria-current={step === idx + 1 ? "step" : undefined}
-            >
-              <span className={styles.stepNumber}>{idx + 1}</span>
-              {item.label}
-            </li>
-          ))}
+      <h1 className={styles.title}>Finalisez votre inscription</h1>
+
+      {/* Étapes */}
+      <nav aria-label="Progression inscription" className={styles.stepNav}>
+        <ul>
+          <li>1. Recherche & localisation</li>
+          <li>2. Services sélectionnés</li>
+          <li>3. Profils & coordonnées</li>
+          <li className={styles.activeStep}>4. Créez un compte</li>
         </ul>
-      </aside>
+      </nav>
 
-      {/* Contenu principal et résumé */}
-      <main className={styles.mainContent}>
-        <h1 className={styles.title}>Inscription étape par étape</h1>
-        <p className={styles.stepHelp}>{stepList[step - 1]?.help}</p>
+      {/* Résumé */}
+      <section className={styles.summary}>
+        <h2>Récapitulatif</h2>
+        <p>
+          <strong>Je recherche un :</strong> {queryData.category || "—"} à{" "}
+          {queryData.location || "—"}.
+        </p>
+        <p>
+          <strong>Services recherchés :</strong> {queryData.option || "—"}
+        </p>
+        <hr />
+        <h2>Profils & Coordonnées</h2>
+        <p>
+          <strong>Prénom :</strong> {queryData.firstName || "—"}
+        </p>
+        <p>
+          <strong>Nom :</strong> {queryData.lastName || "—"}
+        </p>
+        <p>
+          <strong>Email :</strong> {queryData.email || "—"}
+        </p>
+        <p>
+          <strong>Téléphone :</strong> {queryData.phone || "—"}
+        </p>
+        <p>
+          <strong>Besoin :</strong> {queryData.additionalInfo || "—"}
+        </p>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className={styles.editButton}
+        >
+          Modifier mes informations
+        </button>
+      </section>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {step === 1 && (
-            <section className={styles.step}>
-              <label>
-                Localisation
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="Ville ou région"
-                  required
-                />
-              </label>
-              <label>
-                Catégorie
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
-                  readOnly
-                  required
-                />
-              </label>
-            </section>
+      {/* Formulaire inscription */}
+      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <label>
+          Nom d’utilisateur*
+          <input
+            type="text"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            placeholder="Choisissez un identifiant"
+            required
+            minLength={3}
+            aria-describedby="usernameError"
+          />
+          {errors.username && (
+            <small id="usernameError" className={styles.errorMsg}>
+              {errors.username}
+            </small>
           )}
+        </label>
 
-          {step === 2 && (
-            <section className={styles.step}>
-              <label>
-                Besoin
-                <input
-                  type="text"
-                  name="option"
-                  value={formData.option}
-                  readOnly
-                  required
-                />
-              </label>
-              <label>
-                Détails supplémentaires
-                <textarea
-                  name="additionalInfo"
-                  value={formData.additionalInfo}
-                  onChange={handleChange}
-                  placeholder="Précise ton besoin"
-                />
-              </label>
-            </section>
-          )}
-
-          {step === 3 && (
-            <section className={styles.step}>
-              <label>
-                Date de début
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                />
-              </label>
-              <label>
-                Date de fin
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                />
-              </label>
-            </section>
-          )}
-
-          {step === 4 && (
-            <section className={styles.step}>
-              <label>
-                Prénom
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-              <label>
-                Nom
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-              <label>
-                Email
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-              <label>
-                Téléphone
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
-              </label>
-            </section>
-          )}
-
-          <div className={styles.buttons}>
-            {step > 1 && (
-              <button type="button" onClick={prevStep}>Précédent</button>
-            )}
-            {step < stepList.length && (
-              <button type="button" onClick={nextStep}>Suivant</button>
-            )}
-            {step === stepList.length && (
-              <button type="submit">Envoyer</button>
-            )}
+        <label className={styles.passwordLabel}>
+          Mot de passe* (min. 6 caractères)
+          <div className={styles.passwordInputWrapper}>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Entrez un mot de passe sécurisé"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              aria-describedby="passwordError"
+            />
+            <button
+              type="button"
+              className={styles.passwordToggle}
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
-        </form>
+          {errors.password && (
+            <small id="passwordError" className={styles.errorMsg}>
+              {errors.password}
+            </small>
+          )}
+        </label>
 
-        {/* Résumé dynamique */}
-        <aside className={styles.summarySection}>
-          <h2>Résumé de votre inscription</h2>
-          <dl className={styles.summaryList}>
-            <dt>Catégorie</dt>
-            <dd>{formData.category || "–"}</dd>
-            <dt>Besoin</dt>
-            <dd>{formData.option || "–"}</dd>
-            <dt>Localisation</dt>
-            <dd>{formData.location || "–"}</dd>
-            <dt>Période</dt>
-            <dd>
-              {formData.startDate && formData.endDate
-                ? `${formData.startDate} → ${formData.endDate}`
-                : "–"}
-            </dd>
-          </dl>
-        </aside>
-      </main>
+        <label className={styles.passwordLabel}>
+          Confirmez le mot de passe*
+          <div className={styles.passwordInputWrapper}>
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Retapez le mot de passe"
+              required
+              minLength={6}
+              autoComplete="new-password"
+              aria-describedby="confirmError"
+            />
+            <button
+              type="button"
+              className={styles.passwordToggle}
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <small id="confirmError" className={styles.errorMsg}>
+              {errors.confirmPassword}
+            </small>
+          )}
+        </label>
+
+        <button type="submit" disabled={!canSubmit()}>
+          Finaliser mon inscription
+        </button>
+      </form>
     </div>
   );
 }
