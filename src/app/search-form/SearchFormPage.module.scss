@@ -11,63 +11,64 @@
   box-shadow: $shadow;
   font-family: $font-text;
   color: $color-text;
-.passwordLabel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  font-weight: $font-weight-bold;
-  color: $color-text;
-  margin-bottom: $spacing-md;
-}
 
-.passwordInputWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
+  .passwordLabel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+    margin-bottom: $spacing-md;
+  }
 
-  input {
-    width: 100%;
-    padding-right: 3rem; // espace pour bouton œil
-    border: 1.5px solid $color-accent-dark;
-    border-radius: $radius-lg;
-    padding: $spacing-sm $spacing-md;
-    font-size: 1rem;
-    transition: $transition;
+  .passwordInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 
-    &:focus {
-      outline: none;
-      border-color: $primary-color-sass;
-      box-shadow: 0 0 6px $primary-light-color-sass;
-      background-color: $gold-soft;
+    input {
+      width: 100%;
+      padding-right: 3rem; // espace pour bouton œil
+      border: 1.5px solid $color-accent-dark;
+      border-radius: $radius-lg;
+      padding: $spacing-sm $spacing-md;
+      font-size: 1rem;
+      transition: $transition;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color-sass;
+        box-shadow: 0 0 6px $primary-light-color-sass;
+        background-color: $gold-soft;
+      }
     }
   }
-}
 
-.passwordToggle {
-  position: absolute;
-  right: $spacing-sm;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  color: $color-accent-dark;
-  cursor: pointer;
-  padding: $spacing-xs;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.3s ease;
+  .passwordToggle {
+    position: absolute;
+    right: $spacing-sm;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: $color-accent-dark;
+    cursor: pointer;
+    padding: $spacing-xs;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
 
-  &:hover {
-    color: $primary-color-sass;
+    &:hover {
+      color: $primary-color-sass;
+    }
+
+    &:focus {
+      outline: 2px solid $color-accent;
+      outline-offset: 2px;
+    }
   }
 
-  &:focus {
-    outline: 2px solid $color-accent;
-    outline-offset: 2px;
-  }
-}
-
-  @media (min-width: map-get($breakpoints, md)) {
+  @media (min-width: map.get($breakpoints, md)) {
     max-width: $max-content-width-md;
     padding: $spacing-xl;
   }
@@ -84,7 +85,7 @@
 
 .stepNav {
   margin-bottom: $spacing-lg;
-  
+
   ul {
     list-style: none;
     display: flex;
@@ -97,7 +98,7 @@
     color: $gold-dark;
     border-bottom: 2px solid $gold-soft;
   }
-  
+
   li {
     flex: 1;
     text-align: center;
@@ -105,11 +106,11 @@
     position: relative;
     cursor: default;
     transition: color 0.3s ease;
-    
+
     &.activeStep {
       color: $primary-color-sass;
       font-weight: $font-weight-bold;
-      
+
       &::after {
         content: "";
         position: absolute;
@@ -145,6 +146,7 @@
   p {
     font-size: 1rem;
     margin-bottom: $spacing-xs;
+
     strong {
       color: $color-accent-dark;
     }
@@ -243,6 +245,7 @@
     li {
       padding: $spacing-xs 0;
       font-size: 1.1rem;
+
       strong {
         color: $primary-dark-color-sass;
       }
@@ -269,16 +272,19 @@
 }
 
 // Responsive
-@media (max-width: map-get($breakpoints, sm)) {
+@media (max-width: map.get($breakpoints, sm)) {
   .pageContainer {
     padding: $spacing-md;
   }
+
   .stepNav ul {
     flex-direction: column;
   }
+
   .form {
     font-size: 0.9rem;
   }
+
   .confirmation ul {
     font-size: 0.9rem;
   }
