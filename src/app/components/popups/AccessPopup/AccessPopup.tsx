@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AccessPopup.module.scss";
-import ProfilesDisplay from "@/app/components/layout/Home/ProfilesDisplay/ProfilesDisplay";
+// import ProfilesDisplay from "@/app/components/layout/Home/ProfilesDisplay/ProfilesDisplay";
 
 interface AccessPopupProps {
   selectedOptions: string[];
@@ -45,26 +45,26 @@ export default function AccessPopup({
   };
 
   // 🔑 exemple de profils dynamiques (à récupérer via API)
-  const visibleProfiles = [
-    {
-      id: "1",
-      name: "Sandrine",
-      type: "concierge",
-      photo: "/default-profile.png",
-      services: ["Check-in", "Ménage"],
-      available: true,
-      created_at: "2023-05-01",
-    },
-    {
-      id: "2",
-      name: "Danaé",
-      type: "concierge",
-      photo: "",
-      services: ["Maintenance", "Blanchisserie"],
-      available: false,
-      created_at: "2022-11-15",
-    },
-  ];
+  // const visibleProfiles = [
+  //   {
+  //     id: "1",
+  //     name: "Sandrine",
+  //     type: "concierge",
+  //     photo: "/default-profile.png",
+  //     services: ["Check-in", "Ménage"],
+  //     available: true,
+  //     created_at: "2023-05-01",
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Danaé",
+  //     type: "concierge",
+  //     photo: "",
+  //     services: ["Maintenance", "Blanchisserie"],
+  //     available: false,
+  //     created_at: "2022-11-15",
+  //   },
+  // ];
 
   return (
     <div className={styles.overlay}>
@@ -81,7 +81,7 @@ export default function AccessPopup({
         <p className={styles.highlight}>{selectedOptions.join(" — ")}</p>
 
         {/* 👉 Intégration de ProfilesDisplay */}
-        <ProfilesDisplay visibleProfiles={visibleProfiles} />
+        {/* <ProfilesDisplay visibleProfiles={visibleProfiles} /> */}
 
         <form className={styles.form} onSubmit={handleProceed}>
           <label>
