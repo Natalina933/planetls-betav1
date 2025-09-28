@@ -1,156 +1,115 @@
-@use "sass:math";
-@use "sass:color";
-@use "sass:map";
-
-@use "../styles/abstracts/variables" as *;
-
 .pageContainer {
-  max-width: $max-content-width-sm;
-  margin: $spacing-xl auto;
-  padding: $spacing-lg;
-  background-color: $all-bg;
-  border-radius: $radius-2xl;
-  box-shadow: $shadow;
-  font-family: $font-text;
-  color: $color-text;
+  font-family: "Playfair Display", serif;
+  background: #fdfaf6;
+  color: #2c2c2c;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(60, 50, 40, 0.15);
 
-  .passwordLabel {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    font-weight: $font-weight-bold;
-    color: $color-text;
-    margin-bottom: $spacing-md;
-  }
-
-  .passwordInputWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-
-    input {
-      width: 100%;
-      padding-right: 3rem; // espace pour bouton œil
-      border: 1.5px solid $color-accent-dark;
-      border-radius: $radius-lg;
-      padding: $spacing-sm $spacing-md;
-      font-size: 1rem;
-      transition: $transition;
-
-      &:focus {
-        outline: none;
-        border-color: $primary-color-sass;
-        box-shadow: 0 0 6px $primary-light-color-sass;
-        background-color: $gold-soft;
-      }
-    }
-  }
-
-  .passwordToggle {
-    position: absolute;
-    right: $spacing-sm;
-    background: none;
-    border: none;
-    font-size: 1.4rem;
-    color: $color-accent-dark;
-    cursor: pointer;
-    padding: $spacing-xs;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.3s ease;
-
-    &:hover {
-      color: $primary-color-sass;
-    }
-
-    &:focus {
-      outline: 2px solid $color-accent;
-      outline-offset: 2px;
-    }
-  }
-
-  @media (min-width: map.get($breakpoints, md)) {
-    max-width: $max-content-width-md;
-    padding: $spacing-xl;
+  .title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2f3b2f;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid #c8a74a;
+    display: inline-block;
+    padding-bottom: 0.3rem;
   }
 }
 
-// h1 {
-//   font-family: $font-title;
-//   font-weight: $font-weight-bold;
-//   font-size: 2.5rem;
-//   margin-bottom: $spacing-md;
-//   color: $primary-dark-color-sass;
-//   text-align: center;
-// }
-
 .stepNav {
-  margin-bottom: $spacing-lg;
+  margin-bottom: 2rem;
 
   ul {
-    list-style: none;
     display: flex;
     justify-content: space-between;
+    list-style: none;
     padding: 0;
     margin: 0;
-    font-family: $font-elegant;
-    font-weight: $font-weight-bold;
-    font-size: 1.2rem;
-    color: $gold-dark;
-    border-bottom: 2px solid $gold-soft;
+    border-bottom: 1px solid #c8a74a;
   }
 
   li {
     flex: 1;
     text-align: center;
-    padding-bottom: $spacing-xs;
+    padding: 0.5rem;
+    font-size: 0.95rem;
+    font-family: "Lora", serif;
     position: relative;
-    cursor: default;
-    transition: color 0.3s ease;
+    color: #555;
 
     &.activeStep {
-      color: $primary-color-sass;
-      font-weight: $font-weight-bold;
-
-      &::after {
-        content: "";
-        position: absolute;
-        left: 50%;
-        bottom: -2px;
-        transform: translateX(-50%);
-        width: 50%;
-        height: 3px;
-        background: $primary-color-sass;
-        border-radius: $radius-pill;
-      }
+      font-weight: bold;
+      color: #2f3b2f;
+      border-bottom: 3px solid #c8a74a;
     }
   }
 }
 
 .summary {
-  background-color: $cream;
-  border-left: 6px solid $primary-dark-color-sass;
-  padding: $spacing-md $spacing-lg;
-  border-radius: $radius-lg;
-  margin-bottom: $spacing-xl;
-  font-family: $font-text;
-  color: $color-text;
+  background: #fffdf8;
+  border: 2px solid #c8a74a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: inset 0 0 8px rgba(200, 167, 74, 0.15);
 
   h2 {
-    font-family: $font-elegant;
-    font-weight: $font-weight-bold;
-    font-size: 1.8rem;
-    margin-bottom: $spacing-sm;
-    color: $gold-dark;
+    font-size: 1.25rem;
+    margin-bottom: 0.8rem;
+    color: #2f3b2f;
   }
 
-  p {
-    font-size: 1rem;
-    margin-bottom: $spacing-xs;
+  .avatarPreview {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
 
-    strong {
-      color: $color-accent-dark;
+    .avatarImg {
+      border-radius: 50%;
+      border: 3px solid #c8a74a;
+      object-fit: cover;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .services {
+    margin: 1rem 0;
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+
+      li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+
+        &::before {
+          content: "✔";
+          color: #2e7d32;
+          font-weight: bold;
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+
+  .editButton {
+    margin-top: 1rem;
+    background: #2e7d32;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #256628;
     }
   }
 }
@@ -158,136 +117,127 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 1.2rem;
 
   label {
-    font-family: $font-text;
-    font-weight: $font-weight-bold;
-    color: $color-text;
     display: flex;
     flex-direction: column;
-    font-size: 1rem;
-  }
+    font-family: "Lora", serif;
+    font-size: 0.95rem;
+    color: #2f3b2f;
 
-  input,
-  textarea {
-    margin-top: $spacing-xs;
-    padding: $spacing-sm $spacing-md;
-    font-size: 1rem;
-    color: $color-text;
-    border-radius: $radius-lg;
-    border: 1.5px solid $color-accent-dark;
-    font-family: inherit;
-    transition: $transition;
+    input {
+      margin-top: 0.4rem;
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #c8a74a;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
 
-    &:focus {
-      outline: none;
-      border-color: $primary-color-sass;
-      box-shadow: 0 0 8px $primary-light-color-sass;
-      background-color: $gold-soft;
-    }
-  }
-
-  textarea {
-    min-height: 5rem;
-    resize: vertical;
-  }
-
-  button[type="submit"] {
-    margin-top: $spacing-lg;
-    font-family: $font-title;
-    font-weight: $font-weight-bold;
-    background-color: $primary-dark-color-sass;
-    border: none;
-    padding: $spacing-sm $spacing-lg;
-    color: $all-bg;
-    border-radius: $radius-pill;
-    cursor: pointer;
-    font-size: 1.25rem;
-    transition: $transition;
-
-    &:hover:not(:disabled) {
-      background-color: $primary-color-sass;
-      color: $color-text-light;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-}
-
-.confirmation {
-  text-align: center;
-  padding: $spacing-lg 1rem;
-  background-color: $gold-soft;
-  border-radius: $radius-2xl;
-  box-shadow: inset 0 0 12px $gold-light;
-
-  h2 {
-    font-family: $font-elegant;
-    font-weight: $font-weight-bold;
-    font-size: 2rem;
-    color: $gold-dark;
-    margin-bottom: $spacing-md;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-bottom: $spacing-lg;
-    max-width: 480px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: left;
-    font-family: $font-text;
-    color: $color-text;
-
-    li {
-      padding: $spacing-xs 0;
-      font-size: 1.1rem;
-
-      strong {
-        color: $primary-dark-color-sass;
+      &:focus {
+        outline: none;
+        border-color: #2e7d32;
+        box-shadow: 0 0 4px rgba(46, 125, 50, 0.4);
       }
     }
   }
 
-  button {
-    font-family: $font-title;
-    font-weight: $font-weight-bold;
-    background-color: $primary-dark-color-sass;
-    border-radius: $radius-pill;
-    padding: $spacing-sm $spacing-xl;
-    border: none;
-    color: $all-bg;
-    font-size: 1.25rem;
-    cursor: pointer;
-    transition: $transition;
+  .passwordLabel {
+    .passwordInputWrapper {
+      display: flex;
+      align-items: center;
+      position: relative;
 
-    &:hover {
-      background-color: $primary-color-sass;
-      color: $color-text-light;
+      input {
+        flex: 1;
+      }
+
+      .passwordToggle {
+        position: absolute;
+        right: 0.8rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        color: #555;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: #2e7d32;
+        }
+      }
+    }
+  }
+.avatarSection {
+  margin-top: 1.5rem;
+  text-align: center;
+
+  h3 {
+    font-family: "Playfair Display", serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    color: #4b3a2f; // brun noble
+    border-bottom: 1px solid #c9a66b; // doré
+    display: inline-block;
+    padding-bottom: 0.2rem;
+  }
+
+  .avatarPreview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+
+    .avatarImg {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%; // rond parfait
+      border: 4px solid #c9a66b; // contour doré
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+      object-fit: cover;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    .fileName {
+      font-size: 0.85rem;
+      color: #6b5b4b;
+      font-style: italic;
     }
   }
 }
 
-// Responsive
-@media (max-width: map.get($breakpoints, sm)) {
-  .pageContainer {
-    padding: $spacing-md;
+  .errorMsg {
+    color: #c62828;
+    font-size: 0.85rem;
+    margin-top: 0.3rem;
   }
 
-  .stepNav ul {
-    flex-direction: column;
-  }
+  button[type="submit"] {
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #c8a74a, #b5893d);
+    color: #fffdf8;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
 
-  .form {
-    font-size: 0.9rem;
-  }
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #b5893d, #967832);
+      transform: translateY(-2px);
+    }
 
-  .confirmation ul {
-    font-size: 0.9rem;
+    &:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+    }
   }
 }

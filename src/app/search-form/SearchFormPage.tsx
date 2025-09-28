@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload"; // <-- import du composant
 import styles from "./SearchFormPage.module.scss";
 
 interface FormData {
   username: string;
   password: string;
   confirmPassword: string;
+  avatar: File | null;
 }
 
 interface QueryData {
@@ -41,6 +43,7 @@ export default function SearchFormPage() {
     username: "",
     password: "",
     confirmPassword: "",
+    avatar: null,
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -82,6 +85,10 @@ export default function SearchFormPage() {
     validate(name, value);
   };
 
+  const handleAvatarChange = (file: File | null) => {
+    setFormData((prev) => ({ ...prev, avatar: file }));
+  };
+
   const canSubmit = () =>
     formData.username.trim().length >= 3 &&
     formData.password.length >= 6 &&
@@ -93,6 +100,17 @@ export default function SearchFormPage() {
     if (!canSubmit()) {
       return alert("⚠️ Corrigez les erreurs avant de continuer.");
     }
+
+    const formPayload = new FormData();
+    formPayload.append("username", formData.username);
+    formPayload.append("password", formData.password);
+    if (formData.avatar) {
+      formPayload.append("avatar", formData.avatar);
+    }
+
+    // TODO: Envoyer vers ton backend
+    // await fetch("/api/register", { method: "POST", body: formPayload });
+
     alert("✅ Inscription finalisée avec succès !");
     router.push("/");
   };
@@ -114,13 +132,25 @@ export default function SearchFormPage() {
       {/* Résumé */}
       <section className={styles.summary}>
         <h2>Récapitulatif</h2>
+
         <p>
           <strong>Je recherche un :</strong> {queryData.category || "—"} à{" "}
           {queryData.location || "—"}.
         </p>
-        <p>
-          <strong>Services recherchés :</strong> {queryData.option || "—"}
-        </p>
+
+        <div className={styles.services}>
+          <strong>Services recherchés :</strong>
+          {queryData.option ? (
+            <ul>
+              {queryData.option.split(",").map((service, index) => (
+                <li key={index}>{service.trim()}</li>
+              ))}
+            </ul>
+          ) : (
+            "—"
+          )}
+        </div>
+
         <hr />
         <h2>Profils & Coordonnées</h2>
         <p>
@@ -138,6 +168,25 @@ export default function SearchFormPage() {
         <p>
           <strong>Besoin :</strong> {queryData.additionalInfo || "—"}
         </p>
+
+        {/* Avatar unique ici */}
+        <div className={styles.avatarSection}>
+          <h3>Photo de profil</h3>
+          <AvatarUpload value={formData.avatar} onChange={handleAvatarChange} />
+          {formData.avatar && (
+            <div className={styles.avatarPreview}>
+              {/* <Image
+                src={URL.createObjectURL(formData.avatar)}
+                alt="Avatar utilisateur"
+                width={120}
+                height={120}
+                className={styles.avatarImg}
+              /> */}
+              {/* <small className={styles.fileName}>{formData.avatar.name}</small> */}
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={() => router.back()}
@@ -146,6 +195,7 @@ export default function SearchFormPage() {
           Modifier mes informations
         </button>
       </section>
+
 
       {/* Formulaire inscription */}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -225,6 +275,8 @@ export default function SearchFormPage() {
             </small>
           )}
         </label>
+
+
 
         <button type="submit" disabled={!canSubmit()}>
           Finaliser mon inscription
