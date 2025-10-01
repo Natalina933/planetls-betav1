@@ -1,298 +1,278 @@
+// GestionPlatformSection.module.scss
+
+@use "sass:color";
+// Assurez-vous d'importer vos variables globales pour les couleurs ($gold, $mucha-ink, etc.)
+// et vos mixins (_variables, _mixins) depuis le bon chemin (ici, je simule)
 @use "src/app/styles/abstracts/_variables" as *;
+@use "src/app/styles/abstracts/_mixins" as *;
 
-/* Racine de la section */
+// Couleurs clés utilisées dans ForWhomSection :
+$gold-base: #b88b4a;
+$gold-shadow: #d4af3744; // Ombre dorée
+$paper-light: #fcfbf7; // Fond de section
+$paper-card: #fff; // Fond de carte
+$ink-dark: #484848; // Texte sombre
+$ink-light: #646464; // Texte gris
+$highlight-bg: #fffbe7; // Fond bouton/mise en avant secondaire
+
+// === SECTION GLOBALE (Inspirée de .forWhomSection) ===
 .gestionSection {
-    position: relative;
-    padding: 4rem 0 3.5rem 0;
-    background: linear-gradient(98deg, #fdfaf3 60%, #f6f0e5 100%);
-    font-family: var(--font-title, 'Inter', Arial, sans-serif);
-    box-shadow: 0 8px 36px rgba(32, 61, 84, 0.07);
+    // Fond de section général (légèrement dégradé/texturé)
+    background: linear-gradient(120deg, $paper-light 80%, #f7efd7 100%);
+    border-radius: 2.2rem;
+    box-shadow: 0 4px 24px #e5e4e0;
+    padding: 4rem 1.5rem; // Plus de hauteur pour une section de tarifs
+    margin: 3rem 0;
     overflow: hidden;
-
-    .container {
-        max-width: 1180px;
-        margin: 0 auto;
-        padding: 0 1.3rem;
-    }
 }
 
-/* Header et Titre */
+.container {
+    max-width: 1200px; // Élargissement pour la grille de 3 cartes
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+// === EN-TÊTE ===
 .mainTitle {
-    font-size: 2.3rem;
+    // Reprend le style .planetLSTitle
+    font-family: var(--font-title, "High Tower Text", serif);
     font-weight: 700;
-    letter-spacing: -0.5px;
-    color: #20364a;
-    background: #3c4858;
-    padding: 0.62em 1.2em;
-    border-radius: 0.52em;
-    box-shadow: 0 1px 10px rgba(60, 70, 70, 0.055);
-    display: inline-block;
-    margin-bottom: 0.9em;
-    color: #fff;
-    text-shadow: 0 2px 8px #20364a42;
+    font-size: 2.8rem;
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.02em;
+    color: $gold-base;
+    text-align: center;
+    @include highlight-gold(); // Mixin pour l'effet doré (si défini)
 }
 
 .subtitle {
-    font-size: 1.16rem;
-    color: #353535;
-    margin-bottom: 0.3em;
+    // Reprend le style .planetLSIntro
+    color: $ink-light;
+    font-size: 1.2rem;
+    max-width: 800px;
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
 
-    .gestionTypes {
-        font-weight: 600;
-        font-size: 1em;
-        letter-spacing: 0.01em;
-        margin-left: 0.3em;
+.gestionTypes {
+    font-weight: bold;
+    color: $gold-base;
+    font-size: 1.1em;
 
-        .proprietaire {
-            color: #bb7926;
-        }
-
-        .conciergerie {
-            color: #286ab2;
-        }
-
-        .artisan {
-            color: #7c674c;
+    span {
+        &.proprietaire, &.conciergerie, &.artisan {
+            // Un léger style pour différencier les rôles
+            padding: 0.1em 0.3em;
+            border-radius: 4px;
+            background-color: color.scale($gold-base, $lightness: 60%);
         }
     }
 }
 
-/* Inscription gratuite */
+// === BLOC INSCRIPTION GRATUITE (ASIDE) ===
 .inscriptionBlock {
-    margin: 1em 0 2em 0;
-    background: none;
-    max-width: 570px;
-    color: #263858;
-    font-size: 1.04rem;
-    border-left: 4px solid #226e8d;
-    padding: 0.8em 1.2em;
+    background: #fcf6e0; // Similaire à .sectionMission
+    padding: 1.5rem 2rem;
+    margin: 1rem 0 3rem 0;
+    border-radius: 16px;
+    box-shadow: 0 1px 6px $gold-shadow;
+    text-align: center;
+    max-width: 600px;
 
     .freeTitle {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #20364a;
+        font-family: var(--font-title);
+        font-size: 1.6rem;
+        color: $gold-base;
+        margin-bottom: 0.5rem;
     }
-
+    
+    .freeDesc {
+        color: $ink-light;
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+    
     .freeHighlight {
-        color: #14558a;
-        font-style: italic;
+        // Style de mise en évidence du texte (comme .highlightGold)
+        color: #775717; 
+        background: #ffe09b;
+        font-weight: bold;
+        padding: 0.1em 0.3em;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 0.5rem;
     }
 }
 
-/* Grille d’offres */
+// === GRILLE DES OFFRES ===
 .offersGrid {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    gap: 2.3rem;
-    margin: 0 auto 1.5rem auto;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+
+    @include respond-to("md") {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @include respond-to("sm") {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 }
 
-/* Cartes d’offre */
+// === CARTE D'OFFRE (Inspirée de [class^="block"]) ===
 .offerCard {
-    background: #fff;
-    border-radius: 1.1em;
-    box-shadow: 0 8px 32px rgba(32, 61, 91, 0.12);
-    padding: 2.4rem 2rem 2rem 2rem;
-    min-width: 280px;
-    max-width: 365px;
-    flex: 1 1 300px;
+    background: $paper-card;
+    border-radius: 1.3rem;
+    box-shadow: 0 2px 16px #e5e4e077;
+    padding: 2.5rem 1.5rem 1.5rem; // Augmente le padding
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
+    min-height: 550px; // Ajuster pour un look plus unifié
     position: relative;
-    outline: none;
-    transition: box-shadow 0.18s, transform 0.18s;
-
-    &:focus-visible {
-        border: 2px solid var(--hero-highlight, #226e8d);
-        box-shadow: 0 0 0 4px #eaf1ff, 0 10px 44px rgba(32, 61, 91, 0.18);
-    }
+    transition: box-shadow 0.22s, transform 0.22s;
+    
+    // Ajout d'une bordure subtile pour l'effet papier élégant
+    border: 1px solid color.scale(#fcfbf7, $darkness: 10%);
 
     &:hover {
-        box-shadow: 0 10px 44px rgba(32, 61, 91, 0.18);
-        transform: translateY(-4px) scale(1.03);
-        z-index: 3;
-    }
-}
-
-.offerName {
-    font-size: 1.32rem;
-    color: #205f78;
-    font-weight: 600;
-    margin-bottom: 0.2em;
-    background: none;
-}
-
-.offerDesc {
-    font-size: 1.08rem;
-    color: #444955;
-    margin-bottom: 1em;
-}
-
-.offerTarif {
-    font-family: var(--font-title, 'Inter', Arial, sans-serif);
-    font-size: 2.2rem;
-    font-weight: bold;
-    margin-bottom: 0.45em;
-    color: #1a4150;
-
-    .percent {
-        color: var(--hero-highlight, #226e8d);
-        font-size: 2.1rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-
-    .onDemand {
-        color: #b07b1b;
-        font-size: 1.2rem;
-        font-weight: 600;
-    }
-
-    .suffix,
-    abbr {
-        font-size: 1rem;
-        color: #244477;
-        opacity: 0.85;
-        font-weight: 400;
-
-        &[title] {
-            cursor: help;
-            border-bottom: 1px dotted #244477;
-            text-decoration: none;
-        }
-    }
-}
-
-/* Liste des points de l’offre */
-.offerList {
-    list-style: none;
-    padding: 0;
-    margin: 0.6em 0 1.2em 0;
-    color: #17426b;
-    text-align: left;
-    width: 100%;
-
-    li {
-        font-size: 1.03rem;
-        margin-bottom: 0.32em;
-        padding-left: 1.1em;
-        position: relative;
-
-        &:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #2363ae;
-            font-weight: bold;
-        }
-    }
-}
-
-.includedBox {
-    background: #226e8d;
-    color: #fff;
-    border-radius: 9px;
-    padding: 0.8em 1em;
-    font-size: 1em;
-    margin-bottom: 0.7em;
-    width: 100%;
-
-    div {
-        padding-left: 1.1em;
-        margin-bottom: 0.12em;
-        color: #fff;
-
-        &:before {
-            content: "";
-        }
-    }
-}
-
-/* Boutons d’action */
-.offerBtn {
-    display: inline-block;
-    font-size: 1.09rem;
-    font-weight: 700;
-    border-radius: 0.6em;
-    padding: 0.8em 2em;
-    margin-top: 1.1em;
-    text-align: center;
-    background: var(--hero-highlight, #20364a);
-    color: #fff;
-    box-shadow: 0 2px 18px rgba(32, 61, 91, 0.07);
-    border: none;
-    text-decoration: none;
-    transition: background 0.17s, color 0.17s, box-shadow 0.18s;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-        background: #2d6ca3;
-        color: #fff;
-        box-shadow: 0 6px 24px rgba(32, 61, 91, 0.16);
-        outline: none;
-    }
-}
-
-/* Mention tarifaire */
-.mention {
-    text-align: center;
-    font-size: 0.97rem;
-    color: #677;
-    margin-top: 1.2em;
-    font-style: italic;
-
-    abbr {
-        border-bottom: 1px dotted #244477;
-        cursor: help;
-        text-decoration: none;
-    }
-}
-
-/* Responsive – Mobile */
-@media (max-width: 900px) {
-    .offersGrid {
-        flex-direction: column;
-        gap: 2.2rem 0;
-        align-items: center;
-    }
-
-    .offerCard {
-        max-width: 440px;
-        width: 100%;
-        margin: 0 auto 1.8em auto;
-    }
-
-    .container {
-        padding: 0 0.4rem;
-    }
-}
-
-@media (max-width: 600px) {
-    .gestionSection {
-        padding: 1.1rem 0 1.3rem 0;
-    }
-
-    .mainTitle {
-        font-size: 1.20rem;
-        padding: 0.45em 0.6em;
-    }
-
-    .offerCard {
-        padding: 1.1rem 0.5rem;
+        // Reprend l'effet de survol
+        box-shadow: 0 4px 32px $gold-shadow;
+        transform: translateY(-6px) scale(1.02);
     }
 
     .offerName {
-        font-size: 1.1rem;
+        // Style du h3 de la carte
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: $gold-base;
+        margin: 0 0 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid color.scale($gold-base, $lightness: 50%);
     }
 
-    .offerDesc,
-    .offerList li {
-        font-size: 0.96rem;
+    .offerDesc {
+        // Style du p de la carte
+        color: $ink-dark;
+        font-size: 1.05rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+    
+    // --- TARIFICATION ---
+    .offerTarif {
+        margin-bottom: 1.5rem;
+        
+        .percent, .onDemand {
+            font-family: var(--font-title);
+            font-size: 3.5rem; // Grande taille pour le prix
+            font-weight: 700;
+            color: $gold-base;
+            line-height: 1;
+        }
+        
+        .onDemand {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .suffix {
+            color: $ink-light;
+            font-size: 1.1rem;
+            display: block; // Assure que le label est sous le prix
+            margin-top: 0.2rem;
+        }
+    }
+    
+    // --- HIGHLIGHTS (Inspiré de .icon) ---
+    .includedBox {
+        width: 100%;
+        margin-bottom: 1.5rem;
+        padding: 0.8rem;
+        background: #fcfaf2; // Fond légèrement différent pour les inclusions
+        border-radius: 0.8rem;
+        border: 1px solid color.scale($gold-base, $lightness: 60%);
+        box-shadow: 0 1px 8px #d4af3722;
+        
+        div {
+            font-size: 0.95rem;
+            color: $ink-light;
+            padding: 0.2rem 0;
+            font-weight: 600;
+            
+            &:before {
+                content: ""; // Retiré l'icône car le composant React utilise "✓"
+                margin-right: 0.5rem;
+            }
+        }
+    }
+
+    // --- LISTE DE DÉTAILS ---
+    .offerList {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 2rem 0;
+        flex-grow: 1; // Permet de pousser le bouton vers le bas
+        
+        li {
+            font-size: 1rem;
+            color: $ink-light;
+            text-align: left;
+            padding: 0.4rem 0;
+            
+            &:before {
+                content: "•";
+                color: $gold-base;
+                font-weight: bold;
+                display: inline-block;
+                width: 1em;
+                margin-left: -1em;
+            }
+        }
+    }
+
+    // --- BOUTON CTA (Reprend le style .CTAButton) ---
+    .offerBtn {
+        // Utilisation du mixin bouton pour le style de base (si défini)
+        @include button($gold-base, #fff, none, 32px, 0.75rem 1.8rem);
+        font-size: 1.1rem;
+        margin-top: auto; // Pousse le bouton au bas de la carte
+        box-shadow: 0 2px 14px $gold-shadow;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-decoration: none; // Assure que ce soit un vrai bouton visuellement
+        
+        transition: background 0.22s, transform 0.22s, box-shadow 0.22s;
+
+        &:hover,
+        &:focus {
+            background: color.scale($gold-base, $lightness: 10%);
+            color: #fffbe6;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 4px 20px $gold-shadow;
+        }
+    }
+}
+
+// === MENTION LÉGALE ===
+.mention {
+    color: #83704b;
+    font-size: 0.95rem;
+    background: #fcf6e0;
+    padding: 0.7rem 1.2rem;
+    margin-top: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px #d4af3722;
+    text-align: center;
+    
+    abbr {
+        text-decoration: none; // Retirer le soulignement par défaut de <abbr>
+        border-bottom: 1px dotted $gold-base; // Ajouter un style de soulignement plus élégant
+        cursor: help;
     }
 }

@@ -7,9 +7,29 @@
 
 // === SECTION PRINCIPALE ===
 .mapWithSearchSection {
-  /* Ne pas définir de border-radius ici (ou hérite du parent) */
-  border-radius: 0; /* pour éviter chevauchement */
-  background: transparent; /* ou garde le background du popup parent */
+  border-radius: 0; // évite chevauchement
+  background: transparent;
+  position: relative; // pour positionner la croix
+  padding: 2rem;
+}
+
+.mapWithSearchContainer {
+  @include mucha-frame($gold-dark, $radius-2xl, 3px);
+  background: $mucha-paper;
+  padding: $spacing-lg;
+  position: relative;
+  max-width: 800px;
+  margin: 2rem auto;
+  animation: fadeInStatic 0.8s ease-out;
+
+  h2 {
+    font-family: $font-elegant;
+    font-size: 2rem;
+    color: $mucha-ink;
+    text-align: center;
+    margin-bottom: $spacing-md;
+    @include fadeInTitle(0.7s);
+  }
 }
 
 // === POPUP MODE ===
@@ -17,7 +37,6 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  // backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,73 +61,35 @@
     width: 95%;
   }
 }
-.mapWithSearchSection {
-  position: relative; // ⚡ nécessaire pour que la croix se place à l’intérieur
-  padding: 2rem;
-}
-.mapWithSearchContainer {
-  position: relative;
-  padding: 2rem;
-}
 
+/* --- Bouton de fermeture --- */
 .closeButton {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
+  top: $spacing-sm;
+  right: $spacing-sm;
+  background: transparent;
   border: none;
-  color: var(--color-text);
-  font-size: 1.8rem;
+  color: $mucha-accent;
+  font-size: 1.4rem;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: $transition;
 
   &:hover {
-    color: var(--color-accent);
+    color: $gold-dark;
+    transform: scale(1.1);
   }
 }
 
-/* CategoryPopup et AccessPopup */
+/* Overlay générique (CategoryPopup / AccessPopup) */
 .popupOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4); // overlay semi-transparent
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; // au-dessus de MapWithSearch
+  z-index: 9999;
 }
-
-.closeButton {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  color: var(--color-text);
-  font-size: 1.8rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--color-accent);
-  }
-}
-.popupOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4); // semi-transparent
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999; // au-dessus de tout
-}
-
 
 @keyframes popupFade {
   from {
@@ -126,13 +107,9 @@
   background: linear-gradient(180deg, #fffdf6 0%, #f8f6ee 100%);
   border-radius: 1.25rem;
   box-shadow: 0 8px 40px rgba(184, 139, 74, 0.07);
-  width: 100%;
-  height: 100%;
-  margin: 0 auto;
   text-align: center;
-  position: relative;
-  overflow: hidden;
   font-family: var(--font-title, serif);
+  overflow: hidden;
 
   @media (max-width: 700px) {
     padding: 1.7rem 0.6rem;
@@ -156,41 +133,55 @@
 // === Texte descriptif avec décor ===
 .categoryTextBubble1900 {
   max-width: 500px;
-  height: 200px;
+  height: 100px;
   margin: 1rem auto 0;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 20px;
   border: 2px solid #d4af37;
-  background-image: linear-gradient(rgba(255, 200, 100, 0.55),
-      rgba(139, 69, 19, 0.6)),
+  background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
     url("/textures/mucha-background-pattern.png");
   background-blend-mode: soft-light;
   background-repeat: repeat;
-  background-position: center;
-  background-size: 250px 250px;
+  background-size: 200px 230px;
   box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
     0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px #d4af37;
-  opacity: 1;
-  overflow: visible;
 
-  p {
+  :global(p) { // :global() est souvent nécessaire dans les modules CSS de Next.js
     font-family: var(--font-text, sans-serif);
-    height: 150px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
     font-size: 1.1em;
     line-height: 1.5em;
-    margin: 0 auto;
     background-color: #ffe09b;
-    padding: 1.2rem 0.5rem;
+    padding: 1.2rem 0.8rem;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin: 0.5rem 0;
+  }
+  
+  // Style pour le titre de la bulle
+  .bubbleTitle {
+    font-family: $font-elegant; // Utilisez votre police de titre
+    font-size: 1.35em;
+    font-weight: bold;
+    color: $mucha-ink;
+    margin-bottom: 0.5rem;
+    padding: 0.8rem 0;
+    line-height: 1.2;
+    background-color: color.scale(#ffe09b, $lightness: 5%); // Fond légèrement plus clair pour le titre
+    border-bottom: 2px solid $gold-alt; // Petite séparation visuelle
+  }
+  
+  // Style pour le corps de la bulle
+  .bubbleBody {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90px; // Ajustez la hauteur pour s'adapter au nouveau contenu
+    font-size: 1em;
+    padding: 0.5rem;
+    margin-top: 0;
   }
 }
-
 // === Instructions catégorie ===
 .categoryInstructionWrapper {
   width: 100%;
@@ -200,7 +191,6 @@
     font-family: var(--font-title, serif);
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--color-text-primary, #333);
     margin-bottom: 2.5rem;
 
     @include mq(md) {
@@ -215,9 +205,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
-  align-items: flex-start;
   justify-content: center;
-  flex: 1 1 0;
   border: $gold 1px double;
   border-radius: 35px;
   padding: 4px;
@@ -225,77 +213,54 @@
   @include mq(sm) {
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
-  }
-
-  @include mq(md) {
-    align-items: center;
-    gap: var(--spacing-md);
   }
 }
 
-// === Groupe des boutons triple toggle ===
+// === Groupe triple toggle ===
 .tripleToggleGroup {
   display: flex;
-  flex-direction: row-reverse;
-
+  flex-direction: row;
   justify-content: center;
   gap: 1rem;
   width: 700px;
   margin: 0 auto;
-  position: relative;
   padding: 0.4rem;
   background: #fff8e1;
   border: 2px solid $gold;
   border-radius: var(--radius-pill);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
   @include mq(sm) {
     width: 100%;
     flex-direction: column;
-    align-items: center;
     gap: 0.5rem;
-    padding: 0.2rem;
   }
 }
 
-// === Groupe des boutons triple toggle ===
 .tripleToggleButton {
   flex: 1;
-  width: 200px;
   padding: 0.6rem 1.2rem;
   font-family: var(--font-title);
   font-size: 1rem;
-  color: #6b5210; // Patch ici !
+  color: #6b5210;
   background: #fff8e1;
   border: none;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
+  transition: $transition;
 
   &:hover {
-    color: #5a430c; // Patch sur hover
+    color: #5a430c;
     background: rgba(255, 224, 155, 0.3);
   }
 
   &.active {
-    padding-left: 0.8rem;
-    padding-right: 0.8rem;
     background: linear-gradient(to right, $gold, $gold-alt);
     color: #fff;
     box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
-    z-index: 2;
-  }
-
-  @include mq(sm) {
-    font-size: 0.95rem;
-    padding: 0.5rem 0.7rem;
   }
 }
 
-// === Bulles boutons avec effet ===
+// === Bulles ===
 .bubbleBtn {
   width: clamp(55px, 6vw, 75px);
   height: clamp(55px, 6vw, 75px);
@@ -307,9 +272,7 @@
   box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
   cursor: pointer;
   transition: all 0.3s ease;
-  @include backdrop-blur(3px,
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 255, 255, 0.2));
+  @include backdrop-blur(3px, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.2));
 
   svg {
     font-size: 1.9rem;
@@ -318,221 +281,111 @@
 
   &:hover {
     background: linear-gradient(135deg, #fffbe5 80%, #eaddca 100%);
-    box-shadow: 0 0 0 7px rgba(var(--bubble-primary-rgb), 0.25);
     transform: scale(1.1) translateY(-5px);
     border-color: var(--bubble-primary);
   }
-
-  &:focus-visible {
-    outline: 3px solid var(--color-focus-ring, #ffe09b);
-    outline-offset: 3px;
-    border-radius: var(--radius-pill);
-  }
 }
 
-// === Label pour bulles ===
 .bubbleLabel {
   font-family: var(--font-title);
   font-size: 1rem;
   color: var(--bubble-primary);
   font-weight: 600;
-  margin-bottom: 0.3rem;
   text-align: center;
-  transition: color 0.2s ease;
 }
 
-// === Autres bulles classiques ===
-.categoryTextBubble {
-  max-width: 280px;
-  margin: 0.75rem auto 0;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  text-align: center;
-  border-radius: 12px;
-  border: 1px solid var(--bubble-primary);
-  background: var(--bubble-bg, #fff);
-  color: var(--bubble-text, var(--color-text));
-
-  @include mq(sm) {
-    max-width: 100%;
-  }
-}
-
-// === Highlight Gold ===
+// === Highlight ===
 .highlightGold {
   color: #775717;
   background: #ffe09b;
   font-weight: bold;
-  position: relative;
-  display: inline-block;
-  z-index: 1;
 }
 
-// === Wrapper barre de recherche ===
-.searchBarWrapper {
-  margin-top: var(--spacing-sm);
-  text-align: center;
-  padding: var(--spacing-sm);
-  width: 550px;
+/* --- Barre de recherche --- */
+.searchBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 1.5rem;
+  padding: 0.3rem;
+  background: #fffef9;
+  border-radius: 999px;
+  border: 2px solid $gold;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 
-  .categoryInstruction {
-    display: block;
-    font-family: var(--font-primary);
-    font-size: 0.9em;
-    color: var(--mucha-accent);
-    font-style: italic;
+  input[type="search"] {
+    flex: 1;
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 999px;
+    font-family: var(--font-body, "Lato", sans-serif);
+    font-size: 1rem;
+    background: transparent;
+    color: var(--color-text, #333);
+    transition: all 0.3s ease;
+
+    &::placeholder {
+      color: #9c8c6d;
+      font-style: italic;
+      opacity: 0.8;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+      color: #5a430c;
+    }
   }
 
-  .searchBar {
+  /* Bouton icône recherche */
+  button {
+    background: $gold;
+    border: none;
+    border-radius: 50%;
+    padding: 0.65rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: var(--spacing-sm);
-    width: 100%;
-    max-width: 500px;
-    /* pour responsive */
-    margin-inline: auto;
-    border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid var(--color-border-light);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    transition: box-shadow 0.3s ease;
+    justify-content: center;
 
-    &:focus-within {
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
-    }
-
-    .searchInput {
-      flex: 1;
-      padding: 0.7rem 1.2rem;
-      border: $gold 1px solid;
-      border-radius: var(--radius-pill);
-      font-size: 1rem;
-      font-family: var(--font-text);
-      background-color: transparent;
-      color: var(--color-text);
-      outline: none;
-      line-height: 1.2;
-
-      &::placeholder {
-        color: var(--color-text-light);
-      }
-    }
-
-    button {
-      padding: 0.65rem 1rem;
-      border: none;
-      background: linear-gradient(to right, $gold, $gold-alt);
-      border-radius: var(--radius-pill);
+    svg {
+      font-size: 1.2rem;
       color: #fff;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.3s ease, transform 0.2s ease;
-      width: 90px;
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
 
-      &:hover {
-        background: linear-gradient(to right, $gold-accent, $gold-alt);
-        transform: scale(1.05);
-      }
+    &:hover {
+      background: color.scale($gold, $lightness: -10%);
 
       svg {
-        vertical-align: middle;
-        font-size: 1.2rem;
+        transform: scale(1.15) rotate(8deg);
+        color: #fffbe6; // ivoire lumineux
       }
+    }
 
-      &:focus-visible {
-        outline: 3px solid var(--color-focus-ring, #ffe09b);
-        outline-offset: 3px;
-        border-radius: var(--radius-pill);
-      }
+    &:active {
+      transform: scale(0.92);
+      background: color.scale($gold, $lightness: -15%);
+    }
+
+    &:focus {
+      outline: 2px solid $gold-alt;
+      outline-offset: 3px;
     }
   }
 }
 
-/* Classe pour cacher visuellement un label mais visible aux lecteurs d'écran */
+
+
+// === Accessibilité ===
 .srOnly {
   position: absolute !important;
   width: 1px;
   height: 1px;
-  padding: 0;
-  margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
-
-// === MEDIA QUERIES ===
-// @include mq(max-width: 900px) {
-//   .mapWithSearchSection {
-//     gap: 1rem;
-//   }
-//   .headerContent {
-//     padding: 1rem 0.5rem;
-//     font-size: 1rem;
-//   }
-//   .categorySearchSection {
-//     padding: 1rem 0.5rem;
-//     max-width: 100vw;
-//   }
-//   .bubblesRow {
-//     flex-direction: column;
-//     gap: $spacing-sm;
-//     align-items: center;
-//     border-radius: 20px;
-//     padding: 1px;
-//   }
-//   .tripleToggleGroup {
-//     width: 100%;
-//     flex-direction: column;
-//     align-items: center;
-//     gap: 0.5rem;
-//     padding: 0.2rem;
-//   }
-//   .tripleToggleButton {
-//     font-size: 0.95rem;
-//     padding: 0.5rem 0.7rem;
-//   }
-//   .categoryTextBubble1900 {
-//     max-width: 95vw;
-//     height: auto;
-//     padding: 1rem;
-//     font-size: 1em;
-//   }
-//   .searchBarWrapper .searchBar {
-//     width: 100%;
-//     flex-direction: column;
-//     gap: 0.5rem;
-//     padding: 0.3rem;
-//   }
-// }
-
-// @include mq(max-width: 768px) {
-//   .mapWithSearchSection {
-//     padding: 1rem;
-//   }
-//   .headerContent {
-//     padding: 1.7rem 0.6rem;
-//     font-size: 1.07rem;
-//   }
-//   .categorySearchSection {
-//     padding: var(--spacing-md) var(--spacing-sm);
-//   }
-//   .bubblesRow {
-//     flex-direction: column;
-//     align-items: center;
-//     gap: var(--spacing-sm);
-//   }
-// }
-
-// @include mq(max-width: 600px) {
-//   .categorySearchSection {
-//     padding: var(--spacing-md) var(--spacing-sm);
-//   }
-// }
-
-// @include mq(max-width: 480px) {
-//   .categorySearchSection {
-//     padding: var(--spacing-md) var(--spacing-sm);
-//   }
-// }

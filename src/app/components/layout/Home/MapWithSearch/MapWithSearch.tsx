@@ -10,8 +10,10 @@ import "react-toastify/dist/ReactToastify.css";
 import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
 import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
 
+type CategoryKey = "proprietaire" | "concierge" | "artisan";
+
 interface Category {
-  key: "proprietaire" | "concierge" | "artisan";
+  key: CategoryKey;
   label: string;
   icon: keyof typeof iconMap;
 }
@@ -20,44 +22,69 @@ interface MapWithSearchProps {
   onClose: () => void;
 }
 
-const DESCRIPTIONS: Record<"proprietaire" | "concierge" | "artisan", JSX.Element> = {
+const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
     <>
-      <span className={styles.highlightGold}>Trouvez une conciergerie,</span> indépendante ou professionnelle.
+      <span className={styles.highlightGold}>
+        Trouvez la conciergerie idéale
+      </span>{" "}
+      — qu’elle soit indépendante ou professionnelle — pour simplifier la
+      gestion de vos locations et gagner du temps.
     </>
   ),
   concierge: (
     <>
-      <span className={styles.highlightGold}>Trouvez des propriétaires</span> à la recherche d&apos;une conciergerie fiable.
+      <span className={styles.highlightGold}>
+        Accédez directement aux propriétaires
+      </span>{" "}
+      qui recherchent une conciergerie fiable, et développez votre activité avec
+      des partenariats durables.
     </>
   ),
   artisan: (
     <>
-      <span className={styles.highlightGold}>Découvrez les artisans et commerçants locaux</span> pour vos besoins.
+      <span className={styles.highlightGold}>
+        Découvrez les artisans et commerçants locaux
+      </span>{" "}
+      pour valoriser vos biens, entretenir vos logements et soutenir le circuit
+      court de votre région.
     </>
   ),
 };
 
+// 🌟 NOUVEAU : Ordre de tri souhaité pour l'affichage
+const CATEGORY_ORDER: CategoryKey[] = ["proprietaire", "concierge", "artisan"]; 
+
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<"" | "proprietaire" | "concierge" | "artisan">("");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey | "">("");
   const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading"
+  );
+
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
-
-  // options choisies
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-
+  // --- Charger les catégories ---
   useEffect(() => {
     const fetchCategories = async () => {
       setStatus("loading");
       try {
         const res = await fetch("/api/categories/groups");
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
         const data: Category[] = await res.json();
-        if (data.length > 0) setSelectedCategory(data[0].key);
+        
+        // Initialiser la catégorie sélectionnée avec la première de l'ordre fixe si elle existe
+        const firstCategoryKey = CATEGORY_ORDER.find(key => data.some(c => c.key === key));
+        if (firstCategoryKey) {
+            setSelectedCategory(firstCategoryKey);
+        } else if (data.length > 0) {
+            setSelectedCategory(data[0].key);
+        }
+
         setCategories(data);
         setStatus("success");
       } catch (error) {
@@ -66,55 +93,83 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         setStatus("error");
       }
     };
+
     fetchCategories();
   }, []);
 
+  // --- Lancer la recherche ---
   const handleSearch = useCallback(
     (e?: React.FormEvent<HTMLFormElement>) => {
       e?.preventDefault();
-      if (!location.trim())
-        return toast.warn("Veuillez renseigner une localisation 📍");
-      if (!selectedCategory)
-        return toast.warn("Veuillez sélectionner une catégorie 🧭");
+
+      if (!location.trim()) {
+        toast.warn("Veuillez renseigner une localisation 📍");
+        return;
+      }
+
+      if (!selectedCategory) {
+        toast.warn("Veuillez sélectionner une catégorie 🧭");
+        return;
+      }
+
       setShowCategoryPopup(true);
     },
     [location, selectedCategory]
   );
 
+  // --- Sélection d’options dans CategoryPopup ---
   const handleOptionSelect = (options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
     setShowAccessPopup(true);
   };
 
+  // --- Rendu des catégories ---
   const renderCategoryToggles = () => {
     if (status === "loading") return <p>Chargement des filtres...</p>;
     if (status === "error") return <p>Erreur lors du chargement des filtres.</p>;
 
-    return categories.slice(0, 3).map(({ key, label, icon }) => {
-      const Icon = iconMap[icon];
-      const isActive = selectedCategory === key;
-      return (
-        <button
-          key={key}
-          type="button"
-          aria-pressed={isActive}
-          className={`${styles.tripleToggleButton} ${isActive ? styles.active : ""}`}
-          onClick={() => setSelectedCategory(key)}
-        >
-          {Icon && <Icon size="1.3em" style={{ marginRight: 6 }} />}
-          {label}
-        </button>
-      );
-    });
+    // Triez les catégories selon l'ordre CATEGORY_ORDER
+    const categoriesMap = categories.reduce((acc, category) => {
+        acc[category.key] = category;
+        return acc;
+    }, {} as Record<CategoryKey, Category>);
+
+    return CATEGORY_ORDER
+        .map((key) => categoriesMap[key])
+        .filter((category): category is Category => !!category) // S'assurer que l'objet existe et que le type est correct
+        .map(({ key, label, icon }) => {
+            const Icon = iconMap[icon];
+            const isActive = selectedCategory === key;
+
+            return (
+                <button
+                    key={key}
+                    type="button"
+                    aria-pressed={isActive}
+                    className={`${styles.tripleToggleButton} ${isActive ? styles.active : ""
+                        }`}
+                    onClick={() => setSelectedCategory(key)}
+                >
+                    {Icon && <Icon size="1.3em" style={{ marginRight: 6 }} />}
+                    {label}
+                </button>
+            );
+        });
   };
 
+  // --- Render ---
   return (
     <>
       {/* Section principale */}
       {!showCategoryPopup && !showAccessPopup && (
         <div className={styles.mapWithSearchContainer}>
-          <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
+          <ToastContainer
+            position="top-right"
+            autoClose={4000}
+            hideProgressBar
+          />
+
           <button
             className={styles.closeButton}
             onClick={onClose}
@@ -122,18 +177,25 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           >
             <FaTimes />
           </button>
+
           <section className={styles.categorySearchSection}>
             <h2>Connectez-vous aux bons partenaires</h2>
-            <div className={styles.tripleToggleGroup}>{renderCategoryToggles()}</div>
+
+            <div className={styles.tripleToggleGroup}>
+              {renderCategoryToggles()}
+            </div>
+
             {status === "success" && selectedCategory && (
               <div className={styles.categoryTextBubble1900}>
-                {DESCRIPTIONS[selectedCategory as keyof typeof DESCRIPTIONS]}
+                {DESCRIPTIONS[selectedCategory]}
               </div>
             )}
+
             <form onSubmit={handleSearch} className={styles.searchBar}>
               <input
                 type="search"
                 placeholder="Où recherchez-vous ?"
+                aria-label="Saisir une localisation"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
@@ -163,7 +225,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           location={location}
           onClose={() => {
             setShowAccessPopup(false);
-            onClose(); // <-- ferme aussi la popup globale MapWithSearch
+            onClose(); // ferme aussi la popup globale MapWithSearch
           }}
         />
       )}
