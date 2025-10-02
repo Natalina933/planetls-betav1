@@ -1,53 +1,112 @@
+// Fichier : app/api/auth/[...nextauth]/route.ts
+
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { compare } from "bcryptjs"; // pour comparer mots de passe
 import { createClient } from "@supabase/supabase-js";
+import { compare } from "bcryptjs";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // ⚠️ à mettre uniquement côté serveur
-);
-
+// --- Types Locaux ---
+// (Ces types sont nécessaires pour la vérification TypeScript dans ce fichier)
+type UserCredentials = {
+  id: string;
+  username: string;
+  email: string;
+  password: string;
+  avatar_url?: string | null;
+  role: string;
+};
+// Définit l'objet utilisateur SANS le champ 'password'
+type UserWithoutPassword = Omit<UserCredentials, "password">;
+// ----------------------------------------------------------------------
+// Configuration NextAuth (Auth.js)
+// ----------------------------------------------------------------------
 const handler = NextAuth({
+  session: {
+    strategy: "jwt",
+  },
+
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Mot de passe", type: "password" },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        // Initialisation Sécurisée de Supabase
+        if (
+          !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+          !process.env.NEXT_PUBLIC_SUPABASE_URL
+        ) {
+          console.error(
+            "Erreur de configuration : Clés Supabase manquantes pour NextAuth."
+          );
+          return null;
+        }
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY
+        );
 
-        // Chercher user dans Supabase
-        const { data: user, error } = await supabase
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        // 1. Récupération de l'utilisateur (AVEC le hash)
+        const { data: userRecord } = await supabase
           .from("users")
-          .select("*")
+          .select("id, username, email, password, avatar_url, role")
           .eq("email", credentials.email)
-          .single();
+          .single<UserCredentials>();
 
-        if (error || !user) return null;
+        if (!userRecord) {
+          return null;
+        }
 
-        // Comparer mot de passe hashé
-        const isValid = await compare(credentials.password, user.password);
-        if (!isValid) return null;
+        // 2. Vérification du mot de passe
+        const passwordMatch = await compare(
+          credentials.password,
+          userRecord.password
+        );
 
-        return {
-          id: user.id,
-          name: user.username,
-          email: user.email,
-        };
+        if (!passwordMatch) {
+          return null;
+        }
+
+        // 3. Succès : Nettoyage et Renvoi (Méthode de suppression typée)
+        // On copie l'objet et on force le type à UserWithoutPassword.
+const { id, username, email, avatar_url, role } = userRecord;
+const userWithoutHash: UserWithoutPassword = { id, username, email, avatar_url, role };
+return userWithoutHash;
+
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
+
+  // Callbacks (Aucun changement nécessaire)
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.username = user.username;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.username = token.username;
+      }
+      return session;
+    },
   },
+
   pages: {
-    signIn: "/auth/login", // tu crées une page login
-    newUser: "/auth/register", // page inscription
+    signIn: "/auth/login", // Changé pour une page de login standard
   },
-  secret: process.env.NEXTAUTH_SECRET,
 });
 
 export { handler as GET, handler as POST };

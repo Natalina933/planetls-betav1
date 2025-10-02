@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 // import AvatarPreview from "../components/ui/AvatarPreview/AvatarPreview";
 import styles from "./SearchFormPage.module.scss";
+import { createClient } from "@supabase/supabase-js";
 
 interface FormData {
   username: string;
@@ -94,23 +95,83 @@ export default function SearchFormPage() {
     formData.password === formData.confirmPassword &&
     Object.values(errors).every((err) => err === "");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit()) {
-      return alert("⚠️ Corrigez les erreurs avant de continuer.");
-    }
+// --- DANS SearchFormPage.tsx ---
 
-    const formPayload = new FormData();
-    formPayload.append("username", formData.username);
-    formPayload.append("password", formData.password);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!canSubmit()) {
+    return alert("⚠️ Corrigez les erreurs avant de continuer.");
+  }
+
+  try {
+    let avatar_url = null;
     if (formData.avatar) {
-      formPayload.append("avatar", formData.avatar);
+      // ⚠️ ATTENTION : Utilisez la fonction createClient recommandée pour le client léger.
+      // S'il existe une fonction que vous utilisez habituellement (par ex: createClientComponentClient), utilisez-la.
+      // Sinon, on s'assure d'utiliser la clé publique (ANON_KEY).
+      
+      const supabaseClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // <-- Utilisation de la clé publique (ANON_KEY)
+      );
+
+      const fileExt = formData.avatar.name.split(".").pop();
+      // On s'assure que le nom de fichier est sécurisé et aléatoire
+      const fileName = `${formData.username}_${crypto.randomUUID()}.${fileExt}`; 
+
+      // 1. Upload vers le bucket 'avatars'
+      const { error: uploadError } = await supabaseClient.storage
+        .from("avatars") // VERIFIEZ QUE LE NOM DU BUCKET EST BIEN 'avatars'
+        .upload(fileName, formData.avatar, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        // Renvoie une erreur spécifique si le bucket n'est pas trouvé
+        if (uploadError.message.includes("Bucket not found")) {
+            throw new Error("Bucket 'avatars' non trouvé. Veuillez vérifier sa configuration dans Supabase.");
+        }
+        throw uploadError;
+      }
+
+      // 2. Récupération de l'URL publique
+      const { data: publicUrlData } = supabaseClient.storage
+        .from("avatars")
+        .getPublicUrl(fileName);
+        
+      avatar_url = publicUrlData.publicUrl;
     }
 
-    // TODO: Envoyer vers ton backend ou NextAuth/Supabase
-    alert("✅ Inscription finalisée avec succès !");
-    router.push("/");
-  };
+    // Appel de l'API register
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: formData.username,
+        password: formData.password,
+        email: queryData.email,
+        avatar_url,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.error ?? "Erreur inconnue");
+    }
+
+    alert("✅ Inscription finalisée avec succès ! Redirection vers le tableau de bord...");
+    router.push("/dashboard"); // Redirection vers le dashboard
+  } catch (err) {
+    if (err instanceof Error) {
+      alert("❌ Erreur : " + err.message);
+    } else {
+      alert("❌ Erreur serveur inconnue.");
+    }
+  }
+};
+
 
   return (
     <div className={styles.pageContainer}>

@@ -49,7 +49,7 @@ export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
             />
           </div>
 
-          {/* Barre de zoom verticale avec bulle centrée */}
+          {/* Barre de zoom horizontale avec bulle centrée */}
           <div className={styles.zoomControl}>
             <input
               type="range"
