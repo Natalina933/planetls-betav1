@@ -1,68 +1,73 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
-import styles from "./AvatarUpload.module.scss";
+import React, { useState } from "react";
 import Image from "next/image";
+import styles from "./AvatarUpload.module.scss";
 
-interface Props {
+interface AvatarUploadProps {
   value: File | null;
   onChange: (file: File | null) => void;
 }
 
-export default function AvatarUpload({ value, onChange }: Props) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
+  const [scale, setScale] = useState(1);
 
-  // Met à jour l'URL de preview quand un fichier est sélectionné
-  useEffect(() => {
-    if (value) {
-      const url = URL.createObjectURL(value);
-      setPreviewUrl(url);
+  const handleRemove = () => {
+    onChange(null);
+    setScale(1);
+  };
 
-      // Cleanup
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(null);
-    }
-  }, [value]);
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onChange(e.dataTransfer.files[0]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onChange(e.target.files[0]);
+      setScale(1);
     }
   };
 
   return (
-    <div
-      className={styles.uploadZone}
-      onClick={() => fileRef.current?.click()}
-      onDragOver={e => e.preventDefault()}
-      onDrop={handleDrop}
-    >
-      {previewUrl ? (
-        <Image
-          src={previewUrl}
-          alt="Aperçu avatar"
-          width={100}
-          height={100}
-          className={styles.preview}
-        />
-      ) : (
-        <span>Glissez une image ou cliquez pour choisir</span>
+    <div className={styles.container}>
+      {!value && (
+        <label className={styles.uploadLabel}>
+          Choisir un avatar
+          <input type="file" accept="image/*" onChange={handleFileChange} hidden />
+        </label>
       )}
-      <label htmlFor="avatar-upload" className={styles.visuallyHidden}>Télécharger un avatar</label>
-      <input
-        id="avatar-upload"
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        className={styles.hiddenInput}
-        onChange={e => onChange(e.target.files?.[0] || null)}
-      />
 
+      {value && (
+        <>
+          <div className={styles.imageWrapper}>
+            <Image
+              src={URL.createObjectURL(value)}
+              alt="Avatar utilisateur"
+              width={200}
+              height={200}
+              style={{
+                objectFit: "cover",
+                borderRadius: "50%",
+                transform: `scale(${scale})`,
+              }}
+            />
+          </div>
 
+          {/* Barre de zoom verticale avec bulle centrée */}
+          <div className={styles.zoomControl}>
+            <input
+              type="range"
+              min={0.5}
+              max={3}
+              step={0.01}
+              value={scale}
+              onChange={(e) => setScale(Number(e.target.value))}
+              className={styles.zoomSlider}
+            />
+            <div className={styles.bubble} />
+          </div>
+
+          <button type="button" className={styles.removeButton} onClick={handleRemove}>
+            Supprimer
+          </button>
+        </>
+      )}
     </div>
   );
 }

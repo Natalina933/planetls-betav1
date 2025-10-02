@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload"; // <-- import du composant
+import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
+// import AvatarPreview from "../components/ui/AvatarPreview/AvatarPreview";
 import styles from "./SearchFormPage.module.scss";
 
 interface FormData {
@@ -48,8 +49,6 @@ export default function SearchFormPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  // Gestion erreurs temps réel
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -108,9 +107,7 @@ export default function SearchFormPage() {
       formPayload.append("avatar", formData.avatar);
     }
 
-    // TODO: Envoyer vers ton backend
-    // await fetch("/api/register", { method: "POST", body: formPayload });
-
+    // TODO: Envoyer vers ton backend ou NextAuth/Supabase
     alert("✅ Inscription finalisée avec succès !");
     router.push("/");
   };
@@ -132,7 +129,6 @@ export default function SearchFormPage() {
       {/* Résumé */}
       <section className={styles.summary}>
         <h2>Récapitulatif</h2>
-
         <p>
           <strong>Je recherche un :</strong> {queryData.category || "—"} à{" "}
           {queryData.location || "—"}.
@@ -169,23 +165,17 @@ export default function SearchFormPage() {
           <strong>Besoin :</strong> {queryData.additionalInfo || "—"}
         </p>
 
-        {/* Avatar unique ici */}
+        {/* Avatar avec barre latérale */}
         <div className={styles.avatarSection}>
           <h3>Photo de profil</h3>
+
           <AvatarUpload value={formData.avatar} onChange={handleAvatarChange} />
-          {formData.avatar && (
-            <div className={styles.avatarPreview}>
-              {/* <Image
-                src={URL.createObjectURL(formData.avatar)}
-                alt="Avatar utilisateur"
-                width={120}
-                height={120}
-                className={styles.avatarImg}
-              /> */}
-              {/* <small className={styles.fileName}>{formData.avatar.name}</small> */}
-            </div>
-          )}
+
+          {/* {formData.avatar && (
+            <AvatarPreview file={formData.avatar} onChange={handleAvatarChange} />
+          )} */}
         </div>
+
 
         <button
           type="button"
@@ -195,7 +185,6 @@ export default function SearchFormPage() {
           Modifier mes informations
         </button>
       </section>
-
 
       {/* Formulaire inscription */}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -275,8 +264,6 @@ export default function SearchFormPage() {
             </small>
           )}
         </label>
-
-
 
         <button type="submit" disabled={!canSubmit()}>
           Finaliser mon inscription

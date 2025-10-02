@@ -5,99 +5,125 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  @include flex-center;
-  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
 }
 
 .popupContent {
-  @include mucha-frame($gold);
+  background: $gold-soft;
+  border: 2px solid $gold-dark;
+  border-radius: $radius-2xl;
+  padding: $spacing-lg $spacing-md;
   max-width: 600px;
-  width: 90%;
-  padding: $spacing-lg;
-  background: $mucha-paper;
-  font-family: $font-text;
+  width: 95%;
+  box-shadow: $shadow;
   text-align: center;
-  animation: fadeInStatic 0.5s ease-out;
+  position: relative;
+  animation: fadeIn 0.3s ease;
 
   h3 {
-    @include heading-style(2);
+    font-family: $font-elegant;
+    font-size: 1.8rem;
     margin-bottom: $spacing-md;
     color: $mucha-ink;
-    font-family: $font-elegant;
+
+    &::after {
+      content: "";
+      display: block;
+      margin: $spacing-sm auto 0;
+      width: 120px;
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(to right, $gold-dark, $gold, $gold-dark);
+    }
   }
 }
 
 .optionList {
-  @include flex-column;
-  gap: $spacing-sm;
-  margin: $spacing-md 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 0 0 $spacing-lg 0;
+  display: grid;
+  gap: $spacing-sm;
 }
 
 .optionLabel {
-  @include button($bg: $gold-soft, $color: $mucha-ink, $border: 1.5px solid $gold, $radius: $radius-pill, $padding: 0.75rem 1rem);
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
   font-family: $font-text;
   font-size: 1rem;
-  font-weight: 500;
-  justify-content: flex-start;
-  position: relative;
+  color: $text-dark;
+  cursor: pointer;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $gold-dark;
+  border-radius: $radius-lg;
+  background: white;
   transition: $transition;
 
-  // cacher la checkbox
-  input[type="checkbox"] {
-    display: none;
+  input {
+    accent-color: $gold-dark; // Couleur du checkbox
+    transform: scale(1.2);
   }
 
   span {
     flex: 1;
-    text-align: left;
   }
 
-  // état sélectionné
-  input[type="checkbox"]:checked + span {
-    background: linear-gradient(120deg, $gold 20%, $gold-accent 80%);
-    color: #fff;
-    font-weight: bold;
-    border-radius: $radius-pill;
-    padding-inline: 0.5rem;
-    box-shadow: 0 0 12px rgba($gold-dark, 0.4);
-    transition: $transition;
-  }
-
-  &:hover span {
-    color: $gold-dark;
+  &:hover {
+    background: $gold-light;
+    border-color: $gold;
   }
 }
 
 .actions {
-  margin-top: $spacing-md;
   display: flex;
   justify-content: space-between;
-  gap: $spacing-sm;
+  gap: $spacing-md;
+}
 
-  button {
-    @include button($bg: $gold-soft, $color: $mucha-ink, $border: 1.5px solid $gold, $radius: $radius-pill, $padding: 0.75rem 1.25rem);
-    font-family: $font-title;
-    font-weight: 600;
-    transition: $transition;
+.closeButton {
+  font-family: $font-title;
+  background: white;
+  color: $gold-dark;
+  border: 2px solid $gold-dark;
+  border-radius: $radius-pill;
+  padding: $spacing-sm $spacing-lg;
+  cursor: pointer;
+  transition: $transition;
 
-    &:hover {
-      background: $gold;
-      color: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba($gold-dark, 0.4);
-    }
-  }
-
-  .closeButton {
-    background: transparent;
+  &:hover {
+    background: $gold-light;
     color: $mucha-ink;
-    border: 1.5px solid $gold-dark;
+  }
+}
 
-    &:hover {
-      background: $gold-dark;
-      color: #fff;
-    }
+.actions button[type="button"] {
+  font-family: $font-title;
+  font-weight: $font-weight-bold;
+  background: $gold;
+  color: white;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-pill;
+  border: none;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    background: $gold-dark;
+    color: $gold-soft;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }

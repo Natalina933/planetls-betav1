@@ -1,200 +1,172 @@
-// src/app/components/layout/Home/ForWhomSection/ForWhomSection.module.scss
 
+@use "sass:color";
+// Assurez-vous d'importer vos variables globales pour les couleurs ($gold, $mucha-ink, etc.)
+// et vos mixins (_variables, _mixins) depuis le bon chemin (ici, je simule)
 @use "src/app/styles/abstracts/_variables" as *;
 @use "src/app/styles/abstracts/_mixins" as *;
-@use 'sass:color';
-
-// --- Définition des couleurs spécifiques pour la cohérence ---
-$gold-base: #b88b4a;
-$gold-dark: #775717;
-$gold-shadow: #d4af3744;
-$paper-light: #fcfbf7;
-$ink-dark: #484848;
-$ink-light: #646464;
-$paper-card: #fff;
-
-// === SECTION PRINCIPALE ===
 .forWhomSection {
-    background: linear-gradient(120deg, $paper-light 80%, #f7efd7 100%);
-    border-radius: 2.2rem;
-    box-shadow: 0 4px 24px #e5e4e0;
-    padding: 3rem 1.5rem;
-    margin: 2rem 0;
-    overflow: hidden;
+  background: $gold-soft;
+  padding: $spacing-xl $spacing-md;
+  border-top: 2px solid $gold-dark;
+  border-bottom: 2px solid $gold-dark;
+  position: relative;
+  text-align: center;
 
-    .content {
-        max-width: 1000px;
-        margin: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+  // Ornement doré sur le haut et bas de la section
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(to right, transparent, $gold, transparent);
+    left: 50%;
+    transform: translateX(-50%);
+  }
 
-    // === TITRE ET INTRODUCTION ===
-    .planetLSTitle {
-        font-family: var(--font-title, "High Tower Text", serif);
-        font-weight: 700;
-        font-size: 2.4rem;
-        margin-bottom: 1.2rem;
-        letter-spacing: 0.02em;
-        color: $gold-base;
-        text-align: center;
-        /* Assurez-vous que le mixin existe dans _mixins.scss */
-        // @include highlight-gold(); 
-    }
+  &::before {
+    top: 1rem;
+  }
+  &::after {
+    bottom: 1rem;
+  }
+}
 
-    .planetLSIntro {
-        color: $ink-light;
-        font-size: 1.2rem;
-        max-width: 700px;
-        text-align: center;
-        margin-bottom: 2.5rem;
-    }
+.content {
+  max-width: $max-content-width;
+  margin: 0 auto;
+}
 
-    // === GRILLE DES CARTES ===
-    .blocks {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        margin-bottom: 2.5rem;
+.planetLSTitle {
+  font-family: $font-elegant;
+  font-size: 2.5rem;
+  color: $mucha-ink;
+  margin-bottom: $spacing-sm;
 
-        @include respond-to("sm") {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-    }
+  &::after {
+    content: '';
+    display: block;
+    width: 100px;
+    height: 3px;
+    margin: $spacing-sm auto 0;
+    background: linear-gradient(to right, $gold-dark, $gold, $gold-dark);
+    border-radius: 2px;
+  }
+}
 
-    // === STYLE GÉNÉRIQUE D'UNE CARTE (.block) ===
-    .block {
-        background: $paper-card;
-        border-radius: 1.3rem;
-        box-shadow: 0 2px 16px #e5e4e077;
-        padding: 2rem 1.25rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        min-height: 370px;
-        position: relative;
-        transition: box-shadow 0.22s, transform 0.22s;
-        text-decoration: none;
+.planetLSIntro {
+  font-family: $font-text;
+  font-size: 1.1rem;
+  color: $text-light;
+  margin-bottom: $spacing-lg;
+}
 
-        &:hover {
-            box-shadow: 0 4px 32px $gold-shadow;
-            transform: translateY(-6px) scale(1.025);
-        }
+.blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
 
-        h3 {
-            font-size: 1.35rem;
-            font-weight: 600;
-            color: $gold-base;
-            margin: 1rem 0 0.6rem;
-        }
+.block {
+  background: $gold-soft;
+  border: 1px solid $gold-dark;
+  border-radius: $radius-lg;
+  padding: $spacing-lg $spacing-md;
+  box-shadow: $shadow;
+  text-align: center;
+  transition: $transition;
 
-        p {
-            color: $ink-dark;
-            font-size: 1.07rem;
-            margin-bottom: 1.25rem;
-        }
+  &:hover {
+    transform: translateY(-5px);
+    border-color: $gold;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
 
-        .icon {
-            margin-bottom: 1.1rem;
-            border-radius: 1.2rem;
-            background: #fcfaf2;
-            padding: 0.4rem;
-            width: 64px;
-            height: 64px;
-            box-shadow: 0 1px 8px #d4af3722;
-            object-fit: contain;
-        }
+  h3 {
+    font-family: $font-title;
+    font-weight: $font-weight-bold;
+    font-size: 1.4rem;
+    color: $mucha-accent;
+    margin: $spacing-md 0 $spacing-sm;
+  }
 
-        .CTAButton {
-            /* Le mixin button doit exister dans _mixins.scss et gérer les styles de base */
-            @include button($gold-base, #fff, none, 32px, 0.5rem 1.4rem);
+  p {
+    font-family: $font-text;
+    font-size: 1rem;
+    line-height: $line-height;
+    color: $text-dark;
+    margin-bottom: $spacing-md;
+  }
+}
 
-            font-size: 1rem;
-            margin-top: auto;
-            box-shadow: 0 2px 14px $gold-shadow;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            text-decoration: none;
-            transition: background 0.22s, transform 0.22s, box-shadow 0.22s;
+.icon {
+  margin: 0 auto $spacing-sm;
+}
 
-            &:hover,
-            &:focus {
-                background: color.scale($gold-base, $lightness: 10%);
-                color: #fffbe6;
-                transform: translateY(-2px) scale(1.03);
-            }
-        }
-    }
+.CTAButton {
+  display: inline-block;
+  font-family: $font-title;
+  font-weight: $font-weight-bold;
+  background: $gold;
+  color: white;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-pill;
+  text-decoration: none;
+  transition: $transition;
 
-    // === BLOC MISSION ===
-    .sectionMission {
-        display: block;
-        color: #83704b;
-        font-size: 1.08rem;
-        background: #fcf6e0;
-        padding: 1rem 1.5rem;
-        margin: 2rem 0 1.3rem 0;
-        border-radius: 16px;
-        box-shadow: 0 1px 6px #d4af3722;
-        text-align: center;
-        max-width: 800px;
-    }
+  &:hover {
+    background: $gold-dark;
+    color: $gold-soft;
+  }
+}
 
-    // === ACTIONS EN BAS DE SECTION ===
-    .heroActions {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+.CTAButtonSecondary {
+  @extend .CTAButton;
+  background: white;
+  color: $gold-dark;
+  border: 2px solid $gold;
 
-        .buttonsRow {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 0.7rem;
+  &:hover {
+    background: $gold-light;
+    color: $mucha-ink;
+  }
+}
 
-            @include respond-to("sm") {
-                flex-direction: column;
-            }
+.ctaTertiary {
+  display: inline-block;
+  margin-top: $spacing-sm;
+  font-size: 0.95rem;
+  font-family: $font-text;
+  color: $gold-dark;
+  text-decoration: underline;
+  transition: $transition;
 
-            // Style des boutons d'action (appliqué aux liens <a>)
-            .CTAButton,
-            .CTAButtonSecondary {
-                /* Le mixin button doit exister dans _mixins.scss */
-                @include button(transparent, $gold-base, 1.5px solid $gold-base, 32px, 0.8rem 2rem);
-                background: #fffbe7;
-                color: $gold-base;
-                font-weight: 600;
-                text-decoration: none;
+  &:hover {
+    color: $gold;
+  }
+}
 
-                &.CTAButtonSecondary {
-                    background: #f9f9f9;
-                    border: 1.5px solid $gold-base;
-                    // CORRECTION : Utilisez $lightness: -10% pour assombrir
-                    // color: color.scale($gold-base, $lightness: -10%); 
-                }
+.sectionMission {
+  display: block;
+  font-family: $font-elegant;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: $mucha-ink;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  border-left: 3px solid $gold;
+  border-right: 3px solid $gold;
+  background: $gold-soft;
+}
 
-                &:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 10px $gold-shadow;
-                }
-            }
-        }
+.heroActions {
+  margin-top: $spacing-md;
+}
 
-        .ctaTertiary {
-            color: $gold-base;
-            font-size: 0.99rem;
-            text-decoration: underline dotted;
-            cursor: pointer;
-            padding: 0.4rem 0.8rem;
-            transition: color 0.18s;
-
-            &:hover {
-                // CORRECTION : Utilisez $lightness: -10% pour assombrir
-                color: color.scale($gold-base, $lightness: -10%); 
-            }
-        }
-    }
+.buttonsRow {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
 }

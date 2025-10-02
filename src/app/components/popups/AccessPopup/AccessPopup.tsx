@@ -31,18 +31,23 @@ export default function AccessPopup({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleProceed = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const params = {
-      category,
-      option: selectedOptions.join(","),
-      location,
-      ...form,
-    };
-    const qs = new URLSearchParams(params).toString();
-    router.push(`/search-form?${qs}`);
-    onClose?.();
+ const handleProceed = (e?: React.FormEvent) => {
+  if (e) e.preventDefault();
+  const params = {
+    category,
+    option: selectedOptions.join(","),
+    location,
+    ...form,
   };
+  const qs = new URLSearchParams(params).toString();
+
+  // 👉 avant de rediriger, on notifie qu'on ferme la map
+  window.dispatchEvent(new Event("close-map"));
+
+  router.push(`/search-form?${qs}`);
+  onClose?.();
+};
+
 
   // 🔑 exemple de profils dynamiques (à récupérer via API)
   // const visibleProfiles = [
