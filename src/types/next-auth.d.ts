@@ -1,8 +1,6 @@
 // types/next-auth.d.ts ou à la racine
 
-import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
-import { JWT } from "next-auth/jwt";
-
+import { DefaultSession, DefaultUser } from "next-auth";
 declare module "next-auth" {
     /**
      * L'objet User (celui retourné par authorize)

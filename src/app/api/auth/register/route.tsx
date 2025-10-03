@@ -23,16 +23,16 @@ type ResponseBody = { message?: string; user?: User; error?: string };
 
 // Handler POST
 export async function POST(req: NextRequest) {
-    
+
     // --- 1. Vérification et Initialisation Sécurisée ---
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
         console.error("ERREUR CRITIQUE : Les clés Supabase sont manquantes !");
         return NextResponse.json(
-            { error: "Configuration serveur manquante (Vérifiez les variables d'environnement)" }, 
+            { error: "Configuration serveur manquante (Vérifiez les variables d'environnement)" },
             { status: 500 }
         );
     }
-    
+
     // Initialisation du client DANS le handler (plus sûr)
     const supabase: SupabaseClient = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
 
         // Si fetchError existe (et n'est pas "Not found"), ou si un utilisateur est trouvé
         if (fetchError) {
-             console.error("Erreur BDD vérification email:", fetchError.message);
-             return NextResponse.json<ResponseBody>({ error: "Erreur lors de la vérification de l'email" }, { status: 500 });
+            console.error("Erreur BDD vérification email:", fetchError.message);
+            return NextResponse.json<ResponseBody>({ error: "Erreur lors de la vérification de l'email" }, { status: 500 });
         }
         if (existingUser) {
             return NextResponse.json<ResponseBody>(
@@ -79,11 +79,11 @@ export async function POST(req: NextRequest) {
                 username,
                 email,
                 password: hashedPassword,
-                avatar_url: avatar_url || null,
-                role: "user",
+                avatar_url: avatar_url || null
             }])
             .select("id, username, email, avatar_url, role, created_at")
-            .single<User>(); // Récupère l'utilisateur créé
+            .single<User>();
+
 
         if (error || !data) {
             return NextResponse.json<ResponseBody>(

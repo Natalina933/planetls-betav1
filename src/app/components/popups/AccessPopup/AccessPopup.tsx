@@ -1,16 +1,15 @@
-"use client";
-
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AccessPopup.module.scss";
-// import ProfilesDisplay from "@/app/components/layout/Home/ProfilesDisplay/ProfilesDisplay";
 
 interface AccessPopupProps {
   selectedOptions: string[];
   category: string;
   location: string;
   onClose?: () => void;
+  onValidate?: () => void; // ← AJOUTE !
 }
+
 
 export default function AccessPopup({
   selectedOptions,
@@ -31,45 +30,28 @@ export default function AccessPopup({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
- const handleProceed = (e?: React.FormEvent) => {
-  if (e) e.preventDefault();
-  const params = {
-    category,
-    option: selectedOptions.join(","),
-    location,
-    ...form,
+  const handleProceed = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // Logique: la cible dépend du "je suis"
+    let searchTarget = "";
+    if (category === "proprietaire") searchTarget = "concierge";
+    else if (category === "concierge") searchTarget = "proprietaire";
+    else if (category === "artisan") searchTarget = "proprietaire ou concierge"; // adapter si besoin
+
+    const params = {
+      category,
+      searchTarget, // ← ICI
+      option: selectedOptions.join(","),
+      location,
+      ...form,
+    };
+    const qs = new URLSearchParams(params).toString();
+
+    window.dispatchEvent(new Event("close-map"));
+    router.push(`/search-form?${qs}`);
+    onClose?.();
   };
-  const qs = new URLSearchParams(params).toString();
-
-  // 👉 avant de rediriger, on notifie qu'on ferme la map
-  window.dispatchEvent(new Event("close-map"));
-
-  router.push(`/search-form?${qs}`);
-  onClose?.();
-};
-
-
-  // 🔑 exemple de profils dynamiques (à récupérer via API)
-  // const visibleProfiles = [
-  //   {
-  //     id: "1",
-  //     name: "Sandrine",
-  //     type: "concierge",
-  //     photo: "/default-profile.png",
-  //     services: ["Check-in", "Ménage"],
-  //     available: true,
-  //     created_at: "2023-05-01",
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Danaé",
-  //     type: "concierge",
-  //     photo: "",
-  //     services: ["Maintenance", "Blanchisserie"],
-  //     available: false,
-  //     created_at: "2022-11-15",
-  //   },
-  // ];
 
   return (
     <div className={styles.overlay}>
@@ -84,9 +66,6 @@ export default function AccessPopup({
 
         <h2>Accès aux annonces pour :</h2>
         <p className={styles.highlight}>{selectedOptions.join(" — ")}</p>
-
-        {/* 👉 Intégration de ProfilesDisplay */}
-        {/* <ProfilesDisplay visibleProfiles={visibleProfiles} /> */}
 
         <form className={styles.form} onSubmit={handleProceed}>
           <label>

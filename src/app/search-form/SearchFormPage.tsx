@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
-// import AvatarPreview from "../components/ui/AvatarPreview/AvatarPreview";
 import styles from "./SearchFormPage.module.scss";
 import { createClient } from "@supabase/supabase-js";
 
@@ -17,6 +16,7 @@ interface FormData {
 
 interface QueryData {
   category: string;
+  searchTarget: string;
   option: string;
   location: string;
   firstName: string;
@@ -32,6 +32,7 @@ export default function SearchFormPage() {
 
   const [queryData, setQueryData] = useState<QueryData>({
     category: "",
+    searchTarget: "",
     option: "",
     location: "",
     firstName: "",
@@ -55,6 +56,7 @@ export default function SearchFormPage() {
   useEffect(() => {
     setQueryData({
       category: searchParams.get("category") || "",
+      searchTarget: searchParams.get("searchTarget") || "",
       option: searchParams.get("option") || "",
       location: searchParams.get("location") || "",
       firstName: searchParams.get("firstName") || "",
@@ -95,89 +97,74 @@ export default function SearchFormPage() {
     formData.password === formData.confirmPassword &&
     Object.values(errors).every((err) => err === "");
 
-// --- DANS SearchFormPage.tsx ---
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit()) {
+      return alert("⚠️ Corrigez les erreurs avant de continuer.");
+    }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!canSubmit()) {
-    return alert("⚠️ Corrigez les erreurs avant de continuer.");
-  }
-
-  try {
-    let avatar_url = null;
-    if (formData.avatar) {
-      // ⚠️ ATTENTION : Utilisez la fonction createClient recommandée pour le client léger.
-      // S'il existe une fonction que vous utilisez habituellement (par ex: createClientComponentClient), utilisez-la.
-      // Sinon, on s'assure d'utiliser la clé publique (ANON_KEY).
-      
-      const supabaseClient = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // <-- Utilisation de la clé publique (ANON_KEY)
-      );
-
-      const fileExt = formData.avatar.name.split(".").pop();
-      // On s'assure que le nom de fichier est sécurisé et aléatoire
-      const fileName = `${formData.username}_${crypto.randomUUID()}.${fileExt}`; 
-
-      // 1. Upload vers le bucket 'avatars'
-      const { error: uploadError } = await supabaseClient.storage
-        .from("avatars") // VERIFIEZ QUE LE NOM DU BUCKET EST BIEN 'avatars'
-        .upload(fileName, formData.avatar, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) {
-        // Renvoie une erreur spécifique si le bucket n'est pas trouvé
-        if (uploadError.message.includes("Bucket not found")) {
+    try {
+      let avatar_url = null;
+      if (formData.avatar) {
+        const supabaseClient = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const fileExt = formData.avatar.name.split(".").pop();
+        const fileName = `${formData.username}_${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from("avatars")
+          .upload(fileName, formData.avatar, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (uploadError) {
+          if (uploadError.message.includes("Bucket not found")) {
             throw new Error("Bucket 'avatars' non trouvé. Veuillez vérifier sa configuration dans Supabase.");
+          }
+          throw uploadError;
         }
-        throw uploadError;
+        const { data: publicUrlData } = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(fileName);
+        avatar_url = publicUrlData.publicUrl;
       }
 
-      // 2. Récupération de l'URL publique
-      const { data: publicUrlData } = supabaseClient.storage
-        .from("avatars")
-        .getPublicUrl(fileName);
-        
-      avatar_url = publicUrlData.publicUrl;
+      const role = queryData.category || "proprietaire";
+
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+          email: queryData.email,
+          avatar_url,
+          role,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error ?? "Erreur inconnue");
+      }
+
+      alert("✅ Inscription finalisée avec succès ! Redirection vers le tableau de bord...");
+      router.push("/dashboard");
+    } catch (err) {
+      if (err instanceof Error) {
+        alert("❌ Erreur : " + err.message);
+      } else {
+        alert("❌ Erreur serveur inconnue.");
+      }
     }
-
-    // Appel de l'API register
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: formData.username,
-        password: formData.password,
-        email: queryData.email,
-        avatar_url,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      throw new Error(result.error ?? "Erreur inconnue");
-    }
-
-    alert("✅ Inscription finalisée avec succès ! Redirection vers le tableau de bord...");
-    router.push("/dashboard"); // Redirection vers le dashboard
-  } catch (err) {
-    if (err instanceof Error) {
-      alert("❌ Erreur : " + err.message);
-    } else {
-      alert("❌ Erreur serveur inconnue.");
-    }
-  }
-};
-
+  };
 
   return (
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>Finalisez votre inscription</h1>
 
-      {/* Étapes */}
       <nav aria-label="Progression inscription" className={styles.stepNav}>
         <ul>
           <li>1. Recherche & localisation</li>
@@ -187,14 +174,12 @@ const handleSubmit = async (e: React.FormEvent) => {
         </ul>
       </nav>
 
-      {/* Résumé */}
       <section className={styles.summary}>
         <h2>Récapitulatif</h2>
         <p>
-          <strong>Je recherche un :</strong> {queryData.category || "—"} à{" "}
-          {queryData.location || "—"}.
+          <strong>Je suis :</strong> {queryData.category || "—"} <br />
+          <strong>Je recherche un :</strong> {queryData.searchTarget || "—"} à {queryData.location || "—"}.
         </p>
-
         <div className={styles.services}>
           <strong>Services recherchés :</strong>
           {queryData.option ? (
@@ -207,7 +192,6 @@ const handleSubmit = async (e: React.FormEvent) => {
             "—"
           )}
         </div>
-
         <hr />
         <h2>Profils & Coordonnées</h2>
         <p>
@@ -225,19 +209,10 @@ const handleSubmit = async (e: React.FormEvent) => {
         <p>
           <strong>Besoin :</strong> {queryData.additionalInfo || "—"}
         </p>
-
-        {/* Avatar avec barre latérale */}
         <div className={styles.avatarSection}>
           <h3>Photo de profil</h3>
-
           <AvatarUpload value={formData.avatar} onChange={handleAvatarChange} />
-
-          {/* {formData.avatar && (
-            <AvatarPreview file={formData.avatar} onChange={handleAvatarChange} />
-          )} */}
         </div>
-
-
         <button
           type="button"
           onClick={() => router.back()}
@@ -247,7 +222,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         </button>
       </section>
 
-      {/* Formulaire inscription */}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <label>
           Nom d’utilisateur*

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, JSX } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import iconMap from "../../../../lib/iconMap";
@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
 import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
 
+// Les rôles utilisateur
 type CategoryKey = "proprietaire" | "concierge" | "artisan";
 
 interface Category {
@@ -49,11 +50,20 @@ const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
 // 🌟 Ordre fixe
 const CATEGORY_ORDER: CategoryKey[] = ["proprietaire", "concierge", "artisan"];
 
+// Mapping des cibles recherchées selon le rôle
+const SEARCH_TARGETS: Record<CategoryKey, string> = {
+  proprietaire: "concierge",
+  concierge: "proprietaire",
+  artisan: "proprietaire", // ou "concierge" si tu veux
+};
+
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | "">("");
+  const [searchTarget, setSearchTarget] = useState<string>("");
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
@@ -77,7 +87,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
         const data: Category[] = await res.json();
-
         // Initialiser avec la première catégorie selon l’ordre
         const firstCategoryKey = CATEGORY_ORDER.find((key) =>
           data.some((c) => c.key === key)
@@ -91,9 +100,15 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         setStatus("error");
       }
     };
-
     fetchCategories();
   }, []);
+
+  // --- Mettre à jour la cible recherchée après sélection catégorie
+  useEffect(() => {
+    if (selectedCategory) {
+      setSearchTarget(SEARCH_TARGETS[selectedCategory as CategoryKey] || "");
+    }
+  }, [selectedCategory]);
 
   // --- Recherche ---
   const handleSearch = useCallback(
@@ -120,6 +135,21 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
     setShowAccessPopup(true);
+  };
+
+  // --- Validation et navigation vers la page formulaire
+  const handleAccessValidate = () => {
+    // → On passe category ET searchTarget dans l'URL pour l'inscription
+    const params = new URLSearchParams({
+      category: selectedCategory,
+      searchTarget,
+      option: selectedOptions.join(","),
+      location,
+      // Ajoute ici les autres infos contextuelles si besoin
+    }).toString();
+
+    router.push(`/search-form?${params}`);
+    onClose(); // ferme la pop-up MapWithSearch
   };
 
   // --- Rendu catégories ---
@@ -212,6 +242,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
             setShowAccessPopup(false);
             onClose(); // ferme aussi la popup principale
           }}
+          onValidate={handleAccessValidate} // bouton "suivant" ou "terminer" de la pop-up
         />
       )}
     </>

@@ -1,13 +1,11 @@
-// Fichier : app/api/auth/[...nextauth]/route.ts
+// app/api/auth/[...nextauth]/route.ts
 
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
 import { compare } from "bcryptjs";
 
-// --- Types Locaux ---
-// (Ces types sont nécessaires pour la vérification TypeScript dans ce fichier)
-type UserCredentials = {
+type UserRecord = {
   id: string;
   username: string;
   email: string;
@@ -15,11 +13,8 @@ type UserCredentials = {
   avatar_url?: string | null;
   role: string;
 };
-// Définit l'objet utilisateur SANS le champ 'password'
-type UserWithoutPassword = Omit<UserCredentials, "password">;
-// ----------------------------------------------------------------------
-// Configuration NextAuth (Auth.js)
-// ----------------------------------------------------------------------
+type UserSafe = Omit<UserRecord, "password">;
+
 const handler = NextAuth({
   session: {
     strategy: "jwt",
@@ -34,16 +29,11 @@ const handler = NextAuth({
       },
 
       async authorize(credentials) {
-        // Initialisation Sécurisée de Supabase
-        if (
-          !process.env.SUPABASE_SERVICE_ROLE_KEY ||
-          !process.env.NEXT_PUBLIC_SUPABASE_URL
-        ) {
-          console.error(
-            "Erreur de configuration : Clés Supabase manquantes pour NextAuth."
-          );
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          console.error("Erreur config Supabase");
           return null;
         }
+
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL,
           process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -53,59 +43,48 @@ const handler = NextAuth({
           return null;
         }
 
-        // 1. Récupération de l'utilisateur (AVEC le hash)
+        // 1. Récupération utilisateur (incluant le hash)
         const { data: userRecord } = await supabase
           .from("users")
           .select("id, username, email, password, avatar_url, role")
           .eq("email", credentials.email)
-          .single<UserCredentials>();
+          .maybeSingle<UserRecord>();
 
-        if (!userRecord) {
-          return null;
-        }
+        if (!userRecord) return null;
 
-        // 2. Vérification du mot de passe
-        const passwordMatch = await compare(
-          credentials.password,
-          userRecord.password
-        );
+        // 2. Vérification mot de passe
+        const isValid = await compare(credentials.password, userRecord.password);
+        if (!isValid) return null;
 
-        if (!passwordMatch) {
-          return null;
-        }
-
-        // 3. Succès : Nettoyage et Renvoi (Méthode de suppression typée)
-        // On copie l'objet et on force le type à UserWithoutPassword.
-const { id, username, email, avatar_url, role } = userRecord;
-const userWithoutHash: UserWithoutPassword = { id, username, email, avatar_url, role };
-return userWithoutHash;
-
+        // 3. Renvoi des infos publiques
+        const { id, username, email, avatar_url, role } = userRecord;
+        const safeUser: UserSafe = { id, username, email, avatar_url, role };
+        return safeUser;
       },
     }),
   ],
 
-  // Callbacks (Aucun changement nécessaire)
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role;
         token.username = user.username;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
-        session.user.role = token.role;
         session.user.username = token.username;
+        session.user.role = token.role;
       }
       return session;
     },
   },
 
   pages: {
-    signIn: "/auth/login", // Changé pour une page de login standard
+    signIn: "/auth/login",
   },
 });
 
