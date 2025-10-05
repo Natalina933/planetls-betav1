@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import styles from "./SearchFormPage.module.scss";
-import { createClient } from "@supabase/supabase-js";
 
 interface FormData {
   username: string;
@@ -49,6 +48,9 @@ export default function SearchFormPage() {
     avatar: null,
   });
 
+  const [avatarUrlState, setAvatarUrlState] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("proprietaire");
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -89,6 +91,16 @@ export default function SearchFormPage() {
 
   const handleAvatarChange = (file: File | null) => {
     setFormData((prev) => ({ ...prev, avatar: file }));
+    if (file) {
+      const simulatedUrl = URL.createObjectURL(file);
+      setAvatarUrlState(simulatedUrl);
+    } else {
+      setAvatarUrlState(null);
+    }
+  };
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedRole(e.target.value);
   };
 
   const canSubmit = () =>
@@ -100,65 +112,46 @@ export default function SearchFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit()) {
-      return alert("⚠️ Corrigez les erreurs avant de continuer.");
+      alert("Corrigez les erreurs avant de continuer.");
+      return;
     }
-
     try {
-      let avatar_url = null;
-      if (formData.avatar) {
-        const supabaseClient = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-        const fileExt = formData.avatar.name.split(".").pop();
-        const fileName = `${formData.username}_${crypto.randomUUID()}.${fileExt}`;
-        const { error: uploadError } = await supabaseClient.storage
-          .from("avatars")
-          .upload(fileName, formData.avatar, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-        if (uploadError) {
-          if (uploadError.message.includes("Bucket not found")) {
-            throw new Error("Bucket 'avatars' non trouvé. Veuillez vérifier sa configuration dans Supabase.");
-          }
-          throw uploadError;
-        }
-        const { data: publicUrlData } = supabaseClient.storage
-          .from("avatars")
-          .getPublicUrl(fileName);
-        avatar_url = publicUrlData.publicUrl;
-      }
-
-      const role = queryData.category || "proprietaire";
-
-      const res = await fetch("/api/auth/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: formData.username,
           password: formData.password,
           email: queryData.email,
-          avatar_url,
-          role,
+          avatar_url: avatarUrlState,
+          role: selectedRole,
         }),
       });
 
-      const result = await res.json();
+      const text = await response.text();
+      console.log("Réponse brute API :", text);
 
-      if (!res.ok) {
-        throw new Error(result.error ?? "Erreur inconnue");
+      try {
+        const data = JSON.parse(text);
+        if (data.error) {
+          alert(data.error);
+        } else {
+          alert("Inscription réussie !");
+          router.push("/dashboard");
+        }
+      } catch {
+        alert("Erreur serveur, réponse non valide.");
       }
-
-      alert("✅ Inscription finalisée avec succès ! Redirection vers le tableau de bord...");
-      router.push("/dashboard");
-    } catch (err) {
-      if (err instanceof Error) {
-        alert("❌ Erreur : " + err.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erreur attrapée:", error.message);
+        alert(error.message);
       } else {
-        alert("❌ Erreur serveur inconnue.");
+        console.error("Erreur inconnue attrapée:", error);
+        alert("Une erreur inattendue est survenue.");
       }
     }
+
   };
 
   return (
@@ -298,6 +291,15 @@ export default function SearchFormPage() {
               {errors.confirmPassword}
             </small>
           )}
+        </label>
+
+        <label>
+          Rôle utilisateur*
+          <select value={selectedRole} onChange={handleRoleChange}>
+            <option value="proprietaire">Propriétaire</option>
+            <option value="concierge">Concierge</option>
+            <option value="artisan">Artisan</option>
+          </select>
         </label>
 
         <button type="submit" disabled={!canSubmit()}>
