@@ -1,9 +1,11 @@
+// src/app/search-form/SearchFormPage.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
+import Confetti from "../components/ui/Confetti/Confetti";
 import styles from "./SearchFormPage.module.scss";
 
 interface FormData {
@@ -29,6 +31,7 @@ export default function SearchFormPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const [showConfetti, setShowConfetti] = useState(false);
   const [queryData, setQueryData] = useState<QueryData>({
     category: "",
     searchTarget: "",
@@ -55,6 +58,7 @@ export default function SearchFormPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
+  // Récupération des données du querystring
   useEffect(() => {
     setQueryData({
       category: searchParams.get("category") || "",
@@ -69,6 +73,7 @@ export default function SearchFormPage() {
     });
   }, [searchParams]);
 
+  // Validation
   const validate = (name: string, value: string) => {
     let message = "";
     if (name === "username" && value.trim().length < 3) {
@@ -115,6 +120,7 @@ export default function SearchFormPage() {
       alert("Corrigez les erreurs avant de continuer.");
       return;
     }
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -122,9 +128,9 @@ export default function SearchFormPage() {
         body: JSON.stringify({
           username: formData.username,
           password: formData.password,
-          email: queryData.email,
           avatar_url: avatarUrlState,
           role: selectedRole,
+          ...queryData,
         }),
       });
 
@@ -136,8 +142,10 @@ export default function SearchFormPage() {
         if (data.error) {
           alert(data.error);
         } else {
-          alert("Inscription réussie !");
-          router.push("/dashboard");
+          setShowConfetti(true); // 🎉 affiche les confettis
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 4500); // redirection après 2,5 secondes
         }
       } catch {
         alert("Erreur serveur, réponse non valide.");
@@ -151,11 +159,12 @@ export default function SearchFormPage() {
         alert("Une erreur inattendue est survenue.");
       }
     }
-
   };
 
   return (
     <div className={styles.pageContainer}>
+      {showConfetti && <Confetti />} {/* 🎉 affichage conditionnel */}
+
       <h1 className={styles.title}>Finalisez votre inscription</h1>
 
       <nav aria-label="Progression inscription" className={styles.stepNav}>
@@ -171,7 +180,8 @@ export default function SearchFormPage() {
         <h2>Récapitulatif</h2>
         <p>
           <strong>Je suis :</strong> {queryData.category || "—"} <br />
-          <strong>Je recherche un :</strong> {queryData.searchTarget || "—"} à {queryData.location || "—"}.
+          <strong>Je recherche un :</strong>{" "}
+          {queryData.searchTarget || "—"} à {queryData.location || "—"}.
         </p>
         <div className={styles.services}>
           <strong>Services recherchés :</strong>
@@ -281,7 +291,9 @@ export default function SearchFormPage() {
             <button
               type="button"
               className={styles.passwordToggle}
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
             >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
