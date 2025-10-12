@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import Image from "next/image";
 import styles from "./AvatarUpload.module.scss";
@@ -27,12 +25,20 @@ export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
   return (
     <div className={styles.container}>
       {!value && (
-        <label className={styles.uploadLabel}>
+        <label className={styles.uploadLabel} htmlFor="avatarInput" title="Sélectionner un avatar">
           Choisir un avatar
-          <input type="file" accept="image/*" onChange={handleFileChange} hidden />
+          <input
+            id="avatarInput"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            title="Charger un avatar"
+            aria-label="Charger un avatar"
+            placeholder="Sélectionner une image"
+            style={{ display: "none" }}
+          />
         </label>
       )}
-
       {value && (
         <>
           <div className={styles.imageWrapper}>
@@ -48,8 +54,6 @@ export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
               }}
             />
           </div>
-
-          {/* Barre de zoom horizontale avec bulle centrée */}
           <div className={styles.zoomControl}>
             <input
               type="range"
@@ -59,11 +63,18 @@ export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
               value={scale}
               onChange={(e) => setScale(Number(e.target.value))}
               className={styles.zoomSlider}
+              title="Zoom avatar"
+              aria-label="Zoom avatar"
             />
             <div className={styles.bubble} />
           </div>
-
-          <button type="button" className={styles.removeButton} onClick={handleRemove}>
+          <button
+            type="button"
+            className={styles.removeButton}
+            onClick={handleRemove}
+            title="Supprimer avatar"
+            aria-label="Supprimer avatar"
+          >
             Supprimer
           </button>
         </>

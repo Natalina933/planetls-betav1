@@ -49,7 +49,7 @@ export default function AccessPopup({
     const qs = new URLSearchParams(params).toString();
 
     window.dispatchEvent(new Event("close-map"));
-    router.push(`/search-form?${qs}`);
+    router.push(`/complete-registration?${qs}`);
     onClose?.();
   };
 

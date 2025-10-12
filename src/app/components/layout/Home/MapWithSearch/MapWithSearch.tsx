@@ -71,9 +71,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  // 🚀 Fermer automatiquement si on arrive sur /search-form
+  // 🚀 Fermer automatiquement si on arrive sur /complete-registration
   useEffect(() => {
-    if (pathname === "/search-form") {
+    if (pathname === "/complete-registration") {
       onClose();
     }
   }, [pathname, onClose]);
@@ -148,7 +148,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       // Ajoute ici les autres infos contextuelles si besoin
     }).toString();
 
-    router.push(`/search-form?${params}`);
+    router.push(`/complete-registration?${params}`);
     onClose(); // ferme la pop-up MapWithSearch
   };
 

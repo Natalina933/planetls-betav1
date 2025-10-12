@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import SearchFormPage from "./SearchFormPage";
+import CompleteRegistrationPage from "./CompleteRegistrationPage";
 
 export default function Page() {
   return (
     <Suspense fallback={<p>Chargement du formulaire...</p>}>
-      <SearchFormPage />
+      <CompleteRegistrationPage />
     </Suspense>
   );
 }

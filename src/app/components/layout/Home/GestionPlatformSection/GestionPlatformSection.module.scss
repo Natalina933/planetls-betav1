@@ -1,10 +1,10 @@
 // GestionPlatformSection.module.scss
-
+@use "sass:math";
 @use "sass:color";
-// Assurez-vous d'importer vos variables globales pour les couleurs ($gold, $mucha-ink, etc.)
-// et vos mixins (_variables, _mixins) depuis le bon chemin (ici, je simule)
-@use "src/app/styles/abstracts/_variables" as *;
-@use "src/app/styles/abstracts/_mixins" as *;
+@use "src/app/styles/abstracts/mixins" as *;
+@use "src/app/styles/abstracts/functions" as *;
+@use "src/app/styles/abstracts/variables" as *;
+@use "../../../../styles/base/animations" as *;
 
 // Couleurs clés utilisées dans ForWhomSection :
 $gold-base: #b88b4a;

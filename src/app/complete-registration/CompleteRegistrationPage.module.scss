@@ -1,0 +1,185 @@
+// CompleteRegistrationPage.module.scss
+
+$page-bg: #fdfcfb;
+$primary-color: #2c3e50;
+$accent-color: #c49e6c;
+$input-bg: #ffffff;
+$input-border: #ccc;
+$error-color: #e74c3c;
+$button-bg: $accent-color;
+$button-hover: darken($accent-color, 10%);
+$font-family: 'Playfair Display', serif;
+
+.pageContainer {
+  background-color: $page-bg;
+  padding: 3rem 2rem;
+  font-family: $font-family;
+  color: $primary-color;
+  max-width: 800px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid $accent-color;
+  padding-bottom: 0.5rem;
+}
+
+.summary {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid $input-border;
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: $accent-color;
+  }
+
+  p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+
+    strong {
+      display: inline-block;
+      width: 140px;
+      font-weight: 600;
+    }
+
+    input,
+    textarea {
+      width: calc(100% - 150px);
+      padding: 0.5rem;
+      border: 1px solid $input-border;
+      border-radius: 6px;
+      background-color: $input-bg;
+      font-family: inherit;
+    }
+  }
+
+  .services {
+    ul {
+      list-style: square;
+      padding-left: 1.5rem;
+      margin-top: 0.5rem;
+
+      li {
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+
+  hr {
+    margin: 2rem 0;
+    border: none;
+    border-top: 1px solid $input-border;
+  }
+
+  .editButton,
+  .saveButton {
+    background-color: $button-bg;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: $button-hover;
+    }
+  }
+
+  .avatarSection {
+    margin-top: 2rem;
+
+    h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: $primary-color;
+    }
+  }
+}
+
+.form {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid $input-border;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: $primary-color;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border: 1px solid $input-border;
+    border-radius: 6px;
+    background-color: $input-bg;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .passwordInputWrapper {
+    position: relative;
+
+    input {
+      padding-right: 2.5rem;
+    }
+
+    .passwordToggle {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $primary-color;
+      font-size: 1.2rem;
+    }
+  }
+
+  .errorMsg {
+    color: $error-color;
+    font-size: 0.85rem;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  button[type="submit"] {
+    background-color: $button-bg;
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:disabled {
+      background-color: lighten($button-bg, 20%);
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: $button-hover;
+    }
+  }
+}
