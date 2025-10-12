@@ -1,185 +1,585 @@
-// CompleteRegistrationPage.module.scss
+// ============================================================================
+// VARIABLES
+// ============================================================================
 
-$page-bg: #fdfcfb;
-$primary-color: #2c3e50;
-$accent-color: #c49e6c;
-$input-bg: #ffffff;
-$input-border: #ccc;
+$primary-color: #3498db;
+$success-color: #2ecc71;
 $error-color: #e74c3c;
-$button-bg: $accent-color;
-$button-hover: darken($accent-color, 10%);
-$font-family: 'Playfair Display', serif;
+$warning-color: #f39c12;
+$text-dark: #2c3e50;
+$text-light: #7f8c8d;
+$bg-light: #f8f9fa;
+$border-color: #dfe6e9;
+$border-radius: 8px;
+$transition: all 0.3s ease;
+
+// ============================================================================
+// MIXINS
+// ============================================================================
+
+@mixin card-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+@mixin hover-lift {
+  transition: $transition;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// ============================================================================
+// MAIN CONTAINER
+// ============================================================================
 
 .pageContainer {
-  background-color: $page-bg;
-  padding: 3rem 2rem;
-  font-family: $font-family;
-  color: $primary-color;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  padding: 2rem 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: $text-dark;
+  position: relative;
 }
+
+// ============================================================================
+// SUCCESS BANNER
+// ============================================================================
+
+.successBanner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+  z-index: 1000;
+  animation: slideDown 0.4s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+// ============================================================================
+// TITLE
+// ============================================================================
 
 .title {
   font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid $accent-color;
-  padding-bottom: 0.5rem;
+  margin-bottom: 2.5rem;
+  color: $text-dark;
+  background: linear-gradient(135deg, $primary-color, #2980b9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+// ============================================================================
+// SUMMARY SECTION
+// ============================================================================
+
 .summary {
-  background-color: #fff;
+  background: white;
+  border-radius: $border-radius;
   padding: 2rem;
-  border-radius: 10px;
-  border: 1px solid $input-border;
   margin-bottom: 2rem;
+  @include card-shadow;
 
   h2 {
     font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: $text-dark;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
     margin-bottom: 1rem;
-    color: $accent-color;
+    color: $text-dark;
+  }
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  strong {
+    color: $text-light;
+    font-size: 0.9rem;
+    font-weight: 500;
   }
 
-  p {
-    margin: 0.5rem 0;
+  span {
+    color: $text-dark;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+.services {
+  margin: 1.5rem 0;
+
+  strong {
+    display: block;
+    margin-bottom: 0.75rem;
     font-size: 1rem;
-
-    strong {
-      display: inline-block;
-      width: 140px;
-      font-weight: 600;
-    }
-
-    input,
-    textarea {
-      width: calc(100% - 150px);
-      padding: 0.5rem;
-      border: 1px solid $input-border;
-      border-radius: 6px;
-      background-color: $input-bg;
-      font-family: inherit;
-    }
   }
 
-  .services {
-    ul {
-      list-style: square;
-      padding-left: 1.5rem;
-      margin-top: 0.5rem;
+  ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 
-      li {
-        margin-bottom: 0.25rem;
+    li {
+      background: $bg-light;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: $text-dark;
+      border: 1px solid $border-color;
+      margin-left: 0;
+      list-style-position: inside;
+      
+      &::marker {
+        color: $primary-color;
+        font-size: 1.2em;
       }
     }
   }
+}
 
-  hr {
-    margin: 2rem 0;
-    border: none;
-    border-top: 1px solid $input-border;
+.divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, $border-color, transparent);
+  margin: 2rem 0;
+}
+
+// ============================================================================
+// PROFILE SECTION
+// ============================================================================
+
+.profileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.editModeBadge {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.profileField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  strong {
+    color: $text-light;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  span {
+    color: $text-dark;
+    font-size: 1rem;
+    padding: 0.75rem;
+    background: $bg-light;
+    border-radius: $border-radius;
+    border: 1px solid $border-color;
+  }
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid $border-color;
+  border-radius: $border-radius;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+}
+
+// ============================================================================
+// BUTTONS
+// ============================================================================
+
+.editButton,
+.saveButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: $transition;
+  @include hover-lift;
+}
+
+.editButton {
+  background: linear-gradient(135deg, $primary-color, #2980b9);
+  color: white;
+
+  &:hover {
+    background: linear-gradient(135deg, #2980b9, #2471a3);
+  }
+}
+
+.saveButton {
+  background: linear-gradient(135deg, $success-color, #27ae60);
+  color: white;
+
+  &:hover {
+    background: linear-gradient(135deg, #27ae60, #229954);
+  }
+}
+
+// ============================================================================
+// AVATAR SECTION
+// ============================================================================
+
+.avatarSection {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid $border-color;
+
+  h3 {
+    margin-bottom: 1rem;
+  }
+}
+
+// ============================================================================
+// FORM
+// ============================================================================
+
+.form {
+  background: white;
+  border-radius: $border-radius;
+  padding: 2rem;
+  @include card-shadow;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: $text-dark;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    color: $text-dark;
+    font-size: 0.95rem;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+}
+
+// ============================================================================
+// INPUTS
+// ============================================================================
+
+.inputWrapper {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.875rem 2.5rem 0.875rem 1rem;
+  border: 2px solid $border-color;
+  border-radius: $border-radius;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: $transition;
+  background: white;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  }
+
+  &::placeholder {
+    color: #bdc3c7;
+  }
+}
+
+.inputError {
+  border-color: $error-color;
+  background: #fff5f5;
+
+  &:focus {
+    border-color: $error-color;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  }
+}
+
+.inputValid {
+  border-color: $success-color;
+  background: #f0fff4;
+
+  &:focus {
+    border-color: $success-color;
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.1);
+  }
+}
+
+.validationIcon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  pointer-events: none;
+}
+
+// ============================================================================
+// PASSWORD INPUT
+// ============================================================================
+
+.passwordInputWrapper {
+  position: relative;
+  margin-bottom: 0.5rem;
+
+  input {
+    width: 100%;
+    padding: 0.875rem 3rem 0.875rem 1rem;
+    border: 2px solid $border-color;
+    border-radius: $border-radius;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: $transition;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    &::placeholder {
+      color: #bdc3c7;
+    }
+  }
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $text-light;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition;
+
+  &:hover {
+    color: $primary-color;
+  }
+
+  &:focus {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+// ============================================================================
+// ERROR & SUCCESS MESSAGES
+// ============================================================================
+
+.errorMsg {
+  display: block;
+  color: $error-color;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  &::before {
+    content: "⚠️";
+  }
+}
+
+.successMsg {
+  display: block;
+  color: $success-color;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.infoMsg {
+  display: block;
+  color: $primary-color;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: $border-radius;
+  border-left: 3px solid $primary-color;
+}
+
+// ============================================================================
+// SUBMIT BUTTON
+// ============================================================================
+
+.submitButton {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 2rem;
+  border: none;
+  border-radius: $border-radius;
+  background: linear-gradient(135deg, $primary-color, #2980b9);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: $transition;
+  @include hover-lift;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2980b9, #2471a3);
+  }
+
+  &:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+  }
+}
+
+// ============================================================================
+// RESPONSIVE
+// ============================================================================
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .summary,
+  .form {
+    padding: 1.5rem;
+  }
+
+  .summaryGrid,
+  .profileGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .editButton,
   .saveButton {
-    background-color: $button-bg;
-    color: #fff;
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 1rem;
-    transition: background-color 0.3s ease;
-
-    &:hover {
-      background-color: $button-hover;
-    }
-  }
-
-  .avatarSection {
-    margin-top: 2rem;
-
-    h3 {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      color: $primary-color;
-    }
+    width: 100%;
+    justify-content: center;
   }
 }
 
-.form {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  border: 1px solid $input-border;
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: $primary-color;
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.75rem;
   }
 
-  input {
-    width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 1rem;
-    border: 1px solid $input-border;
-    border-radius: 6px;
-    background-color: $input-bg;
-    font-family: inherit;
+  .summary,
+  .form {
+    padding: 1rem;
+  }
+
+  .submitButton {
     font-size: 1rem;
-  }
-
-  .passwordInputWrapper {
-    position: relative;
-
-    input {
-      padding-right: 2.5rem;
-    }
-
-    .passwordToggle {
-      position: absolute;
-      right: 0.5rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: $primary-color;
-      font-size: 1.2rem;
-    }
-  }
-
-  .errorMsg {
-    color: $error-color;
-    font-size: 0.85rem;
-    margin-top: -0.5rem;
-    margin-bottom: 1rem;
-    display: block;
-  }
-
-  button[type="submit"] {
-    background-color: $button-bg;
-    color: #fff;
-    padding: 0.8rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-
-    &:disabled {
-      background-color: lighten($button-bg, 20%);
-      cursor: not-allowed;
-    }
-
-    &:hover:not(:disabled) {
-      background-color: $button-hover;
-    }
   }
 }
