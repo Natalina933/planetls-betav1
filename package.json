@@ -32,7 +32,8 @@
     "react-use": "^17.6.0",
     "sass": "^1.89.2",
     "swiper": "^11.2.10",
-    "swr": "^2.3.4"
+    "swr": "^2.3.4",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

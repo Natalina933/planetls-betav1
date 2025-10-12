@@ -13,6 +13,10 @@ const nextConfig = {
       // },
     ],
     formats: ["image/webp", "image/avif"],
+    domains: [
+      "dyqlixssykeecvtqmcxh.supabase.co",
+      // ajoute d'autres domaines si besoin
+    ],
   },
   experimental: {
     scrollRestoration: true,
@@ -20,8 +24,8 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/',
-        destination: '/home',
+        source: "/",
+        destination: "/home",
         permanent: true, // 308 redirect
       },
     ];
