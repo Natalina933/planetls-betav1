@@ -22,32 +22,18 @@ const registerSchema = z.object({
     .regex(/[0-9]/, "Mot de passe : au moins 1 chiffre")
     .regex(/[!@#$%^&*(),.?":{}|<>_\-+=]/, "Mot de passe : au moins 1 caractère spécial"),
   
-  email: z
-    .string()
-    .email("Email invalide")
-    .min(1, "Email requis")
-    .toLowerCase()
-    .transform(val => val.trim()),
-  
+  email: z.string().email("Email invalide").min(1, "Email requis").toLowerCase().transform(val => val.trim()),
   firstName: z.string().min(1, "Prénom requis").max(50).transform(val => val.trim()),
   lastName: z.string().min(1, "Nom requis").max(50).transform(val => val.trim()),
-  
-  phone: z.string()
-    .regex(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/, "Téléphone invalide")
-    .optional()
-    .or(z.literal("")),
-  
+  phone: z.string().regex(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/, "Téléphone invalide").optional().or(z.literal("")),
   avatar_url: z.string().url("URL avatar invalide").optional().nullable(),
-  
-  // Données additionnelles
-  category: z.string().max(100).optional().or(z.literal("")),
+  category: z.string().max(100).optional().or(z.literal("")), // ✅ remplace role
   searchTarget: z.string().max(100).optional().or(z.literal("")),
   option: z.string().optional().or(z.literal("")),
   location: z.string().max(100).optional().or(z.literal("")),
   additionalInfo: z.string().max(1000).optional().or(z.literal("")),
-  
-  role: z.enum(["user", "admin", "host"]).default("user"),
 });
+
 
 // ============================================================================
 // RATE LIMITING
@@ -272,7 +258,6 @@ export async function POST(request: NextRequest) {
           option: sanitizeString(data.option) || null,
           location: sanitizeString(data.location) || null,
           additional_info: sanitizeString(data.additionalInfo) || null,
-          role: data.role,
           created_at: new Date().toISOString(),
         },
       ]);

@@ -308,28 +308,34 @@ export default function CompleteRegistrationPage() {
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
-  const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Validation temps réel
-    let error = "";
-    if (name === "username") {
-      if (value.length > 0 && value.length < 3) {
-        error = "Nom d'utilisateur : minimum 3 caractères";
-      }
+  // Validation temps réel
+  let error = "";
+  if (name === "username") {
+    if (value.length > 0 && value.length < 3) {
+      error = "Nom d'utilisateur : minimum 3 caractères";
+    } else if (
+      value.length > 0 &&
+      !/^[a-zA-Z0-9\-_]+$/.test(value)
+    ) {
+      error = "Utilisez seulement lettres, chiffres, tirets (-) et underscores (_)";
     }
-    if (name === "password") {
-      error = validatePassword(value);
+  }
+  if (name === "password") {
+    error = validatePassword(value);
+  }
+  if (name === "confirmPassword") {
+    if (value !== formData.password) {
+      error = "Les mots de passe ne correspondent pas";
     }
-    if (name === "confirmPassword") {
-      if (value !== formData.password) {
-        error = "Les mots de passe ne correspondent pas";
-      }
-    }
+  }
 
-    setErrors(prev => ({ ...prev, [name]: error }));
-  };
+  setErrors(prev => ({ ...prev, [name]: error }));
+};
+
 
   const handleAvatarChange = async (file: File | null) => {
     if (!file) {
