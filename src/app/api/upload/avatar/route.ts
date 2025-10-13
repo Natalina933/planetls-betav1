@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
 // Configuration
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -108,9 +109,3 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
     }
 }
-
-
-function uuidv4() {
-    throw new Error("Function not implemented.");
-}
-
