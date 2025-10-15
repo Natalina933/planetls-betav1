@@ -1,49 +1,92 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./AvatarUpload.module.scss";
 
 interface AvatarUploadProps {
+  /** Fichier sélectionné localement */
   value: File | null;
+  /** URL d’un avatar déjà téléversé (ex: depuis Supabase) */
+  existingUrl?: string | null;
+  /** Callback parent pour notifier un changement */
   onChange: (file: File | null) => void;
 }
 
-export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
+export default function AvatarUpload({
+  value,
+  existingUrl = null,
+  onChange,
+}: AvatarUploadProps) {
   const [scale, setScale] = useState(1);
+  const [preview, setPreview] = useState<string | null>(existingUrl);
+  const [error, setError] = useState<string>("");
+
+  // Génération de l’aperçu local
+  useEffect(() => {
+    if (value) {
+      const objectUrl = URL.createObjectURL(value);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else {
+      setPreview(existingUrl);
+    }
+  }, [value, existingUrl]);
 
   const handleRemove = () => {
     onChange(null);
     setScale(1);
+    setPreview(null);
+    setError("");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      onChange(e.target.files[0]);
-      setScale(1);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validation
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError("⚠️ Format non autorisé (JPEG, PNG, WEBP uniquement)");
+      return;
     }
+    if (file.size > maxSize) {
+      setError("⚠️ Fichier trop volumineux (max 5 Mo)");
+      return;
+    }
+
+    setError("");
+    onChange(file);
+    setScale(1);
   };
 
   return (
     <div className={styles.container}>
-      {!value && (
-        <label className={styles.uploadLabel} htmlFor="avatarInput" title="Sélectionner un avatar">
-          Choisir un avatar
+      {!preview && (
+        <label
+          className={styles.uploadLabel}
+          htmlFor="avatarInput"
+          title="Sélectionner un avatar"
+        >
+          📷 Choisir un avatar
           <input
             id="avatarInput"
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            title="Charger un avatar"
-            aria-label="Charger un avatar"
-            placeholder="Sélectionner une image"
             style={{ display: "none" }}
+            aria-label="Charger un avatar"
           />
         </label>
       )}
-      {value && (
+
+      {preview && (
         <>
           <div className={styles.imageWrapper}>
             <Image
-              src={URL.createObjectURL(value)}
+              src={preview}
               alt="Avatar utilisateur"
               width={200}
               height={200}
@@ -51,9 +94,11 @@ export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
                 objectFit: "cover",
                 borderRadius: "50%",
                 transform: `scale(${scale})`,
+                transition: "transform 0.2s ease",
               }}
             />
           </div>
+
           <div className={styles.zoomControl}>
             <input
               type="range"
@@ -66,19 +111,38 @@ export default function AvatarUpload({ value, onChange }: AvatarUploadProps) {
               title="Zoom avatar"
               aria-label="Zoom avatar"
             />
-            <div className={styles.bubble} />
           </div>
-          <button
-            type="button"
-            className={styles.removeButton}
-            onClick={handleRemove}
-            title="Supprimer avatar"
-            aria-label="Supprimer avatar"
-          >
-            Supprimer
-          </button>
+
+          <div className={styles.buttonGroup}>
+            <label
+              htmlFor="avatarInput"
+              className={styles.replaceButton}
+              title="Remplacer l'avatar"
+            >
+              🔁 Remplacer
+              <input
+                id="avatarInput"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+            </label>
+
+            <button
+              type="button"
+              className={styles.removeButton}
+              onClick={handleRemove}
+              title="Supprimer avatar"
+              aria-label="Supprimer avatar"
+            >
+              ❌ Supprimer
+            </button>
+          </div>
         </>
       )}
+
+      {error && <p className={styles.errorMsg}>{error}</p>}
     </div>
   );
 }

@@ -607,6 +607,15 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
           {errors.avatar && <small className={styles.errorMsg}>{errors.avatar}</small>}
           {uploadedAvatarUrl && <small className={styles.successMsg}>✅ Avatar uploadé avec succès</small>}
         </div>
+            {/* {!isEditing ? (
+          <button onClick={() => setIsEditing(true)} className={styles.editButton}>
+            Modifier mes informations
+          </button>
+        ) : (
+          <button onClick={handleSaveEdit} className={styles.saveButton}>
+            Enregistrer les modifications
+          </button>
+        )} */}
       </section>
 
       {/* ========== FORMULAIRE INSCRIPTION ========== */}

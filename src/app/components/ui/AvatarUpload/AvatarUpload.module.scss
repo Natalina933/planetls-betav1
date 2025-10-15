@@ -1,75 +1,165 @@
-.avatarUpload {
+@use "sass:color";
+@use "sass:math";
+@use "src/app/styles/abstracts/_variables" as *;
+@use "src/app/styles/abstracts/_mixins" as *;
+@use "src/app/styles/abstracts/_functions" as *;
+
+// Couleurs cohérentes avec la navbar
+$gold: #d4af37;
+$gold-light: color.scale($gold, $lightness: 25%);
+$background: var(--background);
+$text-color: var(--color-text);
+$border-color: var(--color-border);
+
+// Container principal
+.container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-}
-
-.previewContainer {
-  position: relative;
-  width: 120px;
-  height: 120px;
-}
-
-.avatarPreview,
-.placeholder {
+  gap: 1rem;
+  background: $background;
+  padding: 1.5rem;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba($gold, 0.05);
+  transition: all 0.3s ease;
   width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #f4f4f4;
-  border: 2px solid #ddd;
+  max-width: 320px;
+  margin: 0 auto;
+
+  &:hover {
+    box-shadow: 0 0 10px rgba($gold, 0.15);
+  }
 }
 
-.loadingOverlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
+// Label pour upload initial
+.uploadLabel {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-}
-
-.controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.uploadButton,
-.deleteButton {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
+  background: transparent;
+  color: $gold;
+  border: 1px dashed $gold;
+  border-radius: 50px;
+  padding: 0.6rem 1rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-align: center;
+
+  &:hover {
+    background: $gold;
+    color: #fffaf0;
+    border-style: solid;
+    box-shadow: 0 0 6px rgba($gold, 0.4);
+  }
 }
 
-.uploadButton {
-  background: #0070f3;
-  color: white;
-  border: none;
+// Image preview
+.imageWrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid $gold;
+  background: rgba($gold, 0.05);
+  box-shadow: 0 0 8px rgba($gold, 0.15);
 }
 
-.uploadButton:hover {
-  background: #005ac1;
+// Contrôle de zoom
+.zoomControl {
+  width: 80%;
+  margin-top: 0.5rem;
+
+  .zoomSlider {
+    width: 100%;
+    accent-color: $gold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      filter: brightness(1.2);
+    }
+  }
 }
 
-.deleteButton {
-  background: #e74c3c;
-  color: white;
-  border: none;
+// Groupe de boutons
+.buttonGroup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+
+  button,
+  label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.9rem;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .replaceButton {
+    color: $gold;
+    border: 1px solid $gold;
+    background: transparent;
+
+    &:hover {
+      background: $gold;
+      color: rgb(133, 81, 3);
+      box-shadow: 0 0 6px rgba($gold, 0.4);
+    }
+  }
+
+  .removeButton {
+    background: transparent;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+
+    &:hover {
+      background: #ff4d4d;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(#ff4d4d, 0.4);
+    }
+  }
 }
 
-.deleteButton:hover {
-  background: #c0392b;
-}
-
+// Message d’erreur
 .errorMsg {
-  color: #e74c3c;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  color: #ff4d4d;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 0.5rem;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+// Animation d’apparition
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+    max-width: 260px;
+  }
+
+  .imageWrapper {
+    width: 160px;
+    height: 160px;
+  }
 }
