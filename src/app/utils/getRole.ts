@@ -1,9 +1,11 @@
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+/**
+ * 🔍 Récupère le rôle de l'utilisateur connecté côté serveur
+ * (utilisable dans un composant Server Component ou un loader)
+ */
 export async function getUserRole(): Promise<string | null> {
-    const cookieStore = await cookies(); // faire await ici
-    const token = cookieStore.get("token")?.value;
-    if (!token) return null;
-    // Logique pour décoder token et récupérer le rôle
-    return "admin"; // exemple statique
+  const session = await getServerSession(authOptions);
+  return session?.user?.role ?? null;
 }

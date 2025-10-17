@@ -1,23 +1,23 @@
-// src/app/(dashboard)/layout.tsx
+"use client";
 
-'use client'; // Gardez cette directive pour le test
-
-import { SessionProvider } from 'next-auth/react';
-import React from 'react';
-
-// Retirez tous les autres imports (Sidebar, styles SCSS, etc.)
+import React, { useState } from "react";
+import Providers from "@/app/components/dashboard/Provider"; // ton composant dédié
+import Sidebar from "@/app/components/dashboard/Sidebar";
+import Navbar from "@/app/components/dashboard/Navbar";
+import "@/app/styles/abstracts/_dashboards.scss";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    // Retirez tous les hooks (useState, useEffect) pour ce test
-    
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
     return (
-        <SessionProvider>
-            {/* Laissez le conteneur principal */}
-            <div style={{ padding: '20px', border: '2px solid red' }}>
-                <p>✅ Layout Test OK (Si ce texte s&apos;affiche)</p>
-                {/* L'enfant (votre page.tsx) est rendu ici */}
-                {children}
+        <Providers>
+            <div className="dashboard-root">
+                <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((s) => !s)} />
+                <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
+                    <Navbar onToggleSidebar={() => setIsSidebarOpen((s) => !s)} />
+                    <main className="dashboard-content">{children}</main>
+                </div>
             </div>
-        </SessionProvider>
+        </Providers>
     );
 }

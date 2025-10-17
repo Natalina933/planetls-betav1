@@ -1,0 +1,65 @@
+/* styles/dashboards.scss */
+.dashboard-root {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg, #f7f9fc);
+}
+
+.dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-navbar {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    background: var(--nav-bg, #fff);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-content {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* stats row */
+.stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* stat card */
+.stat-card {
+    flex: 1;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* tables & lists */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* responsive */
+@media (max-width: 900px) {
+    .stats-row {
+        flex-direction: column;
+    }
+}

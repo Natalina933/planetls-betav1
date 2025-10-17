@@ -1,9 +1,7 @@
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
-import type { UserRole } from "@/types/supabase"; // ajuste le chemin
-
-// Mappe les champs pour coller à ta table "users" de Supabase
+import type { UserRole } from "@/types/supabase";
 
 
 export const authOptions: AuthOptions = {
@@ -16,58 +14,49 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (
-          !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || // ⚠️ Vérifiez si l'ANON KEY est définie
-          !process.env.NEXT_PUBLIC_SUPABASE_URL
+          !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         ) {
-          console.error(
-            "Erreur config Supabase (NEXT_PUBLIC_SUPABASE_ANON_KEY manquante)"
-          );
+          console.error("❌ Supabase config missing");
           return null;
         }
 
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        } // 1. CRÉATION DU CLIENT SUPABASE (avec la Clé Publique/Anon Key)
+        if (!credentials?.email || !credentials?.password) return null;
 
+        // 🔐 Création du client Supabase
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, // 🔑 Utilisation de la Clé Publique (Anon Key)
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
           { auth: { persistSession: false } }
-        ); // 2. AUTHENTIFICATION VIA SUPABASE AUTH SERVICE
+        );
 
+        // 🔑 Authentification
         const { data: authData, error: authError } =
           await supabase.auth.signInWithPassword({
             email: credentials.email,
             password: credentials.password,
           });
 
-        if (authError) {
-          console.error(
-            "❌ Échec signInWithPassword (Supabase):",
-            authError.message
-          );
-          return null; // Renvoie 401 à NextAuth
+        if (authError || !authData?.user) {
+          console.error("❌ Login error:", authError?.message);
+          return null;
         }
-        const user = authData.user;
-        if (!user) return null; // 3. RÉCUPÉRATION DES DONNÉES DE PROFIL (pour username, role)
 
-        // La table 'profiles' contient les champs personnalisés
+        const user = authData.user;
+
+        // 🧠 Récupération du profil dans `profiles`
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("id, username, email, category, avatar_url") // 'category' de la BDD deviendra 'role' de NextAuth
+          .select("id, username, email, category, avatar_url")
           .eq("id", user.id)
           .maybeSingle();
 
         if (profileError || !profile) {
-          console.error(
-            "❌ Profil non trouvé (profiles):",
-            profileError?.message
-          );
+          console.error("❌ Profile not found:", profileError?.message);
           return null;
         }
 
-        // Mappage de 'category' du profil vers 'role' de NextAuth (conformité avec vos types)
-        const userRole = (profile.category || "proprietaire") as UserRole; // 4. On retourne l'objet User pour la session NextAuth
+        const userRole = (profile.category || "proprietaire") as UserRole;
 
         return {
           id: profile.id,
@@ -75,17 +64,18 @@ export const authOptions: AuthOptions = {
           email: profile.email,
           avatar_url: profile.avatar_url,
           role: userRole,
-          name: profile.username || profile.email, // 'name' est requis par DefaultUser
+          name: profile.username || profile.email,
         };
       },
     }),
   ],
+
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // Ajoute les bons champs pour JWT
         token.id = user.id;
         token.username = user.username;
         token.role = user.role;
@@ -94,8 +84,8 @@ export const authOptions: AuthOptions = {
       }
       return token;
     },
+
     async session({ session, token }) {
-      // Met à jour la session utilisateur de façon typée
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
@@ -105,8 +95,19 @@ export const authOptions: AuthOptions = {
       }
       return session;
     },
+
+    // ⚙️ Redirection simple vers /dashboard
+    // (le middleware se charge ensuite de rediriger vers /dashboard/[role])
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`;
+    },
   },
-  pages: { signIn: "/auth/login" },
+
+  pages: {
+    signIn: "/auth/login",
+  },
 };
 
 const handler = NextAuth(authOptions);
