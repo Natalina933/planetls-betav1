@@ -46,7 +46,7 @@ $text-color: #374151;
     font-weight: 700;
     font-size: 1.5rem;
     color: $text-color;
-    user-select: none;
+    // user-select: none;
 }
 
 .closeBtn {
@@ -87,7 +87,7 @@ $text-color: #374151;
     transition: background-color 0.3s, color 0.3s, box-shadow 0.3s ease-in-out;
 
     &:hover {
-        background-color: lighten($primary-color, 40%);
+        // background-color: lighten($primary-color, 40%);
         color: $primary-color-hover;
         box-shadow: 0 4px 10px rgba($primary-color-hover, 0.35);
         transform: scale(1.05);

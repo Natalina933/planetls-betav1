@@ -42,7 +42,7 @@ export default function Navbar() {
           <a href="/inscription">S’inscrire</a>
         </li>
         <li className={styles["auth-connexion"]}>
-          <a href="/connexion">
+          <a href="/login">
             <Icons.FaUser size={18} /> Se connecter
           </a>
         </li>

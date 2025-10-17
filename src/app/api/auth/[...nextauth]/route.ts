@@ -3,7 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
 import type { UserRole } from "@/types/supabase";
 
-
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -13,48 +12,55 @@ export const authOptions: AuthOptions = {
         password: { label: "Mot de passe", type: "password" },
       },
       async authorize(credentials) {
-        if (
-          !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-          !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        ) {
+        console.log("Authorize called with credentials:", credentials);
+
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
           console.error("❌ Supabase config missing");
           return null;
         }
 
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          console.warn("Missing email or password");
+          return null;
+        }
 
-        // 🔐 Création du client Supabase
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
           { auth: { persistSession: false } }
         );
 
-        // 🔑 Authentification
-        const { data: authData, error: authError } =
-          await supabase.auth.signInWithPassword({
-            email: credentials.email,
-            password: credentials.password,
-          });
+        console.log("Calling signInWithPassword for email:", credentials.email);
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
 
-        if (authError || !authData?.user) {
-          console.error("❌ Login error:", authError?.message);
+        if (authError) {
+          console.error("❌ Login error:", authError.message);
           return null;
         }
+        if (!authData?.user) {
+          console.warn("No user in auth data");
+          return null;
+        }
+        console.log("User authenticated:", authData.user);
 
-        const user = authData.user;
-
-        // 🧠 Récupération du profil dans `profiles`
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("id, username, email, category, avatar_url")
-          .eq("id", user.id)
+          .eq("id", authData.user.id)
           .maybeSingle();
 
-        if (profileError || !profile) {
-          console.error("❌ Profile not found:", profileError?.message);
+        if (profileError) {
+          console.error("❌ Profile fetch error:", profileError.message);
           return null;
         }
+        if (!profile) {
+          console.warn("No profile found");
+          return null;
+        }
+        console.log("Profile fetched:", profile);
 
         const userRole = (profile.category || "proprietaire") as UserRole;
 
@@ -62,17 +68,15 @@ export const authOptions: AuthOptions = {
           id: profile.id,
           username: profile.username,
           email: profile.email,
-          avatar_url: profile.avatar_url,
+          avatar_url: profile.avatar_url ?? null,
           role: userRole,
           name: profile.username || profile.email,
         };
       },
     }),
   ],
-
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
-
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -84,7 +88,6 @@ export const authOptions: AuthOptions = {
       }
       return token;
     },
-
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
@@ -95,16 +98,12 @@ export const authOptions: AuthOptions = {
       }
       return session;
     },
-
-    // ⚙️ Redirection simple vers /dashboard
-    // (le middleware se charge ensuite de rediriger vers /dashboard/[role])
     async redirect({ url, baseUrl }) {
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
     },
   },
-
   pages: {
     signIn: "/auth/login",
   },

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Providers from "@/app/components/dashboard/Provider"; // ton composant dédié
-import Sidebar from "@/app/components/dashboard/Sidebar";
+import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
 import Navbar from "@/app/components/dashboard/Navbar";
 import "@/app/styles/abstracts/_dashboards.scss";
 
