@@ -1,0 +1,109 @@
+$sidebar-bg: #ffffff;
+$sidebar-shadow: rgba(0, 0, 0, 0.1);
+$primary-color: #fbbf24; // jaune
+$primary-color-hover: #f59e0b;
+$text-color: #374151;
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 16rem; // 64
+    background-color: $sidebar-bg;
+    box-shadow: 4px 0 12px $sidebar-shadow;
+    padding: 1.5rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+}
+
+.open {
+    transform: translateX(0);
+}
+
+.closed {
+    transform: translateX(-100%);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: $text-color;
+    user-select: none;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: $text-color;
+    display: flex;
+    align-items: center;
+}
+
+.closeIcon {
+    stroke-width: 2;
+    stroke: $text-color;
+    transition: stroke 0.2s ease-in-out;
+}
+
+.closeBtn:hover .closeIcon {
+    stroke: $primary-color-hover;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    color: $text-color;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s ease-in-out;
+
+    &:hover {
+        background-color: lighten($primary-color, 40%);
+        color: $primary-color-hover;
+        box-shadow: 0 4px 10px rgba($primary-color-hover, 0.35);
+        transform: scale(1.05);
+    }
+}
+
+.active {
+    background: linear-gradient(90deg, $primary-color, $primary-color-hover);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 6px 14px rgba($primary-color-hover, 0.5);
+    transform: none;
+}
+
+.icon {
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+}

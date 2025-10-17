@@ -1,8 +1,10 @@
-'use client';
+"use client";
 
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FiHome, FiUser, FiBarChart2, FiSettings } from "react-icons/fi";
+import styles from "./Sidebar.module.scss";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -10,10 +12,10 @@ interface SidebarProps {
 }
 
 const menuItems = [
-    { name: "Accueil", path: "/" },
-    { name: "Profil", path: "/profile" },
-    { name: "Tableau de bord", path: "/dashboard" },
-    { name: "Paramètres", path: "/settings" },
+    { name: "Accueil", path: "/", icon: <FiHome /> },
+    { name: "Profil", path: "/profile", icon: <FiUser /> },
+    { name: "Tableau de bord", path: "/dashboard", icon: <FiBarChart2 /> },
+    { name: "Paramètres", path: "/settings", icon: <FiSettings /> },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
@@ -21,33 +23,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
     return (
         <>
-            {/* Overlay pour ferme sidebar mobile */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-                    onClick={toggleSidebar}
-                />
-            )}
+            {isOpen && <div className={styles.overlay} onClick={toggleSidebar} />}
 
             <aside
-                className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 p-6 transition-transform duration-300 ease-in-out
-            ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+                className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}
+                aria-label="Sidebar"
             >
-                <h2 className="text-xl font-bold mb-6">Mon Application</h2>
-                <nav className="flex flex-col gap-2">
-                    {menuItems.map(({ name, path }) => {
+                <div className={styles.header}>
+                    <span className={styles.title}>Mon Application</span>
+                    <button onClick={toggleSidebar} className={styles.closeBtn} aria-label="Fermer la sidebar">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" className={styles.closeIcon}>
+                            <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />
+                            <line x1="20" y1="4" x2="4" y2="20" strokeWidth="2" />
+                        </svg>
+                    </button>
+                </div>
+                <nav className={styles.nav}>
+                    {menuItems.map(({ name, path, icon }) => {
                         const isActive = pathname === path;
                         return (
-                            <Link key={path} href={path} className={`block rounded px-4 py-2 ${isActive ? "bg-yellow-500 text-white" : "text-gray-700 hover:bg-gray-100"}`}>
-                                {name}
+                            <Link
+                                key={path}
+                                href={path}
+                                className={`${styles.link} ${isActive ? styles.active : ""}`}
+                                aria-current={isActive ? "page" : undefined}
+                            >
+                                <span className={styles.icon}>{icon}</span>
+                                <span>{name}</span>
                             </Link>
                         );
                     })}
-
                 </nav>
-                <button onClick={toggleSidebar} className="mt-4 md:hidden">
-                    Fermer
-                </button>
             </aside>
         </>
     );
