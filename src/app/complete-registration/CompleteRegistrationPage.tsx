@@ -6,7 +6,7 @@ import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
 import styles from "./CompleteRegistrationPage.module.scss";
 import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaEdit, FaSave } from "react-icons/fa";
-
+import { signIn } from "next-auth/react";
 // ============================================================================
 // INTERFACES
 // ============================================================================
@@ -308,33 +308,33 @@ export default function CompleteRegistrationPage() {
     setErrors(prev => ({ ...prev, [name]: error }));
   };
 
-const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = e.target;
-  setFormData(prev => ({ ...prev, [name]: value }));
+  const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
 
-  // Validation temps réel
-  let error = "";
-  if (name === "username") {
-    if (value.length > 0 && value.length < 3) {
-      error = "Nom d'utilisateur : minimum 3 caractères";
-    } else if (
-      value.length > 0 &&
-      !/^[a-zA-Z0-9\-_]+$/.test(value)
-    ) {
-      error = "Utilisez seulement lettres, chiffres, tirets (-) et underscores (_)";
+    // Validation temps réel
+    let error = "";
+    if (name === "username") {
+      if (value.length > 0 && value.length < 3) {
+        error = "Nom d'utilisateur : minimum 3 caractères";
+      } else if (
+        value.length > 0 &&
+        !/^[a-zA-Z0-9\-_]+$/.test(value)
+      ) {
+        error = "Utilisez seulement lettres, chiffres, tirets (-) et underscores (_)";
+      }
     }
-  }
-  if (name === "password") {
-    error = validatePassword(value);
-  }
-  if (name === "confirmPassword") {
-    if (value !== formData.password) {
-      error = "Les mots de passe ne correspondent pas";
+    if (name === "password") {
+      error = validatePassword(value);
     }
-  }
+    if (name === "confirmPassword") {
+      if (value !== formData.password) {
+        error = "Les mots de passe ne correspondent pas";
+      }
+    }
 
-  setErrors(prev => ({ ...prev, [name]: error }));
-};
+    setErrors(prev => ({ ...prev, [name]: error }));
+  };
 
 
   const handleAvatarChange = async (file: File | null) => {
@@ -431,7 +431,7 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
         avatar_url: uploadedAvatarUrl,
         ...editableData,
       };
-
+      // 1. Appel de l'API d'inscription (Création de l'utilisateur en base par l'Admin Supabase)
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -443,9 +443,53 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
       const data = await response.json();
 
       if (!data.error) {
-        setSuccessMessage("✅ Inscription réussie ! Redirection...");
+        setSuccessMessage("✅ Inscription réussie ! Redirection vers votre dashboard...");
         setShowConfetti(true);
-        setTimeout(() => router.push("/dashboard"), 3000);
+
+        // ====================================================================
+        // ✨ CORRECTION CRITIQUE (Délai, Rôle et Redirection Spécifique au Rôle) ✨
+        // ====================================================================
+
+        // 2. Tente la connexion immédiate avec les credentials du nouvel utilisateur.
+        // Ceci déclenchera le provider NextAuth 'credentials' pour créer la session.
+        const loginResult = await signIn('credentials', {
+          redirect: false, // On gère la redirection nous-mêmes
+          email: editableData.email,
+          password: formData.password,
+        });
+
+        if (loginResult && loginResult.ok && !loginResult.error) {
+          // Remplacement de la logique de mappage par une version plus robuste
+          const dbRole = String(editableData.category ?? "").trim().toLowerCase();
+          let targetRoleFolder = "owner"; // fallback sécurisé
+
+          if (dbRole.startsWith("proprietaire")) {
+            targetRoleFolder = "owner";
+          } else if (dbRole.startsWith("concierge")) {
+            targetRoleFolder = "concierge";
+          } else if (dbRole === "admin") {
+            targetRoleFolder = "admin";
+          } else if (["artisan", "service", "fournisseur", "provider", "prestataire"].includes(dbRole)) {
+            targetRoleFolder = "provider";
+          } else {
+            // Tentative de correspondance partielle si valeur inattendue
+            if (dbRole.includes("propriet") || dbRole.includes("owner")) targetRoleFolder = "owner";
+            else if (dbRole.includes("concierge")) targetRoleFolder = "concierge";
+            else if (dbRole.includes("artisan") || dbRole.includes("fourniss") || dbRole.includes("service")) targetRoleFolder = "provider";
+          }
+
+          const finalDashboardPath = `/dashboard/${targetRoleFolder}`;
+          console.log(`[CLIENT-SIDE] Connexion réussie. Redirection vers ${finalDashboardPath}.`);
+          router.replace(finalDashboardPath);
+        } else {
+          // Échec de la connexion après inscription (très rare)
+          setLoading(false);
+          alert(`❌ Erreur de connexion après l'inscription. Veuillez vous connecter manuellement.`);
+          router.push("/auth/login");
+        }
+
+        // ====================================================================
+
       } else {
         if (data.error.includes("duplicate key") && data.error.includes("profiles_username_key")) {
           setErrors(prev => ({ ...prev, username: "Ce nom d'utilisateur est déjà pris" }));
@@ -454,10 +498,10 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
         } else {
           alert(`❌ ${data.error}`);
         }
+        setLoading(false); // Réactiver le bouton si l'inscription échoue
       }
     } catch (err) {
       alert(err instanceof Error ? `❌ ${err.message}` : "❌ Erreur serveur. Réessayez.");
-    } finally {
       setLoading(false);
     }
   };
@@ -607,15 +651,6 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
           {errors.avatar && <small className={styles.errorMsg}>{errors.avatar}</small>}
           {uploadedAvatarUrl && <small className={styles.successMsg}>✅ Avatar uploadé avec succès</small>}
         </div>
-            {/* {!isEditing ? (
-          <button onClick={() => setIsEditing(true)} className={styles.editButton}>
-            Modifier mes informations
-          </button>
-        ) : (
-          <button onClick={handleSaveEdit} className={styles.saveButton}>
-            Enregistrer les modifications
-          </button>
-        )} */}
       </section>
 
       {/* ========== FORMULAIRE INSCRIPTION ========== */}

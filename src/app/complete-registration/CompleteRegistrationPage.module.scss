@@ -5,8 +5,8 @@
 
 // Couleurs principales
 $gold: #d4af37;
-$gold-light: lighten($gold, 12%);
-// $gold-dark: darken($gold, 12%);
+$gold-light: color.adjust($gold, $lightness: 12%);
+$gold-dark:  color.adjust($gold, $lightness: -12%);
 $text-color: var(--color-text, #222);
 $bg-color: var(--background, #faf9f6);
 $border-color: rgba(0, 0, 0, 0.1);
@@ -73,7 +73,7 @@ $page-width: 900px;
   }
 }
 
-// ============================================================================
+// =================================================================
 // RÉCAPITULATIF
 // ============================================================================
 .summaryGrid {

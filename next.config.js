@@ -1,26 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "dyqlixssykeecvtqmcxh.supabase.co", // Supabase storage
+      },
+      // Tu peux en ajouter d'autres ici si nécessaire :
       // {
       //   protocol: "https",
       //   hostname: "cdn.planetls.com",
       // },
     ],
     formats: ["image/webp", "image/avif"],
-    domains: [
-      "dyqlixssykeecvtqmcxh.supabase.co",
-      // ajoute d'autres domaines si besoin
-    ],
   },
+
   experimental: {
     scrollRestoration: true,
   },
+
   async redirects() {
     return [
       {

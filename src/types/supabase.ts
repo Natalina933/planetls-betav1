@@ -6,6 +6,19 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+  // /types/supabase.ts
+
+// Enum des rôles Supabase (issu de ton Database)
+export type UserRole =
+  | "proprietaire"
+  | "proprietaire_pro"
+  | "concierge"
+  | "concierge_pro"
+  | "artisan"
+  | "artisan_pro"
+  | "service_pro"
+  | "admin";
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)

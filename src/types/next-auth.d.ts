@@ -1,35 +1,32 @@
-// types/next-auth.d.ts ou à la racine
+// types/next-auth.d.ts
+// Configuration des types NextAuth pour votre application
+import type { DefaultSession, DefaultUser } from "next-auth";
+import type { UserRole } from "./supabase"; // adapte le chemin
 
-import { DefaultSession, DefaultUser } from "next-auth";
 declare module "next-auth" {
-    /**
-     * L'objet User (celui retourné par authorize)
-     */
     interface User extends DefaultUser {
         id: string;
-        username: string;
-        role: string;
+        username: string; // <- ce champ doit correspondre à "username" dans la requête UserRecord
+        role: UserRole;
+        email: string;
+        avatar_url?: string | null;
     }
-
-    /**
-     * L'objet Session (celui accessible par useSession)
-     */
     interface Session extends DefaultSession {
         user: {
             id: string;
             username: string;
-            role: string;
+            role: UserRole;
+            email: string;
+            avatar_url?: string | null;
         } & DefaultSession["user"];
     }
 }
-
 declare module "next-auth/jwt" {
-    /**
-     * L'objet JWT (le token chiffré)
-     */
     interface JWT {
         id: string;
         username: string;
-        role: string;
+        role: UserRole;
+        email: string;
+        avatar_url?: string | null;
     }
 }
