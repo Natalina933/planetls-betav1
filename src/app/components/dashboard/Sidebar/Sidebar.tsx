@@ -3,39 +3,38 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiUser, FiBarChart2, FiSettings, FiLogOut } from "react-icons/fi";
+import { FiLogOut } from "react-icons/fi";
 import { signOut } from "next-auth/react";
 import styles from "./Sidebar.module.scss";
+import { sidebarConfig } from "@/app/components/dashboard/Sidebar/sidebarconfig";
+import { useUserType } from "@/app/context/UserTypeContext";
+
+const roleLabels: Record<string, string> = {
+  owner: "Propriétaire",
+  concierge: "Conciergerie",
+  providence: "Artisan",
+  admin: "Administrateur",
+};
 
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
 }
 
-const menuItems = [
-  { name: "Accueil", path: "/", icon: <FiHome /> },
-  { name: "Profil", path: "/profile", icon: <FiUser /> },
-  { name: "Tableau de bord", path: "/dashboard", icon: <FiBarChart2 /> },
-  { name: "Paramètres", path: "/settings", icon: <FiSettings /> },
-];
-
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const pathname = usePathname();
+  const { userType } = useUserType();
 
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/auth/login" });
-  };
+  const menuItems = userType ? sidebarConfig[userType] : [];
 
   return (
     <>
       {isOpen && <div className={styles.overlay} onClick={toggleSidebar} />}
-
-      <aside
-        className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}
-        aria-label="Sidebar"
-      >
+      <aside className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`} aria-label="Sidebar">
         <div className={styles.header}>
-          <span className={styles.title}>Mon Application</span>
+          <span className={styles.title}>
+            {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
+          </span>
           <button onClick={toggleSidebar} className={styles.closeBtn} aria-label="Fermer la sidebar">
             <svg width="24" height="24" fill="none" stroke="currentColor" className={styles.closeIcon}>
               <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />
@@ -43,34 +42,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </svg>
           </button>
         </div>
-        <nav className={styles.nav}>
-          {menuItems.map(({ name, path, icon }) => {
-            const isActive = pathname === path;
-            return (
-              <Link
-                key={path}
-                href={path}
-                className={`${styles.link} ${isActive ? styles.active : ""}`}
-                aria-current={isActive ? "page" : undefined}
-                onClick={toggleSidebar}
-              >
-                <span className={styles.icon}>{icon}</span>
-                <span>{name}</span>
-              </Link>
-            );
-          })}
 
-          {/* Bouton Déconnexion */}
-          <button
-            onClick={handleLogout}
-            className={styles.link}
-            style={{ cursor: "pointer" }}
-            aria-label="Déconnexion"
-          >
-            <span className={styles.icon}><FiLogOut /></span>
-            <span>Déconnexion</span>
-          </button>
+        <nav className={styles.nav}>
+          {menuItems.length === 0 ? (
+            <p>Aucun menu disponible</p>
+          ) : (
+            menuItems.map(({ label, path, icon: Icon }) => {
+              const isActive = pathname === path;
+              return (
+                <Link
+                  key={path}
+                  href={path}
+                  className={`${styles.link} ${isActive ? styles.active : ""}`}
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={toggleSidebar}
+                >
+                  {Icon && <Icon className={styles.icon} />}
+                  <span>{label}</span>
+                </Link>
+              );
+            })
+          )}
         </nav>
+
+        <div className={styles.footer}>
+          <button
+            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            className={styles.logout}
+            aria-label="Se déconnecter"
+            style={{ cursor: "pointer" }}
+          >
+            <FiLogOut className={styles.icon} />
+            <span>Se déconnecter</span>
+          </button>
+        </div>
       </aside>
     </>
   );
