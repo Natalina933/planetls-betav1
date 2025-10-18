@@ -12,8 +12,8 @@ import { useUserType } from "@/app/context/UserTypeContext";
 const roleLabels: Record<string, string> = {
   owner: "Propriétaire",
   concierge: "Conciergerie",
-  providence: "Artisan",
-  admin: "Administrateur",
+  artisan: "Artisan",
+  providence: "Providence",
 };
 
 interface SidebarProps {
@@ -25,7 +25,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const pathname = usePathname();
   const { userType } = useUserType();
 
-  const menuItems = userType ? sidebarConfig[userType] : [];
+  const menuItems =
+    userType && sidebarConfig[userType as keyof typeof sidebarConfig]
+      ? sidebarConfig[userType as keyof typeof sidebarConfig]
+      : [];
 
   return (
     <>
