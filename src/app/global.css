@@ -1,0 +1,205 @@
+/* src/app/global.css */
+/* styles/global.css */
+@import "tailwindcss";
+/* 1. DIRECTIVES TAILWIND */
+/* Elles doivent être en tête de votre fichier CSS global pour injecter les utilitaires de base. */
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+/* 2. COUCHES DE BASE POUR LES VARIABLES CSS (Custom Properties) */
+/* @layer base { */
+
+    /* ========================================= */
+    /* ☀️ LIGHT MODE (Par défaut) */
+    /* Les valeurs sont au format HSL (Teinte Saturation Luminosité) sans l'unité '%' */
+    /* --primary: 43 74% 52% correspond à votre #d4af37 (Gold) */
+    /* ========================================= */
+    :root {
+        /* Couleurs Neutres (Shadcn/ui) */
+        --background: 220 18% 98%;
+        /* Basé sur votre --color-bg: #f8f9fb */
+        --foreground: 210 3% 17%;
+        /* Basé sur votre --color-text: #2b2b2b */
+        --card: 0 0% 100%;
+        /* Arrière-plan des cartes */
+        --card-foreground: 210 3% 17%;
+        --popover: 0 0% 100%;
+        /* Arrière-plan des popovers/menus */
+        --popover-foreground: 210 3% 17%;
+
+        /* Couleurs Primaires (Votre Gold) */
+        --primary: 43 74% 52%;
+        /* Votre --color-primary: #d4af37 */
+        --primary-foreground: 0 0% 100%;
+        /* Texte blanc sur l'or pour un meilleur contraste */
+
+        /* Couleurs Secondaires & Accentuation (Shadcn/ui) */
+        --secondary: 42 96% 66%;
+        /* Basé sur votre --color-accent: #ffc107 */
+        --secondary-foreground: 210 3% 17%;
+        --muted: 220 18% 96%;
+        /* Fond légèrement grisé */
+        --muted-foreground: 210 3% 40%;
+        --accent: 43 100% 93%;
+        /* Basé sur votre --color-focus-ring: #ffe09b */
+        --accent-foreground: 210 3% 17%;
+
+        /* Couleurs État */
+        --destructive: 0 84.2% 60.2%;
+        /* Rouge pour les erreurs/actions destructives */
+        --destructive-foreground: 210 20% 98%;
+        --success: 120 40% 48%;
+        /* Vert pour le succès (basé sur #4caf50) */
+
+        /* Bordures, Inputs et Focus */
+        --border: 0 0% 92%;
+        /* Votre --color-border: #eaeaea */
+        --input: 0 0% 92%;
+        /* Bordures d'input */
+        --ring: 43 74% 52%;
+        /* Votre --color-primary pour l'anneau de focus */
+
+        /* Rayons de Bordure (Shadcn/ui) */
+        --radius: 0.25rem;
+        /* 4px, basé sur votre --radius */
+
+
+        /* ========================================= */
+        /* VOS VARIABLES CSS ORIGINALES (Rétrocompatibilité) */
+        /* Elles sont conservées et toujours utilisables via var(--...) */
+        /* ========================================= */
+        --color-text: #2b2b2b;
+        --color-bg: #f8f9fb;
+        --color-text-secondary: #555;
+        --color-border: #eaeaea;
+        --color-success: #4caf50;
+        --color-error: #e53935;
+        --color-accent: #ffc107;
+        --color-focus-ring: #ffe09b;
+        --color-primary: #d4af37;
+        --color-primary-hover: #b8912f;
+        --color-primary-rgb: 212, 175, 55;
+
+        /* Accents Spécifiques */
+        --color-accent-homeowners: #d4a017;
+        --color-accent-managers: #3c91e6;
+        --color-accent-partners: #e76f51;
+
+        /* Typographies (Définies dans tailwind.config.js mais conservées ici) */
+        --font-title: "Montserrat", sans-serif;
+        --font-primary: "Cormorant Garamond", serif;
+        --font-text: "Open Sans", sans-serif;
+
+        /* Effet "verre" */
+        --glass-bg: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.3);
+        --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --glass-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ========================================= */
+    /* 🌙 DARK MODE */
+    /* La classe .dark est appliquée sur l'élément <html> par votre ThemeProvider */
+    /* ========================================= */
+    .dark {
+        /* Mapping HSL pour le Dark Mode */
+        --background: 210 3% 11%;
+        /* Votre --color-bg: #1c1c1c */
+        --foreground: 43 10% 95%;
+        /* Votre --color-text: #f5f5f5 */
+        --card: 210 3% 17%;
+        --card-foreground: 43 10% 95%;
+        --popover: 210 3% 17%;
+        --popover-foreground: 43 10% 95%;
+
+        --primary: 43 74% 52%;
+        /* Primary inchangé pour la cohérence */
+        --primary-foreground: 210 3% 17%;
+
+        --secondary: 42 96% 66%;
+        --secondary-foreground: 210 3% 17%;
+        --muted: 210 3% 17%;
+        --muted-foreground: 210 3% 60%;
+        --accent: 210 3% 25%;
+        --accent-foreground: 43 10% 95%;
+
+        --border: 210 3% 25%;
+        --input: 210 3% 25%;
+        --ring: 43 74% 52%;
+
+        /* Rétrocompatibilité Dark Mode */
+        --color-bg: #1c1c1c;
+        --color-text: #f5f5f5;
+        --color-text-secondary: #bbb;
+        --glass-bg: rgba(40, 40, 40, 0.8);
+        --glass-border: rgba(255, 255, 255, 0.1);
+    }
+/* } */
+
+/* 3. STYLES CSS NON TAILWIND (Animations, Helpers Spécifiques) */
+/* Ces styles ne sont pas gérés par Tailwind et restent en CSS pur. */
+
+/* 🔄 Animation spinner */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loader global */
+.loaderWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    min-height: 80px;
+}
+
+.spinner {
+    display: inline-block;
+    border: 4px solid;
+    /* Utilisation de vos variables Shadcn pour la couleur */
+    border-top: 4px solid hsl(var(--primary));
+    border-radius: 50%;
+    width: 40px;
+    /* Ajout d'une taille pour professionnalisme */
+    height: 40px;
+    /* Ajout d'une taille pour professionnalisme */
+    animation: spin 1s linear infinite;
+    /* Utilisation d'une couleur plus subtile pour le corps du spinner */
+    border-color: hsl(var(--border));
+}
+
+.loadingText {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    /* Utilisation de la variable classique */
+}
+
+/* Styles pour les typographies (Optionnel, si non géré par Tailwind) */
+body {
+    font-family: var(--font-text);
+    line-height: 1.6;
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-title);
+}
+
+.font-primary-style {
+    /* Classe pour utiliser Cormorant Garamond */
+    font-family: var(--font-primary);
+}
