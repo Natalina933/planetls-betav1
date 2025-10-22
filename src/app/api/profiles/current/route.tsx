@@ -8,47 +8,53 @@ export async function GET(req: NextRequest) {
 
   try {
     const token = await getToken({ req });
-
     if (!token || !token.id) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-
     const userId = token.id as string;
 
-    // 💡 LOG CRITIQUE 1: Les valeurs utilisées pour la requête
-    console.log(`[PROFILES API] Tentative de récupération pour UserID: ${userId}, Catégorie filtre: ${category}`);
+    // Correction : selectionner les champs réels de 'profiles'
+    let query = db.from("profiles").select(
+      "id, username, firstname, lastname, email, phone, avatarurl, additionalinfo, category, createdat, location, option, searchtarget"
+    );
 
-    let query = db.from("profiles").select("id, username, category");
-
+    // Optionnel : filtrer par catégorie
     if (category && category !== "all") {
       query = query.eq("category", category);
     }
-
-    // Applique le filtre sur l'ID de l'utilisateur (le UUID)
     query = query.eq("id", userId);
 
     const { data: profile, error } = await query.single();
 
-    // 💡 LOG CRITIQUE 2: Le résultat de Supabase
     if (error) {
       console.error("[PROFILES API] Erreur Supabase:", error);
+      // Erreur 404 si pas de profil
+      if (error.code === "PGRST116") {
+        return NextResponse.json(
+          { error: "Aucun profil trouvé" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(
+        { error: "Erreur lors de la récupération du profil" },
+        { status: 500 }
+      );
     }
+
     if (!profile) {
-      console.log("[PROFILES API] AUCUN PROFIL trouvé pour cette combinaison ID/CATÉGORIE.");
-    }
-
-
-    if (error || !profile) {
-      // ⚠️ Ce 404 est retourné à la console.
-      return NextResponse.json({ error: "Profil non trouvé" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Profil non trouvé" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(profile);
-  } catch (error) {
-    console.error(error);
+
+  } catch (err) {
+    console.error("[PROFILES API] Erreur serveur:", err);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur serveur" },
-      { status: 500 },
+      { error: "Erreur serveur" },
+      { status: 500 }
     );
   }
 }

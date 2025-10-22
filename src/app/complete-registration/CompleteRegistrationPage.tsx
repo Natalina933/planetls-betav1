@@ -452,41 +452,54 @@ export default function CompleteRegistrationPage() {
 
         // 2. Tente la connexion immédiate avec les credentials du nouvel utilisateur.
         // Ceci déclenchera le provider NextAuth 'credentials' pour créer la session.
+        // Dans handleSubmit, après la connexion réussie
         const loginResult = await signIn('credentials', {
-          redirect: false, // On gère la redirection nous-mêmes
+          redirect: false,
           email: editableData.email,
           password: formData.password,
         });
 
         if (loginResult && loginResult.ok && !loginResult.error) {
-          // Remplacement de la logique de mappage par une version plus robuste
-          const dbRole = String(editableData.category ?? "").trim().toLowerCase();
-          let targetRoleFolder = "owner"; // fallback sécurisé
+          // ✅ CORRECTION : Récupérer le rôle depuis la session NextAuth (plus fiable)
+          const sessionResponse = await fetch('/api/auth/session');
+          const sessionData = await sessionResponse.json();
 
-          if (dbRole.startsWith("proprietaire")) {
-            targetRoleFolder = "owner";
-          } else if (dbRole.startsWith("concierge")) {
-            targetRoleFolder = "concierge";
-          } else if (dbRole === "admin") {
-            targetRoleFolder = "admin";
-          } else if (["artisan", "service", "fournisseur", "provider", "prestataire"].includes(dbRole)) {
-            targetRoleFolder = "provider";
+          if (sessionData?.user?.role) {
+            const userRole = String(sessionData.user.role).trim().toLowerCase();
+            let targetRoleFolder = "owner"; // fallback
+
+            // Mapping basé sur l'enum Supabase user_role
+            switch (userRole) {
+              case "proprietaire":
+              case "proprietaire_pro":
+                targetRoleFolder = "owner";
+                break;
+              case "concierge":
+              case "concierge_pro":
+                targetRoleFolder = "concierge";
+                break;
+              case "service":
+              case "service_pro":
+                targetRoleFolder = "provider";
+                break;
+              case "admin":
+                targetRoleFolder = "admin";
+                break;
+              default:
+                console.warn(`[CLIENT] Rôle inconnu: ${userRole}, redirection vers owner`);
+                targetRoleFolder = "owner";
+            }
+
+            const finalDashboardPath = `/dashboard/${targetRoleFolder}`;
+            console.log(`[CLIENT] Redirection basée sur le rôle: ${userRole} -> ${finalDashboardPath}`);
+            router.replace(finalDashboardPath);
           } else {
-            // Tentative de correspondance partielle si valeur inattendue
-            if (dbRole.includes("propriet") || dbRole.includes("owner")) targetRoleFolder = "owner";
-            else if (dbRole.includes("concierge")) targetRoleFolder = "concierge";
-            else if (dbRole.includes("artisan") || dbRole.includes("fourniss") || dbRole.includes("service")) targetRoleFolder = "provider";
+            // Fallback si pas de rôle dans la session
+            console.error("[CLIENT] Pas de rôle dans la session, redirection par défaut");
+            router.replace("/dashboard/owner");
           }
-
-          const finalDashboardPath = `/dashboard/${targetRoleFolder}`;
-          console.log(`[CLIENT-SIDE] Connexion réussie. Redirection vers ${finalDashboardPath}.`);
-          router.replace(finalDashboardPath);
-        } else {
-          // Échec de la connexion après inscription (très rare)
-          setLoading(false);
-          alert(`❌ Erreur de connexion après l'inscription. Veuillez vous connecter manuellement.`);
-          router.push("/auth/login");
         }
+
 
         // ====================================================================
 

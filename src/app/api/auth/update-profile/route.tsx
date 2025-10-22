@@ -1,19 +1,64 @@
 // src/app/api/auth/update-profile/route.ts
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
-    const supabase = createRouteHandlerClient({ cookies });
+    // ⚠️ On attend la promesse ici :
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get(name) {
+                    return cookieStore.get(name)?.value;
+                },
+                set(name, value, options) {
+                    try {
+                        cookieStore.set({ name, value, ...options });
+                    } catch {
+                        // Certains environnements Next.js n’autorisent pas set() côté API route
+                    }
+                },
+                remove(name, options) {
+                    try {
+                        cookieStore.set({ name, value: "", ...options });
+                    } catch {
+                        // On ignore silencieusement les erreurs ici aussi
+                    }
+                },
+            },
+        }
+    );
+
     const body = await req.json();
 
     try {
-        const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+        const {
+            data: { user },
+            error: sessionError,
+        } = await supabase.auth.getUser();
+
         if (sessionError || !user) {
-            return NextResponse.json({ error: "Utilisateur non authentifié." }, { status: 401 });
+            return NextResponse.json(
+                { error: "Utilisateur non authentifié." },
+                { status: 401 }
+            );
         }
 
-        const { category, searchTarget, option, location, firstName, lastName, email, phone, additionalInfo } = body;
+        const {
+            category,
+            searchTarget,
+            option,
+            location,
+            firstName,
+            lastName,
+            email,
+            phone,
+            additionalInfo,
+        } = body;
 
         const { error: updateError } = await supabase
             .from("profiles")
@@ -39,5 +84,4 @@ export async function POST(req: Request) {
         if (error instanceof Error) msg = error.message;
         return NextResponse.json({ error: msg }, { status: 500 });
     }
-
 }
