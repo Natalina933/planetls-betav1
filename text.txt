@@ -8,5 +8,3 @@ GOOGLE_CLIENT_SECRET = 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
 
 NEXTAUTH_SECRET =0I097TFHJjkoiihoho
 NEXTAUTH_URL =http://localhost:3000
-
-Mot de passe PostgreSQL : EQ*dg/5hT$Jdt&2
