@@ -2,33 +2,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { categoryToRole } from "@/app/utils/roles";
 
-// Logger universel
 function logStep(step: string, details?: unknown) {
   console.log(`[REGISTER][${step}]`, details ?? "");
 }
 
-// Utilitaire erreur (unknown)
 function errorToString(err: unknown): string {
   if (err instanceof Error) return err.message;
   try { return JSON.stringify(err); } catch { return String(err); }
 }
 
-// Mapping category ➔ role (doit matcher user_roles.code)
-const categoryToRole = (cat: string | null | undefined): string => {
-  const c = (cat || "").trim().toLowerCase();
-  if (c === "proprietaire_pro") return "owner_pro";
-  if (c.startsWith("proprietaire")) return "owner";
-  if (c === "concierge_pro") return "concierge_pro";
-  if (c.startsWith("concierge")) return "concierge";
-  if (c === "service_pro") return "provider_pro";
-  if (c.startsWith("service")) return "provider";
-  if (c === "admin") return "admin";
-  if (c === "super_admin") return "super_admin";
-  return "owner"; // fallback safe value
-}
-
-// Schema Zod
 const registerSchema = z.object({
   username: z.string()
     .min(3, "Nom d'utilisateur : minimum 3 caractères")
@@ -57,7 +41,6 @@ function sanitizeString(str: string | null | undefined): string | null {
   return str.replace(/[<>]/g, '').trim().substring(0, 1000);
 }
 
-// Rate limit
 const registrationAttempts = new Map<string, number[]>();
 function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
@@ -82,14 +65,12 @@ setInterval(() => {
 
 export async function POST(request: NextRequest) {
   try {
-    // ENV
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     logStep("ENV", { supabaseUrl, supabaseServiceKey });
     if (!supabaseUrl || !supabaseServiceKey)
       return NextResponse.json({ error: "Configuration serveur invalide" }, { status: 500 });
-    
-    // Rate Limiting
+
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]
       || request.headers.get("x-real-ip") || "unknown";
     logStep("IP", ip);
@@ -101,7 +82,6 @@ export async function POST(request: NextRequest) {
         { status: 429, headers: { "Retry-After": rateStatus.retryAfter?.toString() || "300" } }
       );
 
-    // Parse/validate body
     let body: unknown;
     try {
       body = await request.json();
@@ -126,12 +106,10 @@ export async function POST(request: NextRequest) {
     const role = categoryToRole(data.category);
     logStep("Role", role);
 
-    // Init Supabase
     const supabase: SupabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false, autoRefreshToken: false }
     });
 
-    // Username unique ?
     try {
       const { data: usernameUsed, error: usernameError } = await supabase
         .from("profiles")
@@ -147,7 +125,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Erreur vérification username" }, { status: 500 });
     }
 
-    // Email unique ?
     try {
       const { data: usersList, error: usersError } = await supabase.auth.admin.listUsers();
       type UserEmail = { email: string };
@@ -163,7 +140,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Erreur vérification email" }, { status: 500 });
     }
 
-    // Création utilisateur authentication
     let userId: string | undefined;
     try {
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -189,7 +165,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Création du profil
     try {
       const { error: profileError } = await supabase
         .from("profiles")
@@ -202,7 +177,7 @@ export async function POST(request: NextRequest) {
           phone: sanitizeString(data.phone) || null,
           avatar_url: data.avatar_url || null,
           category: sanitizeString(data.category) || null,
-          role, // <-- clé étrangère, doit matcher user_roles.code
+          role, // Le rôle unique qui drive l'accès et le dashboard
           search_target: sanitizeString(data.searchTarget) || null,
           option: sanitizeString(data.option) || null,
           location: sanitizeString(data.location) || null,
