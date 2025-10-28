@@ -2,11 +2,12 @@
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
-import { signIn } from "next-auth/react";
 
-const validateEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validateEmail = (email: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,7 +29,8 @@ export default function LoginPage() {
     }
   };
 
-  const canSubmit = () => formData.email && formData.password && !errors.email && !errors.password;
+  const canSubmit = () =>
+    formData.email && formData.password && !errors.email && !errors.password;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,7 +53,29 @@ export default function LoginPage() {
     if (result?.error) {
       setErrors(prev => ({ ...prev, auth: "Email ou mot de passe incorrect" }));
     } else {
-      router.push("/dashboard"); // ou chemin selon ton app
+      // 🔁 Redirection personnalisée selon le rôle
+      try {
+        const res = await fetch("/api/auth/session");
+        const session = await res.json();
+        const role = session?.user?.role;
+
+        switch (role) {
+          case "concierge":
+            router.push("/dashboard/concierge");
+            break;
+          case "owner":
+            router.push("/dashboard/owner");
+            break;
+          case "provider":
+            router.push("/dashboard/provider");
+            break;
+          default:
+            router.push("/dashboard");
+        }
+      } catch (err) {
+        console.error("Erreur lors de la récupération du rôle :", err);
+        router.push("/dashboard");
+      }
     }
   };
 
@@ -59,6 +83,7 @@ export default function LoginPage() {
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>Connexion</h1>
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
+        {/* Email */}
         <label htmlFor="email">Email</label>
         <div className={styles.inputWrapper}>
           <input
@@ -85,6 +110,7 @@ export default function LoginPage() {
           )}
         </div>
 
+        {/* Password */}
         <label htmlFor="password">Mot de passe</label>
         <div className={styles.passwordInputWrapper}>
           <input
@@ -115,13 +141,19 @@ export default function LoginPage() {
           </small>
         )}
 
+        {/* Auth errors */}
         {errors.auth && (
           <div role="alert" className={styles.errorMsg} style={{ marginTop: "1rem" }}>
             {errors.auth}
           </div>
         )}
 
-        <button type="submit" disabled={!canSubmit() || loading} className={styles.submitButton} aria-busy={loading}>
+        <button
+          type="submit"
+          disabled={!canSubmit() || loading}
+          className={styles.submitButton}
+          aria-busy={loading}
+        >
           {loading ? "⏳ Connexion en cours..." : "Se connecter"}
         </button>
       </form>

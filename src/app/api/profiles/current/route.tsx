@@ -7,18 +7,21 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get("category") || undefined;
 
   try {
+    // Récupère le token JWT
     const token = await getToken({ req });
-    if (!token || !token.id) {
+    // La clé unique du user Supabase est généralement 'sub'
+    const userId = typeof token?.sub === "string" ? token.sub : (token?.id as string | undefined);
+
+    if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-    const userId = token.id as string;
 
-    // Correction : selectionner les champs réels de 'profiles'
+    // Sélectionne les champs en base (adapté à la casse réelle)
     let query = db.from("profiles").select(
-      "id, username, firstname, lastname, email, phone, avatarurl, additionalinfo, category, createdat, location, option, searchtarget"
+      "id, username, first_name, last_name, email, phone, avatar_url, additional_info, category, created_at, location, option, search_target"
     );
 
-    // Optionnel : filtrer par catégorie
+    // Filtrer par catégorie si précisé
     if (category && category !== "all") {
       query = query.eq("category", category);
     }
@@ -28,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error("[PROFILES API] Erreur Supabase:", error);
-      // Erreur 404 si pas de profil
+      // Erreur 404 si profil absent
       if (error.code === "PGRST116") {
         return NextResponse.json(
           { error: "Aucun profil trouvé" },
@@ -50,8 +53,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(profile);
 
-  } catch (err) {
-    console.error("[PROFILES API] Erreur serveur:", err);
+  } catch (err: unknown) {
+    console.error("[PROFILES API] Erreur serveur:", err instanceof Error ? err.message : String(err));
     return NextResponse.json(
       { error: "Erreur serveur" },
       { status: 500 }
