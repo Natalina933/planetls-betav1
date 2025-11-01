@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
     query = query.eq("id", userId);
 
-    const { data: profile, error } = await query.single();
+    const { data: profile, error } = await query.maybeSingle();
 
     if (error) {
       console.error("[PROFILES API] Erreur Supabase:", error);
