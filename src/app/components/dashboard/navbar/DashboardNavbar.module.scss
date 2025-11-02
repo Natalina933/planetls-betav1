@@ -1,0 +1,121 @@
+/* src/app/components/dashboard/Navbar/DashboardNavbar.module.scss */
+@use "../../../styles/abstracts/variables" as *;
+
+// -------------------------------------------
+// La classe .dash-navbar doit être définie dans _dashboards.scss
+// Nous ajoutons ici les styles spécifiques aux éléments internes
+// -------------------------------------------
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  color: $mucha-ink;
+  cursor: pointer;
+  margin-right: $spacing-md;
+  padding: 0;
+
+//   @media (min-width: map.get(var.$breakpoints, md)) {
+//     display: none;
+//   }
+}
+
+.logoText {
+  font-family: $font-elegant;
+  font-size: 1.4rem;
+  font-weight: $font-weight-bold;
+  color: $primary-dark-color-sass; // Or foncé
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.proBadge {
+  background-color: $gold; // Couleur or brillante
+  color: $mucha-ink;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: $font-weight-bold;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  border: 1px solid $primary-dark-color-sass;
+  box-shadow: 0 1px 3px rgba($primary-dark-color-sass, 0.3);
+}
+
+.iconButton {
+  position: relative;
+  background: none;
+  border: none;
+  color: $mucha-ink;
+  cursor: pointer;
+  padding: $spacing-xs;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $primary-color-sass;
+  }
+}
+
+.notificationCount {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #a93226; // Rouge foncé d'alerte
+  color: white;
+  font-size: 0.7rem;
+  border-radius: $radius-pill;
+  padding: 1px 6px;
+  line-height: 1;
+  font-weight: $font-weight-bold;
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  padding-left: $spacing-md;
+  border-left: 1px solid $text-light;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: $spacing-sm;
+
+//   @media (max-width: map.get(var.$breakpoints, sm)) {
+//         display: none; 
+//     }
+}
+
+.userName {
+  font-weight: $font-weight-bold;
+  font-size: 1rem;
+  color: $mucha-ink;
+  line-height: 1.2;
+}
+
+.userRole {
+  font-size: 0.8rem;
+  color: $text-light;
+  font-style: italic;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 0; // Look 1900
+  border: 2px solid $primary-color-sass;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  color: $primary-color-sass;
+}

@@ -1,0 +1,73 @@
+/* src/app/components/dashboard/Calendar/DashboardCalendar.module.scss */
+
+// Importez vos variables si nécessaire
+// @import '@/app/styles/abstracts/variables';
+
+.dashboard-calendar-container {
+    margin-top: $spacing-lg;
+    padding: $spacing-lg;
+    border: 1px solid $mucha-ink;
+    background: $mucha-paper; // Le fond du calendrier est blanc cassé
+    box-shadow: $shadow;
+    
+    .calendar-title {
+        font-family: $font-elegant;
+        font-size: 1.5rem;
+        color: $primary-dark-color-sass;
+        margin-bottom: $spacing-md;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed $text-light;
+    }
+}
+
+// ----------------------------------------------------
+// Surcharge des styles par défaut de react-big-calendar
+// ----------------------------------------------------
+
+.calendar-wrapper :global {
+    .rbc-calendar {
+        font-family: $font-text;
+    }
+
+    // Header du calendrier (Mois/Année)
+    .rbc-toolbar button {
+        background-color: $gold-light;
+        border: 1px solid $primary-color-sass;
+        color: $mucha-ink;
+        font-family: $font-title;
+        transition: $transition;
+        
+        &:hover {
+            background-color: $primary-light-color-sass;
+            color: $mucha-ink;
+        }
+        &.rbc-active {
+            background-color: $primary-color-sass;
+            color: $mucha-paper;
+            box-shadow: $shadow-soft;
+        }
+    }
+
+    // Journées et événements
+    .rbc-header {
+        background-color: $gold-light;
+        padding: 8px 0;
+        border-bottom: 1px solid $mucha-ink;
+        border-top: 1px solid $mucha-ink;
+        font-weight: $font-weight-bold;
+        color: $mucha-ink;
+    }
+
+    // Événements dans le calendrier (missions, réservations)
+    .rbc-event {
+        background-color: $primary-dark-color-sass; // Couleur dorée foncée pour les blocs
+        border-radius: 0;
+        border: 1px solid $mucha-ink;
+        font-family: $font-text;
+        font-size: 0.9rem;
+    }
+
+    .rbc-today {
+        background-color: lighten($gold-light, 5%); // Mise en évidence d'aujourd'hui
+    }
+}
