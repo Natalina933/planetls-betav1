@@ -136,6 +136,9 @@ export const authOptions: NextAuthOptions = {
           email: profile.email ?? authData.user.email ?? "",
           username: profile.username ?? "",
           name: fullName,
+          firstName: profile.first_name ?? null,
+          lastName: profile.last_name ?? null,
+          phone: profile.phone ?? null,
           role: normalizedRole,
           avatar_url: avatar,
         };
@@ -158,6 +161,9 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.username = user.username;
         token.name = user.name;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.phone = user.phone;
         token.role = user.role;
         token.avatar_url = user.avatar_url;
       }
@@ -169,6 +175,9 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.username = token.username as string;
         session.user.name = token.name as string;
+        session.user.firstName = token.firstName as string | null;
+        session.user.lastName = token.lastName as string | null;
+        session.user.phone = token.phone as string | null;
         session.user.role = token.role as UserRole;
         session.user.avatar_url = token.avatar_url as string | null;
       }

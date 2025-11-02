@@ -1,65 +1,193 @@
-/* styles/dashboards.scss */
+/* src/app/styles/abstracts/_dashboards.scss */
+
+// Assurez-vous d'importer votre fichier de variables si nécessaire :
+@import './variables';
+
+// -------------------------------------------
+// 1. STRUCTURE GLOBALE DU DASHBOARD (Layout)
+// -------------------------------------------
+
 .dashboard-root {
-    display: flex;
-    min-height: 100vh;
-    background: var(--bg, #f7f9fc);
+  display: flex;
+  min-height: 100vh;
+  // Utilisation de la couleur de fond Mucha Paper
+  background: $mucha-paper;
+  font-family: $font-text; // Police de texte standard
+  color: $mucha-ink; // Couleur d'encre sombre
 }
 
 .dashboard-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
 
-.dash-navbar {
-    height: 64px;
-    display: flex;
-    align-items: center;
-    padding: 0 1rem;
-    background: var(--nav-bg, #fff);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  // Adapte la largeur lorsque la sidebar est présente/absente
+  &.with-sidebar {
+    margin-left: 280px;
+  }
+  &.no-sidebar {
+    margin-left: 0;
+  }
+
+  @media (max-width: map-get($breakpoints, md)) {
+    margin-left: 0; // La sidebar est fixe/overlay sur mobile
+  }
 }
 
 .dashboard-content {
-    padding: 1.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
+  flex-grow: 1;
+  padding: $spacing-lg;
+  max-width: $max-content-width;
+  margin: $spacing-lg auto;
+  width: 95%;
+
+  // Effet de registre ou de page d'album, basé sur le thème Mucha/1900
+  background: $gold-soft;
+  border: 3px solid $mucha-ink;
+  box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.2); // Ombre dure, esprit vieilli
+
+  // Assurer le padding pour les mobiles
+  @media (max-width: map-get($breakpoints, sm)) {
+    padding: $spacing-md;
+    margin: $spacing-md auto;
+  }
 }
 
-/* stats row */
-.stats-row {
+// -------------------------------------------
+// 2. ÉLÉMENTS DE BASE PARTAGÉS
+// -------------------------------------------
+
+.dashboard-header {
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  border-bottom: 3px double $mucha-ink;
+
+  h1 {
+    font-family: $font-elegant;
+    font-size: 2.2rem;
+    color: $primary-dark-color-sass;
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-/* stat card */
-.stat-card {
-    flex: 1;
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-/* tables & lists */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.table th,
-.table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-/* responsive */
-@media (max-width: 900px) {
-    .stats-row {
-        flex-direction: column;
+    align-items: center;
+    .header-icon {
+      margin-right: $spacing-sm;
     }
+  }
+  .subtitle {
+    font-style: italic;
+    color: $text-light;
+    margin-top: $spacing-sm;
+  }
+}
+
+.dashboard-loading-container {
+  padding: $spacing-xl;
+  text-align: center;
+  .animate-spin {
+    color: $primary-color-sass;
+  }
+  p {
+    margin-top: $spacing-md;
+    font-family: $font-elegant;
+  }
+}
+
+// -------------------------------------------
+// 3. COMPOSANTS PARTAGÉS (DashboardCard/Stats Row)
+// -------------------------------------------
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+}
+
+.dashboard-card {
+  background: $mucha-paper;
+  border: 1px solid $mucha-ink;
+  padding: $spacing-lg;
+  border-radius: 0;
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 0.15);
+  transition: $transition;
+
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px 0px $primary-light-color-sass;
+  }
+
+  .card-header {
+    border-bottom: 1px dashed $mucha-ink;
+    padding-bottom: $spacing-sm;
+    margin-bottom: $spacing-md;
+  }
+
+  .card-icon {
+    color: $primary-dark-color-sass;
+  }
+
+  .card-title {
+    font-family: $font-title;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .card-value {
+    font-family: $font-elegant;
+    font-size: 2.5rem;
+    color: $primary-color-sass;
+  }
+
+  .card-description {
+    color: $text-light;
+    font-size: 0.9rem;
+  }
+
+  &.locked-card {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+  }
+}
+
+// -------------------------------------------
+// 4. LISTES / TABLES GÉNÉRIQUES
+// -------------------------------------------
+
+.dashboard-section {
+  margin-bottom: $spacing-xl;
+
+  h2 {
+    font-family: $font-elegant;
+    font-size: 1.8rem;
+    color: $mucha-ink;
+    margin-bottom: $spacing-md;
+    text-decoration: underline;
+    text-decoration-color: $primary-dark-color-sass;
+    text-decoration-thickness: 2px;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: $mucha-paper;
+  border: 2px solid $mucha-ink;
+  box-shadow: $shadow;
+
+  th,
+  td {
+    padding: $spacing-md;
+    border-bottom: 1px dashed $text-light;
+    text-align: left;
+  }
+
+  th {
+    background-color: $gold-light;
+    font-family: $font-title;
+    font-weight: $font-weight-bold;
+    color: $mucha-ink;
+  }
+  tr:hover {
+    background-color: $gold-soft;
+  }
 }

@@ -11,6 +11,9 @@ declare module "next-auth" {
     name?: string | null;
     avatar_url?: string | null;
     role?: UserRole | null;
+    firstName: string | null;
+    lastName: string | null;
+    phone: string | null;
   }
   interface Session extends DefaultSession {
     user: {
@@ -20,6 +23,9 @@ declare module "next-auth" {
       name?: string | null;
       avatar_url?: string | null;
       role?: UserRole | null;
+      firstName: string | null;
+      lastName: string | null;
+      phone: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -33,5 +39,8 @@ declare module "next-auth/jwt" {
     name?: string | null;
     avatar_url?: string | null;
     role?: UserRole | null;
+    firstName: string | null;
+    lastName: string | null;
+    phone: string | null;
   }
 }

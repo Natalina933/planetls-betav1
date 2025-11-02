@@ -1,81 +1,93 @@
+// src/app/dashboard/concierge/page.tsx
 'use client';
 
+import React from 'react';
 import { useCurrentUser } from '@/app/components/hooks/useCurrentUser';
-import { Loader } from 'lucide-react';
+import { Loader2, Zap, LayoutDashboard, DollarSign, MessageSquare } from 'lucide-react';
+
+// Composants Modulaires pour une meilleure lisibilité et maintenance
+import DashboardCard from '@/app/components/dashboard/concierge/DashboardCard';
+import ProUpgradeCTA from '@/app/components/dashboard/concierge/ProUpgradeCTA';
+import BaseFeaturesList from '@/app/components/dashboard/concierge/BaseFeaturesList';
+import ProToolsSection from '@/app/components/dashboard/concierge/ProToolsSection';
 
 export default function ConciergeDashboardPage() {
     const { user, loading, isAuthenticated } = useCurrentUser();
 
+    // ----------------------------------------------------
+    // 1. Gestion des États de Chargement et d'Authentification
+    // ----------------------------------------------------
     if (loading || !isAuthenticated) {
-        // Le middleware devrait gérer l'accès, mais c'est un bon fallback
+        // Style professionnel pour le chargement
         return (
-            <main style={{ padding: '2rem', textAlign: 'center' }}>
-                <Loader className="animate-spin" size={32} />
-                <p>Chargement du dashboard...</p>
-            </main>
+            <div className="dashboard-loading-container">
+                <Loader2 className="animate-spin text-primary" size={48} />
+                <p className="mt-4 text-lg text-gray-600">Chargement de votre espace concierge...</p>
+            </div>
         );
     }
 
-    // Détermine si l'utilisateur a un rôle PRO (ex: 'concierge_pro')
+    // Le rôle commence par 'concierge' mais peut être 'concierge_pro'
     const isPro = user?.role === 'concierge_pro';
+    const displayName = user?.firstName || user?.username || 'Utilisateur';
 
     return (
-        <main style={{ padding: '2rem' }}>
-            <h1>Tableau de Bord Conciergerie {isPro ? '✨ PRO' : 'Base'}</h1>
-            <p>Bienvenue, {user?.username}. Gérez votre activité de conciergerie ici.</p>
+        <div className="concierge-dashboard-page">
+            <header className="dashboard-header">
+                <h1>
+                    <LayoutDashboard className="header-icon" size={32} />
+                    Tableau de Bord Conciergerie {isPro ? <Zap className="text-yellow-500" /> : ''}
+                </h1>
+                <p className="subtitle">
+                    Bienvenue, **{displayName}**. Gérez l&apos;ensemble de vos propriétés et services.
+                </p>
+            </header>
 
-            {/* -------------------------------------------------- */}
-            {/* BLOC 1 : SERVICES DE BASE (ACCESSIBLES À TOUS) */}
-            {/* -------------------------------------------------- */}
-            <section style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '2rem' }}>
-                <h2>Services Essentiels (Inclus)</h2>
-                <ul>
-                    <li>✅ Gestion des réservations standard</li>
-                    <li>✅ Suivi des demandes de ménage</li>
-                    <li>✅ Messagerie client de base</li>
-                </ul>
+            <div className="dashboard-grid">
+                {/* ---------------------------------------------------- */}
+                {/* 2. Affichage des Statistiques Clés (Mockup) */}
+                {/* ---------------------------------------------------- */}
+                <DashboardCard 
+                    title="Réservations Actives"
+                    value="12"
+                    icon={Zap}
+                    description="Total des séjours en cours."
+                />
+                <DashboardCard 
+                    title="Demandes de Tâches"
+                    value="3"
+                    icon={MessageSquare}
+                    description="Nouvelles demandes en attente."
+                />
+                <DashboardCard 
+                    title="Revenu Potentiel"
+                    value={isPro ? "€ 14.5k" : "Accès PRO"}
+                    icon={DollarSign}
+                    isLocked={!isPro}
+                    description={isPro ? "Mois en cours (estimation)." : "Statistiques avancées."}
+                />
+            </div>
+
+            <section className="dashboard-section">
+                <h2>Fonctionnalités & Outils</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    
+                    {/* Colonne 1 : Outils de Base */}
+                    <BaseFeaturesList />
+
+                    {/* Colonne 2 : Outils PRO (Conditionnel) */}
+                    {isPro ? (
+                        <ProToolsSection />
+                    ) : (
+                        <ProUpgradeCTA />
+                    )}
+
+                </div>
             </section>
-            
-            {/* -------------------------------------------------- */}
-            {/* BLOC 2 : FONCTIONNALITÉS PRO (CONDITIONNELLES) */}
-            {/* -------------------------------------------------- */}
-            {isPro ? (
-                // --- VERSION PRO : Affiche les fonctionnalités payantes ---
-                <section 
-                    style={{ 
-                        border: '2px solid #FFD700', 
-                        padding: '1.5rem', 
-                        marginTop: '2rem',
-                        backgroundColor: '#FFFACD'
-                    }}
-                >
-                    <h2>🚀 Outils Premium PRO (Actif)</h2>
-                    <ul>
-                        <li>📈 **Analyse de Performance Avancée** (Statistiques sur les revenus)</li>
-                        <li>✉️ **Automatisation des Communications** (Emails et SMS)</li>
-                        <li>⚙️ **Intégration d&apos;Outils Tiers** (Calendriers externes)</li>
-                        {/* C'est ici que vous insérerez vos composants PRO */}
-                    </ul>
-                </section>
-            ) : (
-                // --- VERSION BASE : Affiche le CTA pour la mise à niveau ---
-                <section 
-                    style={{ 
-                        border: '1px solid #FF6347', 
-                        padding: '1.5rem', 
-                        marginTop: '2rem',
-                        backgroundColor: '#FFE4E1'
-                    }}
-                >
-                    <h2>💰 Débloquez la Version PRO</h2>
-                    <p>Passez au plan PRO pour accéder aux statistiques en temps réel et à l&apos;automatisation. Cela vous permettra d&apos;augmenter vos marges de 20% !</p>
-                    {/* Le lien vers votre page Stripe/abonnement */}
-                    <button onClick={() => window.location.href='/abonnement/concierge-pro'} style={{ padding: '10px 20px', backgroundColor: '#FF6347', color: 'white', border: 'none', cursor: 'pointer' }}>
-                        Voir l&apos;Offre PRO
-                    </button>
-                </section>
-            )}
-            
-        </main>
+        </div>
     );
 }
+
+// --------------------------------------------------------------------------------
+// NOTE: Vous devez créer les fichiers pour les composants réutilisables ci-dessous.
+// --------------------------------------------------------------------------------
