@@ -39,7 +39,13 @@ export default function Navbar() {
           </button>
         </li>
         <li className={styles["auth-inscription"]}>
-          <a href="/inscription">S’inscrire</a>
+          <button
+            onClick={() => setSearchOpen(true)} // <-- même logique que Recherche
+            className={`${styles.searchBtn} ${styles.navButton}`}
+            aria-label="Ouvrir la recherche pour inscription"
+          >
+            S’inscrire
+          </button>
         </li>
         <li className={styles["auth-connexion"]}>
           <a href="/login">

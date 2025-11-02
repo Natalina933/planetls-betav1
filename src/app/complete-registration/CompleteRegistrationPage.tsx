@@ -1,3 +1,5 @@
+
+// src/app/complete-registration/CompleteRegistrationPage.tsx
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -429,7 +431,12 @@ export default function CompleteRegistrationPage() {
         username: formData.username,
         password: formData.password,
         avatar_url: uploadedAvatarUrl,
-        ...editableData,
+        category: queryData.category, // ✅ Zod attend 'category'
+        firstName: editableData.firstName, // ✅ Zod attend 'firstName'
+        lastName: editableData.lastName, // ✅ Zod attend 'lastName'
+        email: editableData.email,
+        phone: editableData.phone,
+        additionalInfo: editableData.additionalInfo, // ✅ Zod attend 'additionalInfo'
       };
       // 1. Appel de l'API d'inscription (Création de l'utilisateur en base par l'Admin Supabase)
       const response = await fetch("/api/auth/register", {
@@ -442,7 +449,20 @@ export default function CompleteRegistrationPage() {
 
       const data = await response.json();
 
-      if (!data.error) {
+      if (data.error) {
+        // Gestion des erreurs (inchangée)
+        if (data.error.includes("duplicate key") && data.error.includes("profiles_username_key")) {
+          setErrors(prev => ({ ...prev, username: "Ce nom d'utilisateur est déjà pris" }));
+        } else if (data.error.includes("email") || data.error.includes("authError")) {
+          setErrors(prev => ({ ...prev, email: "Cet email est déjà utilisé ou une erreur de création est survenue" }));
+        } else {
+          alert(`❌ ${data.error}`);
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (data.success) {
         setSuccessMessage("✅ Inscription réussie ! Redirection vers votre dashboard...");
         setShowConfetti(true);
 
@@ -451,67 +471,50 @@ export default function CompleteRegistrationPage() {
         // ====================================================================
 
         // 2. Tente la connexion immédiate avec les credentials du nouvel utilisateur.
-        // Ceci déclenchera le provider NextAuth 'credentials' pour créer la session.
-        // Dans handleSubmit, après la connexion réussie
+        // 2. Tente la connexion immédiate avec les credentials du nouvel utilisateur.
         const loginResult = await signIn('credentials', {
           redirect: false,
           email: editableData.email,
           password: formData.password,
         });
 
-        if (loginResult && loginResult.ok && !loginResult.error) {
-          // ✅ CORRECTION : Récupérer le rôle depuis la session NextAuth (plus fiable)
+        if (loginResult?.ok && !loginResult.error) {
+          // Récupérer le rôle depuis la session NextAuth (après un succès de connexion)
           const sessionResponse = await fetch('/api/auth/session');
           const sessionData = await sessionResponse.json();
 
-          if (sessionData?.user?.role) {
-            const userRole = String(sessionData.user.role).trim().toLowerCase();
-            let targetRoleFolder = "owner"; // fallback
+          // 🛑 CORRECTION : Simplification du mapping des rôles pour la redirection
+          const userRole = String(sessionData?.user?.role || data.user.role).trim().toLowerCase();
+          let targetRoleFolder = 'owner'; // Fallback
 
-            // Mapping basé sur l'enum Supabase user_role
-            switch (userRole) {
-              case "proprietaire":
-              case "proprietaire_pro":
-                targetRoleFolder = "owner";
-                break;
-              case "concierge":
-              case "concierge_pro":
-                targetRoleFolder = "concierge";
-                break;
-              case "service":
-              case "service_pro":
-                targetRoleFolder = "provider";
-                break;
-              case "admin":
-                targetRoleFolder = "admin";
-                break;
-              default:
-                console.warn(`[CLIENT] Rôle inconnu: ${userRole}, redirection vers owner`);
-                targetRoleFolder = "owner";
-            }
+          // Votre `role` dans la session sera le rôle normalisé (owner, concierge, artisan, etc.)
+          // Nous n'avons besoin que de la base du rôle pour la redirection du dossier.
+          const baseRole = userRole.split('_')[0];
 
-            const finalDashboardPath = `/dashboard/${targetRoleFolder}`;
-            console.log(`[CLIENT] Redirection basée sur le rôle: ${userRole} -> ${finalDashboardPath}`);
-            router.replace(finalDashboardPath);
-          } else {
-            // Fallback si pas de rôle dans la session
-            console.error("[CLIENT] Pas de rôle dans la session, redirection par défaut");
-            router.replace("/dashboard/owner");
+          switch (baseRole) {
+            case "concierge":
+              targetRoleFolder = "concierge";
+              break;
+            case "provider":
+            case "artisan":
+              targetRoleFolder = baseRole; // Redirige vers /dashboard/provider ou /dashboard/artisan
+              break;
+            case "admin":
+            case "super":
+              targetRoleFolder = "admin";
+              break;
+            default: // Inclut 'owner'
+              targetRoleFolder = "owner";
           }
-        }
 
-
-        // ====================================================================
-
-      } else {
-        if (data.error.includes("duplicate key") && data.error.includes("profiles_username_key")) {
-          setErrors(prev => ({ ...prev, username: "Ce nom d'utilisateur est déjà pris" }));
-        } else if (data.error.includes("email")) {
-          setErrors(prev => ({ ...prev, email: "Cet email est déjà utilisé" }));
+          const finalDashboardPath = `/dashboard/${targetRoleFolder}`;
+          console.log(`[CLIENT] Redirection basée sur le rôle: ${userRole} -> ${finalDashboardPath}`);
+          router.replace(finalDashboardPath);
         } else {
-          alert(`❌ ${data.error}`);
+          console.error("[CLIENT] Erreur de connexion NextAuth après inscription. Redirection manuelle.");
+          router.replace("/login?success=true");
         }
-        setLoading(false); // Réactiver le bouton si l'inscription échoue
+
       }
     } catch (err) {
       alert(err instanceof Error ? `❌ ${err.message}` : "❌ Erreur serveur. Réessayez.");

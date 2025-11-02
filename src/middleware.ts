@@ -1,50 +1,55 @@
 // src/middleware.ts
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { categoryToRole } from "@/app/utils/roles";
 
+// Mapping interne rôle → dossier Next.js
+const ROLE_FOLDER_MAP: Record<string, string> = {
+  admin: "admin",
+  super_admin: "admin",
+  concierge: "concierge",
+  concierge_pro: "concierge",
+  owner: "propriétaire",
+  owner_pro: "propriétaire",
+  provider: "artisan",
+  provider_pro: "artisan",
+  // artisan: "artisan",
+  // artisan_pro: "artisan",
+};
+
+const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
+
 export async function middleware(req: NextRequest) {
-  console.log("[MIDDLEWARE] Start request:", req.nextUrl.pathname);
+  const { pathname } = req.nextUrl;
+
+  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  console.log("[MIDDLEWARE] Token:", token);
-
   if (!token) {
-    console.log("[MIDDLEWARE] No token found, redirect to /login");
+    console.warn("[MIDDLEWARE] No token found, redirect to login");
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Ici, token.role est déjà la valeur code (ex: "concierge", "owner")
-  // On prévoit le mapping au cas où on aurait stocké un label UX par erreur
-  const folderName = categoryToRole(token.role as string);
-  console.log("[MIDDLEWARE] Resolved folderName:", folderName);
-
-  if (!folderName) {
-    console.log("[MIDDLEWARE] Invalid role, redirect to /unauthorized");
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+  const normalizedRole = categoryToRole(token.role as string | null);
+  if (!normalizedRole) {
+    console.warn("[MIDDLEWARE] Unknown role:", token.role);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (req.nextUrl.pathname === "/dashboard") {
-    console.log("[MIDDLEWARE] Redirect /dashboard to /dashboard/" + folderName);
-    return NextResponse.redirect(new URL(`/dashboard/${folderName}`, req.url));
+  const targetFolder = ROLE_FOLDER_MAP[normalizedRole];
+  if (!targetFolder) {
+    console.warn("[MIDDLEWARE] Role not mapped:", normalizedRole);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (req.nextUrl.pathname.startsWith("/dashboard/")) {
-    const requestedRole = req.nextUrl.pathname.split("/")[2];
-    if (requestedRole !== folderName) {
-      console.log(
-        `[MIDDLEWARE] Role mismatch: trying to access ${requestedRole}, user has role ${folderName}`
-      );
-      return NextResponse.redirect(
-        new URL(`/dashboard/${folderName}`, req.url)
-      );
-    }
-    console.log("[MIDDLEWARE] Access allowed to", req.nextUrl.pathname);
+  if (!pathname.startsWith(`/dashboard/${targetFolder}`)) {
+    console.log(`[MIDDLEWARE] Redirecting ${token.role} to /dashboard/${targetFolder}`);
+    return NextResponse.redirect(new URL(`/dashboard/${targetFolder}`, req.url));
   }
 
   return NextResponse.next();
 }
 
-export const config = {
-  matcher: ["/dashboard/:path*"],
-};
+export const config = { matcher: ["/dashboard/:path*", "/api/protected/:path*"] };

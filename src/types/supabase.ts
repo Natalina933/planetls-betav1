@@ -10,14 +10,16 @@ export type Json =
 
 // Enum des rôles Supabase (issu de ton Database)
 export type UserRole =
-  | "proprietaire"
-  | "proprietaire_pro"
+   | "owner"
+  | "owner_pro"
   | "concierge"
   | "concierge_pro"
+  | "provider"
+  | "provider_pro"
   | "artisan"
   | "artisan_pro"
-  | "service_pro"
-  | "admin";
+  | "admin"
+  | "super_admin";
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
