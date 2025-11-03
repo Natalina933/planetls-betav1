@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db } from "../../lib/dbServer";
-import type { Database } from "../../../types/supabase";
+import { db } from "@/app/lib/dbServer";
+import type { Database } from "@/types/supabase";
 
 
 export async function POST(request: Request) {
