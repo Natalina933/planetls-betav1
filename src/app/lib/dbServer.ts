@@ -6,7 +6,7 @@ import type { Database } from "@/types/supabase";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// 🧠 Vérification des variables — message lisible dans les logs
+// 🧠 Vérification des variables 
 if (!supabaseUrl) {
   console.error(
     "❌ Erreur : la variable NEXT_PUBLIC_SUPABASE_URL est manquante !"

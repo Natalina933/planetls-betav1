@@ -40,7 +40,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ toggleSidebar }) => {
     const isPro = user?.role?.endsWith('_pro') || false;
 
     // Détermine l'URL de l'avatar ou utilise un fallback
-    const avatarSrc = user?.avatar_url || '//icons/account-svgrepo-com.svg';
+    const avatarSrc = user?.avatar_url || '/icons/account-svgrepo-com.svg';
     const userName = user?.firstName || user?.username || 'Utilisateur';
 
     return (
@@ -88,8 +88,8 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ toggleSidebar }) => {
                             <Image 
                                 src={avatarSrc} 
                                 alt={`Avatar de ${userName}`} 
-                                width={40} // ⚠️ Obligatoire pour Next/Image
-                                height={40} // ⚠️ Obligatoire pour Next/Image
+                                width={40} 
+                                height={40}
                                 className={styles.avatar} // La classe styles.avatar pour le style (bordure/taille/etc.)
                                 priority={true} // Chargement rapide car c'est dans la Navbar
                             />
