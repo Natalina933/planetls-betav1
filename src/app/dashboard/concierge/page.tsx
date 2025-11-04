@@ -11,6 +11,17 @@ import ProUpgradeCTA from '@/app/components/dashboard/concierge/ProUpgradeCTA';
 import BaseFeaturesList from '@/app/components/dashboard/concierge/BaseFeaturesList';
 import ProToolsSection from '@/app/components/dashboard/concierge/ProToolsSection';
 
+// 🆕 Importation du Calendrier et de son type d'événement
+import DashboardCalendar from '@/app/components/dashboard/calendar/DashboardCalendar';
+import { DashboardEvent } from '@/app/components/dashboard/calendar/DashboardCalendar';
+
+
+// 🆕 Données de démo ou (idéalement) un hook pour les données réelles
+const eventsDemo: DashboardEvent[] = [
+    { title: "Réservation J-1", start: new Date(Date.now() - 86400000), end: new Date(Date.now() - 79200000), bookingId: "D1", type: "booking" },
+    { title: "Check-in Propriété A", start: new Date(), end: new Date(Date.now() + 3600000), bookingId: "C1", type: "booking" },
+    { title: "Rappel Nettoyage", start: new Date(Date.now() + 172800000), end: new Date(Date.now() + 172800000 + 3600000), bookingId: "R1", type: "reminder" },
+];
 export default function ConciergeDashboardPage() {
     const { user, loading, isAuthenticated } = useCurrentUser();
 
@@ -83,6 +94,17 @@ export default function ConciergeDashboardPage() {
                     )}
 
                 </div>
+            </section>
+            {/* ---------------------------------------------------- */}
+            {/* 3. NOUVELLE SECTION : Calendrier (Planification) */}
+            {/* ---------------------------------------------------- */}
+            <section className="dashboard-section">
+                <h2>Planification & Réservations</h2>
+                {/* 🆕 Intégration du composant calendrier */}
+                <DashboardCalendar 
+                    events={eventsDemo} 
+                    title="" // Le titre est déjà dans le h2 de la section
+                />
             </section>
         </div>
     );

@@ -51,19 +51,18 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) 
     // Déclarer tous les accesseurs ici pour plus de clarté
     const eventTitleAccessor = 'title' as keyof DashboardEvent;
     // ✅ CORRECTION APPLIQUÉE : Casting pour startAccessor et endAccessor
-    const eventStartAccessor = 'start' as keyof DashboardEvent; 
+    const eventStartAccessor = 'start' as keyof DashboardEvent;
     const eventEndAccessor = 'end' as keyof DashboardEvent;
 
     const calendarProps = useMemo(() => ({
-        localizer: localizer,
-        events: events,
+        localizer,
+        events,
         defaultView: 'month' as const,
         messages: {
-            // ... (Vos traductions)
             allDay: 'Toute la journée',
             previous: 'Précédent',
             next: 'Suivant',
-            today: 'Aujourd\'hui',
+            today: "Aujourd'hui",
             month: 'Mois',
             week: 'Semaine',
             day: 'Jour',
@@ -74,15 +73,12 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) 
             noEventsInRange: 'Aucun événement dans cette période.',
         },
         culture: 'fr',
-        
-        // ✅ Utilisation des variables castées pour les accesseurs
-        startAccessor: eventStartAccessor, 
-        endAccessor: eventEndAccessor, 
+        startAccessor: eventStartAccessor,
+        endAccessor: eventEndAccessor,
         titleAccessor: eventTitleAccessor,
-        
         style: { height: 700 },
         defaultDate: new Date(),
-    }), [events, eventTitleAccessor, eventStartAccessor, eventEndAccessor]); // Les dépendances incluent tous les accesseurs
+    }), [events, eventTitleAccessor, eventStartAccessor, eventEndAccessor]);
 
     return (
         <div className="dashboard-calendar-container">
@@ -92,6 +88,7 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) 
             </div>
         </div>
     );
+
 };
 
 export default DashboardCalendar;
