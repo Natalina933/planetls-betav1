@@ -74,7 +74,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ toggleSidebar }) => {
                 </button>
                 
                 {/* Profil utilisateur */}
-                <div className={styles.userProfile}>
+                <div className={styles.userProfile} onClick={() => window.location.href = '/dashboard/profile'} // ✅ Redirection simple
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/dashboard/profile')}>
                     {!loading && isAuthenticated && user ? (
                         <>
                             <div className={styles.userInfo}>

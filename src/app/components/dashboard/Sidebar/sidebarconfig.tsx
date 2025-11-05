@@ -14,10 +14,11 @@ import {
   FiSearch,
 } from "react-icons/fi";
 
-interface SidebarItem {
+export interface SidebarItem {
   label: string;
   path: string;
   icon?: IconType;
+  children?: SidebarItem[];
 }
 
 export type UserType = "owner" | "concierge" | "providence";
@@ -33,14 +34,22 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Mes Documents", path: "/dashboard/owner/documents", icon: FiFileText },
     { label: "Mes Objectifs", path: "/dashboard/owner/objectifs", icon: FiTarget },
     { label: "Mon Règlement", path: "/dashboard/owner/reglement", icon: FiSettings },
-    { label: "Mes stocks", path: "/dashboard/owner/stocks", icon: FiSettings },
+    { label: "Mes stocks", path: "/dashboard/owner/stocks", icon: FiBox },
     { label: "Alertes", path: "/dashboard/owner/alertes", icon: FiBell },
     { label: "Paramètres", path: "/dashboard/owner/settings", icon: FiSettings },
   ],
 
   concierge: [
     { label: "Mon tableau de bord", path: "/dashboard/concierge", icon: FiHome },
-    { label: "Ma Conciergerie", path: "/dashboard/concierge/fiche", icon: FiClipboard },
+{
+  label: "Ma Conciergerie",
+  path: "/dashboard/concierge",
+  icon: FiClipboard,
+  children: [
+    { label: "Fiche Conciergerie", path: "/dashboard/concierge/fiche", icon: FiClipboard },
+    { label: "Informations", path: "/dashboard/concierge/informations", icon: FiFileText },
+  ],
+},
     { label: "Mes Logements", path: "/dashboard/concierge/logements", icon: FiClipboard },
     { label: "Mes Informations", path: "/dashboard/concierge/informations", icon: FiFileText },
     { label: "Mes Contacts", path: "/dashboard/concierge/contacts", icon: FiUsers },
