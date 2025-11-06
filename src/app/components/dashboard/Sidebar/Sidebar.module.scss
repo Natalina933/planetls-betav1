@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "@/app/styles/abstracts/variables" as *;
 
 .sidebar {
@@ -6,7 +7,7 @@
     left: 0;
     width: 280px;
     height: 100vh;
-    background-color: $mucha-paper;
+    background: $mucha-paper;
     color: $text-dark;
     font-family: $font-elegant;
     border-right: 2px solid $gold-light;
@@ -14,6 +15,8 @@
     z-index: 1000;
     overflow-y: auto;
     transition: transform $transition;
+    display: flex;
+    flex-direction: column;
 
     &.closed {
         transform: translateX(-100%);
@@ -30,7 +33,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba($text-dark, 0.4);
+    background: rgba($text-dark, 0.4);
     z-index: 999;
 }
 
@@ -40,61 +43,69 @@
     align-items: center;
     padding: $spacing-lg;
     border-bottom: 1px solid $gold-light;
-    background-color: lighten($mucha-paper, 3%);
+    background: color.adjust($mucha-paper, $lightness: 3%);
 }
 
 .title {
     font-size: 1.4rem;
     font-weight: $font-weight-bold;
     color: $gold-dark;
+    letter-spacing: 0.03em;
+    text-transform: capitalize;
 }
 
 .closeBtn {
     background: none;
     border: none;
     cursor: pointer;
+    display: flex;
+    align-items: center;
 
     .closeIcon {
         stroke: $gold-dark;
         transition: stroke $transition;
 
         &:hover {
-            stroke: darken($gold-dark, 10%);
+            stroke: color.adjust($gold-dark, $lightness: -10%);
         }
     }
 }
 
 .nav {
-    padding: $spacing-md;
+    flex: 1 1 auto;
+    padding: $spacing-md $spacing-sm 0 $spacing-md;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
 }
 
 .menuGroup {
     margin-bottom: $spacing-md;
 }
 
-.link {
+.link,
+.sublink {
     display: flex;
     align-items: center;
     padding: $spacing-sm $spacing-md;
     border-left: 4px solid transparent;
     cursor: pointer;
-    transition: background-color $transition, border-color $transition;
     font-family: $font-text;
-
-    &:hover {
-        background-color: $gold-soft;
-        border-left-color: $gold;
-    }
-
-    &.active {
-        background-color: $gold;
-        color: white;
-        border-left-color: darken($gold, 10%);
-    }
+    font-size: 1rem;
+    color: $text-dark;
+    background: none;
+    text-decoration: none;
+    border-radius: 8px;
+    transition:
+        background $transition,
+        color $transition,
+        border-color $transition,
+        box-shadow $transition;
 
     .icon {
         margin-right: $spacing-sm;
         font-size: 1.2rem;
+        flex-shrink: 0;
     }
 
     .chevron {
@@ -105,6 +116,21 @@
     .rotate {
         transform: rotate(180deg);
     }
+
+    &:hover,
+    &:focus {
+        background: $gold-soft;
+        color: color.adjust($gold-dark, $lightness: 5%);
+        border-left-color: $gold;
+        outline: none;
+    }
+
+    &.active {
+        background: $gold;
+        color: white;
+        border-left-color: color.adjust($gold, $lightness: -10%);
+        box-shadow: 0 2px 8px rgba($gold-dark, 0.04);
+    }
 }
 
 .submenu {
@@ -112,47 +138,49 @@
     max-height: 0;
     opacity: 0;
     transition: max-height $transition, opacity $transition;
+    background: color.adjust($mucha-paper, $lightness: 1%);
+    border-left: 2px solid $gold-light;
 
     &.expanded {
         max-height: 500px;
         opacity: 1;
+        transition: max-height $transition, opacity $transition;
     }
 
     &.collapsed {
         max-height: 0;
         opacity: 0;
     }
-}
 
-.sublink {
-    display: flex;
-    align-items: center;
-    padding: $spacing-xs $spacing-lg;
-    font-size: 0.95rem;
-    color: $text-light;
-    font-family: $font-text;
-    transition: background-color $transition;
+    .sublink {
+        padding: $spacing-xs $spacing-lg;
+        font-size: 0.94rem;
+        color: $text-light;
+        background: none;
+        border-left: none;
 
-    &:hover {
-        background-color: $gold-soft;
-        color: $text-dark;
-    }
+        &:hover,
+        &:focus {
+            background: $gold-soft;
+            color: $text-dark;
+        }
 
-    &.active {
-        background-color: $gold;
-        color: white;
-    }
+        &.active {
+            background: $gold;
+            color: white;
+        }
 
-    .icon {
-        margin-right: $spacing-xs;
-        font-size: 1rem;
+        .icon {
+            margin-right: $spacing-xs;
+            font-size: 1rem;
+        }
     }
 }
 
 .footer {
     padding: $spacing-md;
     border-top: 1px solid $gold-light;
-    background-color: lighten($mucha-paper, 2%);
+    background: color.adjust($mucha-paper, $lightness: 2%);
 }
 
 .logout {
@@ -166,12 +194,22 @@
     cursor: pointer;
     transition: color $transition;
 
-    &:hover {
-        color: darken($gold-dark, 10%);
-    }
-
     .icon {
         margin-right: $spacing-xs;
         font-size: 1.2rem;
+    }
+
+    &:hover,
+    &:focus {
+        color: color.adjust($gold-dark, $lightness: -10%);
+    }
+}
+
+// Optionnel : Responsive Mobile sidebar
+@media (max-width: 700px) {
+    .sidebar {
+        width: 100vw;
+        border-right: none;
+        box-shadow: none;
     }
 }

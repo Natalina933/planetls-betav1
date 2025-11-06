@@ -1,0 +1,52 @@
+.ficheContainer {
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+
+    .header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid #fbbf24;
+        margin-bottom: 2rem;
+    }
+
+    .title {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .editBtn {
+        margin-left: auto;
+        background: #fbbf24;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &:hover {
+            background: #f59e0b;
+        }
+    }
+
+    .infoGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .serviceList {
+        list-style: none;
+        padding: 0;
+    }
+
+    .summary,
+    .documents {
+        margin-bottom: 2rem;
+    }
+}
