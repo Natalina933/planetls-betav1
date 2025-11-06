@@ -1,52 +1,188 @@
-.ficheContainer {
-    max-width: 900px;
-    margin: auto;
-    padding: 2rem;
+@import "@/app/styles/abstracts/variables";
 
-    .header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        border-bottom: 1px solid #fbbf24;
-        margin-bottom: 2rem;
+// --- Container principal ---
+.pageContainer {
+    max-width: 540px;
+    margin: $spacing-lg auto;
+    padding: $spacing-lg $spacing-md $spacing-xl;
+    background: $mucha-paper;
+    border-radius: $radius-2xl;
+    box-shadow: $shadow;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    font-family: $font-text;
+    gap: $spacing-md;
+}
+
+// --- Titre ---
+.title {
+    font-family: $font-title;
+    font-size: 2.1rem;
+    letter-spacing: 0.01em;
+    color: $primary-dark-color-sass;
+    font-weight: $font-weight-bold;
+    text-align: center;
+    margin-bottom: $spacing-sm;
+}
+
+// --- Alertes/Banners ---
+.successBanner {
+    background: linear-gradient(90deg, #f2ffe5 0%, $gold-light 100%);
+    color: #236415;
+    border-radius: $radius-lg;
+    padding: $spacing-sm $spacing-md;
+    font-size: 1.08rem;
+    text-align: center;
+    border: 1px solid #d6efbc;
+    box-shadow: 0 1px 5px rgba(212, 175, 55, 0.07);
+}
+
+.errorMsg {
+    background: #ffe5e1;
+    color: #9b3427;
+    border-radius: $radius-lg;
+    padding: $spacing-sm $spacing-md;
+    font-size: 1.08rem;
+    text-align: center;
+    border: 1px solid #ffd6cc;
+    margin-bottom: $spacing-sm;
+}
+
+// --- Fiche utilisateur ---
+.fieldRow {
+    margin-bottom: $spacing-sm;
+    display: flex;
+    align-items: flex-start;
+    font-size: 1.09rem;
+
+    .fieldLabel {
+        min-width: 134px;
+        font-family: $font-title;
+        color: $primary-dark-color-sass;
+        font-weight: $font-weight-bold;
+        letter-spacing: 0.01em;
+        vertical-align: middle;
+        font-size: 1.02rem;
+        margin-top: $spacing-xs * 0.6;
     }
 
-    .title {
-        font-size: 2rem;
-        font-weight: bold;
+    .fieldValue {
+        color: $text-dark;
+        font-family: $font-text;
+        margin-left: $spacing-xs;
+        letter-spacing: 0.01em;
+        font-size: 1.06rem;
+    }
+}
+
+.fieldInput,
+.fieldTextarea {
+    border: 1px solid #ede4be;
+    background: $gold-soft;
+    border-radius: 9px;
+    font-size: 1.06rem;
+    color: $text-dark;
+    outline: none;
+    margin-left: $spacing-xs;
+    font-family: $font-text;
+    padding: $spacing-xs $spacing-sm;
+    box-shadow: 0 1px 0 rgba(212, 175, 55, 0.03);
+    transition: border-color 0.17s, background 0.17s;
+    margin-top: $spacing-xs * 0.6;
+}
+
+.fieldInput:focus,
+.fieldTextarea:focus {
+    border-color: $primary-color-sass;
+    background: $gold-alt;
+}
+
+.fieldTextarea {
+    min-width: 220px;
+    resize: vertical;
+    margin-top: $spacing-xs;
+}
+
+.editButton,
+.saveButton {
+    font-family: $font-title;
+    font-weight: $font-weight-bold;
+    padding: 0.7rem 1.5rem;
+    border-radius: $radius-pill;
+    font-size: 1.09rem;
+    border: none;
+    cursor: pointer;
+    margin-top: 1.25rem;
+    margin-bottom: 0.2rem;
+    transition: $transition;
+    box-shadow: 0 3px 18px #fff6e188;
+    outline: none;
+
+    &:hover,
+    &:active {
+        filter: brightness(1.06);
+        box-shadow: 0 4px 18px $gold-light;
+    }
+}
+
+.editButton {
+    background: linear-gradient(90deg, $gold-soft 0%, #fffde9 100%);
+    color: $primary-dark-color-sass;
+    border: 1.5px solid $gold-accent;
+}
+
+.saveButton {
+    background: linear-gradient(90deg, $gold 0%, $gold-accent 100%);
+    color: #494300;
+    border: 1.5px solid $primary-dark-color-sass;
+}
+
+.saveButton:disabled {
+    background: #f7f7f7;
+    color: #bbbbbb;
+    cursor: not-allowed;
+    border: 1.5px solid #eee;
+    box-shadow: none;
+}
+
+// Avatar centré, sur fiche
+.avatarBlock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: $spacing-sm;
+    margin-top: $spacing-xs;
+    flex-direction: column;
+}
+
+// Affecte uniquement l'avatar dans la fiche :
+.ficheAvatar {
+    width: 74px !important;
+    height: 74px !important;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.09);
+    border: 2px solid $gold;
+    margin-bottom: $spacing-xs;
+    background-color: #fffdf5;
+}
+
+// Responsive
+@media (max-width: map-get($breakpoints, sm)) {
+    .pageContainer {
+        padding: $spacing-md $spacing-xs $spacing-md;
+        border-radius: 0.7rem;
     }
 
-    .editBtn {
-        margin-left: auto;
-        background: #fbbf24;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-
-        &:hover {
-            background: #f59e0b;
-        }
+    .fieldRow .fieldLabel {
+        min-width: 95px;
+        font-size: 1.01rem;
     }
 
-    .infoGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 2rem;
-        margin-bottom: 2rem;
-    }
-
-    .serviceList {
-        list-style: none;
-        padding: 0;
-    }
-
-    .summary,
-    .documents {
-        margin-bottom: 2rem;
+    .editButton,
+    .saveButton {
+        font-size: 1rem;
+        padding: 0.6rem 1rem;
     }
 }

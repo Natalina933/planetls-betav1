@@ -62,7 +62,7 @@ export default function FicheConciergerie() {
             });
             const result = await res.json();
             if (result.error) throw new Error(result.error);
-            setProfile(editProfile); // met à jour l’affichage
+            setProfile(editProfile);
             setIsEditing(false);
             setSuccessMsg("Profil mis à jour avec succès !");
             setErrorMsg("");
@@ -75,7 +75,8 @@ export default function FicheConciergerie() {
         }
     };
 
-    if (errorMsg) return <div className={styles.errorMsg}>{errorMsg}</div>;
+    if (errorMsg)
+        return <div className={styles.errorMsg}>{errorMsg}</div>;
     if (!profile || !editProfile) return <div>Chargement…</div>;
 
     const data = isEditing ? editProfile : profile;
@@ -84,127 +85,142 @@ export default function FicheConciergerie() {
         <div className={styles.pageContainer}>
             <h1 className={styles.title}>Fiche & Infos utilisateur</h1>
             {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
-            <div>
+
+            {/* Avatar block */}
+            <div className={styles.avatarBlock}>
                 <AvatarUpload
                     value={null}
                     existingUrl={profile.avatar_url}
                     onChange={() => { }}
                 />
-                <strong>Username :</strong>
+            </div>
+
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Username :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="username"
                         value={data.username}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span> {data.username}</span>
+                    <span className={styles.fieldValue}>{data.username}</span>
                 )}
             </div>
-            <div>
-                <strong>Nom :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Nom :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="last_name"
                         value={data.last_name}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.last_name}</span>
+                    <span className={styles.fieldValue}>{data.last_name}</span>
                 )}
             </div>
-            <div>
-                <strong>Prénom :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Prénom :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="first_name"
                         value={data.first_name}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.first_name}</span>
+                    <span className={styles.fieldValue}>{data.first_name}</span>
                 )}
             </div>
-            <div>
-                <strong>Email :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Email :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="email"
                         type="email"
                         value={data.email}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.email}</span>
+                    <span className={styles.fieldValue}>{data.email}</span>
                 )}
             </div>
-            <div>
-                <strong>Téléphone :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Téléphone :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="phone"
                         value={data.phone ?? ""}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.phone ?? "—"}</span>
+                    <span className={styles.fieldValue}>{data.phone ?? "—"}</span>
                 )}
             </div>
-            <div>
-                <strong>Catégorie :</strong> <span>{data.category}</span>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Catégorie :</span>
+                <span className={styles.fieldValue}>{data.category}</span>
             </div>
-            <div>
-                <strong>Emplacement :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Emplacement :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="location"
                         value={data.location ?? ""}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.location ?? "—"}</span>
+                    <span className={styles.fieldValue}>{data.location ?? "—"}</span>
                 )}
             </div>
-            <div>
-                <strong>Services principaux :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Services principaux :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="option"
                         value={data.option ?? ""}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.option ?? "—"}</span>
+                    <span className={styles.fieldValue}>{data.option ?? "—"}</span>
                 )}
             </div>
-            <div>
-                <strong>Recherche cible :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Recherche cible :</span>
                 {isEditing ? (
                     <input
+                        className={styles.fieldInput}
                         name="search_target"
                         value={data.search_target ?? ""}
                         onChange={handleEditChange}
                     />
                 ) : (
-                    <span>{data.search_target ?? "—"}</span>
+                    <span className={styles.fieldValue}>{data.search_target ?? "—"}</span>
                 )}
             </div>
-            <div>
-                <strong>À propos :</strong>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>À propos :</span>
                 {isEditing ? (
                     <textarea
+                        className={styles.fieldTextarea}
                         name="additional_info"
                         value={data.additional_info ?? ""}
                         onChange={handleEditChange}
                         rows={2}
                     />
                 ) : (
-                    <span>{data.additional_info ?? "—"}</span>
+                    <span className={styles.fieldValue}>{data.additional_info ?? "—"}</span>
                 )}
             </div>
-            <div>
-                <strong>Date de création :</strong>{" "}
-                <span>
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>Date de création :</span>
+                <span className={styles.fieldValue}>
                     {data.created_at
                         ? new Date(data.created_at).toLocaleDateString("fr-FR")
                         : "—"}
