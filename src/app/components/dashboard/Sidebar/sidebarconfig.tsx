@@ -54,13 +54,13 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     ]
   },
   { label: "Logements", path: "/dashboard/concierge/logements", icon: FiClipboard },
+  { label: "Recherche mes annonces", path: "/dashboard/concierge/recherche", icon: FiSearch },
   { label: "Contacts", path: "/dashboard/concierge/contacts", icon: FiUsers },
   { label: "Objectifs", path: "/dashboard/concierge/objectifs", icon: FiTarget },
   { label: "Planning", path: "/dashboard/concierge/planning", icon: FiCalendar },
   { label: "Stocks", path: "/dashboard/concierge/stocks", icon: FiBox },
   { label: "Messagerie", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
   { label: "Alertes", path: "/dashboard/concierge/alertes", icon: FiBell },
-  { label: "Recherche Logement", path: "/dashboard/concierge/recherche", icon: FiSearch },
   { label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
 ]
   ,

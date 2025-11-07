@@ -1,7 +1,9 @@
+//src/app/dashboard/concierge/fiche/page.tsx
 "use client";
 import React, { useState, useEffect, ChangeEvent } from "react";
 import styles from "./FicheConciergerie.module.scss"; // adapte le nom au tien si besoin
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
+import { SupabaseClient } from "@supabase/supabase-js";
 interface Profile {
     id: string;
     username: string;
@@ -22,6 +24,7 @@ interface Profile {
 export default function FicheConciergerie() {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [editProfile, setEditProfile] = useState<Profile | null>(null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
@@ -50,21 +53,45 @@ export default function FicheConciergerie() {
         if (!editProfile) return;
         setEditProfile({ ...editProfile, [e.target.name]: e.target.value });
     };
-
     const handleSave = async () => {
         if (!editProfile) return;
         setLoading(true);
+
+        let avatar_url = editProfile.avatar_url;
+
+        // Upload avatar si modifié
+        if (avatarFile) {
+            // [IMPORTANT : adapte le nom & bucket selon ton projet Supabase]
+            const { data, error } = await supabase.storage
+                .from("avatars")
+                .upload(`user_${editProfile.id}_${Date.now()}`, avatarFile, {
+                    cacheControl: "3600",
+                    upsert: true,
+                });
+            if (error) {
+                setErrorMsg("Erreur lors de l'envoi de l'avatar");
+                setLoading(false);
+                return;
+            }
+            const {
+                data: { publicUrl },
+            } = supabase.storage.from("avatars").getPublicUrl(data.path);
+            avatar_url = publicUrl || avatar_url;
+        }
+
         try {
             const res = await fetch("/api/profiles", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(editProfile),
+                body: JSON.stringify({ ...editProfile, avatar_url }),
             });
             const result = await res.json();
             if (result.error) throw new Error(result.error);
-            setProfile(editProfile);
+            setProfile({ ...editProfile, avatar_url });
+            setEditProfile({ ...editProfile, avatar_url });
             setIsEditing(false);
             setSuccessMsg("Profil mis à jour avec succès !");
+            setAvatarFile(null);
             setErrorMsg("");
         } catch (err: unknown) {
             setErrorMsg(
@@ -75,8 +102,7 @@ export default function FicheConciergerie() {
         }
     };
 
-    if (errorMsg)
-        return <div className={styles.errorMsg}>{errorMsg}</div>;
+    if (errorMsg) return <div className={styles.errorMsg}>{errorMsg}</div>;
     if (!profile || !editProfile) return <div>Chargement…</div>;
 
     const data = isEditing ? editProfile : profile;
@@ -86,13 +112,18 @@ export default function FicheConciergerie() {
             <h1 className={styles.title}>Fiche & Infos utilisateur</h1>
             {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
 
-            {/* Avatar block */}
+            {/* Bloc Avatar */}
             <div className={styles.avatarBlock}>
                 <AvatarUpload
-                    value={null}
-                    existingUrl={profile.avatar_url}
-                    onChange={() => { }}
+                    value={avatarFile}
+                    existingUrl={editProfile.avatar_url || null}
+                    onChange={setAvatarFile}
                 />
+            </div>
+
+            <div className={styles.fieldRow}>
+                <span className={styles.fieldLabel}>ID :</span>
+                <span className={styles.fieldValue}>{data.id}</span>
             </div>
 
             <div className={styles.fieldRow}>
