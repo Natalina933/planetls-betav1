@@ -141,6 +141,9 @@ export const authOptions: NextAuthOptions = {
           phone: profile.phone ?? null,
           role: normalizedRole,
           avatar_url: avatar,
+          location: profile.location ?? null,
+          option: profile.option ?? null,
+          search_target: profile.search_target ?? null,
         };
       },
     }), // 🔹 Authentification Google
@@ -166,6 +169,9 @@ export const authOptions: NextAuthOptions = {
         token.phone = user.phone;
         token.role = user.role;
         token.avatar_url = user.avatar_url;
+        token.location = user.location ?? null;
+        token.option = user.option ?? null;
+        token.search_target = user.search_target ?? null;
       }
       return token;
     },
@@ -180,6 +186,9 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = token.phone as string | null;
         session.user.role = token.role as UserRole;
         session.user.avatar_url = token.avatar_url as string | null;
+        session.user.location = token.location as string | null;
+        session.user.option = token.option as string | null;
+        session.user.search_target = token.search_target as string | null;
       }
       return session;
     },

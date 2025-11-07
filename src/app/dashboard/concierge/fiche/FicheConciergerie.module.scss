@@ -1,4 +1,8 @@
-@import "@/app/styles/abstracts/variables";
+@use "../../../styles/abstracts/variables" as *;
+
+@use "../../../styles/abstracts/mixins" as *;
+@use "sass:map";
+
 
 // --- Container principal ---
 .pageContainer {
@@ -169,7 +173,7 @@
 }
 
 // Responsive
-@media (max-width: map-get($breakpoints, sm)) {
+@media (max-width: map.get($breakpoints, sm))  {
     .pageContainer {
         padding: $spacing-md $spacing-xs $spacing-md;
         border-radius: 0.7rem;

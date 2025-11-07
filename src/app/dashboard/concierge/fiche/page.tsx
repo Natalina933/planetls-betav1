@@ -1,279 +1,189 @@
-//src/app/dashboard/concierge/fiche/page.tsx
 "use client";
+
 import React, { useState, useEffect, ChangeEvent } from "react";
-import styles from "./FicheConciergerie.module.scss"; // adapte le nom au tien si besoin
+import styles from "./FicheConciergerie.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 interface Profile {
-    id: string;
-    username: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    avatar_url: string | null;
-    additional_info: string | null;
-    category: string;
-    created_at: string;
-    location: string | null;
-    option: string | null;
-    search_target: string | null;
-    role: string | null;
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  additional_info: string | null;
+  category: string;
+  created_at: string;
+  location: string | null;
+  option: string | null;
+  search_target: string | null;
+  role: string | null;
 }
 
 export default function FicheConciergerie() {
-    const [profile, setProfile] = useState<Profile | null>(null);
-    const [editProfile, setEditProfile] = useState<Profile | null>(null);
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [editProfile, setEditProfile] = useState<Profile | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await fetch("/api/profiles/current");
-                const data: Profile | { error: string } = await res.json();
-                if ("error" in data) throw new Error(data.error);
-                setProfile(data as Profile);
-                setEditProfile(data as Profile);
-                setErrorMsg("");
-            } catch (err: unknown) {
-                setErrorMsg(
-                    err instanceof Error ? err.message : "Erreur chargement profil."
-                );
-            }
-        })();
-    }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await fetch("/api/profiles/current");
+        const data: Profile | { error: string } = await response.json();
+        if ("error" in data) throw new Error(data.error);
+        setProfile(data);
+        setEditProfile(data);
+        setErrorMsg("");
+      } catch (err: unknown) {
+        setErrorMsg(err instanceof Error ? err.message : "Erreur chargement profil.");
+      }
+    })();
+  }, []);
 
-    const handleEditChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        if (!editProfile) return;
-        setEditProfile({ ...editProfile, [e.target.name]: e.target.value });
-    };
-    const handleSave = async () => {
-        if (!editProfile) return;
-        setLoading(true);
+  const handleEditChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (!editProfile) return;
+    setEditProfile({ ...editProfile, [e.target.name]: e.target.value });
+  };
 
-        let avatar_url = editProfile.avatar_url;
+  const handleSave = async () => {
+    if (!editProfile) return;
+    setLoading(true);
 
-        // Upload avatar si modifié
-        if (avatarFile) {
-            // [IMPORTANT : adapte le nom & bucket selon ton projet Supabase]
-            const { data, error } = await supabase.storage
-                .from("avatars")
-                .upload(`user_${editProfile.id}_${Date.now()}`, avatarFile, {
-                    cacheControl: "3600",
-                    upsert: true,
-                });
-            if (error) {
-                setErrorMsg("Erreur lors de l'envoi de l'avatar");
-                setLoading(false);
-                return;
-            }
-            const {
-                data: { publicUrl },
-            } = supabase.storage.from("avatars").getPublicUrl(data.path);
-            avatar_url = publicUrl || avatar_url;
-        }
+    let avatar_url = editProfile.avatar_url;
 
-        try {
-            const res = await fetch("/api/profiles", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...editProfile, avatar_url }),
-            });
-            const result = await res.json();
-            if (result.error) throw new Error(result.error);
-            setProfile({ ...editProfile, avatar_url });
-            setEditProfile({ ...editProfile, avatar_url });
-            setIsEditing(false);
-            setSuccessMsg("Profil mis à jour avec succès !");
-            setAvatarFile(null);
-            setErrorMsg("");
-        } catch (err: unknown) {
-            setErrorMsg(
-                err instanceof Error ? err.message : "Impossible de sauvegarder."
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Upload avatar if changed
+    if (avatarFile) {
+      const { data, error } = await supabase.storage
+        .from("avatars")
+        .upload(`user_${editProfile.id}_${Date.now()}`, avatarFile, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+      if (error) {
+        setErrorMsg("Erreur lors de l'envoi de l'avatar");
+        setLoading(false);
+        return;
+      }
+      const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(data.path);
+      avatar_url = publicUrlData.publicUrl || avatar_url;
+    }
 
-    if (errorMsg) return <div className={styles.errorMsg}>{errorMsg}</div>;
-    if (!profile || !editProfile) return <div>Chargement…</div>;
+    try {
+      const res = await fetch("/api/profiles", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...editProfile, avatar_url }),
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      setProfile({ ...editProfile, avatar_url });
+      setEditProfile({ ...editProfile, avatar_url });
+      setIsEditing(false);
+      setSuccessMsg("Profil mis à jour avec succès !");
+      setAvatarFile(null);
+      setErrorMsg("");
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Impossible de sauvegarder.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const data = isEditing ? editProfile : profile;
+  if (errorMsg) return <div className={styles.errorMsg}>{errorMsg}</div>;
+  if (!profile || !editProfile) return <div>Chargement…</div>;
 
-    return (
-        <div className={styles.pageContainer}>
-            <h1 className={styles.title}>Fiche & Infos utilisateur</h1>
-            {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
+  const data = isEditing ? editProfile : profile;
 
-            {/* Bloc Avatar */}
-            <div className={styles.avatarBlock}>
-                <AvatarUpload
-                    value={avatarFile}
-                    existingUrl={editProfile.avatar_url || null}
-                    onChange={setAvatarFile}
-                />
-            </div>
+  const renderField = (
+    label: string,
+    name: keyof Profile,
+    isTextarea = false,
+    required = false,
+    placeholder = ""
+  ) => (
+    <div className={styles.fieldRow}>
+      <label htmlFor={name.toString()} className={styles.fieldLabel}>
+        {label} {required ? "*" : ""}:
+      </label>
+      {isEditing ? (
+        isTextarea ? (
+          <textarea
+            id={name.toString()}
+            name={name.toString()}
+            value={(data[name] as string) ?? ""}
+            onChange={handleEditChange}
+            className={styles.fieldTextarea}
+            placeholder={placeholder || label}
+            rows={3}
+          />
+        ) : (
+          <input
+            id={name.toString()}
+            type={name === "email" ? "email" : "text"}
+            name={name.toString()}
+            value={(data[name] as string) ?? ""}
+            onChange={handleEditChange}
+            className={styles.fieldInput}
+            placeholder={placeholder || label}
+            required={required}
+          />
+        )
+      ) : (
+        <span className={styles.fieldValue}>{data[name] ?? "—"}</span>
+      )}
+    </div>
+  );
 
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>ID :</span>
-                <span className={styles.fieldValue}>{data.id}</span>
-            </div>
+  return (
+    <div className={styles.pageContainer}>
+      <h1 className={styles.title}>Fiche & Infos utilisateur</h1>
+      {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
 
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Username :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="username"
-                        value={data.username}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.username}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Nom :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="last_name"
-                        value={data.last_name}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.last_name}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Prénom :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="first_name"
-                        value={data.first_name}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.first_name}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Email :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="email"
-                        type="email"
-                        value={data.email}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.email}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Téléphone :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="phone"
-                        value={data.phone ?? ""}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.phone ?? "—"}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Catégorie :</span>
-                <span className={styles.fieldValue}>{data.category}</span>
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Emplacement :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="location"
-                        value={data.location ?? ""}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.location ?? "—"}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Services principaux :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="option"
-                        value={data.option ?? ""}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.option ?? "—"}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Recherche cible :</span>
-                {isEditing ? (
-                    <input
-                        className={styles.fieldInput}
-                        name="search_target"
-                        value={data.search_target ?? ""}
-                        onChange={handleEditChange}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.search_target ?? "—"}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>À propos :</span>
-                {isEditing ? (
-                    <textarea
-                        className={styles.fieldTextarea}
-                        name="additional_info"
-                        value={data.additional_info ?? ""}
-                        onChange={handleEditChange}
-                        rows={2}
-                    />
-                ) : (
-                    <span className={styles.fieldValue}>{data.additional_info ?? "—"}</span>
-                )}
-            </div>
-            <div className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Date de création :</span>
-                <span className={styles.fieldValue}>
-                    {data.created_at
-                        ? new Date(data.created_at).toLocaleDateString("fr-FR")
-                        : "—"}
-                </span>
-            </div>
-            <br />
-            {isEditing ? (
-                <button
-                    onClick={handleSave}
-                    disabled={loading}
-                    className={styles.saveButton}
-                >
-                    Sauvegarder
-                </button>
-            ) : (
-                <button
-                    onClick={() => setIsEditing(true)}
-                    className={styles.editButton}
-                >
-                    Modifier
-                </button>
-            )}
-        </div>
-    );
+      <div className={styles.avatarBlock}>
+        <AvatarUpload value={avatarFile} existingUrl={editProfile.avatar_url || null} onChange={setAvatarFile} />
+      </div>
+
+      {renderField("ID", "id")}
+      {renderField("Username", "username", false, true, "Nom d'utilisateur")}
+      {renderField("Nom", "last_name", false, true, "Votre nom")}
+      {renderField("Prénom", "first_name", false, true, "Votre prénom")}
+      {renderField("Email", "email", false, true, "Adresse email")}
+      {renderField("Téléphone", "phone", false, false, "Numéro de téléphone")}
+      {renderField("Catégorie", "category")}
+      {renderField("Emplacement", "location")}
+      {renderField("Services principaux", "option")}
+      {renderField("Recherche cible", "search_target")}
+      {renderField("À propos", "additional_info", true)}
+      
+      <div className={styles.fieldRow}>
+        <label className={styles.fieldLabel}>Date de création :</label>
+        <span className={styles.fieldValue}>
+          {data.created_at ? new Date(data.created_at).toLocaleDateString("fr-FR") : "—"}
+        </span>
+      </div>
+
+      <br />
+
+      {isEditing ? (
+        <button onClick={handleSave} disabled={loading} className={styles.saveButton}>
+          {loading ? "⏳ Sauvegarde en cours..." : "Sauvegarder"}
+        </button>
+      ) : (
+        <button onClick={() => setIsEditing(true)} className={styles.editButton}>
+          Modifier
+        </button>
+      )}
+    </div>
+  );
 }
+

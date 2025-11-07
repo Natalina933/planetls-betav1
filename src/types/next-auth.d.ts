@@ -14,6 +14,9 @@ declare module "next-auth" {
     firstName: string | null;
     lastName: string | null;
     phone: string | null;
+    location?: string | null;
+    option?: string | null;
+    search_target?: string | null;
   }
   interface Session extends DefaultSession {
     user: {
@@ -26,12 +29,27 @@ declare module "next-auth" {
       firstName: string | null;
       lastName: string | null;
       phone: string | null;
+      location?: string | null;
+      option?: string | null;
+      search_target?: string | null;
     } & DefaultSession["user"];
   }
 }
 console.log("[NextAuth callback] Querying profiles columns:", [
-  "id", "username", "first_name", "last_name", "email", "phone", "avatar_url",
-  "additional_info", "category", "created_at", "location", "option", "search_target", "role"
+  "id",
+  "username",
+  "first_name",
+  "last_name",
+  "email",
+  "phone",
+  "avatar_url",
+  "additional_info",
+  "category",
+  "created_at",
+  "location",
+  "option",
+  "search_target",
+  "role",
 ]);
 // pas de "name"
 
@@ -40,12 +58,14 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     email: string;
-    username?: string | null; // ← Optionnel ici aussi
-    // name?: string | null;
+    username?: string | null; // ← Optionnel
     avatar_url?: string | null;
     role?: UserRole | null;
     firstName: string | null;
     lastName: string | null;
     phone: string | null;
+     location?: string | null;
+    option?: string | null;
+    search_target?: string | null;
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
-import type { Database } from "./types"; // garde ton fichier types.ts
+import type { Database } from "./types"; 
 
 export const supabaseBrowser = () =>
   createBrowserClient<Database>(
