@@ -1,6 +1,12 @@
 // src/app/lib/types.ts
 
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json }
+  | Json[];
 
 export interface Database {
   public: {
@@ -8,28 +14,53 @@ export interface Database {
       profiles: {
         Row: {
           id: string;
-          name: string;
-          type: "proprietaire" | "concierge" | "artisan"; // mieux que string simple
-          photo: string | null;
-          latitude: number | null;
-          longitude: number | null;
-          available: boolean;
+          username: string;
+          first_name: string | null;
+          last_name: string | null;
+          email: string | null;
+          phone: string | null;
+          avatar_url: string | null;
+          additional_info: string | null;
+          category: string | null;
+          created_at: string;
+          location: string | null;
+          option: string | null;
+          search_target: string | null;
+          role: string | null;
+          password: string | null;
         };
         Insert: {
-          name: string;
-          type: "proprietaire" | "concierge" | "artisan";
-          photo?: string | null;
-          latitude?: number | null;
-          longitude?: number | null;
-          available?: boolean;
+          id?: string;
+          username: string;
+          first_name?: string | null;
+          last_name?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          avatar_url?: string | null;
+          additional_info?: string | null;
+          category?: string | null;
+          created_at?: string;
+          location?: string | null;
+          option?: string | null;
+          search_target?: string | null;
+          role?: string | null;
+          password?: string | null;
         };
         Update: {
-          name?: string;
-          type?: "proprietaire" | "concierge" | "artisan";
-          photo?: string | null;
-          latitude?: number | null;
-          longitude?: number | null;
-          available?: boolean;
+          username?: string;
+          first_name?: string | null;
+          last_name?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          avatar_url?: string | null;
+          additional_info?: string | null;
+          category?: string | null;
+          created_at?: string;
+          location?: string | null;
+          option?: string | null;
+          search_target?: string | null;
+          role?: string | null;
+          password?: string | null;
         };
       };
 
@@ -82,7 +113,7 @@ export interface Database {
   };
 }
 
-// Aliases pratiques
+// ✅ Aliases pratiques
 export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];

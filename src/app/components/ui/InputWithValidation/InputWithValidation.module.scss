@@ -1,0 +1,116 @@
+.inputWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 1rem;
+
+  // pour la validation icon à droite
+  .validationIcon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 2.25rem 0.75rem 0.75rem; // espace pour l’icône
+  font-size: 1rem;
+  border: 1.5px solid var(--border-color, #bfc8d0);
+  border-radius: 0.5rem;
+  background: var(--input-bg, #f9fafb);
+  color: var(--text-color, #333);
+  transition: all 0.25s ease;
+  outline: none;
+
+  &::placeholder {
+    color: var(--placeholder-color, #9aa1a9);
+    font-style: italic;
+  }
+
+  &:focus {
+    border-color: var(--accent-color, #8aa1b1);
+    background: var(--input-bg-focus, #fff);
+    box-shadow: 0 0 0 3px rgba(138, 161, 177, 0.25);
+  }
+
+  &:disabled {
+    background: #f0f2f4;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+// ✅ Style quand valide
+.inputValid {
+  border-color: #2ecc71;
+  background: #f7fff9;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
+  }
+
+  ~ .validationIcon {
+    color: #2ecc71;
+    opacity: 1;
+  }
+}
+
+// ❌ Style quand invalide
+.inputError {
+  border-color: #e74c3c;
+  background: #fff6f6;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.25);
+  }
+
+  ~ .validationIcon {
+    color: #e74c3c;
+    opacity: 1;
+  }
+}
+
+.errorMsg {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  padding-left: 0.25rem;
+  line-height: 1.2;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+// Dark mode (si tu as déjà une classe .dark sur <html> ou body)
+:global(.dark) {
+  .input {
+    background: var(--dark-input-bg, #2d2f31);
+    border-color: var(--dark-border, #555);
+    color: var(--dark-text, #eee);
+
+    &::placeholder {
+      color: #888;
+    }
+
+    &:focus {
+      border-color: var(--accent-color-dark, #b8d0e0);
+      box-shadow: 0 0 0 3px rgba(184, 208, 224, 0.2);
+    }
+  }
+
+  .inputError {
+    background: #3a1f1f;
+  }
+
+  .inputValid {
+    background: #1f3a2a;
+  }
+
+  .errorMsg {
+    color: #f88;
+  }
+}
