@@ -5,6 +5,7 @@ import styles from "./FicheConciergerie.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 import { createClient } from "@supabase/supabase-js";
+import ServiceCheckboxGroup from "@/app/components/ui/ServiceCheckboxGroup/ServiceCheckboxGroup";
 
 // ===================================
 // Initialisation Supabase
@@ -235,7 +236,26 @@ export default function FicheConciergerie() {
       {renderField("Téléphone", "phone")}
       {renderField("Catégorie", "category")}
       {renderField("Emplacement", "location")}
-      {renderField("Services principaux", "option")}
+      <div className={styles.fieldRow}>
+        <label className={styles.fieldLabel}>Services principaux :</label>
+        {isEditing ? (
+          <ServiceCheckboxGroup
+            selected={editProfile.option ? editProfile.option.split(",") : []}
+            onChange={(selected) =>
+              setEditProfile({ ...editProfile, option: selected.join(",") })
+            }
+          />
+        ) : (
+          <span className={styles.fieldValue}>
+            {profile.option
+              ? profile.option
+                .split(",")
+                .map((s) => s.trim())
+                .join(", ")
+              : "—"}
+          </span>
+        )}
+      </div>
       {renderField("Recherche cible", "search_target")}
       {renderField("À propos", "additional_info", true)}
 
