@@ -2,125 +2,86 @@
 
 import React, { useEffect, useState } from "react";
 import styles from "./ProfileServices.module.scss";
-type ProfileService = Tables<"profile_services">;
+import { supabaseBrowser } from "@/app/lib/dbClient";
+import type { ServiceCatalog } from "@/app/lib/types";
 
 interface ProfileServicesProps {
-  profileId: number;
+  profileId: string;
   category: "proprietaire" | "concierge" | "artisan";
   editable?: boolean;
 }
-
-const defaultServices: Record<ProfileServicesProps["category"], string[]> = {
-  proprietaire: [
-    "Gestion complète de la location",
-    "Check-in / Check-out",
-    "Nettoyage entre séjours",
-    "Linge / blanchisserie",
-    "Maintenance / petites réparations",
-    "Photographies professionnelles",
-    "Communication voyageurs",
-    "Décoration et aménagement",
-  ],
-  concierge: [
-    "Accueil des voyageurs",
-    "Service de ménage professionnel",
-    "Gestion des clés",
-    "Support client 24/7",
-    "Reporting et transparence",
-    "Gestion multi-biens",
-    "Maintenance et réparations",
-  ],
-  artisan: [
-    "Plomberie / Électricité",
-    "Peinture / Décoration",
-    "Menuiserie / Ameublement",
-    "Jardinage / Extérieur",
-    "Entretien général",
-    "Réparations urgentes",
-    "Installation d’équipements",
-  ],
-};
 
 export default function ProfileServices({
   profileId,
   category,
   editable = false,
 }: ProfileServicesProps) {
-  const [services, setServices] = useState<ProfileService[]>([]);
+  const supabase = supabaseBrowser();
+
+  const [services, setServices] = useState<ServiceCatalog[]>([]);
+  const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Chargement des services depuis Supabase
+  // Charger catalogue + services sélectionnés
   useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("profile_services")
+    const fetchServices = async () => {
+      setLoading(true);
+
+      const { data: catalog } = await supabase
+        .from("services_catalog")
         .select("*")
-        .eq("profile_id", profileId)
         .eq("category", category);
 
-      if (error) console.error(error);
+      setServices(catalog ?? []);
 
-      if (!data || data.length === 0) {
-        // Initialisation si pas de données
-        const base: ProfileService[] = defaultServices[category].map((s) => ({
-          id: 0,
-          profile_id: profileId,
-          category,
-          service: s,
-          new_id: null,
-          new_profile_id: null,
-        }));
-        setServices(base);
-      } else {
-        setServices(data);
-      }
+      const { data: profileServices } = await supabase
+        .from("profile_services")
+        .select("service_id")
+        .eq("profile_id", profileId);
+
+      const arr = profileServices as { service_id: number }[] | null;
+      setSelectedServices(arr?.map((ps) => ps.service_id) ?? []);
 
       setLoading(false);
-    })();
-  }, [profileId, category]);
+    };
 
-  // Toggle case à cocher
-  const handleToggle = (serviceName: string) => {
-    setServices((prev) =>
-      prev.map((s) =>
-        s.service === serviceName ? { ...s, is_active: !s.is_active } : s
-      )
+    fetchServices();
+  }, [profileId, category, supabase]);
+
+  // Toggle sélection
+  const handleToggle = (serviceId: number) => {
+    if (!editable) return;
+    setSelectedServices((prev) =>
+      prev.includes(serviceId)
+        ? prev.filter((id) => id !== serviceId)
+        : [...prev, serviceId]
     );
   };
 
-  // Sauvegarde Supabase
+  // Sauvegarde via API
   const handleSave = async () => {
     setSaving(true);
     setMessage("");
 
     try {
-      // Supprime les anciens services pour ce profil/catégorie
-      await supabase
-        .from("profile_services")
-        .delete()
-        .eq("profile_id", profileId)
-        .eq("category", category);
+      const res = await fetch("/api/profile_services", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile_id: profileId,
+          services: selectedServices,
+        }),
+      });
 
-      const payload: Partial<ProfileService>[] = services.map((s) => ({
-        profile_id: profileId,
-        category,
-        service: s.service,
-        new_id: s.new_id,
-        new_profile_id: s.new_profile_id,
-      }));
+      const result = await res.json();
 
-      const { error } = await supabase.from("profile_services").insert(payload);
-      if (error) throw error;
+      if (!res.ok) throw new Error(result.error || "Erreur inconnue");
 
-      setMessage("✅ Services mis à jour !");
-    } catch (err) {
-      if (err instanceof Error) {
-        setMessage("❌ Erreur : " + err.message);
-      } else {
-        setMessage("❌ Erreur inconnue.");
-      }
+      setMessage(result.message);
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? "❌ " + err.message : "❌ Erreur inconnue");
     } finally {
       setSaving(false);
     }
@@ -133,12 +94,12 @@ export default function ProfileServices({
       <h2 className={styles.title}>Services ({category})</h2>
       <ul className={styles.servicesList}>
         {services.map((s) => (
-          <li key={s.service}>
+          <li key={s.id}>
             <label className={styles.checkboxLabel}>
               <input
                 type="checkbox"
-                checked={!!s.is_active}
-                onChange={() => editable && handleToggle(s.service!)}
+                checked={selectedServices.includes(s.id)}
+                onChange={() => handleToggle(s.id)}
                 disabled={!editable}
               />
               <span>{s.service}</span>

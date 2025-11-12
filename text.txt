@@ -10,3 +10,9 @@ GOOGLE_CLIENT_SECRET=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
 
 NEXTAUTH_SECRET=922435088954082c540b52cca397c84a
 NEXTAUTH_URL=http://localhost:3000
+
+
+npx supabase gen types typescript \
+  --https://dyqlixssykeecvtqmcxh.supabase.co \
+  --api-key YeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cWxpeHNzeWtlZWN2dHFtY3hoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTc2NjE1NCwiZXhwIjoyMDc1MzQyMTU0fQ.jafHIBEtOFvo2fO9cy7bu5XYXC3U1Cdyp-mpFOsBjXo \
+  > src/types/supabase.ts

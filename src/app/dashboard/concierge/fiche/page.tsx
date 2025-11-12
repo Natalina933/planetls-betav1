@@ -4,8 +4,8 @@ import React, { useState, useEffect, ChangeEvent } from "react";
 import styles from "./FicheConciergerie.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import { createClient } from "@supabase/supabase-js";
 import ServiceCheckboxGroup from "@/app/components/ui/ServiceCheckboxGroup/ServiceCheckboxGroup";
+import { createClient } from "@supabase/supabase-js";
 
 // ===================================
 // Initialisation Supabase
@@ -33,6 +33,85 @@ interface Profile {
   search_target: string | null;
   role: string | null;
 }
+
+// ===================================
+// Validation centralisée
+// ===================================
+const validateField = (name: string, value: string): string => {
+  switch (name) {
+    case "email":
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Adresse email invalide.";
+    case "phone":
+      return /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/.test(value)
+        ? ""
+        : "Numéro de téléphone invalide.";
+    case "username":
+      if (value.length < 3) return "Nom d'utilisateur trop court.";
+      if (!/^[a-zA-Z0-9\-_]+$/.test(value)) return "Caractères non autorisés.";
+      return "";
+    default:
+      return "";
+  }
+};
+
+// ===================================
+// Composant champ réutilisable
+// ===================================
+interface EditableFieldProps {
+  label: string;
+  name: keyof Profile;
+  value: string;
+  isEditing: boolean;
+  isTextarea?: boolean;
+  required?: boolean;
+  placeholder?: string;
+  error?: string;
+  onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}
+
+const EditableField: React.FC<EditableFieldProps> = ({
+  label,
+  name,
+  value,
+  isEditing,
+  isTextarea = false,
+  required = false,
+  placeholder,
+  error,
+  onChange,
+}) => (
+  <div className={styles.fieldRow}>
+    <label htmlFor={name.toString()} className={styles.fieldLabel}>
+      {label} {required && "*"}
+    </label>
+    {isEditing ? (
+      isTextarea ? (
+        <textarea
+          id={name.toString()}
+          name={name.toString()}
+          value={value}
+          onChange={onChange}
+          className={styles.fieldTextarea}
+          placeholder={placeholder || label}
+          rows={3}
+        />
+      ) : (
+        <InputWithValidation
+          id={name.toString()}
+          name={name.toString()}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder || label}
+          error={error}
+          isValid={!error && !!value}
+          autoComplete="off"
+        />
+      )
+    ) : (
+      <span className={styles.fieldValue}>{value || "—"}</span>
+    )}
+  </div>
+);
 
 // ===================================
 // Composant principal
@@ -73,18 +152,7 @@ export default function FicheConciergerie() {
     if (!editProfile) return;
     const { name, value } = e.target;
     setEditProfile({ ...editProfile, [name]: value });
-
-    // Validation simple
-    let error = "";
-    if (name === "email" && value) {
-      error = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Adresse email invalide.";
-    }
-    if (name === "phone" && value) {
-      error = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/.test(value)
-        ? ""
-        : "Numéro de téléphone invalide.";
-    }
-    setErrors((prev) => ({ ...prev, [name]: error }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const handleAvatarChange = async (file: File | null) => {
@@ -97,7 +165,6 @@ export default function FicheConciergerie() {
   const handleSave = async () => {
     if (!editProfile) return;
 
-    // Empêche la sauvegarde s'il y a des erreurs
     if (Object.values(errors).some((err) => err !== "")) {
       alert("⚠️ Corrigez les erreurs avant de sauvegarder.");
       return;
@@ -106,21 +173,16 @@ export default function FicheConciergerie() {
     setLoading(true);
     let avatar_url = editProfile.avatar_url;
 
-    // Upload de l'avatar si changé
     if (avatarFile) {
       const filePath = `avatars/user_${editProfile.id}_${Date.now()}`;
       const { data, error } = await supabase.storage
         .from("avatars")
-        .upload(filePath, avatarFile, {
-          cacheControl: "3600",
-          upsert: true,
-        });
+        .upload(filePath, avatarFile, { cacheControl: "3600", upsert: true });
       if (error) {
         setErrorMsg("Erreur lors de l'envoi de l'avatar.");
         setLoading(false);
         return;
       }
-
       const { data: publicUrlData } = supabase.storage
         .from("avatars")
         .getPublicUrl(data.path);
@@ -128,13 +190,31 @@ export default function FicheConciergerie() {
     }
 
     try {
+      const payload = {
+        id: editProfile.id,
+        username: editProfile.username,
+        first_name: editProfile.first_name,
+        last_name: editProfile.last_name,
+        email: editProfile.email,
+        phone: editProfile.phone,
+        avatar_url,
+        category: editProfile.category,
+        location: editProfile.location,
+        option: editProfile.option,
+        search_target: editProfile.search_target,
+        additional_info: editProfile.additional_info,
+      };
+
       const res = await fetch("/api/profiles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...editProfile, avatar_url }),
+        body: JSON.stringify(payload),
       });
       const result = await res.json();
-      if (result.error) throw new Error(result.error);
+      if (result.error) {
+        setErrors((prev) => ({ ...prev, email: result.error }));
+        throw new Error(result.error);
+      }
 
       setProfile({ ...editProfile, avatar_url });
       setEditProfile({ ...editProfile, avatar_url });
@@ -150,64 +230,24 @@ export default function FicheConciergerie() {
   };
 
   // ==========================
-  // Rendu du champ
+  // Configuration des champs
   // ==========================
-  const renderField = (
-    label: string,
-    name: keyof Profile,
-    isTextarea = false,
-    required = false,
-    placeholder = ""
-  ) => {
-    const value = editProfile?.[name] ?? "";
-    return (
-      <div className={styles.fieldRow}>
-        <label htmlFor={name.toString()} className={styles.fieldLabel}>
-          {label} {required && "*"}
-        </label>
-
-        {isEditing ? (
-          isTextarea ? (
-            <textarea
-              id={name.toString()}
-              name={name.toString()}
-              value={value as string}
-              onChange={handleChange}
-              className={styles.fieldTextarea}
-              placeholder={placeholder || label}
-              rows={3}
-            />
-          ) : (
-            <InputWithValidation
-              id={name.toString()}
-              name={name.toString()}
-              value={value as string}
-              onChange={handleChange}
-              placeholder={placeholder || label}
-              error={errors[name]}
-              isValid={!errors[name] && !!value}
-              autoComplete={
-                name === "email"
-                  ? "email"
-                  : name === "first_name"
-                    ? "given-name"
-                    : name === "last_name"
-                      ? "family-name"
-                      : name === "phone"
-                        ? "tel"
-                        : name === "username"
-                          ? "username"
-                          : "off"
-              }
-            />
-
-          )
-        ) : (
-          <span className={styles.fieldValue}>{value || "—"}</span>
-        )}
-      </div>
-    );
-  };
+  const fieldsConfig: {
+    label: string;
+    name: keyof Profile;
+    required?: boolean;
+    isTextarea?: boolean;
+  }[] = [
+      { label: "Nom d'utilisateur", name: "username", required: true },
+      { label: "Prénom", name: "first_name", required: true },
+      { label: "Nom", name: "last_name", required: true },
+      { label: "Email", name: "email", required: true },
+      { label: "Téléphone", name: "phone" },
+      { label: "Catégorie", name: "category" },
+      { label: "Emplacement", name: "location" },
+      { label: "Recherche cible", name: "search_target" },
+      { label: "À propos", name: "additional_info", isTextarea: true },
+    ];
 
   // ==========================
   // Rendu principal
@@ -229,13 +269,22 @@ export default function FicheConciergerie() {
         />
       </div>
 
-      {renderField("Nom d'utilisateur", "username", false, true)}
-      {renderField("Prénom", "first_name", false, true)}
-      {renderField("Nom", "last_name", false, true)}
-      {renderField("Email", "email", false, true)}
-      {renderField("Téléphone", "phone")}
-      {renderField("Catégorie", "category")}
-      {renderField("Emplacement", "location")}
+      {/* Champs générés dynamiquement */}
+      {fieldsConfig.map(({ label, name, required, isTextarea }) => (
+        <EditableField
+          key={name}
+          label={label}
+          name={name}
+          value={editProfile[name] ? String(editProfile[name]) : ""}
+          isEditing={isEditing}
+          required={required}
+          isTextarea={isTextarea}
+          error={errors[name]}
+          onChange={handleChange}
+        />
+      ))}
+
+      {/* Services principaux */}
       <div className={styles.fieldRow}>
         <label className={styles.fieldLabel}>Services principaux :</label>
         {isEditing ? (
@@ -256,9 +305,25 @@ export default function FicheConciergerie() {
           </span>
         )}
       </div>
-      {renderField("Recherche cible", "search_target")}
-      {renderField("À propos", "additional_info", true)}
 
+      <EditableField
+        label="Recherche cible"
+        name="search_target"
+        value={editProfile.search_target || ""}
+        isEditing={isEditing}
+        onChange={handleChange}
+      />
+
+      <EditableField
+        label="À propos"
+        name="additional_info"
+        value={editProfile.additional_info || ""}
+        isEditing={isEditing}
+        isTextarea
+        onChange={handleChange}
+      />
+
+      {/* Date de création */}
       <div className={styles.fieldRow}>
         <label className={styles.fieldLabel}>Date de création :</label>
         <span className={styles.fieldValue}>
@@ -266,6 +331,7 @@ export default function FicheConciergerie() {
         </span>
       </div>
 
+      {/* Actions */}
       <div className={styles.actions}>
         {isEditing ? (
           <button
