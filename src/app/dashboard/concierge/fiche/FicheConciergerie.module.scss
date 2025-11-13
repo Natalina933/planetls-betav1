@@ -1,192 +1,201 @@
-@use "../../../styles/abstracts/variables" as *;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap');
+$page-padding: 2.8rem;
+$gold: #D4AF37;
+$deep-brown: #4B2F1B;
+$cream: #FFF7E1;
+$accent-green: #39805A;
 
-@use "../../../styles/abstracts/mixins" as *;
-@use "sass:map";
-
-
-// --- Container principal ---
 .pageContainer {
-    max-width: 540px;
-    margin: $spacing-lg auto;
-    padding: $spacing-lg $spacing-md $spacing-xl;
-    background: $mucha-paper;
-    border-radius: $radius-2xl;
-    box-shadow: $shadow;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    font-family: $font-text;
-    gap: $spacing-md;
+  background: radial-gradient(circle at 15% 5%, $gold 2%, $cream 43%, white 100%);
+  min-height: 100vh;
+  padding: $page-padding;
+  font-family: 'Montserrat', serif;
 }
 
-// --- Titre ---
-.title {
-    font-family: $font-title;
+.headerCard {
+  display: flex;
+  align-items: center;
+  border-radius: 42px 14px 42px 14px;
+  background: linear-gradient(95deg, $cream, $gold 65%, $deep-brown 100%);
+  box-shadow: 0 4px 34px rgba($gold, 0.12);
+  padding: 1.89rem 2.2rem;
+  margin-bottom: 2rem;
+  position: relative;
+  border: 2.5px solid $gold;
+  &::before {
+    content: "";
+    position: absolute;
+    left: -18px; top: -18px; right: -18px; bottom: -18px;
+    border-radius: inherit;
+    border: 2px dashed $deep-brown;
+    opacity: 0.19;
+    pointer-events: none;
+  }
+}
+
+.avatarFrame {
+  width: 102px;
+  height: 102px;
+  border-radius: 65% 36% 65% 36% / 45% 65% 45% 65%;
+  background: $gold;
+  box-shadow: 0 0 12px rgba($gold, 0.18);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  margin-right: 2rem;
+}
+
+.identityBlock {
+  flex: 1;
+  .fullName {
+    font-family: 'Playfair Display', serif;
     font-size: 2.1rem;
-    letter-spacing: 0.01em;
-    color: $primary-dark-color-sass;
-    font-weight: $font-weight-bold;
-    text-align: center;
-    margin-bottom: $spacing-sm;
+    color: $deep-brown;
+    margin-bottom: 0.25rem;
+    .lastName {
+      font-weight: 400;
+      color: $gold;
+      font-family: 'Montserrat', serif;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  .roleBadge {
+    display: inline-block;
+    border-radius: 12px;
+    background: linear-gradient(90deg, $gold 60%, $accent-green 100%);
+    color: white;
+    font-size: 0.95rem;
+    padding: 0.26em 1.1em 0.26em 0.7em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    .proBadge {
+      margin-left: 0.6em;
+      font-size: 0.85em;
+      background: $deep-brown;
+      color: $gold;
+      padding: 0.15em 0.6em;
+      border-radius: 9px;
+      box-shadow: 0 2px 9px rgba($deep-brown, 0.18);
+    }
+  }
+  .meta {
+    display: flex;
+    gap: 1.7em;
+    font-size: 1rem;
+    color: $deep-brown;
+    margin-top: 0.3em;
+    opacity: 0.74;
+  }
+}
+.categoryOrnate {
+  position: absolute;
+  right: 2.2rem;
+  top: 1.2rem;
+  font-family: 'Playfair Display', serif;
+  color: $gold;
+  letter-spacing: 0.12em;
+  font-size: 1.1rem;
+  padding: 0.6em 1.5em;
+  background: rgba($gold, 0.09);
+  border-radius: 16px 0 16px 0;
+  border: 1.2px solid $gold;
+  box-shadow: 0 3px 22px rgba($gold, 0.12);
 }
 
-// --- Alertes/Banners ---
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.6rem 2.5rem;
+  margin-bottom: 2rem;
+}
+.infoItem {
+  background: linear-gradient(102deg, $cream 85%, $gold 120%);
+  border-radius: 12px;
+  border: 1.3px solid $gold;
+  box-shadow: 0 1.2px 9px rgba($gold, 0.09);
+  padding: 1.1rem 1.6rem;
+  label {
+    font-family: 'Playfair Display', serif;
+    color: $deep-brown;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.4em;
+    display: block;
+    letter-spacing: 0.04em;
+  }
+  span {
+    color: $deep-brown;
+    font-size: 1.13rem;
+    font-family: 'Montserrat', serif;
+    opacity: 0.89;
+  }
+  .optionTags {
+    display: flex;
+    gap: 0.65em;
+    flex-wrap: wrap;
+  }
+  .tag {
+    padding: 0.35em 1em;
+    background: linear-gradient(90deg, $gold 50%, $accent-green 100%);
+    color: white;
+    font-weight: 700;
+    border-radius: 11px;
+    font-size: 0.98em;
+    box-shadow: 0 1.5px 8px rgba($gold, 0.18);
+    margin-bottom: 0.2em;
+  }
+}
+
+.bioCard {
+  border-radius: 18px;
+  background: linear-gradient(102deg, $cream 80%, $accent-green 120%);
+  border: 1.5px solid $gold;
+  padding: 1.6rem 2.1rem;
+  box-shadow: 0 4px 34px rgba($accent-green, 0.12);
+  h2 {
+    font-family: 'Playfair Display', serif;
+    color: $accent-green;
+    font-size: 1.3rem;
+    margin-bottom: 0.8em;
+    letter-spacing: 0.06em;
+  }
+  p {
+    font-size: 1.12rem;
+    color: $deep-brown;
+    margin: 0;
+    font-family: 'Montserrat', serif;
+  }
+}
+.actions {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+}
+.saveButton, .editButton {
+  background: linear-gradient(90deg, $gold 70%, $accent-green 100%);
+  color: white; font-weight: bold; border: none;
+  border-radius: 9px; padding: 0.60em 2.2em; font-size: 1.16rem;
+  box-shadow: 0 2px 13px rgba($accent-green, 0.16);
+  cursor: pointer; transition: filter .23s;
+  &:hover { filter: brightness(1.08); }
+}
 .successBanner {
-    background: linear-gradient(90deg, #f2ffe5 0%, $gold-light 100%);
-    color: #236415;
-    border-radius: $radius-lg;
-    padding: $spacing-sm $spacing-md;
-    font-size: 1.08rem;
-    text-align: center;
-    border: 1px solid #d6efbc;
-    box-shadow: 0 1px 5px rgba(212, 175, 55, 0.07);
+  margin-left: 1rem;
+  background: $accent-green;
+  color: white;
+  padding: 0.6em 1.2em;
+  border-radius: 8px;
+  font-weight: bold;
 }
-
-.errorMsg {
-    background: #ffe5e1;
-    color: #9b3427;
-    border-radius: $radius-lg;
-    padding: $spacing-sm $spacing-md;
-    font-size: 1.08rem;
-    text-align: center;
-    border: 1px solid #ffd6cc;
-    margin-bottom: $spacing-sm;
-}
-
-// --- Fiche utilisateur ---
-.fieldRow {
-    margin-bottom: $spacing-sm;
-    display: flex;
-    align-items: flex-start;
-    font-size: 1.09rem;
-
-    .fieldLabel {
-        min-width: 134px;
-        font-family: $font-title;
-        color: $primary-dark-color-sass;
-        font-weight: $font-weight-bold;
-        letter-spacing: 0.01em;
-        vertical-align: middle;
-        font-size: 1.02rem;
-        margin-top: $spacing-xs * 0.6;
-    }
-
-    .fieldValue {
-        color: $text-dark;
-        font-family: $font-text;
-        margin-left: $spacing-xs;
-        letter-spacing: 0.01em;
-        font-size: 1.06rem;
-    }
-}
-
-.fieldInput,
-.fieldTextarea {
-    border: 1px solid #ede4be;
-    background: $gold-soft;
-    border-radius: 9px;
-    font-size: 1.06rem;
-    color: $text-dark;
-    outline: none;
-    margin-left: $spacing-xs;
-    font-family: $font-text;
-    padding: $spacing-xs $spacing-sm;
-    box-shadow: 0 1px 0 rgba(212, 175, 55, 0.03);
-    transition: border-color 0.17s, background 0.17s;
-    margin-top: $spacing-xs * 0.6;
-}
-
-.fieldInput:focus,
-.fieldTextarea:focus {
-    border-color: $primary-color-sass;
-    background: $gold-alt;
-}
-
-.fieldTextarea {
-    min-width: 220px;
-    resize: vertical;
-    margin-top: $spacing-xs;
-}
-
-.editButton,
-.saveButton {
-    font-family: $font-title;
-    font-weight: $font-weight-bold;
-    padding: 0.7rem 1.5rem;
-    border-radius: $radius-pill;
-    font-size: 1.09rem;
-    border: none;
-    cursor: pointer;
-    margin-top: 1.25rem;
-    margin-bottom: 0.2rem;
-    transition: $transition;
-    box-shadow: 0 3px 18px #fff6e188;
-    outline: none;
-
-    &:hover,
-    &:active {
-        filter: brightness(1.06);
-        box-shadow: 0 4px 18px $gold-light;
-    }
-}
-
-.editButton {
-    background: linear-gradient(90deg, $gold-soft 0%, #fffde9 100%);
-    color: $primary-dark-color-sass;
-    border: 1.5px solid $gold-accent;
-}
-
-.saveButton {
-    background: linear-gradient(90deg, $gold 0%, $gold-accent 100%);
-    color: #494300;
-    border: 1.5px solid $primary-dark-color-sass;
-}
-
-.saveButton:disabled {
-    background: #f7f7f7;
-    color: #bbbbbb;
-    cursor: not-allowed;
-    border: 1.5px solid #eee;
-    box-shadow: none;
-}
-
-// Avatar centré, sur fiche
-.avatarBlock {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: $spacing-sm;
-    margin-top: $spacing-xs;
+.errorMsg { color: #e74c3c; }
+@media (max-width: 850px) {
+  .headerCard {
     flex-direction: column;
-}
-
-// Affecte uniquement l'avatar dans la fiche :
-.ficheAvatar {
-    width: 74px !important;
-    height: 74px !important;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.09);
-    border: 2px solid $gold;
-    margin-bottom: $spacing-xs;
-    background-color: #fffdf5;
-}
-
-// Responsive
-@media (max-width: map.get($breakpoints, sm))  {
-    .pageContainer {
-        padding: $spacing-md $spacing-xs $spacing-md;
-        border-radius: 0.7rem;
-    }
-
-    .fieldRow .fieldLabel {
-        min-width: 95px;
-        font-size: 1.01rem;
-    }
-
-    .editButton,
-    .saveButton {
-        font-size: 1rem;
-        padding: 0.6rem 1rem;
-    }
+    align-items: flex-start;
+    padding: 1.1rem 0.8rem;
+    .identityBlock { margin-top: 1.2rem; .fullName{font-size:1.2rem;} }
+    .categoryOrnate { right: 1rem; top: 0.5rem; }
+  }
+  .infoGrid { gap: 0.9rem 1.2rem; }
 }

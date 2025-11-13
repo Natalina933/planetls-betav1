@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./ProfileServices.module.scss";
 import { supabaseBrowser } from "@/app/lib/dbClient";
-import type { ServiceCatalog } from "@/app/lib/types";
+import type { ServiceCatalogRow } from "@/app/lib/types";
 
 interface ProfileServicesProps {
   profileId: string;
@@ -18,7 +18,7 @@ export default function ProfileServices({
 }: ProfileServicesProps) {
   const supabase = supabaseBrowser();
 
-  const [services, setServices] = useState<ServiceCatalog[]>([]);
+  const [services, setServices] = useState<ServiceCatalogRow[]>([]);
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

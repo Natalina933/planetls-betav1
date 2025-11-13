@@ -13,8 +13,6 @@ const ROLE_FOLDER_MAP: Record<string, string> = {
   owner_pro: "propriétaire",
   provider: "artisan",
   provider_pro: "artisan",
-  // artisan: "artisan",
-  // artisan_pro: "artisan",
 };
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
@@ -22,34 +20,45 @@ const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // 🔓 Autoriser les chemins publics
   if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
+  // 🔑 Vérification du token
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token) {
-    console.warn("[MIDDLEWARE] No token found, redirect to login");
+    console.warn("[MIDDLEWARE] Aucun token trouvé → redirection vers /login");
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  // 🎭 Normalisation du rôle
   const normalizedRole = categoryToRole(token.role as string | null);
   if (!normalizedRole) {
-    console.warn("[MIDDLEWARE] Unknown role:", token.role);
+    console.error("[MIDDLEWARE] Rôle inconnu :", token.role);
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  // 📂 Mapping vers le dossier cible
   const targetFolder = ROLE_FOLDER_MAP[normalizedRole];
   if (!targetFolder) {
-    console.warn("[MIDDLEWARE] Role not mapped:", normalizedRole);
+    console.error("[MIDDLEWARE] Rôle non mappé :", normalizedRole);
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  // 🚦 Redirection si l’utilisateur n’est pas déjà dans son dashboard
   if (!pathname.startsWith(`/dashboard/${targetFolder}`)) {
-    console.log(`[MIDDLEWARE] Redirecting ${token.role} to /dashboard/${targetFolder}`);
+    console.log(
+      `[MIDDLEWARE] Redirection de ${token.role} → /dashboard/${targetFolder}`
+    );
     return NextResponse.redirect(new URL(`/dashboard/${targetFolder}`, req.url));
   }
 
+  // ✅ Autoriser la requête
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/dashboard/:path*", "/api/protected/:path*"] };
+// ⚙️ Config : matcher uniquement les routes protégées
+export const config = {
+  matcher: ["/dashboard/:path*", "/api/protected/:path*"],
+};

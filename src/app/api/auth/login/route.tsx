@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
   // 🔹 Récupération profil
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, username, first_name, last_name, email, avatar_url, role")
+    .select("id, username, first_name, last_name, email, avatar_url, role, category, phone, location, option, search_target")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -123,6 +123,13 @@ export async function POST(request: NextRequest) {
       name: profile.first_name,
       role,
       avatar_url: avatar,
+      firstName: profile.first_name,
+      lastName: profile.last_name,
+      category: profile.category,
+      phone: profile.phone,
+      location: profile.location,
+      option: profile.option,
+      searchTarget: profile.search_target,
     }
   }, { status: 200 });
 }

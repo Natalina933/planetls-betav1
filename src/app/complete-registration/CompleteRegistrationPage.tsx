@@ -437,6 +437,9 @@ export default function CompleteRegistrationPage() {
         email: editableData.email,
         phone: editableData.phone,
         additionalInfo: editableData.additionalInfo, // ✅ Zod attend 'additionalInfo'
+        location: queryData.location,
+        option: queryData.option,
+        searchTarget: queryData.searchTarget,
       };
       // 1. Appel de l'API d'inscription (Création de l'utilisateur en base par l'Admin Supabase)
       const response = await fetch("/api/auth/register", {
