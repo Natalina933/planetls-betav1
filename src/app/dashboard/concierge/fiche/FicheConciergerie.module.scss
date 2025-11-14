@@ -1,201 +1,130 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap');
-$page-padding: 2.8rem;
-$gold: #D4AF37;
-$deep-brown: #4B2F1B;
-$cream: #FFF7E1;
-$accent-green: #39805A;
+@use "@/app/styles/abstracts/variables" as *;
 
 .pageContainer {
-  background: radial-gradient(circle at 15% 5%, $gold 2%, $cream 43%, white 100%);
-  min-height: 100vh;
-  padding: $page-padding;
-  font-family: 'Montserrat', serif;
+  max-width: $max-content-width;
+  margin: 0 auto;
+  padding: $spacing-lg;
+  background: $all-bg;
+  font-family: $font-text;
+  color: $color-text;
+  line-height: $line-height;
 }
 
-.headerCard {
+.title {
+  font-family: $font-title;
+  font-weight: $font-weight-bold;
+  font-size: 2rem;
+  margin-bottom: $spacing-md;
+  color: $primary-color-sass;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid $gold;
+  padding-bottom: $spacing-sm;
+}
+
+.avatarBlock {
   display: flex;
-  align-items: center;
-  border-radius: 42px 14px 42px 14px;
-  background: linear-gradient(95deg, $cream, $gold 65%, $deep-brown 100%);
-  box-shadow: 0 4px 34px rgba($gold, 0.12);
-  padding: 1.89rem 2.2rem;
-  margin-bottom: 2rem;
-  position: relative;
-  border: 2.5px solid $gold;
-  &::before {
-    content: "";
-    position: absolute;
-    left: -18px; top: -18px; right: -18px; bottom: -18px;
-    border-radius: inherit;
-    border: 2px dashed $deep-brown;
-    opacity: 0.19;
-    pointer-events: none;
+  justify-content: center;
+  margin-bottom: $spacing-lg;
+
+  img {
+    border-radius: $radius-2xl;
+    box-shadow: $shadow;
+    border: 3px solid $gold-light;
   }
 }
 
-.avatarFrame {
-  width: 102px;
-  height: 102px;
-  border-radius: 65% 36% 65% 36% / 45% 65% 45% 65%;
-  background: $gold;
-  box-shadow: 0 0 12px rgba($gold, 0.18);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-  margin-right: 2rem;
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: $spacing-md;
 }
 
-.identityBlock {
-  flex: 1;
-  .fullName {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.1rem;
-    color: $deep-brown;
-    margin-bottom: 0.25rem;
-    .lastName {
-      font-weight: 400;
-      color: $gold;
-      font-family: 'Montserrat', serif;
-      letter-spacing: 0.04em;
-    }
-  }
-
-  .roleBadge {
-    display: inline-block;
-    border-radius: 12px;
-    background: linear-gradient(90deg, $gold 60%, $accent-green 100%);
-    color: white;
-    font-size: 0.95rem;
-    padding: 0.26em 1.1em 0.26em 0.7em;
-    margin-bottom: 0.5em;
-    font-weight: bold;
-    .proBadge {
-      margin-left: 0.6em;
-      font-size: 0.85em;
-      background: $deep-brown;
-      color: $gold;
-      padding: 0.15em 0.6em;
-      border-radius: 9px;
-      box-shadow: 0 2px 9px rgba($deep-brown, 0.18);
-    }
-  }
-  .meta {
-    display: flex;
-    gap: 1.7em;
-    font-size: 1rem;
-    color: $deep-brown;
-    margin-top: 0.3em;
-    opacity: 0.74;
-  }
-}
-.categoryOrnate {
-  position: absolute;
-  right: 2.2rem;
-  top: 1.2rem;
-  font-family: 'Playfair Display', serif;
-  color: $gold;
-  letter-spacing: 0.12em;
+.fieldLabel {
+  font-family: $font-elegant;
   font-size: 1.1rem;
-  padding: 0.6em 1.5em;
-  background: rgba($gold, 0.09);
-  border-radius: 16px 0 16px 0;
-  border: 1.2px solid $gold;
-  box-shadow: 0 3px 22px rgba($gold, 0.12);
+  font-weight: $font-weight-bold;
+  color: $mucha-ink;
+  margin-bottom: $spacing-xs;
 }
 
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.6rem 2.5rem;
-  margin-bottom: 2rem;
+.fieldValue {
+  font-family: $font-text;
+  font-size: 1rem;
+  color: $text-dark;
+  background: $gold-soft;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  border: 1px solid $gold-light;
 }
-.infoItem {
-  background: linear-gradient(102deg, $cream 85%, $gold 120%);
-  border-radius: 12px;
-  border: 1.3px solid $gold;
-  box-shadow: 0 1.2px 9px rgba($gold, 0.09);
-  padding: 1.1rem 1.6rem;
-  label {
-    font-family: 'Playfair Display', serif;
-    color: $deep-brown;
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 0.4em;
-    display: block;
-    letter-spacing: 0.04em;
-  }
-  span {
-    color: $deep-brown;
-    font-size: 1.13rem;
-    font-family: 'Montserrat', serif;
-    opacity: 0.89;
-  }
-  .optionTags {
-    display: flex;
-    gap: 0.65em;
-    flex-wrap: wrap;
-  }
-  .tag {
-    padding: 0.35em 1em;
-    background: linear-gradient(90deg, $gold 50%, $accent-green 100%);
-    color: white;
-    font-weight: 700;
-    border-radius: 11px;
-    font-size: 0.98em;
-    box-shadow: 0 1.5px 8px rgba($gold, 0.18);
-    margin-bottom: 0.2em;
+
+.fieldTextarea {
+  font-family: $font-text;
+  font-size: 1rem;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  border: 1px solid $gold-light;
+  background: $gold-soft;
+  transition: $transition;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color-sass;
+    box-shadow: 0 0 0 3px rgba($primary-color-sass, 0.2);
   }
 }
 
-.bioCard {
-  border-radius: 18px;
-  background: linear-gradient(102deg, $cream 80%, $accent-green 120%);
-  border: 1.5px solid $gold;
-  padding: 1.6rem 2.1rem;
-  box-shadow: 0 4px 34px rgba($accent-green, 0.12);
-  h2 {
-    font-family: 'Playfair Display', serif;
-    color: $accent-green;
-    font-size: 1.3rem;
-    margin-bottom: 0.8em;
-    letter-spacing: 0.06em;
-  }
-  p {
-    font-size: 1.12rem;
-    color: $deep-brown;
-    margin: 0;
-    font-family: 'Montserrat', serif;
-  }
-}
 .actions {
-  margin-top: 2.5rem;
   display: flex;
-  gap: 1.2rem;
-  align-items: center;
-}
-.saveButton, .editButton {
-  background: linear-gradient(90deg, $gold 70%, $accent-green 100%);
-  color: white; font-weight: bold; border: none;
-  border-radius: 9px; padding: 0.60em 2.2em; font-size: 1.16rem;
-  box-shadow: 0 2px 13px rgba($accent-green, 0.16);
-  cursor: pointer; transition: filter .23s;
-  &:hover { filter: brightness(1.08); }
-}
-.successBanner {
-  margin-left: 1rem;
-  background: $accent-green;
-  color: white;
-  padding: 0.6em 1.2em;
-  border-radius: 8px;
-  font-weight: bold;
-}
-.errorMsg { color: #e74c3c; }
-@media (max-width: 850px) {
-  .headerCard {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1.1rem 0.8rem;
-    .identityBlock { margin-top: 1.2rem; .fullName{font-size:1.2rem;} }
-    .categoryOrnate { right: 1rem; top: 0.5rem; }
+  justify-content: flex-end;
+  margin-top: $spacing-lg;
+
+  button {
+    font-family: $font-title;
+    font-weight: $font-weight-bold;
+    padding: $spacing-sm $spacing-lg;
+    border-radius: $radius-pill;
+    border: none;
+    cursor: pointer;
+    transition: $transition;
+    box-shadow: $shadow;
+
+    &.editButton {
+      background: $gold-light;
+      color: $mucha-ink;
+
+      &:hover {
+        background: $gold;
+        color: white;
+      }
+    }
+
+    &.saveButton {
+      background: $primary-color-sass;
+      color: white;
+
+      &:hover {
+        background: $primary-dark-color-sass;
+      }
+    }
   }
-  .infoGrid { gap: 0.9rem 1.2rem; }
+}
+
+.successBanner {
+  background: $gold-light;
+  color: $mucha-ink;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  margin-bottom: $spacing-md;
+  border: 1px solid $gold;
+  font-family: $font-elegant;
+}
+
+.errorMsg {
+  background: #fff0f0;
+  color: darkred;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-lg;
+  border: 1px solid darkred;
+  font-family: $font-text;
 }

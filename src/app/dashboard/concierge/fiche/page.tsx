@@ -55,7 +55,7 @@ export default function FicheConciergerie() {
       try {
         console.log("[Load] Démarrage du chargement profil...");
         const res = await fetch("/api/profiles/current");
-        
+
         const data: Profile | { error: string } = await res.json();
         console.log("[Load] Données profil reçues :", data);
 
@@ -103,6 +103,8 @@ export default function FicheConciergerie() {
   // ==========================
   const handleSave = async () => {
     if (!editProfile) return;
+
+    // Vérification des erreurs de validation
     if (Object.values(errors).some((err) => err !== "")) {
       alert("⚠️ Corrigez les erreurs avant de sauvegarder.");
       console.warn("[Save] Erreurs à corriger :", errors);
@@ -112,45 +114,61 @@ export default function FicheConciergerie() {
     setLoading(true);
     let avatar_url = editProfile.avatar_url;
 
-    // Upload de l'avatar si changé
-    if (avatarFile) {
-      console.log("[Avatar] Début de l'upload...");
-      const filePath = `avatars/user_${editProfile.id}_${Date.now()}`;
-      const { data, error } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, avatarFile, {
-          cacheControl: "3600",
-          upsert: true,
-        });
-      if (error) {
-        setErrorMsg("Erreur lors de l'envoi de l'avatar.");
-        setLoading(false);
-        console.error("[Avatar] Upload FAIL :", error);
-        return;
+    try {
+      // ==========================
+      // Upload avatar si changé
+      // ==========================
+      if (avatarFile) {
+        console.log("[Avatar] Début de l'upload...");
+
+        const filePath = `avatars/user_${editProfile.id}_${Date.now()}`;
+        const { data, error } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, avatarFile, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (error || !data) {
+          console.error("[Avatar] Upload FAIL :", error);
+          setErrorMsg("Erreur lors de l'envoi de l'avatar. Vérifiez le bucket et les policies.");
+          setLoading(false);
+          return;
+        }
+
+        // Vérification de l'URL publique
+        const { data: publicUrlData } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(data.path);
+
+        if (!publicUrlData?.publicUrl) {
+          console.error("[Avatar] Impossible de générer l'URL publique :", publicUrlData);
+          setErrorMsg("Avatar envoyé mais URL publique introuvable.");
+          setLoading(false);
+          return;
+        }
+
+        avatar_url = publicUrlData.publicUrl;
+        console.log("[Avatar] Nouvelle URL publique :", avatar_url);
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(data.path);
-      avatar_url = publicUrlData.publicUrl;
-      console.log("[Avatar] Nouvelle URL publique :", avatar_url);
-    }
+      // ==========================
+      // PATCH profil
+      // ==========================
+      console.log("[Save] Payload envoyé à l'API :", { ...editProfile, avatar_url });
 
-    // === Log avant envoi ===
-    console.log("[Save] Payload envoyé à l'API :",
-      { ...editProfile, avatar_url });
-
-    try {
       const res = await fetch("/api/profiles/current", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...editProfile, avatar_url }),
       });
-      const result = await res.json();
 
+      const result = await res.json();
       console.log("[Save] Réponse API PATCH :", result);
+
       if (result.error) throw new Error(result.error);
 
+      // Mise à jour locale
       setProfile({ ...editProfile, avatar_url });
       setEditProfile({ ...editProfile, avatar_url });
       setIsEditing(false);
@@ -158,12 +176,13 @@ export default function FicheConciergerie() {
       setErrorMsg("");
       setAvatarFile(null);
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur de sauvegarde du profil.");
       console.error("[Save] ERREUR lors de l'envoi PATCH :", err);
+      setErrorMsg(err instanceof Error ? err.message : "Erreur de sauvegarde du profil.");
     } finally {
       setLoading(false);
     }
   };
+
 
   // ==========================
   // Rendu du champ

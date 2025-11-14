@@ -1,10 +1,15 @@
+@use "sass:math";
 @use "sass:color";
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/abstracts/mixins" as *;
+
 
 /* Overlay principal */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 15, 25, 0.55);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;

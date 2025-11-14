@@ -1,4 +1,8 @@
+@use "sass:math";
 @use "sass:color";
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/abstracts/mixins" as *;
+
 
 .popupOverlay {
   position: fixed;
