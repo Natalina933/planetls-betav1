@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import StatCard from "@/app/components/dashboard/StatCard";
-import {supabaseBrowser} from "@/app/lib/dbClient";
+import { supabaseBrowser } from "@/app/lib/dbClient";
 
 interface DashboardStats {
   users: number;
@@ -28,13 +28,18 @@ export default function AdminDashboard() {
           { count: providersCount },
           { count: bookingsCount },
         ] = await Promise.all([
-          supabase.from("users").select("*", { count: "exact", head: true }),
+          // ✅ Utilisateurs = table profiles
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+
+          // ✅ Providers = profiles filtrés par type
           supabase
             .from("profiles")
             .select("*", { count: "exact", head: true })
             .eq("type", "provider"),
+
+          // ✅ Réservations = table planning_entries (à adapter si tu as une autre table)
           supabase
-            .from("reservations")
+            .from("planning_entries")
             .select("*", { count: "exact", head: true }),
         ]);
 
