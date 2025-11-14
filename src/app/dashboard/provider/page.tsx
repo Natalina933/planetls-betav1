@@ -1,79 +1,64 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
-import StatCard from "@/app/components/dashboard/StatCard";
-import JobList from "@/app/components/dashboard/JobList";
-import { supabaseBrowser } from "@/app/lib/dbClient";
+import React, { useState } from "react";
 
 export interface Job {
-    id: string;
-    title: string;
-    description?: string | null;
-    status?: string | null;
-    service?: string | null;
+  id: string;
+  title: string;
+  description?: string | null;
+  status?: string | null;
+  service?: string | null;
 }
 
 interface ProviderStats {
-    quotes: number;
-    accepted: number;
-    revenue: string;
+  quotes: number;
+  accepted: number;
+  revenue: string;
 }
+
 export default function ProviderDashboard() {
-    const { user, loading, isAuthenticated } = useCurrentUser();
-    const [jobs, setJobs] = useState<Job[]>([]);
-    const [stats, setStats] = useState<ProviderStats>({
-        quotes: 0,
-        accepted: 0,
-        revenue: "0 €",
-    });
-    const [loadingData, setLoadingData] = useState(true);
+  // ⚡ Données fictives pour tester l'affichage
+  const [jobs] = useState<Job[]>([
+    { id: "1", title: "Installation cuisine", description: "Pose complète", status: "accepted", service: "menuiserie" },
+    { id: "2", title: "Peinture salon", description: "Peinture murale", status: "pending", service: "peinture" },
+    { id: "3", title: "Réparation toiture", description: "Remplacement tuiles", status: "accepted", service: "toiture" },
+  ]);
 
-    useEffect(() => {
-        if (!isAuthenticated || !user?.id) return;
+  const [stats] = useState<ProviderStats>({
+    quotes: jobs.length,
+    accepted: jobs.filter((j) => j.status === "accepted").length,
+    revenue: "1 200 €", // valeur fictive
+  });
 
-        const fetchJobs = async () => {
-            try {
-                const supabase = supabaseBrowser();
+  return (
+    <section className="dashboard-grid">
+      <h1>Tableau de bord prestataire</h1>
 
-                const { data } = await supabase
-                    .from("jobs")
-                    .select("id, title, description, status, service")
-                    .eq("provider_id", user.id);
+      <div className="stats-row">
+        <div className="stat-card">
+          <h3>Devis reçus</h3>
+          <p>{stats.quotes}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Chantiers acceptés</h3>
+          <p>{stats.accepted}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Revenus</h3>
+          <p>{stats.revenue}</p>
+        </div>
+      </div>
 
-                const jobsList: Job[] = data ?? [];
-                setJobs(jobsList);
-
-                setStats({
-                    quotes: jobsList.length,
-                    accepted: jobsList.filter((j) => j.status === "accepted").length,
-                    revenue: "1 200 €",
-                });
-            } catch (err) {
-                console.error("❌ Erreur chargement dashboard prestataire :", err);
-            } finally {
-                setLoadingData(false);
-            }
-        };
-
-        fetchJobs();
-    }, [isAuthenticated, user]);
-
-    if (loading || loadingData) return <div className="center">Chargement...</div>;
-    if (!isAuthenticated) return <div className="center">Veuillez vous connecter</div>;
-
-    return (
-        <section className="dashboard-grid">
-            <div className="stats-row">
-                <StatCard title="Devis reçus" value={stats.quotes} />
-                <StatCard title="Chantiers acceptés" value={stats.accepted} />
-                <StatCard title="Revenus" value={stats.revenue} />
-            </div>
-
-            <div className="main-section">
-                <h2>Vos chantiers</h2>
-                <JobList jobs={jobs} />
-            </div>
-        </section>
-    );
+      <div className="main-section">
+        <h2>Vos chantiers</h2>
+        <ul>
+          {jobs.map((job) => (
+            <li key={job.id}>
+              <strong>{job.title}</strong> — {job.description} ({job.status})
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
 }

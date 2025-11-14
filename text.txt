@@ -23,4 +23,4 @@ Exécutée npx supabase loginpour authentifier ta CLI.
 
 Récupère ton projet ref depuis Supabase Dashboard.
 
-Lance ensuite la génération des types avec npx supabase gen types typescript --project-id dyqlixssykeecvtqmcxh > ./src/database.types.ts.
+Lance ensuite la génération des types avec npx supabase gen types typescript --project-id dyqlixssykeecvtqmcxh > ./src/supabase.ts.
