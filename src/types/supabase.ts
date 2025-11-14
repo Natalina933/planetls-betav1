@@ -455,3 +455,7 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export type ServiceCatalogRow = Database["public"]["Tables"]["services_catalog"]["Row"];
 export type ProfileServicesRow = Database["public"]["Tables"]["profile_services"]["Row"];
+
+export type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
+
+export type PlanningEntryRow = Database["public"]["Tables"]["planning_entries"]["Row"];
