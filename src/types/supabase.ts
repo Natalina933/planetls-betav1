@@ -10,6 +10,23 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type UserRole =
+  | "proprietaire"
+  | "proprietaire_pro"
+  | "concierge"
+  | "concierge_pro"
+  | "service"
+  | "service_pro"
+  | "admin"
+  | "owner"
+  | "owner_pro"
+  | "provider"
+  | "provider_pro"
+  | "artisan"
+  | "artisan_pro"
+  | "super_admin";
+
+
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
