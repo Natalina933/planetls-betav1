@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./ProfileServices.module.scss";
 import { supabaseBrowser } from "@/app/lib/dbClient";
-import type { ServiceCatalogRow } from "@/app/lib/types";
+import type { ServiceCatalogRow } from "@/types/supabase";
 
 interface ProfileServicesProps {
   profileId: string;
@@ -66,7 +66,7 @@ export default function ProfileServices({
     setMessage("");
 
     try {
-      const res = await fetch("/api/profile_services", {
+      const res = await fetch("/api/profiles/current", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

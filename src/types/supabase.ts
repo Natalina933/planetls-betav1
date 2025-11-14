@@ -1,252 +1,303 @@
+// src/types/supabase.ts
+// ================================
+// Types généraux et structure Supabase
+// ================================
 export type Json =
   | string
   | number
   | boolean
   | null
-  | { [key: string]: Json }
-  | Json[];
-  
-export type UserRole =
-  | "owner"
-  | "owner_pro"
-  | "concierge"
-  | "concierge_pro"
-  | "artisan"
-  | "artisan_pro"
-  | "provider"
-  | "provider_pro"
-  | "admin"
-  | "super_admin";
-// src/app/lib/types.ts
-
-export type ProfileRow = {
-  id: string;
-  username: string;
-  first_name: string | null;
-  last_name: string | null;
-  email: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  additional_info: string | null;
-  category: string | null;
-  created_at: string;
-  location: string | null;
-  option: string | null;
-  search_target: string | null;
-  role: string | null;
-  password: string | null;
-};
-
-export type ProfileInsert = {
-  username: string;
-  first_name?: string | null;
-  last_name?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  avatar_url?: string | null;
-  additional_info?: string | null;
-  category?: string | null;
-  created_at?: string;
-  location?: string | null;
-  option?: string | null;
-  search_target?: string | null;
-  role?: string | null;
-  password?: string | null;
-};
-
-export type ProfileUpdate = Partial<ProfileInsert>;
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      
-      // -----------------------
-      // 🧍‍♂️ PROFILES
-      // -----------------------
-      profiles: {
+      categories: {
         Row: {
-          id: string;
-          username: string;
-          first_name: string | null;
-          last_name: string | null;
-          email: string | null;
-          phone: string | null;
-          avatar_url: string | null;
-          additional_info: string | null;
-          category: string | null;
-          created_at: string;
-          location: string | null;
-          option: string | null;
-          search_target: string | null;
-          role: string | null;
-          password: string | null;
-        };
+          description: string | null
+          group_key: string | null
+          icon: string | null
+          id: number
+          image: string | null
+          key: string
+          label: string
+          new_id: string
+        }
         Insert: {
-          id?: string;
-          username: string;
-          first_name?: string | null;
-          last_name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          avatar_url?: string | null;
-          additional_info?: string | null;
-          category?: string | null;
-          created_at?: string;
-          location?: string | null;
-          option?: string | null;
-          search_target?: string | null;
-          role?: string | null;
-          password?: string | null;
-        };
+          description?: string | null
+          group_key?: string | null
+          icon?: string | null
+          id?: number
+          image?: string | null
+          key: string
+          label: string
+          new_id?: string
+        }
         Update: {
-          username?: string;
-          first_name?: string | null;
-          last_name?: string | null;
-          email?: string | null;
-          phone?: string | null;
-          avatar_url?: string | null;
-          additional_info?: string | null;
-          category?: string | null;
-          created_at?: string;
-          location?: string | null;
-          option?: string | null;
-          search_target?: string | null;
-          role?: string | null;
-          password?: string | null;
-        };
-      };
-
-      // -----------------------
-      // 🧩 SERVICES CATALOG
-      // -----------------------
-      services_catalog: {
-        Row: {
-          id: number;
-          category: "proprietaire" | "concierge" | "artisan";
-          service: string;
-          description: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: number;
-          category: "proprietaire" | "concierge" | "artisan";
-          service: string;
-          description?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          category?: "proprietaire" | "concierge" | "artisan";
-          service?: string;
-          description?: string | null;
-          created_at?: string;
-        };
-      };
-
-      // -----------------------
-      // 🔗 PROFILE SERVICES (liaison profil ↔ services_catalog)
-      // -----------------------
-      profile_services: {
-        Row: {
-          id: number;
-          profile_id: string;
-          service_id: number;
-          selected: boolean | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: number;
-          profile_id: string;
-          service_id: number;
-          selected?: boolean | null;
-          created_at?: string;
-        };
-        Update: {
-          profile_id?: string;
-          service_id?: number;
-          selected?: boolean | null;
-          created_at?: string;
-        };
-      };
-
-      // -----------------------
-      // 🚨 ALERTES
-      // -----------------------
-      alertes: {
-        Row: {
-          id: string;
-          user_id: string;
-          message: string;
-          category: string;
-          location: string;
-          latitude: number | null;
-          longitude: number | null;
-          created_at: string;
-        };
-        Insert: {
-          user_id: string;
-          message: string;
-          category: string;
-          location: string;
-          latitude?: number | null;
-          longitude?: number | null;
-          created_at?: string;
-        };
-        Update: {
-          available?: boolean | null
-          created_at?: string
-          id?: string
-          latitude?: number | null
-          longitude?: number | null
-          name?: string | null
-          photo?: string | null
-          type?: string | null
+          description?: string | null
+          group_key?: string | null
+          icon?: string | null
+          id?: number
+          image?: string | null
+          key?: string
+          label?: string
+          new_id?: string
         }
         Relationships: []
       }
-      users: {
+      planning_entries: {
         Row: {
-          avatar_url: string | null
           created_at: string | null
-          email: string
-          full_name: string | null
-          new_id: string | null
-          role: string | null
-          updated_at: string | null
+          date: string
+          id: string
+          task: string
           user_id: string
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string | null
-          email: string
-          full_name?: string | null
-          new_id?: string | null
-          role?: string | null
-          updated_at?: string | null
-          user_id?: string
+          date: string
+          id?: string
+          task: string
+          user_id: string
         }
         Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          task?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_services: {
+        Row: {
+          created_at: string | null
+          id: number
+          profile_id: string
+          selected: boolean | null
+          service_id: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          profile_id: string
+          selected?: boolean | null
+          service_id: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          profile_id?: string
+          selected?: boolean | null
+          service_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_services_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_services_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          additional_info: string | null
+          avatar_url: string | null
+          category: string | null
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          location: string | null
+          option: string | null
+          password: string | null
+          phone: string | null
+          role: string | null
+          search_target: string | null
+          updated_at: string | null
+          username: string
+        }
+        Insert: {
+          additional_info?: string | null
           avatar_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          location?: string | null
+          option?: string | null
+          password?: string | null
+          phone?: string | null
+          role?: string | null
+          search_target?: string | null
+          updated_at?: string | null
+          username: string
+        }
+        Update: {
+          additional_info?: string | null
+          avatar_url?: string | null
+          category?: string | null
           created_at?: string | null
           email?: string
-          full_name?: string | null
-          new_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          location?: string | null
+          option?: string | null
+          password?: string | null
+          phone?: string | null
           role?: string | null
+          search_target?: string | null
           updated_at?: string | null
-          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_category"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "fk_profiles_category"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "profiles_role_fkey"
+            columns: ["role"]
+            isOneToOne: false
+            referencedRelation: "user_dashboard_view"
+            referencedColumns: ["role_code"]
+          },
+          {
+            foreignKeyName: "profiles_role_fkey"
+            columns: ["role"]
+            isOneToOne: false
+            referencedRelation: "user_roles"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      services_catalog: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: number
+          service: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          service: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          service?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          code: string
+          group_key: string | null
+          is_pro: boolean | null
+          label: string
+          ordre: number | null
+          user_id: string | null
+        }
+        Insert: {
+          code: string
+          group_key?: string | null
+          is_pro?: boolean | null
+          label: string
+          ordre?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          code?: string
+          group_key?: string | null
+          is_pro?: boolean | null
+          label?: string
+          ordre?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
+      user_dashboard_view: {
+        Row: {
+          avatar_url: string | null
+          category: string | null
+          category_label: string | null
+          description: string | null
+          email: string | null
+          group_key: string | null
+          icon: string | null
+          id: string | null
+          image: string | null
+          is_pro: boolean | null
+          role_code: string | null
+          role_label: string | null
+          username: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_category"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "fk_profiles_category"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      is_user_profile_owner:
+        | { Args: { profile_id: string }; Returns: boolean }
+        | { Args: never; Returns: boolean }
     }
     Enums: {
       user_role:
@@ -396,3 +447,11 @@ export const Constants = {
     },
   },
 } as const
+
+// Ajoute ces exports personnalisés à la fin de src/types/supabase.ts
+
+export type ProfileUpdate = Partial<Database["public"]["Tables"]["profiles"]["Update"]>;
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+
+export type ServiceCatalogRow = Database["public"]["Tables"]["services_catalog"]["Row"];
+export type ProfileServicesRow = Database["public"]["Tables"]["profile_services"]["Row"];

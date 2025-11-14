@@ -16,3 +16,11 @@ npx supabase gen types typescript \
   --https://dyqlixssykeecvtqmcxh.supabase.co \
   --api-key YeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cWxpeHNzeWtlZWN2dHFtY3hoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTc2NjE1NCwiZXhwIjoyMDc1MzQyMTU0fQ.jafHIBEtOFvo2fO9cy7bu5XYXC3U1Cdyp-mpFOsBjXo \
   > src/types/supabase.ts
+
+
+
+Exécutée npx supabase loginpour authentifier ta CLI.
+
+Récupère ton projet ref depuis Supabase Dashboard.
+
+Lance ensuite la génération des types avec npx supabase gen types typescript --project-id dyqlixssykeecvtqmcxh > ./src/database.types.ts.

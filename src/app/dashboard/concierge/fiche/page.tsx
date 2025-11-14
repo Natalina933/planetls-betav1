@@ -141,7 +141,7 @@ export default function FicheConciergerie() {
       { ...editProfile, avatar_url });
 
     try {
-      const res = await fetch("/api/profiles", {
+      const res = await fetch("/api/profiles/current", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...editProfile, avatar_url }),
