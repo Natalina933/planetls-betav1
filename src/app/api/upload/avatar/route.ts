@@ -1,111 +1,85 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextApiRequest, NextApiResponse } from "next";
+import formidable from "formidable";
+import fs from "fs";
 import { createClient } from "@supabase/supabase-js";
-import { randomUUID } from "crypto";
-import { v4 as uuidv4 } from "uuid";
 
-// Configuration
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const BUCKET_NAME = "avatars";
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
-export async function POST(request: NextRequest) {
-    try {
-        // ✅ Récupération des clés Supabase
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-        if (!supabaseUrl || !supabaseKey) {
-            return NextResponse.json(
-                { error: "Configuration Supabase manquante" },
-                { status: 500 }
-            );
+type FormidableFile = {
+  filepath: string;
+  originalFilename?: string | null;
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Méthode non autorisée" });
+
+  const form = new formidable.IncomingForm();
+
+  form.parse(
+    req,
+    async (
+      err: Error | null,
+      fields: Record<string, unknown>,
+      files: Record<string, FormidableFile | FormidableFile[]>
+    ) => {
+      if (err) {
+        console.error("Erreur parsing formulaire:", err);
+        return res.status(500).json({ error: "Erreur réception fichier" });
+      }
+
+      const file = Array.isArray(files.avatar) ? files.avatar[0] : files.avatar;
+      const userId = fields.userId as string;
+      const scale = parseFloat(fields.scale as string) || 1;
+
+      if (!file) return res.status(400).json({ error: "Fichier avatar invalide" });
+      if (!userId) return res.status(400).json({ error: "userId manquant" });
+
+      try {
+        const fileContent = fs.readFileSync(file.filepath);
+        const ext = (file.originalFilename ?? "png").split(".").pop();
+        const filePath = `avatars/${userId}/avatar_${Date.now()}.${ext}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("avatars")
+          .upload(filePath, fileContent, { upsert: true });
+
+        if (uploadError || !uploadData) {
+          console.error("Erreur upload Supabase:", uploadError);
+          return res.status(500).json({ error: "Erreur upload" });
         }
 
-        const supabase = createClient(supabaseUrl, supabaseKey);
+const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(uploadData.path);
 
-        // ✅ Lecture du formulaire
-        const formData = await request.formData();
-        const file = formData.get("avatar") as File | null;
-        const oldAvatarUrl = formData.get("oldAvatarUrl") as string | null; // URL de l’ancien avatar
+if (!publicUrlData?.publicUrl) {
+  return res.status(500).json({ error: "URL publique introuvable" });
+}
 
-        if (!file) {
-            return NextResponse.json(
-                { error: "Aucun fichier reçu" },
-                { status: 400 }
-            );
+
+        const { data: updateData, error: updateError } = await supabase
+          .from("profiles")
+          .update({ avatar_url: publicUrlData.publicUrl, avatar_scale: scale })
+          .eq("id", userId)
+          .select();
+
+        if (updateError) {
+          console.error("Erreur update profil:", updateError);
+          return res.status(500).json({ error: "Erreur update profil" });
         }
 
-        // ✅ Validation du fichier
-        if (!ALLOWED_TYPES.includes(file.type)) {
-            return NextResponse.json(
-                { error: "Type de fichier non autorisé" },
-                { status: 400 }
-            );
-        }
-
-        if (file.size > MAX_FILE_SIZE) {
-            return NextResponse.json(
-                { error: "Fichier trop volumineux (max 5MB)" },
-                { status: 400 }
-            );
-        }
-
-        // ✅ Génération d’un nom unique
-        const uniqueName = `${randomUUID()}-${file.name}`;
-
-        // Nettoyer le nom du fichier
-        const safeName = file.name
-            .normalize("NFD") // décompose les accents
-            .replace(/[\u0300-\u036f]/g, "") // enlève les accents
-            .replace(/[^a-zA-Z0-9._-]/g, "_"); // remplace tout le reste par _
-
-        const filePath = `avatars/${uuidv4()}-${safeName}`;
-
-        // ✅ Conversion en buffer
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // ✅ Upload du nouveau fichier vers Supabase Storage
-        const { data, error } = await supabase.storage
-            .from(BUCKET_NAME)
-            .upload(filePath, buffer, {
-                contentType: file.type,
-                upsert: false,
-            });
-
-        if (error) {
-            console.error("❌ Erreur upload Supabase:", error);
-            return NextResponse.json(
-                { error: "Erreur lors de l'upload Supabase" },
-                { status: 500 }
-            );
-        }
-
-        // ✅ Suppression de l’ancien avatar (si fourni)
-        if (oldAvatarUrl) {
-            try {
-                const pathStart = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/`;
-                const filePath = oldAvatarUrl.replace(pathStart, "");
-
-                if (filePath && filePath !== uniqueName) {
-                    await supabase.storage.from(BUCKET_NAME).remove([filePath]);
-                    console.log(`🗑️ Ancien avatar supprimé : ${filePath}`);
-                }
-            } catch (deleteErr) {
-                console.warn("⚠️ Échec suppression ancien avatar :", deleteErr);
-            }
-        }
-
-        // ✅ Création de l’URL publique
-        const publicUrl = `${supabaseUrl}/storage/v1/object/public/${data.fullPath}`;
-
-        return NextResponse.json({
-            success: true,
-            url: publicUrl,
-            filename: data.fullPath,
-        });
-    } catch (err) {
-        console.error("Erreur upload avatar:", err);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+        return res.status(200).json({ avatar_url: publicUrlData.publicUrl, profile: updateData });
+      } catch (error) {
+        console.error("Erreur API:", error);
+        return res.status(500).json({ error: "Erreur serveur" });
+      }
     }
+  );
 }

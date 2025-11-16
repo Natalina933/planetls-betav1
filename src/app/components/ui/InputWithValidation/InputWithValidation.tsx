@@ -10,6 +10,7 @@ interface InputWithValidationProps {
   type?: string;
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  label?: string;
   placeholder: string;
   error?: string;
   isValid?: boolean;
