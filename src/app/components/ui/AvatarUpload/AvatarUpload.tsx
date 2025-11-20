@@ -3,65 +3,72 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./AvatarUpload.module.scss";
-import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const AVATAR_CONFIG = {
+  maxSize: 5 * 1024 * 1024, // 5 Mo
+  allowedTypes: ["image/jpeg", "image/png", "image/webp"] as const,
+  minScale: 0.5,
+  maxScale: 3,
+  scaleStep: 0.01,
+} as const;
 
 interface AvatarUploadProps {
   value: File | null;
   existingUrl?: string | null;
+  existingScale?: number | null;
   onChange: (file: File | null) => void;
-  userId: string; // ⚡️ pour savoir quel utilisateur sauvegarder
+  onUploadSuccess?: (avatarUrl: string, scale: number) => void;
 }
+
+type UploadResponse =
+  | { success: true; avatar_url: string; avatar_scale: number }
+  | { success?: false; error: string };
 
 export default function AvatarUpload({
   value,
   existingUrl = null,
+  existingScale = 1,
   onChange,
-  userId,
+  onUploadSuccess,
 }: AvatarUploadProps) {
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(existingScale || 1);
   const [preview, setPreview] = useState<string | null>(existingUrl);
   const [error, setError] = useState<string>("");
-  const [isPendingValidation, setIsPendingValidation] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (value) {
       const objectUrl = URL.createObjectURL(value);
       setPreview(objectUrl);
-      setIsPendingValidation(true); // ⚡️ nouvelle image en attente
       return () => URL.revokeObjectURL(objectUrl);
     } else {
       setPreview(existingUrl);
-      setIsPendingValidation(false);
+      setScale(existingScale || 1);
     }
-  }, [value, existingUrl]);
+  }, [value, existingUrl, existingScale]);
 
   const handleRemove = () => {
     onChange(null);
-    setScale(1);
     setPreview(null);
+    setScale(1);
     setError("");
-    setIsPendingValidation(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024;
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-
-    if (!allowedTypes.includes(file.type)) {
+    if (!AVATAR_CONFIG.allowedTypes.includes(file.type as never)) {
       setError("⚠️ Format non autorisé (JPEG, PNG, WEBP uniquement)");
       return;
     }
-    if (file.size > maxSize) {
-      setError("⚠️ Fichier trop volumineux (max 5 Mo)");
+
+    if (file.size > AVATAR_CONFIG.maxSize) {
+      setError(
+        `⚠️ Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(
+          2
+        )} Mo). Max : 5 Mo`
+      );
       return;
     }
 
@@ -70,68 +77,59 @@ export default function AvatarUpload({
     setScale(1);
   };
 
-const handleValidate = async () => {
-  if (!value) return;
-  setLoading(true);
-
-  try {
-    const filePath = `avatars/user_${userId}_${Date.now()}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, value, { upsert: true });
-
-    if (uploadError || !uploadData) throw uploadError;
-
-    const { data: publicUrlData } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(uploadData.path);
-
-    if (!publicUrlData?.publicUrl) throw new Error("URL publique introuvable");
-
-    // Sauvegarde URL + zoom dans le profil
-    const { data: updateData, error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        avatar_url: publicUrlData.publicUrl,
-        avatar_scale: scale,
-      })
-      .eq("id", userId)
-      .select();
-
-    if (updateError) {
-      console.error("[Supabase Update ERROR]", updateError);
-      throw updateError;
+  const handleValidate = async () => {
+    if (!value) {
+      setError("⚠️ Aucun fichier sélectionné");
+      return;
     }
 
-    console.log("[Supabase] Profil mis à jour :", updateData);
-
-    setIsPendingValidation(false);
+    setLoading(true);
     setError("");
-  } catch (err) {
-    console.error("[AvatarUpload] ERREUR :", err);
-    setError(err instanceof Error ? err.message : "Erreur de sauvegarde.");
-  } finally {
-    setLoading(false);
-  }
-};
 
+    try {
+      const formData = new FormData();
+      formData.append("avatar", value);
+      formData.append("scale", scale.toString());
+
+      const res = await fetch("/api/profiles/avatar", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        credentials: "include",
+      });
+
+      const data: UploadResponse = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error((data as { error: string }).error || "Erreur lors de l'upload");
+      }
+
+      setPreview(data.avatar_url);
+      onChange(null);
+
+      if (onUploadSuccess) onUploadSuccess(data.avatar_url, data.avatar_scale);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur de sauvegarde");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
-      {!preview && (
-        <label className={styles.uploadLabel} htmlFor="avatarInput">
+      {!preview ? (
+        <label className={styles.uploadLabel}>
           📷 Choisir un avatar
           <input
-            id="avatarInput"
             type="file"
-            accept="image/*"
+            accept={AVATAR_CONFIG.allowedTypes.join(",")}
             onChange={handleFileChange}
             style={{ display: "none" }}
           />
         </label>
-      )}
-
-      {preview && (
+      ) : (
         <>
           <div className={styles.imageWrapper}>
             <Image
@@ -145,61 +143,39 @@ const handleValidate = async () => {
                 transform: `scale(${scale})`,
                 transition: "transform 0.2s ease",
               }}
+              unoptimized={preview.startsWith("blob:")}
             />
           </div>
 
-          <div className={styles.zoomControl}>
-            <label htmlFor="scaleRange" className={styles.zoomLabel}>
-              Zoom : {scale.toFixed(2)}x
-            </label>
-            <input
-              id="scaleRange"
-              type="range"
-              min={0.5}
-              max={3}
-              step={0.01}
-              value={scale}
-              onChange={(e) => setScale(Number(e.target.value))}
-              className={styles.zoomSlider}
-              aria-label="Zoom de l'image"
-            />
-          </div>
-
+          <input
+            type="range"
+            min={AVATAR_CONFIG.minScale}
+            max={AVATAR_CONFIG.maxScale}
+            step={AVATAR_CONFIG.scaleStep}
+            value={scale}
+            onChange={(e) => setScale(Number(e.target.value))}
+            disabled={loading}
+          />
 
           <div className={styles.buttonGroup}>
-            {isPendingValidation ? (
-              <button
-                type="button"
-                className={styles.validateButton}
-                onClick={handleValidate}
-                disabled={loading}
-              >
-                {loading ? "⏳ Sauvegarde..." : "✔ Valider"}
-              </button>
-            ) : (
-              <label htmlFor="avatarInput" className={styles.replaceButton}>
-                🔁 Remplacer
-                <input
-                  id="avatarInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
-              </label>
-            )}
-
-            <button
-              type="button"
-              className={styles.removeButton}
-              onClick={handleRemove}
-            >
+            <button onClick={handleValidate} disabled={loading}>
+              {loading ? "⏳ Sauvegarde..." : "✔ Valider"}
+            </button>
+            <label>
+              🔁 Remplacer
+              <input
+                type="file"
+                accept={AVATAR_CONFIG.allowedTypes.join(",")}
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+            </label>
+            <button onClick={handleRemove} disabled={loading}>
               ❌ Supprimer
             </button>
           </div>
         </>
       )}
-
       {error && <p className={styles.errorMsg}>{error}</p>}
     </div>
   );

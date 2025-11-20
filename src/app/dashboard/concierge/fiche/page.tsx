@@ -32,6 +32,7 @@ interface Profile {
   option: string | null;
   search_target: string | null;
   role: string | null;
+  avatar_scale: number | null;
 }
 
 // ===================================
@@ -41,6 +42,7 @@ export default function FicheConciergerie() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarKey, setAvatarKey] = useState(0); 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,7 +57,7 @@ export default function FicheConciergerie() {
       try {
         console.log("[Load] Démarrage du chargement profil...");
         const res = await fetch("/api/profiles/current");
-        
+
         const data: Profile | { error: string } = await res.json();
         console.log("[Load] Données profil reçues :", data);
 
@@ -96,6 +98,35 @@ export default function FicheConciergerie() {
   const handleAvatarChange = async (file: File | null) => {
     console.log("[Avatar] Nouveau fichier :", file);
     setAvatarFile(file);
+  };
+// ✅ Callback après upload réussi
+  const handleAvatarUploadSuccess = (avatarUrl: string, avatarScale: number) => {
+    if (!editProfile) return;
+
+    console.log("[Avatar] Upload réussi :", { avatarUrl, avatarScale });
+
+    // Mise à jour du state local
+    setEditProfile({
+      ...editProfile,
+      avatar_url: avatarUrl,
+      avatar_scale: avatarScale,
+    });
+
+    setProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            avatar_url: avatarUrl,
+            avatar_scale: avatarScale,
+          }
+        : null
+    );
+
+    setSuccessMsg("✅ Avatar mis à jour avec succès !");
+    setAvatarKey((prev) => prev + 1); // Force refresh du composant
+
+    // Efface le message après 3 secondes
+    setTimeout(() => setSuccessMsg(""), 3000);
   };
 
   // ==========================
@@ -240,10 +271,12 @@ export default function FicheConciergerie() {
 
       <div className={styles.avatarBlock}>
         <AvatarUpload
-      userId={editProfile.id}
+          key={avatarKey}
           value={avatarFile}
           existingUrl={editProfile.avatar_url || null}
+          existingScale={editProfile.avatar_scale || 1}
           onChange={handleAvatarChange}
+          onUploadSuccess={handleAvatarUploadSuccess}
         />
       </div>
 

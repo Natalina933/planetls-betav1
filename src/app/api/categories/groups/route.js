@@ -1,6 +1,6 @@
 //*app/api/categories/groups/route.js*/`
 import { NextResponse } from "next/server";
-import { db } from "../../../lib/dbServer";
+import { db } from "@/app/lib/dbServer";
 
 export async function GET() {
   try {

@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";
-import type { ProfileUpdate } from "@/types/supabase";
+import { TablesUpdate } from "@/types/supabase";
 
-const ALLOWED_KEYS: (keyof ProfileUpdate)[] = [
-  "username",
-  "first_name",
-  "last_name",
-  "email",
-  "phone",
-  "avatar_url",
-  "additional_info",
-  "category",
-  "role",
-  "location",
-  "option",
-  "search_target",
-];
+// Type qui correspond aux colonnes modifiables de profiles
+type ProfilesUpdate = TablesUpdate<"profiles">;
 
 export async function PATCH(req: NextRequest) {
   try {
-    const body: Partial<ProfileUpdate> = await req.json();
+    const updates: Partial<ProfilesUpdate> = await req.json();
 
     const token = await getToken({ req });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
@@ -29,27 +17,14 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const updates: Partial<ProfileUpdate> = {};
-
-    ALLOWED_KEYS.forEach((key) => {
-      const value = body[key];
-      if (value !== undefined) {
-        // Remplace null par undefined pour éviter l'erreur TypeScript
-        updates[key] = value === null ? undefined : value;
-      }
-    });
-
-    if (Object.keys(updates).length === 0) {
+    if (!updates || Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { error: "Aucun champ modifiable envoyé" },
+        { error: "Aucun champ envoyé pour mise à jour" },
         { status: 400 }
       );
     }
 
-    const { error } = await db
-      .from("profiles")
-      .update(updates)
-      .eq("id", userId);
+    const { error } = await db.from("profiles").update(updates).eq("id", userId);
 
     if (error) {
       console.error("[PATCH /profiles/current] Supabase error:", error);
