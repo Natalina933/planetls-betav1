@@ -28,7 +28,7 @@ export default function Navbar() {
       </button>
 
       {/* Menu Items */}
-      <ul className={`${styles.menu} ${menuOpen ? styles.show : ""}`}>
+      <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
         <li className={styles["nav-search"]}>
           <button
             onClick={() => setSearchOpen(true)}

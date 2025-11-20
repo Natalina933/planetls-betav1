@@ -1,9 +1,11 @@
 @use "sass:math";
 @use "sass:color";
-@use "src/app/styles/abstracts/mixins" as *;
-@use "src/app/styles/abstracts/functions" as *;
-@use "src/app/styles/abstracts/variables" as *;
-@use "../../../../styles/base/animations" as *;
+@use "sass:map" as map;
+
+@use "@/app/styles/abstracts/mixins" as *;
+@use "@/app/styles/abstracts/functions" as *;
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/base/animations" as anim;
 
 // === SECTION PRINCIPALE ===
 .mapWithSearchSection {
@@ -96,6 +98,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -146,7 +149,8 @@
   box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
     0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px #d4af37;
 
-  :global(p) { // :global() est souvent nécessaire dans les modules CSS de Next.js
+  :global(p) {
+    // :global() est souvent nécessaire dans les modules CSS de Next.js
     font-family: var(--font-text, sans-serif);
     font-size: 1.1em;
     line-height: 1.5em;
@@ -157,7 +161,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     margin: 0.5rem 0;
   }
-  
+
   // Style pour le titre de la bulle
   .bubbleTitle {
     font-family: $font-elegant; // Utilisez votre police de titre
@@ -170,7 +174,7 @@
     background-color: color.scale(#ffe09b, $lightness: 5%); // Fond légèrement plus clair pour le titre
     border-bottom: 2px solid $gold-alt; // Petite séparation visuelle
   }
-  
+
   // Style pour le corps de la bulle
   .bubbleBody {
     display: flex;
@@ -182,6 +186,7 @@
     margin-top: 0;
   }
 }
+
 // === Instructions catégorie ===
 .categoryInstructionWrapper {
   width: 100%;

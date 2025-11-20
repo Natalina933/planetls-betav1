@@ -22,7 +22,7 @@ interface AvatarUploadProps {
 
 type UploadResponse =
   | { success: true; avatar_url: string; avatar_scale: number }
-  | { success?: false; error: string };
+  | { success: false; error: string };
 
 export default function AvatarUpload({
   value,
@@ -88,23 +88,25 @@ export default function AvatarUpload({
 
     try {
       const formData = new FormData();
-      formData.append("avatar", value);
+      formData.append("file", value);
       formData.append("scale", scale.toString());
 
       const res = await fetch("/api/profiles/avatar", {
         method: "POST",
         body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
         credentials: "include",
       });
 
       const data: UploadResponse = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error((data as { error: string }).error || "Erreur lors de l'upload");
+        if ("error" in data) {
+          throw new Error(data.error);
+        } else {
+          throw new Error("Erreur lors de l'upload");
+        }
       }
+
 
       setPreview(data.avatar_url);
       onChange(null);

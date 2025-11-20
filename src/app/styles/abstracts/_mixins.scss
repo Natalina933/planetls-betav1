@@ -3,6 +3,7 @@
 @use "sass:math";
 @use "sass:meta";
 @use "variables" as *;
+@use "@/app/styles/base/animations" as anim;
 
 // --------------------------------------------------
 // 📱 Media Queries
@@ -198,13 +199,26 @@
 @mixin fadeInVariant($offset: 1.5rem, $duration: 0.8s, $delay: 0s) {
     opacity: 0;
     transform: translateY($offset);
-    animation: fadeInStatic $duration ease $delay forwards;
+    animation: #{anim.get("fadeIn")} $duration ease $delay forwards;
+}
+
+// Mixin dynamique : applique une animation de fadeOut
+@mixin fadeOutVariant($duration: 0.8s, $delay: 0s) {
+    opacity: 1;
+    transform: translateY(0);
+    animation: #{anim.get("fadeOut")} $duration ease $delay forwards;
 }
 
 @mixin fadeIn($duration: 0.8s, $delay: 0s) {
     opacity: 0;
     transform: translateY(1.5rem);
-    animation: fadeInStatic $duration ease $delay forwards;
+    animation: #{anim.get("fadeIn")} $duration ease $delay forwards;
+}
+
+@mixin fadeOut($duration: 0.8s, $delay: 0s) {
+    opacity: 1;
+    transform: translateY(0);
+    animation: #{anim.get("fadeOut")} $duration ease $delay forwards;
 }
 
 @keyframes fadeInTitle {
@@ -220,7 +234,11 @@
 }
 
 @mixin fadeInTitle($duration: 0.5s, $delay: 0s) {
-    animation: fadeInTitle $duration ease-out $delay both;
+    animation: #{anim.get("fadeInTitle")} $duration ease-out $delay both;
+}
+
+@mixin fadeOutTitle($duration: 0.5s, $delay: 0s) {
+    animation: #{anim.get("fadeOutTitle")} $duration ease-out $delay both;
 }
 
 // --------------------------------------------------

@@ -4,13 +4,14 @@
 @use "src/app/styles/abstracts/_functions" as *;
 @use "src/app/styles/abstracts/_variables" as *;
 
-
 // Variables
 $gold: #d4af37;
+$gold-light: rgba(212, 175, 55, 0.2);
 $background: var(--background);
 $text-color: var(--color-text);
 $border-color: var(--color-border);
 
+/* NAVBAR */
 .navbar {
   display: flex;
   justify-content: center;
@@ -20,7 +21,7 @@ $border-color: var(--color-border);
   z-index: 20;
 }
 
-/* Menu */
+/* MENU */
 .menu {
   display: flex;
   align-items: center;
@@ -32,100 +33,66 @@ $border-color: var(--color-border);
   li {
     display: flex;
     align-items: center;
-    a {
-      color: $text-color;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s ease;
+  }
 
-      &:hover {
-        color: $gold;
-      }
+  a,
+  button {
+    color: $text-color;
+    background: none;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* Bouton Recherche & Inscription */
+  .navButton {
+    padding: 0.4rem 0.8rem;
+    height: 36px;
+    border-radius: 50px;
+    border: 1px solid $gold;
+    color: $gold;
+
+    &:hover {
+      background-color: $gold-light;
+      color: rgb(133, 81, 3);
+      box-shadow: 0 0 6px rgba($gold, 0.4);
     }
   }
 
   /* Bouton Inscription */
-  .auth-inscription a,
-  .auth-connexion a {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.4rem 0.8rem;
-    height: 36px; // même hauteur
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-radius: 6px;
-  }
-  /* Bouton Inscription */
-  .auth-inscription a {
-    position: relative;
-    color: $gold;
+  .auth-inscription button {
     border: none;
+    color: $gold;
 
-    
     &:hover {
       background-color: $gold;
       color: antiquewhite;
       border-radius: 50px;
-      &::after {
-        width: 100%;
-        opacity: 1;
-      }
+      box-shadow: 0 0 8px rgba($gold, 0.4);
     }
   }
 
-/* Bouton Connexion */
-.auth-connexion a {
-  gap: 0.4rem;
-  border: 1px solid $gold;
-  border-radius: 50px;
-  color: $gold;
-  position: relative;
+  /* Bouton Connexion */
+  .auth-connexion a {
+    padding: 0.4rem 0.8rem;
+    height: 36px;
+    border: 1px solid $gold;
+    border-radius: 50px;
+    color: $gold;
 
-  i {
-    font-size: 1rem;
-  }
-
-  
-
-  &:hover {
-    background: $gold-light;
-    color: rgb(133, 81, 3);
-        box-shadow: 0 0 6px rgba($gold, 0.4);
-
-    &::after {
-      width: 100%;
-      opacity: 1;
+    &:hover {
+      background-color: $gold-light;
+      color: rgb(133, 81, 3);
+      box-shadow: 0 0 6px rgba($gold, 0.4);
     }
   }
 }
 
-}
-// Style pour le bouton Recherche
-.navButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
-  height: 36px;
-  border-radius: 50px;
-  border: 1px solid $gold;
-  background: transparent;
-  color: $gold;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: $gold-light;
-    color: rgb(133, 81, 3);
-    box-shadow: 0 0 6px rgba($gold, 0.4);
-  }
-}
-
-/* Burger */
+/* BURGER */
 .burger {
   display: none;
   flex-direction: column;
@@ -137,27 +104,26 @@ $border-color: var(--color-border);
   z-index: 25;
 
   span {
-    display: block;
     width: 25px;
     height: 3px;
     background: $text-color;
-    transition: all 0.3s ease;
+    transition: 0.3s ease;
   }
 
-  &.open span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-
-  &.open span:nth-child(2) {
-    opacity: 0;
-  }
-
-  &.open span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
+  &.open {
+    span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 6px);
+    }
+    span:nth-child(2) {
+      opacity: 0;
+    }
+    span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -5px);
+    }
   }
 }
 
-/* Responsive */
+/* RESPONSIVE */
 @media (max-width: 768px) {
   .menu {
     position: absolute;
@@ -165,25 +131,20 @@ $border-color: var(--color-border);
     right: 0;
     flex-direction: column;
     background: $background;
-    width: 220px;
+    width: 240px;
     padding: 1rem;
-    // border: 1px solid $border-color;
     border-radius: 8px;
+    gap: 1rem;
+
     transform: translateY(-20px);
     opacity: 0;
     pointer-events: none;
-    gap: 1rem;
-    transition: all 0.3s ease;
+    transition: 0.3s ease;
 
-    li {
-      width: 100%;
-      justify-content: center;
-
-      a {
-        width: 100%;
-        justify-content: center;
-        text-align: center;
-      }
+    /* Masquer par défaut */
+    .auth-inscription,
+    .auth-connexion {
+      display: none;
     }
 
     &.open {
@@ -191,22 +152,25 @@ $border-color: var(--color-border);
       opacity: 1;
       pointer-events: auto;
 
-      /* Afficher les boutons inscription et connexion */
       .auth-inscription,
       .auth-connexion {
         display: flex;
       }
     }
 
-    /* Masquer les boutons par défaut avant ouverture */
-    .auth-inscription,
-    .auth-connexion {
-      display: none;
+    li {
+      width: 100%;
+      justify-content: center;
+
+      a,
+      button {
+        width: 100%;
+        justify-content: center;
+      }
     }
   }
 
   .burger {
     display: flex;
   }
-  
 }

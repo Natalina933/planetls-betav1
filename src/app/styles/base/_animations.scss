@@ -1,9 +1,14 @@
+@use "sass:map";
+@use "sass:color";
+// =========================
+// 🔥 KEYFRAMES
+// =========================
+
 @keyframes fadeIn {
     0% {
         transform: translateY(1.5rem);
         opacity: 0;
     }
-
     100% {
         transform: translateY(0);
         opacity: 1;
@@ -15,7 +20,6 @@
         transform: translateY(0);
         opacity: 1;
     }
-
     100% {
         transform: translateY(1.5rem);
         opacity: 0;
@@ -27,35 +31,47 @@
         opacity: 0;
         transform: translateY(1.5rem);
     }
-
     100% {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-// === Nouvelle animation pour les bulles en desktop (glissement depuis la droite) ===
 @keyframes fadeInSlideRight {
     0% {
         opacity: 0;
         transform: translateX(60px);
     }
-
     100% {
         opacity: 1;
         transform: translateX(0);
     }
 }
 
-// === Variante mobile : glissement depuis le bas ===
 @keyframes fadeInSlideBottom {
     0% {
         opacity: 0;
         transform: translateY(40px);
     }
-
     100% {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+// =========================
+// 🎯 NAMESPACE ANIM
+// =========================
+// Permet d'appeler anim.fadeIn, anim.fadeOut, etc.
+
+$animations: (
+    "fadeIn": fadeIn,
+    "fadeOut": fadeOut,
+    "fadeInTitle": fadeInTitle,
+    "fadeInSlideRight": fadeInSlideRight,
+    "fadeInSlideBottom": fadeInSlideBottom,
+);
+
+@function get($name) {
+    @return map.get($animations, $name);
 }

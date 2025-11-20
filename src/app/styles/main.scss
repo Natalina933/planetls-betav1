@@ -6,6 +6,7 @@
 @use 'abstracts/variables' as *; // Variables SCSS ($)
 @use 'abstracts/functions';
 @use 'abstracts/mixins';
+@use 'abstracts/dashboards';
 
 // 2. Base : Styles globaux, reset, typographie de base.
 // Produisent le CSS de base.
