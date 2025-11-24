@@ -42,7 +42,7 @@ export default function FicheConciergerie() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarKey, setAvatarKey] = useState(0); 
+  const [avatarKey, setAvatarKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -99,7 +99,7 @@ export default function FicheConciergerie() {
     console.log("[Avatar] Nouveau fichier :", file);
     setAvatarFile(file);
   };
-// ✅ Callback après upload réussi
+  // ✅ Callback après upload réussi
   const handleAvatarUploadSuccess = (avatarUrl: string, avatarScale: number) => {
     if (!editProfile) return;
 
@@ -115,10 +115,10 @@ export default function FicheConciergerie() {
     setProfile((prev) =>
       prev
         ? {
-            ...prev,
-            avatar_url: avatarUrl,
-            avatar_scale: avatarScale,
-          }
+          ...prev,
+          avatar_url: avatarUrl,
+          avatar_scale: avatarScale,
+        }
         : null
     );
 
@@ -270,14 +270,18 @@ export default function FicheConciergerie() {
       {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
 
       <div className={styles.avatarBlock}>
-        <AvatarUpload
-          key={avatarKey}
-          value={avatarFile}
-          existingUrl={editProfile.avatar_url || null}
-          existingScale={editProfile.avatar_scale || 1}
-          onChange={handleAvatarChange}
-          onUploadSuccess={handleAvatarUploadSuccess}
-        />
+        {editProfile?.id && (
+          
+          <AvatarUpload
+            key={avatarKey}
+            value={avatarFile}
+            existingUrl={editProfile.avatar_url || null}
+            existingScale={editProfile.avatar_scale || 1}
+            userId={editProfile.id}
+            onChange={handleAvatarChange}
+            onUploadSuccess={handleAvatarUploadSuccess}
+          />
+        )}
       </div>
 
       {renderField("Nom d'utilisateur", "username", false, true)}

@@ -10,13 +10,8 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "dyqlixssykeecvtqmcxh.supabase.co", // Supabase storage
+        hostname: "dyqlixssykeecvtqmcxh.supabase.co",
       },
-      // Tu peux en ajouter d'autres ici si nécessaire :
-      // {
-      //   protocol: "https",
-      //   hostname: "cdn.planetls.com",
-      // },
     ],
     formats: ["image/webp", "image/avif"],
   },
@@ -30,7 +25,31 @@ const nextConfig = {
       {
         source: "/",
         destination: "/home",
-        permanent: true, // 308 redirect
+        permanent: true,
+      },
+    ];
+  },
+
+  // ⬇⬇⬇ AJOUTER CETTE PARTIE ⬇⬇⬇
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,POST,PUT,DELETE,OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+        ],
       },
     ];
   },

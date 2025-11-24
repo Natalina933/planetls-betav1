@@ -16,6 +16,7 @@ interface AvatarUploadProps {
   value: File | null;
   existingUrl?: string | null;
   existingScale?: number | null;
+  userId?: string | null;
   onChange: (file: File | null) => void;
   onUploadSuccess?: (avatarUrl: string, scale: number) => void;
 }
@@ -28,6 +29,7 @@ export default function AvatarUpload({
   value,
   existingUrl = null,
   existingScale = 1,
+  userId,
   onChange,
   onUploadSuccess,
 }: AvatarUploadProps) {
@@ -90,7 +92,11 @@ export default function AvatarUpload({
       const formData = new FormData();
       formData.append("file", value);
       formData.append("scale", scale.toString());
-
+      if (userId) {
+        formData.append("userId", userId);
+        console.log("[Frontend] userId envoyé :", userId);
+      }
+      console.log("[Frontend] Début de l'envoi du fichier...");
       const res = await fetch("/api/profiles/avatar", {
         method: "POST",
         body: formData,
@@ -114,6 +120,7 @@ export default function AvatarUpload({
       if (onUploadSuccess) onUploadSuccess(data.avatar_url, data.avatar_scale);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur de sauvegarde");
+      console.error("[Frontend] Erreur lors de l'upload de l'avatar :", err);
     } finally {
       setLoading(false);
     }
@@ -157,6 +164,7 @@ export default function AvatarUpload({
             value={scale}
             onChange={(e) => setScale(Number(e.target.value))}
             disabled={loading}
+            aria-label="image"
           />
 
           <div className={styles.buttonGroup}>
