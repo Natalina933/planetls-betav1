@@ -4,189 +4,68 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./AvatarUpload.module.scss";
 
-const AVATAR_CONFIG = {
-  maxSize: 5 * 1024 * 1024, // 5 Mo
-  allowedTypes: ["image/jpeg", "image/png", "image/webp"] as const,
-  minScale: 0.5,
-  maxScale: 3,
-  scaleStep: 0.01,
-} as const;
-
 interface AvatarUploadProps {
   value: File | null;
   existingUrl?: string | null;
-  existingScale?: number | null;
-  userId?: string | null;
+  existingScale?: number; // pour le futur zoom / crop
+  userId?: string; // optionnel, pour futur upload
   onChange: (file: File | null) => void;
-  onUploadSuccess?: (avatarUrl: string, scale: number) => void;
+  onUploadSuccess?: (url: string, scale?: number) => void;
 }
-
-type UploadResponse =
-  | { success: true; avatar_url: string; avatar_scale: number }
-  | { success: false; error: string };
 
 export default function AvatarUpload({
   value,
-  existingUrl = null,
+  existingUrl,
   existingScale = 1,
-  userId,
+  // userId,
   onChange,
   onUploadSuccess,
 }: AvatarUploadProps) {
-  const [scale, setScale] = useState(existingScale || 1);
-  const [preview, setPreview] = useState<string | null>(existingUrl);
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
 
+  // Met à jour la prévisualisation si un nouveau fichier est sélectionné
   useEffect(() => {
     if (value) {
-      const objectUrl = URL.createObjectURL(value);
-      setPreview(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
-    } else {
-      setPreview(existingUrl);
-      setScale(existingScale || 1);
-    }
-  }, [value, existingUrl, existingScale]);
+      const url = URL.createObjectURL(value);
+      setPreviewUrl(url);
 
-  const handleRemove = () => {
-    onChange(null);
-    setPreview(null);
-    setScale(1);
-    setError("");
-  };
+      return () => URL.revokeObjectURL(url); // libère la mémoire
+    }
+  }, [value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!AVATAR_CONFIG.allowedTypes.includes(file.type as never)) {
-      setError("⚠️ Format non autorisé (JPEG, PNG, WEBP uniquement)");
-      return;
-    }
-
-    if (file.size > AVATAR_CONFIG.maxSize) {
-      setError(
-        `⚠️ Fichier trop volumineux (${(file.size / 1024 / 1024).toFixed(
-          2
-        )} Mo). Max : 5 Mo`
-      );
-      return;
-    }
-
-    setError("");
+    const file = e.target.files?.[0] || null;
     onChange(file);
-    setScale(1);
-  };
 
-  const handleValidate = async () => {
-    if (!value) {
-      setError("⚠️ Aucun fichier sélectionné");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("file", value);
-      formData.append("scale", scale.toString());
-      if (userId) {
-        formData.append("userId", userId);
-        console.log("[Frontend] userId envoyé :", userId);
-      }
-      console.log("[Frontend] Début de l'envoi du fichier...");
-      const res = await fetch("/api/profiles/avatar", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-
-      const data: UploadResponse = await res.json();
-
-      if (!res.ok || !data.success) {
-        if ("error" in data) {
-          throw new Error(data.error);
-        } else {
-          throw new Error("Erreur lors de l'upload");
-        }
-      }
-
-
-      setPreview(data.avatar_url);
-      onChange(null);
-
-      if (onUploadSuccess) onUploadSuccess(data.avatar_url, data.avatar_scale);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur de sauvegarde");
-      console.error("[Frontend] Erreur lors de l'upload de l'avatar :", err);
-    } finally {
-      setLoading(false);
+    if (file && onUploadSuccess) {
+      const fakeUrl = URL.createObjectURL(file); // tu remplaceras par URL finale après upload
+      onUploadSuccess(fakeUrl, existingScale);
     }
   };
 
   return (
-    <div className={styles.container}>
-      {!preview ? (
-        <label className={styles.uploadLabel}>
-          📷 Choisir un avatar
-          <input
-            type="file"
-            accept={AVATAR_CONFIG.allowedTypes.join(",")}
-            onChange={handleFileChange}
-            style={{ display: "none" }}
+    <div className={styles.avatarUpload}>
+      <div className={styles.avatarPreviewContainer}>
+        {previewUrl ? (
+          <Image
+            src={previewUrl}
+            alt="Avatar"
+            width={150}
+            height={150}
+            className={styles.avatarPreview}
+            priority
           />
-        </label>
-      ) : (
-        <>
-          <div className={styles.imageWrapper}>
-            <Image
-              src={preview}
-              alt="Avatar utilisateur"
-              width={200}
-              height={200}
-              style={{
-                objectFit: "cover",
-                borderRadius: "50%",
-                transform: `scale(${scale})`,
-                transition: "transform 0.2s ease",
-              }}
-              unoptimized={preview.startsWith("blob:")}
-            />
-          </div>
+        ) : (
+          <div className={styles.placeholder}>Aucun avatar</div>
+        )}
+      </div>
 
-          <input
-            type="range"
-            min={AVATAR_CONFIG.minScale}
-            max={AVATAR_CONFIG.maxScale}
-            step={AVATAR_CONFIG.scaleStep}
-            value={scale}
-            onChange={(e) => setScale(Number(e.target.value))}
-            disabled={loading}
-            aria-label="image"
-          />
-
-          <div className={styles.buttonGroup}>
-            <button onClick={handleValidate} disabled={loading}>
-              {loading ? "⏳ Sauvegarde..." : "✔ Valider"}
-            </button>
-            <label>
-              🔁 Remplacer
-              <input
-                type="file"
-                accept={AVATAR_CONFIG.allowedTypes.join(",")}
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
-            </label>
-            <button onClick={handleRemove} disabled={loading}>
-              ❌ Supprimer
-            </button>
-          </div>
-        </>
-      )}
-      {error && <p className={styles.errorMsg}>{error}</p>}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className={styles.fileInput}
+      />
     </div>
   );
 }
