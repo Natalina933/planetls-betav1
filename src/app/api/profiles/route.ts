@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest) {
         email: body.email,
         phone: body.phone,
         avatar_url: body.avatar_url,
+        avatar_scale: body.avatar_scale, //  ✅ CORRECTION ICI
         additional_info: body.additional_info,
         category: body.category,
         location: body.location,
@@ -33,11 +34,10 @@ export async function PATCH(req: NextRequest) {
     if (error)
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
 
-    // Retourne le profil mis à jour
     const { data: updatedProfile } = await db
       .from("profiles")
       .select(
-        "id, username, first_name, last_name, email, phone, avatar_url, additional_info, category, role, created_at, location, option, search_target"
+        "id, username, first_name, last_name, email, phone, avatar_url, avatar_scale, additional_info, category, role, created_at, location, option, search_target"
       )
       .eq("id", userId)
       .maybeSingle();

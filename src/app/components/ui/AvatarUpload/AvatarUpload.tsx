@@ -6,66 +6,139 @@ import styles from "./AvatarUpload.module.scss";
 
 interface AvatarUploadProps {
   value: File | null;
-  existingUrl?: string | null;
-  existingScale?: number; // pour le futur zoom / crop
-  userId?: string; // optionnel, pour futur upload
+  existingUrl?: string;
+  existingScale?: number;
   onChange: (file: File | null) => void;
-  onUploadSuccess?: (url: string, scale?: number) => void;
+  onScaleChange?: (scale: number) => void;
+  onSave?: () => void;
+  onRemove?: () => void;
 }
 
 export default function AvatarUpload({
   value,
   existingUrl,
   existingScale = 1,
-  // userId,
   onChange,
-  onUploadSuccess,
+  onScaleChange,
+  onSave,
+  onRemove,
 }: AvatarUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
+  const [scale, setScale] = useState(existingScale);
+  const [error, setError] = useState<string | null>(null);
 
-  // Met à jour la prévisualisation si un nouveau fichier est sélectionné
+  // Génère une preview si un nouveau fichier est choisi
   useEffect(() => {
     if (value) {
       const url = URL.createObjectURL(value);
       setPreviewUrl(url);
 
-      return () => URL.revokeObjectURL(url); // libère la mémoire
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(existingUrl || null);
     }
-  }, [value]);
+  }, [value, existingUrl]);
 
+  // Zoom
+  const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newScale = Number(e.target.value);
+    setScale(newScale);
+    onScaleChange?.(newScale);
+  };
+
+  // Nouveau fichier
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    onChange(file);
-
-    if (file && onUploadSuccess) {
-      const fakeUrl = URL.createObjectURL(file); // tu remplaceras par URL finale après upload
-      onUploadSuccess(fakeUrl, existingScale);
+    if (file && !file.type.startsWith("image/")) {
+      setError("Format non supporté. Veuillez choisir une image.");
+      return;
     }
+    setError(null);
+    onChange(file);
   };
 
   return (
-    <div className={styles.avatarUpload}>
-      <div className={styles.avatarPreviewContainer}>
+    <div className={styles.container}>
+      {/* APERCU */}
+      <div className={styles.imageWrapper}>
         {previewUrl ? (
           <Image
             src={previewUrl}
             alt="Avatar"
-            width={150}
-            height={150}
-            className={styles.avatarPreview}
-            priority
+            fill
+            style={{ objectFit: "cover", transform: `scale(${scale})` }}
           />
         ) : (
-          <div className={styles.placeholder}>Aucun avatar</div>
+          <div className={styles.placeholder}>Avatar</div>
         )}
       </div>
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className={styles.fileInput}
-      />
+      {/* ZOOM */}
+      {previewUrl && (
+        <div className={styles.zoomControl}>
+          <label htmlFor="zoomSlider" className={styles.zoomLabel}>
+            Zoom
+          </label>
+          <input
+            id="zoomSlider"
+            type="range"
+            min={1}
+            max={2}
+            step={0.01}
+            value={scale}
+            onChange={handleZoom}
+            className={styles.zoomSlider}
+            aria-label="Zoom avatar"
+          />
+        </div>
+      )}
+
+      {/* MESSAGE ERREUR */}
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
+      {/* BOUTONS */}
+      <div className={styles.buttonGroup}>
+        {/* Remplacer */}
+        <label className={`${styles.button} ${styles.replace}`}>
+          Modifier
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            hidden
+          />
+        </label>
+
+        {/* Supprimer */}
+        {previewUrl && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.remove}`}
+            onClick={() => {
+              onChange(null);
+              onRemove?.();
+              setPreviewUrl(null);
+              setScale(1);
+            }}
+            aria-label="Supprimer avatar"
+          >
+            Supprimer
+          </button>
+        )}
+
+        {/* Valider */}
+        {value && (
+          <button
+            type="button"
+            className={`${styles.button} ${styles.validate}`}
+            onClick={onSave}
+            disabled={!previewUrl}
+            aria-label="Valider avatar"
+          >
+            ✓ Valider
+          </button>
+        )}
+      </div>
     </div>
   );
 }
