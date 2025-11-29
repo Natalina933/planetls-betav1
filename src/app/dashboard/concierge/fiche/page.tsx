@@ -1,6 +1,6 @@
-"use client";
-
+'use client';
 import React, { useState, useEffect, ChangeEvent } from "react";
+import { useSession } from "next-auth/react";
 import styles from "./FicheConciergerie.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
@@ -8,9 +8,6 @@ import ServiceCheckboxGroup from "@/app/components/ui/ServiceCheckboxGroup/Servi
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
-// ===================================
-// Interface du profil utilisateur
-// ===================================
 interface Profile {
   id: string;
   username: string;
@@ -29,11 +26,8 @@ interface Profile {
   avatar_scale: number | null;
 }
 
-// ===================================
-// Composant FicheConciergerie
-// ===================================
 export default function FicheConciergerie() {
-  // États du composant
+  const { update } = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -43,24 +37,17 @@ export default function FicheConciergerie() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // ===================================
-  // Récupération du profil au chargement
-  // ===================================
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await fetch("/api/profiles/current");
         const data: Profile | { error: string } = await response.json();
-
         if ("error" in data) {
           throw new Error(data.error);
         }
-
-        // Correction automatique du doublon dans l'URL de l'avatar
         if (data.avatar_url && data.avatar_url.includes('/avatars/avatars/')) {
           data.avatar_url = data.avatar_url.replace('/avatars/avatars/', '/avatars/');
         }
-
         setProfile(data);
         setEditProfile(data);
       } catch (error: unknown) {
@@ -69,57 +56,39 @@ export default function FicheConciergerie() {
         setErrorMsg(errorMessage);
       }
     };
-
     fetchProfile();
   }, []);
 
-  // ===================================
-  // Gestion des modifications de champs
-  // ===================================
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!editProfile) return;
-
     const { name, value } = e.target;
     setEditProfile({ ...editProfile, [name]: value });
-
-    // Validation en temps réel
     let errorMessage = "";
-
     if (name === "email" && value) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       errorMessage = emailRegex.test(value) ? "" : "Email invalide";
     }
-
     if (name === "phone" && value) {
       const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
       errorMessage = phoneRegex.test(value) ? "" : "Téléphone invalide";
     }
-
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
   };
 
-  // ===================================
-  // Upload de l'avatar via API dédiée
-  // ===================================
   const handleAvatarUpload = async (file: File): Promise<string | null> => {
     if (!editProfile) return null;
-
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("userId", editProfile.id);
-
       const response = await fetch("/api/profiles/avatar", {
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
-
       if (result.error) {
         throw new Error(result.error);
       }
-
       console.log("[FicheConciergerie] Avatar uploadé:", result.url);
       return result.url;
     } catch (error: unknown) {
@@ -129,43 +98,30 @@ export default function FicheConciergerie() {
     }
   };
 
-  // ===================================
-  // Sauvegarde du profil
-  // ===================================
   const handleSave = async () => {
     if (!editProfile) return;
-
-    // Vérification des erreurs de validation
     const hasErrors = Object.values(errors).some((error) => error !== "");
     if (hasErrors) {
       alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
       return;
     }
-
     setLoading(true);
     let avatarUrl = editProfile.avatar_url;
-
     try {
-      // Upload de l'avatar si un nouveau fichier a été sélectionné
       if (avatarFile) {
         console.log("[FicheConciergerie] Upload du nouvel avatar...");
         avatarUrl = await handleAvatarUpload(avatarFile);
       }
-
-      // Mise à jour du profil dans la base de données
       const response = await fetch("/api/profiles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...editProfile, avatar_url: avatarUrl }),
       });
-
       const result = await response.json();
-
       if (result.error) {
         throw new Error(result.error);
       }
 
-      // Mise à jour des états locaux
       const updatedProfile = { ...editProfile, avatar_url: avatarUrl };
       setProfile(updatedProfile);
       setEditProfile(updatedProfile);
@@ -173,11 +129,20 @@ export default function FicheConciergerie() {
       setAvatarFile(null);
       setSuccessMsg("✅ Profil mis à jour avec succès !");
 
-      console.log("[FicheConciergerie] Profil mis à jour:", updatedProfile);
+      // Rafraîchir la session NextAuth
+      console.log('[FicheConciergerie] 🔄 Updating session with avatar:', avatarUrl);
+      await update({
+        user: {
+          avatar_url: avatarUrl,
+          firstName: editProfile.first_name,
+          lastName: editProfile.last_name,
+          name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
+        },
+      });
 
-      // Effacement du message de succès après 3 secondes
+      console.log("[FicheConciergerie] ✅ Session updated");
+      console.log("[FicheConciergerie] Profil et session mis à jour:", updatedProfile);
       setTimeout(() => setSuccessMsg(""), 3000);
-
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
       console.error("[FicheConciergerie] Erreur lors de la sauvegarde:", errorMessage);
@@ -188,30 +153,6 @@ export default function FicheConciergerie() {
     }
   };
 
-  // ===================================
-  // Callback succès upload avatar
-  // ===================================
-  // const handleAvatarSuccess = (url: string, scale?: number) => {
-  //   if (!editProfile) return;
-
-  //   setEditProfile({
-  //     ...editProfile,
-  //     avatar_url: url,
-  //     avatar_scale: scale ?? 1
-  //   });
-
-  //   if (profile) {
-  //     setProfile({
-  //       ...profile,
-  //       avatar_url: url,
-  //       avatar_scale: scale ?? 1
-  //     });
-  //   }
-  // };
-
-  // ===================================
-  // Rendu d'un champ de formulaire
-  // ===================================
   const renderField = (
     label: string,
     name: keyof Profile,
@@ -221,13 +162,11 @@ export default function FicheConciergerie() {
   ) => {
     const value = editProfile?.[name] ?? "";
     const error = errors[name];
-
     return (
       <div className={styles.fieldRow}>
         <label htmlFor={name.toString()} className={styles.fieldLabel}>
           {label} {required && <span className={styles.required}>*</span>}
         </label>
-
         {isEditing ? (
           isTextarea ? (
             <textarea
@@ -257,16 +196,10 @@ export default function FicheConciergerie() {
     );
   };
 
-  // ===================================
-  // Rendu du composant
-  // ===================================
-
-  // Affichage des erreurs critiques
   if (errorMsg && !profile) {
     return <div className={styles.errorMsg}>{errorMsg}</div>;
   }
 
-  // Affichage du chargement
   if (!profile || !editProfile) {
     return <div className={styles.loading}>Chargement du profil...</div>;
   }
@@ -274,11 +207,8 @@ export default function FicheConciergerie() {
   return (
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>Fiche utilisateur & informations</h1>
-
       {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
       {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
-
-      {/* Section Avatar */}
       <div className={styles.avatarBlock}>
         <AvatarUpload
           value={avatarFile}
@@ -294,10 +224,7 @@ export default function FicheConciergerie() {
             setEditProfile((prev) => (prev ? { ...prev, avatar_url: null } : prev));
           }}
         />
-
       </div>
-
-      {/* Formulaire du profil */}
       <div className={styles.formBlock}>
         {renderField("Nom d'utilisateur", "username", false, true)}
         {renderField("Prénom", "first_name", false, true)}
@@ -306,8 +233,6 @@ export default function FicheConciergerie() {
         {renderField("Téléphone", "phone")}
         {renderField("Catégorie", "category")}
         {renderField("Emplacement", "location")}
-
-        {/* Services principaux */}
         <div className={styles.fieldRow}>
           <label className={styles.fieldLabel}>Services principaux :</label>
           {isEditing ? (
@@ -325,19 +250,14 @@ export default function FicheConciergerie() {
             </span>
           )}
         </div>
-
         {renderField("Recherche cible", "search_target")}
         {renderField("À propos", "additional_info", true)}
-
-        {/* Date de création */}
         <div className={styles.fieldRow}>
           <label className={styles.fieldLabel}>Date de création :</label>
           <span className={styles.fieldValue}>
             {new Date(profile.created_at).toLocaleDateString("fr-FR")}
           </span>
         </div>
-
-        {/* Boutons d'action */}
         <div className={styles.actions}>
           {isEditing ? (
             <>
@@ -371,6 +291,5 @@ export default function FicheConciergerie() {
         </div>
       </div>
     </div>
-
   );
-};
+}

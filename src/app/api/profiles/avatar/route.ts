@@ -9,10 +9,12 @@ export async function POST(req: NextRequest) {
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
-      console.error("[API Avatar Upload] ❌ Variables d'environnement manquantes");
+      console.error(
+        "[API Avatar Upload] ❌ Variables d'environnement manquantes"
+      );
       console.error("SUPABASE_URL:", SUPABASE_URL ? "✓" : "✗");
       console.error("SUPABASE_SERVICE_ROLE_KEY:", SUPABASE_KEY ? "✓" : "✗");
-      
+
       return NextResponse.json(
         { error: "Configuration serveur manquante" },
         { status: 500 }
@@ -23,8 +25,8 @@ export async function POST(req: NextRequest) {
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: {
         autoRefreshToken: false,
-        persistSession: false
-      }
+        persistSession: false,
+      },
     });
 
     // Récupération des données du formulaire
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
       .from("avatars")
       .upload(filePath, file, {
         cacheControl: "3600",
-        upsert: false // Évite les conflits
+        upsert: false, // Évite les conflits
       });
 
     if (error) {
@@ -94,9 +96,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       url: publicUrl,
       path: data.path,
-      success: true
+      success: true,
     });
-
   } catch (err) {
     console.error("[API Avatar Upload] ❌ Erreur serveur:", err);
     return NextResponse.json(
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
 // ✅ Optionnel : Route DELETE pour supprimer les anciens avatars
 export async function DELETE(req: NextRequest) {
   try {
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
@@ -125,10 +126,7 @@ export async function DELETE(req: NextRequest) {
     const path = searchParams.get("path");
 
     if (!path) {
-      return NextResponse.json(
-        { error: "Path manquant" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Path manquant" }, { status: 400 });
     }
 
     const { error } = await supabaseAdmin.storage
@@ -137,20 +135,13 @@ export async function DELETE(req: NextRequest) {
 
     if (error) {
       console.error("[API Avatar Delete] ❌ Error:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     console.log("[API Avatar Delete] ✅ Deleted:", path);
     return NextResponse.json({ success: true });
-
   } catch (err) {
     console.error("[API Avatar Delete] ❌ Erreur:", err);
-    return NextResponse.json(
-      { error: "Erreur serveur" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
