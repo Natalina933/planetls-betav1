@@ -1,195 +1,567 @@
-@use "@/app/styles/abstracts/variables" as *;
+@use "sass:map";
 @use "sass:color";
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/abstracts/mixins" as mix;
+
+// ====================================
+// 🎯 ANIMATIONS KEYFRAMES
+// ====================================
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes expandWidth {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
 
 // ====================================
 // 🌟 CONTAINER PRINCIPAL
 // ====================================
 .pageContainer {
   max-width: $max-content-width;
-  margin: 2rem auto;
-  padding: $spacing-lg;
-  background: $all-bg;
+  margin: 3rem auto;
+  padding: 0;
+  background: transparent;
   font-family: $font-text;
   color: $color-text;
   line-height: $line-height;
-  border-radius: $radius-lg;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  transition: background 0.3s ease;
+  animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 
   @media (max-width: 768px) {
-    padding: $spacing-md;
+    margin: 1.5rem auto;
+    padding: 0 $spacing-sm;
   }
 }
 
 // ====================================
-// 🎨 TITRE PRINCIPAL
+// 🎨 TITRE PRINCIPAL ÉLÉGANT
 // ====================================
 .title {
-  font-family: $font-title;
+  font-family: $font-elegant;
   font-weight: $font-weight-bold;
-  font-size: 2.2rem;
-  margin-bottom: $spacing-lg;
-  color: $primary-color-sass;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 2px solid $gold;
-  padding-bottom: $spacing-sm;
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin-bottom: $spacing-xl;
+  color: $primary-dark-color-sass;
+  text-align: center;
   position: relative;
+  letter-spacing: 0.02em;
+  animation: slideInUp 0.5s ease 0.1s backwards;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -10px;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, $gold, transparent);
+    border-radius: 2px;
+  }
 
   &::after {
     content: '';
-    display: block;
-    width: 80px;
+    position: absolute;
+    left: 50%;
+    bottom: -15px;
+    transform: translateX(-50%);
+    width: 120px;
     height: 3px;
-    margin-top: $spacing-xs;
-    background: linear-gradient(to right, $gold-dark, $gold, $gold-dark);
+    background: linear-gradient(90deg, $gold-dark 0%, $gold 50%, $gold-dark 100%);
     border-radius: 2px;
+    animation: expandWidth 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards;
   }
 }
 
 // ====================================
-// 👤 AVATAR
+// 💬 MESSAGES (Success/Error/Loading)
+// ====================================
+@mixin message-banner {
+  padding: $spacing-md $spacing-lg;
+  border-radius: $radius-lg;
+  margin-bottom: $spacing-lg;
+  font-family: $font-text;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid;
+  position: relative;
+  overflow: hidden;
+  animation: slideInUp 0.4s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+}
+
+.successBanner {
+  @include message-banner;
+  background: linear-gradient(135deg, #e3f4e8 0%, #d4edda 100%);
+  color: #155724;
+  border-color: #c3e6cb;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+}
+
+.errorBanner {
+  @include message-banner;
+  background: linear-gradient(135deg, #fce4e6 0%, #f8d7da 100%);
+  color: #721c24;
+  border-color: #f5c6cb;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.15);
+}
+
+.errorMsg {
+  @include message-banner;
+  background: linear-gradient(135deg, $gold-soft 0%, $gold-light 100%);
+  color: $mucha-ink;
+  border-color: $gold-dark;
+}
+
+.loading {
+  @include mix.flex-center;
+  min-height: 60vh;
+  font-family: $font-elegant;
+  font-size: 1.3rem;
+  color: $text-light;
+  
+  &::after {
+    content: '...';
+    animation: pulse 1.5s infinite;
+  }
+}
+
+// ====================================
+// 👤 BLOC AVATAR MODERNE
 // ====================================
 .avatarBlock {
-  display: flex;
-  justify-content: center;
-  margin-bottom: $spacing-lg;
+  @include mix.flex-center;
+  margin-bottom: $spacing-xl;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, $mucha-paper 0%, $gold-soft 100%);
+  border: 3px solid $mucha-ink;
+  border-radius: $radius-2xl;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  position: relative;
+  animation: slideInUp 0.7s ease 0.2s backwards;
 
-  img {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
     border-radius: $radius-2xl;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    border: 3px solid $gold-light;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 3px;
+    background: linear-gradient(135deg, $gold-dark, $gold, $gold-light);
+    // -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.5;
+    pointer-events: none;
+  }
 
-    &:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 28px rgba($gold-dark, 0.25);
-    }
+  @media (max-width: 768px) {
+    padding: $spacing-lg;
   }
 }
 
 // ====================================
-// 📝 CHAMPS & TEXTAREAS
+// 📋 BLOC FORMULAIRE PREMIUM
+// ====================================
+.formBlock {
+  background: linear-gradient(135deg, $gold-soft 0%, $mucha-paper 100%);
+  border: 3px solid $mucha-ink;
+  border-radius: $radius-2xl;
+  padding: $spacing-xl;
+  box-shadow: 
+    8px 8px 0px 0px rgba(0, 0, 0, 0.1),
+    0 10px 40px rgba(0, 0, 0, 0.08);
+  position: relative;
+  animation: slideInUp 0.8s ease 0.3s backwards;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 
+      10px 10px 0px 0px rgba(0, 0, 0, 0.15),
+      0 15px 50px rgba(0, 0, 0, 0.12);
+  }
+
+  // Coins décoratifs Art Nouveau
+  &::before,
+  &::after {
+    content: '✦';
+    position: absolute;
+    color: $gold;
+    font-size: 1.5rem;
+    opacity: 0.3;
+  }
+
+  &::before {
+    top: $spacing-md;
+    left: $spacing-md;
+  }
+
+  &::after {
+    bottom: $spacing-md;
+    right: $spacing-md;
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-lg;
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// ====================================
+// 🔖 FIELD ROW AVEC STYLE PROGRESSIF
 // ====================================
 .fieldRow {
   display: flex;
   flex-direction: column;
-  margin-bottom: $spacing-md;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px dashed color.adjust($text-light, $alpha: -0.5);
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:hover {
+    background: rgba($gold-soft, 0.3);
+    padding: $spacing-sm;
+    border-radius: $radius-lg;
+    margin-left: -$spacing-sm;
+    margin-right: -$spacing-sm;
+  }
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  // Override InputWithValidation styles
+  :global(.inputWrapper) {
+    margin-bottom: 0;
+  }
+
+  :global(.input) {
+    border-color: $mucha-ink;
+    background: $mucha-paper;
+    font-family: $font-text;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:focus {
+      border-color: $gold-dark;
+      box-shadow: 
+        0 0 0 3px rgba($gold, 0.25),
+        0 4px 12px rgba($gold-dark, 0.15);
+      transform: translateY(-1px);
+    }
+
+    &:hover {
+      border-color: $gold;
+    }
+  }
+
+  :global(.inputValid) {
+    border-color: #2ecc71;
+    background: color.adjust(#2ecc71, $lightness: 45%);
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.25);
+    }
+  }
+
+  :global(.inputError) {
+    border-color: #e74c3c;
+    background: color.adjust(#e74c3c, $lightness: 45%);
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.25);
+    }
+  }
 }
 
+// ====================================
+// 🏷️ LABELS ÉLÉGANTS
+// ====================================
 .fieldLabel {
-  font-family: $font-elegant;
-  font-size: 1.1rem;
+  font-family: $font-title;
   font-weight: $font-weight-bold;
   color: $mucha-ink;
-  margin-bottom: $spacing-xs;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  text-transform: uppercase;
+  position: relative;
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: $gold;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .required {
+    color: $gold-dark;
+    font-size: 1.1em;
+    margin-left: 2px;
+    animation: pulse 2s infinite;
+  }
 }
 
-.fieldValue,
+// ====================================
+// 📝 FIELD VALUE & TEXTAREA
+// ====================================
+.fieldValue {
+  font-family: $font-text;
+  color: $text-dark;
+  font-size: 1rem;
+  padding: $spacing-sm 0;
+  min-height: 1.5rem;
+  background: transparent;
+  border-left: 3px solid transparent;
+  padding-left: $spacing-sm;
+  transition: all 0.3s ease;
+
+  &:not(:empty) {
+    border-left-color: $gold-light;
+  }
+}
+
 .fieldTextarea {
   font-family: $font-text;
-  font-size: 1rem;
-  background: $gold-soft;
-  padding: $spacing-sm $spacing-md;
+  padding: $spacing-md;
+  border: 2px solid $mucha-ink;
   border-radius: $radius-lg;
-  border: 1px solid $gold-light;
-  transition: all 0.3s ease;
+  background: $mucha-paper;
   color: $text-dark;
+  font-size: 1rem;
+  line-height: $line-height;
+  resize: vertical;
+  min-height: 120px;
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 
   &:focus {
     outline: none;
-    border-color: $primary-color-sass;
-    box-shadow: 0 0 0 4px rgba($gold, 0.2);
-    background: color.scale($gold-soft, $lightness: 5%);
+    border-color: $gold-dark;
+    box-shadow: 
+      0 0 0 3px rgba($gold, 0.25),
+      inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+    background: color.adjust($mucha-paper, $lightness: 2%);
+  }
+
+  &::placeholder {
+    color: $text-light;
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  &:disabled {
+    background: color.adjust($gold-soft, $lightness: 5%);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $gold;
   }
 }
 
 // ====================================
-// ⚡ ACTION BUTTONS
+// 🎯 ACTIONS BUTTONS ZONE
 // ====================================
 .actions {
   display: flex;
-  justify-content: flex-end;
-  gap: $spacing-sm;
-  margin-top: $spacing-lg;
+  gap: $spacing-md;
+  justify-content: center;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 2px double $mucha-ink;
+  flex-wrap: wrap;
 
-  button {
-    font-family: $font-title;
-    font-weight: $font-weight-bold;
-    padding: $spacing-sm $spacing-lg;
-    border-radius: $radius-pill;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    &.editButton {
-      background: $gold-light;
-      color: $mucha-ink;
-
-      &:hover {
-        background: $gold;
-        color: white;
-      }
-    }
-
-    &.saveButton {
-      background: $primary-color-sass;
-      color: white;
-
-      &:hover {
-        background: $primary-dark-color-sass;
-      }
-    }
-  }
-}
-
-// ====================================
-// ✅ SUCCESS & ERROR BANNERS
-// ====================================
-.successBanner {
-  background: color.scale($gold-light, $lightness: 10%);
-  color: $mucha-ink;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $radius-lg;
-  margin-bottom: $spacing-md;
-  border: 1px solid $gold;
-  font-family: $font-elegant;
-  box-shadow: 0 2px 8px rgba($gold-dark, 0.15);
-  animation: fadeIn 0.5s ease;
-}
-
-.errorMsg {
-  background: #fff0f0;
-  color: darkred;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $radius-lg;
-  border: 1px solid darkred;
-  font-family: $font-text;
-  box-shadow: 0 2px 6px rgba(255, 0, 0, 0.12);
-  animation: fadeIn 0.5s ease;
-}
-
-// ====================================
-// 🌟 RESPONSIVE
-// ====================================
-@media (max-width: 768px) {
-  .title {
-    font-size: 1.8rem;
-  }
-
-  .avatarBlock img {
-    width: 120px;
-    height: 120px;
-  }
-
-  .actions {
+  @media (max-width: 768px) {
     flex-direction: column;
-    gap: $spacing-xs;
+  }
+}
+
+// ====================================
+// 🔘 BUTTONS PREMIUM DESIGN
+// ====================================
+@mixin button-base-premium {
+  font-family: $font-title;
+  font-weight: $font-weight-bold;
+  padding: 0.85rem 2rem;
+  border-radius: $radius-pill;
+  border: 2.5px solid $mucha-ink;
+  cursor: pointer;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  box-shadow: 
+    4px 4px 0px 0px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 
+      6px 6px 0px 0px rgba(0, 0, 0, 0.2),
+      0 8px 20px rgba(0, 0, 0, 0.15);
+
+    &::before {
+      width: 300px;
+      height: 300px;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 
+      3px 3px 0px 0px rgba(0, 0, 0, 0.15),
+      0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    
+    &::after {
+      content: '⏳';
+      margin-left: $spacing-xs;
+      animation: pulse 1.5s infinite;
+    }
+  }
+
+  // Focus pour accessibilité
+  &:focus-visible {
+    outline: 3px solid $gold-dark;
+    outline-offset: 4px;
+  }
+}
+
+.editButton {
+  @include button-base-premium;
+  background: linear-gradient(135deg, $gold 0%, $gold-accent 100%);
+  color: $mucha-ink;
+  border-color: $gold-dark;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $gold-accent 0%, $gold 100%);
+    border-color: $mucha-ink;
+  }
+}
+
+.saveButton {
+  @include button-base-premium;
+  background: linear-gradient(135deg, $gold-dark 0%, $primary-color-sass 100%);
+  color: $mucha-paper;
+  border-color: $mucha-ink;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $primary-dark-color-sass 0%, $gold-dark 100%);
+    box-shadow: 
+      6px 6px 0px 0px rgba(0, 0, 0, 0.2),
+      0 8px 20px rgba($gold-dark, 0.3);
+  }
+}
+
+.cancelButton {
+  @include button-base-premium;
+  background: linear-gradient(135deg, $mucha-paper 0%, $gold-soft 100%);
+  color: $mucha-ink;
+  border-color: $text-light;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $gold-soft 0%, $mucha-paper 100%);
+    border-color: $mucha-ink;
+  }
+}
+
+// ====================================
+// ✨ MICRO-INTERACTIONS
+// ====================================
+.fieldRow,
+.avatarBlock,
+.formBlock {
+  will-change: transform;
+}
+
+// Smooth scroll behavior
+.pageContainer {
+  scroll-behavior: smooth;
+}
+
+// Print styles
+@media print {
+  .actions {
+    display: none;
+  }
+
+  .formBlock {
+    box-shadow: none;
+    border: 1px solid $mucha-ink;
   }
 }

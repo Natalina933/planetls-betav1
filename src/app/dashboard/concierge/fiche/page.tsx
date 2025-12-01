@@ -24,6 +24,45 @@ interface Profile {
   search_target: string | null;
   role: string | null;
   avatar_scale: number | null;
+  
+  // ✨ NOUVEAUX CHAMPS PROFESSIONNELS
+  company_name: string | null;           // Nom commercial
+  legal_form: string | null;             // Forme juridique (Auto-entrepreneur, SAS, SARL, etc.)
+  siret: string | null;                  // Numéro SIRET (14 chiffres)
+  siren: string | null;                  // Numéro SIREN (9 chiffres)
+  vat_number: string | null;             // Numéro TVA intracommunautaire
+  
+  // Adresse professionnelle complète
+  street_address: string | null;         // Numéro et rue
+  postal_code: string | null;            // Code postal
+  city: string | null;                   // Ville
+  country: string | null;                // Pays (défaut: France)
+  
+  // Informations complémentaires
+  website: string | null;                // Site web
+  linkedin: string | null;               // Profil LinkedIn
+  insurance_number: string | null;       // Numéro assurance RC Pro
+  insurance_company: string | null;      // Compagnie d'assurance
+  
+  // Zone d'intervention
+  service_area: string | null;           // Zone géographique (ex: "Paris et Île-de-France")
+  service_radius_km: number | null;      // Rayon d'intervention en km
+  
+  // Tarification
+  hourly_rate: number | null;            // Tarif horaire
+  monthly_rate: number | null;           // Forfait mensuel
+  
+  // Disponibilité
+  availability_hours: string | null;     // Horaires (ex: "Lun-Ven 8h-20h")
+  emergency_service: boolean;            // Service d'urgence 24/7
+  
+  // Certifications & Labels
+  certifications: string | null;         // Certifications (séparées par virgules)
+  years_experience: number | null;       // Années d'expérience
+  
+  // Banking (optionnel)
+  iban: string | null;                   // IBAN pour paiements
+  bic: string | null;                    // BIC/SWIFT
 }
 
 export default function FicheConciergerie() {
@@ -61,17 +100,62 @@ export default function FicheConciergerie() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!editProfile) return;
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    
+    // Gestion des checkboxes
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setEditProfile({ ...editProfile, [name]: checked });
+      return;
+    }
+    
     setEditProfile({ ...editProfile, [name]: value });
+    
+    // Validation
     let errorMessage = "";
+    
+    // Email
     if (name === "email" && value) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       errorMessage = emailRegex.test(value) ? "" : "Email invalide";
     }
+    
+    // Téléphone
     if (name === "phone" && value) {
       const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
       errorMessage = phoneRegex.test(value) ? "" : "Téléphone invalide";
     }
+    
+    // SIRET (14 chiffres)
+    if (name === "siret" && value) {
+      const siretRegex = /^[0-9]{14}$/;
+      errorMessage = siretRegex.test(value.replace(/\s/g, '')) ? "" : "SIRET invalide (14 chiffres)";
+    }
+    
+    // SIREN (9 chiffres)
+    if (name === "siren" && value) {
+      const sirenRegex = /^[0-9]{9}$/;
+      errorMessage = sirenRegex.test(value.replace(/\s/g, '')) ? "" : "SIREN invalide (9 chiffres)";
+    }
+    
+    // Code postal
+    if (name === "postal_code" && value) {
+      const postalRegex = /^[0-9]{5}$/;
+      errorMessage = postalRegex.test(value) ? "" : "Code postal invalide (5 chiffres)";
+    }
+    
+    // Site web
+    if (name === "website" && value) {
+      const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      errorMessage = urlRegex.test(value) ? "" : "URL invalide";
+    }
+    
+    // IBAN
+    if (name === "iban" && value) {
+      const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
+      errorMessage = ibanRegex.test(value.replace(/\s/g, '')) ? "" : "IBAN invalide";
+    }
+    
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
   };
 
@@ -89,7 +173,6 @@ export default function FicheConciergerie() {
       if (result.error) {
         throw new Error(result.error);
       }
-      console.log("[FicheConciergerie] Avatar uploadé:", result.url);
       return result.url;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Erreur d'upload";
@@ -109,7 +192,6 @@ export default function FicheConciergerie() {
     let avatarUrl = editProfile.avatar_url;
     try {
       if (avatarFile) {
-        console.log("[FicheConciergerie] Upload du nouvel avatar...");
         avatarUrl = await handleAvatarUpload(avatarFile);
       }
       const response = await fetch("/api/profiles", {
@@ -129,8 +211,6 @@ export default function FicheConciergerie() {
       setAvatarFile(null);
       setSuccessMsg("✅ Profil mis à jour avec succès !");
 
-      // Rafraîchir la session NextAuth
-      console.log('[FicheConciergerie] 🔄 Updating session with avatar:', avatarUrl);
       await update({
         user: {
           avatar_url: avatarUrl,
@@ -140,8 +220,6 @@ export default function FicheConciergerie() {
         },
       });
 
-      console.log("[FicheConciergerie] ✅ Session updated");
-      console.log("[FicheConciergerie] Profil et session mis à jour:", updatedProfile);
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
@@ -158,10 +236,30 @@ export default function FicheConciergerie() {
     name: keyof Profile,
     isTextarea: boolean = false,
     required: boolean = false,
-    placeholder: string = ""
+    placeholder: string = "",
+    type: string = "text"
   ) => {
     const value = editProfile?.[name] ?? "";
     const error = errors[name];
+    
+    if (type === "checkbox") {
+      return (
+        <div className={styles.fieldRow}>
+          <label className={styles.fieldLabel}>
+            <input
+              type="checkbox"
+              name={name.toString()}
+              checked={!!value}
+              onChange={handleChange}
+              disabled={!isEditing}
+              className={styles.checkbox}
+            />
+            {label}
+          </label>
+        </div>
+      );
+    }
+    
     return (
       <div className={styles.fieldRow}>
         <label htmlFor={name.toString()} className={styles.fieldLabel}>
@@ -182,6 +280,7 @@ export default function FicheConciergerie() {
             <InputWithValidation
               id={name.toString()}
               name={name.toString()}
+              type={type}
               value={value as string}
               onChange={handleChange}
               placeholder={placeholder || label}
@@ -196,6 +295,18 @@ export default function FicheConciergerie() {
     );
   };
 
+  const renderSection = (title: string, icon: string, children: React.ReactNode) => {
+    return (
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          <span className={styles.sectionIcon}>{icon}</span>
+          {title}
+        </h2>
+        {children}
+      </div>
+    );
+  };
+
   if (errorMsg && !profile) {
     return <div className={styles.errorMsg}>{errorMsg}</div>;
   }
@@ -206,9 +317,10 @@ export default function FicheConciergerie() {
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Fiche utilisateur & informations</h1>
+      <h1 className={styles.title}>Fiche Conciergerie Professionnelle</h1>
       {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
       {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
+      
       <div className={styles.avatarBlock}>
         <AvatarUpload
           value={avatarFile}
@@ -225,39 +337,100 @@ export default function FicheConciergerie() {
           }}
         />
       </div>
+      
       <div className={styles.formBlock}>
-        {renderField("Nom d'utilisateur", "username", false, true)}
-        {renderField("Prénom", "first_name", false, true)}
-        {renderField("Nom", "last_name", false, true)}
-        {renderField("Email", "email", false, true)}
-        {renderField("Téléphone", "phone")}
-        {renderField("Catégorie", "category")}
-        {renderField("Emplacement", "location")}
-        <div className={styles.fieldRow}>
-          <label className={styles.fieldLabel}>Services principaux :</label>
-          {isEditing ? (
-            <ServiceCheckboxGroup
-              selected={editProfile.option ? editProfile.option.split(",") : []}
-              onChange={(selected) =>
-                setEditProfile({ ...editProfile, option: selected.join(",") })
-              }
-            />
-          ) : (
+        {/* 👤 INFORMATIONS PERSONNELLES */}
+        {renderSection("Informations personnelles", "👤", <>
+          {renderField("Nom d'utilisateur", "username", false, true)}
+          {renderField("Prénom", "first_name", false, true)}
+          {renderField("Nom", "last_name", false, true)}
+          {renderField("Email", "email", false, true, "email@exemple.com", "email")}
+          {renderField("Téléphone", "phone", false, true, "+33 6 12 34 56 78", "tel")}
+        </>)}
+
+        {/* 🏢 INFORMATIONS ENTREPRISE */}
+        {renderSection("Informations entreprise", "🏢", <>
+          {renderField("Nom commercial", "company_name", false, true, "Ma Conciergerie")}
+          {renderField("Forme juridique", "legal_form", false, false, "Auto-entrepreneur, SAS, SARL...")}
+          {renderField("SIREN", "siren", false, true, "123 456 789 (9 chiffres)")}
+          {renderField("SIRET", "siret", false, true, "123 456 789 00012 (14 chiffres)")}
+          {renderField("N° TVA intracommunautaire", "vat_number", false, false, "FR 12 123456789")}
+          {renderField("Années d'expérience", "years_experience", false, false, "5", "number")}
+        </>)}
+
+        {/* 📍 ADRESSE PROFESSIONNELLE */}
+        {renderSection("Adresse professionnelle", "📍", <>
+          {renderField("Adresse", "street_address", false, true, "12 Rue de la République")}
+          {renderField("Code postal", "postal_code", false, true, "75001")}
+          {renderField("Ville", "city", false, true, "Paris")}
+          {renderField("Pays", "country", false, false, "France")}
+        </>)}
+
+        {/* 🎯 SERVICES & ZONE D'INTERVENTION */}
+        {renderSection("Services & Zone d'intervention", "🎯", <>
+          <div className={styles.fieldRow}>
+            <label className={styles.fieldLabel}>Services principaux :</label>
+            {isEditing ? (
+              <ServiceCheckboxGroup
+                selected={editProfile.option ? editProfile.option.split(",") : []}
+                onChange={(selected) =>
+                  setEditProfile({ ...editProfile, option: selected.join(",") })
+                }
+              />
+            ) : (
+              <span className={styles.fieldValue}>
+                {profile.option
+                  ? profile.option.split(",").map((s) => s.trim()).join(", ")
+                  : "—"}
+              </span>
+            )}
+          </div>
+          {renderField("Zone d'intervention", "service_area", false, false, "Paris et Île-de-France")}
+          {renderField("Rayon d'intervention (km)", "service_radius_km", false, false, "30", "number")}
+          {renderField("Horaires de disponibilité", "availability_hours", false, false, "Lun-Ven 8h-20h")}
+          {renderField("Service d'urgence 24/7", "emergency_service", false, false, "", "checkbox")}
+        </>)}
+
+        {/* 💰 TARIFICATION */}
+        {renderSection("Tarification", "💰", <>
+          {renderField("Tarif horaire (€)", "hourly_rate", false, false, "45", "number")}
+          {renderField("Forfait mensuel (€)", "monthly_rate", false, false, "500", "number")}
+        </>)}
+
+        {/* 🛡️ ASSURANCE & CERTIFICATIONS */}
+        {renderSection("Assurance & Certifications", "🛡️", <>
+          {renderField("Compagnie d'assurance", "insurance_company", false, false, "AXA, Allianz...")}
+          {renderField("N° contrat RC Pro", "insurance_number", false, false, "RC123456789")}
+          {renderField("Certifications", "certifications", true, false, "Qualité, Labels...")}
+        </>)}
+
+        {/* 🌐 WEB & RÉSEAUX */}
+        {renderSection("Web & Réseaux sociaux", "🌐", <>
+          {renderField("Site web", "website", false, false, "https://mon-site.fr", "url")}
+          {renderField("LinkedIn", "linkedin", false, false, "https://linkedin.com/in/...")}
+        </>)}
+
+        {/* 🏦 INFORMATIONS BANCAIRES (Optionnel) */}
+        {renderSection("Informations bancaires", "🏦", <>
+          {renderField("IBAN", "iban", false, false, "FR76 1234 5678 9012 3456 7890 123")}
+          {renderField("BIC/SWIFT", "bic", false, false, "BNPAFRPPXXX")}
+        </>)}
+
+        {/* ℹ️ AUTRES INFORMATIONS */}
+        {renderSection("Autres informations", "ℹ️", <>
+          {renderField("Catégorie", "category")}
+          {renderField("Emplacement", "location")}
+          {renderField("Recherche cible", "search_target")}
+          {renderField("À propos", "additional_info", true, false, "Présentez votre activité...")}
+          <div className={styles.fieldRow}>
+            <label className={styles.fieldLabel}>Date de création :</label>
             <span className={styles.fieldValue}>
-              {profile.option
-                ? profile.option.split(",").map((s) => s.trim()).join(", ")
-                : "—"}
+              {new Date(profile.created_at).toLocaleDateString("fr-FR")}
             </span>
-          )}
-        </div>
-        {renderField("Recherche cible", "search_target")}
-        {renderField("À propos", "additional_info", true)}
-        <div className={styles.fieldRow}>
-          <label className={styles.fieldLabel}>Date de création :</label>
-          <span className={styles.fieldValue}>
-            {new Date(profile.created_at).toLocaleDateString("fr-FR")}
-          </span>
-        </div>
+          </div>
+        </>)}
+
+        {/* ACTIONS */}
         <div className={styles.actions}>
           {isEditing ? (
             <>
@@ -266,7 +439,7 @@ export default function FicheConciergerie() {
                 disabled={loading}
                 className={styles.saveButton}
               >
-                {loading ? "⏳ Sauvegarde en cours..." : "💾 Sauvegarder"}
+                {loading ? "Sauvegarde..." : "💾 Sauvegarder"}
               </button>
               <button
                 onClick={() => {
