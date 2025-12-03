@@ -21,7 +21,7 @@ export interface SidebarItem {
   children?: SidebarItem[];
 }
 
-export type UserType = "owner" | "concierge" | "providence";
+export type UserType = "owner" | "concierge" | "providence" | "artisan";
 
 export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   owner: [
@@ -39,31 +39,32 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Paramètres", path: "/dashboard/owner/settings", icon: FiSettings },
   ],
 
-  concierge: [
-  { label: "Mon tableau de bord", path: "/dashboard/concierge", icon: FiHome },
-  {
-    label: "Ma Conciergerie",
-    path: "/dashboard/concierge",
-    icon: FiClipboard,
-    children: [
-      { label: "Fiche & Infos", path: "/dashboard/concierge/fiche", icon: FiClipboard },
-      { label: "Tarifs & Contrats", path: "/dashboard/concierge/tarifs", icon: FiFileText },
-      { label: "Missions", path: "/dashboard/concierge/missions", icon: FiCalendar },
-      { label: "Équipe & Zones", path: "/dashboard/concierge/equipe", icon: FiUsers },
-      { label: "Documents & Avis", path: "/dashboard/concierge/documents", icon: FiFileText }
-    ]
-  },
-  { label: "Logements", path: "/dashboard/concierge/logements", icon: FiClipboard },
-  { label: "Recherche mes annonces", path: "/dashboard/concierge/recherche", icon: FiSearch },
-  { label: "Contacts", path: "/dashboard/concierge/contacts", icon: FiUsers },
-  { label: "Objectifs", path: "/dashboard/concierge/objectifs", icon: FiTarget },
-  { label: "Planning", path: "/dashboard/concierge/planning", icon: FiCalendar },
-  { label: "Stocks", path: "/dashboard/concierge/stocks", icon: FiBox },
-  { label: "Messagerie", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
-  { label: "Alertes", path: "/dashboard/concierge/alertes", icon: FiBell },
-  { label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
-]
-  ,
+concierge: [
+    { label: "Mon tableau de bord", path: "/dashboard/concierge", icon: FiHome },
+    {
+      label: "Ma Conciergerie",
+      path: "/dashboard/concierge/fiche?tab=fiche",
+      icon: FiClipboard,
+      children: [
+        { label: "Fiche & Infos", path: "/dashboard/concierge/fiche?tab=fiche", icon: FiClipboard },
+        { label: "Tarifs & Contrats", path: "/dashboard/concierge/fiche?tab=tarifs", icon: FiFileText },
+        { label: "Missions", path: "/dashboard/concierge/fiche?tab=missions", icon: FiCalendar },
+        { label: "Équipe & Zones", path: "/dashboard/concierge/fiche?tab=equipe", icon: FiUsers },
+        { label: "Documents & Avis", path: "/dashboard/concierge/fiche?tab=documents", icon: FiFileText }
+      ]
+    },
+    { label: "Logements", path: "/dashboard/concierge/logements", icon: FiClipboard },
+    { label: "Recherche mes annonces", path: "/dashboard/concierge/recherche", icon: FiSearch },
+    { label: "Contacts", path: "/dashboard/concierge/contacts", icon: FiUsers },
+    { label: "Objectifs", path: "/dashboard/concierge/objectifs", icon: FiTarget },
+    { label: "Planning", path: "/dashboard/concierge/planning", icon: FiCalendar },
+    { label: "Stocks", path: "/dashboard/concierge/stocks", icon: FiBox },
+    { label: "Messagerie", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
+    { label: "Alertes", path: "/dashboard/concierge/alertes", icon: FiBell },
+    { label: "Paramètres", path: "/dashboard/concierge/settings", icon: FiSettings },
+  ],
+
+
   providence: [
     { label: "Mon tableau de bord", path: "/dashboard/providence", icon: FiHome },
     { label: "Mes Tâches", path: "/dashboard/providence/taches", icon: FiClipboard },
@@ -75,5 +76,17 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Alertes", path: "/dashboard/providence/alertes", icon: FiBell },
     { label: "Mes Documents", path: "/dashboard/providence/documents", icon: FiFileText },
     { label: "Paramètres", path: "/dashboard/providence/settings", icon: FiSettings },
+  ],
+
+  artisan: [
+    { label: "Mon tableau de bord", path: "/dashboard/artisan", icon: FiHome },
+    { label: "Mes Interventions", path: "/dashboard/artisan/interventions", icon: FiTool },
+    { label: "Planning", path: "/dashboard/artisan/planning", icon: FiCalendar },
+    { label: "Devis & Factures", path: "/dashboard/artisan/devis", icon: FiFileText },
+    { label: "Mes Clients", path: "/dashboard/artisan/clients", icon: FiUsers },
+    { label: "Messagerie", path: "/dashboard/artisan/messages", icon: FiMessageSquare },
+    { label: "Mes Outils", path: "/dashboard/artisan/outils", icon: FiSettings },
+    { label: "Alertes", path: "/dashboard/artisan/alertes", icon: FiBell },
+    { label: "Paramètres", path: "/dashboard/artisan/settings", icon: FiSettings },
   ],
 };

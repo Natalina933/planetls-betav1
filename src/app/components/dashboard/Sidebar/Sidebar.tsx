@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FiLogOut } from "react-icons/fi";
 import { signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
@@ -28,9 +28,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       ? sidebarConfig[userType as keyof typeof sidebarConfig]
       : [];
 
+  // Bloquer le scroll du body quand la sidebar est ouverte
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // Fermer avec la touche Escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        toggleSidebar();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, toggleSidebar]);
+
   return (
     <>
-      {isOpen && <div className={styles.overlay} onClick={toggleSidebar} />}
+      {isOpen && (
+        <div 
+          className={styles.overlay} 
+          onClick={toggleSidebar}
+          role="button"
+          tabIndex={-1}
+          aria-label="Fermer la sidebar"
+        />
+      )}
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}
         aria-label="Sidebar"
