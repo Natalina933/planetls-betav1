@@ -39,7 +39,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Paramètres", path: "/dashboard/owner/settings", icon: FiSettings },
   ],
 
-concierge: [
+  concierge: [
     { label: "Mon tableau de bord", path: "/dashboard/concierge", icon: FiHome },
     {
       label: "Ma Conciergerie",

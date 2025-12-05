@@ -27,29 +27,39 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
         localStorage.setItem(`sidebar-${item.label}`, String(isOpen));
     }, [isOpen, item.label]);
 
-    const handleToggle = () => {
+    const handleParentClick = () => {
         if (item.children) {
             setIsOpen((prev) => !prev);
-        } else {
-            toggleSidebar();
         }
     };
 
     return (
         <div className={styles.menuGroup}>
-            <div
-                className={`${styles.link} ${isActive ? styles.active : ""}`}
-                onClick={handleToggle}
-                role="link"
-                aria-current={isActive ? "page" : undefined}
-            >
-                {item.icon && <item.icon className={styles.icon} />}
-                <span>{item.label}</span>
-                {item.children && (
-                    <FiChevronDown className={`${styles.chevron} ${isOpen ? styles.rotate : ""}`} />
-                )}
-            </div>
 
+            {/* ITEM AVEC OU SANS LIEN */}
+            {item.children ? (
+                /* Cas 1 : item avec children → pas de Link au parent */
+                <div
+                    className={`${styles.link} ${isActive ? styles.active : ""}`}
+                    onClick={handleParentClick}
+                >
+                    {item.icon && <item.icon className={styles.icon} />}
+                    <span>{item.label}</span>
+                    <FiChevronDown className={`${styles.chevron} ${isOpen ? styles.rotate : ""}`} />
+                </div>
+            ) : (
+                /* Cas 2 : item SANS children → Link direct */
+                <Link
+                    href={item.path}
+                    className={`${styles.link} ${isActive ? styles.active : ""}`}
+                    onClick={toggleSidebar}
+                >
+                    {item.icon && <item.icon className={styles.icon} />}
+                    <span>{item.label}</span>
+                </Link>
+            )}
+
+            {/* SOUS-MENU */}
             {item.children && (
                 <div className={`${styles.submenu} ${isOpen ? styles.expanded : styles.collapsed}`}>
                     {item.children.map((child) => {
@@ -59,7 +69,6 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
                                 key={child.path}
                                 href={child.path}
                                 className={`${styles.sublink} ${isChildActive ? styles.active : ""}`}
-                                aria-current={isChildActive ? "page" : undefined}
                                 onClick={toggleSidebar}
                             >
                                 {child.icon && <child.icon className={styles.icon} />}
