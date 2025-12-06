@@ -66,9 +66,22 @@ $line-height: 1.6;
 $radius-pill: 50px; // Pour les boutons et éléments arrondis
 $radius-2xl: 1.5rem; // Pour les éléments avec des coins arrondis
 $radius-lg: 1rem;
+$radius-xl: 24px; 
 $font-family-base: 'Open Sans', sans-serif;
 $mucha-ink: #333;
 $mucha-accent: #d4af37;
+
+// 🎨 Couleurs principales (ta charte bleu-gris + doré)
+$color-bg: #f4f6f8;
+$color-bg-light: #ffffff;
+
+$color-card-bg: #f9fafb; // couleur douce pour cartes
+$color-card-border: rgba(0, 0, 0, 0.1);
+
+$color-title: #1f2937;  // gris foncé élégant
+$color-text: #4b5563;   // gris moyen lisible
+
+$color-gold: #c5a572;   // ton doré 1900
 
 $text-light: #555;
 $text-dark: #333;

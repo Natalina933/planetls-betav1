@@ -1,51 +1,35 @@
-// app/dashboard/concierge/logements/page.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FiPlus } from "react-icons/fi";
-// import { IoIosHome } from "react-icons/io";
-// import { IoIosPerson } from "react-icons/io";
-// import { IoIosCalendar } from "react-icons/io";
 import Image from "next/image";
 import styles from "./LogementsPage.module.scss";
+import StatsLogements from "../logements/StatsLogements";
 
 interface Logement {
     id: number;
-    name: string;
-    city: string;
-    photo?: string;
-    status: "pret" | "menage" | "arrivee" | "depart";
+    nom_logement: string;
+    ville: string;
+    photo_principale?: string;
+    statut: "pret" | "menage" | "arrivee" | "depart";
 }
 
 export default function LogementsPage() {
     const [logements, setLogements] = useState<Logement[]>([]);
 
     useEffect(() => {
-        // Appel API (mock en attendant le vrai backend)
-        setLogements([
-            {
-                id: 1,
-                name: "Appartement Haussmannien",
-                city: "Paris",
-                photo: "/images/default-logement.jpg",
-                status: "menage",
-            },
-            {
-                id: 2,
-                name: "Studio Centre-Ville",
-                city: "Lyon",
-                photo: "/images/default-logement.jpg",
-                status: "pret",
-            },
-        ]);
+        async function loadLogements() {
+            const res = await fetch("/api/housing");
+            const data = await res.json();
+            setLogements(data);
+        }
+        loadLogements();
     }, []);
 
     return (
         <div className={styles.logementsPage}>
-
-            {/* HEADER */}
+            
             <div className="header">
                 <h1>Mes Logements</h1>
                 <Link href="/dashboard/concierge/logements/create" className="btn-add">
@@ -53,69 +37,53 @@ export default function LogementsPage() {
                 </Link>
             </div>
 
-            {/* STATS */}
-            <div className="stats">
-                <div className="card">
-                    <span>Total</span>
-                    <strong>{logements.length}</strong>
-                </div>
-                <div className="card">
-                    <span>Prêts</span>
-                    <strong>{logements.filter(l => l.status === "pret").length}</strong>
-                </div>
-                <div className="card">
-                    <span>En ménage</span>
-                    <strong>{logements.filter(l => l.status === "menage").length}</strong>
-                </div>
-            </div>
+            <StatsLogements
+                total={logements.length}
+                prets={logements.filter(l => l.statut === "pret").length}
+                menages={logements.filter(l => l.statut === "menage").length}
+                arrivees={logements.filter(l => l.statut === "arrivee").length}
+                departs={logements.filter(l => l.statut === "depart").length}
+            />
 
-            {/* TABLEAU */}
-            <table className="logements-table">
-                <thead>
-                    <tr>
-                        <th>Logement</th>
-                        <th>Ville</th>
-                        <th>Statut</th>
-                        <th></th>
-                    </tr>
-                </thead>
+            <div className={styles.logementsGrid}>
+                {logements.map((logement) => (
+                    <Link
+                        key={logement.id}
+                        href={`/dashboard/concierge/logements/${logement.id}`}
+                        className={styles.logementCard}
+                    >
+                        <div className={styles.cardImageWrapper}>
+                            <Image
+                                src={logement.photo_principale || "/icons/home-icon.svg"}
+                                alt={logement.nom_logement}
+                                width={220}
+                                height={180}
+                                className={styles.cardImage}
+                            />
+                        </div>
 
-                <tbody>
-                    {logements.map((logement) => (
-                        <tr key={logement.id}>
-                            <td className="cell-logement">
-                                <Image
-                                    src={logement.photo || "/images/default-logement.jpg"}
-                                    alt={logement.name}
-                                    width={60}
-                                    height={60}
-                                    className="logement-img"
-                                />                                <span>{logement.name}</span>
-                            </td>
+                        <div className={styles.cardBody}>
+                            <h2 className={styles.cardTitle}>{logement.nom_logement}</h2>
 
-                            <td>{logement.city}</td>
+                            <p className={styles.cardMeta}>
+                                <span className={styles.metaItem}>Type : Appartement</span>
+                                <span className={styles.metaItem}>Ville : {logement.ville}</span>
+                            </p>
 
-                            <td>
-                                <span className={`status status-${logement.status}`}>
-                                    {logement.status === "pret" && "Prêt"}
-                                    {logement.status === "menage" && "Ménage en cours"}
-                                    {logement.status === "arrivee" && "Arrivée du jour"}
-                                    {logement.status === "depart" && "Départ du jour"}
+                            <div className={styles.cardFooter}>
+                                <span className={`${styles.status} ${styles[`status-${logement.statut}`]}`}>
+                                    {logement.statut === "pret" && "Prêt"}
+                                    {logement.statut === "menage" && "Ménage en cours"}
+                                    {logement.statut === "arrivee" && "Arrivée du jour"}
+                                    {logement.statut === "depart" && "Départ du jour"}
                                 </span>
-                            </td>
 
-                            <td>
-                                <Link
-                                    href={`/dashboard/concierge/logements/${logement.id}`}
-                                    className="btn-view"
-                                >
-                                    Voir
-                                </Link>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                <span className={styles.btnView}>Voir →</span>
+                            </div>
+                        </div>
+                    </Link>
+                ))}
+            </div>
 
         </div>
     );
