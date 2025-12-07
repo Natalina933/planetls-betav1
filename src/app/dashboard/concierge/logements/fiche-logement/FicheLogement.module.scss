@@ -1,0 +1,221 @@
+@use "@/styles/variables" as *;
+@use "@/styles/mixins" as *;
+
+/* =========================================
+   STRUCTURE GENERALE
+========================================= */
+.ficheLogement {
+  padding: 2rem 0;
+  color: var(--text-color);
+  background: var(--bg-soft);
+  min-height: 100vh;
+
+  .header {
+    @include flex-between;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text-strong);
+    }
+
+    .backBtn {
+      @include button-gold;
+      font-size: 0.9rem;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+/* =========================================
+   ZONE VISUELLE (bannière + infos principales)
+========================================= */
+.mainInfos {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 2rem;
+  align-items: start;
+
+  @include respond("tablet") {
+    grid-template-columns: 1fr;
+  }
+
+  .photoWrapper {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .statusTag {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      background: var(--gold);
+      color: #000;
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+  }
+
+  .infoCard {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-soft);
+
+    .title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      color: var(--text-strong);
+    }
+
+    .city {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .infoList {
+      display: grid;
+      gap: 0.6rem;
+
+      .item {
+        font-size: 0.95rem;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px dashed var(--border-light);
+        padding-bottom: 0.3rem;
+
+        .label {
+          font-weight: 500;
+          color: var(--text-muted);
+        }
+      }
+    }
+  }
+}
+
+/* =========================================
+   ONGLET NAVIGATION
+========================================= */
+.tabsNav {
+  margin-top: 3rem;
+  border-bottom: 2px solid var(--border-soft);
+  display: flex;
+  gap: 2rem;
+
+  @include respond("mobile") {
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .tab {
+    padding-bottom: 0.6rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.25s ease;
+
+    &:hover {
+      color: var(--text-strong);
+    }
+
+    &.active {
+      color: var(--gold);
+      border-bottom: 3px solid var(--gold);
+    }
+  }
+}
+
+/* =========================================
+   ONGLET CONTENU
+========================================= */
+.tabPanel {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-soft);
+
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1rem;
+    color: var(--text-muted);
+  }
+
+  /* Exemple : tableau planning */
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid var(--border-light);
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background: var(--bg-soft);
+      color: var(--text-strong);
+      font-weight: 600;
+    }
+  }
+}
+
+/* =========================================
+   NOTES INTERNES
+========================================= */
+.notesBox {
+  margin-top: 1.5rem;
+  background: var(--bg-soft);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text-color);
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
