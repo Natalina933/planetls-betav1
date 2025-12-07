@@ -1,224 +1,214 @@
-@use "sass:color";
-@use "@/app/styles/abstracts/mixins" as *;
-@use "@/app/styles/abstracts/functions" as *;
 @use "@/app/styles/abstracts/variables" as *;
-@use "@/app/styles/base/animations" as anim;
-/* =========================================
-   STRUCTURE GENERALE
-========================================= */
+
+// --------------------------------------------------
+// 🏡 Carte Fiche Logement
+// --------------------------------------------------
+
 .ficheLogement {
-  padding: 2rem 0;
-  color: var(--text-color);
-  background: var(--bg-soft);
-  min-height: 100vh;
-
-  .header {
-    @include flex-between;
-    margin-bottom: 2rem;
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--text-strong);
-    }
-
-    .backBtn {
-      @include button-gold;
-      font-size: 0.9rem;
-      padding: 0.6rem 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-
-      svg {
-        width: 18px;
-        height: 18px;
-      }
-    }
-  }
-}
-
-/* =========================================
-   ZONE VISUELLE (bannière + infos principales)
-========================================= */
-.mainInfos {
+  @include centered-section($max-content-width-md);
+  background: $color-card-bg;
+  border-radius: $radius-xl;
+  border: 1px solid $color-card-border;
+  padding: $spacing-lg;
+  box-shadow: $shadow;
+  transition: $transition;
+  color: $color-text;
+  font-family: $font-text;
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 2rem;
-  align-items: start;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
 
-  @include respond("tablet") {
+  @include mq(md) {
     grid-template-columns: 1fr;
   }
 
-  .photoWrapper {
-    position: relative;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-
-    img {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-    }
-
-    .statusTag {
-      position: absolute;
-      bottom: 1rem;
-      left: 1rem;
-      background: var(--gold);
-      color: #000;
-      padding: 0.4rem 0.8rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      font-weight: 600;
-      box-shadow: var(--shadow-sm);
-    }
+  &:hover {
+    transform: translateY(-3px);
+    @include soft-hover($gold);
   }
 
-  .infoCard {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-soft);
+  @include darkMode {
+    background: var(--bg);
+    color: var(--text);
+  }
+}
 
-    .title {
-      font-size: 1.4rem;
-      font-weight: 600;
-      margin-bottom: 0.6rem;
-      color: var(--text-strong);
+// --------------------------------------------------
+// 🖼️ Image principale
+// --------------------------------------------------
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  border-radius: $radius-lg;
+  border: 2px solid $primary-color-sass;
+
+  @include mucha-frame($gold, $radius-lg, 2px);
+
+  img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+}
+
+// --------------------------------------------------
+// 📄 Bloc texte
+// --------------------------------------------------
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  justify-content: center;
+  padding: $spacing-md;
+}
+
+// --------------------------------------------------
+// 🏷️ Titre du logement
+// --------------------------------------------------
+
+.title {
+  @include heading-style(2);
+  font-family: $font-elegant;
+  color: $color-title;
+  margin-bottom: $spacing-xs;
+  @include highlight-gold;
+
+  @include mq(sm) {
+    font-size: 1.6rem;
+  }
+
+  @include darkMode {
+    color: var(--text);
+  }
+}
+
+// --------------------------------------------------
+// 📍 Localisation
+// --------------------------------------------------
+
+.location {
+  font-family: $font-text;
+  font-size: 1rem;
+  color: $text-light;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: $primary-color-sass;
+  }
+}
+
+// --------------------------------------------------
+// ⭐ Statut / catégorie
+// --------------------------------------------------
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  border-radius: $radius-pill;
+  background: $gold-soft;
+  color: $mucha-ink;
+  border: 1px solid $gold;
+  font-weight: 600;
+  width: fit-content;
+  margin-top: -0.5rem;
+}
+
+// --------------------------------------------------
+// 🧾 Description
+// --------------------------------------------------
+
+.description {
+  font-size: 1rem;
+  line-height: $line-height;
+  color: $color-text;
+  margin: $spacing-sm 0;
+
+  @include mq(sm) {
+    font-size: 0.95rem;
+  }
+}
+
+// --------------------------------------------------
+// 🧩 Informations diverses (surface, pièces, etc.)
+// --------------------------------------------------
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+
+  .item {
+    background: $gold-light;
+    border: 1px solid $gold-dark;
+    padding: 0.4rem 0.75rem;
+    border-radius: $radius-pill;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 500;
+
+    svg {
+      width: 16px;
+      height: 16px;
+      color: $gold-dark;
+    }
+  }
+}
+
+// --------------------------------------------------
+// 🎛️ Boutons d’action (Edit / Delete / Voir)
+// --------------------------------------------------
+
+.actions {
+  margin-top: $spacing-md;
+  display: flex;
+  gap: $spacing-sm;
+
+  button {
+    @include button-base;
+    @include button($bg: $primary-color-sass, $color: #fff);
+    font-family: $font-title;
+    font-weight: 600;
+
+    &:hover {
+      background: $primary-light-color-sass;
+      color: $color-title;
+      box-shadow: 0 0 10px rgba($gold, 0.4);
     }
 
-    .city {
-      font-size: 1rem;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
+    &.delete {
+      background: #b91c1c;
+
+      &:hover {
+        background: #ef4444;
+      }
     }
 
-    .infoList {
-      display: grid;
-      gap: 0.6rem;
+    &.secondary {
+      background: $color-bg;
+      border: 1px solid $gold-dark;
+      color: $gold-dark;
 
-      .item {
-        font-size: 0.95rem;
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px dashed var(--border-light);
-        padding-bottom: 0.3rem;
-
-        .label {
-          font-weight: 500;
-          color: var(--text-muted);
-        }
+      &:hover {
+        background: $gold-light;
       }
     }
   }
-}
 
-/* =========================================
-   ONGLET NAVIGATION
-========================================= */
-.tabsNav {
-  margin-top: 3rem;
-  border-bottom: 2px solid var(--border-soft);
-  display: flex;
-  gap: 2rem;
-
-  @include respond("mobile") {
-    gap: 1rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
-
-  .tab {
-    padding-bottom: 0.6rem;
-    font-size: 1.05rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: all 0.25s ease;
-
-    &:hover {
-      color: var(--text-strong);
-    }
-
-    &.active {
-      color: var(--gold);
-      border-bottom: 3px solid var(--gold);
-    }
-  }
-}
-
-/* =========================================
-   ONGLET CONTENU
-========================================= */
-.tabPanel {
-  margin-top: 2rem;
-  padding: 2rem;
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-soft);
-
-  h2 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: var(--text-strong);
-    margin-bottom: 1rem;
-  }
-
-  p {
-    font-size: 1rem;
-    color: var(--text-muted);
-  }
-
-  /* Exemple : tableau planning */
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-
-    th,
-    td {
-      padding: 0.8rem;
-      border-bottom: 1px solid var(--border-light);
-      text-align: left;
-      font-size: 0.95rem;
-    }
-
-    th {
-      background: var(--bg-soft);
-      color: var(--text-strong);
-      font-weight: 600;
-    }
-  }
-}
-
-/* =========================================
-   NOTES INTERNES
-========================================= */
-.notesBox {
-  margin-top: 1.5rem;
-  background: var(--bg-soft);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-soft);
-
-  textarea {
-    width: 100%;
-    min-height: 120px;
-    border: none;
-    background: transparent;
-    resize: none;
-    font-size: 1rem;
-    font-family: inherit;
-    color: var(--text-color);
-
-    &:focus {
-      outline: none;
-    }
+  @include mq(sm) {
+    flex-direction: column;
   }
 }
