@@ -1,5 +1,9 @@
 // @use "@/app/styles/base/mixins" as *;
-@use "@/app/styles/base/variables" as *;
+@use "sass:color";
+@use "@/app/styles/abstracts/mixins" as *;
+@use "@/app/styles/abstracts/functions" as *;
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/base/animations" as anim;
 
 .ficheLogementWrapper {
   padding: $spacing-xl 0;
@@ -42,8 +46,12 @@
       .infoItem {
         padding: $spacing-md;
         border-radius: $radius-lg;
-        @include backdrop-blur(4px, rgba(255,255,255,0.65), rgba(200,200,200,0.25));
-        @include box-shadow(rgba(0,0,0,0.06));
+        @include backdrop-blur(
+          4px,
+          rgba(255, 255, 255, 0.65),
+          rgba(200, 200, 200, 0.25)
+        );
+        @include box-shadow(rgba(0, 0, 0, 0.06));
 
         label {
           font-size: 0.85rem;

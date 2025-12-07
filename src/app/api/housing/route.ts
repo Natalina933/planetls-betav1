@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";
 
-
 // GET  /api/housing       -> list des logements (filtrage possible via query)
 // POST /api/housing       -> créer un logement (auth requis)
 //
@@ -36,14 +35,23 @@ export async function GET(req: NextRequest) {
       console.error("[GET /api/housing] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
+    const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
-    return NextResponse.json(data);
+    // 🔥 Ajout automatique de l'image par défaut
+    const safeData = data.map((item) => ({
+      ...item,
+      photo_principale:
+        item.photo_principale && item.photo_principale.trim() !== ""
+          ? item.photo_principale
+          : DEFAULT_LOGEMENT_PHOTO,
+    }));
+
+    return NextResponse.json(safeData);
   } catch (err) {
     console.error("[GET /api/housing] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
 export async function POST(req: NextRequest) {
   try {
     // Auth: token obligatoire
@@ -57,7 +65,10 @@ export async function POST(req: NextRequest) {
 
     // Ici tu peux effectuer des validations basiques
     if (!body.infos?.nomLogement || !body.proprietaire) {
-      return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Champs requis manquants" },
+        { status: 400 }
+      );
     }
 
     // Insère. Utilise returning/select pour renvoyer l'enregistrement inséré
@@ -66,11 +77,17 @@ export async function POST(req: NextRequest) {
       .insert({
         external_id: body.external_id ?? null,
         nom_logement: body.infos?.nomLogement ?? null,
-        ville: body.infos?.adresse?.split(",").pop()?.trim() ?? body.location?.city ?? null,
+        ville:
+          body.infos?.adresse?.split(",").pop()?.trim() ??
+          body.location?.city ??
+          null,
         adresse: body.infos?.adresse ?? null,
         plateforme: body.location?.plateformePrincipale ?? null,
         statut: body.statut ?? "draft",
-        photo_principale: (body.infos?.photos && body.infos.photos[0]) ?? body.photo_principale ?? null,
+        photo_principale:
+          (body.infos?.photos && body.infos.photos[0]) ??
+          body.photo_principale ??
+          null,
         infos: body.infos ?? null,
         proprietaire: body.proprietaire ?? null,
         location: body.location ?? null,

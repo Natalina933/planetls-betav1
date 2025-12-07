@@ -29,7 +29,7 @@ export default function LogementsPage() {
 
     return (
         <div className={styles.logementsPage}>
-            
+
             <div className="header">
                 <h1>Mes Logements</h1>
                 <Link href="/dashboard/concierge/logements/create" className="btn-add">
@@ -53,14 +53,28 @@ export default function LogementsPage() {
                         className={styles.logementCard}
                     >
                         <div className={styles.cardImageWrapper}>
-                            <Image
-                                src={logement.photo_principale || "/icons/home-icon.svg"}
-                                alt={logement.nom_logement}
-                                width={220}
-                                height={180}
-                                className={styles.cardImage}
-                            />
+
+                            {/** Sécurisation de l'image */}
+                            {(() => {
+                                const getSafePhoto = (photo?: string) =>
+                                    photo && photo.trim() !== "" ? photo : "/images/default-logement.png";
+
+
+
+                                return (
+                                    <Image
+                                        src={getSafePhoto(logement.photo_principale)}
+                                        alt={logement.nom_logement}
+                                        width={220}
+                                        height={180}
+                                        className={styles.cardImage}
+                                    />
+
+                                );
+                            })()}
+
                         </div>
+
 
                         <div className={styles.cardBody}>
                             <h2 className={styles.cardTitle}>{logement.nom_logement}</h2>

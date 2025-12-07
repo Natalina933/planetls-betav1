@@ -1,3 +1,4 @@
+// src/app/api/housing/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { Database } from "@/types/supabase";
