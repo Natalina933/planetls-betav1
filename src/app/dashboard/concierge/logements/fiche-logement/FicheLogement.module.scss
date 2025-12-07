@@ -1,214 +1,123 @@
-@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/base/mixins" as *;
+@use "@/app/styles/base/variables" as *;
 
-// --------------------------------------------------
-// 🏡 Carte Fiche Logement
-// --------------------------------------------------
+.ficheLogementWrapper {
+  padding: $spacing-xl 0;
+  @include fadeIn(0.7s);
 
-.ficheLogement {
-  @include centered-section($max-content-width-md);
-  background: $color-card-bg;
-  border-radius: $radius-xl;
-  border: 1px solid $color-card-border;
-  padding: $spacing-lg;
-  box-shadow: $shadow;
-  transition: $transition;
-  color: $color-text;
-  font-family: $font-text;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-lg;
+  .headerSection {
+    @include container(1100px);
+    @include mucha-frame($gold, $radius-2xl);
+    padding: $spacing-xl;
+    margin-bottom: $spacing-lg;
+    background: var(--surface);
+    position: relative;
 
-  @include mq(md) {
-    grid-template-columns: 1fr;
+    .titleBar {
+      @include flex-between;
+      margin-bottom: $spacing-md;
+
+      h1 {
+        @include heading-style(2);
+      }
+
+      .ownerInfo {
+        text-align: right;
+
+        div {
+          font-weight: 600;
+        }
+
+        span {
+          font-size: 0.9rem;
+          opacity: 0.7;
+        }
+      }
+    }
+
+    .mainInfos {
+      @include grid(3, $spacing-lg);
+      margin-top: $spacing-lg;
+
+      .infoItem {
+        padding: $spacing-md;
+        border-radius: $radius-lg;
+        @include backdrop-blur(4px, rgba(255,255,255,0.65), rgba(200,200,200,0.25));
+        @include box-shadow(rgba(0,0,0,0.06));
+
+        label {
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          opacity: 0.6;
+          display: block;
+        }
+
+        p {
+          font-weight: 600;
+          margin-top: 0.3rem;
+        }
+      }
+
+      @include mq("tablet") {
+        grid-template-columns: 1fr;
+      }
+    }
   }
 
-  &:hover {
-    transform: translateY(-3px);
-    @include soft-hover($gold);
-  }
-
-  @include darkMode {
-    background: var(--bg);
-    color: var(--text);
-  }
-}
-
-// --------------------------------------------------
-// 🖼️ Image principale
-// --------------------------------------------------
-
-.imageWrapper {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  overflow: hidden;
-  border-radius: $radius-lg;
-  border: 2px solid $primary-color-sass;
-
-  @include mucha-frame($gold, $radius-lg, 2px);
-
-  img {
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-}
-
-// --------------------------------------------------
-// 📄 Bloc texte
-// --------------------------------------------------
-
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-  justify-content: center;
-  padding: $spacing-md;
-}
-
-// --------------------------------------------------
-// 🏷️ Titre du logement
-// --------------------------------------------------
-
-.title {
-  @include heading-style(2);
-  font-family: $font-elegant;
-  color: $color-title;
-  margin-bottom: $spacing-xs;
-  @include highlight-gold;
-
-  @include mq(sm) {
-    font-size: 1.6rem;
-  }
-
-  @include darkMode {
-    color: var(--text);
-  }
-}
-
-// --------------------------------------------------
-// 📍 Localisation
-// --------------------------------------------------
-
-.location {
-  font-family: $font-text;
-  font-size: 1rem;
-  color: $text-light;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  svg {
-    width: 18px;
-    height: 18px;
-    color: $primary-color-sass;
-  }
-}
-
-// --------------------------------------------------
-// ⭐ Statut / catégorie
-// --------------------------------------------------
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
-  border-radius: $radius-pill;
-  background: $gold-soft;
-  color: $mucha-ink;
-  border: 1px solid $gold;
-  font-weight: 600;
-  width: fit-content;
-  margin-top: -0.5rem;
-}
-
-// --------------------------------------------------
-// 🧾 Description
-// --------------------------------------------------
-
-.description {
-  font-size: 1rem;
-  line-height: $line-height;
-  color: $color-text;
-  margin: $spacing-sm 0;
-
-  @include mq(sm) {
-    font-size: 0.95rem;
-  }
-}
-
-// --------------------------------------------------
-// 🧩 Informations diverses (surface, pièces, etc.)
-// --------------------------------------------------
-
-.details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
-
-  .item {
-    background: $gold-light;
-    border: 1px solid $gold-dark;
-    padding: 0.4rem 0.75rem;
-    border-radius: $radius-pill;
-    font-size: 0.85rem;
+  // -----------------------------
+  // 📌 Onglets
+  // -----------------------------
+  .tabsNav {
+    @include container(1100px);
     display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-weight: 500;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-sm;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 
-    svg {
-      width: 16px;
-      height: 16px;
-      color: $gold-dark;
-    }
-  }
-}
-
-// --------------------------------------------------
-// 🎛️ Boutons d’action (Edit / Delete / Voir)
-// --------------------------------------------------
-
-.actions {
-  margin-top: $spacing-md;
-  display: flex;
-  gap: $spacing-sm;
-
-  button {
-    @include button-base;
-    @include button($bg: $primary-color-sass, $color: #fff);
-    font-family: $font-title;
-    font-weight: 600;
-
-    &:hover {
-      background: $primary-light-color-sass;
-      color: $color-title;
-      box-shadow: 0 0 10px rgba($gold, 0.4);
-    }
-
-    &.delete {
-      background: #b91c1c;
+    button {
+      @include button(
+        $bg: transparent,
+        $color: var(--text),
+        $padding: 0.5rem 1.2rem,
+        $radius: $radius-pill
+      );
+      font-size: 1rem;
 
       &:hover {
-        background: #ef4444;
+        background: rgba(0, 0, 0, 0.04);
+      }
+
+      &.active {
+        background: $gold-soft;
+        color: $gold-dark;
+        font-weight: 600;
+        border: 1px solid $gold;
       }
     }
 
-    &.secondary {
-      background: $color-bg;
-      border: 1px solid $gold-dark;
-      color: $gold-dark;
-
-      &:hover {
-        background: $gold-light;
-      }
+    @include mq("tablet") {
+      overflow-x: auto;
+      white-space: nowrap;
     }
   }
 
-  @include mq(sm) {
-    flex-direction: column;
+  // -----------------------------
+  // 📌 Contenu Onglets
+  // -----------------------------
+  .tabContent {
+    @include container(1100px);
+    padding: $spacing-lg $spacing-md;
+    border-radius: $radius-xl;
+    @include mucha-frame($gold, $radius-xl);
+    background: var(--surface-2);
+
+    @include fadeIn(0.6s);
+
+    // Titres internes
+    h2 {
+      @include heading-style(3);
+      margin-bottom: $spacing-md;
+    }
   }
 }
