@@ -31,16 +31,16 @@ $bg-light: #f9fafb;
   border-bottom: 2px solid $border-color;
   margin-bottom: 2rem;
   overflow-x: auto;
-  
+
   // Scrollbar horizontale sur mobile
   &::-webkit-scrollbar {
     height: 4px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
@@ -92,7 +92,7 @@ $bg-light: #f9fafb;
 
 .tabIcon {
   font-size: 1.25rem;
-  
+
   @media (max-width: 768px) {
     font-size: 1rem;
   }
@@ -128,8 +128,8 @@ $bg-light: #f9fafb;
 // ===========================
 
 .successBanner {
-  background-color: rgba($success-color, 0.1);
-  color: darken($success-color, 10%);
+  background-color: color.scale($success-color, $alpha: -0.9);
+  color: color.adjust($success-color, $lightness: -10%);
   padding: 1rem 1.5rem;
   border-radius: 8px;
   border-left: 4px solid $success-color;
@@ -139,7 +139,7 @@ $bg-light: #f9fafb;
 
 .errorBanner {
   background-color: rgba($error-color, 0.1);
-  color: darken($error-color, 10%);
+  color: color.adjust($error-color, $lightness: -10%);
   padding: 1rem 1.5rem;
   border-radius: 8px;
   border-left: 4px solid $error-color;
@@ -210,7 +210,7 @@ $bg-light: #f9fafb;
   gap: 1rem;
   align-items: start;
   margin-bottom: 1rem;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 0.5rem;
@@ -221,7 +221,7 @@ $bg-light: #f9fafb;
   font-weight: 500;
   color: $text-primary;
   padding-top: 0.5rem;
-  
+
   @media (max-width: 768px) {
     padding-top: 0;
   }
@@ -254,7 +254,7 @@ $bg-light: #f9fafb;
   }
 
   &::placeholder {
-    color: lighten($text-secondary, 15%);
+    color: color.adjust($text-secondary, $lightness: 15%);
   }
 }
 
@@ -299,7 +299,7 @@ $bg-light: #f9fafb;
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 2px solid $border-color;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
   }
