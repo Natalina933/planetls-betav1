@@ -1,321 +1,199 @@
-// Variables
-$primary-color: #2563eb;
-$primary-hover: #1d4ed8;
-$border-color: #e5e7eb;
-$bg-light: #f9fafb;
-$text-primary: #111827;
-$text-secondary: #6b7280;
-$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-$radius: 0.5rem;
-$transition: all 0.2s ease;
+@use "@/app/styles/abstracts/_variables" as *;
+@use "@/app/styles/abstracts/_mixins" as *;
 
 .ficheLogement {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: white;
-    min-height: 100vh;
-
-    // HEADER
-    .header {
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid $border-color;
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: $text-primary;
-            margin: 0 0 0.5rem 0;
-        }
-
-        p {
-            color: $text-secondary;
-            font-size: 1rem;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-
-            &::before {
-                content: "📍";
-                font-size: 1.2rem;
-            }
-        }
-    }
-
-    // TABS NAVIGATION
-    .tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
-        border-bottom: 2px solid $border-color;
-        overflow-x: auto;
-        padding-bottom: 0;
-
-        &::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: $border-color;
-            border-radius: 4px;
-        }
-
-        .tab {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.25rem;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: $text-secondary;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: $transition;
-            white-space: nowrap;
-            position: relative;
-            top: 2px;
-
-            svg {
-                font-size: 1.1rem;
-            }
-
-            &:hover {
-                color: $primary-color;
-                background: $bg-light;
-            }
-
-            &.active {
-                color: $primary-color;
-                border-bottom-color: $primary-color;
-                font-weight: 600;
-            }
-        }
-    }
-
-    // CONTENT
-    .content {
-        animation: fadeIn 0.3s ease;
-    }
-
-    .section {
-        h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: $text-primary;
-            margin: 0 0 1.5rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: $text-primary;
-            margin: 2rem 0 1rem 0;
-        }
-
-        p {
-            color: $text-secondary;
-            line-height: 1.6;
-            margin-bottom: 0.75rem;
-
-            strong {
-                color: $text-primary;
-                font-weight: 600;
-                margin-right: 0.5rem;
-            }
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-
-            li {
-                padding: 0.875rem 1rem;
-                background: $bg-light;
-                border-radius: $radius;
-                margin-bottom: 0.75rem;
-                color: $text-secondary;
-                line-height: 1.5;
-                display: flex;
-                align-items: start;
-                gap: 0.75rem;
-
-                &::before {
-                    content: "•";
-                    color: $primary-color;
-                    font-weight: bold;
-                    font-size: 1.5rem;
-                    line-height: 1.2;
-                }
-
-                a {
-                    color: $primary-color;
-                    text-decoration: none;
-                    font-weight: 500;
-
-                    &:hover {
-                        text-decoration: underline;
-                    }
-                }
-            }
-        }
-    }
-
-    // INFO GRID
-    .infoGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        padding: 1.5rem;
-        background: $bg-light;
-        border-radius: $radius;
-        border-left: 4px solid $primary-color;
-
-        p {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-
-            strong {
-                font-size: 0.8rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                color: $text-secondary;
-                font-weight: 500;
-            }
-        }
-    }
-
-    // PHOTOS
-    .photos {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-
-        img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: $radius;
-            box-shadow: $shadow-md;
-            transition: $transition;
-            cursor: pointer;
-
-            &:hover {
-                transform: scale(1.05);
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-            }
-        }
-    }
-
-    // PLANNING EVENTS
-    .event {
-        padding: 1rem 1.25rem;
-        background: white;
-        border: 1px solid $border-color;
-        border-left: 4px solid $primary-color;
-        border-radius: $radius;
-        margin-bottom: 0.75rem;
-        transition: $transition;
-
-        &:hover {
-            box-shadow: $shadow-md;
-            transform: translateX(4px);
-        }
-
-        strong {
-            color: $primary-color;
-            font-weight: 600;
-            margin-right: 0.75rem;
-        }
-
-        span {
-            color: $text-secondary;
-            margin-right: 0.5rem;
-        }
-
-        em {
-            color: $text-secondary;
-            font-style: normal;
-            font-size: 0.9rem;
-            background: $bg-light;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            margin-left: 0.5rem;
-        }
-    }
-
-    // LOADING & ERROR STATES
-    .loading,
-    .error {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-        font-size: 1.125rem;
-        color: $text-secondary;
-    }
-
-    .error {
-        color: #dc2626;
-        flex-direction: column;
-        gap: 1rem;
-
-        &::before {
-            content: "⚠️";
-            font-size: 3rem;
-        }
-    }
+  background: var(--bg-primary, #f5f7fa);
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  margin: 2rem auto;
+  animation: fadeIn 0.4s ease;
 }
 
-// ANIMATIONS
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
+/* ------------------- Header ------------------- */
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+.header {
+  border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e2a36);
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: var(--text-secondary, #556270);
+    margin-top: 0.3rem;
+  }
+
+  button {
+    margin-top: 1rem;
+    background: #d4af37;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.25s ease;
+    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4);
+
+    &:hover {
+      background: #e3c15a;
+      box-shadow: 0 3px 10px rgba(212, 175, 55, 0.5);
     }
+  }
+
+  .saveBtn {
+    background: #2d8038 !important;
+    box-shadow: 0 2px 6px rgba(45, 128, 56, 0.4);
+
+    &:hover {
+      background: #3ca148 !important;
+    }
+  }
 }
 
-// RESPONSIVE
+/* ------------------- Tabs ------------------- */
+
+.tabs {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  background: #f0f3f7;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #2d3e50;
+  transition: 0.25s ease;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.04);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: rgba(212, 175, 55, 0.15);
+  }
+}
+
+.active {
+  background: #d4af37 !important;
+  color: #fff !important;
+  border-color: #d4af37;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
+
+/* ------------------- Content ------------------- */
+
+.content {
+  padding: 1rem 0;
+
+  h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    color: #1e2a36;
+  }
+
+  h3 {
+    color: #364351;
+    margin-top: 1.5rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+  }
+}
+
+/* ------------------- Forms ------------------- */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+
+  input,
+  textarea {
+    padding: 0.7rem;
+    background: #fff;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #2d3e50;
+    transition: border 0.25s ease, box-shadow 0.25s ease;
+
+    &:focus {
+      border-color: #d4af37;
+      box-shadow: 0 0 6px rgba(212, 175, 55, 0.35);
+      outline: none;
+    }
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+}
+
+/* ------------------- Loading + Error ------------------- */
+
+.loading,
+.error {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.2rem;
+
+  &.error {
+    color: #b30000;
+  }
+}
+
+/* ------------------- Responsive ------------------- */
+
 @media (max-width: 768px) {
-    .ficheLogement {
-        padding: 1rem;
+  .ficheLogement {
+    padding: 1.5rem;
+  }
 
-        .header h1 {
-            font-size: 1.5rem;
-        }
+  .header h1 {
+    font-size: 1.8rem;
+  }
 
-        .tabs {
-            .tab {
-                font-size: 0.85rem;
-                padding: 0.75rem 1rem;
+  .tabs {
+    flex-direction: column;
+  }
+}
 
-                svg {
-                    font-size: 1rem;
-                }
-            }
-        }
+/* ------------------- Animations ------------------- */
 
-        .infoGrid {
-            grid-template-columns: 1fr;
-        }
-
-        .photos {
-            grid-template-columns: 1fr;
-        }
-    }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
