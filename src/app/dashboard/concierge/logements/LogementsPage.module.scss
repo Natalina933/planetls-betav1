@@ -5,452 +5,455 @@
 @use "@/app/styles/base/animations" as anim;
 
 .logementsPage {
-  padding: $spacing-xl;
-  max-width: 1100px;
-  margin: 0 auto;
-  animation: fadeInStatic 0.6s ease-out;
-  color: $mucha-ink;
+    padding: $spacing-xl;
+    max-width: 1100px;
+    margin: 0 auto;
+    animation: fadeInStatic 0.6s ease-out;
+    color: $mucha-ink;
 
-  @include mq(md) {
-    padding: $spacing-lg $spacing-md;
-  }
+    @include mq(md) {
+        padding: $spacing-lg $spacing-md;
+    }
 
-  @include mq(sm) {
-    padding: $spacing-md $spacing-sm;
-  }
+    @include mq(sm) {
+        padding: $spacing-md $spacing-sm;
+    }
 }
 
 /* HEADER */
 .header {
-  @include flex-between;
-  gap: $spacing-md;
-  margin-bottom: $spacing-lg;
-  padding: $spacing-md $spacing-lg;
-  @include mucha-frame($gold-dark, $radius-2xl, 2px);
-  background: linear-gradient(135deg, #fffdf6 0%, #f8f1e2 100%);
-  box-shadow: 0 10px 30px rgba(184, 139, 74, 0.18);
+    @include flex-between;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
+    padding: $spacing-md $spacing-lg;
+    @include mucha-frame($gold-dark, $radius-2xl, 2px);
+    background: linear-gradient(135deg, #fffdf6 0%, #f8f1e2 100%);
+    box-shadow: 0 10px 30px rgba(184, 139, 74, 0.18);
 
-  h1 {
-    font-family: $font-elegant;
-    font-size: 2.1rem;
-    letter-spacing: 0.03em;
-    color: $mucha-ink;
-    @include fadeInTitle(0.7s);
+    h1 {
+        font-family: $font-elegant;
+        font-size: 2.1rem;
+        letter-spacing: 0.03em;
+        color: $mucha-ink;
+        @include fadeInTitle(0.7s);
 
-    @include mq(sm) {
-      font-size: 1.6rem;
+        @include mq(sm) {
+            font-size: 1.6rem;
+        }
     }
-  }
-
-  .btn-add {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.55rem 1.3rem;
-    border-radius: 999px;
-    border: 1px solid $gold;
-    background: linear-gradient(120deg, $gold 0%, $gold-alt 45%, #ffe9b6 100%);
-    color: #fff;
-    font-family: var(--font-title, system-ui);
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(184, 139, 74, 0.4);
-    transition: $transition;
-
-    svg {
-      font-size: 1.2rem;
-    }
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(184, 139, 74, 0.55);
-      background: linear-gradient(
-        120deg,
-        color.scale($gold, $lightness: 5%),
-        color.scale($gold-alt, $lightness: 5%)
-      );
-    }
-
-    &:active {
-      transform: translateY(0);
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-    }
-  }
-
-  @include mq(sm) {
-    flex-direction: column;
-    align-items: flex-start;
 
     .btn-add {
-      width: 100%;
-      justify-content: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 1.3rem;
+        border-radius: 999px;
+        border: 1px solid $gold;
+        background: linear-gradient(120deg, $gold 0%, $gold-alt 45%, #ffe9b6 100%);
+        color: #fff;
+        font-family: var(--font-title, system-ui);
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(184, 139, 74, 0.4);
+        transition: $transition;
+
+        svg {
+            font-size: 1.2rem;
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(184, 139, 74, 0.55);
+            background: linear-gradient(120deg,
+                    color.scale($gold, $lightness: 5%),
+                    color.scale($gold-alt, $lightness: 5%));
+        }
+
+        &:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+        }
     }
-  }
+
+    @include mq(sm) {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .btn-add {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 }
+
 .logementsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
 }
 
 .logementCard {
-  background: #fffdf6;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(212, 175, 55, 0.5);
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-
-  &:hover {
-    transform: translateY(-4px);
+    background: #fffdf6;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(212, 175, 55, 0.5);
     box-shadow:
-      0 16px 40px rgba(0, 0, 0, 0.12),
-      0 0 0 1px rgba(212, 175, 55, 0.4) inset;
-  }
+        0 10px 30px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow:
+            0 16px 40px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(212, 175, 55, 0.4) inset;
+    }
 }
 
 .cardImageWrapper {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  background: #f3ebd6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #f3ebd6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cardImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .cardBody {
-  padding: 1rem 1.1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+    padding: 1rem 1.1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .cardTitle {
-  font-family: var(--font-title, system-ui);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #4a3510;
+    font-family: var(--font-title, system-ui);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4a3510;
 }
 
 .cardMeta {
-  font-size: 0.9rem;
-  color: #6b5a32;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+    font-size: 0.9rem;
+    color: #6b5a32;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
 }
 
 .metaItem {
-  opacity: 0.9;
+    opacity: 0.9;
 }
 
 .cardFooter {
-  margin-top: 0.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
 }
 
 /* badge statut */
 .status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.8rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 1px solid transparent;
 }
 
 /* adapte les couleurs à tes tokens */
 .status-pret {
-  background: rgba(60, 138, 90, 0.08);
-  color: #2f6a47;
-  border-color: rgba(60, 138, 90, 0.4);
+    background: rgba(60, 138, 90, 0.08);
+    color: #2f6a47;
+    border-color: rgba(60, 138, 90, 0.4);
 }
 
 .status-menage {
-  background: rgba(222, 155, 52, 0.1);
-  color: #82500b;
-  border-color: rgba(222, 155, 52, 0.4);
+    background: rgba(222, 155, 52, 0.1);
+    color: #82500b;
+    border-color: rgba(222, 155, 52, 0.4);
 }
 
 .status-arrivee {
-  background: rgba(76, 137, 189, 0.1);
-  color: #24557f;
-  border-color: rgba(76, 137, 189, 0.4);
+    background: rgba(76, 137, 189, 0.1);
+    color: #24557f;
+    border-color: rgba(76, 137, 189, 0.4);
 }
 
 .status-depart {
-  background: rgba(188, 74, 72, 0.1);
-  color: #8a2220;
-  border-color: rgba(188, 74, 72, 0.4);
+    background: rgba(188, 74, 72, 0.1);
+    color: #8a2220;
+    border-color: rgba(188, 74, 72, 0.4);
 }
 
 .btnView {
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1px solid rgba(123, 91, 35, 0.5);
-  color: #7b5b23;
-  background: linear-gradient(135deg, #fffaf0, #f3e0c0);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(123, 91, 35, 0.5);
+    color: #7b5b23;
+    background: linear-gradient(135deg, #fffaf0, #f3e0c0);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
-  }
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+    }
 }
+
 .statsContainer {
-  margin-top: 2rem;
-  padding: 2rem;
-  background: $color-card-bg;
-  border: 1px solid $color-card-border;
-  border-radius: 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 2rem;
+    margin-top: 2rem;
+    padding: 2rem;
+    background: $color-card-bg;
+    border: 1px solid $color-card-border;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
 }
 
 .statsLeft {
-  flex: 1;
+    flex: 1;
 
-  h2 {
-    margin-bottom: 1rem;
-    color: $color-title;
-  }
+    h2 {
+        margin-bottom: 1rem;
+        color: $color-title;
+    }
 }
 
 .statNumbers {
-  display: flex;
-  gap: 1rem;
+    display: flex;
+    gap: 1rem;
 }
 
 .statCard {
-  background: $color-bg-light;
-  border: 1px solid $color-card-border;
-  padding: 1rem;
-  border-radius: 12px;
-  min-width: 120px;
+    background: $color-bg-light;
+    border: 1px solid $color-card-border;
+    padding: 1rem;
+    border-radius: 12px;
+    min-width: 120px;
 
-  span {
-    font-size: 0.9rem;
-    color: $color-text;
-  }
+    span {
+        font-size: 0.9rem;
+        color: $color-text;
+    }
 
-  strong {
-    display: block;
-    margin-top: 0.4rem;
-    font-size: 1.4rem;
-    color: $color-gold;
-  }
+    strong {
+        display: block;
+        margin-top: 0.4rem;
+        font-size: 1.4rem;
+        color: $color-gold;
+    }
 }
 
 .statsRight {
-  text-align: center;
+    text-align: center;
 
-  .pieContainer {
-    margin-top: 1rem;
-  }
-
-  .legend {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-
-    .dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 5px;
-
-      &.green { background: #2ECC71; }
-      &.red { background: #E74C3C; }
+    .pieContainer {
+        margin-top: 1rem;
     }
-  }
+
+    .legend {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+
+        .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+
+            &.green {
+                background: #2ECC71;
+            }
+
+            &.red {
+                background: #E74C3C;
+            }
+        }
+    }
 }
 
 /* TABLE CONTAINER */
 .logements-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: $spacing-lg;
-  background: $mucha-paper;
-  @include mucha-frame($gold, $radius-xl, 2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  font-size: 0.95rem;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: $spacing-lg;
+    background: $mucha-paper;
+    @include mucha-frame($gold, $radius-xl, 2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    font-size: 0.95rem;
 
-  thead {
-    background: linear-gradient(180deg, #fff8e5 0%, #f2e1c2 100%);
-  }
-
-  th,
-  td {
-    padding: 0.9rem 1.1rem;
-    text-align: left;
-  }
-
-  th {
-    font-family: var(--font-title, system-ui);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #7b5b23;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.55);
-  }
-
-  tbody tr {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
-
-    &:nth-child(even) {
-      background: rgba(255, 249, 236, 0.7);
+    thead {
+        background: linear-gradient(180deg, #fff8e5 0%, #f2e1c2 100%);
     }
-
-    &:hover {
-      background: #fffdf7;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
-    }
-  }
-
-  @include mq(sm) {
-    font-size: 0.9rem;
 
     th,
     td {
-      padding: 0.7rem 0.75rem;
+        padding: 0.9rem 1.1rem;
+        text-align: left;
     }
-  }
+
+    th {
+        font-family: var(--font-title, system-ui);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #7b5b23;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.55);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+
+        &:nth-child(even) {
+            background: rgba(255, 249, 236, 0.7);
+        }
+
+        &:hover {
+            background: #fffdf7;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+        }
+    }
+
+    @include mq(sm) {
+        font-size: 0.9rem;
+
+        th,
+        td {
+            padding: 0.7rem 0.75rem;
+        }
+    }
 }
 
 /* CELL LOGEMENT (photo + nom) */
 .cell-logement {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 
-  .logement-img {
-    border-radius: 18px;
-    border: 2px solid rgba(212, 175, 55, 0.8);
-    box-shadow:
-      0 4px 10px rgba(0, 0, 0, 0.18),
-      0 0 10px rgba(212, 175, 55, 0.6);
-    object-fit: cover;
-  }
+    .logement-img {
+        border-radius: 18px;
+        border: 2px solid rgba(212, 175, 55, 0.8);
+        box-shadow:
+            0 4px 10px rgba(0, 0, 0, 0.18),
+            0 0 10px rgba(212, 175, 55, 0.6);
+        object-fit: cover;
+    }
 
-  span {
-    font-family: var(--font-title, system-ui);
-    font-weight: 600;
-    color: $mucha-ink;
-  }
+    span {
+        font-family: var(--font-title, system-ui);
+        font-weight: 600;
+        color: $mucha-ink;
+    }
 }
 
 /* BADGES STATUT */
 .status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.28rem 0.8rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  min-width: 130px;
-  text-align: center;
-  white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.28rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    min-width: 130px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 /* état prêt = vert doux */
 .status-pret {
-  background: rgba(60, 138, 90, 0.09);
-  color: #2f6a47;
-  border-color: rgba(60, 138, 90, 0.4);
+    background: rgba(60, 138, 90, 0.09);
+    color: #2f6a47;
+    border-color: rgba(60, 138, 90, 0.4);
 }
 
 /* ménage en cours = ambre */
 .status-menage {
-  background: rgba(222, 155, 52, 0.12);
-  color: #82500b;
-  border-color: rgba(222, 155, 52, 0.45);
+    background: rgba(222, 155, 52, 0.12);
+    color: #82500b;
+    border-color: rgba(222, 155, 52, 0.45);
 }
 
 /* arrivée du jour = bleu doux */
 .status-arrivee {
-  background: rgba(76, 137, 189, 0.12);
-  color: #24557f;
-  border-color: rgba(76, 137, 189, 0.45);
+    background: rgba(76, 137, 189, 0.12);
+    color: #24557f;
+    border-color: rgba(76, 137, 189, 0.45);
 }
 
 /* départ du jour = rouge / brique douce */
 .status-depart {
-  background: rgba(188, 74, 72, 0.12);
-  color: #8a2220;
-  border-color: rgba(188, 74, 72, 0.45);
+    background: rgba(188, 74, 72, 0.12);
+    color: #8a2220;
+    border-color: rgba(188, 74, 72, 0.45);
 }
 
 /* Bouton "Voir" */
 .btn-view {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1px solid rgba(119, 87, 23, 0.6);
-  color: #7b5b23;
-  background: linear-gradient(135deg, #fffaf0 0%, #f2e0c0 100%);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
-  transition: $transition;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(119, 87, 23, 0.6);
+    color: #7b5b23;
+    background: linear-gradient(135deg, #fffaf0 0%, #f2e0c0 100%);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    transition: $transition;
 
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      color.scale(#fffaf0, $lightness: -3%),
-      color.scale(#f2e0c0, $lightness: -5%)
-    );
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
-  }
+    &:hover {
+        background: linear-gradient(135deg,
+                color.scale(#fffaf0, $lightness: -3%),
+                color.scale(#f2e0c0, $lightness: -5%));
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+    }
 
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  }
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    }
 }
 
 /* Responsive mini-stack pour mobile très étroit si besoin */
 @media (max-width: 500px) {
-  .logements-table {
-    display: block;
-    overflow-x: auto;
-    // -webkit-overflow-scrolling: touch;
+    .logements-table {
+        display: block;
+        overflow-x: auto;
+        // -webkit-overflow-scrolling: touch;
 
-  }
+    }
 }

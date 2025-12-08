@@ -5,30 +5,64 @@ import { Database } from "@/types/supabase";
 
 type HousingUpdate = Database["public"]["Tables"]["housing"]["Update"];
 
-export async function PATCH(
+// ✅ GET Route corrigée
+export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = Number(params.id);
+    const { id: idParam } = await params; // 👈 AWAIT params
+    const id = Number(idParam);
+    
+    if (isNaN(id))
+      return NextResponse.json({ error: "ID invalide" }, { status: 400 });
+
+    const { data, error } = await db
+      .from("housing")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`[GET /api/housing/${id}] DB error:`, error);
+      return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
+    }
+
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error(`[GET /api/housing/:id] ERROR:`, err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+// ✅ PATCH Route corrigée
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: idParam } = await params; // 👈 AWAIT params
+    const id = Number(idParam);
+    
     if (isNaN(id))
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
 
     const body = await req.json();
 
-    // 👇 Objet typé, ZERO any
     const updateObj: HousingUpdate = {};
 
     if (body.nom_logement !== undefined)
       updateObj.nom_logement = body.nom_logement;
-
     if (body.ville !== undefined) updateObj.ville = body.ville;
     if (body.adresse !== undefined) updateObj.adresse = body.adresse;
     if (body.plateforme !== undefined) updateObj.plateforme = body.plateforme;
     if (body.statut !== undefined) updateObj.statut = body.statut;
     if (body.photo_principale !== undefined)
       updateObj.photo_principale = body.photo_principale;
-
     if (body.infos !== undefined) updateObj.infos = body.infos;
     if (body.proprietaire !== undefined)
       updateObj.proprietaire = body.proprietaire;
@@ -45,7 +79,6 @@ export async function PATCH(
       );
     }
 
-    // 👉 Update typé + maybeSingle()
     const { data, error } = await db
       .from("housing")
       .update(updateObj)

@@ -1,3 +1,4 @@
+@use "sass:color";
 // Variables
 $primary-color: #3b5998;
 $hover-color: #2a2d3a;
@@ -117,6 +118,7 @@ $bg-light: #f9fafb;
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -128,7 +130,7 @@ $bg-light: #f9fafb;
 // ===========================
 
 .successBanner {
-  background-color: color.scale($success-color, $alpha: -0.9);
+  background-color: rgba($success-color, 0.1);
   color: color.adjust($success-color, $lightness: -10%);
   padding: 1rem 1.5rem;
   border-radius: 8px;
@@ -335,7 +337,7 @@ $bg-light: #f9fafb;
   color: white;
 
   &:hover:not(:disabled) {
-    background-color: darken($primary-color, 8%);
+    background-color: color.adjust($primary-color, $lightness: -8%);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba($primary-color, 0.3);
   }
@@ -346,18 +348,18 @@ $bg-light: #f9fafb;
   color: white;
 
   &:hover:not(:disabled) {
-    background-color: darken($success-color, 8%);
+    background-color: color.adjust($success-color, $lightness: -8%);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba($success-color, 0.3);
   }
 }
 
 .cancelButton {
-  background-color: lighten($text-secondary, 30%);
+  background-color: color.adjust($text-secondary, $lightness: 30%);
   color: $text-primary;
 
   &:hover:not(:disabled) {
-    background-color: lighten($text-secondary, 25%);
+    background-color: color.adjust($text-secondary, $lightness: 25%);
     transform: translateY(-1px);
   }
 }
