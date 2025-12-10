@@ -561,7 +561,7 @@ export default function CompleteRegistrationPage() {
 
         {queryData.option && (
           <div className={styles.services}>
-            <strong>🔍 Services recherchés :</strong>
+            <strong>🔍 Services proposés :</strong>
             <ul>
               {(() => {
                 try {
