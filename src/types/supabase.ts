@@ -369,6 +369,102 @@ export type Database = {
           }
         ];
       };
+      contract_services: {
+        Row: {
+          id: number;
+          housing_id: number;
+          service_id: number;
+          pricing_id: number | null;
+          quantity: number | null;
+          total: number | null;
+          metadata: Json | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          housing_id: number;
+          service_id: number;
+          pricing_id?: number | null;
+          quantity?: number | null;
+          total?: number | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          housing_id?: number;
+          service_id?: number;
+          pricing_id?: number | null;
+          quantity?: number | null;
+          total?: number | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contract_services_housing_id_fkey";
+            columns: ["housing_id"];
+            isOneToOne: false;
+            referencedRelation: "housing";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contract_services_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contract_services_pricing_id_fkey";
+            columns: ["pricing_id"];
+            isOneToOne: false;
+            referencedRelation: "service_pricing";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      service_pricing: {
+        Row: {
+          id: number;
+          service_id: number;
+          label: string;
+          type: string | null;
+          amount: number | null;
+          unit: string | null;
+          is_default: boolean | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          service_id: number;
+          label: string;
+          type?: string | null;
+          amount?: number | null;
+          unit?: string | null;
+          is_default?: boolean | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          service_id?: number;
+          label?: string;
+          type?: string | null;
+          amount?: number | null;
+          unit?: string | null;
+          is_default?: boolean | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_pricing_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
 
       services_catalog: {
         Row: {
