@@ -251,14 +251,13 @@ export default function PricingManagement() {
                             </label>
                             <select
                                 value={formData.service_id}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, service_id: e.target.value })
-                                }
+                                onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="">-- Service personnalisé --</option>
-                                {Object.entries(servicesCatalog.byCategory).map(
-                                    ([category, services]) => (
+                                {/* ✅ SÉCURITÉ : Vérifie servicesCatalog */}
+                                {servicesCatalog?.byCategory ? (
+                                    Object.entries(servicesCatalog.byCategory).map(([category, services]) => (
                                         <optgroup key={category} label={category}>
                                             {services.map((service: ServiceCatalogItem) => (
                                                 <option key={service.id} value={service.id}>
@@ -266,9 +265,12 @@ export default function PricingManagement() {
                                                 </option>
                                             ))}
                                         </optgroup>
-                                    ),
+                                    ))
+                                ) : (
+                                    <option disabled>Chargement catalogue...</option>
                                 )}
                             </select>
+
                         </div>
 
                         {/* Libellé */}
