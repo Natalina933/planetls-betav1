@@ -146,6 +146,29 @@ export type Database = {
           search_target: string | null;
           updated_at: string | null;
           username: string;
+          company_name: string | null;
+          legal_form: string | null;
+          siret: string | null;
+          siren: string | null;
+          vat_number: string | null;
+          street_address: string | null;
+          postal_code: string | null;
+          city: string | null;
+          country: string | null;
+          website: string | null;
+          linkedin: string | null;
+          insurance_number: string | null;
+          insurance_company: string | null;
+          service_area: string | null;
+          service_radius_km: number | null;
+          hourly_rate: number | null;
+          monthly_rate: number | null;
+          availability_hours: string | null;
+          emergency_service: boolean | null;
+          certifications: string | null;
+          years_experience: number | null;
+          iban: string | null;
+          bic: string | null;
         };
         Insert: {
           additional_info?: string | null;
@@ -165,7 +188,6 @@ export type Database = {
           search_target?: string | null;
           updated_at?: string | null;
           username: string;
-
           company_name?: string | null;
           legal_form?: string | null;
           siret?: string | null;
@@ -183,7 +205,7 @@ export type Database = {
           service_radius_km?: number | null;
           hourly_rate?: number | null;
           monthly_rate?: number | null;
-          availability_hours?: number | null;
+          availability_hours?: string | null;
           emergency_service?: boolean | null;
           certifications?: string | null;
           years_experience?: number | null;
@@ -207,10 +229,7 @@ export type Database = {
           role?: string | null;
           search_target?: string | null;
           updated_at?: string | null;
-
-          // FIX: username now optional (⚠️ obligatoire auparavant → causait erreur TS)
           username?: string | null;
-
           company_name?: string | null;
           legal_form?: string | null;
           siret?: string | null;
@@ -228,7 +247,7 @@ export type Database = {
           service_radius_km?: number | null;
           hourly_rate?: number | null;
           monthly_rate?: number | null;
-          availability_hours?: number | null;
+          availability_hours?: string | null;
           emergency_service?: boolean | null;
           certifications?: string | null;
           years_experience?: number | null;
@@ -369,12 +388,13 @@ export type Database = {
           }
         ];
       };
+
       contract_services: {
         Row: {
           id: number;
           housing_id: number;
           service_id: number;
-          pricing_id: number | null;
+          pricing_id: string | null;
           quantity: number | null;
           total: number | null;
           metadata: Json | null;
@@ -384,7 +404,7 @@ export type Database = {
           id?: number;
           housing_id: number;
           service_id: number;
-          pricing_id?: number | null;
+          pricing_id?: string | null;
           quantity?: number | null;
           total?: number | null;
           metadata?: Json | null;
@@ -394,7 +414,7 @@ export type Database = {
           id?: number;
           housing_id?: number;
           service_id?: number;
-          pricing_id?: number | null;
+          pricing_id?: string | null;
           quantity?: number | null;
           total?: number | null;
           metadata?: Json | null;
@@ -419,45 +439,56 @@ export type Database = {
             foreignKeyName: "contract_services_pricing_id_fkey";
             columns: ["pricing_id"];
             isOneToOne: false;
-            referencedRelation: "service_pricing";
+            referencedRelation: "services_pricing";
             referencedColumns: ["id"];
           }
         ];
       };
-      service_pricing: {
+
+      services_pricing: {
         Row: {
-          id: number;
-          service_id: number;
+          id: string;
+          profile_id: string;
+          service_id: number | null;
           label: string;
           type: string | null;
-          amount: number | null;
+          amount: number;
           unit: string | null;
           is_default: boolean | null;
           created_at: string | null;
         };
         Insert: {
-          id?: number;
-          service_id: number;
+          id?: string;
+          profile_id: string;
+          service_id?: number | null;
           label: string;
           type?: string | null;
-          amount?: number | null;
+          amount: number;
           unit?: string | null;
           is_default?: boolean | null;
           created_at?: string | null;
         };
         Update: {
-          id?: number;
-          service_id?: number;
+          id?: string;
+          profile_id?: string;
+          service_id?: number | null;
           label?: string;
           type?: string | null;
-          amount?: number | null;
+          amount?: number;
           unit?: string | null;
           is_default?: boolean | null;
           created_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "service_pricing_service_id_fkey";
+            foreignKeyName: "services_pricing_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "services_pricing_service_id_fkey";
             columns: ["service_id"];
             isOneToOne: false;
             referencedRelation: "services_catalog";

@@ -6,7 +6,7 @@ import styles from "./FicheConciergerie.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 import ServiceCheckboxGroup from "@/app/components/ui/ServiceCheckboxGroup/ServiceCheckboxGroup";
-
+import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
 // Définition des onglets correspondant aux sections de la sidebar
@@ -35,8 +35,9 @@ interface Profile {
   option: string | null;
   search_target: string | null;
   role: string | null;
+  travel_fee: number | null; 
   avatar_scale: number | null;
-  
+
   // Champs professionnels
   company_name: string | null;
   legal_form: string | null;
@@ -67,7 +68,7 @@ export default function FicheConciergerie() {
   const { update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [activeTab, setActiveTab] = useState<TabId>(
     (searchParams.get('tab') as TabId) || 'fiche'
   );
@@ -120,52 +121,52 @@ export default function FicheConciergerie() {
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!editProfile) return;
     const { name, value, type } = e.target;
-    
+
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setEditProfile({ ...editProfile, [name]: checked });
       return;
     }
-    
+
     setEditProfile({ ...editProfile, [name]: value });
-    
+
     let errorMessage = "";
-    
+
     if (name === "email" && value) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       errorMessage = emailRegex.test(value) ? "" : "Email invalide";
     }
-    
+
     if (name === "phone" && value) {
       const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
       errorMessage = phoneRegex.test(value) ? "" : "Téléphone invalide";
     }
-    
+
     if (name === "siret" && value) {
       const siretRegex = /^[0-9]{14}$/;
       errorMessage = siretRegex.test(value.replace(/\s/g, '')) ? "" : "SIRET invalide (14 chiffres)";
     }
-    
+
     if (name === "siren" && value) {
       const sirenRegex = /^[0-9]{9}$/;
       errorMessage = sirenRegex.test(value.replace(/\s/g, '')) ? "" : "SIREN invalide (9 chiffres)";
     }
-    
+
     if (name === "postal_code" && value) {
       const postalRegex = /^[0-9]{5}$/;
       errorMessage = postalRegex.test(value) ? "" : "Code postal invalide (5 chiffres)";
     }
-    
+
     if (name === "website" && value) {
       const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
       errorMessage = urlRegex.test(value) ? "" : "URL invalide";
     }
-    
+
     if (name === "iban" && value) {
       const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
       errorMessage = ibanRegex.test(value.replace(/\s/g, '')) ? "" : "IBAN invalide";
     }
-    
+
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
   };
 
@@ -251,7 +252,7 @@ export default function FicheConciergerie() {
   ) => {
     const value = editProfile?.[name] ?? "";
     const error = errors[name];
-    
+
     if (type === "checkbox") {
       return (
         <div className={styles.fieldRow}>
@@ -269,7 +270,7 @@ export default function FicheConciergerie() {
         </div>
       );
     }
-    
+
     return (
       <div className={styles.fieldRow}>
         <label htmlFor={name.toString()} className={styles.fieldLabel}>
@@ -385,16 +386,34 @@ export default function FicheConciergerie() {
       case 'tarifs':
         return (
           <>
-            {renderSection("Tarification", "💰", <>
-              {renderField("Tarif horaire (€)", "hourly_rate", false, false, "45", "number")}
-              {renderField("Forfait mensuel (€)", "monthly_rate", false, false, "500", "number")}
+            {renderSection("Ma grille tarifaire", "💰", <>
+              {/* Tes 72 services du catalogue */}
+              <PricingManagement />
+
+              {/* + Aperçu rapide des forfaits populaires */}
+              <div className={styles.pricingQuickStats}>
+                <h4>📊 Mes tarifs les plus demandés</h4>
+                {/* Stats à implémenter plus tard */}
+              </div>
             </>)}
 
-            {renderSection("Contrats & Documents", "📄", <>
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Gérez vos contrats et documents contractuels ici.</p>
-              </div>
+            {renderSection("Tarifs par défaut", "⚙️", <>
+              {renderField("Tarif horaire (€/h)", "hourly_rate", false, true, "45", "number")}
+              {renderField("Forfait mensuel (€)", "monthly_rate", false, false, "1500", "number")}
+              {renderField("Frais de déplacement (€)", "travel_fee", false, false, "15", "number")}
+            </>)}
+          </>
+        );
+
+        return (
+          <>
+            {renderSection("Ma grille tarifaire", "💰", <>
+              <PricingManagement />
+            </>)}
+
+            {renderSection("Paramètres de facturation", "🧾", <>
+              {renderField("Tarif horaire par défaut (€)", "hourly_rate", false, false, "45", "number")}
+              {renderField("Forfait mensuel par défaut (€)", "monthly_rate", false, false, "500", "number")}
             </>)}
           </>
         );
@@ -487,7 +506,7 @@ export default function FicheConciergerie() {
   return (
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>Ma Conciergerie</h1>
-      
+
       {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
       {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
 
