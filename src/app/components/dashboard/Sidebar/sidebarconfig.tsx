@@ -43,14 +43,14 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Mon tableau de bord", path: "/dashboard/concierge", icon: FiHome },
     {
       label: "Ma Conciergerie",
-      path: "/dashboard/concierge/fiche?tab=fiche",
+      path: "/dashboard/concierge/profile?tab=fiche",
       icon: FiClipboard,
       children: [
-        { label: "Fiche & Infos", path: "/dashboard/concierge/fiche?tab=fiche", icon: FiClipboard },
-        { label: "Tarifs & Contrats", path: "/dashboard/concierge/fiche?tab=tarifs", icon: FiFileText },
-        { label: "Missions", path: "/dashboard/concierge/fiche?tab=missions", icon: FiCalendar },
-        { label: "Équipe & Zones", path: "/dashboard/concierge/fiche?tab=equipe", icon: FiUsers },
-        { label: "Documents & Avis", path: "/dashboard/concierge/fiche?tab=documents", icon: FiFileText }
+        { label: "Fiche & Infos", path: "/dashboard/concierge/profile?tab=fiche", icon: FiClipboard },
+        { label: "Missions", path: "/dashboard/concierge/profile?tab=missions", icon: FiCalendar },
+        { label: "Tarifs & Contrats", path: "/dashboard/concierge/profile?tab=tarifs", icon: FiFileText },
+        { label: "Équipe & Zones", path: "/dashboard/concierge/profile?tab=equipe", icon: FiUsers },
+        { label: "Documents & Avis", path: "/dashboard/concierge/profile?tab=documents", icon: FiFileText }
       ]
     },
     { label: "Logements", path: "/dashboard/concierge/logements", icon: FiClipboard },

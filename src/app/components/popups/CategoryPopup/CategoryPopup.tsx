@@ -26,10 +26,17 @@ const POPUP_CONTENT: Record<string, { title: string; options: string[] }> = {
   concierge: {
     title: "Quel type de service proposez-vous ?",
     options: [
-      "Conciergerie complète (ménage, accueil, gestion)",
-      "Conciergerie ponctuelle (check-in/out, ménage)",
-      "Conciergerie digitale (gestion à distance)",
-      "Autres services spécifiques",
+      "Ménage et entretien intérieur",
+      "Gestion du linge",
+      "Accueil et check-in/check-out",
+      "Maintenance et petites réparations",
+      "Courses et intendance",
+      "Gestion administrative des locations",
+      "Entretien extérieur (jardin, piscine, terrasses)",
+      "Sécurité du logement",
+      "Services de confort (chef, massage, baby-sitting…)",
+      "Conciergerie digitale (suivi à distance, automatisation)",
+
     ],
   },
   artisan: {

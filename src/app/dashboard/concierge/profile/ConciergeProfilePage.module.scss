@@ -1,14 +1,30 @@
 @use "sass:color";
-// Variables
+@use "@/app/styles/abstracts/variables" as *;
+
+// ===========================
+// VARIABLES
+// ===========================
 $primary-color: #3b5998;
+$primary-hover: color.adjust($primary-color, $lightness: -10%);
+
 $hover-color: #2a2d3a;
+
 $success-color: #10b981;
+$success-hover: color.adjust($success-color, $lightness: -10%);
+
 $error-color: #ef4444;
+
 $border-color: #e5e7eb;
+
 $text-primary: #1f2937;
 $text-secondary: #6b7280;
+$text-secondary-light: color.adjust($text-secondary, $lightness: 20%);
+
 $bg-light: #f9fafb;
 
+// ===========================
+// PAGE WRAPPER
+// ===========================
 .pageContainer {
   max-width: 1200px;
   margin: 0 auto;
@@ -25,7 +41,6 @@ $bg-light: #f9fafb;
 // ===========================
 // NAVIGATION PAR ONGLETS
 // ===========================
-
 .tabsContainer {
   display: flex;
   gap: 0.5rem;
@@ -33,17 +48,12 @@ $bg-light: #f9fafb;
   margin-bottom: 2rem;
   overflow-x: auto;
 
-  // Scrollbar horizontale sur mobile
   &::-webkit-scrollbar {
     height: 4px;
   }
 
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: color.adjust($text-secondary, $lightness: -20%);
     border-radius: 2px;
   }
 
@@ -70,7 +80,7 @@ $bg-light: #f9fafb;
 
   &:hover {
     color: $primary-color;
-    background-color: rgba($primary-color, 0.05);
+    background-color: color.mix($primary-color, white, 8%);
   }
 
   &.tabActive {
@@ -108,9 +118,8 @@ $bg-light: #f9fafb;
 // ===========================
 // CONTENU DES ONGLETS
 // ===========================
-
 .tabContent {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.3s ease both;
 }
 
 @keyframes fadeIn {
@@ -128,10 +137,9 @@ $bg-light: #f9fafb;
 // ===========================
 // BANNIÈRES
 // ===========================
-
 .successBanner {
-  background-color: rgba($success-color, 0.1);
-  color: color.adjust($success-color, $lightness: -10%);
+  background-color: color.mix($success-color, white, 90%);
+  color: color.adjust($success-color, $lightness: -15%);
   padding: 1rem 1.5rem;
   border-radius: 8px;
   border-left: 4px solid $success-color;
@@ -140,8 +148,8 @@ $bg-light: #f9fafb;
 }
 
 .errorBanner {
-  background-color: rgba($error-color, 0.1);
-  color: color.adjust($error-color, $lightness: -10%);
+  background-color: color.mix($error-color, white, 90%);
+  color: color.adjust($error-color, $lightness: -15%);
   padding: 1rem 1.5rem;
   border-radius: 8px;
   border-left: 4px solid $error-color;
@@ -166,7 +174,6 @@ $bg-light: #f9fafb;
 // ===========================
 // AVATAR
 // ===========================
-
 .avatarBlock {
   display: flex;
   justify-content: center;
@@ -174,9 +181,8 @@ $bg-light: #f9fafb;
 }
 
 // ===========================
-// SECTIONS
+// SECTION CARDS
 // ===========================
-
 .section {
   background: white;
   border: 1px solid $border-color;
@@ -184,6 +190,10 @@ $bg-light: #f9fafb;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background: color.adjust($bg-light, $lightness: 2%);
+  }
 }
 
 .sectionTitle {
@@ -203,9 +213,8 @@ $bg-light: #f9fafb;
 }
 
 // ===========================
-// CHAMPS DE FORMULAIRE
+// FORM FIELDS
 // ===========================
-
 .fieldRow {
   display: grid;
   grid-template-columns: 200px 1fr;
@@ -256,7 +265,7 @@ $bg-light: #f9fafb;
   }
 
   &::placeholder {
-    color: color.adjust($text-secondary, $lightness: 15%);
+    color: $text-secondary-light;
   }
 }
 
@@ -271,7 +280,6 @@ $bg-light: #f9fafb;
 // ===========================
 // PLACEHOLDER CONTENT
 // ===========================
-
 .placeholderContent {
   padding: 3rem 2rem;
   text-align: center;
@@ -293,7 +301,6 @@ $bg-light: #f9fafb;
 // ===========================
 // ACTIONS
 // ===========================
-
 .actions {
   display: flex;
   gap: 1rem;
@@ -337,9 +344,9 @@ $bg-light: #f9fafb;
   color: white;
 
   &:hover:not(:disabled) {
-    background-color: color.adjust($primary-color, $lightness: -8%);
+    background-color: color.adjust($primary-color, $lightness: -10%);
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba($primary-color, 0.3);
+    box-shadow: 0 4px 8px color.mix($primary-color, transparent, 40%);
   }
 }
 
@@ -348,18 +355,18 @@ $bg-light: #f9fafb;
   color: white;
 
   &:hover:not(:disabled) {
-    background-color: color.adjust($success-color, $lightness: -8%);
+    background-color: color.adjust($success-color, $lightness: -10%);
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba($success-color, 0.3);
+    box-shadow: 0 4px 8px color.mix($success-color, transparent, 40%);
   }
 }
 
 .cancelButton {
-  background-color: color.adjust($text-secondary, $lightness: 30%);
+  background-color: $text-secondary-light;
   color: $text-primary;
 
   &:hover:not(:disabled) {
-    background-color: color.adjust($text-secondary, $lightness: 25%);
+    background-color: color.adjust($text-secondary-light, $lightness: -10%);
     transform: translateY(-1px);
   }
 }

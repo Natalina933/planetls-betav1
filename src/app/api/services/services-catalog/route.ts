@@ -1,3 +1,4 @@
+// src/app/api/services/services-catalog/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";

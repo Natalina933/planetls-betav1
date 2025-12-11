@@ -2,18 +2,18 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
-import styles from "./FicheConciergerie.module.scss";
+import styles from "./ConciergeProfilePage.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import ServiceCheckboxGroup from "@/app/components/ui/ServiceCheckboxGroup/ServiceCheckboxGroup";
+import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
 import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
 // Définition des onglets correspondant aux sections de la sidebar
 const TABS = [
   { id: "fiche", label: "Fiche & Infos", icon: "📋" },
-  { id: "tarifs", label: "Tarifs & Contrats", icon: "💰" },
   { id: "missions", label: "Missions", icon: "🎯" },
+  { id: "tarifs", label: "Tarifs & Contrats", icon: "💰" },
   { id: "equipe", label: "Équipe & Zones", icon: "👥" },
   { id: "documents", label: "Documents & Avis", icon: "📄" },
 ] as const;
@@ -35,7 +35,7 @@ interface Profile {
   option: string | null;
   search_target: string | null;
   role: string | null;
-  travel_fee: number | null; 
+  travel_fee: number | null;
   avatar_scale: number | null;
 
   // Champs professionnels
@@ -64,7 +64,7 @@ interface Profile {
   bic: string | null;
 }
 
-export default function FicheConciergerie() {
+export default function ConciergeProfilePage() {
   const { update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -104,14 +104,14 @@ export default function FicheConciergerie() {
         if ("error" in data) {
           throw new Error(data.error);
         }
-        if (data.avatar_url && data.avatar_url.includes('/avatars/avatars/')) {
+        if (data.avatar_url && data.avatar_url.includes('/avatars//')) {
           data.avatar_url = data.avatar_url.replace('/avatars/avatars/', '/avatars/');
         }
         setProfile(data);
         setEditProfile(data);
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-        console.error("[FicheConciergerie] Erreur lors du chargement du profil:", errorMessage);
+        console.error("[ConciergeProfilePage] Erreur lors du chargement du profil:", errorMessage);
         setErrorMsg(errorMessage);
       }
     };
@@ -187,7 +187,7 @@ export default function FicheConciergerie() {
       return result.url;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Erreur d'upload";
-      console.error("[FicheConciergerie] Erreur upload avatar:", errorMessage);
+      console.error("[ConciergeProfilePage] Erreur upload avatar:", errorMessage);
       throw error;
     }
   };
@@ -234,7 +234,7 @@ export default function FicheConciergerie() {
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-      console.error("[FicheConciergerie] Erreur lors de la sauvegarde:", errorMessage);
+      console.error("[ConciergeProfilePage] Erreur lors de la sauvegarde:", errorMessage);
       setErrorMsg(errorMessage);
       setTimeout(() => setErrorMsg(""), 5000);
     } finally {
@@ -382,42 +382,6 @@ export default function FicheConciergerie() {
             </>)}
           </>
         );
-
-      case 'tarifs':
-        return (
-          <>
-            {renderSection("Ma grille tarifaire", "💰", <>
-              {/* Tes 72 services du catalogue */}
-              <PricingManagement />
-
-              {/* + Aperçu rapide des forfaits populaires */}
-              <div className={styles.pricingQuickStats}>
-                <h4>📊 Mes tarifs les plus demandés</h4>
-                {/* Stats à implémenter plus tard */}
-              </div>
-            </>)}
-
-            {renderSection("Tarifs par défaut", "⚙️", <>
-              {renderField("Tarif horaire (€/h)", "hourly_rate", false, true, "45", "number")}
-              {renderField("Forfait mensuel (€)", "monthly_rate", false, false, "1500", "number")}
-              {renderField("Frais de déplacement (€)", "travel_fee", false, false, "15", "number")}
-            </>)}
-          </>
-        );
-
-        return (
-          <>
-            {renderSection("Ma grille tarifaire", "💰", <>
-              <PricingManagement />
-            </>)}
-
-            {renderSection("Paramètres de facturation", "🧾", <>
-              {renderField("Tarif horaire par défaut (€)", "hourly_rate", false, false, "45", "number")}
-              {renderField("Forfait mensuel par défaut (€)", "monthly_rate", false, false, "500", "number")}
-            </>)}
-          </>
-        );
-
       case 'missions':
         return (
           <>
@@ -425,12 +389,14 @@ export default function FicheConciergerie() {
               <div className={styles.fieldRow}>
                 <label className={styles.fieldLabel}>Services principaux :</label>
                 {isEditing ? (
-                  <ServiceCheckboxGroup
-                    selected={editProfile?.option ? editProfile.option.split(",") : []}
-                    onChange={(selected) =>
+                  <ServiceCatalogSelector
+                    selected={editProfile?.option ? editProfile.option.split(",").map(s => s.trim()) : []}
+                    onChange={(selected: string[]) =>
                       setEditProfile((prev) => prev ? { ...prev, option: selected.join(",") } : prev)
                     }
+                    disabled={!isEditing}
                   />
+
                 ) : (
                   <span className={styles.fieldValue}>
                     {profile?.option
@@ -450,6 +416,25 @@ export default function FicheConciergerie() {
                 <p>Section en cours de développement</p>
                 <p>Consultez et gérez vos missions en cours ici.</p>
               </div>
+            </>)}
+          </>
+        );
+
+      case 'tarifs':
+        return (
+          <>
+            {renderSection("Ma grille tarifaire", "💰", <>
+              <PricingManagement />
+
+              <div className={styles.pricingQuickStats}>
+                <h4>📊 Mes tarifs les plus demandés</h4>
+              </div>
+            </>)}
+
+            {renderSection("Tarifs par défaut", "⚙️", <>
+              {renderField("Tarif horaire (€/h)", "hourly_rate", false, true, "45", "number")}
+              {renderField("Forfait mensuel (€)", "monthly_rate", false, false, "1500", "number")}
+              {renderField("Frais de déplacement (€)", "travel_fee", false, false, "15", "number")}
             </>)}
           </>
         );
