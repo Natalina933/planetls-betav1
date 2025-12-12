@@ -1,5 +1,33 @@
-import React, { useState } from 'react';
-import { Check, X, Clock, User, MessageSquare, Calendar } from 'lucide-react';
+"use client";
+
+import React, { useState, ChangeEvent } from 'react';
+import { Check, X, Clock, User, MessageSquare, Calendar, LucideIcon } from 'lucide-react';
+
+// --- Interfaces TypeScript ---
+
+interface Fiche {
+    id: string;
+    type: string;
+    statut: 'En cours' | 'Terminé' | 'En attente' | 'Annulé'; // Statuts possibles
+    client: string;
+    description: string;
+    dateCreation: string;
+    dateLimite: string;
+    notesConcierge: string;
+}
+
+interface FieldDisplayProps {
+    label: string;
+    value: string;
+    icon: LucideIcon;
+}
+
+interface EditableFieldProps {
+    label: string;
+    name: keyof Fiche;
+    value: string;
+    isTextArea?: boolean;
+}
 
 /**
  * Composant de la Fiche Conciergerie.
@@ -8,7 +36,7 @@ import { Check, X, Clock, User, MessageSquare, Calendar } from 'lucide-react';
  */
 const FicheConciergerie = () => {
     // État initial pour simuler les données d'une fiche
-    const [fiche, setFiche] = useState({
+    const [fiche, setFiche] = useState<Fiche>({
         id: 'REQ-2025-001',
         type: 'Réservation de restaurant',
         statut: 'En cours',
@@ -19,12 +47,14 @@ const FicheConciergerie = () => {
         notesConcierge: "Contacté le restaurant, l'option fenêtre n'est pas garantie mais demandée.",
     });
 
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
 
     // Gère la mise à jour des champs lors de la modification
-    const handleChange = (e) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFiche(prev => ({ ...prev, [name]: value }));
+        // La vérification du type de `name` par rapport aux clés de `fiche` est assurée
+        // par le type `keyof Fiche` dans EditableFieldProps, mais ici on le force pour useState.
+        setFiche(prev => ({ ...prev, [name as keyof Fiche]: value }));
     };
 
     // Logique de sauvegarde (simulée)
@@ -42,8 +72,8 @@ const FicheConciergerie = () => {
     };
 
     // Helper pour afficher le badge de statut
-    const getStatusBadge = (status) => {
-        let colorClass;
+    const getStatusBadge = (status: Fiche['statut']) => {
+        let colorClass: string;
         switch (status) {
             case 'Terminé':
                 colorClass = 'bg-green-100 text-green-800 ring-green-500';
@@ -54,6 +84,7 @@ const FicheConciergerie = () => {
             case 'En attente':
                 colorClass = 'bg-yellow-100 text-yellow-800 ring-yellow-500';
                 break;
+            case 'Annulé':
             default:
                 colorClass = 'bg-gray-100 text-gray-800 ring-gray-500';
         }
@@ -64,7 +95,7 @@ const FicheConciergerie = () => {
         );
     };
 
-    const FieldDisplay = ({ label, value, icon: Icon }) => (
+    const FieldDisplay: React.FC<FieldDisplayProps> = ({ label, value, icon: Icon }) => (
         <div className="flex items-start space-x-3 p-4 bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition duration-150">
             <Icon className="w-5 h-5 text-indigo-500 mt-1 flex-shrink-0" />
             <div>
@@ -74,7 +105,7 @@ const FicheConciergerie = () => {
         </div>
     );
 
-    const EditableField = ({ label, name, value, isTextArea = false }) => (
+    const EditableField: React.FC<EditableFieldProps> = ({ label, name, value, isTextArea = false }) => (
         <div className="mb-4">
             <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
                 {label}
@@ -83,7 +114,7 @@ const FicheConciergerie = () => {
                 <textarea
                     id={name}
                     name={name}
-                    rows="3"
+                    rows={3}
                     value={value}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm resize-y"
@@ -162,6 +193,8 @@ const FicheConciergerie = () => {
                                 <EditableField label="Type de Demande" name="type" value={fiche.type} />
                                 <EditableField label="Description du Client" name="description" value={fiche.description} isTextArea />
                                 <EditableField label="Notes du Concierge" name="notesConcierge" value={fiche.notesConcierge} isTextArea />
+                                {/* Exemple d'ajout du champ statut pour l'édition, en utilisant le même composant EditableField si l'on suppose qu'il s'agit d'un texte simple ou d'un sélecteur */}
+                                <EditableField label="Statut" name="statut" value={fiche.statut} />
                             </div>
                         ) : (
                             <div className="space-y-6">
