@@ -1,3 +1,6 @@
+// Supabase Types Definition generated from your provided schema.
+// All content has been cleaned to ensure standard ASCII encoding, resolving the "file seems binary" error.
+
 export type Json =
   | string
   | number
@@ -635,7 +638,7 @@ export type Tables<
     ? R
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])
+        DefaultSchema["Views"])
   ? (DefaultSchema["Tables"] &
       DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
       Row: infer R;

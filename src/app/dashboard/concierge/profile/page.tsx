@@ -390,12 +390,29 @@ export default function ConciergeProfilePage() {
                 <label className={styles.fieldLabel}>Services principaux :</label>
                 {isEditing ? (
                   <ServiceCatalogSelector
-                    selected={editProfile?.option ? editProfile.option.split(",").map(s => s.trim()) : []}
+                    selected={
+                      editProfile?.option
+                        ? editProfile.option
+                          .replace(/^\[|\]$/g, "") // enlève potentiels []
+                          .split(",")
+                          .map((s) => s.replace(/"/g, "").trim()) // supprime les guillemets et trim
+                          .filter((s) => s.length > 0)
+                        : []
+                    }
                     onChange={(selected: string[]) =>
-                      setEditProfile((prev) => prev ? { ...prev, option: selected.join(",") } : prev)
+                      setEditProfile((prev) =>
+                        prev
+                          ? {
+                            ...prev,
+                            option: selected.join(","),
+                          }
+                          : prev
+                      )
                     }
                     disabled={!isEditing}
                   />
+
+
 
                 ) : (
                   <span className={styles.fieldValue}>
