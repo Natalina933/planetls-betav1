@@ -499,6 +499,27 @@ export type Database = {
           }
         ];
       };
+      services_contracts: {
+        Row: {
+          id: string; // uuid
+          profile_id: string | null;
+          title: string;
+          start_date: string; // date
+          end_date: string | null;
+          status: string | null;
+          notes: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          profile_id?: string | null;
+          title: string;
+          start_date: string;
+          end_date?: string | null;
+          status?: string | null;
+          notes?: string | null;
+        };
+        // etc.
+      };
 
       services_catalog: {
         Row: {
@@ -638,7 +659,7 @@ export type Tables<
     ? R
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
+      DefaultSchema["Views"])
   ? (DefaultSchema["Tables"] &
       DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
       Row: infer R;
