@@ -37,7 +37,6 @@ interface Profile {
   role: string | null;
   travel_fee: number | null;
   avatar_scale: number | null;
-
   // Champs professionnels
   company_name: string | null;
   legal_form: string | null;
