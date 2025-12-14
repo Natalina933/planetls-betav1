@@ -1,3 +1,4 @@
+// src/app/components/dashboard/Sidebar/sidebarconfig.tsx
 import { IconType } from "react-icons";
 import {
   FiHome,

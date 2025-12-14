@@ -4,7 +4,7 @@
 @use "src/app/styles/abstracts/_functions" as *;
 @use "src/app/styles/abstracts/_variables" as *;
 .section {
-  max-width: $max-content-width;
+  max-width: 1600px;
   margin: 0 auto;
   padding: $spacing-xl $spacing-md;
   background: $gold-soft; // fond légèrement crème

@@ -19,6 +19,7 @@ $font-text: 'Open Sans', sans-serif;
 $font-title: 'Montserrat', sans-serif;
 $font-weight-bold: 700;
 $font-weight-normal: 400;
+$font-body: 16px;
 
 // --- Couleurs SCSS ---
 // Couleur de texte principale
@@ -42,8 +43,7 @@ $gold-alt: #ffe099;
 $gold-light: #f5e6c7;
 $gold-soft: #fffaf3;
 
-$mucha-paper: #f7fbfe; // Couleur de fond pour la section Platform
-$crème: #f7d48f; // Couleur de fond pour la section Platform
+$crème: #f7d48f; // Couleur de fond crème
 $cream: #f7d48f; // Couleur crème pour les sections
 // --- Dimensions ---
 $max-content-width: 1200px;
@@ -66,11 +66,16 @@ $line-height: 1.6;
 $radius-pill: 50px; // Pour les boutons et éléments arrondis
 $radius-2xl: 1.5rem; // Pour les éléments avec des coins arrondis
 $radius-lg: 1rem;
+$radius-md: 0.5rem;
+$radius-sm: 0.25rem;
 $radius-xl: 24px; 
 $font-family-base: 'Open Sans', sans-serif;
-$mucha-ink: #333;
-$mucha-accent: #d4af37;
 
+$mucha-paper: #fcf7fd; // Couleur de fond avec transparence
+$mucha-accent: #d4af37;
+$mucha-glass-overlay: url("/textures/mucha-background-pattern.png");
+$mucha-glass-blend: rgba($gold-light, 0.6); // Une légère teinte dorée
+$mucha-ink: #1f2937; // Encre sombre
 // 🎨 Couleurs principales (ta charte bleu-gris + doré)
 $color-bg: #f4f6f8;
 $color-bg-light: #ffffff;
@@ -85,3 +90,32 @@ $color-gold: #c5a572;   // ton doré 1900
 
 $text-light: #555;
 $text-dark: #333;
+
+/* ==========================================================================
+   Variables - Effet "Glass" (Glassmorphism CHAUD)
+   ========================================================================== */
+
+// Couleur de base (Blanc Pur)
+$color-white: #ffffff;
+
+// Fond du verre : Blanc pur avec 85% d'opacité
+$glass-bg: rgba($color-white, 0.85);
+
+// Bordure du verre : Blanc très léger avec 30% d'opacité
+$glass-border: rgba($color-white, 0.3);
+
+// Ombre légère
+$glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+// Ombre au survol (légèrement plus prononcée)
+$glass-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+
+$ease-out-cubic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$profile-bg-main: #f8f6f1;
+$profile-bg-card: #ffffff;
+$profile-text-primary: #1a1a1a;
+$profile-text-secondary: #6b6b6b;
+$profile-border: #d4c5a9;
+$profile-shadow: rgba(44, 62, 80, 0.08);
+$profile-success: #2d6a4f;
+$profile-error: #8b2a2a;
