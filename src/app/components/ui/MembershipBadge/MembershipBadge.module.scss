@@ -1,0 +1,64 @@
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    border: 1px solid transparent;
+}
+
+/* 🌱 Nouveau */
+.new {
+    background: rgba(120, 200, 120, 0.15);
+    border-color: rgba(120, 200, 120, 0.4);
+    color: #7ac87a;
+}
+
+/* ⭐ Actif */
+.active {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: rgba(212, 175, 55, 0.45);
+    color: #d4af37;
+}
+
+/* 🏅 Confirmé */
+.confirmed {
+    background: linear-gradient(135deg,
+            rgba(212, 175, 55, 0.25),
+            rgba(180, 140, 30, 0.15));
+    border-color: rgba(212, 175, 55, 0.7);
+    color: #f0d889;
+}
+
+/* 👑 Premium */
+.premium {
+    background: linear-gradient(135deg,
+            #2b2b2b,
+            #000);
+    border-color: #d4af37;
+    color: #d4af37;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.label {
+    font-size: 0.75rem;
+}
+
+.description {
+    font-size: 0.65rem;
+    opacity: 0.8;
+}

@@ -1,0 +1,26 @@
+.registration {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg,
+            rgba(212, 175, 55, 0.12),
+            rgba(212, 175, 55, 0.04));
+    border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.icon {
+    color: #d4af37;
+    font-size: 1.2rem;
+}
+
+.label {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.value {
+    font-weight: 600;
+    color: #222;
+}

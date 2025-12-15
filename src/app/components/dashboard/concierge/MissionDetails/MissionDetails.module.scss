@@ -1,0 +1,168 @@
+@use "sass:map";
+@use "@/app/styles/abstracts/variables" as *;
+
+.wrapper {
+    background: $profile-bg-card;
+    border: 1px solid $profile-border;
+    border-radius: $radius-lg;
+    padding: 2px 4px;
+    box-shadow: $profile-shadow;
+    max-width: 100%;
+}
+
+/* TOUS les fieldRow en colonne simple */
+.fieldRow {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    // padding: $spacing-xl;
+    margin-bottom: $spacing-xl;
+    border-radius: $radius-md;
+    background: rgba($profile-bg-main, 0.5);
+    border: 1px solid rgba($profile-border, 0.3);
+
+    &:hover {
+        background: rgba($profile-bg-main, 0.7);
+        border-color: rgba($primary-color-sass, 0.2);
+    }
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Label en haut, toujours */
+.fieldLabel {
+    font-family: $font-elegant;
+    font-size: 1.1rem;
+    font-weight: $font-weight-bold;
+    color: $profile-text-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: $spacing-sm;
+    order: -1;
+    /* Force le label en haut */
+}
+
+/* Icône à côté du label */
+.fieldIcon {
+    font-size: 1.3rem;
+    color: $primary-color-sass;
+    margin-right: $spacing-sm;
+    align-self: flex-start;
+}
+
+/* Services - prend TOUTE la largeur disponible */
+.servicesList,
+.services-selector {
+    width: 100%;
+    min-height: 50px;
+}
+
+.servicesList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+    list-style: none;
+    padding: 0;
+    margin: $spacing-md 0;
+}
+
+.serviceItem {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: 0.5rem $spacing-md;
+    background: rgba($primary-light-color-sass, 0.3);
+    border: 1px solid rgba($primary-color-sass, 0.3);
+    border-radius: $radius-pill;
+    font-size: 0.9rem;
+    color: $profile-text-primary;
+
+    .serviceIcon {
+        font-size: 1rem;
+        color: $primary-color-sass;
+    }
+}
+
+.emptyState {
+    color: $profile-text-secondary;
+    font-style: italic;
+    padding: $spacing-lg;
+    font-size: 1rem;
+    text-align: center;
+    border: 2px dashed rgba($profile-border, 0.5);
+    border-radius: $radius-sm;
+}
+
+/* Inputs en pleine largeur */
+.fieldInput {
+    width: 100%;
+    border: 1px solid $profile-border;
+    border-radius: $radius-sm;
+    padding: $spacing-lg;
+    font-family: $font-text;
+    font-size: 1rem;
+    background: white;
+    transition: $transition;
+
+    &:focus {
+        outline: none;
+        border-color: $primary-color-sass;
+        box-shadow: 0 0 0 3px rgba($primary-color-sass, 0.1);
+    }
+
+    &::placeholder {
+        color: $profile-text-secondary;
+    }
+}
+
+.fieldValue {
+    width: 100%;
+    padding: $spacing-lg;
+    color: $profile-text-primary;
+    font-size: 1.1rem;
+    background: rgba($profile-bg-main, 0.3);
+    border-radius: $radius-sm;
+    text-align: left;
+}
+
+/* Checkbox */
+.checkboxCustom {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid $profile-border;
+    border-radius: $radius-sm;
+    background: white;
+    cursor: pointer;
+    margin-right: $spacing-md;
+    align-self: flex-start;
+
+    &:checked {
+        background: $primary-color-sass;
+        border-color: $primary-color-sass;
+
+        &::after {
+            content: "✓";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+    }
+}
+
+/* Responsive - garde la colonne */
+@media screen and (max-width: #{map.get($breakpoints, md)}) {
+    .wrapper {
+        padding: $spacing-lg;
+        margin: 0 $spacing-sm;
+    }
+
+    .fieldRow {
+        padding: $spacing-lg;
+    }
+}

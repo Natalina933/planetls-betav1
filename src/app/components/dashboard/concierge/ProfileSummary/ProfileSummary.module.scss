@@ -1,0 +1,150 @@
+.container {
+  width: 100%;
+  padding: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #dee2e6;
+    transition: all 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #d4af37;
+
+    &::before {
+      background: linear-gradient(180deg, #d4af37 0%, #f4e5a7 100%);
+    }
+  }
+}
+
+.cardHighlight {
+  background: linear-gradient(135deg, #fffef7 0%, #ffffff 100%);
+  border-color: #d4af37;
+
+  &::before {
+    background: linear-gradient(180deg, #d4af37 0%, #f4e5a7 100%);
+  }
+
+  .cardIcon {
+    color: #d4af37;
+  }
+}
+
+.cardIcon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  color: #495057;
+  font-size: 24px;
+  transition: all 0.3s ease;
+
+  .card:hover & {
+    background: linear-gradient(135deg, #fff9e6 0%, #fffef7 100%);
+    color: #d4af37;
+    transform: scale(1.05);
+  }
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.cardLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #212529;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .cardHighlight & {
+    color: #d4af37;
+  }
+}
+
+.cardSubValue {
+  font-size: 0.7rem;
+  color: #868e96;
+  font-style: italic;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .card {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .cardIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .cardValue {
+    font-size: 1.1rem;
+  }
+
+  .cardLabel {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    flex-direction: row;
+  }
+}

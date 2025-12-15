@@ -7,15 +7,13 @@ import styles from "./ConciergeProfilePage.module.scss";
 
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
 import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
 import {
   CONCIERGE_TABS,
   ConciergeTabId,
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
-
-// 👇 Toutes les icônes Feather Icons dorées
-import { 
+import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
+import {
   FiBarChart,
   FiUser,
   FiBriefcase,
@@ -28,14 +26,16 @@ import {
   FiDollarSign,
   FiUsers,
   FiFile,
-  FiStar
+  FiStar,
 } from "react-icons/fi";
+import ProfileRegistrationDate from "@/app/components/ui/ProfileRegistrationDate/ProfileRegistrationDate";
+import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
 type TabId = ConciergeTabId;
 
-interface Profile {
+export interface Profile {
   id: string;
   username: string;
   first_name: string;
@@ -153,11 +153,11 @@ export default function ConciergeProfilePage() {
 
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
-      setEditProfile({ ...editProfile, [name]: checked });
+      setEditProfile({ ...editProfile, [name]: checked as unknown as unknown });
       return;
     }
 
-    setEditProfile({ ...editProfile, [name]: value });
+    setEditProfile({ ...editProfile, [name]: value as unknown as unknown });
 
     let errorMessage = "";
 
@@ -173,19 +173,23 @@ export default function ConciergeProfilePage() {
 
     if (name === "siret" && value) {
       const siretRegex = /^[0-9]{14}$/;
-      errorMessage = siretRegex.test(value.replace(/\s/g, "")) 
-        ? "" : "SIRET invalide (14 chiffres)";
+      errorMessage = siretRegex.test(value.replace(/\s/g, ""))
+        ? ""
+        : "SIRET invalide (14 chiffres)";
     }
 
     if (name === "siren" && value) {
       const sirenRegex = /^[0-9]{9}$/;
-      errorMessage = sirenRegex.test(value.replace(/\s/g, "")) 
-        ? "" : "SIREN invalide (9 chiffres)";
+      errorMessage = sirenRegex.test(value.replace(/\s/g, ""))
+        ? ""
+        : "SIREN invalide (9 chiffres)";
     }
 
     if (name === "postal_code" && value) {
       const postalRegex = /^[0-9]{5}$/;
-      errorMessage = postalRegex.test(value) ? "" : "Code postal invalide (5 chiffres)";
+      errorMessage = postalRegex.test(value)
+        ? ""
+        : "Code postal invalide (5 chiffres)";
     }
 
     if (name === "website" && value) {
@@ -196,7 +200,9 @@ export default function ConciergeProfilePage() {
 
     if (name === "iban" && value) {
       const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
-      errorMessage = ibanRegex.test(value.replace(/\s/g, "")) ? "" : "IBAN invalide";
+      errorMessage = ibanRegex.test(value.replace(/\s/g, ""))
+        ? ""
+        : "IBAN invalide";
     }
 
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
@@ -216,7 +222,7 @@ export default function ConciergeProfilePage() {
       if (result.error) {
         throw new Error(result.error);
       }
-      return result.url;
+      return result.url as string;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Erreur d'upload";
@@ -353,7 +359,6 @@ export default function ConciergeProfilePage() {
     );
   };
 
-  // 👇 renderSection mis à jour pour icônes + emojis
   const renderSection = (
     title: string,
     icon: string | React.ReactNode,
@@ -376,7 +381,11 @@ export default function ConciergeProfilePage() {
             </span>
             {title}
           </div>
-          <span className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""}`}>
+          <span
+            className={`${styles.toggleIcon} ${
+              isOpen ? styles.toggleIconOpen : ""
+            }`}
+          >
             ▼
           </span>
         </h2>
@@ -418,181 +427,189 @@ export default function ConciergeProfilePage() {
                 />
               </div>
 
-              {renderSection("Résumé du profil", <FiBarChart />, <>
-                <div className={styles.profileSummary}>
-                  <div className={styles.summaryItem}>
-                    <span className={styles.summaryLabel}>Statut</span>
-                    <span className={styles.summaryValue}>
-                      {profile?.company_name || "À compléter"}
-                    </span>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span className={styles.summaryLabel}>Expérience</span>
-                    <span className={styles.summaryValue}>
-                      {profile?.years_experience
-                        ? `${profile.years_experience} ans`
-                        : "—"}
-                    </span>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span className={styles.summaryLabel}>Services</span>
-                    <span className={styles.summaryValue}>
-                      {profile?.option
-                        ? profile.option.split(",").length
-                        : "0"}{" "}
-                      services
-                    </span>
-                  </div>
-                </div>
-              </>)}
+              {renderSection(
+                "Résumé du profil",
+                <FiBarChart />,
+                <>
+                  <ProfileSummary profile={profile} />
+
+                  {profile?.created_at && (
+                    <ProfileRegistrationDate createdAt={profile.created_at} />
+                  )}
+                </>
+              )}
             </div>
 
             <div className={styles.columnRight}>
-              {renderSection("Informations personnelles", <FiUser />, <>
-                {renderField("Nom d'utilisateur", "username", false, true)}
-                {renderField("Prénom", "first_name", false, true)}
-                {renderField("Nom", "last_name", false, true)}
-                {renderField(
-                  "Email",
-                  "email",
-                  false,
-                  true,
-                  "email@exemple.com",
-                  "email"
-                )}
-                {renderField(
-                  "Téléphone",
-                  "phone",
-                  false,
-                  true,
-                  "+33 6 12 34 56 78",
-                  "tel"
-                )}
-              </>)}
+              {renderSection(
+                "Informations personnelles",
+                <FiUser />,
+                <>
+                  {renderField("Nom d'utilisateur", "username", false, true)}
+                  {renderField("Prénom", "first_name", false, true)}
+                  {renderField("Nom", "last_name", false, true)}
+                  {renderField(
+                    "Email",
+                    "email",
+                    false,
+                    true,
+                    "email@exemple.com",
+                    "email"
+                  )}
+                  {renderField(
+                    "Téléphone",
+                    "phone",
+                    false,
+                    true,
+                    "+33 6 12 34 56 78",
+                    "tel"
+                  )}
+                </>
+              )}
 
-              {renderSection("Informations entreprise", <FiBriefcase />, <>
-                {renderField(
-                  "Nom commercial",
-                  "company_name",
-                  false,
-                  true,
-                  "Ma Conciergerie"
-                )}
-                {renderField(
-                  "Forme juridique",
-                  "legal_form",
-                  false,
-                  false,
-                  "Auto-entrepreneur, SAS, SARL..."
-                )}
-                {renderField(
-                  "SIREN",
-                  "siren",
-                  false,
-                  true,
-                  "123 456 789 (9 chiffres)"
-                )}
-                {renderField(
-                  "SIRET",
-                  "siret",
-                  false,
-                  true,
-                  "123 456 789 00012 (14 chiffres)"
-                )}
-                {renderField(
-                  "N° TVA intracommunautaire",
-                  "vat_number",
-                  false,
-                  false,
-                  "FR 12 123456789"
-                )}
-                {renderField(
-                  "Années d'expérience",
-                  "years_experience",
-                  false,
-                  false,
-                  "5",
-                  "number"
-                )}
-              </>)}
+              {renderSection(
+                "Informations entreprise",
+                <FiBriefcase />,
+                <>
+                  {renderField(
+                    "Nom commercial",
+                    "company_name",
+                    false,
+                    true,
+                    "Ma Conciergerie"
+                  )}
+                  {renderField(
+                    "Forme juridique",
+                    "legal_form",
+                    false,
+                    false,
+                    "Auto-entrepreneur, SAS, SARL..."
+                  )}
+                  {renderField(
+                    "SIREN",
+                    "siren",
+                    false,
+                    true,
+                    "123 456 789 (9 chiffres)"
+                  )}
+                  {renderField(
+                    "SIRET",
+                    "siret",
+                    false,
+                    true,
+                    "123 456 789 00012 (14 chiffres)"
+                  )}
+                  {renderField(
+                    "N° TVA intracommunautaire",
+                    "vat_number",
+                    false,
+                    false,
+                    "FR 12 123456789"
+                  )}
+                  {renderField(
+                    "Années d'expérience",
+                    "years_experience",
+                    false,
+                    false,
+                    "5",
+                    "number"
+                  )}
+                </>
+              )}
 
-              {renderSection("Adresse professionnelle", <FiMapPin />, <>
-                {renderField(
-                  "Adresse",
-                  "street_address",
-                  false,
-                  true,
-                  "12 Rue de la République"
-                )}
-                {renderField(
-                  "Code postal",
-                  "postal_code",
-                  false,
-                  true,
-                  "75001"
-                )}
-                {renderField("Ville", "city", false, true, "Paris")}
-                {renderField("Pays", "country", false, false, "France")}
-              </>)}
+              {renderSection(
+                "Adresse professionnelle",
+                <FiMapPin />,
+                <>
+                  {renderField(
+                    "Adresse",
+                    "street_address",
+                    false,
+                    true,
+                    "12 Rue de la République"
+                  )}
+                  {renderField(
+                    "Code postal",
+                    "postal_code",
+                    false,
+                    true,
+                    "75001"
+                  )}
+                  {renderField("Ville", "city", false, true, "Paris")}
+                  {renderField("Pays", "country", false, false, "France")}
+                </>
+              )}
 
-              {renderSection("Assurance & Certifications", <FiShield />, <>
-                {renderField(
-                  "Compagnie d'assurance",
-                  "insurance_company",
-                  false,
-                  false,
-                  "AXA, Allianz..."
-                )}
-                {renderField(
-                  "N° contrat RC Pro",
-                  "insurance_number",
-                  false,
-                  false,
-                  "RC123456789"
-                )}
-                {renderField(
-                  "Certifications",
-                  "certifications",
-                  true,
-                  false,
-                  "Qualité, Labels..."
-                )}
-              </>)}
+              {renderSection(
+                "Assurance & Certifications",
+                <FiShield />,
+                <>
+                  {renderField(
+                    "Compagnie d'assurance",
+                    "insurance_company",
+                    false,
+                    false,
+                    "AXA, Allianz..."
+                  )}
+                  {renderField(
+                    "N° contrat RC Pro",
+                    "insurance_number",
+                    false,
+                    false,
+                    "RC123456789"
+                  )}
+                  {renderField(
+                    "Certifications",
+                    "certifications",
+                    true,
+                    false,
+                    "Qualité, Labels..."
+                  )}
+                </>
+              )}
 
-              {renderSection("Web & Réseaux sociaux", <FiGlobe />, <>
-                {renderField(
-                  "Site web",
-                  "website",
-                  false,
-                  false,
-                  "https://mon-site.fr",
-                  "url"
-                )}
-                {renderField(
-                  "LinkedIn",
-                  "linkedin",
-                  false,
-                  false,
-                  "https://linkedin.com/in/..."
-                )}
-              </>)}
+              {renderSection(
+                "Web & Réseaux sociaux",
+                <FiGlobe />,
+                <>
+                  {renderField(
+                    "Site web",
+                    "website",
+                    false,
+                    false,
+                    "https://mon-site.fr",
+                    "url"
+                  )}
+                  {renderField(
+                    "LinkedIn",
+                    "linkedin",
+                    false,
+                    false,
+                    "https://linkedin.com/in/..."
+                  )}
+                </>
+              )}
 
-              {renderSection("Informations bancaires", <FiCreditCard />, <>
-                {renderField(
-                  "IBAN",
-                  "iban",
-                  false,
-                  false,
-                  "FR76 1234 5678 9012 3456 7890 123"
-                )}
-                {renderField(
-                  "BIC/SWIFT",
-                  "bic",
-                  false,
-                  false,
-                  "BNPAFRPPXXX"
-                )}
-              </>)}
+              {renderSection(
+                "Informations bancaires",
+                <FiCreditCard />,
+                <>
+                  {renderField(
+                    "IBAN",
+                    "iban",
+                    false,
+                    false,
+                    "FR76 1234 5678 9012 3456 7890 123"
+                  )}
+                  {renderField(
+                    "BIC/SWIFT",
+                    "bic",
+                    false,
+                    false,
+                    "BNPAFRPPXXX"
+                  )}
+                </>
+              )}
             </div>
           </>
         );
@@ -600,166 +617,147 @@ export default function ConciergeProfilePage() {
       case "missions":
         return (
           <>
-            {renderSection("Services & Zone d'intervention", <FiTarget />, <>
-              <div className={styles.fieldRow}>
-                <label className={styles.fieldLabel}>Services principaux :</label>
-                {isEditing ? (
-                  <ServiceCatalogSelector
-                    selected={
-                      editProfile?.option
-                        ? editProfile.option
-                            .replace(/^\[|\]$/g, "")
-                            .split(",")
-                            .map((s) => s.replace(/"/g, "").trim())
-                            .filter((s) => s.length > 0)
-                        : []
-                    }
-                    onChange={(selected: string[]) =>
-                      setEditProfile((prev) =>
-                        prev
-                          ? { ...prev, option: selected.join(",") }
-                          : prev
-                      )
-                    }
-                    disabled={!isEditing}
-                  />
-                ) : (
-                  <span className={styles.fieldValue}>
-                    {profile?.option
-                      ? profile.option
-                          .split(",")
-                          .map((s) => s.trim())
-                          .join(", ")
-                      : "—"}
-                  </span>
-                )}
-              </div>
-              {renderField(
-                "Zone d'intervention",
-                "service_area",
-                false,
-                false,
-                "Paris et Île-de-France"
-              )}
-              {renderField(
-                "Rayon d'intervention (km)",
-                "service_radius_km",
-                false,
-                false,
-                "30",
-                "number"
-              )}
-              {renderField(
-                "Horaires de disponibilité",
-                "availability_hours",
-                false,
-                false,
-                "Lun-Ven 8h-20h"
-              )}
-              {renderField(
-                "Service d'urgence 24/7",
-                "emergency_service",
-                false,
-                false,
-                "",
-                "checkbox"
-              )}
-            </>)}
+            {renderSection(
+              "Services & Zone d'intervention",
+              <FiTarget />,
+              <MissionDetails
+                profile={editProfile as Profile}
+                isEditing={isEditing}
+                onChangeField={(name, value) =>
+                  setEditProfile((prev) =>
+                    prev ? { ...prev, [name]: value } : prev
+                  )
+                }
+                onChangeOption={(selected) =>
+                  setEditProfile((prev) =>
+                    prev ? { ...prev, option: JSON.stringify(selected) } : prev
+                  )
+                }
+              />
+            )}
 
-            {renderSection("Missions en cours", <FiClock />, <>
+            {/* {renderSection(
+              "Missions en cours",
+              <FiClock />,
               <div className={styles.placeholderContent}>
                 <p>Section en cours de développement</p>
                 <p>Consultez et gérez vos missions en cours ici.</p>
               </div>
-            </>)}
+            )} */}
           </>
         );
 
       case "tarifs":
         return (
           <>
-            {renderSection("Ma grille tarifaire", <FiDollarSign />, <>
-              <PricingManagement />
-              <div className={styles.pricingQuickStats}>
-                <h4>📊 Mes tarifs les plus demandés</h4>
-              </div>
-            </>)}
+            {renderSection(
+              "Ma grille tarifaire",
+              <FiDollarSign />,
+              <>
+                <PricingManagement />
+                <div className={styles.pricingQuickStats}>
+                  <h4>📊 Mes tarifs les plus demandés</h4>
+                </div>
+              </>
+            )}
 
-            {renderSection("Tarifs par défaut", <FiDollarSign />, <>
-              {renderField(
-                "Tarif horaire (€/h)",
-                "hourly_rate",
-                false,
-                true,
-                "45",
-                "number"
-              )}
-              {renderField(
-                "Forfait mensuel (€)",
-                "monthly_rate",
-                false,
-                false,
-                "1500",
-                "number"
-              )}
-              {renderField(
-                "Frais de déplacement (€)",
-                "travel_fee",
-                false,
-                false,
-                "15",
-                "number"
-              )}
-            </>)}
+            {renderSection(
+              "Tarifs par défaut",
+              <FiDollarSign />,
+              <>
+                {renderField(
+                  "Tarif horaire (€/h)",
+                  "hourly_rate",
+                  false,
+                  true,
+                  "45",
+                  "number"
+                )}
+                {renderField(
+                  "Forfait mensuel (€)",
+                  "monthly_rate",
+                  false,
+                  false,
+                  "1500",
+                  "number"
+                )}
+                {renderField(
+                  "Frais de déplacement (€)",
+                  "travel_fee",
+                  false,
+                  false,
+                  "15",
+                  "number"
+                )}
+              </>
+            )}
           </>
         );
 
       case "equipe":
         return (
           <>
-            {renderSection("Mon équipe", <FiUsers />, <>
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Gérez votre équipe et vos collaborateurs ici.</p>
-              </div>
-            </>)}
+            {renderSection(
+              "Mon équipe",
+              <FiUsers />,
+              <>
+                <div className={styles.placeholderContent}>
+                  <p>Section en cours de développement</p>
+                  <p>Gérez votre équipe et vos collaborateurs ici.</p>
+                </div>
+              </>
+            )}
 
-            {renderSection("Zones d'intervention", <FiMapPin />, <>
-              {renderField(
-                "Zone d'intervention",
-                "service_area",
-                false,
-                false,
-                "Paris et Île-de-France"
-              )}
-              {renderField(
-                "Rayon d'intervention (km)",
-                "service_radius_km",
-                false,
-                false,
-                "30",
-                "number"
-              )}
-            </>)}
+            {renderSection(
+              "Zones d'intervention",
+              <FiMapPin />,
+              <>
+                {renderField(
+                  "Zone d'intervention",
+                  "service_area",
+                  false,
+                  false,
+                  "Paris et Île-de-France"
+                )}
+                {renderField(
+                  "Rayon d'intervention (km)",
+                  "service_radius_km",
+                  false,
+                  false,
+                  "30",
+                  "number"
+                )}
+              </>
+            )}
           </>
         );
 
       case "documents":
         return (
           <>
-            {renderSection("Documents professionnels", <FiFile />, <>
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Gérez vos documents professionnels (kbis, assurances, etc.).</p>
-              </div>
-            </>)}
+            {renderSection(
+              "Documents professionnels",
+              <FiFile />,
+              <>
+                <div className={styles.placeholderContent}>
+                  <p>Section en cours de développement</p>
+                  <p>
+                    Gérez vos documents professionnels (kbis, assurances, etc.).
+                  </p>
+                </div>
+              </>
+            )}
 
-            {renderSection("Avis clients", <FiStar />, <>
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Consultez les avis de vos clients ici.</p>
-              </div>
-            </>)}
+            {renderSection(
+              "Avis clients",
+              <FiStar />,
+              <>
+                <div className={styles.placeholderContent}>
+                  <p>Section en cours de développement</p>
+                  <p>Consultez les avis de vos clients ici.</p>
+                </div>
+              </>
+            )}
           </>
         );
 
@@ -828,7 +826,10 @@ export default function ConciergeProfilePage() {
             </button>
           </>
         ) : (
-          <button onClick={() => setIsEditing(true)} className={styles.editButton}>
+          <button
+            onClick={() => setIsEditing(true)}
+            className={styles.editButton}
+          >
             ✏️ Modifier
           </button>
         )}
