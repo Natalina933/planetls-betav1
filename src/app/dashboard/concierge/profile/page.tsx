@@ -22,7 +22,7 @@ import {
   FiGlobe,
   FiCreditCard,
   FiTarget,
-  FiClock,
+  // FiClock,
   FiDollarSign,
   FiUsers,
   FiFile,
