@@ -1,168 +1,165 @@
-@use "sass:map";
-@use "@/app/styles/abstracts/variables" as *;
+// MissionDetails.module.scss
 
 .wrapper {
-    background: $profile-bg-card;
-    border: 1px solid $profile-border;
-    border-radius: $radius-lg;
-    padding: 2px 4px;
-    box-shadow: $profile-shadow;
-    max-width: 100%;
-}
-
-/* TOUS les fieldRow en colonne simple */
-.fieldRow {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-md;
-    // padding: $spacing-xl;
-    margin-bottom: $spacing-xl;
-    border-radius: $radius-md;
-    background: rgba($profile-bg-main, 0.5);
-    border: 1px solid rgba($profile-border, 0.3);
+    color: rgb(255, 255, 255);
+    margin-bottom: 1.5rem;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 10px 30px;
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.85), rgba(10, 10, 10, 0.95));
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
-        background: rgba($profile-bg-main, 0.7);
-        border-color: rgba($primary-color-sass, 0.2);
+        transform: translateY(-2px);
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 15px 40px;
     }
+}
+
+// Row de champs
+.fieldRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     &:last-child {
-        margin-bottom: 0;
+        border-bottom: none;
     }
 }
 
-/* Label en haut, toujours */
-.fieldLabel {
-    font-family: $font-elegant;
-    font-size: 1.1rem;
-    font-weight: $font-weight-bold;
-    color: $profile-text-primary;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    margin-bottom: $spacing-sm;
-    order: -1;
-    /* Force le label en haut */
+.servicesRow {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.25rem 0;
 }
 
-/* Icône à côté du label */
+// Icônes
 .fieldIcon {
-    font-size: 1.3rem;
-    color: $primary-color-sass;
-    margin-right: $spacing-sm;
-    align-self: flex-start;
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.7);
+    flex-shrink: 0;
 }
 
-/* Services - prend TOUTE la largeur disponible */
-.servicesList,
-.services-selector {
-    width: 100%;
-    min-height: 50px;
+.serviceIcon {
+    font-size: 1rem;
+    color: #10B981;
+    flex-shrink: 0;
 }
 
+// Labels
+.fieldLabel {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    min-width: 180px;
+    flex-shrink: 0;
+}
+
+// Valeurs
+.fieldValue {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    flex: 1;
+}
+
+// Inputs
+.fieldInput {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: rgb(255, 255, 255);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+
+    &:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+
+    &::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+}
+
+// Checkbox personnalisé
+.checkboxCustom {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #10B981;
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
+}
+
+// Liste des services
 .servicesList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $spacing-sm;
     list-style: none;
     padding: 0;
-    margin: $spacing-md 0;
+    margin: 0.75rem 0 0 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.75rem;
 }
 
 .serviceItem {
     display: flex;
     align-items: center;
-    gap: $spacing-xs;
-    padding: 0.5rem $spacing-md;
-    background: rgba($primary-light-color-sass, 0.3);
-    border: 1px solid rgba($primary-color-sass, 0.3);
-    border-radius: $radius-pill;
-    font-size: 0.9rem;
-    color: $profile-text-primary;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
 
-    .serviceIcon {
-        font-size: 1rem;
-        color: $primary-color-sass;
+    &:hover {
+        background: rgba(16, 185, 129, 0.25);
+        border-color: rgba(16, 185, 129, 0.5);
+        transform: translateX(4px);
     }
 }
 
+// État vide
 .emptyState {
-    color: $profile-text-secondary;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.5);
     font-style: italic;
-    padding: $spacing-lg;
-    font-size: 1rem;
-    text-align: center;
-    border: 2px dashed rgba($profile-border, 0.5);
-    border-radius: $radius-sm;
+    padding: 0.75rem 0;
 }
 
-/* Inputs en pleine largeur */
-.fieldInput {
-    width: 100%;
-    border: 1px solid $profile-border;
-    border-radius: $radius-sm;
-    padding: $spacing-lg;
-    font-family: $font-text;
-    font-size: 1rem;
-    background: white;
-    transition: $transition;
-
-    &:focus {
-        outline: none;
-        border-color: $primary-color-sass;
-        box-shadow: 0 0 0 3px rgba($primary-color-sass, 0.1);
-    }
-
-    &::placeholder {
-        color: $profile-text-secondary;
-    }
-}
-
-.fieldValue {
-    width: 100%;
-    padding: $spacing-lg;
-    color: $profile-text-primary;
-    font-size: 1.1rem;
-    background: rgba($profile-bg-main, 0.3);
-    border-radius: $radius-sm;
-    text-align: left;
-}
-
-/* Checkbox */
-.checkboxCustom {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid $profile-border;
-    border-radius: $radius-sm;
-    background: white;
-    cursor: pointer;
-    margin-right: $spacing-md;
-    align-self: flex-start;
-
-    &:checked {
-        background: $primary-color-sass;
-        border-color: $primary-color-sass;
-
-        &::after {
-            content: "✓";
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-    }
-}
-
-/* Responsive - garde la colonne */
-@media screen and (max-width: #{map.get($breakpoints, md)}) {
+// Responsive
+@media (max-width: 768px) {
     .wrapper {
-        padding: $spacing-lg;
-        margin: 0 $spacing-sm;
+        padding: 1rem 0.75rem;
     }
 
     .fieldRow {
-        padding: $spacing-lg;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.75rem 0;
+    }
+
+    .fieldLabel {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .fieldInput {
+        width: 100%;
+    }
+
+    .servicesList {
+        grid-template-columns: 1fr;
+    }
+
+    .fieldIcon {
+        font-size: 1.1rem;
     }
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import {
-    FiPackage,
-    FiMapPin,
+    FiCheckCircle,
+    FiAlertCircle,
 } from "react-icons/fi";
 import ProfileKeyFacts from "@/app/components/ui/ProfileKeyFacts/ProfileKeyFacts";
 
@@ -18,35 +18,18 @@ interface ProfileSummaryProps {
         certifications?: string | null;
         insurance_number?: string | null;
         emergency_service?: boolean | null;
+        // Champs nécessaires pour vérifier la complétude
+        first_name?: string | null;
+        last_name?: string | null;
+        email?: string | null;
+        phone?: string | null;
+        siren?: string | null;
+        siret?: string | null;
+        street_address?: string | null;
+        postal_code?: string | null;
+        city?: string | null;
     } | null;
 }
-
-interface SummaryCardProps {
-    icon: React.ReactNode;
-    label: string;
-    value: string | number;
-    subValue?: string;
-    highlight?: boolean;
-}
-
-const SummaryCard: React.FC<SummaryCardProps> = ({
-    icon,
-    label,
-    value,
-    subValue,
-    highlight = false
-}) => (
-    <div className={`${styles.card} ${highlight ? styles.cardHighlight : ""}`}>
-        <div className={styles.cardIcon}>{icon}</div>
-        <div className={styles.cardContent}>
-            <span className={styles.cardLabel}>{label}</span>
-            <span className={styles.cardValue}>{value}</span>
-            {subValue && (
-                <span className={styles.cardSubValue}>{subValue}</span>
-            )}
-        </div>
-    </div>
-);
 
 const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile }) => {
     console.log("ProfileSummary → profile:", profile);
@@ -69,11 +52,34 @@ const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile }) => {
         );
     }
 
-    /** Safe parsing */
-    const servicesCount = profile.option?.trim()
-        ? profile.option.split(",").filter(Boolean).length
-        : 0;
+    // Vérification de la complétude des informations de l'onglet "Fiche"
+    const requiredFields = {
+        // Informations personnelles
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        email: profile.email,
+        phone: profile.phone,
+        
+        // Informations entreprise
+        company_name: profile.company_name,
+        siren: profile.siren,
+        siret: profile.siret,
+        
+        // Adresse professionnelle
+        street_address: profile.street_address,
+        postal_code: profile.postal_code,
+        city: profile.city,
+    };
 
+    const filledFieldsCount = Object.values(requiredFields).filter(
+        value => value !== null && value !== undefined && String(value).trim() !== ""
+    ).length;
+    
+    const totalFieldsCount = Object.keys(requiredFields).length;
+    const isComplete = filledFieldsCount === totalFieldsCount;
+    const completionPercentage = Math.round((filledFieldsCount / totalFieldsCount) * 100);
+
+    // Calculs pour ProfileKeyFacts
     const certificationsCount = profile.certifications?.trim()
         ? profile.certifications.split(",").filter(Boolean).length
         : 0;
@@ -82,6 +88,7 @@ const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile }) => {
 
     return (
         <div className={styles.container}>
+            {/* Composant ProfileKeyFacts : Nom société + Badge + Indicateurs de confiance */}
             <ProfileKeyFacts
                 companyName={profile.company_name}
                 createdAt={profile.created_at}
@@ -90,31 +97,40 @@ const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile }) => {
                 certificationsCount={certificationsCount}
             />
 
-            <div className={styles.grid}>
+            {/* Statut de complétude du profil */}
+            <div className={styles.completionStatus}>
+                <div className={styles.completionHeader}>
+                    {isComplete ? (
+                        <FiCheckCircle className={styles.iconComplete} />
+                    ) : (
+                        <FiAlertCircle className={styles.iconIncomplete} />
+                    )}
+                    <span className={styles.completionTitle}>
+                        {isComplete 
+                            ? "Profil complet" 
+                            : "Profil incomplet"}
+                    </span>
+                </div>
+                
+                <div className={styles.progressBar}>
+                    <div 
+                        className={styles.progressFill}
+                        style={{ 
+                            width: `${completionPercentage}%`,
+                            backgroundColor: isComplete ? '#10B981' : '#F59E0B'
+                        }}
+                    />
+                </div>
+                
+                <div className={styles.completionText}>
+                    {filledFieldsCount} / {totalFieldsCount} champs renseignés ({completionPercentage}%)
+                </div>
 
-
-                {/* Services */}
-                <SummaryCard
-                    icon={<FiPackage />}
-                    label="Services"
-                    value={servicesCount}
-                    subValue={
-                        servicesCount > 1
-                            ? "services proposés"
-                            : "service proposé"
-                    }
-                    highlight={servicesCount > 0}
-                />
-
-                {/* Zone */}
-                <SummaryCard
-                    icon={<FiMapPin />}
-                    label="Zone"
-                    value={profile.service_area?.trim() || "Non définie"}
-                />
-
-
-
+                {!isComplete && (
+                    <div className={styles.missingFieldsHint}>
+                        Complétez votre profil pour améliorer votre visibilité
+                    </div>
+                )}
             </div>
         </div>
     );

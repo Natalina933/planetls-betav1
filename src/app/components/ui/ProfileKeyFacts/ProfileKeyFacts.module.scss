@@ -1,6 +1,6 @@
 .wrapper {
     margin-bottom: 1.5rem;
-    padding: 1.25rem 1.5rem;
+    padding: 1.25rem 0.75rem;
     border-radius: 16px;
     background: linear-gradient(135deg,
             rgba(30, 30, 30, 0.85),
@@ -11,6 +11,7 @@
 
 .header {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;

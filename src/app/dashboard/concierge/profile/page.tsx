@@ -22,7 +22,7 @@ import {
   FiGlobe,
   FiCreditCard,
   FiTarget,
-  // FiClock,
+  FiClock,
   FiDollarSign,
   FiUsers,
   FiFile,
@@ -153,11 +153,15 @@ export default function ConciergeProfilePage() {
 
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
-      setEditProfile({ ...editProfile, [name]: checked as unknown as unknown });
+      setEditProfile((prev) =>
+        prev ? { ...prev, [name]: checked as unknown as unknown } : prev
+      );
       return;
     }
 
-    setEditProfile({ ...editProfile, [name]: value as unknown as unknown });
+    setEditProfile((prev) =>
+      prev ? { ...prev, [name]: value as unknown as unknown } : prev
+    );
 
     let errorMessage = "";
 
@@ -636,14 +640,14 @@ export default function ConciergeProfilePage() {
               />
             )}
 
-            {/* {renderSection(
+            {renderSection(
               "Missions en cours",
               <FiClock />,
               <div className={styles.placeholderContent}>
                 <p>Section en cours de développement</p>
                 <p>Consultez et gérez vos missions en cours ici.</p>
               </div>
-            )} */}
+            )}
           </>
         );
 
