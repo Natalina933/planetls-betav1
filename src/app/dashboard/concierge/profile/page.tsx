@@ -28,6 +28,8 @@ import {
   FiFile,
   FiStar,
   FiCheckCircle,
+  FiSliders,
+  FiTrendingUp,
 } from "react-icons/fi";
 import ProfileRegistrationDate from "@/app/components/ui/ProfileRegistrationDate/ProfileRegistrationDate";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
@@ -375,9 +377,8 @@ export default function ConciergeProfilePage() {
     return (
       <div className={styles.section}>
         <h2
-          className={`${styles.sectionTitleToggle} ${
-            isOpen ? styles.sectionTitleToggleActive : ""
-          }`}
+          className={`${styles.sectionTitleToggle} ${isOpen ? styles.sectionTitleToggleActive : ""
+            }`}
           onClick={() => toggleSection(sectionId)}
         >
           <div className={styles.sectionTitleLeft}>
@@ -387,17 +388,15 @@ export default function ConciergeProfilePage() {
             {title}
           </div>
           <span
-            className={`${styles.toggleIcon} ${
-              isOpen ? styles.toggleIconOpen : ""
-            }`}
+            className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
+              }`}
           >
             ▼
           </span>
         </h2>
         <div
-          className={`${styles.sectionContent} ${
-            isOpen ? styles.sectionContentOpen : ""
-          }`}
+          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
+            }`}
         >
           {children}
         </div>
@@ -619,90 +618,147 @@ export default function ConciergeProfilePage() {
           </>
         );
 
-      case "missions":
-        return (
-          <>
-            {renderSection(
-              "Services & Zone d'intervention",
-              <FiTarget />,
-              <MissionDetails
-                profile={editProfile as Profile}
-                isEditing={isEditing}
-                onChangeField={(name, value) =>
-                  setEditProfile((prev) =>
-                    prev ? { ...prev, [name]: value } : prev
-                  )
-                }
-                onChangeOption={(selected) =>
-                  setEditProfile((prev) =>
-                    prev ? { ...prev, option: JSON.stringify(selected) } : prev
-                  )
-                }
-              />
-            )}
-
-            {renderSection(
-              "Missions en cours",
-              <FiClock />,
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Consultez et gérez vos missions en cours ici.</p>
-              </div>
-            )}
-            {renderSection(
-              "Résumé des missions",
-              <FiCheckCircle />,
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Consultez votre historique de missions ici.</p>
-              </div>
-            )}
-            {renderSection(
-              "Horaire  d'intervention",
-              <FiCheckCircle />,
-              <>
-                {renderField(
-                  "Heures de disponibilité",
-                  "availability_hours",
-                  false,
-                  false,
-                  "Lun-Ven 9h-18h"
-                )}
-                {renderField(
-                  "Service d'urgence",
-                  "emergency_service",
-                  false,  
-                  false,
-                  "",
-                  "checkbox"
-                )}
-              </>
+case "missions":
+  return (
+    <>
+      {/* 1. SERVICES PROPOSÉS */}
+      {renderSection(
+        "Services proposés",
+        <FiTarget />,
+        <MissionDetails
+          profile={editProfile as Profile}
+          isEditing={isEditing}
+          onChangeField={(name, value) =>
+            setEditProfile((prev) =>
+              prev ? { ...prev, [name]: value } : prev
             )
-            }
+          }
+          onChangeOption={(selected) =>
+            setEditProfile((prev) =>
+              prev ? { ...prev, option: JSON.stringify(selected) } : prev
+            )
+          }
+        />
+      )}
 
-            {renderSection(
-              "Zone d'intervention",
-              <FiMapPin />,
-              <>
-                {renderField(
-                  "Zone d'intervention",
-                  "service_area",
-                  false,
-                  false,
-                  "Paris et Île-de-France"
-                )}
-                {renderField(
-                  "Rayon d'intervention (km)",
-                  "service_radius_km",
-                  false,
-                  false,
-                  "30",
-                  "number"
-                )}
-              </> 
-            )}
-          </>
-        );
+      {/* 2. ZONE & DISPONIBILITÉ */}
+      {renderSection(
+        "Zone & disponibilité",
+        <FiMapPin />,
+        <>
+          {renderField(
+            "Zone d’intervention principale",
+            "service_area",
+            false,
+            false,
+            "Paris et Île-de-France"
+          )}
+
+          {renderField(
+            "Rayon d’intervention (km)",
+            "service_radius_km",
+            false,
+            false,
+            "30",
+            "number"
+          )}
+
+          {renderField(
+            "Heures de disponibilité",
+            "availability_hours",
+            false,
+            false,
+            "Lun–Ven 9h–18h"
+          )}
+
+          {renderField(
+            "Service d’urgence 24h/7",
+            "emergency_service",
+            false,
+            false,
+            "",
+            "checkbox"
+          )}
+        </>
+      )}
+
+      {/* 3. RÈGLES D’ACCEPTATION */}
+      {renderSection(
+        "Règles d’acceptation des missions",
+        <FiSliders />,
+        <div className={styles.placeholderContent}>
+          <p>
+            Définissez les conditions d’acceptation automatique ou manuelle
+            des missions.
+          </p>
+          <ul>
+            <li>• Refuser automatiquement hors zone</li>
+            <li>• Refuser hors horaires définis</li>
+            <li>• Accepter automatiquement les missions urgentes</li>
+            <li>• Prioriser les clients récurrents</li>
+          </ul>
+        </div>
+      )}
+
+      {/* 4. PRIORITÉ & TYPOLOGIE */}
+      {renderSection(
+        "Priorité & typologie des missions",
+        <FiStar />,
+        <div className={styles.placeholderContent}>
+          <p>
+            Classez vos missions par niveau de priorité afin d’optimiser
+            votre organisation.
+          </p>
+          <p>
+            Chaque type de mission pourra être associé à un niveau de priorité
+            et à un mode d’acceptation.
+          </p>
+        </div>
+      )}
+
+      {/* 5. MISSIONS EN COURS */}
+      {renderSection(
+        "Missions en cours",
+        <FiClock />,
+        <div className={styles.placeholderContent}>
+          <p>Aucune mission en cours</p>
+          <p>
+            Les missions actives apparaîtront ici avec leur statut,
+            le logement concerné et le client.
+          </p>
+        </div>
+      )}
+
+      {/* 6. HISTORIQUE DES MISSIONS */}
+      {renderSection(
+        "Historique des missions",
+        <FiCheckCircle />,
+        <div className={styles.placeholderContent}>
+          <p>Aucune mission terminée</p>
+          <p>
+            Vous retrouverez ici l’historique de vos interventions,
+            factures et évaluations clients.
+          </p>
+        </div>
+      )}
+
+      {/* 7. INDICATEURS CLÉS */}
+      {renderSection(
+        "Indicateurs de performance",
+        <FiTrendingUp />,
+        <div className={styles.placeholderContent}>
+          <p>Ces indicateurs seront calculés automatiquement :</p>
+          <ul>
+            <li>• Taux d’acceptation des missions</li>
+            <li>• Délai moyen d’intervention</li>
+            <li>• Nombre de missions ce mois-ci</li>
+            <li>• Note moyenne des clients</li>
+          </ul>
+        </div>
+      )}
+    </>
+  );
+
 
       case "tarifs":
         return (
@@ -845,9 +901,8 @@ export default function ConciergeProfilePage() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
-              className={`${styles.tab} ${
-                activeTab === tab.id ? styles.tabActive : ""
-              }`}
+              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""
+                }`}
             >
               <span className={styles.tabIcon}>
                 <Icon />

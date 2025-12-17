@@ -44,6 +44,15 @@ $glass-shadow-artdeco: 0 6px 16px rgba(0, 0, 0, 0.05);
     padding: 1.5rem 1rem;
   }
 }
+.placeholderContent {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba($gold, 0.04),
+    rgba($gold, 0.04) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
 
 // ============================================================================
 // TITRE PRINCIPAL AVEC ORNEMENTS ART DÉCO
