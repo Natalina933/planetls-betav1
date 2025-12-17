@@ -49,13 +49,13 @@ export async function GET(req: NextRequest) {
             .order("service", { ascending: true });
 
         if (error) {
-            console.error("[GET /api/services-catalog] DB error:", error);
+            console.error("[GET /api/services/services-catalog] DB error:", error);
             return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
         }
 
         return NextResponse.json(data || []);
     } catch (err) {
-        console.error("[GET /api/services-catalog] ERROR:", err);
+        console.error("[GET /api/services/services-catalog] ERROR:", err);
         return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
     }
 }
