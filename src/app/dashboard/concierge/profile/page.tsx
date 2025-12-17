@@ -7,7 +7,9 @@ import styles from "./ConciergeProfilePage.module.scss";
 
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
+// import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
+import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
+
 import {
   CONCIERGE_TABS,
   ConciergeTabId,
@@ -618,210 +620,208 @@ export default function ConciergeProfilePage() {
           </>
         );
 
-case "missions":
-  return (
-    <>
-      {/* 1. SERVICES PROPOSÉS */}
-      {renderSection(
-        "Services proposés",
-        <FiTarget />,
-        <MissionDetails
-          profile={editProfile as Profile}
-          isEditing={isEditing}
-          onChangeField={(name, value) =>
-            setEditProfile((prev) =>
-              prev ? { ...prev, [name]: value } : prev
-            )
-          }
-          onChangeOption={(selected) =>
-            setEditProfile((prev) =>
-              prev ? { ...prev, option: JSON.stringify(selected) } : prev
-            )
-          }
-        />
-      )}
+      case "missions":
+        return (
+          <>
+            {/* 1. SERVICES PROPOSÉS */}
+            {renderSection(
+              "Services proposés",
+              <FiTarget />,
+              <MissionDetails
+                profile={editProfile as Profile}
+                isEditing={isEditing}
+                onChangeField={(name, value) =>
+                  setEditProfile((prev) =>
+                    prev ? { ...prev, [name]: value } : prev
+                  )
+                }
+                onChangeOption={(selected) =>
+                  setEditProfile((prev) =>
+                    prev ? { ...prev, option: JSON.stringify(selected) } : prev
+                  )
+                }
+              />
+            )}
 
-      {/* 2. ZONE & DISPONIBILITÉ */}
-      {renderSection(
-        "Zone & disponibilité",
-        <FiMapPin />,
-        <>
-          {renderField(
-            "Zone d’intervention principale",
-            "service_area",
-            false,
-            false,
-            "Paris et Île-de-France"
-          )}
+            {/* 2. ZONE & DISPONIBILITÉ */}
+            {renderSection(
+              "Zone & disponibilité",
+              <FiMapPin />,
+              <>
+                {renderField(
+                  "Zone d’intervention principale",
+                  "service_area",
+                  false,
+                  false,
+                  "Paris et Île-de-France"
+                )}
 
-          {renderField(
-            "Rayon d’intervention (km)",
-            "service_radius_km",
-            false,
-            false,
-            "30",
-            "number"
-          )}
+                {renderField(
+                  "Rayon d’intervention (km)",
+                  "service_radius_km",
+                  false,
+                  false,
+                  "30",
+                  "number"
+                )}
 
-          {renderField(
-            "Heures de disponibilité",
-            "availability_hours",
-            false,
-            false,
-            "Lun–Ven 9h–18h"
-          )}
+                {renderField(
+                  "Heures de disponibilité",
+                  "availability_hours",
+                  false,
+                  false,
+                  "Lun–Ven 9h–18h"
+                )}
 
-          {renderField(
-            "Service d’urgence 24h/7",
-            "emergency_service",
-            false,
-            false,
-            "",
-            "checkbox"
-          )}
-        </>
-      )}
+                {renderField(
+                  "Service d’urgence 24h/7",
+                  "emergency_service",
+                  false,
+                  false,
+                  "",
+                  "checkbox"
+                )}
+              </>
+            )}
 
-      {/* 3. RÈGLES D’ACCEPTATION */}
-      {renderSection(
-        "Règles d’acceptation des missions",
-        <FiSliders />,
-        <div className={styles.placeholderContent}>
-          <p>
-            Définissez les conditions d’acceptation automatique ou manuelle
-            des missions.
-          </p>
-          <ul>
-            <li>• Refuser automatiquement hors zone</li>
-            <li>• Refuser hors horaires définis</li>
-            <li>• Accepter automatiquement les missions urgentes</li>
-            <li>• Prioriser les clients récurrents</li>
-          </ul>
-        </div>
-      )}
-
-      {/* 4. PRIORITÉ & TYPOLOGIE */}
-      {renderSection(
-        "Priorité & typologie des missions",
-        <FiStar />,
-        <div className={styles.placeholderContent}>
-          <p>
-            Classez vos missions par niveau de priorité afin d’optimiser
-            votre organisation.
-          </p>
-          <p>
-            Chaque type de mission pourra être associé à un niveau de priorité
-            et à un mode d’acceptation.
-          </p>
-        </div>
-      )}
-
-      {/* 5. MISSIONS EN COURS */}
-      {renderSection(
-        "Missions en cours",
-        <FiClock />,
-        <div className={styles.placeholderContent}>
-          <p>Aucune mission en cours</p>
-          <p>
-            Les missions actives apparaîtront ici avec leur statut,
-            le logement concerné et le client.
-          </p>
-        </div>
-      )}
-
-      {/* 6. HISTORIQUE DES MISSIONS */}
-      {renderSection(
-        "Historique des missions",
-        <FiCheckCircle />,
-        <div className={styles.placeholderContent}>
-          <p>Aucune mission terminée</p>
-          <p>
-            Vous retrouverez ici l’historique de vos interventions,
-            factures et évaluations clients.
-          </p>
-        </div>
-      )}
-
-      {/* 7. INDICATEURS CLÉS */}
-      {renderSection(
-        "Indicateurs de performance",
-        <FiTrendingUp />,
-        <div className={styles.placeholderContent}>
-          <p>Ces indicateurs seront calculés automatiquement :</p>
-          <ul>
-            <li>• Taux d’acceptation des missions</li>
-            <li>• Délai moyen d’intervention</li>
-            <li>• Nombre de missions ce mois-ci</li>
-            <li>• Note moyenne des clients</li>
-          </ul>
-        </div>
-      )}
-    </>
-  );
-
-
-case "tarifs":
-  return (
-    <>
-      <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
-        
-        {/* --- GRILLE TARIFAIRE (GAUCHE) --- */}
-        <div style={{ flex: 1 }}>
-          {renderSection(
-            "Ma grille tarifaire",
-            <FiDollarSign />,
-            <>
-              <PricingManagement />
-              <div className={styles.pricingQuickStats}>
-                <h4>📊 Mes tarifs les plus demandés</h4>
-                {/* Exemple de statistiques */}
+            {/* 3. RÈGLES D’ACCEPTATION */}
+            {renderSection(
+              "Règles d’acceptation des missions",
+              <FiSliders />,
+              <div className={styles.placeholderContent}>
+                <p>
+                  Définissez les conditions d’acceptation automatique ou manuelle
+                  des missions.
+                </p>
                 <ul>
-                  <li>💼 Tarif horaire standard : 45€/h</li>
-                  <li>🏠 Forfait ménage 2 pièces : 60€</li>
-                  <li>🚗 Frais déplacement moyen : 15€</li>
+                  <li>• Refuser automatiquement hors zone</li>
+                  <li>• Refuser hors horaires définis</li>
+                  <li>• Accepter automatiquement les missions urgentes</li>
+                  <li>• Prioriser les clients récurrents</li>
                 </ul>
               </div>
-            </>
-          )}
-        </div>
+            )}
 
-        {/* --- TARIFS PAR DÉFAUT (DROITE) --- */}
-        <div style={{ flex: 1 }}>
-          {renderSection(
-            "Tarifs par défaut",
-            <FiDollarSign />,
-            <>
-              {renderField(
-                "Tarif horaire (€/h)",
-                "hourly_rate",
-                false,
-                true,
-                "45",
-                "number"
-              )}
-              {renderField(
-                "Forfait mensuel (€)",
-                "monthly_rate",
-                false,
-                false,
-                "1500",
-                "number"
-              )}
-              {renderField(
-                "Frais de déplacement (€)",
-                "travel_fee",
-                false,
-                false,
-                "15",
-                "number"
-              )}
-            </>
-          )}
-        </div>
+            {/* 4. PRIORITÉ & TYPOLOGIE */}
+            {renderSection(
+              "Priorité & typologie des missions",
+              <FiStar />,
+              <div className={styles.placeholderContent}>
+                <p>
+                  Classez vos missions par niveau de priorité afin d’optimiser
+                  votre organisation.
+                </p>
+                <p>
+                  Chaque type de mission pourra être associé à un niveau de priorité
+                  et à un mode d’acceptation.
+                </p>
+              </div>
+            )}
 
-      </div>
-    </>
-  );
+            {/* 5. MISSIONS EN COURS */}
+            {renderSection(
+              "Missions en cours",
+              <FiClock />,
+              <div className={styles.placeholderContent}>
+                <p>Aucune mission en cours</p>
+                <p>
+                  Les missions actives apparaîtront ici avec leur statut,
+                  le logement concerné et le client.
+                </p>
+              </div>
+            )}
+
+            {/* 6. HISTORIQUE DES MISSIONS */}
+            {renderSection(
+              "Historique des missions",
+              <FiCheckCircle />,
+              <div className={styles.placeholderContent}>
+                <p>Aucune mission terminée</p>
+                <p>
+                  Vous retrouverez ici l’historique de vos interventions,
+                  factures et évaluations clients.
+                </p>
+              </div>
+            )}
+
+            {/* 7. INDICATEURS CLÉS */}
+            {renderSection(
+              "Indicateurs de performance",
+              <FiTrendingUp />,
+              <div className={styles.placeholderContent}>
+                <p>Ces indicateurs seront calculés automatiquement :</p>
+                <ul>
+                  <li>• Taux d’acceptation des missions</li>
+                  <li>• Délai moyen d’intervention</li>
+                  <li>• Nombre de missions ce mois-ci</li>
+                  <li>• Note moyenne des clients</li>
+                </ul>
+              </div>
+            )}
+          </>
+        );
+
+
+      case "tarifs":
+        return (
+          <>
+            <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
+
+
+
+              <div style={{ flex: 1 }}>
+                {renderSection(
+                  "Tarifs par défaut",
+                  <FiDollarSign />,
+                  <>
+                    {renderField(
+                      "Tarif horaire (€/h)",
+                      "hourly_rate",
+                      false,
+                      true,
+                      "45",
+                      "number"
+                    )}
+                    {renderField(
+                      "Forfait mensuel (€)",
+                      "monthly_rate",
+                      false,
+                      false,
+                      "1500",
+                      "number"
+                    )}
+                    {renderField(
+                      "Frais de déplacement (€)",
+                      "travel_fee",
+                      false,
+                      false,
+                      "15",
+                      "number"
+                    )}
+                  </>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                {renderSection(
+                  "Ma grille tarifaire",
+                  <FiDollarSign />,
+                  <>
+                    <PricingGridManager />
+                    <div className={styles.pricingQuickStats}>
+                      <h4>📊 Mes tarifs les plus demandés</h4>
+                      {/* Exemple de statistiques */}
+                      <ul>
+                        <li>💼 Tarif horaire standard : 45€/h</li>
+                        <li>🏠 Forfait ménage 2 pièces : 60€</li>
+                        <li>🚗 Frais déplacement moyen : 15€</li>
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        );
 
       case "equipe":
         return (
