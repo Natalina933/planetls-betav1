@@ -27,6 +27,7 @@ import {
   FiUsers,
   FiFile,
   FiStar,
+  FiCheckCircle,
 } from "react-icons/fi";
 import ProfileRegistrationDate from "@/app/components/ui/ProfileRegistrationDate/ProfileRegistrationDate";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
@@ -647,6 +648,58 @@ export default function ConciergeProfilePage() {
                 <p>Section en cours de développement</p>
                 <p>Consultez et gérez vos missions en cours ici.</p>
               </div>
+            )}
+            {renderSection(
+              "Résumé des missions",
+              <FiCheckCircle />,
+              <div className={styles.placeholderContent}>
+                <p>Section en cours de développement</p>
+                <p>Consultez votre historique de missions ici.</p>
+              </div>
+            )}
+            {renderSection(
+              "Horaire  d'intervention",
+              <FiCheckCircle />,
+              <>
+                {renderField(
+                  "Heures de disponibilité",
+                  "availability_hours",
+                  false,
+                  false,
+                  "Lun-Ven 9h-18h"
+                )}
+                {renderField(
+                  "Service d'urgence",
+                  "emergency_service",
+                  false,  
+                  false,
+                  "",
+                  "checkbox"
+                )}
+              </>
+            )
+            }
+
+            {renderSection(
+              "Zone d'intervention",
+              <FiMapPin />,
+              <>
+                {renderField(
+                  "Zone d'intervention",
+                  "service_area",
+                  false,
+                  false,
+                  "Paris et Île-de-France"
+                )}
+                {renderField(
+                  "Rayon d'intervention (km)",
+                  "service_radius_km",
+                  false,
+                  false,
+                  "30",
+                  "number"
+                )}
+              </> 
             )}
           </>
         );
