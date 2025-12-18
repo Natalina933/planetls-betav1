@@ -7,7 +7,9 @@ import styles from "./ConciergeProfilePage.module.scss";
 
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
+// import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
+import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
+
 import {
   CONCIERGE_TABS, ConciergeTabId,
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
@@ -737,68 +739,68 @@ export default function ConciergeProfilePage() {
         );
 
 
-      case "tarifs":
-        return (
-          <>
-            <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
-
-              {/* --- GRILLE TARIFAIRE (GAUCHE) --- */}
-              <div style={{ flex: 1 }}>
-                {renderSection(
-                  "Ma grille tarifaire",
-                  <FiDollarSign />,
-                  <>
-                    <PricingManagement />
-                    <div className={styles.pricingQuickStats}>
-                      <h4>📊 Mes tarifs les plus demandés</h4>
-                      {/* Exemple de statistiques */}
-                      <ul>
-                        <li>💼 Tarif horaire standard : 45€/h</li>
-                        <li>🏠 Forfait ménage 2 pièces : 60€</li>
-                        <li>🚗 Frais déplacement moyen : 15€</li>
-                      </ul>
-                    </div>
-                  </>
-                )}
+case "tarifs":
+  return (
+    <>
+      <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
+        
+        {/* --- GRILLE TARIFAIRE (GAUCHE) --- */}
+        <div style={{ flex: 1 }}>
+          {renderSection(
+            "Ma grille tarifaire",
+            <FiDollarSign />,
+            <>
+              <PricingManagement />
+              <div className={styles.pricingQuickStats}>
+                <h4>📊 Mes tarifs les plus demandés</h4>
+                {/* Exemple de statistiques */}
+                <ul>
+                  <li>💼 Tarif horaire standard : 45€/h</li>
+                  <li>🏠 Forfait ménage 2 pièces : 60€</li>
+                  <li>🚗 Frais déplacement moyen : 15€</li>
+                </ul>
               </div>
+            </>
+          )}
+        </div>
 
-              {/* --- TARIFS PAR DÉFAUT (DROITE) --- */}
-              <div style={{ flex: 1 }}>
-                {renderSection(
-                  "Tarifs par défaut",
-                  <FiDollarSign />,
-                  <>
-                    {renderField(
-                      "Tarif horaire (€/h)",
-                      "hourly_rate",
-                      false,
-                      true,
-                      "45",
-                      "number"
-                    )}
-                    {renderField(
-                      "Forfait mensuel (€)",
-                      "monthly_rate",
-                      false,
-                      false,
-                      "1500",
-                      "number"
-                    )}
-                    {renderField(
-                      "Frais de déplacement (€)",
-                      "travel_fee",
-                      false,
-                      false,
-                      "15",
-                      "number"
-                    )}
-                  </>
-                )}
-              </div>
+        {/* --- TARIFS PAR DÉFAUT (DROITE) --- */}
+        <div style={{ flex: 1 }}>
+          {renderSection(
+            "Tarifs par défaut",
+            <FiDollarSign />,
+            <>
+              {renderField(
+                "Tarif horaire (€/h)",
+                "hourly_rate",
+                false,
+                true,
+                "45",
+                "number"
+              )}
+              {renderField(
+                "Forfait mensuel (€)",
+                "monthly_rate",
+                false,
+                false,
+                "1500",
+                "number"
+              )}
+              {renderField(
+                "Frais de déplacement (€)",
+                "travel_fee",
+                false,
+                false,
+                "15",
+                "number"
+              )}
+            </>
+          )}
+        </div>
 
-            </div>
-          </>
-        );
+      </div>
+    </>
+  );
 
       case "equipe":
         return (
