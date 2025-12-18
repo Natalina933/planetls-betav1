@@ -1,0 +1,111 @@
+.wrapper {
+    margin-bottom: 1.5rem;
+    padding: 1.1rem 0.9rem;
+    border-radius: 16px;
+    background: radial-gradient(circle at top left, #1f2933, #0b1017 60%);
+    color: #f9fafb;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(148, 163, 184, 0.22);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    color: #e5e7eb;
+}
+
+.titleIcon {
+    color: #d4af37;
+    font-size: 1rem;
+}
+
+.levelBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: rgba(15, 23, 42, 0.85);
+    color: #e5e7eb;
+}
+
+.levelIcon {
+    font-size: 0.9rem;
+}
+
+/* Variantes de niveau */
+.levelBeginner {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.45);
+    color: #6ee7b7;
+}
+
+.levelIntermediate {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.45);
+    color: #93c5fd;
+}
+
+.levelExpert {
+    background: rgba(234, 179, 8, 0.12);
+    border-color: rgba(234, 179, 8, 0.45);
+    color: #fde68a;
+}
+
+.levelUnknown {
+    background: rgba(148, 163, 184, 0.12);
+    border-color: rgba(148, 163, 184, 0.4);
+    color: #e5e7eb;
+}
+
+.description {
+    font-size: 0.82rem;
+    color: #cbd5f5;
+    margin-bottom: 0.6rem;
+}
+
+.statsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1rem;
+}
+
+.statItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    color: #e5e5e5;
+
+    svg {
+        color: #d4af37;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .levelBadge {
+        align-self: flex-start;
+    }
+}

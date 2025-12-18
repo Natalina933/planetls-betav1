@@ -10,8 +10,8 @@ import "react-toastify/dist/ReactToastify.css";
 
 import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
 import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
+import ExperiencePopup from "@/app/components/popups/ExperiencePopup/ExperiencePopup";
 
-// Les rôles utilisateur
 type CategoryKey = "proprietaire" | "concierge" | "artisan";
 
 interface Category {
@@ -47,14 +47,12 @@ const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   ),
 };
 
-// 🌟 Ordre fixe
 const CATEGORY_ORDER: CategoryKey[] = ["proprietaire", "concierge", "artisan"];
 
-// Mapping des cibles recherchées selon le rôle
 const SEARCH_TARGETS: Record<CategoryKey, string> = {
   proprietaire: "concierge",
   concierge: "proprietaire",
-  artisan: "proprietaire", // ou "concierge" si tu veux
+  artisan: "proprietaire",
 };
 
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
@@ -67,18 +65,23 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
+  const [showExperiencePopup, setShowExperiencePopup] = useState(false);
+  const [experienceLevel, setExperienceLevel] = useState<
+    "debutant" | "intermediaire" | "experimente" | ""
+  >("");
+
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  // 🚀 Fermer automatiquement si on arrive sur /complete-registration
+  // Fermer automatiquement si on arrive sur /complete-registration
   useEffect(() => {
     if (pathname === "/complete-registration") {
       onClose();
     }
   }, [pathname, onClose]);
 
-  // --- Charger les catégories ---
+  // Charger les catégories
   useEffect(() => {
     const fetchCategories = async () => {
       setStatus("loading");
@@ -87,7 +90,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
         const data: Category[] = await res.json();
-        // Initialiser avec la première catégorie selon l’ordre
         const firstCategoryKey = CATEGORY_ORDER.find((key) =>
           data.some((c) => c.key === key)
         );
@@ -103,14 +105,14 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     fetchCategories();
   }, []);
 
-  // --- Mettre à jour la cible recherchée après sélection catégorie
+  // Mettre à jour la cible recherchée après sélection catégorie
   useEffect(() => {
     if (selectedCategory) {
       setSearchTarget(SEARCH_TARGETS[selectedCategory as CategoryKey] || "");
     }
   }, [selectedCategory]);
 
-  // --- Recherche ---
+  // Étape 1 : validation localisation + catégorie → ExperiencePopup
   const handleSearch = useCallback(
     (e?: React.FormEvent<HTMLFormElement>) => {
       e?.preventDefault();
@@ -125,34 +127,41 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         return;
       }
 
-      setShowCategoryPopup(true);
+      setShowExperiencePopup(true);
     },
     [location, selectedCategory]
   );
 
-  // --- Sélection options ---
+  // Étape 2 : sélection niveau d’expérience → CategoryPopup
+  const handleExperienceSelect = (
+    level: "debutant" | "intermediaire" | "experimente"
+  ) => {
+    setExperienceLevel(level);
+    setShowExperiencePopup(false);
+    setShowCategoryPopup(true);
+  };
+
+  // Étape 3 : sélection des options de service → AccessPopup
   const handleOptionSelect = (options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
     setShowAccessPopup(true);
   };
 
-  // --- Validation et navigation vers la page formulaire
+  // Étape 4 : validation finale → redirection vers le formulaire
   const handleAccessValidate = () => {
-    // → On passe category ET searchTarget dans l'URL pour l'inscription
     const params = new URLSearchParams({
       category: selectedCategory,
       searchTarget,
       option: selectedOptions.join(","),
       location,
-      // Ajoute ici les autres infos contextuelles si besoin
+      experience_level: experienceLevel || "",
     }).toString();
 
     router.push(`/complete-registration?${params}`);
-    onClose(); // ferme la pop-up MapWithSearch
+    onClose();
   };
 
-  // --- Rendu catégories ---
   const renderCategoryToggles = () => {
     if (status === "loading") return <p>Chargement des filtres...</p>;
     if (status === "error") return <p>Erreur lors du chargement des filtres.</p>;
@@ -182,10 +191,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     });
   };
 
-  // --- Render ---
   return (
     <>
-      {!showCategoryPopup && !showAccessPopup && (
+      {!showExperiencePopup && !showCategoryPopup && !showAccessPopup && (
         <div className={styles.mapWithSearchContainer}>
           <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
 
@@ -204,7 +212,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
             {status === "success" && selectedCategory && (
               <div className={styles.categoryTextBubble1900}>
-                {DESCRIPTIONS[selectedCategory]}
+                {DESCRIPTIONS[selectedCategory as CategoryKey]}
               </div>
             )}
 
@@ -225,6 +233,13 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         </div>
       )}
 
+      {showExperiencePopup && (
+        <ExperiencePopup
+          onClose={() => setShowExperiencePopup(false)}
+          onNext={handleExperienceSelect}
+        />
+      )}
+
       {showCategoryPopup && selectedCategory && (
         <CategoryPopup
           category={selectedCategory}
@@ -240,9 +255,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           location={location}
           onClose={() => {
             setShowAccessPopup(false);
-            onClose(); // ferme aussi la popup principale
+            onClose();
           }}
-          onValidate={handleAccessValidate} // bouton "suivant" ou "terminer" de la pop-up
+          onValidate={handleAccessValidate}
         />
       )}
     </>

@@ -51,6 +51,7 @@ const ProfileRegistrationDate: React.FC<ProfileRegistrationDateProps> = ({ creat
     return (
         <div className={styles.wrapper}>
             <div className={styles.registrationDate}>
+                
                 <FiCalendar className={styles.icon} />
                 <span className={styles.label}>Membre depuis</span>
                 <span className={styles.date}>{formattedDate}</span>

@@ -56,6 +56,7 @@ export async function PATCH(req: NextRequest) {
       emergency_service: body.emergency_service,
       certifications: body.certifications,
       years_experience: body.years_experience,
+      experience_level: body.experience_level,
       iban: body.iban,
       bic: body.bic,
       updated_at: new Date().toISOString().split('T')[0], // Format YYYY-MM-DD
@@ -93,7 +94,7 @@ export async function PATCH(req: NextRequest) {
         website, linkedin, insurance_number, insurance_company,
         service_area, service_radius_km, hourly_rate, monthly_rate,
         availability_hours, emergency_service, certifications,
-        years_experience, iban, bic, travel_fee
+        years_experience, experience_level, iban, bic, travel_fee
       `)
       .eq("id", userId)
       .maybeSingle();

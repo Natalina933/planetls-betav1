@@ -1,28 +1,38 @@
 import React from "react";
-import {
-    FiAward,
-    FiShield,
-    FiStar
-} from "react-icons/fi";
+import { FiAward, FiShield, FiStar } from "react-icons/fi";
 import styles from "./ProfileKeyFacts.module.scss";
 
 interface ProfileKeyFactsProps {
     companyName?: string | null;
     createdAt?: string | null;
     yearsExperience?: number | null;
+    experienceLevel?: "debutant" | "intermediaire" | "experimente" | null;
     isInsured: boolean;
     certificationsCount: number;
 }
 
-/**
- * Retourne le nombre d'années d'ancienneté
- */
+type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
+
+const getExperienceLabel = (level?: ExperienceLevel | null): string | null => {
+    switch (level) {
+        case "debutant":
+            return "Débutant";
+        case "intermediaire":
+            return "Petite expérience";
+        case "experimente":
+            return "Expérimenté";
+        default:
+            return null;
+    }
+};
+
 const getMembershipYears = (createdAt?: string | null): number => {
     if (!createdAt) return 0;
 
     const created = new Date(createdAt);
-    const now = new Date();
+    if (Number.isNaN(created.getTime())) return 0;
 
+    const now = new Date();
     let years = now.getFullYear() - created.getFullYear();
 
     const hasHadAnniversary =
@@ -37,9 +47,6 @@ const getMembershipYears = (createdAt?: string | null): number => {
     return Math.max(years, 0);
 };
 
-/**
- * Détermine le badge selon l'ancienneté
- */
 const getMembershipBadge = (years: number) => {
     if (years < 1) {
         return {
@@ -76,33 +83,47 @@ const ProfileKeyFacts: React.FC<ProfileKeyFactsProps> = ({
     companyName,
     createdAt,
     yearsExperience,
+    experienceLevel,
     isInsured,
     certificationsCount,
 }) => {
     const memberYears = getMembershipYears(createdAt);
     const badge = getMembershipBadge(memberYears);
+    const experienceLabel = getExperienceLabel(experienceLevel);
+
+    const hasYearsExperience =
+        typeof yearsExperience === "number" && yearsExperience > 0;
 
     return (
         <section className={styles.wrapper}>
-            {/* Header */}
             <div className={styles.header}>
                 <div className={styles.company}>
-                    {companyName || "Profil professionnel"}
+                    {companyName?.trim() || "Statut PlanetLS"}
                 </div>
 
-                {/* Badge ancienneté PlanetLS */}
                 <span className={`${styles.memberBadge} ${badge.className}`}>
                     <span className={styles.badgeIcon}>{badge.icon}</span>
                     {badge.label}
                 </span>
             </div>
 
-            {/* Indicateurs de confiance */}
+            {/* Indicateurs de confiance : expérience pro, assurance, certifications */}
             <div className={styles.trustRow}>
-                {yearsExperience && yearsExperience > 0 && (
+                {/* Expérience professionnelle (niveau) */}
+                {experienceLabel && (
                     <div className={styles.trustItem}>
                         <FiAward />
-                        <span>{yearsExperience} ans d’expérience</span>
+                        <span>Expérience professionnelle : {experienceLabel}</span>
+                    </div>
+                )}
+
+                {/* Nombre d'années d’expérience (optionnel) */}
+                {hasYearsExperience && (
+                    <div className={styles.trustItem}>
+                        <FiAward />
+                        <span>
+                            {yearsExperience} an{yearsExperience > 1 ? "s" : ""} d’expérience
+                        </span>
                     </div>
                 )}
 
