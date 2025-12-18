@@ -8,7 +8,7 @@ import styles from "./ConciergeProfilePage.module.scss";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 // import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
-import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
+// import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
 
 import {
   CONCIERGE_TABS, ConciergeTabId,
@@ -19,6 +19,7 @@ import {
 } from "react-icons/fi";
 // import ProfileRegistrationDate from "@/app/components/ui/ProfileRegistrationDate/ProfileRegistrationDate";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
+import SocialLinks from "@/app/components/ui/SocialLinks/SocialLinks";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
@@ -52,6 +53,8 @@ export interface Profile {
   country: string | null;
   website: string | null;
   linkedin: string | null;
+  facebook: string | null;
+  instagram: string | null;
   insurance_number: string | null;
   insurance_company: string | null;
   service_area: string | null;
@@ -580,10 +583,48 @@ export default function ConciergeProfilePage() {
                 "Web & Réseaux sociaux",
                 <FiGlobe />,
                 <>
-                  {renderField("Site web", "website", false, false, "https://mon-site.fr", "url")}
-                  {renderField("LinkedIn", "linkedin", false, false, "https://linkedin.com/in/...")}
+                  {renderField(
+                    "Site web / Page principale",
+                    "website",
+                    false,
+                    false,
+                    "https://mon-site.fr",
+                    "url"
+                  )}
+
+                  {renderField(
+                    "Profil LinkedIn",
+                    "linkedin",
+                    false,
+                    false,
+                    "https://linkedin.com/in/..."
+                  )}
+
+                  {renderField(
+                    "Instagram",
+                    "instagram",
+                    false,
+                    false,
+                    "https://instagram.com/ma_conciergerie"
+                  )}
+
+                  {renderField(
+                    "Page Facebook",
+                    "facebook",
+                    false,
+                    false,
+                    "https://facebook.com/ma-conciergerie"
+                  )}
+
+                  <SocialLinks
+                    website={editProfile?.website}
+                    linkedin={editProfile?.linkedin}
+                    instagram={editProfile?.instagram}
+                    facebook={editProfile?.facebook}
+                  />
                 </>
               )}
+
               {/* Informations bancaires */}
               {renderSection(
                 "Informations bancaires",
@@ -739,68 +780,68 @@ export default function ConciergeProfilePage() {
         );
 
 
-case "tarifs":
-  return (
-    <>
-      <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
-        
-        {/* --- GRILLE TARIFAIRE (GAUCHE) --- */}
-        <div style={{ flex: 1 }}>
-          {renderSection(
-            "Ma grille tarifaire",
-            <FiDollarSign />,
-            <>
-              <PricingManagement />
-              <div className={styles.pricingQuickStats}>
-                <h4>📊 Mes tarifs les plus demandés</h4>
-                {/* Exemple de statistiques */}
-                <ul>
-                  <li>💼 Tarif horaire standard : 45€/h</li>
-                  <li>🏠 Forfait ménage 2 pièces : 60€</li>
-                  <li>🚗 Frais déplacement moyen : 15€</li>
-                </ul>
+      case "tarifs":
+        return (
+          <>
+            <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
+
+              {/* --- GRILLE TARIFAIRE (GAUCHE) --- */}
+              <div style={{ flex: 1 }}>
+                {renderSection(
+                  "Ma grille tarifaire",
+                  <FiDollarSign />,
+                  <>
+                    {/* <PricingManagement /> */}
+                    <div className={styles.pricingQuickStats}>
+                      <h4>📊 Mes tarifs les plus demandés</h4>
+                      {/* Exemple de statistiques */}
+                      <ul>
+                        <li>💼 Tarif horaire standard : 45€/h</li>
+                        <li>🏠 Forfait ménage 2 pièces : 60€</li>
+                        <li>🚗 Frais déplacement moyen : 15€</li>
+                      </ul>
+                    </div>
+                  </>
+                )}
               </div>
-            </>
-          )}
-        </div>
 
-        {/* --- TARIFS PAR DÉFAUT (DROITE) --- */}
-        <div style={{ flex: 1 }}>
-          {renderSection(
-            "Tarifs par défaut",
-            <FiDollarSign />,
-            <>
-              {renderField(
-                "Tarif horaire (€/h)",
-                "hourly_rate",
-                false,
-                true,
-                "45",
-                "number"
-              )}
-              {renderField(
-                "Forfait mensuel (€)",
-                "monthly_rate",
-                false,
-                false,
-                "1500",
-                "number"
-              )}
-              {renderField(
-                "Frais de déplacement (€)",
-                "travel_fee",
-                false,
-                false,
-                "15",
-                "number"
-              )}
-            </>
-          )}
-        </div>
+              {/* --- TARIFS PAR DÉFAUT (DROITE) --- */}
+              <div style={{ flex: 1 }}>
+                {renderSection(
+                  "Tarifs par défaut",
+                  <FiDollarSign />,
+                  <>
+                    {renderField(
+                      "Tarif horaire (€/h)",
+                      "hourly_rate",
+                      false,
+                      true,
+                      "45",
+                      "number"
+                    )}
+                    {renderField(
+                      "Forfait mensuel (€)",
+                      "monthly_rate",
+                      false,
+                      false,
+                      "1500",
+                      "number"
+                    )}
+                    {renderField(
+                      "Frais de déplacement (€)",
+                      "travel_fee",
+                      false,
+                      false,
+                      "15",
+                      "number"
+                    )}
+                  </>
+                )}
+              </div>
 
-      </div>
-    </>
-  );
+            </div>
+          </>
+        );
 
       case "equipe":
         return (

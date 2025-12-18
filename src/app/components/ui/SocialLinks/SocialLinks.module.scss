@@ -1,0 +1,57 @@
+.wrapper {
+    margin-top: 0.75rem;
+    border-top: 1px dashed rgba(148, 163, 184, 0.5);
+    padding-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+}
+
+.chipsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #0f172a;
+    background: #e5e7eb;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        background: #d1d5db;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+    }
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        font-size: 0.95rem;
+    }
+}
+
+.empty {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}

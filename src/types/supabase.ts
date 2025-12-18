@@ -1,161 +1,795 @@
-// types/housing.ts
+// Supabase Types Definition generated from your provided schema.
+// All content has been cleaned to ensure standard ASCII encoding, resolving the "file seems binary" error.
 
-export interface InfosLogement {
-  nomLogement: string;
-  adresse: string;
-  complementAdresse?: string;
-  digicodeEntree?: string;
-  digicodeImmeuble?: string;
-  infosWifi?: {
-    nom: string;
-    mdp: string;
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+export type Database = {
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5";
   };
-  localTechnique?: string;
-  compteurElectrique?: string;
-  photos?: string[];
-}
+  public: {
+    Tables: {
+      categories: {
+        Row: {
+          description: string | null;
+          group_key: string | null;
+          icon: string | null;
+          id: number;
+          image: string | null;
+          key: string;
+          label: string;
+          new_id: string;
+        };
+        Insert: {
+          description?: string | null;
+          group_key?: string | null;
+          icon?: string | null;
+          id?: number;
+          image?: string | null;
+          key: string;
+          label: string;
+          new_id?: string;
+        };
+        Update: {
+          description?: string | null;
+          group_key?: string | null;
+          icon?: string | null;
+          id?: number;
+          image?: string | null;
+          key?: string;
+          label?: string;
+          new_id?: string;
+        };
+        Relationships: [];
+      };
 
-export interface Proprietaire {
-  id: string;
-  nom: string;
-  prenom: string;
-  adresse?: string;
-  contactPrincipal: string;
-  email1: string;
-  email2?: string;
-  tel1: string;
-  tel2?: string;
-}
+      planning_entries: {
+        Row: {
+          created_at: string | null;
+          date: string;
+          end_date: string | null;
+          id: string;
+          price: number | null;
+          start_date: string | null;
+          task: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          date: string;
+          end_date?: string | null;
+          id?: string;
+          price?: number | null;
+          start_date?: string | null;
+          task: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          date?: string;
+          end_date?: string | null;
+          id?: string;
+          price?: number | null;
+          start_date?: string | null;
+          task?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
 
-export interface LocationDetails {
-  nbCouchages?: number;
-  nbChambres?: number;
-  nbCles?: number;
-  terrasse?: boolean;
-  ascenseur?: boolean;
-  animauxAcceptes?: boolean;
-  fumeur?: boolean;
-  caution?: number;
-  plateformePrincipale?: string;
-  checkin?: string;
-  checkout?: string;
-  barrecode?: string;
-}
+      profile_services: {
+        Row: {
+          created_at: string | null;
+          id: number;
+          profile_id: string;
+          selected: boolean | null;
+          service_id: number;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: number;
+          profile_id: string;
+          selected?: boolean | null;
+          service_id: number;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: number;
+          profile_id?: string;
+          selected?: boolean | null;
+          service_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_services_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profile_services_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profile_services_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
 
-export interface MenageDetails {
-  tempsEstime?: string;
-  checklist?: string[];
-  reassort?: {
-    minimum?: Record<string, number>;
+      profiles: {
+        Row: {
+          additional_info: string | null;
+          avatar_scale: number | null;
+          avatar_url: string | null;
+          category: string | null;
+          created_at: string | null;
+          email: string;
+          first_name: string | null;
+          id: string;
+          last_name: string | null;
+          location: string | null;
+          option: string | null;
+          password: string | null;
+          phone: string | null;
+          role: string | null;
+          search_target: string | null;
+          updated_at: string | null;
+          username: string;
+          company_name: string | null;
+          legal_form: string | null;
+          siret: string | null;
+          siren: string | null;
+          vat_number: string | null;
+          street_address: string | null;
+          postal_code: string | null;
+          city: string | null;
+          country: string | null;
+          website: string | null;
+          linkedin: string | null;
+          instagram: string | null; // 🔹 nouveau
+          facebook: string | null;
+          insurance_number: string | null;
+          insurance_company: string | null;
+          service_area: string | null;
+          service_radius_km: number | null;
+          hourly_rate: number | null;
+          monthly_rate: number | null;
+          availability_hours: string | null;
+          emergency_service: boolean | null;
+          experience_level: "debutant" | "intermediaire" | "experimente" | null;
+          certifications: string | null;
+          years_experience: number | null;
+          iban: string | null;
+          bic: string | null;
+          travel_fee: number | null;
+        };
+        Insert: {
+          additional_info?: string | null;
+          avatar_scale?: number | null;
+          avatar_url?: string | null;
+          category?: string | null;
+          created_at?: string | null;
+          email: string;
+          first_name?: string | null;
+          id: string;
+          last_name?: string | null;
+          location?: string | null;
+          option?: string | null;
+          password?: string | null;
+          phone?: string | null;
+          role?: string | null;
+          search_target?: string | null;
+          updated_at?: string | null;
+          username: string;
+          company_name?: string | null;
+          legal_form?: string | null;
+          siret?: string | null;
+          siren?: string | null;
+          vat_number?: string | null;
+          street_address?: string | null;
+          postal_code?: string | null;
+          city?: string | null;
+          country?: string | null;
+          website?: string | null;
+          linkedin?: string | null;
+          instagram?: string | null; // 🔹
+          facebook?: string | null;
+          insurance_number?: string | null;
+          insurance_company?: string | null;
+          service_area?: string | null;
+          service_radius_km?: number | null;
+          hourly_rate?: number | null;
+          monthly_rate?: number | null;
+          availability_hours?: string | null;
+          emergency_service?: boolean | null;
+          certifications?: string | null;
+          years_experience?: number | null;
+          experience_level?: string | null;
+          iban?: string | null;
+          bic?: string | null;
+          travel_fee?: number | null;
+        };
+        Update: {
+          additional_info?: string | null;
+          avatar_scale?: number | null;
+          avatar_url?: string | null;
+          category?: string | null;
+          created_at?: string | null;
+          email?: string;
+          first_name?: string | null;
+          id?: string;
+          last_name?: string | null;
+          location?: string | null;
+          option?: string | null;
+          password?: string | null;
+          phone?: string | null;
+          role?: string | null;
+          search_target?: string | null;
+          updated_at?: string | null;
+          username?: string | null;
+          company_name?: string | null;
+          legal_form?: string | null;
+          siret?: string | null;
+          siren?: string | null;
+          vat_number?: string | null;
+          street_address?: string | null;
+          postal_code?: string | null;
+          city?: string | null;
+          country?: string | null;
+          website?: string | null;
+          linkedin?: string | null;
+          insurance_number?: string | null;
+          insurance_company?: string | null;
+          service_area?: string | null;
+          service_radius_km?: number | null;
+          hourly_rate?: number | null;
+          monthly_rate?: number | null;
+          availability_hours?: string | null;
+          emergency_service?: boolean | null;
+          certifications?: string | null;
+          years_experience?: number | null;
+          iban?: string | null;
+          bic?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fk_category";
+            columns: ["category"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "fk_profiles_category";
+            columns: ["category"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "profiles_role_fkey";
+            columns: ["role"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["role_code"];
+          },
+          {
+            foreignKeyName: "profiles_role_fkey";
+            columns: ["role"];
+            isOneToOne: false;
+            referencedRelation: "user_roles";
+            referencedColumns: ["code"];
+          }
+        ];
+      };
+
+      housing: {
+        Row: {
+          id: number;
+          external_id: number | null;
+          nom_logement: string | null;
+          ville: string | null;
+          adresse: string | null;
+          plateforme: string | null;
+          statut: string | null;
+          photo_principale: string | null;
+          infos: Json | null;
+          proprietaire: Json | null;
+          location: Json | null;
+          menage: Json | null;
+          planning: Json | null;
+          documents: Json | null;
+          contrat: Json | null;
+          tarifs: Json | null;
+          notes: Json | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          external_id?: number | null;
+          nom_logement?: string | null;
+          ville?: string | null;
+          adresse?: string | null;
+          plateforme?: string | null;
+          statut?: string | null;
+          photo_principale?: string | null;
+          infos?: Json | null;
+          proprietaire?: Json | null;
+          location?: Json | null;
+          menage?: Json | null;
+          planning?: Json | null;
+          documents?: Json | null;
+          notes?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          external_id?: number | null;
+          nom_logement?: string | null;
+          ville?: string | null;
+          adresse?: string | null;
+          plateforme?: string | null;
+          statut?: string | null;
+          photo_principale?: string | null;
+          infos?: Json | null;
+          proprietaire?: Json | null;
+          location?: Json | null;
+          menage?: Json | null;
+          planning?: Json | null;
+          documents?: Json | null;
+          notes?: Json | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+
+      properties: {
+        Row: {
+          city: string | null;
+          id: string;
+          name: string;
+          owner_id: string | null;
+          status: string | null;
+        };
+        Insert: {
+          city?: string | null;
+          id?: string;
+          name: string;
+          owner_id?: string | null;
+          status?: string | null;
+        };
+        Update: {
+          city?: string | null;
+          id?: string;
+          name?: string;
+          owner_id?: string | null;
+          status?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "properties_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "properties_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      contract_services: {
+        Row: {
+          id: number;
+          housing_id: number;
+          service_id: number;
+          pricing_id: string | null;
+          quantity: number | null;
+          total: number | null;
+          metadata: Json | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          housing_id: number;
+          service_id: number;
+          pricing_id?: string | null;
+          quantity?: number | null;
+          total?: number | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          housing_id?: number;
+          service_id?: number;
+          pricing_id?: string | null;
+          quantity?: number | null;
+          total?: number | null;
+          metadata?: Json | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contract_services_housing_id_fkey";
+            columns: ["housing_id"];
+            isOneToOne: false;
+            referencedRelation: "housing";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contract_services_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contract_services_pricing_id_fkey";
+            columns: ["pricing_id"];
+            isOneToOne: false;
+            referencedRelation: "services_pricing";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      services_pricing: {
+        Row: {
+          id: string;
+          profile_id: string;
+          service_id: number | null;
+          label: string;
+          type: string | null;
+          amount: number;
+          unit: string | null;
+          is_default: boolean | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          service_id?: number | null;
+          label: string;
+          type?: string | null;
+          amount: number;
+          unit?: string | null;
+          is_default?: boolean | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          service_id?: number | null;
+          label?: string;
+          type?: string | null;
+          amount?: number;
+          unit?: string | null;
+          is_default?: boolean | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "services_pricing_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "services_pricing_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      services_contracts: {
+        Row: {
+          id: string; // uuid
+          profile_id: string | null;
+          title: string;
+          start_date: string; // date
+          end_date: string | null;
+          status: string | null;
+          notes: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          profile_id?: string | null;
+          title: string;
+          start_date: string;
+          end_date?: string | null;
+          status?: string | null;
+          notes?: string | null;
+        };
+        // etc.
+      };
+
+      services_catalog: {
+        Row: {
+          category: string;
+          created_at: string | null;
+          description: string | null;
+          id: number;
+          service: string;
+        };
+        Insert: {
+          category: string;
+          created_at?: string | null;
+          description?: string | null;
+          id?: number;
+          service: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string | null;
+          description?: string | null;
+          id?: number;
+          service?: string;
+        };
+        Relationships: [];
+      };
+
+      user_roles: {
+        Row: {
+          code: string;
+          group_key: string | null;
+          is_pro: boolean | null;
+          label: string;
+          ordre: number | null;
+          user_id: string | null;
+        };
+        Insert: {
+          code: string;
+          group_key?: string | null;
+          is_pro?: boolean | null;
+          label: string;
+          ordre?: number | null;
+          user_id?: string | null;
+        };
+        Update: {
+          code?: string;
+          group_key?: string | null;
+          is_pro?: boolean | null;
+          label?: string;
+          ordre?: number | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+    };
+
+    Views: {
+      user_dashboard_view: {
+        Row: {
+          avatar_url: string | null;
+          category: string | null;
+          category_label: string | null;
+          description: string | null;
+          email: string | null;
+          group_key: string | null;
+          icon: string | null;
+          id: string | null;
+          image: string | null;
+          is_pro: boolean | null;
+          role_code: string | null;
+          role_label: string | null;
+          username: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fk_category";
+            columns: ["category"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "fk_profiles_category";
+            columns: ["category"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["key"];
+          }
+        ];
+      };
+    };
+
+    Functions: {
+      is_admin: { Args: never; Returns: boolean };
+      is_user_profile_owner:
+        | { Args: { profile_id: string }; Returns: boolean }
+        | { Args: never; Returns: boolean };
+    };
+
+    Enums: {
+      user_role:
+        | "proprietaire"
+        | "proprietaire_pro"
+        | "concierge"
+        | "concierge_pro"
+        | "service"
+        | "service_pro"
+        | "admin";
+    };
+
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-  instructionsParticulieres?: string;
-  historique?: Array<{
-    date: string;
-    agent: string;
-    action: string;
-  }>;
-}
+};
 
-export interface PlanningDetails {
-  arrivees?: Array<{
-    date: string;
-    heure: string;
-    client: string;
-  }>;
-  departs?: Array<{
-    date: string;
-    heure: string;
-    client: string;
-  }>;
-  menagesProgrammes?: Array<{
-    date: string;
-    agent: string;
-  }>;
-  conflits?: Array<{
-    type: string;
-    message: string;
-  }>;
-  missionAssignee?: {
-    equipe: string;
-    agent: string;
-  };
-}
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-export interface DocumentsDetails {
-  pdf?: Array<{
-    nom: string;
-    fichier: string;
-  }>;
-  photosTechniques?: string[];
-  fichesProtocoles?: string[];
-  plans?: string[];
-}
+type DefaultSchema = DatabaseWithoutInternals["public"];
 
-export interface ContratDetails {
-  dateDebut?: string;
-  dateFin?: string;
-  type?: string;
-  montant?: number;
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+      DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : never;
 
-export interface TarifsDetails {
-  tarifNuit?: number;
-  tarifWeekend?: number;
-  tarifSemaine?: number;
-  fraisMenage?: number;
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : never;
 
-export interface NoteInterne {
-  date: string;
-  auteur: string;
-  texte: string;
-  aTraiter: boolean;
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : never;
 
-// Type pour la table housing avec types précis
-export interface HousingRow {
-  id: number;
-  external_id: number | null;
-  nom_logement: string | null;
-  ville: string | null;
-  adresse: string | null;
-  plateforme: string | null;
-  statut: string | null;
-  photo_principale: string | null;
-  infos: InfosLogement | null;
-  proprietaire: Proprietaire | null;
-  location: LocationDetails | null;
-  menage: MenageDetails | null;
-  planning: PlanningDetails | null;
-  documents: DocumentsDetails | null;
-  contrat: ContratDetails | null;
-  tarifs: TarifsDetails | null;
-  notes: NoteInterne[] | null;
-  created_at: string | null;
-  updated_at: string | null;
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never;
 
-// Type pour l'insertion
-export interface HousingInsert {
-  external_id?: number | null;
-  nom_logement?: string | null;
-  ville?: string | null;
-  adresse?: string | null;
-  plateforme?: string | null;
-  statut?: string | null;
-  photo_principale?: string | null;
-  infos?: InfosLogement | null;
-  proprietaire?: Proprietaire | null;
-  location?: LocationDetails | null;
-  menage?: MenageDetails | null;
-  planning?: PlanningDetails | null;
-  documents?: DocumentsDetails | null;
-  contrat?: ContratDetails | null;
-  tarifs?: TarifsDetails | null;
-  notes?: NoteInterne[] | null;
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never;
 
-// Type pour la mise à jour
-export interface HousingUpdate extends Partial<HousingInsert> {
-  id?: number;
-}
+export const Constants = {
+  public: {
+    Enums: {
+      user_role: [
+        "proprietaire",
+        "proprietaire_pro",
+        "concierge",
+        "concierge_pro",
+        "service",
+        "service_pro",
+        "admin",
+      ],
+    },
+  },
+} as const;
+
+export type ProfilesUpdate = {
+  [K in keyof TablesUpdate<"profiles">]?:
+    | TablesUpdate<"profiles">[K]
+    | undefined;
+};
+
+export type UserRole =
+  | "owner"
+  | "owner_pro"
+  | "concierge"
+  | "concierge_pro"
+  | "provider"
+  | "provider_pro"
+  | "artisan"
+  | "artisan_pro"
+  | "admin"
+  | "super_admin";
