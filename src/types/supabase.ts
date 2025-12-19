@@ -1,6 +1,4 @@
-// Supabase Types Definition generated from your provided schema.
-// All content has been cleaned to ensure standard ASCII encoding, resolving the "file seems binary" error.
-
+// src/types/supabase.ts
 export type Json =
   | string
   | number
@@ -10,9 +8,6 @@ export type Json =
   | Json[];
 
 export type Database = {
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5";
-  };
   public: {
     Tables: {
       categories: {
@@ -160,7 +155,7 @@ export type Database = {
           country: string | null;
           website: string | null;
           linkedin: string | null;
-          instagram: string | null; // 🔹 nouveau
+          instagram: string | null;
           facebook: string | null;
           insurance_number: string | null;
           insurance_company: string | null;
@@ -206,7 +201,7 @@ export type Database = {
           country?: string | null;
           website?: string | null;
           linkedin?: string | null;
-          instagram?: string | null; // 🔹
+          instagram?: string | null;
           facebook?: string | null;
           insurance_number?: string | null;
           insurance_company?: string | null;
@@ -252,6 +247,8 @@ export type Database = {
           country?: string | null;
           website?: string | null;
           linkedin?: string | null;
+          instagram?: string | null;
+          facebook?: string | null;
           insurance_number?: string | null;
           insurance_company?: string | null;
           service_area?: string | null;
@@ -507,26 +504,39 @@ export type Database = {
           }
         ];
       };
+
       services_contracts: {
         Row: {
-          id: string; // uuid
+          id: string;
           profile_id: string | null;
           title: string;
-          start_date: string; // date
+          start_date: string;
           end_date: string | null;
           status: string | null;
           notes: string | null;
           created_at: string | null;
         };
         Insert: {
+          id?: string;
           profile_id?: string | null;
           title: string;
           start_date: string;
           end_date?: string | null;
           status?: string | null;
           notes?: string | null;
+          created_at?: string | null;
         };
-        // etc.
+        Update: {
+          id?: string;
+          profile_id?: string | null;
+          title?: string;
+          start_date?: string;
+          end_date?: string | null;
+          status?: string | null;
+          notes?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [];
       };
 
       services_catalog: {
@@ -620,10 +630,8 @@ export type Database = {
     };
 
     Functions: {
-      is_admin: { Args: never; Returns: boolean };
-      is_user_profile_owner:
-        | { Args: { profile_id: string }; Returns: boolean }
-        | { Args: never; Returns: boolean };
+      is_admin: { Args: Record<string, never>; Returns: boolean };
+      is_user_profile_owner: { Args: { profile_id: string }; Returns: boolean };
     };
 
     Enums: {
@@ -643,144 +651,14 @@ export type Database = {
   };
 };
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+// Types helpers
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
+export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
 
-type DefaultSchema = DatabaseWithoutInternals["public"];
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
-  }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R;
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R;
-    }
-    ? R
-    : never
-  : never;
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I;
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Insert: infer I;
-    }
-    ? I
-    : never
-  : never;
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U;
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Update: infer U;
-    }
-    ? U
-    : never
-  : never;
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never;
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never;
-
-export const Constants = {
-  public: {
-    Enums: {
-      user_role: [
-        "proprietaire",
-        "proprietaire_pro",
-        "concierge",
-        "concierge_pro",
-        "service",
-        "service_pro",
-        "admin",
-      ],
-    },
-  },
-} as const;
-
-export type ProfilesUpdate = {
-  [K in keyof TablesUpdate<"profiles">]?:
-    | TablesUpdate<"profiles">[K]
-    | undefined;
-};
+// Custom types
+export type ProfilesUpdate = TablesUpdate<'profiles'>;
 
 export type UserRole =
   | "owner"

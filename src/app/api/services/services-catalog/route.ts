@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";
 
-// Type pour la structure d'un service
+// Type pour le body de la requête
 interface ServiceCatalogBody {
     category: string;
     service: string;
-    description: string;
+    description?: string | null;
 }
 
 // --- GET /api/services-catalog -> Liste de tous les services ---
@@ -77,9 +77,10 @@ export async function POST(req: NextRequest) {
 
         const body: ServiceCatalogBody = await req.json();
 
-        if (!body.category || !body.service || !body.description) {
+        // Validation : category et service sont requis
+        if (!body.category || !body.service) {
             return NextResponse.json(
-                { error: "Catégorie, service et description requis" },
+                { error: "Catégorie et service requis" },
                 { status: 400 }
             );
         }
@@ -89,8 +90,7 @@ export async function POST(req: NextRequest) {
             .insert({
                 category: body.category,
                 service: body.service,
-                description: body.description,
-                // creator_id: userId, // Si votre schéma le supporte
+                description: body.description || null,
             })
             .select("*")
             .single();
@@ -117,7 +117,7 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
         }
         
-        // Récupérer l'ID depuis les query params au lieu du pathname
+        // Récupérer l'ID depuis les query params
         const url = new URL(req.url);
         const serviceId = url.searchParams.get("id");
         
@@ -134,9 +134,16 @@ export async function PATCH(req: NextRequest) {
         
         // Construction du payload
         const updatePayload: Partial<ServiceCatalogBody> = {};
-        if (rawBody.category !== undefined) updatePayload.category = rawBody.category;
-        if (rawBody.service !== undefined) updatePayload.service = rawBody.service;
-        if (rawBody.description !== undefined) updatePayload.description = rawBody.description;
+        
+        if (rawBody.category !== undefined) {
+            updatePayload.category = rawBody.category;
+        }
+        if (rawBody.service !== undefined) {
+            updatePayload.service = rawBody.service;
+        }
+        if (rawBody.description !== undefined) {
+            updatePayload.description = rawBody.description;
+        }
 
         if (Object.keys(updatePayload).length === 0) {
             return NextResponse.json({ error: "Aucune donnée à mettre à jour" }, { status: 400 });
@@ -146,7 +153,6 @@ export async function PATCH(req: NextRequest) {
             .from("services_catalog")
             .update(updatePayload)
             .eq("id", numericId)
-            // .eq("creator_id", userId) // Si filtrage par utilisateur
             .select("*")
             .single();
 
@@ -193,7 +199,6 @@ export async function DELETE(req: NextRequest) {
             .from("services_catalog")
             .delete({ count: 'exact' })
             .eq("id", numericId);
-            // .eq("creator_id", userId); // Si filtrage par utilisateur
 
         if (error) {
             console.error("[DELETE /api/services-catalog] DB error:", error);
