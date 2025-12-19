@@ -1,165 +1,95 @@
-// MissionDetails.module.scss
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/abstracts/mixins" as *;
 
 .wrapper {
-    color: rgb(255, 255, 255);
-    margin-bottom: 1.5rem;
-    box-shadow: rgba(0, 0, 0, 0.25) 0px 10px 30px;
-    background: linear-gradient(135deg, rgba(30, 30, 30, 0.85), rgba(10, 10, 10, 0.95));
-    border-radius: 16px;
-    padding: 1.5rem 1.25rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: rgba(0, 0, 0, 0.35) 0px 15px 40px;
-    }
+  padding: 1rem 0.75rem;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9),
+    rgba(10, 10, 20, 0.98)
+  );
+  color: #f9fafb;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(148, 163, 184, 0.3);
 }
 
-// Row de champs
+/* Ligne principale "Services proposés" */
 .fieldRow {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-    &:last-child {
-        border-bottom: none;
-    }
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .servicesRow {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1.25rem 0;
+  margin-bottom: 0.5rem;
 }
 
-// Icônes
-.fieldIcon {
-    font-size: 1.25rem;
-    color: rgba(255, 255, 255, 0.7);
-    flex-shrink: 0;
-}
-
-.serviceIcon {
-    font-size: 1rem;
-    color: #10B981;
-    flex-shrink: 0;
-}
-
-// Labels
 .fieldLabel {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
-    min-width: 180px;
-    flex-shrink: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #e5e7eb;
 }
 
-// Valeurs
-.fieldValue {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
-    flex: 1;
-}
-
-// Inputs
-.fieldInput {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    color: rgb(255, 255, 255);
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-
-    &:focus {
-        outline: none;
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.4);
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-    }
-
-    &::placeholder {
-        color: rgba(255, 255, 255, 0.4);
-    }
-}
-
-// Checkbox personnalisé
-.checkboxCustom {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: #10B981;
-    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
-}
-
-// Liste des services
+/* Liste des services (lecture seule) */
 .servicesList {
-    list-style: none;
-    padding: 0;
-    margin: 0.75rem 0 0 0;
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
 }
 
 .serviceItem {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1rem;
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.9);
-    transition: all 0.2s ease;
-
-    &:hover {
-        background: rgba(16, 185, 129, 0.25);
-        border-color: rgba(16, 185, 129, 0.5);
-        transform: translateX(4px);
-    }
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #f9fafb;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
 }
 
-// État vide
+.serviceIcon {
+  font-size: 0.9rem;
+  color: #d4af37;
+}
+
+.serviceCount {
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+/* États vides / chargement */
 .emptyState {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.5);
-    font-style: italic;
-    padding: 0.75rem 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-style: italic;
 }
 
-// Responsive
-@media (max-width: 768px) {
-    .wrapper {
-        padding: 1rem 0.75rem;
-    }
+/* Responsive */
+@media (max-width: 640px) {
+  .wrapper {
+    border-radius: 14px;
+    padding: 0.9rem 0.75rem;
+  }
 
-    .fieldRow {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-        padding: 0.75rem 0;
-    }
+  .servicesList {
+    gap: 0.4rem 0.6rem;
+  }
 
-    .fieldLabel {
-        min-width: auto;
-        width: 100%;
-    }
-
-    .fieldInput {
-        width: 100%;
-    }
-
-    .servicesList {
-        grid-template-columns: 1fr;
-    }
-
-    .fieldIcon {
-        font-size: 1.1rem;
-    }
+  .serviceItem {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.65rem;
+  }
 }

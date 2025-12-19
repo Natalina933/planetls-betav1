@@ -1,496 +1,234 @@
-// ServiceCatalogSelector.module.scss
-// Inspiration Art Nouveau / Belle Époque 1900 - Professionnel et élégant
-
-// ============================================
-// Variables de couleurs - Palette 1900
-// ============================================
-
-$primary-gold: #C9A961; // Or antique
-$primary-burgundy: #6B2737; // Bordeaux profond
-$primary-navy: #1B3B4D; // Bleu marine
-$accent-emerald: #2D5A4A; // Vert émeraude
-$accent-brass: #B8924F; // Laiton patiné
-
-$background-cream: #F5F3ED; // Crème parchemin
-$background-ivory: #FDFBF7; // Ivoire
-$background-pearl: #EAE7DC; // Perle
-
-$text-charcoal: #2C2C2C; // Charbon
-$text-slate: #4A4A4A; // Ardoise
-$text-muted: #7A7A7A; // Gris doux
-
-$border-gold: #D4AF37; // Or brillant
-$border-silver: #C0C0C0; // Argent
-$shadow-soft: rgba(27, 59, 77, 0.08);
-$shadow-medium: rgba(27, 59, 77, 0.15);
-
-// ============================================
-// Mixins - Ornements Belle Époque
-// ============================================
-
-@mixin art-nouveau-border {
-    border: 2px solid $border-silver;
-    border-image: linear-gradient(135deg,
-            $border-silver 0%,
-            $primary-gold 50%,
-            $border-silver 100%) 1;
-}
-
-@mixin embossed-text {
-    text-shadow:
-        1px 1px 0px rgba(255, 255, 255, 0.5),
-        2px 2px 3px rgba(0, 0, 0, 0.1);
-}
-
-@mixin vintage-shadow {
-    box-shadow:
-        0 2px 4px $shadow-soft,
-        0 8px 16px $shadow-medium,
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-@mixin ornamental-corner($size: 12px) {
-    position: relative;
-
-    &::before,
-    &::after {
-        content: '';
-        position: absolute;
-        width: $size;
-        height: $size;
-        border: 1px solid $primary-gold;
-    }
-
-    &::before {
-        top: -1px;
-        left: -1px;
-        border-right: none;
-        border-bottom: none;
-    }
-
-    &::after {
-        bottom: -1px;
-        right: -1px;
-        border-left: none;
-        border-top: none;
-    }
-}
-
-// ============================================
-// Container principal
-// ============================================
+@use "@/app/styles/abstracts/variables" as *;
+@use "@/app/styles/abstracts/mixins" as *;
 
 .serviceCatalog {
-    width: 100%;
-    background: linear-gradient(to bottom,
-            $background-ivory 0%,
-            $background-cream 100%);
-    border-radius: 8px;
-    padding: 2rem;
-    @include vintage-shadow;
-    position: relative;
-    font-family: 'Georgia', 'Garamond', serif;
-
-    // Bordure décorative supérieure
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 5%;
-        right: 5%;
-        height: 3px;
-        background: linear-gradient(to right,
-                transparent 0%,
-                $primary-gold 20%,
-                $primary-burgundy 50%,
-                $primary-gold 80%,
-                transparent 100%);
-        border-radius: 2px;
-    }
+    border-radius: 18px;
+    padding: 1.1rem 0.9rem;
+    background: radial-gradient(circle at top left, #111827, #020617 65%);
+    color: #f9fafb;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(15, 23, 42, 0.7);
 }
-
-// ============================================
-// Introduction / Description
-// ============================================
 
 .catalogIntro {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: $text-slate;
-    font-style: italic;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.4);
-    border-left: 3px solid $primary-gold;
-    border-radius: 0 4px 4px 0;
-
-    &::first-letter {
-        font-size: 1.5em;
-        font-weight: bold;
-        color: $primary-burgundy;
-        float: left;
-        margin: 0.1em 0.1em 0 0;
-        line-height: 1;
-    }
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #d1d5db;
+    margin-bottom: 0.9rem;
 }
 
-// ============================================
-// Grille de services
-// ============================================
-
-.serviceGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.25rem;
-    margin-top: 1.5rem;
+.catalogContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
 }
 
-// ============================================
-// Catégories - En-têtes ornementaux
-// ============================================
+/* ========== Catégories (accordéon) ========== */
 
 .categorySection {
-    margin-bottom: 2rem;
-
-    &:not(:first-child) {
-        border-top: 1px solid $border-silver;
-        padding-top: 2rem;
-        margin-top: 2rem;
-    }
+    padding: 0.5rem 0.6rem 0.65rem;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(31, 41, 55, 0.9);
 }
 
 .categoryHeader {
-    font-size: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0.2rem 0;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
     font-weight: 600;
-    color: $primary-navy;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    position: relative;
-    letter-spacing: 0.5px;
-    @include embossed-text;
-
-    // Ornement décoratif sous le titre
-    &::after {
-        content: '◆';
-        position: absolute;
-        left: 0;
-        bottom: -8px;
-        color: $primary-gold;
-        font-size: 0.6em;
-    }
+    color: #f9fafb;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: left;
 }
 
-// ============================================
-// Items de service - Cartes Belle Époque
-// ============================================
+.categoryHeaderOpen {
+    color: #facc15;
+}
+
+.chevron {
+    font-size: 0.9rem;
+    transition: transform 0.15s ease, color 0.15s ease;
+    color: #9ca3af;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+    color: #facc15;
+}
+
+/* ========== Grille de services ========== */
+
+.serviceGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.6rem;
+}
 
 .serviceItem {
     display: flex;
     align-items: flex-start;
-    padding: 1.25rem;
-    background: linear-gradient(145deg,
-            $background-ivory 0%,
-            rgba(255, 255, 255, 0.95) 100%);
-    border: 1px solid $border-silver;
-    border-radius: 6px;
+    gap: 0.55rem;
+    padding: 0.6rem 0.65rem;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(51, 65, 85, 0.9);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
 
-    @include ornamental-corner(10px);
-
-    // Effet de relief subtil
-    box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.06),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
-
-    // Filigrane en arrière-plan
-    &::before {
-        content: '✦';
-        position: absolute;
-        top: 50%;
-        right: 1rem;
-        transform: translateY(-50%);
-        font-size: 3rem;
-        color: rgba(201, 169, 97, 0.08);
-        pointer-events: none;
-        transition: all 0.3s ease;
-    }
-
-    &:hover:not(.disabled) {
-        transform: translateY(-2px);
-        border-color: $primary-gold;
-        box-shadow:
-            0 4px 12px rgba(201, 169, 97, 0.2),
-            0 2px 4px rgba(0, 0, 0, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
-
-        &::before {
-            color: rgba(201, 169, 97, 0.15);
-            transform: translateY(-50%) rotate(45deg);
-        }
-    }
-
-    &.selected {
-        background: linear-gradient(145deg,
-                rgba(201, 169, 97, 0.12) 0%,
-                rgba(212, 175, 55, 0.08) 100%);
-        border: 2px solid $primary-gold;
-        box-shadow:
-            0 0 0 3px rgba(201, 169, 97, 0.15),
-            0 4px 12px rgba(201, 169, 97, 0.25),
-            inset 0 1px 2px rgba(201, 169, 97, 0.2);
-
-        &::before {
-            color: rgba(201, 169, 97, 0.2);
-        }
-
-        .serviceLabel {
-            color: $primary-burgundy;
-            font-weight: 600;
-        }
-    }
-
-    &.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        filter: grayscale(0.3);
-
-        &:hover {
-            transform: none;
-        }
+    &:hover {
+        border-color: rgba(212, 175, 55, 0.6);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.5);
+        transform: translateY(-1px);
     }
 }
 
-// ============================================
-// Checkbox personnalisée - Style vintage
-// ============================================
+.selected {
+    border-color: rgba(212, 175, 55, 0.8);
+    background: radial-gradient(circle at top left, #1f2937, #020617 70%);
+    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+}
+
+.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+
+    &:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: rgba(51, 65, 85, 0.9);
+    }
+}
 
 .serviceCheckbox {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    border: 2px solid $border-silver;
-    border-radius: 3px;
-    background: linear-gradient(145deg,
-            #ffffff 0%,
-            $background-pearl 100%);
+    margin-top: 0.25rem;
     cursor: pointer;
-    position: relative;
-    transition: all 0.3s ease;
-    box-shadow:
-        inset 0 1px 2px rgba(0, 0, 0, 0.1),
-        0 1px 0 rgba(255, 255, 255, 0.5);
-
-    &:hover:not(:disabled) {
-        border-color: $primary-gold;
-        box-shadow:
-            inset 0 1px 2px rgba(0, 0, 0, 0.1),
-            0 0 0 3px rgba(201, 169, 97, 0.15);
-    }
-
-    &:checked {
-        background: linear-gradient(145deg,
-                $primary-gold 0%,
-                $accent-brass 100%);
-        border-color: $primary-burgundy;
-        box-shadow:
-            inset 0 2px 4px rgba(107, 39, 55, 0.3),
-            0 0 0 3px rgba(201, 169, 97, 0.2);
-
-        // Coche élégante
-        &::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(1);
-            color: $background-ivory;
-            font-size: 14px;
-            font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            animation: checkmark 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-    }
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
+    accent-color: #d4af37;
 }
-
-@keyframes checkmark {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
-    }
-
-    50% {
-        transform: translate(-50%, -50%) scale(1.2);
-    }
-
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-}
-
-// ============================================
-// Contenu textuel
-// ============================================
 
 .serviceContent {
-    flex: 1;
-    margin-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
 }
 
 .serviceLabel {
-    display: block;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: $text-charcoal;
-    line-height: 1.4;
-    margin-bottom: 0.4rem;
-    letter-spacing: 0.3px;
-    transition: color 0.3s ease;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #f9fafb;
 }
 
 .serviceDescription {
     font-size: 0.8rem;
-    color: $text-muted;
-    line-height: 1.5;
-    font-style: italic;
-    font-family: 'Georgia', serif;
+    color: #9ca3af;
+    line-height: 1.35;
 }
 
-// ============================================
-// Compteur de sélection - Badge vintage
-// ============================================
+/* ========== Compteur sélection ========== */
 
 .selectedCount {
-    margin-top: 1.5rem;
-    padding: 1rem 1.5rem;
-    background: linear-gradient(135deg,
-            rgba(45, 90, 74, 0.08) 0%,
-            rgba(45, 90, 74, 0.12) 100%);
-    border-left: 4px solid $accent-emerald;
-    border-radius: 0 6px 6px 0;
-    font-size: 0.9rem;
-    color: $accent-emerald;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    position: relative;
-
-    &::before {
-        content: '✦';
-        color: $accent-emerald;
-        font-size: 1.2em;
-        opacity: 0.6;
-    }
-
-    // Coins ornementaux
-    &::after {
-        content: '';
-        position: absolute;
-        top: -1px;
-        right: -1px;
-        width: 8px;
-        height: 8px;
-        border-top: 2px solid $accent-emerald;
-        border-right: 2px solid $accent-emerald;
-    }
+    margin-top: 0.9rem;
+    font-size: 0.8rem;
+    color: #e5e7eb;
+    text-align: right;
+    font-style: italic;
 }
 
-// ============================================
-// État de chargement - Spinner élégant
-// ============================================
+/* ========== États de chargement / erreur / vide ========== */
 
-.loadingContainer {
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+    border-radius: 14px;
+    padding: 0.85rem 0.75rem;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(51, 65, 85, 0.9);
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
+}
+
+.loadingContainer {
     align-items: center;
     justify-content: center;
-    min-height: 300px;
-    background: $background-ivory;
-    border-radius: 8px;
-    padding: 3rem;
-    @include vintage-shadow;
 }
 
 .loadingSpinner {
-    width: 48px;
-    height: 48px;
-    color: $primary-gold;
-    animation: spin 1.5s linear infinite;
+    width: 1.4rem;
+    height: 1.4rem;
+    color: #d4af37;
+    animation: spin 0.9s linear infinite;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
+.loadingText {
+    font-size: 0.8rem;
+    color: #e5e7eb;
+}
 
+.errorText {
+    font-size: 0.8rem;
+    color: #fecaca;
+}
+
+.retryButton {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 113, 113, 0.8);
+    padding: 0.3rem 0.7rem;
+    background: transparent;
+    color: #fecaca;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        transform 0.15s ease;
+
+    &:hover {
+        background: rgba(248, 113, 113, 0.1);
+        transform: translateY(-1px);
+    }
+}
+
+.emptyText {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+/* ========== Animations ========== */
+
+@keyframes spin {
     to {
         transform: rotate(360deg);
     }
 }
 
-.loadingText {
-    margin-top: 1rem;
-    color: $text-slate;
-    font-size: 1rem;
-    font-weight: 500;
-    font-family: 'Georgia', serif;
-    font-style: italic;
-    @include embossed-text;
-}
+/* ========== Responsive ========== */
 
-// ============================================
-// Responsive Design
-// ============================================
-
-@media (max-width: 768px) {
-    .serviceCatalog {
-        padding: 1.5rem;
-    }
-
+@media (max-width: 640px) {
     .serviceGrid {
         grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .categoryHeader {
-        font-size: 1.1rem;
     }
 
     .serviceItem {
-        padding: 1rem;
-
-        &::before {
-            font-size: 2rem;
-        }
-    }
-}
-
-@media (max-width: 480px) {
-    .serviceCatalog {
-        padding: 1rem;
+        padding: 0.55rem 0.6rem;
     }
 
     .catalogIntro {
-        font-size: 0.85rem;
-        padding: 0.75rem;
-    }
-
-    .serviceLabel {
-        font-size: 0.9rem;
-    }
-
-    .serviceDescription {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
 }
