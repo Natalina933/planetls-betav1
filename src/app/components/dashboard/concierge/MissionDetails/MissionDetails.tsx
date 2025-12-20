@@ -7,8 +7,7 @@ import {
     FiTarget,
 
 } from "react-icons/fi";
-import type { Profile } from "@/app/dashboard/concierge/profile/page";
-
+import type { Profile } from "@/app/dashboard/concierge/profile/ConciergeProfilePage";
 /* =========================
    Types
 ========================= */
