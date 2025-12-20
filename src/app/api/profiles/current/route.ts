@@ -8,23 +8,15 @@ export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
+    
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    // 🔹 SOLUTION SIMPLE : Utilisez "*" pour récupérer TOUS les champs
     const { data: profile, error } = await db
       .from("profiles")
-      .select(`
-        id, username, first_name, last_name, email, phone, 
-        avatar_url, avatar_scale, additional_info, category, 
-        role, created_at, location, option, search_target,
-        company_name, legal_form, siret, siren, vat_number,
-        street_address, postal_code, city, country,
-        website, linkedin, insurance_number, insurance_company,
-        service_area, service_radius_km, hourly_rate, monthly_rate,
-        availability_hours, emergency_service, certifications,
-        years_experience, iban, bic, travel_fee
-      `)
+      .select("*")
       .eq("id", userId)
       .maybeSingle();
 

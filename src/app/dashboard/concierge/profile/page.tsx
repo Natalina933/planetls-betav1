@@ -497,21 +497,26 @@ export default function ConciergeProfilePage() {
                     "FR 12 123456789"
                   )}
 
-                  {/* 🔹 Nouveau bloc niveau d’expérience */}
+                  {/* Niveau d'expérience */}
                   <div className={styles.fieldRow}>
-                    <label className={styles.fieldLabel}>
+                    <label htmlFor="experience_level" className={styles.fieldLabel}>
                       Niveau d&apos;expérience
                     </label>
                     {isEditing ? (
                       <select
+                        id="experience_level"
                         name="experience_level"
                         value={editProfile?.experience_level ?? ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
                           setEditProfile((prev) =>
-                            prev ? { ...prev, experience_level: e.target.value as "debutant" | "intermediaire" | "experimente" | null } : prev
-                          )
-                        }
+                            prev
+                              ? { ...prev, experience_level: value === "" ? null : value }
+                              : prev
+                          );
+                        }}
                         className={styles.fieldSelect}
+                        aria-label="Sélectionnez votre niveau d'expérience"
                       >
                         <option value="">Sélectionner un niveau</option>
                         <option value="debutant">Débutant</option>

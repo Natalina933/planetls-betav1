@@ -90,8 +90,6 @@ export async function PATCH(
     if (body.menage !== undefined) updateObj.menage = body.menage;
     if (body.planning !== undefined) updateObj.planning = body.planning;
     if (body.documents !== undefined) updateObj.documents = body.documents;
-    if (body.contrat !== undefined) updateObj.contrat = body.contrat;
-    if (body.tarifs !== undefined) updateObj.tarifs = body.tarifs;
     if (body.notes !== undefined) updateObj.notes = body.notes;
 
     // Vérification qu'il y a au moins un champ à mettre à jour
@@ -102,9 +100,8 @@ export async function PATCH(
       );
     }
 
-    // Mise à jour de updated_at (si la colonne existe et est gérée manuellement)
-    // Si vous utilisez un trigger SQL, commentez la ligne suivante
-    // updateObj.updated_at = new Date().toISOString();
+    // Mise à jour automatique via Supabase (si configuré)
+    updateObj.updated_at = new Date().toISOString();
 
     const { data, error } = await db
       .from("housing")
