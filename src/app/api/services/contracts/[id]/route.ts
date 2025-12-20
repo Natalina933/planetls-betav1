@@ -14,7 +14,7 @@ interface ContractUpdateBody {
 // --- GET /api/contracts/[id] -> Détail d'un contrat ---
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req });
@@ -24,6 +24,7 @@ export async function GET(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const params = await context.params;
     const { id } = params;
 
     const { data, error } = await db
@@ -55,7 +56,7 @@ export async function GET(
 // --- PATCH /api/contracts/[id] -> Mettre à jour un contrat ---
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req });
@@ -65,6 +66,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const params = await context.params;
     const { id } = params;
     const rawBody: ContractUpdateBody = await req.json();
 
@@ -117,7 +119,7 @@ export async function PATCH(
 // --- DELETE /api/contracts/[id] -> Supprimer un contrat ---
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = await getToken({ req });
@@ -127,6 +129,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const params = await context.params;
     const { id } = params;
 
     const { error, count } = await db
