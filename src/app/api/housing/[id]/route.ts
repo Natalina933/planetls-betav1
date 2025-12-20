@@ -9,9 +9,10 @@ import type { HousingUpdate } from "@/types/supabase";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const id = Number(params.id);
     
     if (isNaN(id) || id <= 0) {
@@ -57,9 +58,10 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const id = Number(params.id);
     
     if (isNaN(id) || id <= 0) {
@@ -140,9 +142,10 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const id = Number(params.id);
     
     if (isNaN(id) || id <= 0) {
