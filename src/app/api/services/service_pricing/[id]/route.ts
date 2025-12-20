@@ -19,16 +19,14 @@ interface ServicePricingUpdate {
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "ID requis" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
     const { data, error } = await db
@@ -67,7 +65,7 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérification de l'authentification
@@ -81,13 +79,11 @@ export async function PATCH(
       );
     }
 
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "ID requis" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
     // Vérifier que l'utilisateur est propriétaire de cette tarification
@@ -106,7 +102,10 @@ export async function PATCH(
       }
       console.error("[PATCH /api/service-pricing/[id]] DB error:", fetchError);
       return NextResponse.json(
-        { error: "Erreur lors de la vérification", details: fetchError.message },
+        {
+          error: "Erreur lors de la vérification",
+          details: fetchError.message,
+        },
         { status: 500 }
       );
     }
@@ -140,7 +139,7 @@ export async function PATCH(
 
     if (body.label !== undefined) updateObj.label = body.label;
     if (body.type !== undefined) updateObj.type = body.type;
-    
+
     if (body.amount !== undefined) {
       const amount = Number(body.amount);
       if (isNaN(amount) || amount < 0) {
@@ -172,7 +171,7 @@ export async function PATCH(
 
     if (error) {
       console.error("[PATCH /api/service-pricing/[id]] DB error:", error);
-      
+
       // Gestion des erreurs spécifiques
       if (error.code === "23503") {
         return NextResponse.json(
@@ -203,7 +202,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérification de l'authentification
@@ -217,13 +216,11 @@ export async function DELETE(
       );
     }
 
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "ID requis" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
     // Vérifier que l'utilisateur est propriétaire de cette tarification
@@ -242,7 +239,10 @@ export async function DELETE(
       }
       console.error("[DELETE /api/service-pricing/[id]] DB error:", fetchError);
       return NextResponse.json(
-        { error: "Erreur lors de la vérification", details: fetchError.message },
+        {
+          error: "Erreur lors de la vérification",
+          details: fetchError.message,
+        },
         { status: 500 }
       );
     }
@@ -254,10 +254,7 @@ export async function DELETE(
       );
     }
 
-    const { error } = await db
-      .from("services_pricing")
-      .delete()
-      .eq("id", id);
+    const { error } = await db.from("services_pricing").delete().eq("id", id);
 
     if (error) {
       console.error("[DELETE /api/service-pricing/[id]] DB error:", error);
@@ -267,7 +264,10 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json({ success: true, message: "Tarification supprimée" });
+    return NextResponse.json({
+      success: true,
+      message: "Tarification supprimée",
+    });
   } catch (err) {
     console.error("[DELETE /api/service-pricing/[id]] ERROR:", err);
     return NextResponse.json(
