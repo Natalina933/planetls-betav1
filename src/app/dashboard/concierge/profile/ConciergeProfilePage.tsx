@@ -16,11 +16,12 @@ import {
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import {
-  FiBarChart, FiUser, FiBriefcase, FiMapPin, FiShield, FiGlobe, FiCreditCard, FiTarget, FiClock, FiDollarSign, FiUsers, FiFile, FiStar, FiCheckCircle, FiSliders, FiTrendingUp,
+  FiBarChart, FiUser, FiBriefcase, FiMapPin, FiShield, FiGlobe, FiTarget, FiClock, FiDollarSign, FiUsers, FiFile, FiStar, FiCheckCircle, FiSliders, FiTrendingUp,
 } from "react-icons/fi";
 // import ProfileRegistrationDate from "@/app/components/ui/ProfileRegistrationDate/ProfileRegistrationDate";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
-import SocialLinks from "@/app/components/ui/SocialLinks/SocialLinks";
+// import SocialLinks from "@/app/components/ui/SocialLinks/SocialLinks";
+import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
@@ -311,7 +312,8 @@ export default function ConciergeProfilePage() {
     isTextarea: boolean = false,
     required: boolean = false,
     placeholder: string = "",
-    type: string = "text"
+    type: string = "text",
+    inputProps?: Record<string, number | string>
   ) => {
     const value = editProfile?.[name] ?? "";
     const error = errors[name as string];
@@ -360,6 +362,7 @@ export default function ConciergeProfilePage() {
               placeholder={placeholder || label}
               error={error || ""}
               isValid={!error && !!value}
+              {...inputProps}
             />
           )
         ) : (
@@ -406,7 +409,11 @@ export default function ConciergeProfilePage() {
       </div>
     );
   };
-
+  const handleSocialChange = (field: string, value: string) => {
+    setEditProfile((prev) =>
+      prev ? { ...prev, [field]: value } : prev
+    );
+  };
   const renderTabContent = () => {
     switch (activeTab) {
       case "fiche":
@@ -447,16 +454,62 @@ export default function ConciergeProfilePage() {
 
             <div className={styles.columnRight}>
               {/* Informations personnelles */}
-              {renderSection("Informations personnelles",
+              {renderSection(
+                "Informations personnelles",
                 <FiUser />,
                 <>
-                  {renderField("Nom d'utilisateur", "username", false, true)}
-                  {renderField("Prénom", "first_name", false, true)}
-                  {renderField("Nom", "last_name", false, true)}
-                  {renderField("Email", "email", false, true, "email@exemple.com", "email")}
-                  {renderField("Téléphone", "phone", false, true, "+33 6 12 34 56 78", "tel")}
+                  <div className={styles.fieldsGrid}>
+                    {renderField("Nom d'utilisateur", "username", false, true)}
+                    {renderField("Prénom", "first_name", false, true)}
+                    {renderField("Nom", "last_name", false, true)}
+                    {renderField("Email", "email", false, true, "email@exemple.com", "email")}
+                    {renderField("Téléphone", "phone", false, true, "+33 6 12 34 56 78", "tel")}
+                  </div>
+
+                  {/* Niveau d'expérience */}
+                  <div className={styles.fieldRow}>
+                    <label htmlFor="experience_level" className={styles.fieldLabel}>
+                      Niveau d&apos;expérience
+                    </label>
+                    {isEditing ? (
+                      <select
+                        id="experience_level"
+                        name="experience_level"
+                        value={editProfile?.experience_level ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
+                          setEditProfile((prev) =>
+                            prev ? { ...prev, experience_level: value === "" ? null : value } : prev
+                          );
+                        }}
+                        className={styles.fieldSelect}
+                        aria-label="Sélectionnez votre niveau d'expérience"
+                      >
+                        <option value="">Sélectionner un niveau</option>
+                        <option value="debutant">Débutant (moins de 6 mois)</option>
+                        <option value="intermediaire">Intermédiaire (6 mois à 3 ans)</option>
+                        <option value="experimente">Expérimenté (plus de 3 ans)</option>
+                      </select>
+                    ) : (
+                      <span className={styles.fieldValue}>
+                        {formatExperienceLabel(editProfile?.experience_level ?? null)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Années d'expérience */}
+                  {renderField(
+                    "Années d'expérience",
+                    "years_experience",
+                    false,
+                    false,
+                    "Nombre d'années",
+                    "number",
+                    { min: "0", max: "50" } // UX : empêcher valeurs incohérentes
+                  )}
                 </>
               )}
+
               {/* Informations entreprise */}
               {renderSection(
                 "Informations entreprise",
@@ -498,38 +551,7 @@ export default function ConciergeProfilePage() {
                     "FR 12 123456789"
                   )}
 
-                  {/* Niveau d'expérience */}
-                  <div className={styles.fieldRow}>
-                    <label htmlFor="experience_level" className={styles.fieldLabel}>
-                      Niveau d&apos;expérience
-                    </label>
-                    {isEditing ? (
-                      <select
-                        id="experience_level"
-                        name="experience_level"
-                        value={editProfile?.experience_level ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
-                          setEditProfile((prev) =>
-                            prev
-                              ? { ...prev, experience_level: value === "" ? null : value }
-                              : prev
-                          );
-                        }}
-                        className={styles.fieldSelect}
-                        aria-label="Sélectionnez votre niveau d'expérience"
-                      >
-                        <option value="">Sélectionner un niveau</option>
-                        <option value="debutant">Débutant</option>
-                        <option value="intermediaire">Petite expérience</option>
-                        <option value="experimente">Expérimenté</option>
-                      </select>
-                    ) : (
-                      <span className={styles.fieldValue}>
-                        {formatExperienceLabel(editProfile?.experience_level ?? null)}
-                      </span>
-                    )}
-                  </div>
+
                 </>
               )}
 
@@ -588,58 +610,25 @@ export default function ConciergeProfilePage() {
               {renderSection(
                 "Web & Réseaux sociaux",
                 <FiGlobe />,
-                <>
-                  {renderField(
-                    "Site web / Page principale",
-                    "website",
-                    false,
-                    false,
-                    "https://mon-site.fr",
-                    "url"
-                  )}
-
-                  {renderField(
-                    "Profil LinkedIn",
-                    "linkedin",
-                    false,
-                    false,
-                    "https://linkedin.com/in/..."
-                  )}
-
-                  {renderField(
-                    "Instagram",
-                    "instagram",
-                    false,
-                    false,
-                    "https://instagram.com/ma_conciergerie"
-                  )}
-
-                  {renderField(
-                    "Page Facebook",
-                    "facebook",
-                    false,
-                    false,
-                    "https://facebook.com/ma-conciergerie"
-                  )}
-
-                  <SocialLinks
-                    website={editProfile?.website}
-                    linkedin={editProfile?.linkedin}
-                    instagram={editProfile?.instagram}
-                    facebook={editProfile?.facebook}
-                  />
-                </>
+                <SocialLinksManager
+                  website={editProfile?.website}
+                  linkedin={editProfile?.linkedin}
+                  instagram={editProfile?.instagram}
+                  facebook={editProfile?.facebook}
+                  isEditing={isEditing}
+                  onEdit={() => setIsEditing(true)}
+                  onChange={handleSocialChange}
+                  errors={{
+                    website: errors.website,
+                    linkedin: errors.linkedin,
+                    instagram: errors.instagram,
+                    facebook: errors.facebook,
+                  }}
+                />
               )}
 
-              {/* Informations bancaires */}
-              {renderSection(
-                "Informations bancaires",
-                <FiCreditCard />,
-                <>
-                  {renderField("IBAN", "iban", false, false, "FR76 1234 5678 9012 3456 7890 123")}
-                  {renderField("BIC/SWIFT", "bic", false, false, "BNPAFRPPXXX")}
-                </>
-              )}
+
+
             </div>
           </>
         );

@@ -1,36 +1,72 @@
 import React from "react";
-import { FiAward, FiShield, FiStar } from "react-icons/fi";
+import { FiShield, FiStar } from "react-icons/fi";
 import styles from "./ProfileKeyFacts.module.scss";
+
+/* -------------------------------------------------------------------------- */
+/*                                    TYPES                                   */
+/* -------------------------------------------------------------------------- */
+
+export type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
 
 interface ProfileKeyFactsProps {
     companyName?: string | null;
     createdAt?: string | null;
-    yearsExperience?: number | null;
-    experienceLevel?: "debutant" | "intermediaire" | "experimente" | null;
+
+    /** Ancienneté réelle en mois (prioritaire si fournie) */
+    experienceMonths?: number | null;
+
+    /** Niveau d’expérience déclaré */
+    experienceLevel?: ExperienceLevel | null;
+
     isInsured: boolean;
     certificationsCount: number;
 }
 
-type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
+/* -------------------------------------------------------------------------- */
+/*                         CONFIGURATION MÉTIER                                */
+/* -------------------------------------------------------------------------- */
 
-const getExperienceLabel = (level?: ExperienceLevel | null): string | null => {
-    switch (level) {
-        case "debutant":
-            return "Débutant";
-        case "intermediaire":
-            return "Petite expérience";
-        case "experimente":
-            return "Expérimenté";
-        default:
-            return null;
-    }
+interface ExperienceMeta {
+    label: string;
+    subtitle: string;
+    rangeLabel: string;
+    icon: string;
+    className: string;
+}
+
+const EXPERIENCE_CONFIG: Record<ExperienceLevel, ExperienceMeta> = {
+    debutant: {
+        label: "Débutant",
+        subtitle: "En phase de lancement",
+        rangeLabel: "Moins de 6 mois d’activité",
+        icon: "🌱",
+        className: styles.levelBeginner,
+    },
+    intermediaire: {
+        label: "Intermédiaire",
+        subtitle: "Activité confirmée",
+        rangeLabel: "6 mois à 3 ans d’expérience",
+        icon: "🌿",
+        className: styles.levelIntermediate,
+    },
+    experimente: {
+        label: "Expérimenté",
+        subtitle: "Expertise éprouvée",
+        rangeLabel: "Plus de 3 ans d’expérience",
+        icon: "🌳",
+        className: styles.levelExpert,
+    },
 };
 
-const getMembershipYears = (createdAt?: string | null): number => {
-    if (!createdAt) return 0;
+/* -------------------------------------------------------------------------- */
+/*                                UTILITAIRES                                  */
+/* -------------------------------------------------------------------------- */
+
+const getMembershipYears = (createdAt?: string | null): number | null => {
+    if (!createdAt) return null;
 
     const created = new Date(createdAt);
-    if (Number.isNaN(created.getTime())) return 0;
+    if (Number.isNaN(created.getTime())) return null;
 
     const now = new Date();
     let years = now.getFullYear() - created.getFullYear();
@@ -40,97 +76,104 @@ const getMembershipYears = (createdAt?: string | null): number => {
         (now.getMonth() === created.getMonth() &&
             now.getDate() >= created.getDate());
 
-    if (!hasHadAnniversary) {
-        years -= 1;
-    }
+    if (!hasHadAnniversary) years -= 1;
 
-    return Math.max(years, 0);
+    return years > 0 ? years : null;
 };
 
-const getMembershipBadge = (years: number) => {
-    if (years < 1) {
-        return {
-            icon: "🌱",
-            label: "Nouveau sur PlanetLS",
-            className: styles.newMember,
-        };
-    }
+// const formatExperienceDuration = (
+//   months?: number | null
+// ): string | null => {
+//   if (!months || months <= 0) return null;
 
-    if (years < 3) {
-        return {
-            icon: "⭐",
-            label: `Membre depuis ${years} an${years > 1 ? "s" : ""}`,
-            className: styles.activeMember,
-        };
-    }
+//   if (months < 12) {
+//     return `${months} mois d’activité`;
+//   }
 
-    if (years < 5) {
-        return {
-            icon: "🏅",
-            label: "Expert PlanetLS",
-            className: styles.confirmedMember,
-        };
-    }
+//   const years = Math.floor(months / 12);
+//   const remainingMonths = months % 12;
 
-    return {
-        icon: "👑",
-        label: "Référence PlanetLS",
-        className: styles.premiumMember,
-    };
-};
+//   if (remainingMonths === 0) {
+//     return `${years} an${years > 1 ? "s" : ""} d’activité`;
+//   }
+
+//   return `${years} an${years > 1 ? "s" : ""} et ${remainingMonths} mois`;
+// };
+
+/* -------------------------------------------------------------------------- */
+/*                                COMPONENT                                   */
+/* -------------------------------------------------------------------------- */
 
 const ProfileKeyFacts: React.FC<ProfileKeyFactsProps> = ({
     companyName,
     createdAt,
-    yearsExperience,
+    //   experienceMonths,
     experienceLevel,
     isInsured,
     certificationsCount,
 }) => {
-    const memberYears = getMembershipYears(createdAt);
-    const badge = getMembershipBadge(memberYears);
-    const experienceLabel = getExperienceLabel(experienceLevel);
+    const membershipYears = getMembershipYears(createdAt);
+    //   const experienceDurationLabel =
+    //     formatExperienceDuration(experienceMonths);
 
-    const hasYearsExperience =
-        typeof yearsExperience === "number" && yearsExperience > 0;
+    const experienceMeta = experienceLevel
+        ? EXPERIENCE_CONFIG[experienceLevel]
+        : null;
 
     return (
         <section className={styles.wrapper}>
-            <div className={styles.header}>
+            {/* ============================= HEADER ============================== */}
+            <header className={styles.header}>
                 <div className={styles.company}>
-                    {companyName?.trim() || "Statut PlanetLS"}
+                    {companyName?.trim() || "Profil professionnel"}
                 </div>
 
-                <span className={`${styles.memberBadge} ${badge.className}`}>
-                    <span className={styles.badgeIcon}>{badge.icon}</span>
-                    {badge.label}
-                </span>
-            </div>
+                {membershipYears && (
+                    <span className={styles.membership}>
+                        Membre PlanetLS depuis {membershipYears} an
+                        {membershipYears > 1 ? "s" : ""}
+                    </span>
+                )}
+            </header>
 
-            {/* Indicateurs de confiance : expérience pro, assurance, certifications */}
+            {/* ======================= EXPÉRIENCE (CENTRAL) ====================== */}
+            {experienceMeta && (
+                <div
+                    className={`${styles.experienceBlock} ${experienceMeta.className}`}
+                >
+                    <div className={styles.experienceIcon}>
+                        {experienceMeta.icon}
+                    </div>
+
+                    <div className={styles.experienceContent}>
+                        <h3 className={styles.experienceTitle}>
+                            {experienceMeta.label}
+                        </h3>
+
+                        <p className={styles.experienceSubtitle}>
+                            {experienceMeta.subtitle}
+                        </p>
+
+                        <p className={styles.experienceRange}>
+                            {experienceMeta.rangeLabel}
+                        </p>
+
+                        {/* {experienceDurationLabel && (
+              <p className={styles.experienceDuration}>
+                <FiTrendingUp />
+                {experienceDurationLabel}
+              </p>
+            )} */}
+                    </div>
+                </div>
+            )}
+
+            {/* ===================== INDICATEURS DE CONFIANCE ===================== */}
             <div className={styles.trustRow}>
-                {/* Expérience professionnelle (niveau) */}
-                {experienceLabel && (
-                    <div className={styles.trustItem}>
-                        <FiAward />
-                        <span>Expérience professionnelle : {experienceLabel}</span>
-                    </div>
-                )}
-
-                {/* Nombre d'années d’expérience (optionnel) */}
-                {hasYearsExperience && (
-                    <div className={styles.trustItem}>
-                        <FiAward />
-                        <span>
-                            {yearsExperience} an{yearsExperience > 1 ? "s" : ""} d’expérience
-                        </span>
-                    </div>
-                )}
-
                 {isInsured && (
                     <div className={styles.trustItem}>
                         <FiShield />
-                        <span>Assurance RC Pro</span>
+                        <span>Assurance RC Pro vérifiée</span>
                     </div>
                 )}
 
@@ -139,7 +182,7 @@ const ProfileKeyFacts: React.FC<ProfileKeyFactsProps> = ({
                         <FiStar />
                         <span>
                             {certificationsCount} certification
-                            {certificationsCount > 1 ? "s" : ""}
+                            {certificationsCount > 1 ? "s" : ""} professionnelle
                         </span>
                     </div>
                 )}
