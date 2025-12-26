@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, JSX } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  JSX,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -28,26 +35,28 @@ const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
     <>
       <span className={styles.highlightGold}>Trouvez la conciergerie idéale</span>{" "}
-      — qu’elle soit indépendante ou professionnelle — pour simplifier la gestion
-      de vos locations et gagner du temps.
+      pour simplifier la gestion de vos locations.
     </>
   ),
   concierge: (
     <>
       <span className={styles.highlightGold}>Accédez directement aux propriétaires</span>{" "}
-      qui recherchent une conciergerie fiable, et développez votre activité avec
-      des partenariats durables.
+      qui recherchent une conciergerie fiable.
     </>
   ),
   artisan: (
     <>
-      <span className={styles.highlightGold}>Découvrez les artisans et commerçants locaux</span>{" "}
-      pour valoriser vos biens, entretenir vos logements et soutenir le circuit court.
+      <span className={styles.highlightGold}>Découvrez les artisans locaux</span>{" "}
+      pour valoriser vos biens et soutenir le circuit court.
     </>
   ),
 };
 
-const CATEGORY_ORDER: CategoryKey[] = ["proprietaire", "concierge", "artisan"];
+const CATEGORY_ORDER: CategoryKey[] = [
+  "proprietaire",
+  "concierge",
+  "artisan",
+];
 
 const SEARCH_TARGETS: Record<CategoryKey, string> = {
   proprietaire: "concierge",
@@ -59,11 +68,15 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | "">("");
-  const [searchTarget, setSearchTarget] = useState<string>("");
+  const [searchTarget, setSearchTarget] = useState("");
   const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading"
+  );
 
   const [showExperiencePopup, setShowExperiencePopup] = useState(false);
   const [experienceLevel, setExperienceLevel] = useState<
@@ -74,11 +87,33 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
+  // --- ACCESSIBILITÉ : fermeture via Escape ---
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  // --- ACCESSIBILITÉ : focus trap ---
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const focusable = el.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    }
+  }, []);
+
   // Fermer automatiquement si on arrive sur /complete-registration
   useEffect(() => {
-    if (pathname === "/complete-registration") {
-      onClose();
-    }
+    if (pathname === "/complete-registration") onClose();
   }, [pathname, onClose]);
 
   // Charger les catégories
@@ -93,7 +128,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         const firstCategoryKey = CATEGORY_ORDER.find((key) =>
           data.some((c) => c.key === key)
         );
-        setSelectedCategory(firstCategoryKey || (data[0]?.key ?? ""));
+
+        setSelectedCategory(firstCategoryKey || data[0]?.key || "");
         setCategories(data);
         setStatus("success");
       } catch (error) {
@@ -102,10 +138,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         setStatus("error");
       }
     };
+
     fetchCategories();
   }, []);
 
-  // Mettre à jour la cible recherchée après sélection catégorie
+  // Mettre à jour la cible recherchée
   useEffect(() => {
     if (selectedCategory) {
       setSearchTarget(SEARCH_TARGETS[selectedCategory as CategoryKey] || "");
@@ -133,68 +170,61 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   );
 
   // Étape 2 : sélection niveau d’expérience → CategoryPopup
-  const handleExperienceSelect = (
-    level: "debutant" | "intermediaire" | "experimente"
-  ) => {
-    setExperienceLevel(level);
-    setShowExperiencePopup(false);
-    setShowCategoryPopup(true);
-  };
+  const handleExperienceSelect = useCallback(
+    (level: "debutant" | "intermediaire" | "experimente") => {
+      setExperienceLevel(level);
+      setShowExperiencePopup(false);
+      setShowCategoryPopup(true);
+    },
+    []
+  );
 
-  // Étape 3 : sélection des options de service → AccessPopup
-  const handleOptionSelect = (options: string[]) => {
+  // Étape 3 : sélection des options → AccessPopup
+  const handleOptionSelect = useCallback((options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
     setShowAccessPopup(true);
-  };
+  }, []);
 
-  // Étape 4 : validation finale → redirection vers le formulaire
-  const handleAccessValidate = () => {
+  // Étape 4 : validation finale → redirection
+  const handleAccessValidate = useCallback(() => {
     const params = new URLSearchParams({
       category: selectedCategory,
       searchTarget,
       option: selectedOptions.join(","),
       location,
-      experience_level: experienceLevel || "",
+      experience_level: experienceLevel,
     }).toString();
 
     router.push(`/complete-registration?${params}`);
     onClose();
-  };
+  }, [
+    selectedCategory,
+    searchTarget,
+    selectedOptions,
+    location,
+    experienceLevel,
+    router,
+    onClose,
+  ]);
 
-  const renderCategoryToggles = () => {
-    if (status === "loading") return <p>Chargement des filtres...</p>;
-    if (status === "error") return <p>Erreur lors du chargement des filtres.</p>;
-
-    const categoriesMap = categories.reduce((acc, category) => {
-      acc[category.key] = category;
-      return acc;
-    }, {} as Record<CategoryKey, Category>);
-
-    return CATEGORY_ORDER.filter((key) => categoriesMap[key]).map((key) => {
-      const { label, icon } = categoriesMap[key]!;
-      const Icon = iconMap[icon];
-      const isActive = selectedCategory === key;
-
-      return (
-        <button
-          key={key}
-          type="button"
-          aria-pressed={isActive}
-          className={`${styles.tripleToggleButton} ${isActive ? styles.active : ""}`}
-          onClick={() => setSelectedCategory(key)}
-        >
-          {Icon && <Icon size="1.3em" style={{ marginRight: 6 }} />}
-          {label}
-        </button>
-      );
-    });
-  };
+  // Liste des catégories optimisée
+  const orderedCategories = useMemo(() => {
+    const map = Object.fromEntries(categories.map((c) => [c.key, c]));
+    return CATEGORY_ORDER.filter((key) => map[key]).map((key) => map[key]);
+  }, [categories]);
 
   return (
     <>
+      {/* --- POPUP PRINCIPALE --- */}
       {!showExperiencePopup && !showCategoryPopup && !showAccessPopup && (
-        <div className={styles.mapWithSearchContainer}>
+        <div
+          ref={containerRef}
+          className={`${styles.mapWithSearchContainer} ${styles.fadeIn}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="search-title"
+        >
           <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
 
           <button
@@ -206,12 +236,32 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           </button>
 
           <section className={styles.categorySearchSection}>
-            <h2>Connectez-vous aux bons partenaires</h2>
+            <h2 id="search-title">Inscrivez-vous pour vous connecter aux bons partenaires</h2>
 
-            <div className={styles.tripleToggleGroup}>{renderCategoryToggles()}</div>
+            <div className={styles.tripleToggleGroup}>
+              {orderedCategories.map(({ key, label, icon }) => {
+                const Icon = iconMap[icon];
+                const isActive = selectedCategory === key;
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={isActive}
+                    className={`${styles.tripleToggleButton} ${
+                      isActive ? styles.active : ""
+                    }`}
+                    onClick={() => setSelectedCategory(key)}
+                  >
+                    {Icon && <Icon size="1.3em" style={{ marginRight: 6 }} />}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
 
             {status === "success" && selectedCategory && (
-              <div className={styles.categoryTextBubble1900}>
+              <div className={`${styles.categoryTextBubble1900} ${styles.fadeIn}`}>
                 {DESCRIPTIONS[selectedCategory as CategoryKey]}
               </div>
             )}
@@ -233,6 +283,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         </div>
       )}
 
+      {/* --- POPUPS SECONDAIRES --- */}
       {showExperiencePopup && (
         <ExperiencePopup
           onClose={() => setShowExperiencePopup(false)}
@@ -248,7 +299,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         />
       )}
 
-      {showAccessPopup && selectedCategory && (
+      {showAccessPopup && (
         <AccessPopup
           selectedOptions={selectedOptions}
           category={selectedCategory}

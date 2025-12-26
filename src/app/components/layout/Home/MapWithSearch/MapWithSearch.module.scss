@@ -1,80 +1,62 @@
 @use "sass:math";
 @use "sass:color";
-@use "sass:map" as map;
-
 @use "@/app/styles/abstracts/mixins" as *;
 @use "@/app/styles/abstracts/functions" as *;
-// Assurez-vous que ces variables sont définies (glass-bg, gold-alt, mucha-ink, etc.)
 @use "@/app/styles/abstracts/variables" as *;
 @use "@/app/styles/base/animations" as anim;
 
-// Variables de Glassmorphism (définies dans _variables.scss)
-$mucha-glass-overlay: url("/textures/mucha-background-pattern.png");
-$mucha-ink: #1f2937; // Encre sombre
+/* -------------------------------------------------------
+   🌟 1. VARIABLES & CONSTANTES
+------------------------------------------------------- */
+$mucha-overlay: url("/textures/mucha-background-pattern.png");
+$mucha-ink: #1f2937;
 
-// === SECTION PRINCIPALE ===
-.mapWithSearchSection {
-  border-radius: 0;
-  background: transparent;
-  position: relative;
-  padding: $spacing-xl $spacing-md; /* Padding généreux sur desktop, ajusté sur mobile */
-
-  @include mq(sm) {
-    padding: $spacing-lg $spacing-xs;
-  }
-}
-
+/* -------------------------------------------------------
+   🌟 2. CONTAINER PRINCIPAL
+------------------------------------------------------- */
 .mapWithSearchContainer {
-  /* --- Styles Glassmorphism et Mucha --- */
-  background: $glass-bg;
-  backdrop-filter: blur(8px);
-  border: 1px solid $glass-border;
-  box-shadow: $glass-shadow;
-  background-image: linear-gradient(
-      rgba(255, 255, 255, 0.4),
-      rgba(255, 255, 255, 0.4)
-    ),
-    $mucha-glass-overlay;
-  background-blend-mode: overlay;
-  background-size: 250px 250px;
   @include mucha-frame($gold-dark, $radius-2xl, 3px);
 
-  padding: $spacing-xl; /* Padding interne */
-  position: relative;
-  max-width: 850px; /* Légèrement élargi pour le desktop */
-  width: 95%; /* Assure qu'il ne déborde pas */
+  background: $glass-bg;
+  backdrop-filter: blur(10px);
+  border: 1px solid $glass-border;
+  box-shadow: $glass-shadow;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.45),
+      rgba(255, 255, 255, 0.45)),
+    $mucha-overlay;
+  background-size: 240px 240px;
+  background-blend-mode: overlay;
+
+  width: min(850px, 95%);
   margin: 0 auto;
-  animation: fadeInStatic 0.8s ease-out;
+  padding: $spacing-xl;
+  position: relative;
+  animation: fadeIn 0.45s ease-out;
 
   @include mq(sm) {
-    padding: $spacing-md; /* Padding réduit sur mobile */
-    width: 100%;
+    padding: $spacing-md;
   }
 
   h2 {
-    background: rgba(255, 255, 255, 0.8);
-    padding: $spacing-xs $spacing-md;
-    border-radius: $radius-md;
-    display: inline-block;
-    margin: 0 auto $spacing-md;
-
     font-family: $font-elegant;
-    font-size: 2.2rem;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
     color: $mucha-ink;
     text-align: center;
-
-    @include mq(sm) {
-      font-size: 1.6rem; /* Taille réduite sur mobile */
-      margin-bottom: $spacing-sm;
-    }
+    padding: $spacing-xs $spacing-md;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: $radius-md;
+    margin-bottom: $spacing-md;
   }
 }
 
-// === POPUP MODE ===
-.searchOverlay {
+/* -------------------------------------------------------
+   🌟 3. OVERLAYS & POPUPS
+------------------------------------------------------- */
+.searchOverlay,
+.popupOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,423 +70,189 @@ $mucha-ink: #1f2937; // Encre sombre
   border: 1px solid $glass-border;
   border-radius: $radius-2xl;
   padding: 2rem;
-  max-width: 900px;
-  width: 90%;
-  max-height: 90vh;
+  width: min(900px, 90%);
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
-  position: relative;
   box-shadow: $glass-shadow-hover;
-  animation: popupFade 0.3s ease;
+  animation: popupFade 0.35s ease;
 
   @include mq(sm) {
-    padding: 1.5rem $spacing-sm; /* Réduction du padding horizontal sur mobile */
-    width: 95%;
+    padding: 1.5rem;
   }
 }
 
-/* --- Bouton de fermeture --- */
+/* -------------------------------------------------------
+   🌟 4. BOUTON FERMETURE
+------------------------------------------------------- */
 .closeButton {
   position: absolute;
   top: $spacing-sm;
   right: $spacing-sm;
   background: transparent;
   border: none;
-  color: $mucha-accent;
   font-size: 1.4rem;
+  color: $mucha-accent;
   cursor: pointer;
-  transition: $transition;
+  transition: transform 0.25s ease, color 0.25s ease;
 
   &:hover {
+    transform: scale(1.15);
     color: $gold-dark;
-    transform: scale(1.1);
   }
 }
 
-/* Overlay générique (CategoryPopup / AccessPopup) */
-.popupOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-@keyframes popupFade {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-// === HEADER & INTRO ===
-.headerContent {
-  background: linear-gradient(180deg, #fffef9 0%, #fef5ed 100%);
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 40px rgba(184, 139, 74, 0.07);
-  text-align: center;
-  font-family: var(--font-title, serif);
-  overflow: hidden;
-
-  @include mq(sm) {
-    /* Utilisation du mixin mq(sm) */
-    padding: 1.7rem 0.6rem;
-    font-size: 1.07rem;
-  }
-}
-
-// === CATEGORY SECTION ===
+/* -------------------------------------------------------
+   🌟 5. SECTION CATÉGORIE
+------------------------------------------------------- */
 .categorySearchSection {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-
-  @include mq(md) {
-    padding: $spacing-md $spacing-sm;
-  }
-}
-
-// === Texte descriptif avec décor (Mucha Bubble) ===
-.categoryTextBubble1900 {
-  max-width: 500px;
-  width: 90%;
-  margin: 1rem auto 0;
-  padding: 1rem;
-  border-radius: 20px;
-  border: 2px solid #d4af37;
-
-  // background-image: linear-gradient(rgba(255, 200, 100, 0.55), rgba(139, 69, 19, 0.6)),
-  //     url("/textures/mucha-background-pattern.png");
-  // background-blend-mode: soft-light;
-  // background-repeat: repeat;
-
-  background-size: 200px 230px;
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px #d4af37;
+  gap: $spacing-md;
+  padding: $spacing-md 0;
 
   @include mq(sm) {
-    padding: 0.5rem; /* Réduction du padding pour mobile */
-  }
-
-  :global(p) {
-    background-color: rgba(255, 255, 255, 0.95);
-    padding: 1.2rem 0.8rem;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    margin: 0.5rem 0;
-
-    font-family: var(--font-text, sans-serif);
-    font-size: 1.1em;
-    line-height: 1.5em;
-  }
-
-  .bubbleTitle {
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 0.8rem 0;
-    border-radius: 10px 10px 0 0;
-
-    font-family: $font-elegant;
-    font-size: 1.35em;
-    font-weight: bold;
-    color: $mucha-ink;
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
-    border-bottom: 2px solid $gold-alt;
-  }
-
-  .bubbleBody {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 90px;
-    font-size: 1em;
-    padding: 0.5rem;
-    margin-top: 0;
+    gap: $spacing-sm;
   }
 }
 
-// === Instructions catégorie ===
-.categoryInstructionWrapper {
-  width: 100%;
-  text-align: center;
-
-  .categoryInstruction {
-    font-family: var(--font-title, serif);
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 2.5rem;
-
-    @include mq(md) {
-      font-size: 1.2rem;
-      margin-top: $spacing-lg;
-      margin-bottom: $spacing-xl;
-    }
-  }
-}
-
-// === Conteneur boutons bulles ===
-.bubblesRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
-  justify-content: center;
-  border: $gold 1px double;
-  border-radius: 35px;
-  padding: $spacing-xs; /* Réduction du padding */
-  max-width: 100%; /* S'adapte au conteneur */
-
-  @include mq(sm) {
-    /* Laissez-le flex-wrap pour les petits écrans, il s'alignera */
-    gap: $spacing-xs;
-    padding: 2px;
-  }
-}
-
-// === Groupe triple toggle ===
+/* -------------------------------------------------------
+   🌟 6. TRIPLE TOGGLE (Pro / Concierge / Artisan)
+------------------------------------------------------- */
 .tripleToggleGroup {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
   gap: 1rem;
+  width: 90%;
   max-width: 800px;
-  width: 90%; /* Nouvelle largeur fluide */
-  margin: 0 auto;
-  padding: 0.4rem;
+  padding: 0.5rem;
   background: #fff8e1;
   border: 2px solid $gold;
   border-radius: $radius-pill;
 
   @include mq(sm) {
-    width: 100%;
     flex-direction: column;
+    width: 100%;
     gap: 0.5rem;
-    padding: 0.5rem;
   }
 }
 
 .tripleToggleButton {
   flex: 1;
-  padding: 0.6rem 1.2rem;
-  font-family: var(--font-title);
+  padding: 0.7rem 1rem;
+  font-family: $font-elegant;
   font-size: 1rem;
   color: #6b5210;
   background: #fff8e1;
   border: none;
   border-radius: $radius-pill;
   cursor: pointer;
-  transition: $transition;
-  text-align: center;
+  transition: all 0.25s ease;
 
   &:hover {
-    color: #5a430c;
-    background: rgba(255, 224, 155, 0.3);
+    background: rgba(255, 224, 155, 0.35);
   }
 
   &.active {
     background: linear-gradient(to right, $gold, $gold-alt);
-    color: #fff;
-    box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
+    color: white;
+    box-shadow: 0 0 0 3px rgba($gold, 0.35);
   }
 }
 
-// === Bulles ===
-.bubbleBtn {
-  /* Utilisation de clamp() pour gérer la taille de manière fluide */
-  width: clamp(55px, 12vw, 75px);
-  height: clamp(55px, 12vw, 75px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  border: 2.5px solid var(--bubble-primary);
-  box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.15);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  @include backdrop-blur(
-    3px,
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 255, 255, 0.2)
-  );
-
-  svg {
-    font-size: 1.9rem;
-    color: var(--bubble-primary, var(--color-accent));
-  }
-
-  &:hover {
-    background: linear-gradient(135deg, #fffbe5 80%, #eaddca 100%);
-    transform: scale(1.1) translateY(-5px);
-    border-color: var(--bubble-primary);
-  }
-}
-
-.bubbleLabel {
-  font-family: var(--font-title);
-  font-size: 0.9rem;
-  color: var(--bubble-primary);
-  font-weight: 600;
-  text-align: center;
+/* -------------------------------------------------------
+   🌟 7. BUBBLE TEXTE (description Mucha)
+------------------------------------------------------- */
+.categoryTextBubble1900 {
+  width: min(500px, 90%);
+  padding: 1rem;
+  border-radius: 20px;
+  border: 2px solid $gold;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.4s ease;
 
   @include mq(sm) {
-    font-size: 0.8rem;
+    padding: 0.7rem;
   }
 }
 
-// === Highlight ===
-.highlightGold {
-  color: #775717; /* Texte marron foncé/or */
-  // background: #ffe09b; /* Fond crème/or clair */
-  font-weight: $font-weight-bold; /* Utilisation de la variable de poids de police */
-  padding: 0.1em 0.3em; /* Léger padding pour l'encadrement */
-  display: inline; /* Important pour que l'effet s'applique correctement sur le texte */
-  position: relative;
-  transition: all 0.3s $ease-out-cubic; /* Transition pour un mouvement fluide */
-  overflow: hidden; /* Assure que le soulignement ne déborde pas */
-  line-height: 1.5; /* Assure une bonne hauteur de ligne */
-
-  /* Bordure/Encadrement de style Art Nouveau (forme asymétrique) */
-  // border-radius: 12px 4px 12px 4px;
-  // border: 1px solid color.adjust(#775717, $alpha: -0.7); /* Fine bordure brun-doré */
-  // box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  /* Soulignement animé par défaut (invisible) */
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px; /* Épaisseur du soulignement */
-    background: linear-gradient(
-      90deg,
-      $primary-color-sass,
-      $gold-alt
-    ); /* Dégradé doré */
-    transform: scaleX(0); /* Commence invisible */
-    transform-origin: bottom right;
-    transition: transform 0.4s $ease-out-cubic;
-    border-radius: 1px;
-  }
-
-  /* Effet au survol (Hover) */
-  &:hover {
-    color: $mucha-ink; /* Assombrit le texte au survol */
-    // background: color.scale(#ffe09b, $lightness: -5%); /* Assombrit légèrement le fond */
-    cursor: help; /* Change le curseur pour indiquer une interaction */
-
-    /* Le soulignement apparaît et s'étend */
-    &::after {
-      transform: scaleX(1); /* Devient visible */
-      transform-origin: bottom left;
-    }
-  }
-}
-
-/* --- Barre de recherche --- */
+/* -------------------------------------------------------
+   🌟 8. BARRE DE RECHERCHE
+------------------------------------------------------- */
 .searchBar {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
-  width: 90%; /* Largeur relative */
-  max-width: 480px;
-  margin-top: 1.5rem;
-  padding: 0.3rem;
+  width: min(480px, 90%);
+  padding: 0.4rem;
   background: #fffef9;
   border-radius: 999px;
   border: 2px solid $gold;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 
-  @include mq(sm) {
-    width: 100%; /* Prend toute la largeur sur mobile */
-  }
-
-  input[type="search"] {
+  input {
     flex: 1;
-    padding: 0.7rem 1.2rem;
+    padding: 0.7rem 1rem;
     border: none;
-    border-radius: 999px;
-    font-family: var(--font-body, "Lato", sans-serif);
-    font-size: 1rem;
     background: transparent;
-    color: var(--color-text, #333);
-    transition: all 0.3s ease;
-
-    @include mq(sm) {
-      padding: 0.6rem 1rem;
-      font-size: 0.9rem;
-    }
+    font-size: 1rem;
+    font-family: var(--font-body);
+    color: #5a430c;
 
     &::placeholder {
       color: #9c8c6d;
       font-style: italic;
-      opacity: 0.8;
     }
 
     &:focus {
       outline: none;
-      box-shadow: none;
-      color: #5a430c;
     }
   }
 
-  /* Bouton icône recherche */
   button {
     background: $gold;
     border: none;
     border-radius: 50%;
     padding: 0.65rem;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    @include mq(sm) {
-      padding: 0.5rem;
-    }
+    transition: all 0.25s ease;
 
     svg {
+      color: white;
       font-size: 1.2rem;
-      color: #fff;
-      transition: transform 0.3s ease, color 0.3s ease;
+      transition: transform 0.25s ease;
     }
 
-    &:hover {
-      background: color.scale($gold, $lightness: -10%);
-
-      svg {
-        transform: scale(1.15) rotate(8deg);
-        color: #fffbe6;
-      }
-    }
-
-    &:active {
-      transform: scale(0.92);
-      background: color.scale($gold, $lightness: -15%);
-    }
-
-    &:focus {
-      outline: 2px solid $gold-alt;
-      outline-offset: 3px;
+    &:hover svg {
+      transform: scale(1.15) rotate(6deg);
     }
   }
 }
 
-// === Accessibilité ===
-.srOnly {
-  position: absolute !important;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+/* -------------------------------------------------------
+   🌟 9. ANIMATIONS
+------------------------------------------------------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popupFade {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

@@ -1,111 +1,135 @@
+/* -------------------------------------------------------
+   WRAPPER
+------------------------------------------------------- */
 .wrapper {
-    margin-bottom: 1.5rem;
-    padding: 1.1rem 0.9rem;
-    border-radius: 16px;
-    background: radial-gradient(circle at top left, #1f2933, #0b1017 60%);
-    color: #f9fafb;
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.25),
-        0 0 0 1px rgba(148, 163, 184, 0.22);
+  margin-bottom: 1.5rem;
+  padding: clamp(0.8rem, 2vw, 1.2rem);
+  border-radius: 16px;
+  background: radial-gradient(circle at top left, #1f2933, #0b1017 60%);
+  color: #f9fafb;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(148, 163, 184, 0.22);
 }
 
+/* -------------------------------------------------------
+   HEADER
+------------------------------------------------------- */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 0.75rem);
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
 }
 
+/* -------------------------------------------------------
+   TITLE
+------------------------------------------------------- */
 .title {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-    color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #e5e7eb;
 }
 
 .titleIcon {
-    color: #d4af37;
-    font-size: 1rem;
+  color: #d4af37;
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
 }
 
+/* -------------------------------------------------------
+   LEVEL BADGE
+------------------------------------------------------- */
 .levelBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.7rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-    background: rgba(15, 23, 42, 0.85);
-    color: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: clamp(0.7rem, 2.3vw, 0.8rem);
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e5e7eb;
+
+  @media (max-width: 480px) {
+    align-self: flex-start;
+  }
 }
 
 .levelIcon {
-    font-size: 0.9rem;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
 }
 
-/* Variantes de niveau */
+/* Variantes */
 .levelBeginner {
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.45);
-    color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
 }
 
 .levelIntermediate {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.45);
-    color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #93c5fd;
 }
 
 .levelExpert {
-    background: rgba(234, 179, 8, 0.12);
-    border-color: rgba(234, 179, 8, 0.45);
-    color: #fde68a;
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.45);
+  color: #fde68a;
 }
 
 .levelUnknown {
-    background: rgba(148, 163, 184, 0.12);
-    border-color: rgba(148, 163, 184, 0.4);
-    color: #e5e7eb;
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #e5e7eb;
 }
 
+/* -------------------------------------------------------
+   DESCRIPTION
+------------------------------------------------------- */
 .description {
-    font-size: 0.82rem;
-    color: #cbd5f5;
-    margin-bottom: 0.6rem;
+  font-size: clamp(0.78rem, 2.3vw, 0.9rem);
+  color: #cbd5f5;
+  margin-bottom: 0.6rem;
+  line-height: 1.45;
 }
 
+/* -------------------------------------------------------
+   STATS ROW
+------------------------------------------------------- */
 .statsRow {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-top: 0.5rem;
+
+  @media (max-width: 480px) {
+    gap: 0.5rem 0.8rem;
+  }
 }
 
 .statItem {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.82rem;
-    color: #e5e5e5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: clamp(0.78rem, 2.3vw, 0.9rem);
+  color: #e5e5e5;
 
-    svg {
-        color: #d4af37;
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .levelBadge {
-        align-self: flex-start;
-    }
+  svg {
+    color: #d4af37;
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  }
 }

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import styles from "./Navbar.module.scss";
@@ -13,6 +12,8 @@ const Icons = {
 export default function Navbar() {
   const { setSearchOpen } = useSearchPopup();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <nav className={styles.navbar}>
@@ -31,24 +32,35 @@ export default function Navbar() {
       <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
         <li className={styles["nav-search"]}>
           <button
-            onClick={() => setSearchOpen(true)}
+            onClick={() => {
+              setSearchOpen(true);
+              closeMenu();
+            }}
             className={`${styles.searchBtn} ${styles.navButton}`}
             aria-label="Ouvrir la recherche"
           >
             <Icons.FaSearch size={18} /> Recherche
           </button>
         </li>
+
         <li className={styles["auth-inscription"]}>
           <button
-            onClick={() => setSearchOpen(true)} // <-- même logique que Recherche
+            onClick={() => {
+              setSearchOpen(true);
+              closeMenu();
+            }}
             className={`${styles.searchBtn} ${styles.navButton}`}
             aria-label="Ouvrir la recherche pour inscription"
           >
             S’inscrire
           </button>
         </li>
+
         <li className={styles["auth-connexion"]}>
-          <a href="/login">
+          <a
+            href="/login"
+            onClick={closeMenu}
+          >
             <Icons.FaUser size={18} /> Se connecter
           </a>
         </li>

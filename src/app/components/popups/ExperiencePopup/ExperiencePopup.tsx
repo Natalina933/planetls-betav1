@@ -1,11 +1,14 @@
+//src/app/components/popups/ExperiencePopup/ExperiencePopup.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./ExperiencePopup.module.scss";
 
 interface ExperiencePopupProps {
     onClose: () => void;
-    onNext: (experience_level: "debutant" | "intermediaire" | "experimente") => void;
+    onNext: (
+        experience_level: "debutant" | "intermediaire" | "experimente"
+    ) => void;
 }
 
 const EXPERIENCE_LEVELS = [
@@ -17,12 +20,14 @@ const EXPERIENCE_LEVELS = [
     {
         label: "Petite expérience",
         value: "intermediaire" as const,
-        description: "J’ai déjà travaillé un peu dans la conciergerie ou un service équivalent.",
+        description:
+            "J’ai déjà travaillé un peu dans la conciergerie ou un service équivalent.",
     },
     {
         label: "Expérimenté",
         value: "experimente" as const,
-        description: "J’ai une expérience solide et régulière dans ce domaine.",
+        description:
+            "J’ai une expérience solide et régulière dans ce domaine.",
     },
 ];
 
@@ -31,46 +36,115 @@ export default function ExperiencePopup({ onClose, onNext }: ExperiencePopupProp
         "debutant" | "intermediaire" | "experimente" | null
     >(null);
 
+    const popupRef = useRef<HTMLDivElement | null>(null);
+
+    // Empêche le scroll du body
+    useEffect(() => {
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, []);
+
+    // Fermeture via Escape
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, [onClose]);
+
+    // Fermeture en cliquant en dehors
+    const handleClickOutside = useCallback(
+        (e: MouseEvent) => {
+            if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+                onClose();
+            }
+        },
+        [onClose]
+    );
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [handleClickOutside]);
+    useEffect(() => {
+        const focusableSelectors =
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+        const popup = popupRef.current;
+        if (!popup) return;
+
+        const focusables = popup.querySelectorAll<HTMLElement>(focusableSelectors);
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        first?.focus();
+
+        const trap = (e: KeyboardEvent) => {
+            if (e.key !== "Tab") return;
+
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        };
+
+        popup.addEventListener("keydown", trap);
+        return () => popup.removeEventListener("keydown", trap);
+    }, []);
+
     const handleValidate = () => {
         if (selected) onNext(selected);
     };
 
     return (
-        <div className={styles.popupOverlay}>
-            <div className={styles.popupContent}>
-                <h3>Quel est votre niveau d’expérience en conciergerie ou similaire ?</h3>
+        <div
+            className={styles.popupOverlay}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="experience-title"
+        >
+            <div className={styles.popupContent} ref={popupRef}>
+                <h3 id="experience-title">
+                    Quel est votre niveau d’expérience en conciergerie ou similaire ?
+                </h3>
 
-                <ul className={styles.optionList}>
-                    {EXPERIENCE_LEVELS.map((opt) => (
-                        <li key={opt.value}>
-                            <label className={styles.optionLabel}>
-                                <input
-                                    type="radio"
-                                    name="experience_level"
-                                    checked={selected === opt.value}
-                                    onChange={() => setSelected(opt.value)}
-                                />
-                                <span>
-                                    <strong>{opt.label}</strong> – {opt.description}
-                                </span>
-                            </label>
-                        </li>
-                    ))}
-                </ul>
+                <div className={styles.content}>
+                    <ul className={styles.optionList}>
+                        {EXPERIENCE_LEVELS.map((opt) => (
+                            <li key={opt.value}>
+                                <label className={styles.optionLabel}>
+                                    <input
+                                        type="radio"
+                                        name="experience_level"
+                                        checked={selected === opt.value}
+                                        onChange={() => setSelected(opt.value)}
+                                    />
+                                    <span>
+                                        <strong>{opt.label}</strong>
+                                        {opt.description}
+                                    </span>
+                                </label>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
 
                 <div className={styles.actions}>
                     <button className={styles.closeButton} onClick={onClose}>
                         Annuler
                     </button>
-                    <button
-                        type="button"
-                        disabled={!selected}
-                        onClick={handleValidate}
-                    >
+                    <button disabled={!selected} onClick={handleValidate}>
                         Valider mon niveau
                     </button>
                 </div>
             </div>
         </div>
     );
+
 }
