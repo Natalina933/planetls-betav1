@@ -64,29 +64,31 @@ export default function CategoryPopup({ category, onClose, onNext }: CategoryPop
       <div className={styles.popupContent}>
         <h3>{content.title}</h3>
 
-        <ul className={styles.optionList}>
-          {content.options.map((option) => (
-            <li key={option}>
-              <label className={styles.optionLabel}>
-                <input
-                  type="checkbox"
-                  checked={selected.includes(option)}
-                  onChange={() => toggle(option)}
-                />
-                <span>{option}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        <div className={styles.content}>
 
+          <ul className={styles.optionList}>
+            {content.options.map((option) => (
+              <li key={option}>
+                <label className={styles.optionLabel}>
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(option)}
+                    onChange={() => toggle(option)}
+                  />
+                  <span>{option}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
         <div className={styles.actions}>
           <button className={styles.closeButton} onClick={onClose}>Annuler</button>
-<button
-  type="button"
-  onClick={() => onNext(selected)}
->
-  Valider ma sélection ({selected.length})
-</button>
+          <button
+            type="button"
+            onClick={() => onNext(selected)}
+          >
+            Valider ma sélection ({selected.length})
+          </button>
 
         </div>
       </div>

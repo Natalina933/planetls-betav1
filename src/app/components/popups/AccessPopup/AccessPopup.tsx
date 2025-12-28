@@ -1,23 +1,29 @@
+"use client";
+
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import styles from "./AccessPopup.module.scss";
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  additionalInfo: string;
+}
 
 interface AccessPopupProps {
   selectedOptions: string[];
-  category: string;
-  location: string;
-  onClose?: () => void;
-  onValidate?: () => void; // ← AJOUTE !
+  onClose: () => void;
+  onBack?: () => void;
+  onValidate?: (formData: FormData) => void;
 }
-
 
 export default function AccessPopup({
   selectedOptions,
-  category,
-  location,
   onClose,
+  onBack,
+  onValidate,
 }: AccessPopupProps) {
-  const router = useRouter();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -28,29 +34,30 @@ export default function AccessPopup({
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleProceed = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+    e?.preventDefault();
 
-    // Logique: la cible dépend du "je suis"
-    let searchTarget = "";
-    if (category === "proprietaire") searchTarget = "concierge";
-    else if (category === "concierge") searchTarget = "proprietaire";
-    else if (category === "artisan") searchTarget = "proprietaire ou concierge"; // adapter si besoin
+    // Validation basique
+    if (!form.firstName || !form.lastName || !form.email) {
+      alert("Veuillez remplir tous les champs obligatoires");
+      return;
+    }
 
-    const params = {
-      category,
-      searchTarget, // ← ICI
-      option: selectedOptions.join(","),
-      location,
-      ...form,
-    };
-    const qs = new URLSearchParams(params).toString();
+    if (onValidate) {
+      onValidate(form);
+    }
+  };
 
-    window.dispatchEvent(new Event("close-map"));
-    router.push(`/complete-registration?${qs}`);
-    onClose?.();
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      onClose();
+    }
   };
 
   return (
@@ -58,7 +65,7 @@ export default function AccessPopup({
       <div className={styles.popup}>
         <button
           className={styles.close}
-          onClick={() => onClose?.()}
+          onClick={onClose}
           aria-label="Fermer"
         >
           ✕
@@ -110,10 +117,13 @@ export default function AccessPopup({
           </label>
 
           <div className={styles.actions}>
-            <button type="button" onClick={() => onClose?.()}>
+            <button className={styles.closeButton} type="button" onClick={handleBack}>
               Retour
             </button>
-            <button type="submit">Continuer vers le formulaire</button>
+
+            <button type="submit" onClick={handleProceed}>
+              Continuer
+            </button>
           </div>
         </form>
       </div>

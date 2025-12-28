@@ -1,3 +1,6 @@
+// ProfileKeyFacts.module.scss
+@use "sass:color";
+
 /* -------------------------------------------------------------------------- */
 /*                               DESIGN TOKENS                                */
 /* -------------------------------------------------------------------------- */
@@ -28,7 +31,7 @@ $shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.35);
   background: linear-gradient(
     160deg,
     $bg-panel,
-    darken($bg-panel, 2%)
+    color.adjust($bg-panel, $lightness: -2%)
   );
   border-radius: 1.5rem;
   padding: 1.75rem;

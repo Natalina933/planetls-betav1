@@ -1,4 +1,5 @@
 /* ProfileSummary.module.scss */
+@use "sass:color";
 
 $bg-dark: #1e1e2f;
 $card-bg: #2c2c3d;
@@ -33,7 +34,7 @@ $shadow: rgba(0, 0, 0, 0.3);
   .loadingSpinner {
     width: 3rem;
     height: 3rem;
-    border: 4px solid lighten($bg-dark, 10%);
+    border: 4px solid color.adjust($bg-dark, $lightness: 10%);
     border-top: 4px solid $accent-green;
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -110,7 +111,7 @@ $shadow: rgba(0, 0, 0, 0.3);
     gap: 0.25rem;
 
     .progressBar {
-      background-color: darken($bg-dark, 5%);
+      background-color: color.adjust($bg-dark, $lightness: -5%);
       height: 0.75rem;
       border-radius: 0.5rem;
       overflow: hidden;
@@ -161,7 +162,7 @@ $shadow: rgba(0, 0, 0, 0.3);
       gap: 0.5rem;
 
       .missingFieldTag {
-        background-color: lighten($bg-dark, 10%);
+        background-color: color.adjust($bg-dark, $lightness: 10%);
         padding: 0.25rem 0.5rem;
         border-radius: 0.5rem;
         font-size: 0.75rem;
@@ -183,7 +184,7 @@ $shadow: rgba(0, 0, 0, 0.3);
       transition: all 0.3s ease;
 
       &:hover {
-        background-color: lighten($accent-green, 10%);
+        background-color: color.adjust($accent-green, $lightness: 10%);
       }
     }
   }

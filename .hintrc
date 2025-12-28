@@ -16,7 +16,16 @@
       {
         "autocomplete-valid": "off"
       }
-    ]
+    ],
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "-webkit-overflow-scrolling"
+        ]
+      }
+    ],
+    "detect-css-reflows/composite": "off"
   },
   "browserslist": [
     "defaults",

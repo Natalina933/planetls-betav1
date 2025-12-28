@@ -7,7 +7,8 @@ import styles from "./ExperiencePopup.module.scss";
 interface ExperiencePopupProps {
     onClose: () => void;
     onNext: (
-        experience_level: "debutant" | "intermediaire" | "experimente"
+        experience_level: "debutant" | "intermediaire" | "experimente",
+        years_of_experience: string
     ) => void;
 }
 
@@ -16,18 +17,19 @@ const EXPERIENCE_LEVELS = [
         label: "Débutant",
         value: "debutant" as const,
         description: "Je découvre la conciergerie ou un domaine similaire.",
+        yearsRange: "0-1 an",
     },
     {
         label: "Petite expérience",
         value: "intermediaire" as const,
-        description:
-            "J’ai déjà travaillé un peu dans la conciergerie ou un service équivalent.",
+        description: "J'ai déjà travaillé un peu dans la conciergerie ou un service équivalent.",
+        yearsRange: "1-3 ans",
     },
     {
         label: "Expérimenté",
         value: "experimente" as const,
-        description:
-            "J’ai une expérience solide et régulière dans ce domaine.",
+        description: "J'ai une expérience solide et régulière dans ce domaine.",
+        yearsRange: "+3 ans",
     },
 ];
 
@@ -69,6 +71,7 @@ export default function ExperiencePopup({ onClose, onNext }: ExperiencePopupProp
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [handleClickOutside]);
+
     useEffect(() => {
         const focusableSelectors =
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -99,7 +102,11 @@ export default function ExperiencePopup({ onClose, onNext }: ExperiencePopupProp
     }, []);
 
     const handleValidate = () => {
-        if (selected) onNext(selected);
+        if (selected) {
+            const selectedLevel = EXPERIENCE_LEVELS.find(lvl => lvl.value === selected);
+            const yearsRange = selectedLevel?.yearsRange || "0-1 an";
+            onNext(selected, yearsRange);
+        }
     };
 
     return (
@@ -111,7 +118,7 @@ export default function ExperiencePopup({ onClose, onNext }: ExperiencePopupProp
         >
             <div className={styles.popupContent} ref={popupRef}>
                 <h3 id="experience-title">
-                    Quel est votre niveau d’expérience en conciergerie ou similaire ?
+                    Quel est votre niveau d&apos;expérience en conciergerie ou similaire ?
                 </h3>
 
                 <div className={styles.content}>
@@ -127,7 +134,8 @@ export default function ExperiencePopup({ onClose, onNext }: ExperiencePopupProp
                                     />
                                     <span>
                                         <strong>{opt.label}</strong>
-                                        {opt.description}
+                                        <span className={styles.yearsRange}>({opt.yearsRange})</span>
+                                        <p className={styles.description}>{opt.description}</p>
                                     </span>
                                 </label>
                             </li>
@@ -146,5 +154,4 @@ export default function ExperiencePopup({ onClose, onNext }: ExperiencePopupProp
             </div>
         </div>
     );
-
 }

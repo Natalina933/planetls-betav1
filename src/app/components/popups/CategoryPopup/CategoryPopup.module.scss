@@ -3,52 +3,81 @@
 @use "@/app/styles/abstracts/variables" as *;
 @use "@/app/styles/abstracts/mixins" as *;
 
-
+/* ===========================
+   OVERLAY
+=========================== */
 .popupOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 10, 20, 0.55);
-  backdrop-filter: blur(8px);
+  height: 100dvh;
+  width: 100vw;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
+  background: rgba(10, 10, 20, 0.55);
+  backdrop-filter: blur(10px);
+
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+
+  overflow: hidden;
   z-index: 50;
-  animation: fadeIn 0.3s ease forwards;
+
+  @media (max-width: 600px) {
+    align-items: flex-end;
+    padding: 0;
+  }
 }
 
+/* ===========================
+   POPUP CONTENT
+=========================== */
 .popupContent {
+  width: min(90%, 520px);
+  max-height: 90vh;
+
   background: linear-gradient(135deg, #ffffff, #f9f9fb);
   border-radius: 20px;
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.3) inset;
-  padding: 2.5rem;
-  width: 90%;
-  max-width: 520px;
+  padding: 2rem;
+
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  animation: popIn 0.35s ease-out;
+
   position: relative;
   overflow: hidden;
-  max-height: 90vh;       // la popup ne dépassera jamais 90% de la hauteur de l'écran
-  overflow-y: auto;        // si c’est trop long, défilement interne vertical
-  scrollbar-width: thin;   // (Firefox) rend la barre discrète
+
+  animation: popIn 0.35s ease-out;
+
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+
+  scrollbar-width: thin;
   scrollbar-color: #d4af37 #f0f0f0;
 
   @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #23272f, #23272f);
+    background: linear-gradient(135deg, #1e222a, #23272f);
     box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.15),
-      0 0 0 1px rgba(0, 0, 0, 0.3) inset;
+      0 12px 40px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(0, 0, 0, 0.4) inset;
   }
 
-  @media (prefers-color-scheme: light) {
-    scrollbar-color: #b8902e #faf9f6; // (Firefox) couleurs adaptées au mode clair
+  @media (max-width: 600px) {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    height: calc(100dvh - env(safe-area-inset-top));
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    padding: 1.8rem;
   }
+
   h3 {
-    font-size: 1.4rem;
+    font-size: 1.45rem;
     font-weight: 700;
-    color: #222;
     margin-bottom: 1.8rem;
+
     background: linear-gradient(90deg, #b89226, #d4af37, #e2c874);
     -webkit-background-clip: text;
     background-clip: text;
@@ -56,60 +85,112 @@
   }
 }
 
+/* ===========================
+   SCROLLABLE CONTENT
+=========================== */
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d4af37 transparent;
+}
+
+/* ===========================
+   OPTIONS LIST
+=========================== */
 .optionList {
   list-style: none;
   padding: 0;
   margin: 0 0 1.8rem 0;
+
   display: grid;
   gap: 0.75rem;
 }
 
 .optionLabel {
-  display: flex;
+  display: grid;
+  grid-template-columns: 20px 1fr;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.9rem 1.1rem;
-  border: 1.5px solid #ddd;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #333;
-  transition: all 0.25s ease;
-  background: #fff;
 
-  input {
-    width: 1.1rem;
-    height: 1.1rem;
-    accent-color: #d4af37;
-    cursor: pointer;
-  }
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+
+  background: #fff;
+  border: 1.5px solid #ddd;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
 
   &:hover {
     background: #fff9e6;
     border-color: #d4af37;
-    transform: translateY(-2px);
-    box-shadow: 0 3px 6px rgba(212, 175, 55, 0.15);
   }
 
-  input:checked + span {
-    font-weight: 600;
-    color: #b8902e;
+  input {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+
+    border-radius: 4px;
+    border: 2px solid #d4af37;
+
+    display: grid;
+    place-content: center;
+
+    &::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      background: linear-gradient(135deg, #d4af37, #e7c65a);
+      border-radius: 2px;
+
+      transform: scale(0);
+      transition: transform 0.15s ease;
+    }
+
+    &:checked::before {
+      transform: scale(1);
+    }
   }
 }
 
+/* ===========================
+   ACTIONS
+=========================== */
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+
   margin-top: 1.2rem;
+  padding-top: 1rem;
+
+  position: sticky;
+  bottom: 0;
+  background: inherit;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.6rem;
+
+    button {
+      width: 100%;
+    }
+  }
 
   button {
     border: none;
     border-radius: 50px;
+
     font-weight: 600;
     font-size: 0.95rem;
+
     padding: 0.75rem 1.6rem;
     cursor: pointer;
+
     transition: all 0.25s ease;
   }
 }
@@ -127,6 +208,7 @@
 .actions button:not(.closeButton) {
   background: linear-gradient(90deg, #d4af37, #e7c65a);
   color: #fff;
+
   box-shadow: 0 0 8px rgba(212, 175, 55, 0.35);
 
   &:hover {
@@ -140,16 +222,9 @@
   }
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
+/* ===========================
+   ANIMATIONS
+=========================== */
 @keyframes popIn {
   from {
     transform: translateY(15px) scale(0.98);
@@ -158,27 +233,5 @@
   to {
     transform: translateY(0) scale(1);
     opacity: 1;
-  }
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .popupContent {
-    padding: 1.8rem;
-    width: 92%;
-  }
-
-  .optionLabel {
-    font-size: 0.9rem;
-    padding: 0.8rem;
-  }
-
-  .actions {
-    flex-direction: column;
-    gap: 0.6rem;
-
-    button {
-      width: 100%;
-    }
   }
 }

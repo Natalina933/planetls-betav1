@@ -82,6 +82,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [experienceLevel, setExperienceLevel] = useState<
     "debutant" | "intermediaire" | "experimente" | ""
   >("");
+  const [yearsOfExperience, setYearsOfExperience] = useState("");
 
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
@@ -169,10 +170,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     [location, selectedCategory]
   );
 
-  // Étape 2 : sélection niveau d’expérience → CategoryPopup
+  // Étape 2 : sélection niveau d'expérience → CategoryPopup
   const handleExperienceSelect = useCallback(
-    (level: "debutant" | "intermediaire" | "experimente") => {
+    (level: "debutant" | "intermediaire" | "experimente", years: string) => {
       setExperienceLevel(level);
+      setYearsOfExperience(years);
       setShowExperiencePopup(false);
       setShowCategoryPopup(true);
     },
@@ -186,6 +188,12 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     setShowAccessPopup(true);
   }, []);
 
+  // NOUVEAU : Retour de AccessPopup vers CategoryPopup
+  const handleBackToCategoryPopup = useCallback(() => {
+    setShowAccessPopup(false);
+    setShowCategoryPopup(true);
+  }, []);
+
   // Étape 4 : validation finale → redirection
   const handleAccessValidate = useCallback(() => {
     const params = new URLSearchParams({
@@ -194,6 +202,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       option: selectedOptions.join(","),
       location,
       experience_level: experienceLevel,
+      years_of_experience: yearsOfExperience,
     }).toString();
 
     router.push(`/complete-registration?${params}`);
@@ -204,6 +213,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     selectedOptions,
     location,
     experienceLevel,
+    yearsOfExperience,
     router,
     onClose,
   ]);
@@ -302,12 +312,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       {showAccessPopup && (
         <AccessPopup
           selectedOptions={selectedOptions}
-          category={selectedCategory}
-          location={location}
           onClose={() => {
             setShowAccessPopup(false);
             onClose();
           }}
+          onBack={handleBackToCategoryPopup}
           onValidate={handleAccessValidate}
         />
       )}
