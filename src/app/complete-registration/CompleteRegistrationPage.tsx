@@ -233,7 +233,7 @@ export default function CompleteRegistrationPage() {
     avatar: null,
   });
 
-  const [avatarUrlState, setAvatarUrlState] = useState<string | null>(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
 
   // Visibilité des mots de passe
@@ -270,11 +270,12 @@ export default function CompleteRegistrationPage() {
   // Nettoyage de l'URL de l'avatar (éviter memory leak)
   useEffect(() => {
     return () => {
-      if (avatarUrlState) {
-        URL.revokeObjectURL(avatarUrlState);
+      if (avatarPreviewUrl) {
+        URL.revokeObjectURL(avatarPreviewUrl);
       }
     };
-  }, [avatarUrlState]);
+  }, [avatarPreviewUrl]);
+
 
   // Warning avant de quitter la page
   useEffect(() => {
@@ -339,53 +340,63 @@ export default function CompleteRegistrationPage() {
   };
 
 
-  const handleAvatarChange = async (file: File | null) => {
-    if (!file) {
-      setFormData(prev => ({ ...prev, avatar: null }));
-      setAvatarUrlState(null);
-      setUploadedAvatarUrl(null);
-      return;
+const handleAvatarChange = async (file: File | null) => {
+  if (!file) {
+    setFormData(prev => ({ ...prev, avatar: null }));
+    setAvatarPreviewUrl(null);
+    setUploadedAvatarUrl(null);
+    return;
+  }
+
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+  if (file.size > maxSize) {
+    setErrors(prev => ({ ...prev, avatar: "Fichier trop volumineux (max 5MB)" }));
+    return;
+  }
+
+  if (!allowedTypes.includes(file.type)) {
+    setErrors(prev => ({ ...prev, avatar: "Format non autorisé (JPEG, PNG, WEBP)" }));
+    return;
+  }
+
+  // ✅ Prévisualisation locale
+  const previewUrl = URL.createObjectURL(file);
+  setAvatarPreviewUrl(previewUrl);
+  setErrors(prev => ({ ...prev, avatar: "" }));
+
+  try {
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", file); // ⚠️ Nom 'file' = celui attendu par l'API
+    formDataUpload.append("userId", queryData.email || "unknown"); // ⚠️ ID utilisateur
+
+    const response = await fetch("/api/profiles/avatar", {
+      method: "POST",
+      body: formDataUpload,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.url) {
+      throw new Error(data.error || "Erreur upload");
     }
 
-    // Validation du fichier
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-
-    if (file.size > maxSize) {
-      setErrors(prev => ({ ...prev, avatar: "Fichier trop volumineux (max 5MB)" }));
-      return;
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      setErrors(prev => ({ ...prev, avatar: "Format non autorisé (JPEG, PNG, WEBP)" }));
-      return;
-    }
-
+    // ✅ URL finale serveur
+    setUploadedAvatarUrl(data.url);
     setFormData(prev => ({ ...prev, avatar: file }));
-    setAvatarUrlState(URL.createObjectURL(file));
-    setErrors(prev => ({ ...prev, avatar: "" }));
 
-    // Upload immédiat de l'avatar
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append("avatar", file);
+  } catch (err) {
+    setErrors(prev => ({
+      ...prev,
+      avatar: err instanceof Error ? `Erreur lors de l'upload: ${err.message}` : "Erreur inconnue",
+    }));
+    setUploadedAvatarUrl(null);
+  }
+};
 
-      const response = await fetch("/api/upload/avatar", {
-        method: "POST",
-        body: formDataUpload,
-      });
 
-      const data = await response.json();
 
-      if (data.url) {
-        setUploadedAvatarUrl(data.url);
-      } else {
-        setErrors(prev => ({ ...prev, avatar: data.error || "Erreur lors de l'upload" }));
-      }
-    } catch {
-      setErrors(prev => ({ ...prev, avatar: "Erreur réseau lors de l'upload" }));
-    }
-  };
 
   const handleSaveEdit = () => {
     // Validation finale avant sauvegarde
@@ -666,7 +677,13 @@ export default function CompleteRegistrationPage() {
         {/* ========== AVATAR ========== */}
         <div className={styles.avatarSection}>
           <h3>📷 Photo de profil</h3>
-          <AvatarUpload value={formData.avatar} onChange={handleAvatarChange} />
+          <AvatarUpload
+            value={formData.avatar}
+            existingUrl={uploadedAvatarUrl ?? undefined} // convertit null en undefined
+            onChange={handleAvatarChange}
+          />
+
+
           {errors.avatar && <small className={styles.errorMsg}>{errors.avatar}</small>}
           {uploadedAvatarUrl && <small className={styles.successMsg}>✅ Avatar uploadé avec succès</small>}
         </div>
