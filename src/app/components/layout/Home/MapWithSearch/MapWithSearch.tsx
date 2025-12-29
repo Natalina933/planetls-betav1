@@ -193,10 +193,25 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     setShowAccessPopup(false);
     setShowCategoryPopup(true);
   }, []);
-
+type AccessFormData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  additionalInfo: string;
+};
   // Étape 4 : validation finale → redirection
-  const handleAccessValidate = useCallback(() => {
+const handleAccessValidate = useCallback(
+  (formData: AccessFormData) => {
     const params = new URLSearchParams({
+      // 🔹 Coordonnées utilisateur
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      additionalInfo: formData.additionalInfo,
+
+      // 🔹 Données métier déjà existantes
       category: selectedCategory,
       searchTarget,
       option: selectedOptions.join(","),
@@ -207,7 +222,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
     router.push(`/complete-registration?${params}`);
     onClose();
-  }, [
+  },
+  [
     selectedCategory,
     searchTarget,
     selectedOptions,
@@ -216,7 +232,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     yearsOfExperience,
     router,
     onClose,
-  ]);
+  ]
+);
+
 
   // Liste des catégories optimisée
   const orderedCategories = useMemo(() => {
