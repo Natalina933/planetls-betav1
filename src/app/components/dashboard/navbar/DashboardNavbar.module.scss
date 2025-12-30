@@ -1,121 +1,330 @@
-/* src/app/components/dashboard/Navbar/DashboardNavbar.module.scss */
+/* src/app/components/dashboard/navbar/DashboardNavbar.module.scss */
 @use "../../../styles/abstracts/variables" as *;
 
-// -------------------------------------------
-// La classe .dash-navbar doit être définie dans _dashboards.scss
-// Nous ajoutons ici les styles spécifiques aux éléments internes
-// -------------------------------------------
+// ============================================================================
+// SECTION GAUCHE — Menu & Identification
+// ============================================================================
 
 .leftSection {
   display: flex;
   align-items: center;
   flex-grow: 1;
+  gap: $spacing-md;
+
+  @media (max-width: map-get($breakpoints, md)) {
+    gap: $spacing-sm;
+  }
+
+  @media (max-width: map-get($breakpoints, sm)) {
+    gap: $spacing-xs;
+  }
 }
 
 .menuButton {
-  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
   border: none;
-  color: $mucha-ink;
+  border-radius: $radius-md;
+  color: $primary-dark-color-sass;
   cursor: pointer;
-  margin-right: $spacing-md;
-  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-//   @media (min-width: map.get(var.$breakpoints, md)) {
-//     display: none;
-//   }
+  &:hover {
+    background-color: rgba($primary-color-sass, 0.1);
+    color: $primary-color-sass;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color-sass;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: map-get($breakpoints, sm)) {
+    padding: 0.4rem;
+  }
 }
 
 .logoText {
   font-family: $font-elegant;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: $font-weight-bold;
-  color: $primary-dark-color-sass; // Or foncé
+  letter-spacing: 0.02em;
+  color: $primary-dark-color-sass;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: map-get($breakpoints, lg)) {
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: map-get($breakpoints, md)) {
+    font-size: 1rem;
+  }
+
+  @media (max-width: map-get($breakpoints, sm)) {
+    display: none;
+  }
 }
+
+.userRole {
+  margin-left: auto;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $primary-color-sass;
+  background-color: rgba($primary-color-sass, 0.12);
+  border-radius: $radius-md;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @media (max-width: map-get($breakpoints, lg)) {
+    display: none;
+  }
+}
+
+// ============================================================================
+// SECTION DROITE — Actions & Profil
+// ============================================================================
 
 .rightSection {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-}
+  justify-content: flex-end;
+  gap: $spacing-lg;
+  flex-shrink: 0;
 
-.proBadge {
-  background-color: $gold; // Couleur or brillante
-  color: $mucha-ink;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-weight: $font-weight-bold;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  border: 1px solid $primary-dark-color-sass;
-  box-shadow: 0 1px 3px rgba($primary-dark-color-sass, 0.3);
-}
+  @media (max-width: map-get($breakpoints, lg)) {
+    gap: $spacing-md;
+  }
 
-.iconButton {
-  position: relative;
-  background: none;
-  border: none;
-  color: $mucha-ink;
-  cursor: pointer;
-  padding: $spacing-xs;
-  transition: color 0.2s;
-
-  &:hover {
-    color: $primary-color-sass;
+  @media (max-width: map-get($breakpoints, sm)) {
+    gap: $spacing-sm;
   }
 }
 
+// --- Greeting ---
+.greetingBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  padding-right: $spacing-sm;
+  border-right: 1px solid rgba($primary-dark-color-sass, 0.15);
+  min-width: 0;
+
+  @media (max-width: map-get($breakpoints, lg)) {
+    padding-right: $spacing-xs;
+  }
+
+  @media (max-width: map-get($breakpoints, md)) {
+    display: none;
+  }
+}
+
+.companyName {
+  font-family: $font-elegant;
+  font-size: 0.9rem;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $primary-dark-color-sass;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: map-get($breakpoints, xl)) {
+    font-size: 0.85rem;
+    max-width: 150px;
+  }
+
+  @media (max-width: map-get($breakpoints, lg)) {
+    font-size: 0.8rem;
+    max-width: 120px;
+  }
+}
+
+.greeting {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: $primary-color-sass;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: map-get($breakpoints, lg)) {
+    font-size: 0.7rem;
+  }
+}
+
+// --- Badge PRO ---
+.proBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 20px;
+  border: 1.5px solid $primary-dark-color-sass;
+  background: linear-gradient(135deg, $gold-light, $gold);
+  color: $primary-dark-color-sass;
+  box-shadow: 0 2px 8px rgba($primary-dark-color-sass, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba($primary-dark-color-sass, 0.2);
+  }
+}
+
+// --- Boutons icônes ---
+.iconButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: $radius-md;
+  color: $primary-dark-color-sass;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background-color: rgba($primary-color-sass, 0.1);
+    color: $primary-color-sass;
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color-sass;
+    outline-offset: 2px;
+    background-color: rgba($primary-color-sass, 0.12);
+  }
+}
+
+
+// --- Notifications ---
 .notificationCount {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  background-color: #a93226; // Rouge foncé d'alerte
-  color: white;
-  font-size: 0.7rem;
-  border-radius: $radius-pill;
-  padding: 1px 6px;
-  line-height: 1;
-  font-weight: $font-weight-bold;
+  top: -8px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.7;
+  }
+}
+
+// ============================================================================
+// PROFIL UTILISATEUR — Avatar
+// ============================================================================
 
 .userProfile {
   display: flex;
   align-items: center;
-  padding-left: $spacing-md;
-  border-left: 1px solid $text-light;
+  justify-content: center;
+  padding: 0.35rem;
+  background: transparent;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background-color: rgba($primary-color-sass, 0.08);
+    transform: scale(1.05);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-color-sass;
+    outline-offset: 2px;
+  }
 }
 
-.userInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  margin-right: $spacing-sm;
 
-//   @media (max-width: map.get(var.$breakpoints, sm)) {
-//         display: none; 
-//     }
-}
-
-.userName {
-  font-weight: $font-weight-bold;
-  font-size: 1rem;
-  color: $mucha-ink;
-  line-height: 1.2;
-}
-
-.userRole {
-  font-size: 0.8rem;
-  color: $text-light;
-  font-style: italic;
+.avatar,
+.avatarPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-md;
+  border: 2px solid $primary-color-sass;
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 0; // Look 1900
-  border: 2px solid $primary-color-sass;
   object-fit: cover;
 }
 
 .avatarPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba($primary-color-sass, 0.1);
   color: $primary-color-sass;
 }
+@media (max-width: map-get($breakpoints, sm)) {
+  .avatar,
+  .avatarPlaceholder {
+    width: 35px;
+    height: 35px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :global(*) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  :global(*::before),
+  :global(*::after) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .notificationCount {
+    animation: none;
+  }
+}
+

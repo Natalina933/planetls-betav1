@@ -12,11 +12,8 @@
 .dashboard-root {
     display: flex;
     min-height: 100vh;
-    // CORRECTION: var.$mucha-paper
-    background: var.$mucha-paper; 
-    // CORRECTION: var.$font-text
+    background: var.$mucha-paper-black; 
     font-family: var.$font-text; 
-    // CORRECTION: var.$mucha-ink
     color: var.$mucha-ink; 
 }
 
