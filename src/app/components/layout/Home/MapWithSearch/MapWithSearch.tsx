@@ -248,7 +248,7 @@ const handleAccessValidate = useCallback(
       {!showExperiencePopup && !showCategoryPopup && !showAccessPopup && (
         <div
           ref={containerRef}
-          className={`${styles.mapWithSearchContainer} ${styles.fadeIn}`}
+          className={`dark ${styles.mapWithSearchContainer} ${styles.fadeIn}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="search-title"
@@ -264,7 +264,7 @@ const handleAccessValidate = useCallback(
           </button>
 
           <section className={styles.categorySearchSection}>
-            <h2 id="search-title">Inscrivez-vous pour vous connecter aux bons partenaires</h2>
+            <h2 id="search-title">Inscrivez-vous et connectez-vous aux bons partenaires</h2>
 
             <div className={styles.tripleToggleGroup}>
               {orderedCategories.map(({ key, label, icon }) => {
