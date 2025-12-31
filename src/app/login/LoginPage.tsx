@@ -87,6 +87,7 @@ export default function LoginPage() {
         <label htmlFor="email">Email</label>
         <div className={styles.inputWrapper}>
           <input
+          suppressHydrationWarning
             id="email"
             name="email"
             type="email"
