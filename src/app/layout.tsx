@@ -5,6 +5,8 @@ import Providers from "./context/Providers";
 import Header from "./components/layout/Header/Header";
 import { SearchPopupProvider } from "./context/SearchPopupContext";
 import MapPopup from "./components/layout/MapPopup/MapPopup";
+import { ThemeProvider } from "./providers/ThemeProvider";
+
 const inter = Inter({
     subsets: ['latin'],
     variable: '--font-inter',
@@ -79,28 +81,25 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    return (
-        <html
-            lang="fr"
-            className={`${inter.variable} ${montserrat.variable} ${cormorant.variable} ${openSans.variable}`}
-        >
-            <body suppressHydrationWarning={true}>
-                <Providers>
-                    <SearchPopupProvider>
-                        <Header />
-                        {/* -----------------------------------------------
-                            Si vous voulez ajouter des props, 
-                            vous devez le faire comme ceci :
-                        ------------------------------------------------ */}
-                        {/* <MapPopup showOn={["/"]} />  */}
+  return (
+    <html
+      lang="fr"
+      className={`${inter.variable} ${montserrat.variable} ${cormorant.variable} ${openSans.variable}`}
+      suppressHydrationWarning
+    >
+      <body>
+        <ThemeProvider>
+          <Providers>
+            <SearchPopupProvider>
+              <Header />
 
-                        {/* Mais puisque vous l'avez retirée, ce code est correct : */}
-                        <MapPopup /> 
+              <MapPopup />
 
-                        <main>{children}</main>
-                    </SearchPopupProvider>
-                </Providers>
-            </body>
-        </html>
-    );
+              <main>{children}</main>
+            </SearchPopupProvider>
+          </Providers>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
 }

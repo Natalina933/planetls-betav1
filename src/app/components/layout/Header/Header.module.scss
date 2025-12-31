@@ -9,7 +9,7 @@
   z-index: 30;
 
   /* Effet 1900 : légère ombre + bordure dorée subtile */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 
   @media (max-width: 768px) {
     padding: 1rem 1.4rem;
@@ -30,33 +30,49 @@
     align-items: center;
     text-decoration: none;
   }
+}
 
-  .logoWrapper {
-    display: inline-block;
-    line-height: 0;
+.logoWrapper {
+  display: inline-block;
+  line-height: 0;
 
-    img {
-      display: block;
-      height: auto;
-      width: 260px;
-      transition: transform 0.3s ease;
+  img {
+    display: block;
+    height: auto;
+    width: 260px;
+    transition: transform 0.3s ease;
 
-      /* Effet premium */
-      &:hover {
-        transform: scale(1.03);
-      }
-
-      @media (max-width: 768px) {
-        width: 220px;
-      }
-
-      @media (max-width: 480px) {
-        width: 260px;
-      }
-
-      @media (max-width: 380px) {
-        width: 230px;
-      }
+    /* Effet premium */
+    &:hover {
+      transform: scale(1.03);
     }
+
+    @media (max-width: 768px) {
+      width: 220px;
+    }
+
+    @media (max-width: 480px) {
+      width: 260px;
+    }
+
+    @media (max-width: 380px) {
+      width: 230px;
+    }
+  }
+}
+
+/* 🔆🌙 Zone du toggle thème */
+.themeZone {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+
+  /* Séparation visuelle subtile */
+  padding-left: 1rem;
+  border-left: 1px solid rgba(var(--gold-main), 0.25);
+
+  @media (max-width: 768px) {
+    padding-left: 0.6rem;
+    margin-left: 0.6rem;
   }
 }

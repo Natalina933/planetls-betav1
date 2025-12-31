@@ -7,8 +7,8 @@ import { getToken } from "next-auth/jwt";
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-    
+    const userId = typeof token?.id === "string" ? token.id : undefined;
+
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -24,13 +24,12 @@ export async function GET(req: NextRequest) {
       console.error("[GET /api/profiles/current] Erreur DB:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
-    
+
     if (!profile) {
       return NextResponse.json({ error: "Profil non trouvé" }, { status: 404 });
     }
 
     return NextResponse.json(profile);
-
   } catch (error) {
     console.error("[GET /api/profiles/current] Erreur serveur:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
