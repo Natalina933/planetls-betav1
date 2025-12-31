@@ -79,15 +79,15 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body suppressHydrationWarning>
-        <ThemeProvider>
-          <Providers>
+        <Providers>
+          <ThemeProvider>
             <SearchPopupProvider>
               <Header />
               <MapPopup />
               <main>{children}</main>
             </SearchPopupProvider>
-          </Providers>
-        </ThemeProvider>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

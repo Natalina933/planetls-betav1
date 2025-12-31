@@ -1,9 +1,7 @@
-// src/app/dashboard/concierge/profile/page.tsx
 import { Suspense } from "react";
 import ConciergeProfilePage from "./ConciergeProfilePage";
 import styles from "./ConciergeProfilePage.module.scss";
 
-// Composant de chargement - Simple et sans styled-jsx
 function ProfileLoadingSkeleton() {
   return (
     <div className={styles.pageContainer}>
@@ -43,7 +41,6 @@ function ProfileLoadingSkeleton() {
   );
 }
 
-// Page wrapper avec Suspense - requis pour useSearchParams() dans Next.js 15
 export default function ProfilePage() {
   return (
     <Suspense fallback={<ProfileLoadingSkeleton />}>

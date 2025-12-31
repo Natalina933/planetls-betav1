@@ -1,6 +1,10 @@
 @use "sass:color";
 @use "@/app/styles/abstracts/variables" as *;
 
+/* =====================
+   SIDEBAR WRAPPER
+   ===================== */
+
 .sidebar {
     position: fixed;
     top: 0;
@@ -25,17 +29,26 @@
     &.open {
         transform: translateX(0);
     }
+
+    @media (max-width: 700px) {
+        width: 100vw;
+        border-right: none;
+        box-shadow: none;
+    }
 }
 
 .overlay {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100vw;
     height: 100vh;
     background: rgba($text-dark, 0.4);
     z-index: 999;
 }
+
+/* =====================
+   HEADER
+   ===================== */
 
 .header {
     display: flex;
@@ -60,6 +73,15 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    padding: $spacing-xs;
+    border-radius: $radius-md;
+    transition: background $transition;
+
+    &:hover,
+    &:focus-visible {
+        background: color.adjust($mucha-paper, $lightness: 5%);
+        outline: none;
+    }
 
     .closeIcon {
         stroke: $gold-dark;
@@ -70,6 +92,10 @@
         }
     }
 }
+
+/* =====================
+   NAV
+   ===================== */
 
 .nav {
     flex: 1 1 auto;
@@ -83,6 +109,7 @@
     margin-bottom: $spacing-md;
 }
 
+/* Lien parent & enfant (base) */
 .link,
 .sublink {
     display: flex;
@@ -91,7 +118,7 @@
     border-left: 4px solid transparent;
     cursor: pointer;
     font-family: $font-text;
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: $text-dark;
     background: none;
     text-decoration: none;
@@ -100,51 +127,72 @@
         background $transition,
         color $transition,
         border-color $transition,
-        box-shadow $transition;
+        box-shadow $transition,
+        transform $transition;
 
     .icon {
         margin-right: $spacing-sm;
         font-size: 1.2rem;
         flex-shrink: 0;
+        color: $gold-dark;
     }
 
     .chevron {
         margin-left: auto;
+        font-size: 0.9rem;
+        color: $text-light;
         transition: transform $transition;
     }
 
-    .rotate {
-        transform: rotate(180deg);
-    }
-
     &:hover,
-    &:focus {
-        background: $gold-soft;
-        color: color.adjust($gold-dark, $lightness: 5%);
+    &:focus-visible {
+        background: rgba($gold-dark, 0.16);
+        color: color.adjust($gold-dark, $lightness: -5%);
         border-left-color: $gold;
         outline: none;
+        transform: translateX(2px);
+
+        .icon {
+            color: color.adjust($gold-dark, $lightness: -10%);
+        }
     }
 
     &.active {
         background: $gold;
         color: white;
         border-left-color: color.adjust($gold, $lightness: -10%);
-        box-shadow: 0 2px 8px rgba($gold-dark, 0.04);
+        box-shadow: 0 2px 8px rgba($gold-dark, 0.16);
+
+        .icon {
+            color: white;
+        }
+
+        .chevron {
+            color: white;
+        }
     }
 }
+
+/* rotation du chevron (class appliquée sur l’icône, pas à l’intérieur) */
+.rotate {
+    transform: rotate(180deg);
+}
+
+/* =====================
+   SOUS-MENU
+   ===================== */
 
 .submenu {
     overflow: hidden;
     max-height: 0;
     opacity: 0;
-    transition: max-height $transition, opacity $transition;
     background: color.adjust($mucha-paper, $lightness: 1%);
     border-left: 2px solid $gold-light;
+    transition: max-height $transition, opacity $transition;
 
     &.expanded {
         max-height: 500px;
         opacity: 1;
-        transition: max-height $transition, opacity $transition;
     }
 
     &.collapsed {
@@ -154,28 +202,42 @@
 
     .sublink {
         padding: $spacing-xs $spacing-lg;
-        font-size: 0.94rem;
+        font-size: 0.9rem;
         color: $text-light;
-        background: none;
         border-left: none;
+        border-radius: 0;
+
+        .icon {
+            margin-right: $spacing-xs;
+            font-size: 1rem;
+            color: $gold-dark;
+        }
 
         &:hover,
-        &:focus {
+        &:focus-visible {
             background: $gold-soft;
             color: $text-dark;
+            outline: none;
+
+            .icon {
+                color: color.adjust($gold-dark, $lightness: -8%);
+            }
         }
 
         &.active {
             background: $gold;
             color: white;
-        }
 
-        .icon {
-            margin-right: $spacing-xs;
-            font-size: 1rem;
+            .icon {
+                color: white;
+            }
         }
     }
 }
+
+/* =====================
+   FOOTER / LOGOUT
+   ===================== */
 
 .footer {
     padding: $spacing-md;
@@ -189,27 +251,41 @@
     background: none;
     border: none;
     color: $gold-dark;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-family: $font-text;
     cursor: pointer;
-    transition: color $transition;
+    transition: color $transition, transform $transition;
 
     .icon {
         margin-right: $spacing-xs;
         font-size: 1.2rem;
+        color: $gold-dark;
     }
 
     &:hover,
-    &:focus {
+    &:focus-visible {
         color: color.adjust($gold-dark, $lightness: -10%);
+        outline: none;
+        transform: translateX(2px);
+
+        .icon {
+            color: color.adjust($gold-dark, $lightness: -12%);
+        }
     }
 }
 
-// Optionnel : Responsive Mobile sidebar
-@media (max-width: 700px) {
-    .sidebar {
-        width: 100vw;
-        border-right: none;
-        box-shadow: none;
+/* =====================
+   ACCESSIBILITÉ / MOTION
+   ===================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .sidebar,
+    .link,
+    .sublink,
+    .submenu,
+    .chevron,
+    .logout {
+        transition: none !important;
     }
 }
