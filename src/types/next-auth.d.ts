@@ -15,6 +15,7 @@ declare module "next-auth" {
     location: string | null;
     option: string | null;
     search_target: string | null;
+    company_name: string | null;
   }
 
   interface Session extends DefaultSession {
@@ -31,6 +32,7 @@ declare module "next-auth" {
       location: string | null;
       option: string | null;
       search_target: string | null;
+      company_name: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -49,5 +51,6 @@ declare module "next-auth/jwt" {
     location: string | null;
     option: string | null;
     search_target: string | null;
+    company_name: string | null;
   }
 }
