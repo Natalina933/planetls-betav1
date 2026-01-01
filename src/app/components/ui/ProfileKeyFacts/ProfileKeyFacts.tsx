@@ -59,27 +59,33 @@ const EXPERIENCE_CONFIG: Record<ExperienceLevel, ExperienceMeta> = {
 };
 
 /* -------------------------------------------------------------------------- */
-/*                                UTILITAIRES                                  */
+/*                                Member                                  */
 /* -------------------------------------------------------------------------- */
 
-const getMembershipYears = (createdAt?: string | null): number | null => {
+const getMembershipLabel = (createdAt?: string | null): string | null => {
     if (!createdAt) return null;
 
     const created = new Date(createdAt);
     if (Number.isNaN(created.getTime())) return null;
 
     const now = new Date();
-    let years = now.getFullYear() - created.getFullYear();
 
-    const hasHadAnniversary =
-        now.getMonth() > created.getMonth() ||
-        (now.getMonth() === created.getMonth() &&
-            now.getDate() >= created.getDate());
+    const months =
+        (now.getFullYear() - created.getFullYear()) * 12 +
+        (now.getMonth() - created.getMonth());
 
-    if (!hasHadAnniversary) years -= 1;
+    if (months < 1) {
+        return "Membre tout récent";
+    }
 
-    return years > 0 ? years : null;
+    if (months < 12) {
+        return `Membre PlanetLS depuis ${months} mois`;
+    }
+
+    const years = Math.floor(months / 12);
+    return `Membre PlanetLS depuis ${years} an${years > 1 ? "s" : ""}`;
 };
+
 
 // const formatExperienceDuration = (
 //   months?: number | null
@@ -112,7 +118,7 @@ const ProfileKeyFacts: React.FC<ProfileKeyFactsProps> = ({
     isInsured,
     certificationsCount,
 }) => {
-    const membershipYears = getMembershipYears(createdAt);
+const membershipLabel = getMembershipLabel(createdAt);
     //   const experienceDurationLabel =
     //     formatExperienceDuration(experienceMonths);
 
@@ -123,18 +129,18 @@ const ProfileKeyFacts: React.FC<ProfileKeyFactsProps> = ({
     return (
         <section className={styles.wrapper}>
             {/* ============================= HEADER ============================== */}
-            <header className={styles.header}>
-                <div className={styles.company}>
-                    {companyName?.trim() || "Profil professionnel"}
-                </div>
+<header className={styles.header}>
+    <div className={styles.company}>
+        {companyName?.trim() || "Profil professionnel"}
+    </div>
 
-                {membershipYears && (
-                    <span className={styles.membership}>
-                        Membre PlanetLS depuis {membershipYears} an
-                        {membershipYears > 1 ? "s" : ""}
-                    </span>
-                )}
-            </header>
+    {membershipLabel && (
+        <span className={styles.membership}>
+            {membershipLabel}
+        </span>
+    )}
+</header>
+
 
             {/* ======================= EXPÉRIENCE (CENTRAL) ====================== */}
             {experienceMeta && (

@@ -1,4 +1,3 @@
-// src/app/dashboard/concierge/profile/page.tsx
 "use client";
 
 import React, { useState, useEffect, ChangeEvent } from "react";
@@ -8,20 +7,49 @@ import styles from "./ConciergeProfilePage.module.scss";
 
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-// import PricingManagement from "@/app/components/dashboard/concierge/PricingManagement/PricingManagement";
-// import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
-
 import {
-  CONCIERGE_TABS, ConciergeTabId,
+  CONCIERGE_TABS,
+  ConciergeTabId,
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
-import {
-  FiBarChart, FiUser, FiBriefcase, FiMapPin, FiShield, FiGlobe, FiTarget, FiClock, FiDollarSign, FiUsers, FiFile, FiStar, FiCheckCircle, FiSliders, FiTrendingUp,
-} from "react-icons/fi";
-// import ProfileRegistrationDate from "@/app/components/ui/ProfileRegistrationDate/ProfileRegistrationDate";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
-// import SocialLinks from "@/app/components/ui/SocialLinks/SocialLinks";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
+
+
+
+import {
+  FiBarChart,
+  FiBriefcase,
+  FiMapPin as FiMapPinOutline,
+  FiShield as FiShieldOutline,
+  FiGlobe,
+  FiTarget,
+  FiClock as FiClockOutline,
+  FiDollarSign as FiDollarSignOutline,
+  FiUsers,
+  FiFile,
+  FiStar as FiStarOutline,
+  FiCheckCircle as FiCheckCircleOutline,
+  FiSliders,
+  FiTrendingUp,
+} from "react-icons/fi";
+
+import {
+  User as LucideUser,
+  Shield,
+  DollarSign,
+  ChevronDown,
+  Save,
+  X as LucideX,
+  Edit2,
+  Camera,
+  MapPin,
+  Phone as LucidePhone,
+  Mail as LucideMail,
+  Star,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
@@ -75,13 +103,28 @@ export interface Profile {
 const normalizeSectionId = (title: string) =>
   title.replace(/[^a-zA-Z0-9]/g, "_");
 
+const formatExperienceLabel = (
+  level: "debutant" | "intermediaire" | "experimente" | null,
+): string => {
+  switch (level) {
+    case "debutant":
+      return "Débutant";
+    case "intermediaire":
+      return "Petite expérience";
+    case "experimente":
+      return "Expérimenté";
+    default:
+      return "Non renseigné";
+  }
+};
+
 export default function ConciergeProfilePage() {
   const { update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<TabId>(
-    (searchParams.get("tab") as TabId) || "fiche"
+    (searchParams.get("tab") as TabId) || "fiche",
   );
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
@@ -96,20 +139,6 @@ export default function ConciergeProfilePage() {
     [normalizeSectionId("Services & Zone d'intervention")]: true,
     [normalizeSectionId("Ma grille tarifaire")]: true,
   });
-  const formatExperienceLabel = (
-    level: "debutant" | "intermediaire" | "experimente" | null
-  ) => {
-    switch (level) {
-      case "debutant":
-        return "Débutant";
-      case "intermediaire":
-        return "Petite expérience";
-      case "experimente":
-        return "Expérimenté";
-      default:
-        return "Non renseigné";
-    }
-  };
 
   useEffect(() => {
     const tab = searchParams.get("tab") as TabId;
@@ -131,12 +160,14 @@ export default function ConciergeProfilePage() {
         if ("error" in data) {
           throw new Error(data.error);
         }
+
         if (data.avatar_url && data.avatar_url.includes("/avatars//")) {
           data.avatar_url = data.avatar_url.replace(
             "/avatars/avatars/",
-            "/avatars/"
+            "/avatars/",
           );
         }
+
         setProfile(data);
         setEditProfile(data);
       } catch (error: unknown) {
@@ -144,30 +175,32 @@ export default function ConciergeProfilePage() {
           error instanceof Error ? error.message : "Erreur inconnue";
         console.error(
           "[ConciergeProfilePage] Erreur lors du chargement du profil:",
-          errorMessage
+          errorMessage,
         );
         setErrorMsg(errorMessage);
       }
     };
+
     fetchProfile();
   }, []);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     if (!editProfile) return;
+
     const { name, value, type } = e.target;
 
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setEditProfile((prev) =>
-        prev ? { ...prev, [name]: checked as unknown as unknown } : prev
+        prev ? { ...prev, [name]: checked as unknown as unknown } : prev,
       );
       return;
     }
 
     setEditProfile((prev) =>
-      prev ? { ...prev, [name]: value as unknown as unknown } : prev
+      prev ? { ...prev, [name]: value as unknown as unknown } : prev,
     );
 
     let errorMessage = "";
@@ -205,7 +238,7 @@ export default function ConciergeProfilePage() {
 
     if (name === "website" && value) {
       const urlRegex =
-        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w .-]*)*\/?$/;
       errorMessage = urlRegex.test(value) ? "" : "URL invalide";
     }
 
@@ -225,21 +258,25 @@ export default function ConciergeProfilePage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("userId", editProfile.id);
+
       const response = await fetch("/api/profiles/avatar", {
         method: "POST",
         body: formData,
       });
+
       const result = await response.json();
+
       if (result.error) {
         throw new Error(result.error);
       }
+
       return result.url as string;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Erreur d'upload";
       console.error(
         "[ConciergeProfilePage] Erreur upload avatar:",
-        errorMessage
+        errorMessage,
       );
       throw error;
     }
@@ -247,28 +284,37 @@ export default function ConciergeProfilePage() {
 
   const handleSave = async () => {
     if (!editProfile) return;
+
     const hasErrors = Object.values(errors).some((error) => error !== "");
     if (hasErrors) {
       alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
       return;
     }
+
     setLoading(true);
     let avatarUrl = editProfile.avatar_url;
+
     try {
       if (avatarFile) {
         avatarUrl = await handleAvatarUpload(avatarFile);
       }
+
       const response = await fetch("/api/profiles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...editProfile, avatar_url: avatarUrl }),
       });
+
       const result = await response.json();
       if (result.error) {
         throw new Error(result.error);
       }
 
-      const updatedProfile = { ...editProfile, avatar_url: avatarUrl };
+      const updatedProfile: Profile = {
+        ...editProfile,
+        avatar_url: avatarUrl,
+      };
+
       setProfile(updatedProfile);
       setEditProfile(updatedProfile);
       setIsEditing(false);
@@ -290,7 +336,7 @@ export default function ConciergeProfilePage() {
         error instanceof Error ? error.message : "Erreur inconnue";
       console.error(
         "[ConciergeProfilePage] Erreur lors de la sauvegarde:",
-        errorMessage
+        errorMessage,
       );
       setErrorMsg(errorMessage);
       setTimeout(() => setErrorMsg(""), 5000);
@@ -313,7 +359,7 @@ export default function ConciergeProfilePage() {
     required: boolean = false,
     placeholder: string = "",
     type: string = "text",
-    inputProps?: Record<string, number | string>
+    inputProps?: Record<string, number | string>,
   ) => {
     const value = editProfile?.[name] ?? "";
     const error = errors[name as string];
@@ -339,7 +385,8 @@ export default function ConciergeProfilePage() {
     return (
       <div className={styles.fieldRow}>
         <label htmlFor={name.toString()} className={styles.fieldLabel}>
-          {label} {required && <span className={styles.required}>*</span>}
+          {label}
+          {required && <span className={styles.required}>*</span>}
         </label>
         {isEditing ? (
           isTextarea ? (
@@ -366,7 +413,9 @@ export default function ConciergeProfilePage() {
             />
           )
         ) : (
-          <span className={styles.fieldValue}>{value || "—"}</span>
+          <span className={styles.fieldValue}>
+            {value !== null && value !== "" ? value : "—"}
+          </span>
         )}
       </div>
     );
@@ -374,8 +423,8 @@ export default function ConciergeProfilePage() {
 
   const renderSection = (
     title: string,
-    icon: string | React.ReactNode,
-    children: React.ReactNode
+    icon: React.ReactNode,
+    children: React.ReactNode,
   ) => {
     const sectionId = normalizeSectionId(title);
     const isOpen = openSections[sectionId] ?? false;
@@ -383,121 +432,230 @@ export default function ConciergeProfilePage() {
     return (
       <div className={styles.section}>
         <h2
-          className={`${styles.sectionTitleToggle} ${isOpen ? styles.sectionTitleToggleActive : ""
-            }`}
+          className={`${styles.sectionTitleToggle} ${
+            isOpen ? styles.sectionTitleToggleActive : ""
+          }`}
           onClick={() => toggleSection(sectionId)}
         >
           <div className={styles.sectionTitleLeft}>
-            <span className={styles.sectionIcon}>
-              {typeof icon === "string" ? icon : icon}
-            </span>
+            <span className={styles.sectionIcon}>{icon}</span>
             {title}
           </div>
           <span
-            className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
-              }`}
+            className={`${styles.toggleIcon} ${
+              isOpen ? styles.toggleIconOpen : ""
+            }`}
           >
-            ▼
+            <ChevronDown size={16} />
           </span>
         </h2>
         <div
-          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
-            }`}
+          className={`${styles.sectionContent} ${
+            isOpen ? styles.sectionContentOpen : ""
+          }`}
         >
           {children}
         </div>
       </div>
     );
   };
+
   const handleSocialChange = (field: string, value: string) => {
-    setEditProfile((prev) =>
-      prev ? { ...prev, [field]: value } : prev
-    );
+    setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
+
   const renderTabContent = () => {
+    if (!profile || !editProfile) return null;
+
     switch (activeTab) {
       case "fiche":
         return (
-          <>
-            <div className={styles.columnLeft}>
-              <div className={styles.avatarBlock}>
-                <AvatarUpload
-                  value={avatarFile}
-                  existingUrl={editProfile?.avatar_url || DEFAULT_AVATAR}
-                  existingScale={editProfile?.avatar_scale ?? 1}
-                  onChange={setAvatarFile}
-                  onScaleChange={(scale) =>
-                    setEditProfile((prev) =>
-                      prev ? { ...prev, avatar_scale: scale } : prev
-                    )
-                  }
-                  onSave={handleSave}
-                  onRemove={() => {
-                    setAvatarFile(null);
-                    setEditProfile((prev) =>
-                      prev ? { ...prev, avatar_url: null } : prev
-                    );
-                  }}
-                />
+          <div className={styles.grid}>
+            {/* Colonne gauche : avatar + résumé + badge */}
+            <aside className={styles.leftColumn}>
+              <div className={styles.profileCard}>
+                <div className={styles.avatarWrapper}>
+                  <AvatarUpload
+                    value={avatarFile}
+                    existingUrl={editProfile.avatar_url || DEFAULT_AVATAR}
+                    existingScale={editProfile.avatar_scale ?? 1}
+                    onChange={setAvatarFile}
+                    onScaleChange={(scale) =>
+                      setEditProfile((prev) =>
+                        prev ? { ...prev, avatar_scale: scale } : prev,
+                      )
+                    }
+                    onSave={handleSave}
+                    onRemove={() => {
+                      setAvatarFile(null);
+                      setEditProfile((prev) =>
+                        prev ? { ...prev, avatar_url: null } : prev,
+                      );
+                    }}
+                  />
+                  {isEditing && (
+                    <button
+                      type="button"
+                      className={styles.avatarEditButton}
+                      aria-label="Changer la photo de profil"
+                    >
+                      <Camera size={16} />
+                    </button>
+                  )}
+                </div>
+
+                <div className={styles.profileIdentity}>
+                  <h2 className={styles.profileName}>
+                    {profile.first_name} {profile.last_name}
+                  </h2>
+                  <p className={styles.profileLocation}>
+                    <MapPin size={14} />
+                    <span>{profile.city || "Ville non renseignée"}, FR</span>
+                  </p>
+                </div>
+
+                <div className={styles.profileStats}>
+                  <div className={styles.profileStatItem}>
+                    <p className={styles.profileStatLabel}>Note</p>
+                    <p className={styles.profileStatValue}>
+                      4.9
+                      <Star size={14} className={styles.profileStatIconStar} />
+                    </p>
+                  </div>
+                  <div className={styles.profileStatItem}>
+                    <p className={styles.profileStatLabel}>Expérience</p>
+                    <p className={styles.profileStatValue}>
+                      {profile.years_experience ?? "—"} ans
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.profileContacts}>
+                  <div className={styles.profileContactItem}>
+                    <LucideMail size={14} />
+                    <span>{profile.email}</span>
+                  </div>
+                  {profile.phone && (
+                    <div className={styles.profileContactItem}>
+                      <LucidePhone size={14} />
+                      <span>{profile.phone}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              {/* Résumé du profil */}
-              {renderSection(
-                "Résumé du profil",
-                <FiBarChart />,
-                <>
+
+              <div className={styles.badgeCard}>
+                <h4 className={styles.badgeTitle}>
+                  <Shield size={16} />
+                  <span>Badge Vérifié</span>
+                </h4>
+                <p className={styles.badgeText}>
+                  Votre profil a été certifié par nos équipes. Vous profitez
+                  d&apos;une visibilité prioritaire sur les recherches de
+                  clients Premium.
+                </p>
+              </div>
+
+              <div className={styles.section}>
+                <h2
+                  className={`${styles.sectionTitleToggle} ${styles.sectionTitleToggleActive}`}
+                >
+                  <div className={styles.sectionTitleLeft}>
+                    <span className={styles.sectionIcon}>
+                      <FiBarChart />
+                    </span>
+                    Résumé du profil
+                  </div>
+                </h2>
+                <div
+                  className={`${styles.sectionContent} ${styles.sectionContentOpen}`}
+                >
                   <ProfileSummary profile={profile} />
-                  {/* ProfileRegistrationDate est maintenant géré dans ProfileSummary */}
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            </aside>
 
-
-            <div className={styles.columnRight}>
-              {/* Informations personnelles */}
+            {/* Colonne droite : infos détaillées */}
+            <section className={styles.rightColumn}>
               {renderSection(
                 "Informations personnelles",
-                <FiUser />,
+                <LucideUser />,
                 <>
                   <div className={styles.fieldsGrid}>
-                    {renderField("Nom d'utilisateur", "username", false, true)}
+                    {renderField(
+                      "Nom d'utilisateur",
+                      "username",
+                      false,
+                      true,
+                    )}
                     {renderField("Prénom", "first_name", false, true)}
                     {renderField("Nom", "last_name", false, true)}
-                    {renderField("Email", "email", false, true, "email@exemple.com", "email")}
-                    {renderField("Téléphone", "phone", false, true, "+33 6 12 34 56 78", "tel")}
+                    {renderField(
+                      "Email",
+                      "email",
+                      false,
+                      true,
+                      "email@exemple.com",
+                      "email",
+                    )}
+                    {renderField(
+                      "Téléphone",
+                      "phone",
+                      false,
+                      true,
+                      "+33 6 12 34 56 78",
+                      "tel",
+                    )}
                   </div>
 
-                  {/* Niveau d'expérience */}
                   <div className={styles.fieldRow}>
-                    <label htmlFor="experience_level" className={styles.fieldLabel}>
+                    <label
+                      htmlFor="experience_level"
+                      className={styles.fieldLabel}
+                    >
                       Niveau d&apos;expérience
                     </label>
                     {isEditing ? (
                       <select
                         id="experience_level"
                         name="experience_level"
-                        value={editProfile?.experience_level ?? ""}
+                        value={editProfile.experience_level ?? ""}
                         onChange={(e) => {
-                          const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
+                          const value = e.target.value as
+                            | ""
+                            | "debutant"
+                            | "intermediaire"
+                            | "experimente";
                           setEditProfile((prev) =>
-                            prev ? { ...prev, experience_level: value === "" ? null : value } : prev
+                            prev
+                              ? {
+                                  ...prev,
+                                  experience_level:
+                                    value === "" ? null : value,
+                                }
+                              : prev,
                           );
                         }}
                         className={styles.fieldSelect}
-                        aria-label="Sélectionnez votre niveau d'expérience"
                       >
                         <option value="">Sélectionner un niveau</option>
-                        <option value="debutant">Débutant (moins de 6 mois)</option>
-                        <option value="intermediaire">Intermédiaire (6 mois à 3 ans)</option>
-                        <option value="experimente">Expérimenté (plus de 3 ans)</option>
+                        <option value="debutant">
+                          Débutant (moins de 6 mois)
+                        </option>
+                        <option value="intermediaire">
+                          Intermédiaire (6 mois à 3 ans)
+                        </option>
+                        <option value="experimente">
+                          Expérimenté (plus de 3 ans)
+                        </option>
                       </select>
                     ) : (
                       <span className={styles.fieldValue}>
-                        {formatExperienceLabel(editProfile?.experience_level ?? null)}
+                        {formatExperienceLabel(editProfile.experience_level)}
                       </span>
                     )}
                   </div>
 
-                  {/* Années d'expérience */}
                   {renderField(
                     "Années d'expérience",
                     "years_experience",
@@ -505,12 +663,11 @@ export default function ConciergeProfilePage() {
                     false,
                     "Nombre d'années",
                     "number",
-                    { min: "0", max: "50" } // UX : empêcher valeurs incohérentes
+                    { min: "0", max: "50" },
                   )}
-                </>
+                </>,
               )}
 
-              {/* Informations entreprise */}
               {renderSection(
                 "Informations entreprise",
                 <FiBriefcase />,
@@ -520,101 +677,98 @@ export default function ConciergeProfilePage() {
                     "company_name",
                     false,
                     true,
-                    "Ma Conciergerie"
+                    "Ma Conciergerie",
                   )}
                   {renderField(
                     "Forme juridique",
                     "legal_form",
                     false,
                     false,
-                    "Auto-entrepreneur, SAS, SARL..."
+                    "Auto-entrepreneur, SAS, SARL...",
                   )}
                   {renderField(
                     "SIREN",
                     "siren",
                     false,
                     true,
-                    "123 456 789 (9 chiffres)"
+                    "123 456 789 (9 chiffres)",
                   )}
                   {renderField(
                     "SIRET",
                     "siret",
                     false,
                     true,
-                    "123 456 789 00012 (14 chiffres)"
+                    "123 456 789 00012 (14 chiffres)",
                   )}
                   {renderField(
                     "N° TVA intracommunautaire",
                     "vat_number",
                     false,
                     false,
-                    "FR 12 123456789"
+                    "FR 12 123456789",
                   )}
-
-
-                </>
+                </>,
               )}
 
-              {/* Adresse professionnelle */}
               {renderSection(
                 "Adresse professionnelle",
-                <FiMapPin />,
+                <FiMapPinOutline />,
                 <>
                   {renderField(
                     "Adresse",
                     "street_address",
                     false,
                     true,
-                    "12 Rue de la République"
+                    "12 Rue de la République",
                   )}
                   {renderField(
                     "Code postal",
                     "postal_code",
                     false,
                     true,
-                    "75001"
+                    "75001",
                   )}
                   {renderField("Ville", "city", false, true, "Paris")}
                   {renderField("Pays", "country", false, false, "France")}
-                </>
+                </>,
               )}
-              {/* Assurance & Certifications */}
+
               {renderSection(
                 "Assurance & Certifications",
-                <FiShield />,
+                <FiShieldOutline />,
                 <>
                   {renderField(
                     "Compagnie d'assurance",
                     "insurance_company",
                     false,
                     false,
-                    "AXA, Allianz..."
+                    "AXA, Allianz...",
                   )}
                   {renderField(
                     "N° contrat RC Pro",
                     "insurance_number",
                     false,
                     false,
-                    "RC123456789"
+                    "RC123456789",
                   )}
                   {renderField(
                     "Certifications",
                     "certifications",
                     true,
                     false,
-                    "Qualité, Labels..."
+                    "Qualité, Labels...",
                   )}
-                </>
+                </>,
               )}
-              {/* Web, Réseaux sociaux */}
+
               {renderSection(
                 "Web & Réseaux sociaux",
                 <FiGlobe />,
                 <SocialLinksManager
-                  website={editProfile?.website}
-                  linkedin={editProfile?.linkedin}
-                  instagram={editProfile?.instagram}
-                  facebook={editProfile?.facebook}
+                  website={editProfile.website}
+                  linkedin={editProfile.linkedin}
+                  instagram={editProfile.instagram}
+                  facebook={editProfile.facebook}
                   isEditing={isEditing}
                   onEdit={() => setIsEditing(true)}
                   onChange={handleSocialChange}
@@ -624,19 +778,15 @@ export default function ConciergeProfilePage() {
                     instagram: errors.instagram,
                     facebook: errors.facebook,
                   }}
-                />
+                />,
               )}
-
-
-
-            </div>
-          </>
+            </section>
+          </div>
         );
 
       case "missions":
         return (
           <>
-            {/* 1. SERVICES PROPOSÉS */}
             {renderSection(
               "Services proposés",
               <FiTarget />,
@@ -645,66 +795,63 @@ export default function ConciergeProfilePage() {
                 isEditing={isEditing}
                 onChangeField={(name, value) =>
                   setEditProfile((prev) =>
-                    prev ? { ...prev, [name]: value } : prev
+                    prev ? { ...prev, [name]: value } : prev,
                   )
                 }
                 onChangeOption={(selected) =>
                   setEditProfile((prev) =>
-                    prev ? { ...prev, option: JSON.stringify(selected) } : prev
+                    prev
+                      ? { ...prev, option: JSON.stringify(selected) }
+                      : prev,
                   )
                 }
-              />
+              />,
             )}
 
-            {/* 2. ZONE & DISPONIBILITÉ */}
             {renderSection(
               "Zone & disponibilité",
-              <FiMapPin />,
+              <FiMapPinOutline />,
               <>
                 {renderField(
                   "Zone d’intervention principale",
                   "service_area",
                   false,
                   false,
-                  "Paris et Île-de-France"
+                  "Paris et Île-de-France",
                 )}
-
                 {renderField(
                   "Rayon d’intervention (km)",
                   "service_radius_km",
                   false,
                   false,
                   "30",
-                  "number"
+                  "number",
                 )}
-
                 {renderField(
                   "Heures de disponibilité",
                   "availability_hours",
                   false,
                   false,
-                  "Lun–Ven 9h–18h"
+                  "Lun–Ven 9h–18h",
                 )}
-
                 {renderField(
                   "Service d’urgence 24h/7",
                   "emergency_service",
                   false,
                   false,
                   "",
-                  "checkbox"
+                  "checkbox",
                 )}
-              </>
+              </>,
             )}
 
-            {/* 3. RÈGLES D’ACCEPTATION */}
             {renderSection(
               "Règles d’acceptation des missions",
               <FiSliders />,
               <div className={styles.placeholderContent}>
                 <p>
-                  Définissez les conditions d’acceptation automatique ou manuelle
-                  des missions.
+                  Définissez les conditions d’acceptation automatique ou
+                  manuelle des missions.
                 </p>
                 <ul>
                   <li>• Refuser automatiquement hors zone</li>
@@ -712,52 +859,48 @@ export default function ConciergeProfilePage() {
                   <li>• Accepter automatiquement les missions urgentes</li>
                   <li>• Prioriser les clients récurrents</li>
                 </ul>
-              </div>
+              </div>,
             )}
 
-            {/* 4. PRIORITÉ & TYPOLOGIE */}
             {renderSection(
               "Priorité & typologie des missions",
-              <FiStar />,
+              <FiStarOutline />,
               <div className={styles.placeholderContent}>
                 <p>
                   Classez vos missions par niveau de priorité afin d’optimiser
                   votre organisation.
                 </p>
                 <p>
-                  Chaque type de mission pourra être associé à un niveau de priorité
-                  et à un mode d’acceptation.
+                  Chaque type de mission pourra être associé à un niveau de
+                  priorité et à un mode d’acceptation.
                 </p>
-              </div>
+              </div>,
             )}
 
-            {/* 5. MISSIONS EN COURS */}
             {renderSection(
               "Missions en cours",
-              <FiClock />,
+              <FiClockOutline />,
               <div className={styles.placeholderContent}>
                 <p>Aucune mission en cours</p>
                 <p>
-                  Les missions actives apparaîtront ici avec leur statut,
-                  le logement concerné et le client.
+                  Les missions actives apparaîtront ici avec leur statut, le
+                  logement concerné et le client.
                 </p>
-              </div>
+              </div>,
             )}
 
-            {/* 6. HISTORIQUE DES MISSIONS */}
             {renderSection(
               "Historique des missions",
-              <FiCheckCircle />,
+              <FiCheckCircleOutline />,
               <div className={styles.placeholderContent}>
                 <p>Aucune mission terminée</p>
                 <p>
                   Vous retrouverez ici l’historique de vos interventions,
                   factures et évaluations clients.
                 </p>
-              </div>
+              </div>,
             )}
 
-            {/* 7. INDICATEURS CLÉS */}
             {renderSection(
               "Indicateurs de performance",
               <FiTrendingUp />,
@@ -769,73 +912,64 @@ export default function ConciergeProfilePage() {
                   <li>• Nombre de missions ce mois-ci</li>
                   <li>• Note moyenne des clients</li>
                 </ul>
-              </div>
+              </div>,
             )}
           </>
         );
 
-
       case "tarifs":
         return (
-          <>
-            <div className={styles.tarifsWrapper} style={{ display: 'flex', gap: '2rem' }}>
-
-              {/* --- GRILLE TARIFAIRE (GAUCHE) --- */}
-              <div style={{ flex: 1 }}>
-                {renderSection(
-                  "Ma grille tarifaire",
-                  <FiDollarSign />,
-                  <>
-                    {/* <PricingManagement /> */}
-                    <div className={styles.pricingQuickStats}>
-                      <h4>📊 Mes tarifs les plus demandés</h4>
-                      {/* Exemple de statistiques */}
-                      <ul>
-                        <li>💼 Tarif horaire standard : 45€/h</li>
-                        <li>🏠 Forfait ménage 2 pièces : 60€</li>
-                        <li>🚗 Frais déplacement moyen : 15€</li>
-                      </ul>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* --- TARIFS PAR DÉFAUT (DROITE) --- */}
-              <div style={{ flex: 1 }}>
-                {renderSection(
-                  "Tarifs par défaut",
-                  <FiDollarSign />,
-                  <>
-                    {renderField(
-                      "Tarif horaire (€/h)",
-                      "hourly_rate",
-                      false,
-                      true,
-                      "45",
-                      "number"
-                    )}
-                    {renderField(
-                      "Forfait mensuel (€)",
-                      "monthly_rate",
-                      false,
-                      false,
-                      "1500",
-                      "number"
-                    )}
-                    {renderField(
-                      "Frais de déplacement (€)",
-                      "travel_fee",
-                      false,
-                      false,
-                      "15",
-                      "number"
-                    )}
-                  </>
-                )}
-              </div>
-
+          <div className={styles.financeGrid}>
+            <div className={styles.financeCard}>
+              {renderSection(
+                "Ma grille tarifaire",
+                <FiDollarSignOutline />,
+                <>
+                  <div className={styles.pricingQuickStats}>
+                    <h4>📊 Mes tarifs les plus demandés</h4>
+                    <ul>
+                      <li>💼 Tarif horaire standard : 45 €/h</li>
+                      <li>🏠 Forfait ménage 2 pièces : 60 €</li>
+                      <li>🚗 Frais déplacement moyen : 15 €</li>
+                    </ul>
+                  </div>
+                </>,
+              )}
             </div>
-          </>
+
+            <div className={styles.financeCard}>
+              {renderSection(
+                "Tarifs par défaut",
+                <DollarSign />,
+                <>
+                  {renderField(
+                    "Tarif horaire (€/h)",
+                    "hourly_rate",
+                    false,
+                    true,
+                    "45",
+                    "number",
+                  )}
+                  {renderField(
+                    "Forfait mensuel (€)",
+                    "monthly_rate",
+                    false,
+                    false,
+                    "1500",
+                    "number",
+                  )}
+                  {renderField(
+                    "Frais de déplacement (€)",
+                    "travel_fee",
+                    false,
+                    false,
+                    "15",
+                    "number",
+                  )}
+                </>,
+              )}
+            </div>
+          </div>
         );
 
       case "equipe":
@@ -844,24 +978,22 @@ export default function ConciergeProfilePage() {
             {renderSection(
               "Mon équipe",
               <FiUsers />,
-              <>
-                <div className={styles.placeholderContent}>
-                  <p>Section en cours de développement</p>
-                  <p>Gérez votre équipe et vos collaborateurs ici.</p>
-                </div>
-              </>
+              <div className={styles.placeholderContent}>
+                <p>Section en cours de développement</p>
+                <p>Gérez votre équipe et vos collaborateurs ici.</p>
+              </div>,
             )}
 
             {renderSection(
               "Zones d'intervention",
-              <FiMapPin />,
+              <FiMapPinOutline />,
               <>
                 {renderField(
                   "Zone d'intervention",
                   "service_area",
                   false,
                   false,
-                  "Paris et Île-de-France"
+                  "Paris et Île-de-France",
                 )}
                 {renderField(
                   "Rayon d'intervention (km)",
@@ -869,9 +1001,9 @@ export default function ConciergeProfilePage() {
                   false,
                   false,
                   "30",
-                  "number"
+                  "number",
                 )}
-              </>
+              </>,
             )}
           </>
         );
@@ -882,25 +1014,21 @@ export default function ConciergeProfilePage() {
             {renderSection(
               "Documents professionnels",
               <FiFile />,
-              <>
-                <div className={styles.placeholderContent}>
-                  <p>Section en cours de développement</p>
-                  <p>
-                    Gérez vos documents professionnels (kbis, assurances, etc.).
-                  </p>
-                </div>
-              </>
+              <div className={styles.placeholderContent}>
+                <p>Section en cours de développement</p>
+                <p>
+                  Gérez vos documents professionnels (kbis, assurances, etc.).
+                </p>
+              </div>,
             )}
 
             {renderSection(
               "Avis clients",
-              <FiStar />,
-              <>
-                <div className={styles.placeholderContent}>
-                  <p>Section en cours de développement</p>
-                  <p>Consultez les avis de vos clients ici.</p>
-                </div>
-              </>
+              <FiStarOutline />,
+              <div className={styles.placeholderContent}>
+                <p>Section en cours de développement</p>
+                <p>Consultez les avis de vos clients ici.</p>
+              </div>,
             )}
           </>
         );
@@ -919,64 +1047,98 @@ export default function ConciergeProfilePage() {
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Ma Conciergerie</h1>
+    <div className={styles.page}>
+      {/* HEADER NAV */}
+      <header className={styles.pageHeader}>
+        <div className={styles.pageHeaderLeft}>
+          <div className={styles.logo}>
+            <Shield size={22} />
+          </div>
+          <h1 className={styles.pageTitle}>Espace Concierge</h1>
+        </div>
 
-      {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
-      {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
-
-      <div className={styles.tabsContainer}>
-        {CONCIERGE_TABS.map((tab) => {
-          const Icon = tab.icon;
-          return (
+        <div className={styles.pageHeaderRight}>
+          {isEditing ? (
+            <>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={loading}
+                className={styles.saveButton}
+              >
+                {loading ? (
+                  <span className={styles.saveSpinner} />
+                ) : (
+                  <Save size={16} />
+                )}
+                <span>Sauvegarder</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditProfile(profile);
+                  setErrors({});
+                }}
+                disabled={loading}
+                className={styles.cancelButton}
+              >
+                <LucideX size={16} />
+                <span>Annuler</span>
+              </button>
+            </>
+          ) : (
             <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""
-                }`}
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className={styles.editButton}
             >
-              <span className={styles.tabIcon}>
-                <Icon />
-              </span>
-              <span className={styles.tabLabel}>{tab.label}</span>
+              <Edit2 size={16} />
+              <span>Modifier le profil</span>
             </button>
-          );
-        })}
-      </div>
+          )}
+        </div>
+      </header>
 
-      <div className={styles.tabContent}>{renderTabContent()}</div>
-
-      <div className={styles.actions}>
-        {isEditing ? (
-          <>
-            <button
-              onClick={handleSave}
-              disabled={loading}
-              className={styles.saveButton}
-            >
-              {loading ? "Sauvegarde..." : "💾 Sauvegarder"}
-            </button>
-            <button
-              onClick={() => {
-                setIsEditing(false);
-                setEditProfile(profile);
-                setErrors({});
-              }}
-              disabled={loading}
-              className={styles.cancelButton}
-            >
-              ❌ Annuler
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => setIsEditing(true)}
-            className={styles.editButton}
+      <main className={styles.main}>
+        {successMsg && (
+          <div
+            className={`${styles.notification} ${styles.notificationSuccess}`}
           >
-            ✏️ Modifier
-          </button>
+            <CheckCircle2 size={18} />
+            <span>{successMsg}</span>
+          </div>
         )}
-      </div>
+        {errorMsg && (
+          <div className={`${styles.notification} ${styles.notificationError}`}>
+            <AlertCircle size={18} />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        <div className={styles.tabs}>
+          {CONCIERGE_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`${styles.tab} ${
+                  isActive ? styles.tabActive : ""
+                }`}
+              >
+                <span className={styles.tabIcon}>
+                  <Icon />
+                </span>
+                <span className={styles.tabLabel}>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={styles.tabContent}>{renderTabContent()}</div>
+      </main>
     </div>
   );
 }

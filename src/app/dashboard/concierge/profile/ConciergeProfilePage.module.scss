@@ -1,131 +1,451 @@
-@use "sass:map";
-@use "../../../styles/abstracts/variables" as *;
+@use "sass:color";
 
-.pageContainer {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: $spacing-lg;
+/* ======================================================
+   VARIABLES LOCALES (alignées avec ton design system)
+====================================================== */
+$page-bg: var(--color-bg-page, #f4f6f8);
+$card-bg: var(--color-bg-card, #ffffff);
+$primary: var(--color-primary, #1f3a5f);
+$accent: var(--color-accent, #c9a24d);
+$text-main: var(--color-text-main, #1f2933);
+$text-muted: var(--color-text-muted, #6b7280);
+$border-soft: rgba(0, 0, 0, 0.08);
+$radius: 14px;
+$transition: 0.25s ease;
+
+/* ======================================================
+   PAGE WRAPPER
+====================================================== */
+.page {
+  min-height: 100vh;
+  background: $page-bg;
 }
 
-.title {
-  font-family: var(--font-primary);
-  font-weight: 700;
-  font-size: 2rem;
-  margin-bottom: $spacing-lg;
+.main {
+  padding: 2rem;
 }
 
-.tabsContainer {
+/* ======================================================
+   HEADER
+====================================================== */
+.pageHeader {
   display: flex;
-  gap: $spacing-md;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  background: $card-bg;
+  border-bottom: 1px solid $border-soft;
+}
+
+.pageHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(201, 162, 77, 0.15);
+  color: $accent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pageTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: $primary;
+  letter-spacing: 0.04em;
+}
+
+/* ======================================================
+   HEADER ACTIONS
+====================================================== */
+.pageHeaderRight {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.editButton,
+.saveButton,
+.cancelButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all $transition;
+}
+
+.editButton {
+  background: $primary;
+  color: #fff;
+}
+
+.saveButton {
+  background: $accent;
+  color: #1f2933;
+}
+
+.cancelButton {
+  background: transparent;
+  border: 1px solid $border-soft;
+  color: $text-muted;
+}
+
+.editButton:hover,
+.saveButton:hover {
+  transform: translateY(-1px);
+}
+
+.cancelButton:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.saveSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ======================================================
+   NOTIFICATIONS
+====================================================== */
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: $radius;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.notificationSuccess {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+}
+
+.notificationError {
+  background: rgba(220, 38, 38, 0.12);
+  color: #7f1d1d;
+}
+
+/* ======================================================
+   TABS
+====================================================== */
+.tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem 0 2rem;
   flex-wrap: wrap;
-  margin-bottom: $spacing-lg;
 }
 
 .tab {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: $radius-md;
-  background: var(--surface-main);
-  border: 1px solid var(--border-soft);
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: $card-bg;
+  border: 1px solid $border-soft;
+  color: $text-muted;
   cursor: pointer;
-  transition: all 0.25s ease;
-  &:hover { background: var(--surface-hover); }
+  transition: all $transition;
+}
+
+.tab:hover {
+  border-color: $accent;
+  color: $primary;
 }
 
 .tabActive {
-  background: var(--gold-light);
-  border-color: var(--gold-main);
-  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    rgba(201, 162, 77, 0.18),
+    rgba(201, 162, 77, 0.05)
+  );
+  border-color: $accent;
+  color: $primary;
 }
 
-.columnLeft, .columnRight {
-  flex: 1;
+.tabIcon {
+  font-size: 1.1rem;
+}
+
+/* ======================================================
+   TAB CONTENT LAYOUT
+====================================================== */
+.tabContent {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 560px 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ======================================================
+   LEFT COLUMN
+====================================================== */
+.leftColumn {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 1.5rem;
 }
 
-@media (max-width: map.get($breakpoints, md)) {
-  .columnLeft, .columnRight { flex: 1 1 100%; }
-  .tabsContainer { justify-content: center; }
+.profileCard {
+  background: $card-bg;
+  border-radius: $radius;
+  border: 1px solid $border-soft;
+  padding: 1.25rem;
 }
 
+.avatarWrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.avatarEditButton {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.25rem;
+  background: $accent;
+  color: #1f2933;
+  border-radius: 50%;
+  padding: 0.35rem;
+  border: none;
+  cursor: pointer;
+}
+
+.profileIdentity {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.profileName {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: $primary;
+}
+
+.profileLocation {
+  font-size: 0.85rem;
+  color: $text-muted;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* ======================================================
+   STATS
+====================================================== */
+.profileStats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.profileStatItem {
+  text-align: center;
+}
+
+.profileStatLabel {
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+
+.profileStatValue {
+  font-weight: 600;
+  color: $primary;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.profileStatIconStar {
+  color: $accent;
+}
+
+/* ======================================================
+   CONTACTS
+====================================================== */
+.profileContacts {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.profileContactItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: $text-muted;
+}
+
+/* ======================================================
+   BADGE
+====================================================== */
+.badgeCard {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 162, 77, 0.18),
+    rgba(201, 162, 77, 0.05)
+  );
+  border-radius: $radius;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(201, 162, 77, 0.3);
+}
+
+.badgeTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: $primary;
+}
+
+.badgeText {
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  color: $text-main;
+}
+
+/* ======================================================
+   SECTIONS (RIGHT COLUMN + SUMMARY)
+====================================================== */
 .section {
-  border: 1px solid var(--border-soft);
-  border-radius: $radius-md;
+  background: $card-bg;
+  border-radius: $radius;
+  border: 1px solid $border-soft;
   overflow: hidden;
 }
 
 .sectionTitleToggle {
+  padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  background: var(--surface-main);
-  padding: 0.5rem 1rem;
   cursor: pointer;
-  user-select: none;
+  font-weight: 600;
+  color: $primary;
+  background: linear-gradient(
+    to right,
+    rgba(201, 162, 77, 0.1),
+    transparent
+  );
 }
 
 .sectionTitleToggleActive {
-  font-weight: 600;
+  background: linear-gradient(
+    to right,
+    rgba(201, 162, 77, 0.2),
+    transparent
+  );
+}
+
+.sectionTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionIcon {
+  color: $accent;
+}
+
+.toggleIcon {
+  transition: transform $transition;
+}
+
+.toggleIconOpen {
+  transform: rotate(180deg);
 }
 
 .sectionContent {
   max-height: 0;
+  opacity: 0;
   overflow: hidden;
-  transition: max-height 0.35s ease;
-  padding: 0 1rem;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
 }
 
 .sectionContentOpen {
   max-height: 2000px;
-  padding: 1rem;
+  opacity: 1;
+  padding: 1.25rem;
+}
+
+/* ======================================================
+   FIELDS
+====================================================== */
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
 }
 
 .fieldRow {
-  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .fieldLabel {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: $text-muted;
 }
 
-.fieldInput, .fieldTextarea, .fieldSelect {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: $radius-sm;
-  border: 1px solid var(--border-soft);
-  transition: border 0.25s ease;
+.fieldValue {
+  font-size: 0.9rem;
+  color: $text-main;
 }
 
-.fieldInput.error, .fieldTextarea.error {
-  border-color: var(--danger);
+/* ======================================================
+   PLACEHOLDERS
+====================================================== */
+.placeholderContent {
+  font-size: 0.9rem;
+  color: $text-muted;
+
+  ul {
+    margin-top: 0.5rem;
+    padding-left: 1.2rem;
+  }
 }
 
-.fieldInput.valid {
-  border-color: var(--success);
+/* ======================================================
+   LOADING / ERROR
+====================================================== */
+.loading,
+.errorMsg {
+  padding: 3rem;
+  text-align: center;
+  color: $text-muted;
 }
-
-.actions {
-  margin-top: $spacing-lg;
-  display: flex;
-  gap: $spacing-md;
-}
-
-.saveButton, .cancelButton, .editButton {
-  padding: 0.5rem 1rem;
-  border-radius: $radius-md;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.saveButton { background: var(--gold-main); color: #fff; }
-.cancelButton { background: var(--surface-muted); }
-.editButton { background: var(--surface-main); }
-.saveButton:hover { background: var(--gold-dark); }
-.cancelButton:hover { background: var(--surface-hover); }

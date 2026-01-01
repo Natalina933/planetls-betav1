@@ -1,7 +1,11 @@
 @use "sass:map";
 @use "../../../styles/abstracts/variables" as *;
 
-:global(.dash-navbar) {
+/* ==========================================================================
+   NAVBAR PRINCIPALE
+   ========================================================================== */
+
+.dashNavbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -15,8 +19,12 @@
   top: 0;
   z-index: 100;
   backdrop-filter: blur(14px);
-  color: var(--gold-main); // tout le texte + icônes en doré
+  color: var(--gold-main);
   animation: slideIn 0.4s ease-out;
+
+  @media (max-width: map.get($breakpoints, xl)) {
+    height: 65px;
+  }
 
   @media (max-width: map.get($breakpoints, md)) {
     height: 60px;
@@ -26,8 +34,11 @@
   @media (max-width: map.get($breakpoints, sm)) {
     padding: 0 0.75rem;
   }
-}
 
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
 
 /* ==========================================================================
    LEFT SECTION — Menu / Logo / Rôle
@@ -39,6 +50,14 @@
   gap: clamp(0.75rem, 2vw, 1.5rem);
   min-width: 0;
   flex: 1;
+
+  @media (max-width: map.get($breakpoints, lg)) {
+    gap: 1rem;
+  }
+
+  @media (max-width: map.get($breakpoints, md)) {
+    gap: 0.75rem;
+  }
 }
 
 .menuButton {
@@ -50,7 +69,7 @@
   border-radius: $radius-md;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--gold-main);
   cursor: pointer;
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,6 +89,10 @@
       opacity: 1;
     }
     transform: translateX(2px);
+
+    svg {
+      transform: rotate(180deg);
+    }
   }
 
   &:active {
@@ -87,32 +110,18 @@
     transition: transform 0.3s ease;
   }
 
-  &:hover svg {
-    transform: rotate(180deg);
-  }
-
   @media (max-width: map.get($breakpoints, md)) {
     width: 40px;
     height: 40px;
   }
 }
-.logoText,
-.userRole,
-.companyName,
-.greeting,
-.proBadge {
-  color: var(--gold-main);
-}
 
-.proBadge {
-  background: linear-gradient(135deg, #ffd700 0%, #f2c200 50%, #e6b800 100%);
-}
 .logoText {
   font-family: var(--font-primary);
   font-size: clamp(0.95rem, 2vw, 1.15rem);
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: var(--gold-bg-soft);
+  color: var(--gold-main);
   white-space: nowrap;
   position: relative;
   padding-left: 0.5rem;
@@ -186,9 +195,15 @@
   align-items: center;
   gap: clamp(0.75rem, 2vw, 1.25rem);
   flex-shrink: 0;
-}
 
-/* --- Greeting Block --- */
+  @media (max-width: map.get($breakpoints, lg)) {
+    gap: 0.75rem;
+  }
+
+  @media (max-width: map.get($breakpoints, md)) {
+    gap: 0.5rem;
+  }
+}
 
 .greetingBlock {
   display: flex;
@@ -215,7 +230,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-primary);
+  color: var(--gold-main);
   line-height: 1.2;
   background: linear-gradient(135deg, var(--gold-main), var(--gold-dark));
   -webkit-background-clip: text;
@@ -230,7 +245,7 @@
 .greeting {
   font-size: 0.75rem;
   font-style: italic;
-  color: var(--text-muted);
+  color: var(--gold-main);
   line-height: 1.2;
 
   @media (max-width: map.get($breakpoints, lg)) {
@@ -284,18 +299,9 @@
   }
 
   @media (max-width: map.get($breakpoints, sm)) {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.65rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.6rem;
     gap: 0.25rem;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  100% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
   }
 }
 
@@ -313,7 +319,7 @@
   border-radius: $radius-md;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--gold-main);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -386,17 +392,6 @@
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
-  }
-}
-
 /* ==========================================================================
    USER PROFILE
    ========================================================================== */
@@ -422,8 +417,10 @@
     border-radius: inherit;
     padding: 2px;
     background: linear-gradient(135deg, var(--gold-main), var(--gold-light));
-    // -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    // Support pour tous les navigateurs
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -482,7 +479,7 @@
 }
 
 /* ==========================================================================
-   ANIMATIONS & INTERACTIONS
+   ANIMATIONS
    ========================================================================== */
 
 @keyframes slideIn {
@@ -496,67 +493,36 @@
   }
 }
 
-:global(.dash-navbar) {
-  animation: slideIn 0.4s ease-out;
-  animation-fill-mode: forwards;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
-  color: #b99b2e;
-  background: #1a1a1a;
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
+  }
 }
 
 /* ==========================================================================
-   ACCESSIBILITY
+   ACCESSIBILITY (SCOPED — CSS MODULE SAFE)
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  :global(*) {
+  .dashNavbar,
+  .dashNavbar * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-/* ==========================================================================
-   RESPONSIVE BREAKPOINTS
-   ========================================================================== */
-
-@media (max-width: map.get($breakpoints, xl)) {
-  :global(.dash-navbar) {
-    height: 65px;
-  }
-}
-
-@media (max-width: map.get($breakpoints, lg)) {
-  .leftSection {
-    gap: 1rem;
-  }
-
-  .rightSection {
-    gap: 0.75rem;
-  }
-}
-
-@media (max-width: map.get($breakpoints, md)) {
-  .leftSection {
-    gap: 0.75rem;
-  }
-
-  .rightSection {
-    gap: 0.5rem;
-  }
-}
-
-@media (max-width: map.get($breakpoints, sm)) {
-  :global(.dash-navbar) {
-    padding: 0 0.75rem;
-  }
-
-  .proBadge {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.6rem;
+    scroll-behavior: auto !important;
   }
 }

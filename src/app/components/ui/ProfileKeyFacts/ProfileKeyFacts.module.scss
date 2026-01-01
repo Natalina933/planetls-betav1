@@ -1,201 +1,211 @@
-// ProfileKeyFacts.module.scss
-@use "sass:color";
+@use "sass:map";
+@use "@/app/styles/abstracts/variables" as var;
 
-/* -------------------------------------------------------------------------- */
-/*                               DESIGN TOKENS                                */
-/* -------------------------------------------------------------------------- */
-
-$bg-root: #0f172a; // fond nuit bleuté
-$bg-panel: #111827;
-$bg-soft: rgba(255, 255, 255, 0.03);
-
-$ink-main: #e5e7eb;
-$ink-muted: #9ca3af;
-$ink-soft: #6b7280;
-
-$gold-main: #c6a45e;
-$gold-soft: rgba(198, 164, 94, 0.35);
-
-$green-young: #6fa88f;
-$green-mid: #4f8a6b;
-$green-old: #2f6f4e;
-
-$border-soft: rgba(255, 255, 255, 0.08);
-$shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.35);
-
-/* -------------------------------------------------------------------------- */
-/*                                   WRAPPER                                  */
-/* -------------------------------------------------------------------------- */
+/* ==========================================================================
+   Profile Key Facts — Style 1900 / Mucha
+   ========================================================================== */
 
 .wrapper {
-  background: linear-gradient(
-    160deg,
-    $bg-panel,
-    color.adjust($bg-panel, $lightness: -2%)
-  );
-  border-radius: 1.5rem;
-  padding: 1.75rem;
-  border: 1px solid $border-soft;
-  box-shadow: $shadow-soft;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                    HEADER                                  */
-/* -------------------------------------------------------------------------- */
-
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 1.5rem;
-}
-
-.company {
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: $ink-main;
-}
-
-.membership {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: $gold-main;
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              EXPERIENCE BLOCK                               */
-/* -------------------------------------------------------------------------- */
-
-.experienceBlock {
-  display: flex;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  border-radius: 1.25rem;
-  background:
-    radial-gradient(
-      120% 120% at 0% 0%,
-      rgba(198, 164, 94, 0.08),
-      transparent 60%
-    ),
-    $bg-soft;
-  border: 1px solid $gold-soft;
-  margin-bottom: 1.75rem;
   position: relative;
-  overflow: hidden;
-  animation: fadeRise 0.6s ease-out both;
+  padding: var.$spacing-lg;
+  border-radius: var.$radius-xl;
+  background: var.$mucha-paper;
+  border: 1px solid var.$profile-border;
+  box-shadow: var.$shadow;
+  color: var.$profile-text-primary;
+  transition: var.$transition;
 
-  &::after {
+  /* Cartouche intérieur façon affiches 1900 */
+  &::before {
     content: "";
     position: absolute;
-    inset: 0;
-    background:
-      repeating-linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.02),
-        rgba(255, 255, 255, 0.02) 1px,
-        transparent 1px,
-        transparent 6px
-      );
+    inset: 10px;
+    border-radius: calc(var.$radius-xl - 8px);
+    border: 1px solid rgba(var.$profile-border, 0.5);
     pointer-events: none;
   }
 }
 
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var.$spacing-md;
+}
+
+.company {
+  font-family: var.$font-elegant;
+  font-size: 1.3rem;
+  color: var.$mucha-ink;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 2px;
+    margin-top: 0.3rem;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var.$gold-dark,
+      transparent
+    );
+  }
+}
+
+.membership {
+  padding: 0.3rem 0.8rem;
+  border-radius: var.$radius-pill;
+  background: rgba(var.$gold-light, 0.4);
+  border: 1px solid var.$gold-dark;
+  font-family: var.$font-text;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var.$gold-dark;
+
+  &::before {
+    content: "✦";
+    margin-right: 0.35rem;
+  }
+}
+
+/* ==========================================================================
+   EXPÉRIENCE — Bloc central
+   ========================================================================== */
+
+.experienceBlock {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var.$spacing-md;
+  padding: var.$spacing-md;
+  border-radius: var.$radius-lg;
+  border: 1px solid var.$profile-border;
+  background: var.$profile-bg-card;
+  box-shadow: var.$shadow;
+  transition: var.$transition;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  }
+}
+
 .experienceIcon {
-  font-size: 2.1rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 1px solid var.$gold-dark;
+  background: var.$gold-soft;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
 }
 
 .experienceContent {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.2rem;
 }
 
 .experienceTitle {
+  font-family: var.$font-elegant;
   font-size: 1.1rem;
-  font-weight: 600;
-  color: $ink-main;
+  color: var.$mucha-ink;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .experienceSubtitle {
-  font-size: 0.9rem;
-  color: $ink-muted;
+  font-family: var.$font-elegant;
+  font-style: italic;
+  color: var.$text-light;
 }
 
 .experienceRange {
-  font-size: 0.8rem;
-  font-style: italic;
-  color: $ink-soft;
+  font-family: var.$font-text;
+  color: var.$text-dark;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                          VARIATIONS PAR NIVEAU                              */
-/* -------------------------------------------------------------------------- */
+/* ==========================================================================
+   VARIANTS — Débutant / Intermédiaire / Expert
+   ========================================================================== */
 
 .levelBeginner {
-  border-color: rgba($green-young, 0.45);
+  border-color: var.$gold-light;
 
-  .experienceIcon {
-    color: $green-young;
+  .experienceTitle {
+    color: var.$profile-success;
   }
 }
 
 .levelIntermediate {
-  border-color: rgba($green-mid, 0.55);
+  border-color: var.$gold-accent;
 
-  .experienceIcon {
-    color: $green-mid;
+  .experienceTitle {
+    color: var.$gold-dark;
   }
 }
 
 .levelExpert {
-  border-color: rgba($green-old, 0.6);
+  border-color: var.$gold-dark;
 
-  .experienceIcon {
-    color: $green-old;
+  .experienceTitle {
+    color: var.$mucha-ink;
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                           TRUST INDICATORS                                  */
-/* -------------------------------------------------------------------------- */
+/* ==========================================================================
+   TRUST ITEMS
+   ========================================================================== */
 
 .trustRow {
+  margin-top: var.$spacing-md;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .trustItem {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var.$radius-pill;
+  border: 1px solid var.$profile-border;
+  background: var.$gold-soft;
+  font-family: var.$font-text;
   font-size: 0.8rem;
-  padding: 0.45rem 0.8rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: $ink-main;
-  border: 1px solid $border-soft;
+  color: var.$mucha-ink;
 
   svg {
-    color: $gold-main;
+    color: var.$gold-dark;
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                              ANIMATIONS                                     */
-/* -------------------------------------------------------------------------- */
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
 
-@keyframes fadeRise {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
+@media (max-width: map.get(var.$breakpoints, md)) {
+  .wrapper {
+    padding: var.$spacing-md;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .experienceBlock {
+    grid-template-columns: 1fr;
   }
 }

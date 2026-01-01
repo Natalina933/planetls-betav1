@@ -1,184 +1,227 @@
 /* src/app/styles/abstracts/_dashboards.scss */
 
-// ✅ IMPORTATION DES VARIABLES AVEC LE NAMESPACE 'var'
-@use './variables' as var; 
-// ✅ IMPORTATION DU MODULE 'sass:map' pour map.get()
-@use "sass:map"; 
+@use './variables' as var;
+@use "sass:map";
 
-// -------------------------------------------
-// 1. STRUCTURE GLOBALE DU DASHBOARD (Layout)
-// -------------------------------------------
+/* ==========================================================================
+   THEMES
+   ========================================================================== */
+
+$themes: (
+  light: (
+    paper: var.$mucha-paper,
+    ink: var.$mucha-ink,
+    gold: var.$gold-soft,
+    text: var.$text-dark
+  ),
+  dark: (
+    paper: var.$mucha-paper-black,
+    ink: var.$text-light,
+    gold: var.$gold-dark,
+    text: var.$text-light
+  ),
+  sepia: (
+    paper: var.$sepia-paper,
+    ink: var.$sepia-ink,
+    gold: var.$gold-soft,
+    text: var.$text-dark
+  )
+);
+
+// Helper function pour accéder aux valeurs de thème
+@function theme($theme-name, $property) {
+  @return map.get(map.get($themes, $theme-name), $property);
+}
+
+/* ==========================================================================
+   STRUCTURE GLOBALE DU DASHBOARD
+   ========================================================================== */
 
 .dashboard-root {
-    display: flex;
-    min-height: 100vh;
-    background: var.$mucha-paper-black; 
-    font-family: var.$font-text; 
-    color: var.$mucha-ink; 
+  display: flex;
+  min-height: 100vh;
+  background: theme(dark, paper);
+  font-family: var.$font-text;
+  color: theme(dark, ink);
+  transition: var.$transition;
 }
 
 .dashboard-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    // CORRECTION: var.$transition
-    transition: var.$transition;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: var.$transition;
 
-    &.with-sidebar {
-        margin-left: 280px;
-    }
-    &.no-sidebar {
-        margin-left: 0;
-    }
+  &.with-sidebar {
+    margin-left: 280px;
+  }
 
-    // CORRECTION: map.get(var.$breakpoints, md)
-    @media (max-width: map.get(var.$breakpoints, md)) {
-        margin-left: 0;
-    }
+  &.no-sidebar {
+    margin-left: 0;
+  }
+
+  @media (max-width: map.get(var.$breakpoints, md)) {
+    margin-left: 0;
+  }
 }
 
 .dashboard-content {
-    flex-grow: 1;
-    // CORRECTION: var.$spacing-lg
-    padding: var.$spacing-lg;
-    // CORRECTION: var.$max-content-width, var.$spacing-lg
-    max-width: var.$max-content-width;
-    margin: var.$spacing-lg auto;
-    width: 95%;
+  flex-grow: 1;
+  padding: var.$spacing-lg;
+  max-width: var.$max-content-width;
+  margin: var.$spacing-xs auto;
+  width: 95%;
+  background: theme(dark, gold);
+  border: 3px solid theme(dark, ink);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
 
-    // CORRECTION: var.$gold-soft, var.$mucha-ink
-    background: var.$gold-soft; 
-    border: 3px solid var.$mucha-ink; 
-    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 0.2);
-    
-    // CORRECTION: map.get(var.$breakpoints, sm), var.$spacing-md
-    @media (max-width: map.get(var.$breakpoints, sm)) {
-        padding: var.$spacing-md;
-        margin: var.$spacing-md auto;
-    }
+  @media (max-width: map.get(var.$breakpoints, sm)) {
+    padding: var.$spacing-md;
+    margin: var.$spacing-md auto;
+  }
 }
 
-// -------------------------------------------
-// 2. ÉLÉMENTS DE BASE PARTAGÉS
-// -------------------------------------------
+/* ==========================================================================
+   HEADERS
+   ========================================================================== */
 
 .dashboard-header {
-    // CORRECTION: var.$spacing-lg, var.$spacing-md, var.$mucha-ink
-    margin-bottom: var.$spacing-lg;
-    padding-bottom: var.$spacing-md;
-    border-bottom: 3px double var.$mucha-ink; 
-    
-    h1 {
-        // CORRECTION: var.$font-elegant, var.$primary-dark-color-sass
-        font-family: var.$font-elegant; 
-        color: var.$primary-dark-color-sass; 
-        .header-icon {
-            margin-right: var.$spacing-sm;
-        }
+  margin-bottom: var.$spacing-lg;
+  padding-bottom: var.$spacing-md;
+  border-bottom: 3px double theme(dark, ink);
+
+  h1 {
+    font-family: var.$font-elegant;
+    color: var.$primary-dark-color-sass;
+
+    .header-icon {
+      margin-right: var.$spacing-sm;
     }
-    .subtitle {
-        // CORRECTION: var.$text-light, var.$spacing-sm
-        color: var.$text-light;
-        margin-top: var.$spacing-sm;
-    }
+  }
+
+  .subtitle {
+    color: theme(dark, text);
+    margin-top: var.$spacing-sm;
+  }
 }
 
 .dashboard-loading-container {
-    // CORRECTION: var.$spacing-xl, var.$spacing-md, var.$font-elegant
-    padding: var.$spacing-xl;
-    p {
-        margin-top: var.$spacing-md;
-        font-family: var.$font-elegant;
-    }
+  padding: var.$spacing-xl;
+
+  p {
+    margin-top: var.$spacing-md;
+    font-family: var.$font-elegant;
+  }
 }
 
-// -------------------------------------------
-// 3. COMPOSANTS PARTAGÉS (DashboardCard/Stats Row)
-// -------------------------------------------
+/* ==========================================================================
+   CARDS & GRID
+   ========================================================================== */
 
 .dashboard-grid {
-    // CORRECTION: var.$spacing-lg, var.$spacing-xl
-    gap: var.$spacing-lg;
-    margin-bottom: var.$spacing-xl;
+  gap: var.$spacing-lg;
+  margin-bottom: var.$spacing-xl;
 }
 
 .dashboard-card {
-    // CORRECTION: var.$mucha-paper, var.$mucha-ink, var.$spacing-lg, var.$transition
-    background: var.$mucha-paper;
-    border: 1px solid var.$mucha-ink;
-    padding: var.$spacing-lg;
-    box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 0.15);
-    transition: var.$transition;
+  background: theme(dark, paper);
+  border: 1px solid theme(dark, ink);
+  padding: var.$spacing-lg;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+  transition: var.$transition;
 
-    &:hover {
-        // CORRECTION: var.$primary-light-color-sass
-        box-shadow: 4px 4px 0px 0px var.$primary-light-color-sass; 
-    }
+  &:hover {
+    box-shadow: 4px 4px 0 var.$primary-light-color-sass;
+  }
 
-    .card-header {
-        // CORRECTION: var.$mucha-ink, var.$spacing-sm, var.$spacing-md
-        border-bottom: 1px dashed var.$mucha-ink; 
-        padding-bottom: var.$spacing-sm;
-        margin-bottom: var.$spacing-md;
-    }
+  .card-header {
+    border-bottom: 1px dashed theme(dark, ink);
+    padding-bottom: var.$spacing-sm;
+    margin-bottom: var.$spacing-md;
+  }
 
-    .card-icon {
-        // CORRECTION: var.$primary-dark-color-sass
-        color: var.$primary-dark-color-sass;
-    }
+  .card-icon {
+    color: var.$primary-dark-color-sass;
+  }
 
-    .card-title {
-        // CORRECTION: var.$font-title
-        font-family: var.$font-title;
-    }
-    
-    .card-value {
-        // CORRECTION: var.$font-elegant, var.$primary-color-sass
-        font-family: var.$font-elegant;
-        color: var.$primary-color-sass;
-    }
+  .card-title {
+    font-family: var.$font-title;
+  }
 
-    .card-description {
-        // CORRECTION: var.$text-light
-        color: var.$text-light;
-    }
+  .card-value {
+    font-family: var.$font-elegant;
+    color: var.$primary-color-sass;
+  }
+
+  .card-description {
+    color: theme(dark, text);
+  }
 }
 
-
-// -------------------------------------------
-// 4. LISTES / TABLES GÉNÉRIQUES
-// -------------------------------------------
+/* ==========================================================================
+   SECTIONS & TABLES
+   ========================================================================== */
 
 .dashboard-section {
-    // CORRECTION: var.$spacing-xl
-    margin-bottom: var.$spacing-xl;
+  margin-bottom: var.$spacing-xl;
 
-    h2 {
-        // CORRECTION: var.$font-elegant, var.$mucha-ink, var.$spacing-md, var.$primary-dark-color-sass
-        font-family: var.$font-elegant;
-        color: var.$mucha-ink;
-        margin-bottom: var.$spacing-md;
-        text-decoration-color: var.$primary-dark-color-sass;
-    }
+  h2 {
+    font-family: var.$font-elegant;
+    color: theme(dark, ink);
+    margin-bottom: var.$spacing-md;
+    text-decoration-color: var.$primary-dark-color-sass;
+  }
 }
 
 .table {
-    // CORRECTION: var.$mucha-paper, var.$mucha-ink, var.$shadow
-    background: var.$mucha-paper;
-    border: 2px solid var.$mucha-ink;
-    box-shadow: var.$shadow;
-    
-    th, td {
-        // CORRECTION: var.$spacing-md, var.$text-light
-        padding: var.$spacing-md;
-        border-bottom: 1px dashed var.$text-light;
+  background: theme(dark, paper);
+  border: 2px solid theme(dark, ink);
+  box-shadow: var.$shadow;
+
+  th,
+  td {
+    padding: var.$spacing-md;
+    border-bottom: 1px dashed theme(dark, text);
+  }
+
+  th {
+    background-color: var.$gold-light;
+    font-family: var.$font-title;
+    font-weight: var.$font-weight-bold;
+    color: theme(dark, ink);
+  }
+}
+
+/* ==========================================================================
+   DARK MODE
+   ========================================================================== */
+
+body.dark {
+  .dashboard-root {
+    background: theme(dark, paper);
+    color: theme(dark, ink);
+  }
+
+  .dashboard-content {
+    background: theme(dark, gold);
+    border-color: theme(dark, ink);
+  }
+
+  .dashboard-card {
+    background: theme(dark, paper);
+    border-color: theme(dark, ink);
+
+    &:hover {
+      box-shadow: 4px 4px 0 var.$primary-dark-color-sass;
     }
-    
+  }
+
+  .table {
+    background: theme(dark, paper);
+    border-color: theme(dark, ink);
+
     th {
-        // CORRECTION: var.$gold-light, var.$font-title, var.$font-weight-bold, var.$mucha-ink
-        background-color: var.$gold-light;
-        font-family: var.$font-title;
-        font-weight: var.$font-weight-bold;
-        color: var.$mucha-ink;
+      color: theme(dark, ink);
     }
+  }
 }

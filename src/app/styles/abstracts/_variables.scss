@@ -1,9 +1,10 @@
 // src/app/styles/abstracts/_variables.scss
-// Ce fichier contient les variables UTILISÉES UNIQUEMENT PAR SCSS (mixins, functions, etc.).
-// Elles ne sont pas compilées directement en CSS.
 @use "sass:map";
 
-// --- Breakpoints ---
+/* ==========================================================================
+   BREAKPOINTS
+   ========================================================================== */
+
 $breakpoints: (
   xs: 0,
   sm: 576px,
@@ -13,30 +14,25 @@ $breakpoints: (
   xxl: 1400px
 );
 
-// --- Typographie (Variables Sass restaurées) ---
-// Ces variables sont utilisées par vos composants existants.
+/* ==========================================================================
+   TYPOGRAPHIE
+   ========================================================================== */
+
 $font-elegant: 'Cormorant Garamond', serif;
 $font-text: 'Open Sans', sans-serif;
 $font-title: 'Montserrat', sans-serif;
+$font-family-base: 'Open Sans', sans-serif;
+
 $font-weight-bold: 700;
 $font-weight-normal: 400;
+
 $font-body: 16px;
+$line-height: 1.6;
 
-// --- Couleurs SCSS ---
-// Couleur de texte principale
-$color-text: #333;
-$color-text-light: #555;
-$color-text-hover: #d4af37;
-$color-accent-dark: #555; // Couleur d'accentuation foncée
-$color-accent: #feca53; // Couleur d'accentuation
-$color-accent-hover: #f7d48f; // Couleur d'accentuation au survol
-$primary-dark-color-sass: #b99b2e; // Couleur primaire foncée
-$primary-color-sass: #d4af37; // Couleur primaire
-$primary-light-color-sass: #ffe099; // Couleur primaire claire
+/* ==========================================================================
+   PALETTE DE COULEURS - OR/GOLD
+   ========================================================================== */
 
-$all-bg: #f7fbfe; // Couleur de fond générale
-
-// Utiles pour les manipulations de couleurs dans les mixins.
 $gold: #d4af37;
 $gold-dark: #b99b2e;
 $gold-accent: #feca53;
@@ -44,74 +40,82 @@ $gold-alt: #ffe099;
 $gold-light: #f5e6c7;
 $gold-soft: #fffaf3;
 
-$crème: #f7d48f; // Couleur de fond crème
-$cream: #f7d48f; // Couleur crème pour les sections
-// --- Dimensions ---
-$max-content-width: 1200px;
-$max-content-width-md: 960px;
-$max-content-width-sm: 720px;
+$primary-dark-color-sass: #b99b2e;
+$primary-color-sass: #d4af37;
+$primary-light-color-sass: #ffe099;
 
-// --- Transitions & Ombres ---
-$transition: all 0.3s ease;
-$shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* ==========================================================================
+   COULEURS DE TEXTE
+   ========================================================================== */
 
-// --- Espacements (pour les mixins qui en auraient besoin) ---
-$spacing-xs: 0.25rem;
-$spacing-sm: 0.5rem;
-$spacing-md: 1rem;
-$spacing-lg: 2rem;
-$spacing-xl: 4rem;
+$text-dark: #333;
+$text-light: #555;
 
-$line-height: 1.6;
+$color-text: #333;
+$color-text-light: #555;
+$color-text-hover: #d4af37;
 
-$radius-pill: 50px; // Pour les boutons et éléments arrondis
-$radius-2xl: 1.5rem; // Pour les éléments avec des coins arrondis
-$radius-lg: 1rem;
-$radius-md: 0.5rem;
-$radius-sm: 0.25rem;
-$radius-xl: 24px; 
-$font-family-base: 'Open Sans', sans-serif;
-$mucha-paper-black: linear-gradient(135deg, #1f2937 0%, #1d2734 100%);
-$mucha-paper: #fbf4eb; // Couleur de fond avec transparence
-$mucha-accent: #d4af37;
-$mucha-glass-overlay: url("/textures/mucha-background-pattern.png");
-$mucha-glass-blend: rgba($gold-light, 0.6); // Une légère teinte dorée
-$mucha-ink: #1f2937; // Encre sombre
-// 🎨 Couleurs principales (ta charte bleu-gris + doré)
+$color-title: #1f2937;
+$color-text-neutral: #4b5563;
+
+/* ==========================================================================
+   COULEURS D'ACCENT
+   ========================================================================== */
+
+$color-accent-dark: #555;
+$color-accent: #feca53;
+$color-accent-hover: #f7d48f;
+
+/* ==========================================================================
+   COULEURS DE FOND
+   ========================================================================== */
+
+$all-bg: #f7fbfe;
 $color-bg: #f4f6f8;
 $color-bg-light: #ffffff;
 
-$color-card-bg: #f9fafb; // couleur douce pour cartes
-$color-card-border: rgba(0, 0, 0, 0.1);
-
-$color-title: #1f2937;  // gris foncé élégant
-$color-text: #4b5563;   // gris moyen lisible
-
-$color-gold: #c5a572;   // ton doré 1900
-
-$text-light: #555;
-$text-dark: #333;
+$crème: #f7d48f;
+$cream: #f7d48f;
 
 /* ==========================================================================
-   Variables - Effet "Glass" (Glassmorphism CHAUD)
+   THEME SEPIA 1900
    ========================================================================== */
 
-// Couleur de base (Blanc Pur)
+$sepia-paper: hsl(43, 56%, 90%);
+$sepia-ink: #5b4636;
+
+/* ==========================================================================
+   THEME MUCHA
+   ========================================================================== */
+
+$mucha-paper: #fbf4eb;
+$mucha-paper-black: linear-gradient(135deg, #1f2937 0%, #1d2734 100%);
+$mucha-ink: #1f2937;
+$mucha-accent: #d4af37;
+$mucha-glass-overlay: url("/textures/mucha-background-pattern.png");
+$mucha-glass-blend: rgba($gold-light, 0.6);
+
+/* ==========================================================================
+   COULEURS DE CARTES
+   ========================================================================== */
+
+$color-card-bg: #f9fafb;
+$color-card-border: rgba(0, 0, 0, 0.1);
+
+/* ==========================================================================
+   GLASSMORPHISM (Effet verre)
+   ========================================================================== */
+
 $color-white: #ffffff;
-
-// Fond du verre : Blanc pur avec 85% d'opacité
 $glass-bg: rgba($color-white, 0.85);
-
-// Bordure du verre : Blanc très léger avec 30% d'opacité
 $glass-border: rgba($color-white, 0.3);
-
-// Ombre légère
 $glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-
-// Ombre au survol (légèrement plus prononcée)
 $glass-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
 
-$ease-out-cubic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+/* ==========================================================================
+   COULEURS PROFIL
+   ========================================================================== */
+
 $profile-bg-main: #f8f6f1;
 $profile-bg-card: #ffffff;
 $profile-text-primary: #1a1a1a;
@@ -122,3 +126,40 @@ $profile-success: #2d6a4f;
 $profile-error: #8b2a2a;
 $profile-warning: #b45309;
 $profile-info: #2563eb;
+
+/* ==========================================================================
+   DIMENSIONS
+   ========================================================================== */
+
+$max-content-width: 1200px;
+$max-content-width-md: 960px;
+$max-content-width-sm: 720px;
+
+/* ==========================================================================
+   ESPACEMENTS
+   ========================================================================== */
+
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 2rem;
+$spacing-xl: 4rem;
+
+/* ==========================================================================
+   BORDER RADIUS
+   ========================================================================== */
+
+$radius-sm: 0.25rem;
+$radius-md: 0.5rem;
+$radius-lg: 1rem;
+$radius-xl: 24px;
+$radius-2xl: 1.5rem;
+$radius-pill: 50px;
+
+/* ==========================================================================
+   TRANSITIONS & OMBRES
+   ========================================================================== */
+
+$transition: all 0.3s ease;
+$ease-out-cubic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

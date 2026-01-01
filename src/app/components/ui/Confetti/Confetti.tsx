@@ -1,3 +1,4 @@
+// src/app/components/ui/Confetti/Confetti.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";

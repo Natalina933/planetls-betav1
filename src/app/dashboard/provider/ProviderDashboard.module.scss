@@ -1,0 +1,350 @@
+.dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.header {
+  margin-bottom: 2.5rem;
+  
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+  }
+}
+
+// Grille de statistiques
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.statCard {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.statIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.statContent {
+  flex: 1;
+  
+  h3 {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+// Contrôles (filtres et tri)
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  
+  button {
+    padding: 0.625rem 1.25rem;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #7f8c8d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: #3498db;
+      color: #3498db;
+    }
+  }
+}
+
+.filterActive {
+  background: #3498db !important;
+  color: white !important;
+  border-color: #3498db !important;
+}
+
+.sortSelect {
+  padding: 0.625rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  
+  &:hover,
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+}
+
+// Liste des chantiers
+.jobsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.jobCard {
+  background: white;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.jobHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 0.25rem 0;
+  }
+}
+
+.jobService {
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.jobStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jobDescription {
+  color: #5a6c7d;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.jobDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.jobDetail {
+  font-size: 0.9rem;
+  color: #5a6c7d;
+  
+  strong {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+}
+
+.jobActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  
+  button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.btnAccept {
+  background: #27ae60;
+  color: white;
+  
+  &:hover {
+    background: #229954;
+  }
+}
+
+.btnStart {
+  background: #9b59b6;
+  color: white;
+  
+  &:hover {
+    background: #8e44ad;
+  }
+}
+
+.btnComplete {
+  background: #3498db;
+  color: white;
+  
+  &:hover {
+    background: #2980b9;
+  }
+}
+
+.btnDetails {
+  background: white;
+  color: #7f8c8d;
+  border: 2px solid #e0e0e0;
+  
+  &:hover {
+    border-color: #3498db;
+    color: #3498db;
+  }
+}
+
+// État vide
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #95a5a6;
+  
+  svg {
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+  }
+  
+  .header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filters {
+    width: 100%;
+    
+    button {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+  
+  .sortSelect {
+    width: 100%;
+  }
+  
+  .jobHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .jobDetails {
+    grid-template-columns: 1fr;
+  }
+  
+  .jobActions {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .statValue {
+    font-size: 1.5rem;
+  }
+  
+  .statIcon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}
