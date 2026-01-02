@@ -151,6 +151,7 @@ $transition: 0.25s ease;
 ====================================================== */
 .tabs {
   display: flex;
+  justify-content: space-around;
   gap: 0.75rem;
   margin: 1.5rem 0 2rem;
   flex-wrap: wrap;
@@ -158,6 +159,7 @@ $transition: 0.25s ease;
 
 .tab {
   display: flex;
+  
   align-items: center;
   gap: 0.45rem;
   padding: 0.55rem 1rem;
