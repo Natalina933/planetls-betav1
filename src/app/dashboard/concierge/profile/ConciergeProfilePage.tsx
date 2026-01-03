@@ -543,7 +543,7 @@ export default function ConciergeProfilePage() {
                   )}
                 </div>
               </div>
-
+      {/* badge vérifié */}
               <div className={styles.badgeCard}>
                 <h4 className={styles.badgeTitle}>
                   <Shield size={16} />
@@ -564,7 +564,7 @@ export default function ConciergeProfilePage() {
                     <span className={styles.sectionIcon}>
                       <FiBarChart />
                     </span>
-                    Résumé du profil
+                    <h2>Résumé du profil</h2>
                   </div>
                 </h2>
                 <div

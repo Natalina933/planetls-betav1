@@ -1,0 +1,399 @@
+// src/app/components/ui/CertificationCard/CertificationCard.module.scss
+
+@use "sass:map";
+@use "../../../styles/abstracts/variables" as *;
+
+/* ==========================================================================
+   CARTE DE CERTIFICATION DÉTAILLÉE
+   ========================================================================== */
+
+.card {
+  position: relative;
+  background: $mucha-paper;
+  border: 3px solid var(--card-border);
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // Style Art Nouveau
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* --- États de la carte --- */
+
+.current {
+  border-color: $primary-color-sass;
+  background: linear-gradient(
+    135deg,
+    rgba($primary-light-color-sass, 0.05),
+    rgba($primary-color-sass, 0.02)
+  );
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 2px solid $primary-color-sass;
+    border-radius: inherit;
+    opacity: 0.3;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+}
+
+.unlocked {
+  opacity: 0.85;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.upgradable {
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--card-color);
+  }
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 2px dashed $mucha-ink;
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: $radius-md;
+  color: var(--card-color);
+  transition: all 0.3s ease;
+
+  .card:hover & {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+.icon {
+  z-index: 1;
+}
+
+.currentBadge,
+.unlockedBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 999px;
+  background: $primary-color-sass;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.unlockedBadge {
+  background: $success-color;
+}
+
+.titleBlock {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-family: $font-elegant;
+  font-size: 1.25rem;
+  font-weight: $font-weight-bold;
+  color: $mucha-ink;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.description {
+  font-size: 0.875rem;
+  color: $text-light;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   RÉDUCTION COMMISSION
+   ========================================================================== */
+
+.discount {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  background: linear-gradient(
+    135deg,
+    rgba($gold-light, 0.2),
+    rgba($gold-main, 0.1)
+  );
+  border: 2px solid $gold-border-soft;
+  border-radius: $radius-sm;
+}
+
+.discountIcon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.discountText {
+  font-size: 0.875rem;
+  color: $mucha-ink;
+
+  strong {
+    font-size: 1rem;
+    font-weight: $font-weight-bold;
+    color: $gold-dark;
+  }
+}
+
+/* ==========================================================================
+   BÉNÉFICES
+   ========================================================================== */
+
+.benefits {
+  margin-bottom: $spacing-md;
+}
+
+.benefitsTitle {
+  font-family: $font-title;
+  font-size: 0.875rem;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $mucha-ink;
+  margin-bottom: $spacing-sm;
+}
+
+.benefitsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $text-light;
+  padding-left: $spacing-xs;
+}
+
+.benefitIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--card-color);
+  opacity: 0.8;
+}
+
+/* ==========================================================================
+   BOUTON UPGRADE
+   ========================================================================== */
+
+.upgradeButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  font-family: $font-title;
+  font-size: 0.875rem;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+  background: linear-gradient(135deg, var(--card-color), var(--card-border));
+  border: none;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid $primary-color-sass;
+    outline-offset: 3px;
+  }
+
+  svg {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover svg {
+    transform: translateX(4px);
+  }
+}
+
+.currentLabel {
+  padding: $spacing-sm;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: $primary-color-sass;
+  background: rgba($primary-color-sass, 0.05);
+  border: 2px solid rgba($primary-color-sass, 0.2);
+  border-radius: $radius-sm;
+}
+
+/* ==========================================================================
+   VARIATIONS PAR NIVEAU
+   ========================================================================== */
+
+.card-verified {
+  &:hover {
+    .iconWrapper {
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+  }
+}
+
+.card-certified {
+  &:hover {
+    .iconWrapper {
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+    }
+  }
+}
+
+.card-premium {
+  &:hover {
+    .iconWrapper {
+      box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+    }
+  }
+}
+
+.card-elite {
+  &:hover {
+    .iconWrapper {
+      box-shadow: 0 4px 12px rgba(142, 68, 173, 0.4);
+    }
+  }
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.01);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: map.get($breakpoints, md)) {
+  .card {
+    padding: $spacing-md;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+  }
+
+  .iconWrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .title {
+    font-size: 1.125rem;
+  }
+
+  .upgradeButton {
+    padding: $spacing-sm $spacing-md;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: map.get($breakpoints, sm)) {
+  .benefitItem {
+    font-size: 0.8rem;
+  }
+
+  .discount {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ==========================================================================
+   ACCESSIBILITÉ
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :global(*) {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .card,
+  .iconWrapper,
+  .upgradeButton {
+    &:hover {
+      transform: none;
+    }
+  }
+}

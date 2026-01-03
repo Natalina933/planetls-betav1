@@ -11,17 +11,17 @@ $breakpoints: (
   md: 768px,
   lg: 992px,
   xl: 1200px,
-  xxl: 1400px
+  xxl: 1400px,
 );
 
 /* ==========================================================================
    TYPOGRAPHIE
    ========================================================================== */
 
-$font-elegant: 'Cormorant Garamond', serif;
-$font-text: 'Open Sans', sans-serif;
-$font-title: 'Montserrat', sans-serif;
-$font-family-base: 'Open Sans', sans-serif;
+$font-elegant: "Cormorant Garamond", serif;
+$font-text: "Open Sans", sans-serif;
+$font-title: "Montserrat", sans-serif;
+$font-family-base: "Open Sans", sans-serif;
 
 $font-weight-bold: 700;
 $font-weight-normal: 400;
@@ -39,6 +39,8 @@ $gold-accent: #feca53;
 $gold-alt: #ffe099;
 $gold-light: #f5e6c7;
 $gold-soft: #fffaf3;
+$gold-border-soft: #e6d4a3;
+$gold-main: #d4af37;
 
 $primary-dark-color-sass: #b99b2e;
 $primary-color-sass: #d4af37;
@@ -163,3 +165,9 @@ $radius-pill: 50px;
 $transition: all 0.3s ease;
 $ease-out-cubic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+/* ==========================================================================
+   background patterns
+   ========================================================================== */
+$success-color: #2d6a4f;
+$error-color: #8b2a2a;

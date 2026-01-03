@@ -24,7 +24,7 @@ export default function AvatarUpload({
   onRemove,
 }: AvatarUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
-  const [scale, setScale] = useState(existingScale);
+  const [scale, setScale] = useState(existingScale || 1);
   const [error, setError] = useState<string | null>(null);
 
   // Génère une preview si un nouveau fichier est choisi
@@ -77,14 +77,14 @@ export default function AvatarUpload({
       {previewUrl && (
         <div className={styles.zoomControl}>
           <label htmlFor="zoomSlider" className={styles.zoomLabel}>
-            Zoom
+            Zoom ({scale.toFixed(2)}x)
           </label>
           <input
             id="zoomSlider"
             type="range"
-            min={1}
-            max={2}
-            step={0.01}
+            min={0.5}        // 🔹 tu peux descendre jusqu’à 0.5
+            max={3}          // 🔹 et monter jusqu’à 3
+            step={0.01}      // 🔹 très fluide
             value={scale}
             onChange={handleZoom}
             className={styles.zoomSlider}
