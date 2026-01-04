@@ -42,7 +42,7 @@ import {
   Save,
   X as LucideX,
   Edit2,
-  Camera,
+  // Camera,
   MapPin,
   Phone as LucidePhone,
   Mail as LucideMail,
@@ -72,6 +72,9 @@ export interface Profile {
   role: string | null;
   travel_fee: number | null;
   avatar_scale: number | null;
+  avatar_offset_x?: number | null;
+  avatar_offset_y?: number | null;
+  avatar_rotation?: number | null;
   company_name: string | null;
   legal_form: string | null;
   siret: string | null;
@@ -282,68 +285,83 @@ export default function ConciergeProfilePage() {
     }
   };
 
-  const handleSave = async () => {
-    if (!editProfile) return;
+const handleSave = async () => {
+  if (!editProfile) return;
 
-    const hasErrors = Object.values(errors).some((error) => error !== "");
-    if (hasErrors) {
-      alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
-      return;
+  const hasErrors = Object.values(errors).some((error) => error !== "");
+  if (hasErrors) {
+    alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
+    return;
+  }
+
+  setLoading(true);
+  let avatarUrl = editProfile.avatar_url;
+
+  try {
+    if (avatarFile) {
+      avatarUrl = await handleAvatarUpload(avatarFile);
     }
 
-    setLoading(true);
-    let avatarUrl = editProfile.avatar_url;
-
-    try {
-      if (avatarFile) {
-        avatarUrl = await handleAvatarUpload(avatarFile);
-      }
-
-      const response = await fetch("/api/profiles", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...editProfile, avatar_url: avatarUrl }),
-      });
-
-      const result = await response.json();
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      const updatedProfile: Profile = {
-        ...editProfile,
+    const response = await fetch("/api/profiles", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        ...editProfile, 
         avatar_url: avatarUrl,
-      };
+      }),
+    });
 
-      setProfile(updatedProfile);
-      setEditProfile(updatedProfile);
-      setIsEditing(false);
-      setAvatarFile(null);
-      setSuccessMsg("✅ Profil mis à jour avec succès !");
-
-      await update({
-        user: {
-          avatar_url: avatarUrl,
-          firstName: editProfile.first_name,
-          lastName: editProfile.last_name,
-          name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
-        },
-      });
-
-      setTimeout(() => setSuccessMsg(""), 3000);
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erreur inconnue";
-      console.error(
-        "[ConciergeProfilePage] Erreur lors de la sauvegarde:",
-        errorMessage,
-      );
-      setErrorMsg(errorMessage);
-      setTimeout(() => setErrorMsg(""), 5000);
-    } finally {
-      setLoading(false);
+    const result = await response.json();
+    
+    if (!response.ok || result.error) {
+      throw new Error(result.error || "Erreur lors de la sauvegarde");
     }
-  };
+
+    // ✅ Profil mis à jour retourné par l'API
+    const updatedProfile: Profile = result;
+    
+    setProfile(updatedProfile);
+    setEditProfile(updatedProfile);
+    setIsEditing(false);
+    setAvatarFile(null);
+    
+    // ✅ Message avec les vraies valeurs du profil
+    setSuccessMsg(
+      `✅ Profil sauvegardé ! ` +
+      `Avatar: ${(updatedProfile.avatar_scale ?? 1).toFixed(2)}x, ` +
+      `Position: ${updatedProfile.avatar_offset_x ?? 0}/${updatedProfile.avatar_offset_y ?? 0}, ` +
+      `Rotation: ${updatedProfile.avatar_rotation ?? 0}°`
+    );
+    
+    // ✅ Debug des valeurs sauvegardées
+    console.log("✅ Sauvegardé:", {
+      scale: updatedProfile.avatar_scale,
+      offsetX: updatedProfile.avatar_offset_x,
+      offsetY: updatedProfile.avatar_offset_y,
+      rotation: updatedProfile.avatar_rotation,
+    });
+
+    await update({
+      user: {
+        avatar_url: avatarUrl,
+        firstName: editProfile.first_name,
+        lastName: editProfile.last_name,
+        name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
+      },
+    });
+
+    setTimeout(() => setSuccessMsg(""), 5000);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
+    console.error("[ConciergeProfilePage] Erreur sauvegarde:", errorMessage);
+    setErrorMsg(errorMessage);
+    setTimeout(() => setErrorMsg(""), 5000);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const toggleSection = (sectionId: string) => {
     setOpenSections((prev) => ({
@@ -432,9 +450,8 @@ export default function ConciergeProfilePage() {
     return (
       <div className={styles.section}>
         <h2
-          className={`${styles.sectionTitleToggle} ${
-            isOpen ? styles.sectionTitleToggleActive : ""
-          }`}
+          className={`${styles.sectionTitleToggle} ${isOpen ? styles.sectionTitleToggleActive : ""
+            }`}
           onClick={() => toggleSection(sectionId)}
         >
           <div className={styles.sectionTitleLeft}>
@@ -442,17 +459,15 @@ export default function ConciergeProfilePage() {
             {title}
           </div>
           <span
-            className={`${styles.toggleIcon} ${
-              isOpen ? styles.toggleIconOpen : ""
-            }`}
+            className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
+              }`}
           >
             <ChevronDown size={16} />
           </span>
         </h2>
         <div
-          className={`${styles.sectionContent} ${
-            isOpen ? styles.sectionContentOpen : ""
-          }`}
+          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
+            }`}
         >
           {children}
         </div>
@@ -479,21 +494,52 @@ export default function ConciergeProfilePage() {
                     value={avatarFile}
                     existingUrl={editProfile.avatar_url || DEFAULT_AVATAR}
                     existingScale={editProfile.avatar_scale ?? 1}
+                    existingOffsetX={editProfile.avatar_offset_x ?? 0}
+                    existingOffsetY={editProfile.avatar_offset_y ?? 0}
+                    existingRotation={editProfile.avatar_rotation ?? 0}
+                    isEditing={isEditing}  // 🔹 passer le mode édition
                     onChange={setAvatarFile}
                     onScaleChange={(scale) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_scale: scale } : prev,
+                        prev ? { ...prev, avatar_scale: scale } : prev
+                      )
+                    }
+                    onOffsetChange={(offsetX, offsetY) =>
+                      setEditProfile((prev) =>
+                        prev
+                          ? {
+                            ...prev,
+                            avatar_offset_x: offsetX,
+                            avatar_offset_y: offsetY,
+                          }
+                          : prev
+                      )
+                    }
+                    onRotationChange={(rotation) =>
+                      setEditProfile((prev) =>
+                        prev ? { ...prev, avatar_rotation: rotation } : prev
                       )
                     }
                     onSave={handleSave}
                     onRemove={() => {
                       setAvatarFile(null);
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_url: null } : prev,
+                        prev
+                          ? {
+                            ...prev,
+                            avatar_url: null,
+                            avatar_scale: 1,
+                            avatar_offset_x: 0,
+                            avatar_offset_y: 0,
+                            avatar_rotation: 0,
+                          }
+                          : prev
                       );
                     }}
                   />
-                  {isEditing && (
+
+
+                  {/* {isEditing && (
                     <button
                       type="button"
                       className={styles.avatarEditButton}
@@ -501,7 +547,7 @@ export default function ConciergeProfilePage() {
                     >
                       <Camera size={16} />
                     </button>
-                  )}
+                  )} */}
                 </div>
 
                 <div className={styles.profileIdentity}>
@@ -543,7 +589,7 @@ export default function ConciergeProfilePage() {
                   )}
                 </div>
               </div>
-      {/* badge vérifié */}
+              {/* badge vérifié */}
               <div className={styles.badgeCard}>
                 <h4 className={styles.badgeTitle}>
                   <Shield size={16} />
@@ -629,10 +675,10 @@ export default function ConciergeProfilePage() {
                           setEditProfile((prev) =>
                             prev
                               ? {
-                                  ...prev,
-                                  experience_level:
-                                    value === "" ? null : value,
-                                }
+                                ...prev,
+                                experience_level:
+                                  value === "" ? null : value,
+                              }
                               : prev,
                           );
                         }}
@@ -1124,9 +1170,8 @@ export default function ConciergeProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`${styles.tab} ${
-                  isActive ? styles.tabActive : ""
-                }`}
+                className={`${styles.tab} ${isActive ? styles.tabActive : ""
+                  }`}
               >
                 <span className={styles.tabIcon}>
                   <Icon />

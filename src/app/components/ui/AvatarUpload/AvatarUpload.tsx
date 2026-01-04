@@ -8,8 +8,14 @@ interface AvatarUploadProps {
   value: File | null;
   existingUrl?: string;
   existingScale?: number;
+  existingOffsetX?: number;
+  existingOffsetY?: number;
+  existingRotation?: number;
+  isEditing: boolean;
   onChange: (file: File | null) => void;
   onScaleChange?: (scale: number) => void;
+  onOffsetChange?: (offsetX: number, offsetY: number) => void;
+  onRotationChange?: (rotation: number) => void;
   onSave?: () => void;
   onRemove?: () => void;
 }
@@ -18,13 +24,22 @@ export default function AvatarUpload({
   value,
   existingUrl,
   existingScale = 1,
+  existingOffsetX = 0,
+  existingOffsetY = 0,
+  existingRotation = 0,
+  isEditing,
   onChange,
   onScaleChange,
+  onOffsetChange,
+  onRotationChange,
   onSave,
   onRemove,
 }: AvatarUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
-  const [scale, setScale] = useState(existingScale || 1);
+  const [scale, setScale] = useState(existingScale);
+  const [offsetX, setOffsetX] = useState(existingOffsetX);
+  const [offsetY, setOffsetY] = useState(existingOffsetY);
+  const [rotation, setRotation] = useState(existingRotation);
   const [error, setError] = useState<string | null>(null);
 
   // Génère une preview si un nouveau fichier est choisi
@@ -32,21 +47,12 @@ export default function AvatarUpload({
     if (value) {
       const url = URL.createObjectURL(value);
       setPreviewUrl(url);
-
       return () => URL.revokeObjectURL(url);
     } else {
       setPreviewUrl(existingUrl || null);
     }
   }, [value, existingUrl]);
 
-  // Zoom
-  const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newScale = Number(e.target.value);
-    setScale(newScale);
-    onScaleChange?.(newScale);
-  };
-
-  // Nouveau fichier
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file && !file.type.startsWith("image/")) {
@@ -57,88 +63,173 @@ export default function AvatarUpload({
     onChange(file);
   };
 
+  const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newScale = Number(e.target.value);
+    setScale(newScale);
+    onScaleChange?.(newScale);
+  };
+
+  const handleOffsetX = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    setOffsetX(val);
+    onOffsetChange?.(val, offsetY);
+  };
+
+  const handleOffsetY = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    setOffsetY(val);
+    onOffsetChange?.(offsetX, val);
+  };
+
+  const handleRotation = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    setRotation(val);
+    onRotationChange?.(val);
+  };
+
+  const handleRemove = () => {
+    onChange(null);
+    onRemove?.();
+    setPreviewUrl(null);
+    setScale(1);
+    setOffsetX(0);
+    setOffsetY(0);
+    setRotation(0);
+  };
+
   return (
     <div className={styles.container}>
-      {/* APERCU */}
+      {/* APERCU - TOUJOURS VISIBLE */}
       <div className={styles.imageWrapper}>
         {previewUrl ? (
           <Image
             src={previewUrl}
             alt="Avatar"
             fill
-            style={{ objectFit: "cover", transform: `scale(${scale})` }}
+            style={{
+              objectFit: "cover",
+              transform: `
+                translate(${offsetX}%, ${offsetY}%)
+                scale(${scale})
+                rotate(${rotation}deg)
+              `,
+              transformOrigin: "center center",
+            }}
           />
         ) : (
           <div className={styles.placeholder}>Avatar</div>
         )}
       </div>
 
-      {/* ZOOM */}
-      {previewUrl && (
-        <div className={styles.zoomControl}>
-          <label htmlFor="zoomSlider" className={styles.zoomLabel}>
-            Zoom ({scale.toFixed(2)}x)
-          </label>
-          <input
-            id="zoomSlider"
-            type="range"
-            min={0.5}        // 🔹 tu peux descendre jusqu’à 0.5
-            max={3}          // 🔹 et monter jusqu’à 3
-            step={0.01}      // 🔹 très fluide
-            value={scale}
-            onChange={handleZoom}
-            className={styles.zoomSlider}
-            aria-label="Zoom avatar"
-          />
-        </div>
+      {/* CONTROLES ET BOUTONS - CACHÉS si !isEditing */}
+      {previewUrl && isEditing && (
+        <>
+          {/* CONTROLES */}
+          <div className={styles.controlsBlock}>
+            <div className={styles.zoomControl}>
+              <label htmlFor="zoomSlider" className={styles.zoomLabel}>
+                Zoom ({scale.toFixed(2)}x)
+              </label>
+              <input
+                id="zoomSlider"
+                type="range"
+                min={0.5}
+                max={3}
+                step={0.01}
+                value={scale}
+                onChange={handleZoom}
+                className={styles.zoomSlider}
+              />
+            </div>
+
+            <div className={styles.offsetControls}>
+              <div className={styles.offsetControl}>
+                <label htmlFor="offsetX" className={styles.zoomLabel}>
+                  Horizontal
+                </label>
+                <input
+                  id="offsetX"
+                  type="range"
+                  min={-50}
+                  max={50}
+                  step={1}
+                  value={offsetX}
+                  onChange={handleOffsetX}
+                  className={styles.zoomSlider}
+                />
+              </div>
+
+              <div className={styles.offsetControl}>
+                <label htmlFor="offsetY" className={styles.zoomLabel}>
+                  Vertical
+                </label>
+                <input
+                  id="offsetY"
+                  type="range"
+                  min={-50}
+                  max={50}
+                  step={1}
+                  value={offsetY}
+                  onChange={handleOffsetY}
+                  className={styles.zoomSlider}
+                />
+              </div>
+            </div>
+
+            <div className={styles.rotationControl}>
+              <label htmlFor="rotation" className={styles.zoomLabel}>
+                Rotation ({rotation}°)
+              </label>
+              <input
+                id="rotation"
+                type="range"
+                min={-45}
+                max={45}
+                step={1}
+                value={rotation}
+                onChange={handleRotation}
+                className={styles.zoomSlider}
+              />
+            </div>
+          </div>
+
+          {/* BOUTONS */}
+          <div className={styles.buttonGroup}>
+            <label className={`${styles.button} ${styles.replace}`}>
+              Modifier
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                hidden
+              />
+            </label>
+
+            <button
+              type="button"
+              className={`${styles.button} ${styles.remove}`}
+              onClick={handleRemove}
+              aria-label="Supprimer avatar"
+            >
+              Supprimer
+            </button>
+
+            {value && (
+              <button
+                type="button"
+                className={`${styles.button} ${styles.validate}`}
+                onClick={onSave}
+                aria-label="Valider avatar"
+              >
+                ✓ Valider
+              </button>
+            )}
+          </div>
+        </>
       )}
 
       {/* MESSAGE ERREUR */}
       {error && <div className={styles.errorMessage}>{error}</div>}
-
-      {/* BOUTONS */}
-      <div className={styles.buttonGroup}>
-        {/* Remplacer */}
-        <label className={`${styles.button} ${styles.replace}`}>
-          Modifier
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            hidden
-          />
-        </label>
-
-        {/* Supprimer */}
-        {previewUrl && (
-          <button
-            type="button"
-            className={`${styles.button} ${styles.remove}`}
-            onClick={() => {
-              onChange(null);
-              onRemove?.();
-              setPreviewUrl(null);
-              setScale(1);
-            }}
-            aria-label="Supprimer avatar"
-          >
-            Supprimer
-          </button>
-        )}
-
-        {/* Valider */}
-        {value && (
-          <button
-            type="button"
-            className={`${styles.button} ${styles.validate}`}
-            onClick={onSave}
-            disabled={!previewUrl}
-            aria-label="Valider avatar"
-          >
-            ✓ Valider
-          </button>
-        )}
-      </div>
     </div>
   );
 }

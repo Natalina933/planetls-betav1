@@ -31,6 +31,45 @@ $border-color: var(--color-border);
     box-shadow: 0 0 10px rgba($gold, 0.15);
   }
 }
+.previewContainer {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.imageWrapper {
+  flex: 1;
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.previewWrapper {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.previewSvg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid #e5e7eb;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
 
 // Label pour upload initial
 .uploadLabel {
@@ -120,22 +159,21 @@ $border-color: var(--color-border);
       box-shadow: 0 0 6px rgba($gold, 0.4);
     }
   }
-.validateButton {
-  background: $gold;
-  color: white;
-  border: none;
-  padding: 0.4rem 1rem;
-  border-radius: 50px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  .validateButton {
+    background: $gold;
+    color: white;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
 
-  &:hover {
-    background: color.scale($gold, $lightness: -10%);
-    box-shadow: 0 0 8px rgba($gold, 0.4);
+    &:hover {
+      background: color.scale($gold, $lightness: -10%);
+      box-shadow: 0 0 8px rgba($gold, 0.4);
+    }
   }
-}
-
 
   .removeButton {
     background: transparent;
