@@ -1,0 +1,25 @@
+// src/app/components/status/StatusSelector.module.scss
+@use "@/app/styles/abstracts/variables" as var;
+
+.selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.option {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: var.$transition;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.active {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+}

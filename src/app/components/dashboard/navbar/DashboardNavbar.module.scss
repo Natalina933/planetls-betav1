@@ -2,10 +2,10 @@
 @use "sass:map";
 
 /* ==========================================================================
-   NAVBAR — Style Mucha / 1900
+   NAVBAR — Mucha 1900
    ========================================================================== */
 
-.dash-navbar {
+.dashNavbar {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -30,15 +30,14 @@
 }
 
 .menuButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 42px;
   height: 42px;
   border-radius: var.$radius-pill;
   background: var.$gold-soft;
   border: 1px solid var.$gold-dark;
-  color: var.$mucha-ink;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: var.$transition;
 
   &:hover {
@@ -47,27 +46,24 @@
   }
 }
 
+.titleBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
 .logoText {
   font-family: var.$font-elegant;
   font-size: 1.3rem;
   color: var.$mucha-ink;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
-  position: relative;
+  letter-spacing: 0.03em;
+}
 
-  &::after {
-    content: "";
-    display: block;
-    width: 2.8rem;
-    height: 2px;
-    margin-top: 0.25rem;
-    background: linear-gradient(
-      to right,
-      transparent,
-      var.$gold-dark,
-      transparent
-    );
-  }
+.userNameInline {
+  font-family: var.$font-elegant;
+  font-size: 1rem;
+  color: var.$text-light;
 }
 
 .userRole {
@@ -75,7 +71,6 @@
   border-radius: var.$radius-pill;
   background: rgba(var.$gold-light, 0.4);
   border: 1px solid var.$gold-dark;
-  font-family: var.$font-text;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -92,23 +87,23 @@
   gap: var.$spacing-md;
 }
 
-/* Greeting block */
+.rightInfoBlock {
+  display: flex;
+  align-items: center;
+  gap: var.$spacing-md;
+}
 
 .greetingBlock {
-  display: flex;
-  flex-direction: column;
   text-align: right;
   line-height: 1.2;
 }
 
 .companyName {
   font-family: var.$font-elegant;
-  font-size: 1rem;
   color: var.$mucha-ink;
 }
 
 .greeting {
-  font-family: var.$font-text;
   font-size: 0.85rem;
   color: var.$text-light;
 }
@@ -129,17 +124,6 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  animation: proPulse 2.4s infinite ease-in-out;
-
-  svg {
-    color: var.$gold-dark;
-  }
-}
-
-@keyframes proPulse {
-  0% { box-shadow: 0 0 0 0 rgba(var.$gold-dark, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(var.$gold-dark, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(var.$gold-dark, 0); }
 }
 
 /* ==========================================================================
@@ -156,7 +140,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var.$mucha-ink;
   transition: var.$transition;
 
   &:hover {
@@ -178,7 +161,7 @@
 }
 
 /* ==========================================================================
-   USER PROFILE
+   AVATAR
    ========================================================================== */
 
 .userProfile {
@@ -199,32 +182,40 @@
   }
 }
 
+.avatarWrapperOuter {
+  position: absolute;
+}
+
 .avatar {
   border-radius: var.$radius-pill;
   object-fit: cover;
 }
 
+.avatarStatus {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: var.$profile-success;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
 .avatarPlaceholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var.$mucha-ink;
 }
 
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
+.avatarSkeleton {
+  width: 48px;
+  height: 48px;
+  border-radius: var.$radius-pill;
+  background: var.$gold-soft;
+  animation: pulse 1.4s infinite ease-in-out;
+}
 
-@media (max-width: map.get(var.$breakpoints, md)) {
-  .dash-navbar {
-    padding: var.$spacing-sm var.$spacing-md;
-  }
-
-  .greetingBlock {
-    display: none;
-  }
-
-  .logoText {
-    font-size: 1.1rem;
-  }
+@keyframes pulse {
+  0% { opacity: .6; }
+  50% { opacity: 1; }
+ 100% { opacity: .6; }
 }

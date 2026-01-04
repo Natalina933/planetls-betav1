@@ -21,6 +21,7 @@ declare module "next-auth" {
     search_target?: string | null;
 
     company_name?: string | null;
+    status?: string | null;
   }
 
   interface Session extends DefaultSession {
@@ -43,6 +44,7 @@ declare module "next-auth" {
       search_target?: string | null;
 
       company_name?: string | null;
+      status?: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -67,5 +69,6 @@ declare module "next-auth/jwt" {
     search_target?: string | null;
 
     company_name?: string | null;
+    status?: string | null;
   }
 }

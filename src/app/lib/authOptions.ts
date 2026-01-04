@@ -145,6 +145,8 @@ export const authOptions: NextAuthOptions = {
           location: profile.location ?? null,
           option: profile.option ?? null,
           search_target: profile.search_target ?? null,
+          company_name: profile.company_name ?? null,
+          status: profile.status ?? "active",
         };
       },
     }),
@@ -179,6 +181,8 @@ export const authOptions: NextAuthOptions = {
         token.location = user.location;
         token.option = user.option;
         token.search_target = user.search_target;
+        token.company_name = user.company_name;
+        token.status = user.status;
       }
 
       // 🔥 Mise à jour manuelle via update()
@@ -235,6 +239,8 @@ export const authOptions: NextAuthOptions = {
       session.user.location = token.location;
       session.user.option = token.option;
       session.user.search_target = token.search_target;
+      session.user.company_name = token.company_name;
+      session.user.status = token.status;
 
       return session;
     },

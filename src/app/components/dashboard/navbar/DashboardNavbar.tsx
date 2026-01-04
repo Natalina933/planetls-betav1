@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Menu, Bell, User, CheckCircle } from "lucide-react";
@@ -8,205 +8,140 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
-    toggleSidebar: () => void;
+  toggleSidebar: () => void;
 }
 
-type KnownRole =
-    | "owner"
-    | "owner_pro"
-    | "concierge"
-    | "concierge_pro"
-    | "providence"
-    | "providence_pro";
-
-const ROLE_LABELS: Record<KnownRole, string> = {
-    owner: "Propriétaire",
-    owner_pro: "Propriétaire PRO",
-    concierge: "Conciergerie",
-    concierge_pro: "Conciergerie PRO",
-    providence: "Providence",
-    providence_pro: "Providence PRO",
-};
+const ROLE_LABELS = {
+  owner: "Propriétaire",
+  owner_pro: "Propriétaire PRO",
+  concierge: "Conciergerie",
+  concierge_pro: "Conciergerie PRO",
+  providence: "Providence",
+  providence_pro: "Providence PRO",
+} as const;
 
 const DEFAULT_COMPANY_NAME = "Ma conciergerie";
 const AVATAR_FALLBACK = "/icons/account-svgrepo-com.svg";
 
-/**
- * Convertit un rôle en label lisible
- */
-const getRoleLabel = (role: string | null | undefined): string => {
-    if (!role) return "Invité";
-    if (role in ROLE_LABELS) return ROLE_LABELS[role as KnownRole];
-    return role.charAt(0).toUpperCase() + role.slice(1);
+const getRoleLabel = (role?: string | null) =>
+  role && role in ROLE_LABELS
+    ? ROLE_LABELS[role as keyof typeof ROLE_LABELS]
+    : role
+    ? role.charAt(0).toUpperCase() + role.slice(1)
+    : "Invité";
+
+const getTimeBasedGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Bonjour";
+  if (hour < 18) return "Bon après-midi";
+  return "Bonsoir";
 };
 
-/**
- * Retourne un message de bienvenue contextuel selon l'heure
- */
-const getTimeBasedGreeting = (): string => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Bonjour";
-    if (hour < 18) return "Bon après-midi";
-    return "Bonsoir";
-};
+export default function DashboardNavbar({ toggleSidebar }: DashboardNavbarProps) {
+  const router = useRouter();
+  const { user, isAuthenticated, loading } = useCurrentUser();
+  const notificationCount = 3; // TODO
 
-/**
- * Composant barre de navigation pour le tableau de bord
- */
-function DashboardNavbar({ toggleSidebar }: DashboardNavbarProps) {
-    const router = useRouter();
-    const { user, isAuthenticated, loading } = useCurrentUser();
-    const [notificationCount] = useState(3); // Remplacer par vraie logique
+  const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
+  const avatarSrc = user?.avatar_url || AVATAR_FALLBACK;
+  const userName = user?.username || user?.username || "Utilisateur";
+  const roleLabel = getRoleLabel(user?.role);
+  const companyName = user?.company_name || DEFAULT_COMPANY_NAME;
+  const greetingName = user?.firstName || user?.username || "vous";
+  const timeBasedGreeting = useMemo(getTimeBasedGreeting, []);
 
-    // Mémoïsation des valeurs dérivées
-    const isPro = useMemo(
-        () => !!user?.role && user.role.endsWith("_pro"),
-        [user?.role]
-    );
+  const handleProfileClick = useCallback(() => router.push("/dashboard/profile"), [router]);
+  const handleNotificationClick = useCallback(() => router.push("/dashboard/notifications"), [router]);
+  const handleMenuClick = useCallback(() => toggleSidebar(), [toggleSidebar]);
 
-    const avatarSrc = useMemo(
-        () => user?.avatar_url || AVATAR_FALLBACK,
-        [user?.avatar_url]
-    );
+  return (
+    <header className={styles.dashNavbar} role="banner">
+      {/* LEFT */}
+      <div className={styles.leftSection}>
+        <button
+          type="button"
+          onClick={handleMenuClick}
+          className={styles.menuButton}
+          aria-label="Ouvrir/Fermer le menu"
+        >
+          <Menu size={24} aria-hidden="true" />
+        </button>
 
-    const userName = useMemo(
-        () => user?.firstName || user?.username || "Utilisateur",
-        [user?.firstName, user?.username]
-    );
+        <div className={styles.titleBlock}>
+          <span className={styles.logoText}>Tableau de bord</span>
+          <span className={styles.userNameInline}> {userName}</span>
+        </div>
 
-    const roleLabel = useMemo(
-        () => getRoleLabel(user?.role ?? null),
-        [user?.role]
-    );
+        {roleLabel && (
+          <div className={styles.userRole}>
+            <span>{roleLabel}</span>
+          </div>
+        )}
+      </div>
 
-    const companyName = useMemo(
-        () => user?.company_name || DEFAULT_COMPANY_NAME,
-        [user?.company_name]
-    );
-
-    const greetingName = useMemo(
-        () => user?.firstName || user?.username || "vous",
-        [user?.firstName, user?.username]
-    );
-
-    const timeBasedGreeting = useMemo(() => getTimeBasedGreeting(), []);
-
-    // Handlers
-    const handleProfileClick = useCallback(() => {
-        router.push("/dashboard/profile");
-    }, [router]);
-
-    const handleNotificationClick = useCallback(() => {
-        router.push("/dashboard/notifications");
-    }, [router]);
-
-    const handleMenuClick = useCallback(() => {
-        toggleSidebar();
-    }, [toggleSidebar]);
-
-    return (
-        <header className="dash-navbar" role="banner">
-            {/* Section gauche - Menu et identification */}
-            <div className={styles.leftSection}>
-                <button
-                    type="button"
-                    onClick={handleMenuClick}
-                    className={styles.menuButton}
-                    aria-label="Ouvrir/Fermer le menu de navigation"
-                    aria-expanded="false"
-                >
-                    <Menu size={24} aria-hidden="true" />
-                </button>
-
-                <span className={styles.logoText} aria-label="Tableau de bord">
-                    Tableau de bord
-                </span>
-
-                {roleLabel && (
-                    <div className={styles.userRole} role="status">
-                        <span>{roleLabel}</span>
-                    </div>
-                )}
+      {/* RIGHT */}
+      <div className={styles.rightSection}>
+        {isAuthenticated && (
+          <div className={styles.rightInfoBlock}>
+            <div className={styles.greetingBlock}>
+              <p className={styles.companyName}>{companyName}</p>
+              <p className={styles.greeting}>
+                {timeBasedGreeting} {greetingName}
+              </p>
             </div>
 
-            {/* Section droite - Infos et actions utilisateur */}
-            <div className={styles.rightSection}>
-                {/* Bloc accueil avec nom commercial */}
-                {isAuthenticated && (
-                    <div className={styles.greetingBlock} role="complementary">
-                        <p className={styles.companyName} aria-label="Nom de l'entreprise">
-                            {companyName}
-                        </p>
-                        <p className={styles.greeting} aria-label="Message de bienvenue">
-                            {timeBasedGreeting} {greetingName}
-                        </p>
-                    </div>
-                )}
+            {isPro && (
+              <div className={styles.proBadge}>
+                <CheckCircle size={14} />
+                <span>PRO</span>
+              </div>
+            )}
+          </div>
+        )}
 
-                {/* Badge PRO avec animation */}
-                {isAuthenticated && isPro && (
-                    <div
-                        className={styles.proBadge}
-                        role="status"
-                        aria-label="Compte professionnel actif"
-                    >
-                        <CheckCircle size={14} aria-hidden="true" />
-                        <span>PRO</span>
-                    </div>
-                )}
+        {isAuthenticated && (
+          <button
+            type="button"
+            className={styles.iconButton}
+            onClick={handleNotificationClick}
+            title="Voir les notifications"
+          >
+            <Bell size={20} />
+            {notificationCount > 0 && (
+              <span className={styles.notificationCount}>
+                {notificationCount > 9 ? "9+" : notificationCount}
+              </span>
+            )}
+          </button>
+        )}
 
-                {/* Bouton notifications avec badge de compteur */}
-                {isAuthenticated && (
-                    <button
-                        type="button"
-                        className={styles.iconButton}
-                        onClick={handleNotificationClick}
-                        aria-label={`${notificationCount} notification${notificationCount > 1 ? "s" : ""
-                            } non lue${notificationCount > 1 ? "s" : ""}`}
-                        title="Voir les notifications"
-                    >
-                        <Bell size={20} aria-hidden="true" />
-                        {notificationCount > 0 && (
-                            <span
-                                className={styles.notificationCount}
-                                aria-hidden="true"
-                            >
-                                {notificationCount > 9 ? "9+" : notificationCount}
-                            </span>
-                        )}
-                    </button>
-                )}
-
-                {/* Profil utilisateur - Avatar avec effet hover élégant */}
-                <button
-                    type="button"
-                    className={styles.userProfile}
-                    onClick={handleProfileClick}
-                    aria-label={`Accéder au profil de ${userName}`}
-                    title={`Profil de ${userName}`}
-                >
-                    {!loading && isAuthenticated && user ? (
-                        <Image
-                            src={avatarSrc}
-                            alt=""
-                            width={48}
-                            height={48}
-                            className={styles.avatar}
-                            priority
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = AVATAR_FALLBACK;
-                            }}
-                        />
-                    ) : (
-                        <div className={styles.avatarPlaceholder} aria-label="Avatar par défaut">
-                            <User size={22} aria-hidden="true" />
-                        </div>
-                    )}
-                </button>
+        <button
+          type="button"
+          className={styles.userProfile}
+          onClick={handleProfileClick}
+          title={`Profil de ${userName}`}
+        >
+          {loading ? (
+            <div className={styles.avatarSkeleton} />
+          ) : isAuthenticated && user ? (
+            <div className={styles.avatarWrapperOuter}>
+              <Image
+                src={avatarSrc}
+                alt=""
+                width={48}
+                height={48}
+                className={styles.avatar}
+                priority
+              />
+              <span className={styles.avatarStatus} />
             </div>
-        </header>
-    );
+          ) : (
+            <div className={styles.avatarPlaceholder}>
+              <User size={22} />
+            </div>
+          )}
+        </button>
+      </div>
+    </header>
+  );
 }
-
-export default DashboardNavbar;

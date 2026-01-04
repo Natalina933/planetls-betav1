@@ -1,0 +1,71 @@
+// src/app/components/status/StatusBadge.module.scss
+@use "@/app/styles/abstracts/variables" as var;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: var.$radius-pill;
+  font-family: var.$font-text;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  border: 1px solid var.$gold-dark;
+  background: var.$gold-soft;
+  color: var.$mucha-ink;
+  transition: var.$transition;
+
+  svg {
+    color: var.$gold-dark;
+  }
+}
+
+.label {
+  white-space: nowrap;
+}
+
+/* Tailles */
+.sm {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.md {
+  font-size: 0.8rem;
+}
+
+.lg {
+  font-size: 0.9rem;
+  padding: 0.35rem 0.9rem;
+}
+
+/* Variants de couleur par statut (restent doux, élégants) */
+.active {
+  background: #e6f7ea;
+  border-color: var.$profile-success;
+}
+
+.busy {
+  background: #fff2d9;
+  border-color: var.$profile-warning;
+}
+
+.away {
+  background: #e5edf9;
+  border-color: var.$profile-info;
+}
+
+.vacation {
+  background: #fbe7ff;
+  border-color: var.$gold-dark;
+}
+
+.offline {
+  background: #f3f3f3;
+  border-color: var.$profile-border;
+  color: var.$text-light;
+
+  svg {
+    color: var.$text-light;
+  }
+}
