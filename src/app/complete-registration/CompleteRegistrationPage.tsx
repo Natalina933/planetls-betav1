@@ -1,14 +1,24 @@
-
 // src/app/complete-registration/CompleteRegistrationPage.tsx
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import {
+  FaEye,
+  FaEyeSlash,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaEdit,
+  FaSave,
+} from "react-icons/fa";
+
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
 import styles from "./CompleteRegistrationPage.module.scss";
-import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaEdit, FaSave } from "react-icons/fa";
-import { signIn } from "next-auth/react";
+
+const DEFAULT_AVATAR_URL = "/icons/account-svgrepo-com.svg";
+
 // ============================================================================
 // INTERFACES
 // ============================================================================
@@ -47,12 +57,15 @@ const validatePassword = (password: string): string => {
   if (!/[A-Z]/.test(password)) return "Au moins 1 majuscule requise";
   if (!/[a-z]/.test(password)) return "Au moins 1 minuscule requise";
   if (!/[0-9]/.test(password)) return "Au moins 1 chiffre requis";
-  if (!/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password)) return "Au moins 1 caractère spécial requis";
+  if (!/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password)) {
+    return "Au moins 1 caractère spécial requis";
+  }
   return "";
 };
 
 const getPasswordStrength = (password: string): PasswordStrength => {
   let score = 0;
+
   if (password.length >= 8) score++;
   if (password.length >= 12) score++;
   if (/[A-Z]/.test(password)) score++;
@@ -60,31 +73,33 @@ const getPasswordStrength = (password: string): PasswordStrength => {
   if (/[0-9]/.test(password)) score++;
   if (/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password)) score++;
 
-  const levels = [
-    { label: "Très faible", color: "#e74c3c" },
-    { label: "Faible", color: "#e67e22" },
-    { label: "Moyen", color: "#f39c12" },
-    { label: "Bon", color: "#3498db" },
-    { label: "Fort", color: "#2ecc71" },
-    { label: "Très fort", color: "#27ae60" },
+  const levels: PasswordStrength[] = [
+    { label: "Très faible", color: "#e74c3c", score: 0 },
+    { label: "Faible", color: "#e67e22", score: 1 },
+    { label: "Moyen", color: "#f39c12", score: 2 },
+    { label: "Bon", color: "#3498db", score: 3 },
+    { label: "Fort", color: "#2ecc71", score: 4 },
+    { label: "Très fort", color: "#27ae60", score: 5 },
   ];
 
-  return { score, ...levels[Math.min(score, 5)] };
+  return levels[Math.min(score, 5)];
 };
 
-const validateEmail = (email: string): boolean => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
+const validateEmail = (email: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const validatePhone = (phone: string): boolean => {
-  return /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/.test(phone);
-};
+const validatePhone = (phone: string): boolean =>
+  /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/.test(
+    phone
+  );
 
 // ============================================================================
 // SUB-COMPONENTS
 // ============================================================================
 
-const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password }) => {
+const PasswordStrengthIndicator: React.FC<{ password: string }> = ({
+  password,
+}) => {
   const strength = getPasswordStrength(password);
 
   return (
@@ -104,7 +119,13 @@ const PasswordStrengthIndicator: React.FC<{ password: string }> = ({ password })
         ))}
       </div>
       {password && (
-        <small style={{ color: strength.color, fontSize: "12px", fontWeight: 500 }}>
+        <small
+          style={{
+            color: strength.color,
+            fontSize: "12px",
+            fontWeight: 500,
+          }}
+        >
           {strength.label}
         </small>
       )}
@@ -137,6 +158,7 @@ const InputWithValidation: React.FC<InputWithValidationProps> = ({
   isValid,
   required,
   minLength,
+  autoComplete,
 }) => {
   const getInputClass = () => {
     if (!value) return styles.input;
@@ -157,13 +179,18 @@ const InputWithValidation: React.FC<InputWithValidationProps> = ({
         className={getInputClass()}
         required={required}
         minLength={minLength}
+        autoComplete={autoComplete}
         aria-label={placeholder}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
       />
       {value && (
         <span className={styles.validationIcon}>
-          {error ? <FaTimesCircle color="#e74c3c" /> : isValid ? <FaCheckCircle color="#2ecc71" /> : null}
+          {error ? (
+            <FaTimesCircle color="#e74c3c" />
+          ) : isValid ? (
+            <FaCheckCircle color="#2ecc71" />
+          ) : null}
         </span>
       )}
       {error && (
@@ -184,13 +211,13 @@ const useRateLimit = (limit: number, windowMs: number) => {
 
   const canAttempt = (): boolean => {
     const now = Date.now();
-    const recentAttempts = attempts.filter(time => now - time < windowMs);
+    const recentAttempts = attempts.filter((time) => now - time < windowMs);
     setAttempts(recentAttempts);
     return recentAttempts.length < limit;
   };
 
   const recordAttempt = () => {
-    setAttempts(prev => [...prev, Date.now()]);
+    setAttempts((prev) => [...prev, Date.now()]);
   };
 
   return { canAttempt, recordAttempt };
@@ -232,9 +259,13 @@ export default function CompleteRegistrationPage() {
     confirmPassword: "",
     avatar: null,
   });
+  // états en haut du composant
+  const [avatarSaveMessage, setAvatarSaveMessage] = useState<string | null>(null);
 
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
-  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(
+    null
+  );
 
   // Visibilité des mots de passe
   const [showPassword, setShowPassword] = useState(false);
@@ -267,15 +298,12 @@ export default function CompleteRegistrationPage() {
     setEditableData(data);
   }, [searchParams]);
 
-  // Nettoyage de l'URL de l'avatar (éviter memory leak)
+  // Nettoyage de l'URL de preview avatar
   useEffect(() => {
     return () => {
-      if (avatarPreviewUrl) {
-        URL.revokeObjectURL(avatarPreviewUrl);
-      }
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
     };
   }, [avatarPreviewUrl]);
-
 
   // Warning avant de quitter la page
   useEffect(() => {
@@ -289,18 +317,20 @@ export default function CompleteRegistrationPage() {
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    return () =>
+      window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [formData, showConfetti]);
 
   // ============================================================================
   // HANDLERS
   // ============================================================================
 
-  const handleEditChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleEditChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setEditableData(prev => ({ ...prev, [name]: value }));
+    setEditableData((prev) => ({ ...prev, [name]: value }));
 
-    // Validation en temps réel
     let error = "";
     if (name === "email" && value && !validateEmail(value)) {
       error = "Email invalide";
@@ -308,100 +338,111 @@ export default function CompleteRegistrationPage() {
     if (name === "phone" && value && !validatePhone(value)) {
       error = "Numéro de téléphone invalide";
     }
-    setErrors(prev => ({ ...prev, [name]: error }));
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Validation temps réel
     let error = "";
     if (name === "username") {
       if (value.length > 0 && value.length < 3) {
         error = "Nom d'utilisateur : minimum 3 caractères";
-      } else if (
-        value.length > 0 &&
-        !/^[a-zA-Z0-9\-_]+$/.test(value)
-      ) {
-        error = "Utilisez seulement lettres, chiffres, tirets (-) et underscores (_)";
+      } else if (value.length > 0 && !/^[a-zA-Z0-9\-_]+$/.test(value)) {
+        error =
+          "Utilisez seulement lettres, chiffres, tirets (-) et underscores (_)";
       }
     }
     if (name === "password") {
       error = validatePassword(value);
     }
-    if (name === "confirmPassword") {
-      if (value !== formData.password) {
-        error = "Les mots de passe ne correspondent pas";
-      }
+    if (name === "confirmPassword" && value !== formData.password) {
+      error = "Les mots de passe ne correspondent pas";
     }
 
-    setErrors(prev => ({ ...prev, [name]: error }));
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-
-const handleAvatarChange = async (file: File | null) => {
-  if (!file) {
-    setFormData(prev => ({ ...prev, avatar: null }));
-    setAvatarPreviewUrl(null);
-    setUploadedAvatarUrl(null);
-    return;
-  }
-
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-
-  if (file.size > maxSize) {
-    setErrors(prev => ({ ...prev, avatar: "Fichier trop volumineux (max 5MB)" }));
-    return;
-  }
-
-  if (!allowedTypes.includes(file.type)) {
-    setErrors(prev => ({ ...prev, avatar: "Format non autorisé (JPEG, PNG, WEBP)" }));
-    return;
-  }
-
-  // ✅ Prévisualisation locale
-  const previewUrl = URL.createObjectURL(file);
-  setAvatarPreviewUrl(previewUrl);
-  setErrors(prev => ({ ...prev, avatar: "" }));
-
-  try {
-    const formDataUpload = new FormData();
-    formDataUpload.append("file", file); // ⚠️ Nom 'file' = celui attendu par l'API
-    formDataUpload.append("userId", queryData.email || "unknown"); // ⚠️ ID utilisateur
-
-    const response = await fetch("/api/profiles/avatar", {
-      method: "POST",
-      body: formDataUpload,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data.url) {
-      throw new Error(data.error || "Erreur upload");
+  const handleAvatarChange = async (file: File | null) => {
+    if (!file) {
+      setFormData((prev) => ({ ...prev, avatar: null }));
+      setAvatarPreviewUrl(null);
+      setUploadedAvatarUrl(null);
+      setErrors((prev) => ({ ...prev, avatar: "" }));
+      return;
     }
 
-    // ✅ URL finale serveur
-    setUploadedAvatarUrl(data.url);
-    setFormData(prev => ({ ...prev, avatar: file }));
+    const maxSize = 5 * 1024 * 1024;
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
-  } catch (err) {
-    setErrors(prev => ({
-      ...prev,
-      avatar: err instanceof Error ? `Erreur lors de l'upload: ${err.message}` : "Erreur inconnue",
-    }));
-    setUploadedAvatarUrl(null);
-  }
-};
+    if (file.size > maxSize) {
+      setErrors((prev) => ({
+        ...prev,
+        avatar: "Fichier trop volumineux (max 5MB)",
+      }));
+      return;
+    }
 
+    if (!allowedTypes.includes(file.type)) {
+      setErrors((prev) => ({
+        ...prev,
+        avatar: "Format non autorisé (JPEG, PNG, WEBP)",
+      }));
+      return;
+    }
 
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreviewUrl(previewUrl);
+    setErrors((prev) => ({ ...prev, avatar: "" }));
 
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      formDataUpload.append("userId", queryData.email || "unknown");
+
+      const response = await fetch("/api/profiles/avatar", {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "Erreur upload");
+      }
+
+      setUploadedAvatarUrl(data.url);
+      setFormData((prev) => ({ ...prev, avatar: file }));
+    } catch (err) {
+      setErrors((prev) => ({
+        ...prev,
+        avatar:
+          err instanceof Error
+            ? `Erreur lors de l'upload: ${err.message}`
+            : "Erreur inconnue",
+      }));
+      setUploadedAvatarUrl(null);
+    }
+  };
+  const handleAvatarSave = () => {
+    // Cette fonction peut être utilisée pour des actions supplémentaires lors de la sauvegarde de l'avatar
+    // on considère que le dernier fichier choisi + uploadé est validé
+    // on désactive juste la zone d’édition si besoin
+    // par ex. repasser le formulaire en mode non-édition
+    // ou ne rien faire si tu veux garder isEditing global
+    setIsEditing(false); // on repasse en mode « lecture » pour le profil
+    setAvatarSaveMessage("✅ Modifications de l'avatar enregistrées.");
+
+    // Message temporaire 3s
+    setTimeout(() => setAvatarSaveMessage(null), 3000);
+  };
 
   const handleSaveEdit = () => {
-    // Validation finale avant sauvegarde
-    const emailValid = !editableData.email || validateEmail(editableData.email);
-    const phoneValid = !editableData.phone || validatePhone(editableData.phone);
+    const emailValid =
+      !editableData.email || validateEmail(editableData.email);
+    const phoneValid =
+      !editableData.phone || validatePhone(editableData.phone);
 
     if (!emailValid || !phoneValid) {
       alert("⚠️ Corrigez les erreurs avant de sauvegarder");
@@ -412,14 +453,11 @@ const handleAvatarChange = async (file: File | null) => {
     setIsEditing(false);
   };
 
-  const canSubmit = (): boolean => {
-    return (
-      formData.username.trim().length >= 3 &&
-      validatePassword(formData.password) === "" &&
-      formData.password === formData.confirmPassword &&
-      Object.values(errors).every(err => err === "")
-    );
-  };
+  const canSubmit = (): boolean =>
+    formData.username.trim().length >= 3 &&
+    validatePassword(formData.password) === "" &&
+    formData.password === formData.confirmPassword &&
+    Object.values(errors).every((err) => err === "");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -442,33 +480,43 @@ const handleAvatarChange = async (file: File | null) => {
         username: formData.username,
         password: formData.password,
         avatar_url: uploadedAvatarUrl,
-        category: queryData.category, // ✅ Zod attend 'category'
-        firstName: editableData.firstName, // ✅ Zod attend 'firstName'
-        lastName: editableData.lastName, // ✅ Zod attend 'lastName'
+        category: queryData.category,
+        firstName: editableData.firstName,
+        lastName: editableData.lastName,
         email: editableData.email,
         phone: editableData.phone,
-        additionalInfo: editableData.additionalInfo, // ✅ Zod attend 'additionalInfo'
+        additionalInfo: editableData.additionalInfo,
         location: queryData.location,
         option: queryData.option,
         searchTarget: queryData.searchTarget,
       };
-      // 1. Appel de l'API d'inscription (Création de l'utilisateur en base par l'Admin Supabase)
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (data.error) {
-        // Gestion des erreurs (inchangée)
-        if (data.error.includes("duplicate key") && data.error.includes("profiles_username_key")) {
-          setErrors(prev => ({ ...prev, username: "Ce nom d'utilisateur est déjà pris" }));
-        } else if (data.error.includes("email") || data.error.includes("authError")) {
-          setErrors(prev => ({ ...prev, email: "Cet email est déjà utilisé ou une erreur de création est survenue" }));
+        if (
+          data.error.includes("duplicate key") &&
+          data.error.includes("profiles_username_key")
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            username: "Ce nom d'utilisateur est déjà pris",
+          }));
+        } else if (
+          data.error.includes("email") ||
+          data.error.includes("authError")
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            email:
+              "Cet email est déjà utilisé ou une erreur de création est survenue",
+          }));
         } else {
           alert(`❌ ${data.error}`);
         }
@@ -477,61 +525,56 @@ const handleAvatarChange = async (file: File | null) => {
       }
 
       if (data.success) {
-        setSuccessMessage("✅ Inscription réussie ! Redirection vers votre dashboard...");
+        setSuccessMessage(
+          "✅ Inscription réussie ! Redirection vers votre dashboard..."
+        );
         setShowConfetti(true);
 
-        // ====================================================================
-        // ✨ CORRECTION CRITIQUE (Délai, Rôle et Redirection Spécifique au Rôle) ✨
-        // ====================================================================
-
-        // 2. Tente la connexion immédiate avec les credentials du nouvel utilisateur.
-        // 2. Tente la connexion immédiate avec les credentials du nouvel utilisateur.
-        const loginResult = await signIn('credentials', {
+        const loginResult = await signIn("credentials", {
           redirect: false,
           email: editableData.email,
           password: formData.password,
         });
 
         if (loginResult?.ok && !loginResult.error) {
-          // Récupérer le rôle depuis la session NextAuth (après un succès de connexion)
-          const sessionResponse = await fetch('/api/auth/session');
+          const sessionResponse = await fetch("/api/auth/session");
           const sessionData = await sessionResponse.json();
 
-          // 🛑 CORRECTION : Simplification du mapping des rôles pour la redirection
-          const userRole = String(sessionData?.user?.role || data.user.role).trim().toLowerCase();
-          let targetRoleFolder = 'owner'; // Fallback
+          const userRole = String(
+            sessionData?.user?.role || data.user.role
+          )
+            .trim()
+            .toLowerCase();
+          const baseRole = userRole.split("_")[0];
 
-          // Votre `role` dans la session sera le rôle normalisé (owner, concierge, artisan, etc.)
-          // Nous n'avons besoin que de la base du rôle pour la redirection du dossier.
-          const baseRole = userRole.split('_')[0];
-
+          let targetRoleFolder = "owner";
           switch (baseRole) {
             case "concierge":
               targetRoleFolder = "concierge";
               break;
             case "provider":
             case "artisan":
-              targetRoleFolder = baseRole; // Redirige vers /dashboard/provider ou /dashboard/artisan
+              targetRoleFolder = baseRole;
               break;
             case "admin":
             case "super":
               targetRoleFolder = "admin";
               break;
-            default: // Inclut 'owner'
+            default:
               targetRoleFolder = "owner";
           }
 
-          const finalDashboardPath = `/dashboard/${targetRoleFolder}`;
-          console.log(`[CLIENT] Redirection basée sur le rôle: ${userRole} -> ${finalDashboardPath}`);
-          router.replace(finalDashboardPath);
+          router.replace(`/dashboard/${targetRoleFolder}`);
         } else {
-          console.error("[CLIENT] Erreur de connexion NextAuth après inscription. Redirection manuelle.");
           router.replace("/login?success=true");
         }
-
       }
     } catch (err) {
-      alert(err instanceof Error ? `❌ ${err.message}` : "❌ Erreur serveur. Réessayez.");
+      alert(
+        err instanceof Error
+          ? `❌ ${err.message}`
+          : "❌ Erreur serveur. Réessayez."
+      );
       setLoading(false);
     }
   };
@@ -552,9 +595,10 @@ const handleAvatarChange = async (file: File | null) => {
 
       <h1 className={styles.title}>Finalisez votre inscription</h1>
 
-      {/* ========== RÉCAPITULATIF ========== */}
+      {/* RÉCAPITULATIF */}
       <section className={styles.summary}>
         <h2>📋 Récapitulatif de votre recherche</h2>
+
         <div className={styles.summaryGrid}>
           <div className={styles.summaryItem}>
             <strong>Je suis :</strong>
@@ -576,15 +620,18 @@ const handleAvatarChange = async (file: File | null) => {
             <ul>
               {(() => {
                 try {
-                  // Essayer de parser en JSON d'abord
                   const options = JSON.parse(queryData.option);
                   return Array.isArray(options)
-                    ? options.map((s, i) => <li key={i}>{s}</li>)
-                    : queryData.option.split(',').map((s, i) => <li key={i}>{s.trim()}</li>);
+                    ? options.map((s: string, i: number) => (
+                      <li key={i}>{s}</li>
+                    ))
+                    : queryData.option
+                      .split(",")
+                      .map((s, i) => <li key={i}>{s.trim()}</li>);
                 } catch {
-                  // Si pas JSON, diviser par virgule mais intelligemment
-                  // Pour éviter de couper les virgules dans les parenthèses
-                  const parts = queryData.option.split(/,(?![^(]*\))/).map(s => s.trim());
+                  const parts = queryData.option
+                    .split(/,(?![^(]*\))/)
+                    .map((s) => s.trim());
                   return parts.map((s, i) => <li key={i}>{s}</li>);
                 }
               })()}
@@ -594,7 +641,7 @@ const handleAvatarChange = async (file: File | null) => {
 
         <hr className={styles.divider} />
 
-        {/* ========== PROFIL & COORDONNÉES ========== */}
+        {/* PROFIL & COORDONNÉES */}
         <div className={styles.profileHeader}>
           <h2>👤 Profil & Coordonnées</h2>
           {!isEditing ? (
@@ -619,17 +666,35 @@ const handleAvatarChange = async (file: File | null) => {
         </div>
 
         {isEditing && (
-          <div className={styles.editModeBadge}>
-            ✏️ Mode édition activé
-          </div>
+          <div className={styles.editModeBadge}>✏️ Mode édition activé</div>
         )}
 
         <div className={styles.profileGrid}>
           {[
-            { key: "firstName", label: "Prénom", type: "text", autocomplete: "given-name" },
-            { key: "lastName", label: "Nom", type: "text", autocomplete: "family-name" },
-            { key: "email", label: "Email", type: "email", autocomplete: "email" },
-            { key: "phone", label: "Téléphone", type: "tel", autocomplete: "tel" },
+            {
+              key: "firstName",
+              label: "Prénom",
+              type: "text",
+              autocomplete: "given-name",
+            },
+            {
+              key: "lastName",
+              label: "Nom",
+              type: "text",
+              autocomplete: "family-name",
+            },
+            {
+              key: "email",
+              label: "Email",
+              type: "email",
+              autocomplete: "email",
+            },
+            {
+              key: "phone",
+              label: "Téléphone",
+              type: "tel",
+              autocomplete: "tel",
+            },
           ].map(({ key, label, type, autocomplete }) => (
             <div key={key} className={styles.profileField}>
               <strong>{label} :</strong>
@@ -644,9 +709,11 @@ const handleAvatarChange = async (file: File | null) => {
                   error={errors[key]}
                   isValid={
                     key === "email"
-                      ? editableData.email.length > 0 && validateEmail(editableData.email)
+                      ? editableData.email.length > 0 &&
+                      validateEmail(editableData.email)
                       : key === "phone"
-                        ? editableData.phone.length > 0 && validatePhone(editableData.phone)
+                        ? editableData.phone.length > 0 &&
+                        validatePhone(editableData.phone)
                         : editableData[key as keyof QueryData].length > 0
                   }
                   autoComplete={autocomplete}
@@ -657,7 +724,10 @@ const handleAvatarChange = async (file: File | null) => {
             </div>
           ))}
 
-          <div className={styles.profileField} style={{ gridColumn: "1 / -1" }}>
+          <div
+            className={styles.profileField}
+            style={{ gridColumn: "1 / -1" }}
+          >
             <strong>Informations complémentaires :</strong>
             {isEditing ? (
               <textarea
@@ -674,22 +744,34 @@ const handleAvatarChange = async (file: File | null) => {
           </div>
         </div>
 
-        {/* ========== AVATAR ========== */}
+        {/* AVATAR */}
         <div className={styles.avatarSection}>
           <h3>📷 Photo de profil</h3>
           <AvatarUpload
             value={formData.avatar}
-            existingUrl={uploadedAvatarUrl ?? undefined} // convertit null en undefined
+            existingUrl={
+              uploadedAvatarUrl ?? avatarPreviewUrl ?? DEFAULT_AVATAR_URL
+            }
+            isEditing={isEditing}
             onChange={handleAvatarChange}
+            onSave={handleAvatarSave}
           />
 
-
-          {errors.avatar && <small className={styles.errorMsg}>{errors.avatar}</small>}
-          {uploadedAvatarUrl && <small className={styles.successMsg}>✅ Avatar uploadé avec succès</small>}
+          {errors.avatar && (
+            <small className={styles.errorMsg}>{errors.avatar}</small>
+          )}
+          {avatarSaveMessage && (
+            <small className={styles.successMsg}>{avatarSaveMessage}</small>
+          )}
+          {uploadedAvatarUrl && (
+            <small className={styles.successMsg}>
+              ✅ Avatar uploadé avec succès
+            </small>
+          )}
         </div>
       </section>
 
-      {/* ========== FORMULAIRE INSCRIPTION ========== */}
+      {/* FORMULAIRE INSCRIPTION */}
       <form onSubmit={handleSubmit} className={styles.form}>
         <h2>🔐 Création de votre compte</h2>
 
@@ -725,16 +807,22 @@ const handleAvatarChange = async (file: File | null) => {
           <button
             type="button"
             className={styles.passwordToggle}
-            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            onClick={() => setShowPassword(v => !v)}
+            aria-label={
+              showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+            }
+            onClick={() => setShowPassword((v) => !v)}
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
-        {errors.password && <small className={styles.errorMsg}>{errors.password}</small>}
+        {errors.password && (
+          <small className={styles.errorMsg}>{errors.password}</small>
+        )}
         <PasswordStrengthIndicator password={formData.password} />
 
-        <label htmlFor="confirmPassword">Confirmation du mot de passe *</label>
+        <label htmlFor="confirmPassword">
+          Confirmation du mot de passe *
+        </label>
         <div className={styles.passwordInputWrapper}>
           <input
             id="confirmPassword"
@@ -743,7 +831,9 @@ const handleAvatarChange = async (file: File | null) => {
             value={formData.confirmPassword}
             onChange={handleFormChange}
             placeholder="Confirmez votre mot de passe"
-            className={errors.confirmPassword ? styles.inputError : styles.input}
+            className={
+              errors.confirmPassword ? styles.inputError : styles.input
+            }
             required
             minLength={8}
             autoComplete="new-password"
@@ -752,16 +842,28 @@ const handleAvatarChange = async (file: File | null) => {
           <button
             type="button"
             className={styles.passwordToggle}
-            aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            onClick={() => setShowConfirmPassword(v => !v)}
+            aria-label={
+              showConfirmPassword
+                ? "Masquer le mot de passe"
+                : "Afficher le mot de passe"
+            }
+            onClick={() => setShowConfirmPassword((v) => !v)}
           >
             {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
-        {errors.confirmPassword && <small className={styles.errorMsg}>{errors.confirmPassword}</small>}
-        {formData.confirmPassword && !errors.confirmPassword && formData.password === formData.confirmPassword && (
-          <small className={styles.successMsg}>✅ Les mots de passe correspondent</small>
+        {errors.confirmPassword && (
+          <small className={styles.errorMsg}>
+            {errors.confirmPassword}
+          </small>
         )}
+        {formData.confirmPassword &&
+          !errors.confirmPassword &&
+          formData.password === formData.confirmPassword && (
+            <small className={styles.successMsg}>
+              ✅ Les mots de passe correspondent
+            </small>
+          )}
 
         <button
           type="submit"
@@ -769,7 +871,9 @@ const handleAvatarChange = async (file: File | null) => {
           className={styles.submitButton}
           aria-busy={loading}
         >
-          {loading ? "⏳ Inscription en cours..." : "🚀 Finaliser mon inscription"}
+          {loading
+            ? "⏳ Inscription en cours..."
+            : "🚀 Finaliser mon inscription"}
         </button>
 
         {!canSubmit() && formData.username && (
@@ -777,16 +881,22 @@ const handleAvatarChange = async (file: File | null) => {
             <strong>ℹ️ Veuillez compléter :</strong>
             <ul style={{ marginTop: "0.5rem", paddingLeft: "1.5rem" }}>
               {formData.username.trim().length < 3 && (
-                <li>Nom d&apos;utilisateur valide (min. 3 caractères)</li>
+                <li>
+                  Nom d&apos;utilisateur valide (min. 3 caractères)
+                </li>
               )}
               {validatePassword(formData.password) !== "" && (
-                <li>Mot de passe sécurisé (8 chars, maj, min, chiffre, spécial)</li>
+                <li>
+                  Mot de passe sécurisé (8 chars, maj, min, chiffre,
+                  spécial)
+                </li>
               )}
               {formData.password !== formData.confirmPassword && (
                 <li>Confirmation du mot de passe identique</li>
               )}
-              {Object.entries(errors).map(([key, error]) =>
-                error ? <li key={key}>{error}</li> : null
+              {Object.entries(errors).map(
+                ([key, error]) =>
+                  error && <li key={key}>{error}</li>
               )}
             </ul>
           </div>

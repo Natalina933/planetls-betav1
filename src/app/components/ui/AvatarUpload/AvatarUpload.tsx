@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { FaCamera } from "react-icons/fa";
 import styles from "./AvatarUpload.module.scss";
 
 interface AvatarUploadProps {
@@ -35,7 +36,9 @@ export default function AvatarUpload({
   onSave,
   onRemove,
 }: AvatarUploadProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(existingUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    existingUrl || null
+  );
   const [scale, setScale] = useState(existingScale);
   const [offsetX, setOffsetX] = useState(existingOffsetX);
   const [offsetY, setOffsetY] = useState(existingOffsetY);
@@ -48,9 +51,8 @@ export default function AvatarUpload({
       const url = URL.createObjectURL(value);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(existingUrl || null);
     }
+    setPreviewUrl(existingUrl || null);
   }, [value, existingUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,19 +71,19 @@ export default function AvatarUpload({
     onScaleChange?.(newScale);
   };
 
-  const handleOffsetX = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
     setOffsetX(val);
     onOffsetChange?.(val, offsetY);
   };
 
-  const handleOffsetY = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
     setOffsetY(val);
     onOffsetChange?.(offsetX, val);
   };
 
-  const handleRotation = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRotationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
     setRotation(val);
     onRotationChange?.(val);
@@ -99,7 +101,7 @@ export default function AvatarUpload({
 
   return (
     <div className={styles.container}>
-      {/* APERCU - TOUJOURS VISIBLE */}
+      {/* APERCU */}
       <div className={styles.imageWrapper}>
         {previewUrl ? (
           <Image
@@ -119,12 +121,23 @@ export default function AvatarUpload({
         ) : (
           <div className={styles.placeholder}>Avatar</div>
         )}
+
+        {isEditing && (
+          <label className={styles.cameraButton}>
+            <FaCamera />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              hidden
+            />
+          </label>
+        )}
       </div>
 
-      {/* CONTROLES ET BOUTONS - CACHÉS si !isEditing */}
+      {/* CONTROLES & BOUTONS */}
       {previewUrl && isEditing && (
         <>
-          {/* CONTROLES */}
           <div className={styles.controlsBlock}>
             <div className={styles.zoomControl}>
               <label htmlFor="zoomSlider" className={styles.zoomLabel}>
@@ -154,7 +167,7 @@ export default function AvatarUpload({
                   max={50}
                   step={1}
                   value={offsetX}
-                  onChange={handleOffsetX}
+                  onChange={handleOffsetXChange}
                   className={styles.zoomSlider}
                 />
               </div>
@@ -170,7 +183,7 @@ export default function AvatarUpload({
                   max={50}
                   step={1}
                   value={offsetY}
-                  onChange={handleOffsetY}
+                  onChange={handleOffsetYChange}
                   className={styles.zoomSlider}
                 />
               </div>
@@ -187,13 +200,12 @@ export default function AvatarUpload({
                 max={45}
                 step={1}
                 value={rotation}
-                onChange={handleRotation}
+                onChange={handleRotationChange}
                 className={styles.zoomSlider}
               />
             </div>
           </div>
 
-          {/* BOUTONS */}
           <div className={styles.buttonGroup}>
             <label className={`${styles.button} ${styles.replace}`}>
               Modifier
@@ -209,7 +221,6 @@ export default function AvatarUpload({
               type="button"
               className={`${styles.button} ${styles.remove}`}
               onClick={handleRemove}
-              aria-label="Supprimer avatar"
             >
               Supprimer
             </button>
@@ -228,7 +239,6 @@ export default function AvatarUpload({
         </>
       )}
 
-      {/* MESSAGE ERREUR */}
       {error && <div className={styles.errorMessage}>{error}</div>}
     </div>
   );
