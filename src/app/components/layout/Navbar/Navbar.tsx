@@ -1,83 +1,267 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useRouter, usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
 import { useSession, signOut } from "next-auth/react";
+import { useUserType } from "@/app/context/UserTypeContext";
+
 const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then(mod => mod.FaUser), { ssr: false }),
   FaSearch: dynamic(() => import("react-icons/fa").then(mod => mod.FaSearch), { ssr: false }),
+  FaTachometerAlt: dynamic(() => import("react-icons/fa").then(mod => mod.FaTachometerAlt), { ssr: false }),
 };
 
+// ⏱️ Configuration du timeout d'inactivité (en millisecondes)
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000; // Avertir 2 minutes avant
+
 export default function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { setSearchOpen } = useSearchPopup();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const { userType } = useUserType();
+  
+  const [showWarning, setShowWarning] = useState(false);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [warningTimeoutId, setWarningTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  const isAuthenticated = status === "authenticated";
+  const isDashboardRoute = pathname?.startsWith("/dashboard");
+  const isHomePage = pathname === "/" || pathname === "/home";
+
+  // 🎯 Fonction pour obtenir le chemin du dashboard selon le rôle
+  const getDashboardPath = () => {
+    if (!userType) {
+      // Fallback si le contexte n'est pas encore chargé
+      const role = session?.user?.role;
+      if (role === "concierge") return "/dashboard/concierge";
+      if (role === "owner") return "/dashboard/owner";
+      if (role === "provider") return "/dashboard/provider";
+      return "/dashboard";
+    }
+    return `/dashboard/${userType}`;
+  };
+
+  // 🔄 Réinitialiser le timer d'inactivité
+  const resetInactivityTimer = () => {
+    // Nettoyer les timers existants
+    if (timeoutId) clearTimeout(timeoutId);
+    if (warningTimeoutId) clearTimeout(warningTimeoutId);
+    setShowWarning(false);
+
+    // Ne démarrer les timers que si on est connecté ET sur le dashboard
+    if (isAuthenticated && isDashboardRoute) {
+      // Timer pour l'avertissement
+      const warningId = setTimeout(() => {
+        setShowWarning(true);
+      }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
+
+      // Timer pour la déconnexion automatique
+      const logoutId = setTimeout(() => {
+        handleAutoLogout();
+      }, INACTIVITY_TIMEOUT);
+
+      setWarningTimeoutId(warningId);
+      setTimeoutId(logoutId);
+    }
+  };
+
+  // 🚪 Déconnexion automatique
+  const handleAutoLogout = async () => {
+    await signOut({ 
+      callbackUrl: "/",
+      redirect: true 
+    });
+  };
+
+  // 🔄 Prolonger la session
+  const extendSession = () => {
+    setShowWarning(false);
+    resetInactivityTimer();
+  };
+
+  // 👂 Écouter les événements d'activité utilisateur
+  useEffect(() => {
+    if (!isAuthenticated || !isDashboardRoute) return;
+
+    const events = ["mousedown", "keydown", "scroll", "touchstart", "mousemove"];
+
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
+
+    // Ajouter les écouteurs
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity);
+    });
+
+    // Timer initial
+    resetInactivityTimer();
+
+    // Nettoyage
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+      if (warningTimeoutId) clearTimeout(warningTimeoutId);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isDashboardRoute, pathname]);
+
+  // 🚪 Arrêter les timers lors de la sortie du dashboard
+  useEffect(() => {
+    if (isAuthenticated && !isDashboardRoute) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (warningTimeoutId) clearTimeout(warningTimeoutId);
+      setShowWarning(false);
+    }
+  }, [pathname, isDashboardRoute, isAuthenticated, timeoutId, warningTimeoutId]);
+
   const closeMenu = () => setMenuOpen(false);
+
   const handleLogout = async () => {
     closeMenu();
-    await signOut({ callbackUrl: "/" }); // redirection vers la home après logout
+    await signOut({ callbackUrl: "/" });
   };
-  const isAuthenticated = status === "authenticated";
+
+  const handleGoToDashboard = () => {
+    closeMenu();
+    router.push(getDashboardPath());
+  };
+
+  const handleLogin = () => {
+    closeMenu();
+    router.push("/login");
+  };
+
   return (
-    <nav className={styles.navbar}>
-      {/* Burger Menu */}
-      <button
-        className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
-        onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Menu"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+    <>
+      <nav className={styles.navbar}>
+        {/* Burger Menu */}
+        <button
+          className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
-      {/* Menu Items */}
-      <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
-        <li className={styles["nav-search"]}>
-          <button
-            onClick={() => {
-              setSearchOpen(true);
-              closeMenu();
-            }}
-            className={`${styles.searchBtn} ${styles.navButton}`}
-            aria-label="Ouvrir la recherche"
-          >
-            <Icons.FaSearch size={18} /> Recherche
-          </button>
-        </li>
-
-        {!isAuthenticated && (
-          <li className={styles["auth-inscription"]}>
+        {/* Menu Items */}
+        <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
+          <li className={styles["nav-search"]}>
             <button
               onClick={() => {
                 setSearchOpen(true);
                 closeMenu();
               }}
               className={`${styles.searchBtn} ${styles.navButton}`}
-              aria-label="Ouvrir la recherche pour inscription"
+              aria-label="Ouvrir la recherche"
             >
-              S’inscrire
+              <Icons.FaSearch size={18} /> Recherche
             </button>
           </li>
-        )}
 
-        <li className={styles["auth-connexion"]}>
-          {isAuthenticated ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={styles.logoutButton}
-            >
-              <Icons.FaUser size={18} /> Se déconnecter
-            </button>
-          ) : (
-            <a href="/login" onClick={closeMenu}>
-              <Icons.FaUser size={18} /> Se connecter
-            </a>
+          {!isAuthenticated && (
+            <li className={styles["auth-inscription"]}>
+              <button
+                onClick={() => {
+                  setSearchOpen(true);
+                  closeMenu();
+                }}
+                className={`${styles.searchBtn} ${styles.navButton}`}
+                aria-label="Ouvrir la recherche pour inscription"
+              >
+                S&apos;inscrire
+              </button>
+            </li>
           )}
-        </li>
-      </ul>
-    </nav>
+
+          {/* 🎯 Bouton Dashboard (uniquement si connecté ET pas déjà sur dashboard) */}
+          {isAuthenticated && !isDashboardRoute && (
+            <li className={styles["auth-dashboard"]}>
+              <button
+                type="button"
+                onClick={handleGoToDashboard}
+                className={styles.dashboardButton}
+              >
+                <Icons.FaTachometerAlt size={18} /> Mon Dashboard
+              </button>
+            </li>
+          )}
+
+          {/* 🏠 Bouton Retour Accueil (si connecté ET sur dashboard) */}
+          {isAuthenticated && isDashboardRoute && !isHomePage && (
+            <li className={styles["nav-home"]}>
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  router.push("/");
+                }}
+                className={styles.homeButton}
+              >
+                🏠 Accueil
+              </button>
+            </li>
+          )}
+
+          <li className={styles["auth-connexion"]}>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.logoutButton}
+              >
+                <Icons.FaUser size={18} /> Se déconnecter
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleLogin}
+                className={styles.loginButton}
+              >
+                <Icons.FaUser size={18} /> Se connecter
+              </button>
+            )}
+          </li>
+        </ul>
+      </nav>
+
+      {/* ⚠️ Modal d'avertissement d'inactivité */}
+      {showWarning && (
+        <div className={styles.warningOverlay}>
+          <div className={styles.warningModal}>
+            <h3>⏱️ Session bientôt expirée</h3>
+            <p>
+              Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.
+            </p>
+            <p className={styles.warningSubtext}>
+              Cliquez sur &quot;Rester connecté&quot; pour continuer votre session.
+            </p>
+            <div className={styles.warningActions}>
+              <button
+                onClick={extendSession}
+                className={styles.extendButton}
+              >
+                ✓ Rester connecté
+              </button>
+              <button
+                onClick={handleAutoLogout}
+                className={styles.logoutNowButton}
+              >
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

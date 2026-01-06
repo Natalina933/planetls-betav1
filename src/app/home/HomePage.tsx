@@ -1,3 +1,4 @@
+// src/app/home/HomePage.tsx
 "use client";
 
 // import dynamic from 'next/dynamic';
