@@ -1,4 +1,3 @@
-// src/app/complete-registration/CompleteRegistrationPage.tsx
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -28,6 +27,8 @@ interface QueryData {
   searchTarget: string;
   option: string;
   location: string;
+  experienceLevel: string;   // 🔹 intégré pour la popup
+  yearsExperience: string;   // 🔹 intégré pour la popup
   firstName: string;
   lastName: string;
   email: string;
@@ -243,6 +244,8 @@ export default function CompleteRegistrationPage() {
     searchTarget: "",
     option: "",
     location: "",
+    experienceLevel: "",
+    yearsExperience: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -259,9 +262,10 @@ export default function CompleteRegistrationPage() {
     confirmPassword: "",
     avatar: null,
   });
-  // états en haut du composant
-  const [avatarSaveMessage, setAvatarSaveMessage] = useState<string | null>(null);
 
+  const [avatarSaveMessage, setAvatarSaveMessage] = useState<string | null>(
+    null
+  );
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(
     null
@@ -288,6 +292,8 @@ export default function CompleteRegistrationPage() {
       searchTarget: searchParams.get("searchTarget") || "",
       option: searchParams.get("option") || "",
       location: searchParams.get("location") || "",
+      experienceLevel: searchParams.get("experienceLevel") || "",
+      yearsExperience: searchParams.get("yearsExperience") || "",
       firstName: searchParams.get("firstName") || "",
       lastName: searchParams.get("lastName") || "",
       email: searchParams.get("email") || "",
@@ -425,16 +431,10 @@ export default function CompleteRegistrationPage() {
       setUploadedAvatarUrl(null);
     }
   };
-  const handleAvatarSave = () => {
-    // Cette fonction peut être utilisée pour des actions supplémentaires lors de la sauvegarde de l'avatar
-    // on considère que le dernier fichier choisi + uploadé est validé
-    // on désactive juste la zone d’édition si besoin
-    // par ex. repasser le formulaire en mode non-édition
-    // ou ne rien faire si tu veux garder isEditing global
-    setIsEditing(false); // on repasse en mode « lecture » pour le profil
-    setAvatarSaveMessage("✅ Modifications de l'avatar enregistrées.");
 
-    // Message temporaire 3s
+  const handleAvatarSave = () => {
+    setIsEditing(false);
+    setAvatarSaveMessage("✅ Modifications de l'avatar enregistrées.");
     setTimeout(() => setAvatarSaveMessage(null), 3000);
   };
 
@@ -593,9 +593,144 @@ export default function CompleteRegistrationPage() {
         </div>
       )}
 
-      <h1 className={styles.title}>Finalisez votre inscription</h1>
+      <h1 className={styles.title}>Dernière étape avant de commencer</h1>
 
-      {/* RÉCAPITULATIF */}
+      {/* SECTION PROFIL PRO + EXPÉRIENCE */}
+      <section className={styles.proProfileSection}>
+        <div className={styles.proProfileHeader}>
+          <h2 className={styles.proProfileTitle}>
+            <span className={styles.proProfileIcon}>💼</span>
+            Votre profil professionnel
+          </h2>
+
+          <button
+            onClick={() => (isEditing ? handleSaveEdit() : setIsEditing(true))}
+            className={isEditing ? styles.saveButton : styles.editButton}
+            type="button"
+            aria-label={
+              isEditing
+                ? "Sauvegarder les modifications"
+                : "Modifier mon profil professionnel"
+            }
+          >
+            {isEditing ? (
+              <>
+                <FaSave /> Enregistrer
+              </>
+            ) : (
+              <>
+                <FaEdit /> Modifier
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className={styles.proProfileGrid}>
+          {/* Type de compte */}
+          <div className={styles.proProfileField}>
+            <span className={styles.proProfileLabel}>Type de compte</span>
+            <p className={styles.proProfileValue}>
+              {queryData.category || "—"}
+            </p>
+          </div>
+
+          {/* Expérience (via popup) */}
+          <div className={styles.proProfileField}>
+            <span className={styles.proProfileLabel}>Expérience (via popup)</span>
+            {isEditing ? (
+              <div className={styles.experienceEditWrapper}>
+                <input
+                  type="number"
+                  min={0}
+                  value={editableData.yearsExperience}
+                  onChange={(e) =>
+                    setEditableData((prev) => ({
+                      ...prev,
+                      yearsExperience: e.target.value,
+                    }))
+                  }
+                  className={styles.experienceInput}
+                />
+                <span className={styles.experienceText}>
+                  ans{" "}
+                  {editableData.experienceLevel &&
+                    `(${editableData.experienceLevel})`}
+                </span>
+              </div>
+            ) : (
+              <p className={styles.proProfileValue}>
+                {queryData.yearsExperience
+                  ? `${queryData.yearsExperience} ans`
+                  : "—"}
+                {queryData.experienceLevel && (
+                  <>
+                    {" — "}
+                    <span className={styles.experienceLevel}>
+                      {queryData.experienceLevel}
+                    </span>
+                  </>
+                )}
+              </p>
+            )}
+          </div>
+
+          {/* Prénom & Nom */}
+          <div className={styles.proProfileFieldWide}>
+            <span className={styles.proProfileLabel}>Prénom & Nom</span>
+            {isEditing ? (
+              <div className={styles.nameEditWrapper}>
+                <input
+                  value={editableData.firstName}
+                  onChange={(e) =>
+                    setEditableData((prev) => ({
+                      ...prev,
+                      firstName: e.target.value,
+                    }))
+                  }
+                  className={styles.nameInput}
+                  placeholder="Prénom"
+                />
+                <input
+                  value={editableData.lastName}
+                  onChange={(e) =>
+                    setEditableData((prev) => ({
+                      ...prev,
+                      lastName: e.target.value,
+                    }))
+                  }
+                  className={styles.nameInput}
+                  placeholder="Nom"
+                />
+              </div>
+            ) : (
+              <p className={styles.proProfileValue}>
+                {queryData.firstName} {queryData.lastName}
+              </p>
+            )}
+          </div>
+
+          {/* Contact */}
+          <div className={styles.proProfileFieldWide}>
+            <span className={styles.proProfileLabel}>Contact</span>
+            <div className={styles.contactWrapper}>
+              <div className={styles.contactLine}>
+                <span className={styles.contactIcon}>📧</span>
+                <span className={styles.contactText}>
+                  {queryData.email || "—"}
+                </span>
+              </div>
+              <div className={styles.contactLine}>
+                <span className={styles.contactIcon}>📞</span>
+                <span className={styles.contactText}>
+                  {queryData.phone || "—"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* RÉCAPITULATIF EXISTANT */}
       <section className={styles.summary}>
         <h2>📋 Récapitulatif de votre recherche</h2>
 
@@ -623,11 +758,11 @@ export default function CompleteRegistrationPage() {
                   const options = JSON.parse(queryData.option);
                   return Array.isArray(options)
                     ? options.map((s: string, i: number) => (
-                      <li key={i}>{s}</li>
-                    ))
+                        <li key={i}>{s}</li>
+                      ))
                     : queryData.option
-                      .split(",")
-                      .map((s, i) => <li key={i}>{s.trim()}</li>);
+                        .split(",")
+                        .map((s, i) => <li key={i}>{s.trim()}</li>);
                 } catch {
                   const parts = queryData.option
                     .split(/,(?![^(]*\))/)
@@ -641,7 +776,7 @@ export default function CompleteRegistrationPage() {
 
         <hr className={styles.divider} />
 
-        {/* PROFIL & COORDONNÉES */}
+        {/* PROFIL & COORDONNÉES (détail) */}
         <div className={styles.profileHeader}>
           <h2>👤 Profil & Coordonnées</h2>
           {!isEditing ? (
@@ -710,11 +845,11 @@ export default function CompleteRegistrationPage() {
                   isValid={
                     key === "email"
                       ? editableData.email.length > 0 &&
-                      validateEmail(editableData.email)
+                        validateEmail(editableData.email)
                       : key === "phone"
-                        ? editableData.phone.length > 0 &&
+                      ? editableData.phone.length > 0 &&
                         validatePhone(editableData.phone)
-                        : editableData[key as keyof QueryData].length > 0
+                      : editableData[key as keyof QueryData].length > 0
                   }
                   autoComplete={autocomplete}
                 />
@@ -881,14 +1016,11 @@ export default function CompleteRegistrationPage() {
             <strong>ℹ️ Veuillez compléter :</strong>
             <ul style={{ marginTop: "0.5rem", paddingLeft: "1.5rem" }}>
               {formData.username.trim().length < 3 && (
-                <li>
-                  Nom d&apos;utilisateur valide (min. 3 caractères)
-                </li>
+                <li>Nom d&apos;utilisateur valide (min. 3 caractères)</li>
               )}
               {validatePassword(formData.password) !== "" && (
                 <li>
-                  Mot de passe sécurisé (8 chars, maj, min, chiffre,
-                  spécial)
+                  Mot de passe sécurisé (8 chars, maj, min, chiffre, spécial)
                 </li>
               )}
               {formData.password !== formData.confirmPassword && (
@@ -896,7 +1028,11 @@ export default function CompleteRegistrationPage() {
               )}
               {Object.entries(errors).map(
                 ([key, error]) =>
-                  error && <li key={key}>{error}</li>
+                  error && (
+                    <li key={key}>
+                      {error}
+                    </li>
+                  )
               )}
             </ul>
           </div>
