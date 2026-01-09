@@ -14,8 +14,8 @@ import {
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
-
-
+import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
+import type { MissionAvailability } from "@/app/components/missions/types";
 
 import {
   FiBarChart,
@@ -90,13 +90,10 @@ export interface Profile {
   instagram: string | null;
   insurance_number: string | null;
   insurance_company: string | null;
-  service_area: string | null;
-  service_radius_km: number | null;
   hourly_rate: number | null;
   monthly_rate: number | null;
-  availability_hours: string | null;
-  emergency_service: boolean;
   certifications: string | null;
+  mission_settings: string | null;
   years_experience: number | null;
   experience_level: "debutant" | "intermediaire" | "experimente" | null;
   iban: string | null;
@@ -285,83 +282,78 @@ export default function ConciergeProfilePage() {
     }
   };
 
-const handleSave = async () => {
-  if (!editProfile) return;
+  const handleSave = async () => {
+    if (!editProfile) return;
 
-  const hasErrors = Object.values(errors).some((error) => error !== "");
-  if (hasErrors) {
-    alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
-    return;
-  }
-
-  setLoading(true);
-  let avatarUrl = editProfile.avatar_url;
-
-  try {
-    if (avatarFile) {
-      avatarUrl = await handleAvatarUpload(avatarFile);
+    const hasErrors = Object.values(errors).some((error) => error !== "");
+    if (hasErrors) {
+      alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
+      return;
     }
 
-    const response = await fetch("/api/profiles", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        ...editProfile, 
-        avatar_url: avatarUrl,
-      }),
-    });
+    setLoading(true);
+    let avatarUrl = editProfile.avatar_url;
 
-    const result = await response.json();
-    
-    if (!response.ok || result.error) {
-      throw new Error(result.error || "Erreur lors de la sauvegarde");
+    try {
+      if (avatarFile) {
+        avatarUrl = await handleAvatarUpload(avatarFile);
+      }
+
+      const response = await fetch("/api/profiles", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...editProfile,
+          avatar_url: avatarUrl,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || "Erreur lors de la sauvegarde");
+      }
+
+      const updatedProfile: Profile = result;
+      setProfile(updatedProfile);
+      setEditProfile(updatedProfile);
+      setIsEditing(false);
+      setAvatarFile(null);
+
+      setSuccessMsg(
+        `✅ Profil sauvegardé ! ` +
+          `Avatar: ${(updatedProfile.avatar_scale ?? 1).toFixed(2)}x, ` +
+          `Position: ${updatedProfile.avatar_offset_x ?? 0}/${updatedProfile.avatar_offset_y ?? 0}, ` +
+          `Rotation: ${updatedProfile.avatar_rotation ?? 0}°`,
+      );
+
+      console.log("✅ Sauvegardé:", {
+        scale: updatedProfile.avatar_scale,
+        offsetX: updatedProfile.avatar_offset_x,
+        offsetY: updatedProfile.avatar_offset_y,
+        rotation: updatedProfile.avatar_rotation,
+      });
+
+      await update({
+        user: {
+          avatar_url: avatarUrl,
+          firstName: editProfile.first_name,
+          lastName: editProfile.last_name,
+          name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
+        },
+      });
+
+      setTimeout(() => setSuccessMsg(""), 5000);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur inconnue";
+      console.error("[ConciergeProfilePage] Erreur sauvegarde:", errorMessage);
+      setErrorMsg(errorMessage);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setLoading(false);
     }
-
-    // ✅ Profil mis à jour retourné par l'API
-    const updatedProfile: Profile = result;
-    
-    setProfile(updatedProfile);
-    setEditProfile(updatedProfile);
-    setIsEditing(false);
-    setAvatarFile(null);
-    
-    // ✅ Message avec les vraies valeurs du profil
-    setSuccessMsg(
-      `✅ Profil sauvegardé ! ` +
-      `Avatar: ${(updatedProfile.avatar_scale ?? 1).toFixed(2)}x, ` +
-      `Position: ${updatedProfile.avatar_offset_x ?? 0}/${updatedProfile.avatar_offset_y ?? 0}, ` +
-      `Rotation: ${updatedProfile.avatar_rotation ?? 0}°`
-    );
-    
-    // ✅ Debug des valeurs sauvegardées
-    console.log("✅ Sauvegardé:", {
-      scale: updatedProfile.avatar_scale,
-      offsetX: updatedProfile.avatar_offset_x,
-      offsetY: updatedProfile.avatar_offset_y,
-      rotation: updatedProfile.avatar_rotation,
-    });
-
-    await update({
-      user: {
-        avatar_url: avatarUrl,
-        firstName: editProfile.first_name,
-        lastName: editProfile.last_name,
-        name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
-      },
-    });
-
-    setTimeout(() => setSuccessMsg(""), 5000);
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-    console.error("[ConciergeProfilePage] Erreur sauvegarde:", errorMessage);
-    setErrorMsg(errorMessage);
-    setTimeout(() => setErrorMsg(""), 5000);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  };
 
   const toggleSection = (sectionId: string) => {
     setOpenSections((prev) => ({
@@ -372,13 +364,14 @@ const handleSave = async () => {
 
   const renderField = (
     label: string,
-    name: keyof Profile,
+    name: keyof Profile | "service_area" | "service_radius_km",
     isTextarea: boolean = false,
     required: boolean = false,
     placeholder: string = "",
     type: string = "text",
     inputProps?: Record<string, number | string>,
   ) => {
+    // @ts-expect-error champs étendus pour l'onglet équipe
     const value = editProfile?.[name] ?? "";
     const error = errors[name as string];
 
@@ -450,8 +443,9 @@ const handleSave = async () => {
     return (
       <div className={styles.section}>
         <h2
-          className={`${styles.sectionTitleToggle} ${isOpen ? styles.sectionTitleToggleActive : ""
-            }`}
+          className={`${styles.sectionTitleToggle} ${
+            isOpen ? styles.sectionTitleToggleActive : ""
+          }`}
           onClick={() => toggleSection(sectionId)}
         >
           <div className={styles.sectionTitleLeft}>
@@ -459,15 +453,17 @@ const handleSave = async () => {
             {title}
           </div>
           <span
-            className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
-              }`}
+            className={`${styles.toggleIcon} ${
+              isOpen ? styles.toggleIconOpen : ""
+            }`}
           >
             <ChevronDown size={16} />
           </span>
         </h2>
         <div
-          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
-            }`}
+          className={`${styles.sectionContent} ${
+            isOpen ? styles.sectionContentOpen : ""
+          }`}
         >
           {children}
         </div>
@@ -486,7 +482,6 @@ const handleSave = async () => {
       case "fiche":
         return (
           <div className={styles.grid}>
-            {/* Colonne gauche : avatar + résumé + badge */}
             <aside className={styles.leftColumn}>
               <div className={styles.profileCard}>
                 <div className={styles.avatarWrapper}>
@@ -497,27 +492,27 @@ const handleSave = async () => {
                     existingOffsetX={editProfile.avatar_offset_x ?? 0}
                     existingOffsetY={editProfile.avatar_offset_y ?? 0}
                     existingRotation={editProfile.avatar_rotation ?? 0}
-                    isEditing={isEditing}  // 🔹 passer le mode édition
+                    isEditing={isEditing}
                     onChange={setAvatarFile}
                     onScaleChange={(scale) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_scale: scale } : prev
+                        prev ? { ...prev, avatar_scale: scale } : prev,
                       )
                     }
                     onOffsetChange={(offsetX, offsetY) =>
                       setEditProfile((prev) =>
                         prev
                           ? {
-                            ...prev,
-                            avatar_offset_x: offsetX,
-                            avatar_offset_y: offsetY,
-                          }
-                          : prev
+                              ...prev,
+                              avatar_offset_x: offsetX,
+                              avatar_offset_y: offsetY,
+                            }
+                          : prev,
                       )
                     }
                     onRotationChange={(rotation) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_rotation: rotation } : prev
+                        prev ? { ...prev, avatar_rotation: rotation } : prev,
                       )
                     }
                     onSave={handleSave}
@@ -526,28 +521,17 @@ const handleSave = async () => {
                       setEditProfile((prev) =>
                         prev
                           ? {
-                            ...prev,
-                            avatar_url: null,
-                            avatar_scale: 1,
-                            avatar_offset_x: 0,
-                            avatar_offset_y: 0,
-                            avatar_rotation: 0,
-                          }
-                          : prev
+                              ...prev,
+                              avatar_url: null,
+                              avatar_scale: 1,
+                              avatar_offset_x: 0,
+                              avatar_offset_y: 0,
+                              avatar_rotation: 0,
+                            }
+                          : prev,
                       );
                     }}
                   />
-
-
-                  {/* {isEditing && (
-                    <button
-                      type="button"
-                      className={styles.avatarEditButton}
-                      aria-label="Changer la photo de profil"
-                    >
-                      <Camera size={16} />
-                    </button>
-                  )} */}
                 </div>
 
                 <div className={styles.profileIdentity}>
@@ -565,7 +549,10 @@ const handleSave = async () => {
                     <p className={styles.profileStatLabel}>Note</p>
                     <p className={styles.profileStatValue}>
                       4.9
-                      <Star size={14} className={styles.profileStatIconStar} />
+                      <Star
+                        size={14}
+                        className={styles.profileStatIconStar}
+                      />
                     </p>
                   </div>
                   <div className={styles.profileStatItem}>
@@ -589,7 +576,7 @@ const handleSave = async () => {
                   )}
                 </div>
               </div>
-              {/* badge vérifié */}
+
               <div className={styles.badgeCard}>
                 <h4 className={styles.badgeTitle}>
                   <Shield size={16} />
@@ -621,7 +608,6 @@ const handleSave = async () => {
               </div>
             </aside>
 
-            {/* Colonne droite : infos détaillées */}
             <section className={styles.rightColumn}>
               {renderSection(
                 "Informations personnelles",
@@ -675,10 +661,10 @@ const handleSave = async () => {
                           setEditProfile((prev) =>
                             prev
                               ? {
-                                ...prev,
-                                experience_level:
-                                  value === "" ? null : value,
-                              }
+                                  ...prev,
+                                  experience_level:
+                                    value === "" ? null : value,
+                                }
                               : prev,
                           );
                         }}
@@ -855,40 +841,28 @@ const handleSave = async () => {
             )}
 
             {renderSection(
-              "Zone & disponibilité",
+              "Zone, disponibilités & règles de mission",
               <FiMapPinOutline />,
-              <>
-                {renderField(
-                  "Zone d’intervention principale",
-                  "service_area",
-                  false,
-                  false,
-                  "Paris et Île-de-France",
-                )}
-                {renderField(
-                  "Rayon d’intervention (km)",
-                  "service_radius_km",
-                  false,
-                  false,
-                  "30",
-                  "number",
-                )}
-                {renderField(
-                  "Heures de disponibilité",
-                  "availability_hours",
-                  false,
-                  false,
-                  "Lun–Ven 9h–18h",
-                )}
-                {renderField(
-                  "Service d’urgence 24h/7",
-                  "emergency_service",
-                  false,
-                  false,
-                  "",
-                  "checkbox",
-                )}
-              </>,
+              <MissionZoneAvailability
+                value={
+                  editProfile.mission_settings
+                    ? (JSON.parse(
+                        editProfile.mission_settings,
+                      ) as MissionAvailability)
+                    : null
+                }
+                isEditing={isEditing}
+                onChange={(data) =>
+                  setEditProfile((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          mission_settings: JSON.stringify(data),
+                        }
+                      : prev,
+                  )
+                }
+              />,
             )}
 
             {renderSection(
@@ -1094,7 +1068,6 @@ const handleSave = async () => {
 
   return (
     <div className={styles.page}>
-      {/* HEADER NAV */}
       <header className={styles.pageHeader}>
         <div className={styles.pageHeaderLeft}>
           <div className={styles.logo}>
@@ -1156,7 +1129,9 @@ const handleSave = async () => {
           </div>
         )}
         {errorMsg && (
-          <div className={`${styles.notification} ${styles.notificationError}`}>
+          <div
+            className={`${styles.notification} ${styles.notificationError}`}
+          >
             <AlertCircle size={18} />
             <span>{errorMsg}</span>
           </div>
@@ -1170,8 +1145,9 @@ const handleSave = async () => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`${styles.tab} ${isActive ? styles.tabActive : ""
-                  }`}
+                className={`${styles.tab} ${
+                  isActive ? styles.tabActive : ""
+                }`}
               >
                 <span className={styles.tabIcon}>
                   <Icon />
