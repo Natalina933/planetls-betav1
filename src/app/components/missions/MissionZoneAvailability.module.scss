@@ -1,0 +1,47 @@
+@use "sass:math";
+@use "sass:color";
+@use "../../styles/abstracts/variables" as *;
+@use "../../styles/abstracts/mixins" as *;
+
+/* =========================
+   RANGE SLIDER
+========================= */
+:global(input[type="range"]) {
+    appearance: none;
+    /* standard */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    width: 100%;
+    height: 8px;
+    border-radius: $radius-pill;
+    background: $gold-light;
+    outline: none;
+    transition: $transition;
+
+    &::-webkit-slider-thumb {
+        appearance: none;
+        /* standard */
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: $gold-main;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba($sepia-ink, 0.2);
+        transition: $transition;
+    }
+
+    &::-moz-range-thumb {
+        appearance: none;
+        /* standard */
+        -moz-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: $gold-main;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba($sepia-ink, 0.2);
+        transition: $transition;
+    }
+}
