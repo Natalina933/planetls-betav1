@@ -259,6 +259,7 @@ export type Database = {
           emergency_service?: boolean | null;
           certifications?: string | null;
           years_experience?: number | null;
+          experience_level?: string | null;
           iban?: string | null;
           bic?: string | null;
         };

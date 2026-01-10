@@ -3,7 +3,11 @@
 import React, { useState } from "react";
 import styles from "./AccessPopup.module.scss";
 
-interface FormData {
+// -----------------------------------------------------------------------------
+// TYPES
+// -----------------------------------------------------------------------------
+
+export interface FormData {
   firstName: string;
   lastName: string;
   email: string;
@@ -13,18 +17,30 @@ interface FormData {
 
 interface AccessPopupProps {
   selectedOptions: string[];
+  recap: {
+    category: string;
+    searchTarget: string;
+    location: string;
+    experienceLevel: string;
+    yearsExperience: string;
+  };
+  onBack: () => void;
   onClose: () => void;
-  onBack?: () => void;
-  onValidate?: (formData: FormData) => void;
+  onValidate: (data: FormData) => void;
 }
+
+// -----------------------------------------------------------------------------
+// COMPONENT
+// -----------------------------------------------------------------------------
 
 export default function AccessPopup({
   selectedOptions,
-  onClose,
+  recap,
   onBack,
+  onClose,
   onValidate,
 }: AccessPopupProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -32,51 +48,78 @@ export default function AccessPopup({
     additionalInfo: "",
   });
 
+  // ---------------------------------------------------------------------------
+  // HANDLERS
+  // ---------------------------------------------------------------------------
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleProceed = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-    // Validation basique
     if (!form.firstName || !form.lastName || !form.email) {
       alert("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
-    if (onValidate) {
-      onValidate(form);
-    }
+    onValidate(form);
   };
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      onClose();
-    }
-  };
+  // ---------------------------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------------------------
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={styles.popup}>
         <button
           className={styles.close}
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label="Fermer la fenêtre"
+          type="button"
         >
           ✕
         </button>
 
-        <h2>Accès aux annonces pour :</h2>
-        <p className={styles.highlight}>{selectedOptions.join(" — ")}</p>
+        <h2>Accès aux annonces</h2>
 
-        <form className={styles.form} onSubmit={handleProceed}>
+        {/* ------------------------------------------------------------------ */}
+        {/* RÉCAP */}
+        {/* ------------------------------------------------------------------ */}
+        <section className={styles.recapBox}>
+          <h3>🧾 Récapitulatif</h3>
+
+          <ul>
+            <li>
+              <strong>Catégorie :</strong> {recap.category}
+            </li>
+            <li>
+              <strong>Recherche :</strong> {recap.searchTarget}
+            </li>
+            <li>
+              <strong>Localisation :</strong> {recap.location}
+            </li>
+            <li>
+              <strong>Expérience :</strong>{" "}
+              {recap.yearsExperience} – {recap.experienceLevel}
+            </li>
+            <li>
+              <strong>Options :</strong> {selectedOptions.join(" — ")}
+            </li>
+          </ul>
+        </section>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* FORMULAIRE */}
+        {/* ------------------------------------------------------------------ */}
+        <form className={styles.form} onSubmit={handleSubmit}>
           <label>
-            Prénom
+            Prénom *
             <input
               name="firstName"
               value={form.firstName}
@@ -84,8 +127,9 @@ export default function AccessPopup({
               required
             />
           </label>
+
           <label>
-            Nom
+            Nom *
             <input
               name="lastName"
               value={form.lastName}
@@ -93,8 +137,9 @@ export default function AccessPopup({
               required
             />
           </label>
+
           <label>
-            Email
+            Email *
             <input
               name="email"
               type="email"
@@ -103,10 +148,16 @@ export default function AccessPopup({
               required
             />
           </label>
+
           <label>
             Téléphone
-            <input name="phone" value={form.phone} onChange={handleChange} />
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+            />
           </label>
+
           <label>
             Votre besoin
             <textarea
@@ -117,11 +168,15 @@ export default function AccessPopup({
           </label>
 
           <div className={styles.actions}>
-            <button className={styles.closeButton} type="button" onClick={handleBack}>
-              Retour
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={onBack}
+            >
+              ← Retour
             </button>
 
-            <button type="submit" onClick={handleProceed}>
+            <button type="submit" className={styles.primaryButton}>
               Continuer
             </button>
           </div>

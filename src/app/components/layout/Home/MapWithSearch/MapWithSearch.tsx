@@ -9,15 +9,22 @@ import React, {
   JSX,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaSearch, FaTimes } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
+
 import iconMap from "../../../../lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
 import "react-toastify/dist/ReactToastify.css";
 
 import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
 import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
-import ExperiencePopup from "@/app/components/popups/ExperiencePopup/ExperiencePopup";
+import ExperiencePopup, {
+  ExperienceLevel,
+} from "@/app/components/popups/ExperiencePopup/ExperiencePopup";
+
+// -----------------------------------------------------------------------------
+// TYPES
+// -----------------------------------------------------------------------------
 
 type CategoryKey = "proprietaire" | "concierge" | "artisan";
 
@@ -31,6 +38,18 @@ interface MapWithSearchProps {
   onClose: () => void;
 }
 
+interface AccessFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  additionalInfo: string;
+}
+
+// -----------------------------------------------------------------------------
+// CONSTANTS
+// -----------------------------------------------------------------------------
+
 const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
     <>
@@ -40,7 +59,9 @@ const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   ),
   concierge: (
     <>
-      <span className={styles.highlightGold}>Accédez directement aux propriétaires</span>{" "}
+      <span className={styles.highlightGold}>
+        Accédez directement aux propriétaires
+      </span>{" "}
       qui recherchent une conciergerie fiable.
     </>
   ),
@@ -64,11 +85,18 @@ const SEARCH_TARGETS: Record<CategoryKey, string> = {
   artisan: "proprietaire",
 };
 
+// -----------------------------------------------------------------------------
+// COMPONENT
+// -----------------------------------------------------------------------------
+
 export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const pathname = usePathname();
   const router = useRouter();
-
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // STATE
+  // ---------------------------------------------------------------------------
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | "">("");
@@ -79,26 +107,27 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   );
 
   const [showExperiencePopup, setShowExperiencePopup] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<
-    "debutant" | "intermediaire" | "experimente" | ""
-  >("");
-  const [yearsOfExperience, setYearsOfExperience] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | "">(
+    ""
+  );
+  const [yearsExperience, setYearsExperience] = useState("");
 
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  // --- ACCESSIBILITÉ : fermeture via Escape ---
+  // ---------------------------------------------------------------------------
+  // ACCESSIBILITÉ
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  // --- ACCESSIBILITÉ : focus trap ---
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -107,34 +136,33 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
 
-    if (focusable.length > 0) {
-      focusable[0].focus();
-    }
+    focusable[0]?.focus();
   }, []);
 
-  // Fermer automatiquement si on arrive sur /complete-registration
   useEffect(() => {
     if (pathname === "/complete-registration") onClose();
   }, [pathname, onClose]);
 
-  // Charger les catégories
+  // ---------------------------------------------------------------------------
+  // DATA
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     const fetchCategories = async () => {
       setStatus("loading");
       try {
         const res = await fetch("/api/categories/groups");
-        if (!res.ok) throw new Error(`API Error: ${res.status}`);
+        if (!res.ok) throw new Error();
 
         const data: Category[] = await res.json();
-        const firstCategoryKey = CATEGORY_ORDER.find((key) =>
+        const first = CATEGORY_ORDER.find((key) =>
           data.some((c) => c.key === key)
         );
 
-        setSelectedCategory(firstCategoryKey || data[0]?.key || "");
         setCategories(data);
+        setSelectedCategory(first || data[0]?.key || "");
         setStatus("success");
-      } catch (error) {
-        console.error(error);
+      } catch {
         toast.error("Impossible de charger les filtres 😢");
         setStatus("error");
       }
@@ -143,16 +171,18 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     fetchCategories();
   }, []);
 
-  // Mettre à jour la cible recherchée
   useEffect(() => {
     if (selectedCategory) {
-      setSearchTarget(SEARCH_TARGETS[selectedCategory as CategoryKey] || "");
+      setSearchTarget(SEARCH_TARGETS[selectedCategory]);
     }
   }, [selectedCategory]);
 
-  // Étape 1 : validation localisation + catégorie → ExperiencePopup
+  // ---------------------------------------------------------------------------
+  // FLOW
+  // ---------------------------------------------------------------------------
+
   const handleSearch = useCallback(
-    (e?: React.FormEvent<HTMLFormElement>) => {
+    (e?: React.FormEvent) => {
       e?.preventDefault();
 
       if (!location.trim()) {
@@ -170,119 +200,109 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     [location, selectedCategory]
   );
 
-  // Étape 2 : sélection niveau d'expérience → CategoryPopup
   const handleExperienceSelect = useCallback(
-    (level: "debutant" | "intermediaire" | "experimente", years: string) => {
+    (level: ExperienceLevel, years: string) => {
       setExperienceLevel(level);
-      setYearsOfExperience(years);
+      setYearsExperience(years);
       setShowExperiencePopup(false);
       setShowCategoryPopup(true);
     },
     []
   );
 
-  // Étape 3 : sélection des options → AccessPopup
   const handleOptionSelect = useCallback((options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
     setShowAccessPopup(true);
   }, []);
 
-  // NOUVEAU : Retour de AccessPopup vers CategoryPopup
   const handleBackToCategoryPopup = useCallback(() => {
     setShowAccessPopup(false);
     setShowCategoryPopup(true);
   }, []);
-type AccessFormData = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  additionalInfo: string;
-};
-  // Étape 4 : validation finale → redirection
-const handleAccessValidate = useCallback(
-  (formData: AccessFormData) => {
-    const params = new URLSearchParams({
-      // 🔹 Coordonnées utilisateur
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      additionalInfo: formData.additionalInfo,
 
-      // 🔹 Données métier déjà existantes
-      category: selectedCategory,
+  const handleAccessValidate = useCallback(
+    (formData: AccessFormData) => {
+      const params = new URLSearchParams({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        additionalInfo: formData.additionalInfo,
+
+        category: selectedCategory,
+        searchTarget,
+        option: selectedOptions.join(","),
+        location,
+        experienceLevel,
+        yearsExperience,
+      }).toString();
+
+      router.push(`/complete-registration?${params}`);
+      onClose();
+    },
+    [
+      selectedCategory,
       searchTarget,
-      option: selectedOptions.join(","),
+      selectedOptions,
       location,
-      experience_level: experienceLevel,
-      years_of_experience: yearsOfExperience,
-    }).toString();
+      experienceLevel,
+      yearsExperience,
+      router,
+      onClose,
+    ]
+  );
 
-    router.push(`/complete-registration?${params}`);
-    onClose();
-  },
-  [
-    selectedCategory,
-    searchTarget,
-    selectedOptions,
-    location,
-    experienceLevel,
-    yearsOfExperience,
-    router,
-    onClose,
-  ]
-);
+  // ---------------------------------------------------------------------------
+  // MEMO
+  // ---------------------------------------------------------------------------
 
-
-  // Liste des catégories optimisée
   const orderedCategories = useMemo(() => {
     const map = Object.fromEntries(categories.map((c) => [c.key, c]));
     return CATEGORY_ORDER.filter((key) => map[key]).map((key) => map[key]);
   }, [categories]);
 
+  // ---------------------------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------------------------
+
   return (
     <>
-      {/* --- POPUP PRINCIPALE --- */}
       {!showExperiencePopup && !showCategoryPopup && !showAccessPopup && (
         <div
           ref={containerRef}
           className={`dark ${styles.mapWithSearchContainer} ${styles.fadeIn}`}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="search-title"
         >
-          <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
+          <ToastContainer position="top-right" autoClose={4000} />
 
           <button
             className={styles.closeButton}
             onClick={onClose}
-            aria-label="Fermer la recherche"
+            aria-label="Fermer"
           >
             <FaTimes />
           </button>
 
           <section className={styles.categorySearchSection}>
-            <h2 id="search-title">Inscrivez-vous et connectez-vous aux bons partenaires</h2>
+            <h2>Inscrivez-vous et connectez-vous aux bons partenaires</h2>
 
             <div className={styles.tripleToggleGroup}>
               {orderedCategories.map(({ key, label, icon }) => {
                 const Icon = iconMap[icon];
-                const isActive = selectedCategory === key;
+                const active = selectedCategory === key;
 
                 return (
                   <button
                     key={key}
                     type="button"
-                    aria-pressed={isActive}
-                    className={`${styles.tripleToggleButton} ${
-                      isActive ? styles.active : ""
-                    }`}
+                    aria-pressed={active}
+                    className={`${styles.tripleToggleButton} ${active ? styles.active : ""
+                      }`}
                     onClick={() => setSelectedCategory(key)}
                   >
-                    {Icon && <Icon size="1.3em" style={{ marginRight: 6 }} />}
-                    {label}
+                    {Icon && <Icon size="1.3em" />} {label}
                   </button>
                 );
               })}
@@ -290,7 +310,7 @@ const handleAccessValidate = useCallback(
 
             {status === "success" && selectedCategory && (
               <div className={`${styles.categoryTextBubble1900} ${styles.fadeIn}`}>
-                {DESCRIPTIONS[selectedCategory as CategoryKey]}
+                {DESCRIPTIONS[selectedCategory]}
               </div>
             )}
 
@@ -298,25 +318,29 @@ const handleAccessValidate = useCallback(
               <input
                 type="search"
                 placeholder="Où recherchez-vous ?"
-                aria-label="Saisir une localisation"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
               />
-              <button type="submit" aria-label="Rechercher">
-                <FaSearch />
+              <button
+                className={styles.closeButton}
+                onClick={onClose}
+                aria-label="Fermer la fenêtre de recherche"
+              >
+                <FaTimes />
               </button>
+
             </form>
           </section>
         </div>
       )}
 
-      {/* --- POPUPS SECONDAIRES --- */}
       {showExperiencePopup && (
         <ExperiencePopup
           onClose={() => setShowExperiencePopup(false)}
-          onNext={handleExperienceSelect}
+          onValidate={handleExperienceSelect}
         />
+
       )}
 
       {showCategoryPopup && selectedCategory && (
@@ -330,13 +354,21 @@ const handleAccessValidate = useCallback(
       {showAccessPopup && (
         <AccessPopup
           selectedOptions={selectedOptions}
+          recap={{
+            category: selectedCategory,
+            searchTarget,
+            location,
+            experienceLevel,
+            yearsExperience,
+          }}
+          onBack={handleBackToCategoryPopup}
           onClose={() => {
             setShowAccessPopup(false);
             onClose();
           }}
-          onBack={handleBackToCategoryPopup}
           onValidate={handleAccessValidate}
         />
+
       )}
     </>
   );
