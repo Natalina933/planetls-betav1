@@ -1,32 +1,17 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  ChangeEvent,
-  FormEvent,
-} from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import {
-  FaEye,
-  FaEyeSlash,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaEdit,
-  // FaSave,
-} from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaEdit } from "react-icons/fa";
 
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
-import ExperiencePopup, {
-  ExperienceLevel,
-} from "../components/popups/ExperiencePopup/ExperiencePopup";
+import ExperiencePopup, { ExperienceLevel } from "../components/popups/ExperiencePopup/ExperiencePopup";
 
 import styles from "./CompleteRegistrationPage.module.scss";
 
 const DEFAULT_AVATAR_URL = "/icons/account-svgrepo-com.svg";
-
 
 // ============================================================================
 // TYPES
@@ -75,6 +60,7 @@ const validatePassword = (password: string): string => {
 export default function CompleteRegistrationPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const isInitialized = useRef(false);
 
   // --------------------------------------------------------------------------
   // STATE
@@ -85,13 +71,11 @@ export default function CompleteRegistrationPage() {
     searchTarget: "",
     option: "",
     location: "",
-
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     additionalInfo: "",
-
     experienceLevel: "",
     yearsExperience: "",
   });
@@ -114,58 +98,47 @@ export default function CompleteRegistrationPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
 
+
   // --------------------------------------------------------------------------
-  // INIT FROM URL
+  // INIT FROM URL (une seule fois)
   // --------------------------------------------------------------------------
 
   useEffect(() => {
-    setProfile({
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
+    setProfile((prev) => ({
+      ...prev,
       category: searchParams.get("category") ?? "",
       searchTarget: searchParams.get("searchTarget") ?? "",
       option: searchParams.get("option") ?? "",
       location: searchParams.get("location") ?? "",
-
       firstName: searchParams.get("firstName") ?? "",
       lastName: searchParams.get("lastName") ?? "",
       email: searchParams.get("email") ?? "",
       phone: searchParams.get("phone") ?? "",
       additionalInfo: searchParams.get("additionalInfo") ?? "",
-
-      experienceLevel:
-        (searchParams.get("experienceLevel") as ExperienceLevel) ?? "",
-      yearsExperience: searchParams.get("yearsExperience") ?? "",
-    });
+      experienceLevel: (searchParams.get("experienceLevel") as ExperienceLevel) || "",
+      yearsExperience: searchParams.get("yearsExperience") || "",
+    }));
   }, [searchParams]);
 
   // --------------------------------------------------------------------------
-  // HANDLERS
+  // FORM HANDLERS
   // --------------------------------------------------------------------------
-
-  // const handleProfileChange = (
-  //   e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  // ) => {
-  //   const { name, value } = e.target;
-  //   setProfile((prev) => ({ ...prev, [name]: value }));
-  // };
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 
     if (name === "password") {
-      setErrors((prev) => ({
-        ...prev,
-        password: validatePassword(value),
-      }));
+      setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
     }
 
     if (name === "confirmPassword") {
       setErrors((prev) => ({
         ...prev,
-        confirmPassword:
-          value !== form.password
-            ? "Les mots de passe ne correspondent pas"
-            : "",
+        confirmPassword: value !== form.password ? "Les mots de passe ne correspondent pas" : "",
       }));
     }
   };
@@ -174,30 +147,25 @@ export default function CompleteRegistrationPage() {
   // EXPERIENCE POPUP
   // --------------------------------------------------------------------------
 
-  const handleExperienceValidate = async (
-    level: ExperienceLevel,
-    years: string
-  ) => {
+  const handleExperienceValidate = async (level: ExperienceLevel, years: string) => {
     setProfile((prev) => ({
       ...prev,
       experienceLevel: level,
       yearsExperience: years,
     }));
 
+    // Update API (optionnel)
     await fetch("/api/profiles", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        experience_level: level,
-        years_experience: years,
-      }),
+      body: JSON.stringify({ experience_level: level, years_experience: years }),
     });
 
     setShowExperiencePopup(false);
   };
 
   // --------------------------------------------------------------------------
-  // AVATAR
+  // AVATAR HANDLER
   // --------------------------------------------------------------------------
 
   const handleAvatarChange = async (file: File | null) => {
@@ -209,15 +177,10 @@ export default function CompleteRegistrationPage() {
     const fd = new FormData();
     fd.append("file", file);
 
-    const res = await fetch("/api/profiles/avatar", {
-      method: "POST",
-      body: fd,
-    });
-
+    const res = await fetch("/api/profiles/avatar", { method: "POST", body: fd });
     const data = await res.json();
-    if (data?.url) {
-      setUploadedAvatarUrl(data.url);
-    }
+
+    if (data?.url) setUploadedAvatarUrl(data.url);
   };
 
   // --------------------------------------------------------------------------
@@ -243,18 +206,15 @@ export default function CompleteRegistrationPage() {
         username: form.username,
         password: form.password,
         avatar_url: uploadedAvatarUrl,
-
-        first_name: profile.firstName,
-        last_name: profile.lastName,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
         email: profile.email,
         phone: profile.phone,
         additional_info: profile.additionalInfo,
-
         category: profile.category,
         search_target: profile.searchTarget,
         option: profile.option,
         location: profile.location,
-
         experience_level: profile.experienceLevel,
         years_experience: profile.yearsExperience,
       }),
@@ -269,13 +229,10 @@ export default function CompleteRegistrationPage() {
 
     setShowConfetti(true);
 
-    await signIn("credentials", {
-      email: profile.email,
-      password: form.password,
-      redirect: false,
-    });
+    await signIn("credentials", { email: profile.email, password: form.password, redirect: false });
 
     router.replace("/dashboard/owner");
+
   };
 
   // --------------------------------------------------------------------------
@@ -287,55 +244,47 @@ export default function CompleteRegistrationPage() {
       {showConfetti && <Confetti />}
 
       <h1 className={styles.title}>Dernière étape avant de commencer</h1>
-{/* RÉCAP */}
-<section className={styles.recapSection}>
-  <h2>🧾 Récapitulatif de votre demande</h2>
 
-  <div className={styles.recapGrid}>
-    <div>
-      <strong>Catégorie</strong>
-      <p>{profile.category || "—"}</p>
-    </div>
+      {/* RÉCAP */}
+      <section className={styles.recapSection}>
+        <h2>🧾 Récapitulatif de votre demande</h2>
+        <div className={styles.recapGrid}>
+          <div>
+            <strong>Catégorie</strong>
+            <p>{profile.category || "—"}</p>
+          </div>
+          <div>
+            <strong>Recherche</strong>
+            <p>{profile.searchTarget || "—"}</p>
+          </div>
+          <div>
+            <strong>Option</strong>
+            <p>{profile.option || "—"}</p>
+          </div>
+          <div>
+            <strong>Localisation</strong>
+            <p>{profile.location || "—"}</p>
+          </div>
+          <div>
+            <strong>Nom</strong>
+            <p>{profile.firstName} {profile.lastName}</p>
+          </div>
+          <div>
+            <strong>Email</strong>
+            <p>{profile.email}</p>
+          </div>
+          <div>
+            <strong>Expérience</strong>
+            <p>
+              {profile.experienceLevel
+                ? `${profile.yearsExperience} — ${profile.experienceLevel}`
+                : "Non renseignée"}
+            </p>
+          </div>
+        </div>
+      </section>
 
-    <div>
-      <strong>Recherche</strong>
-      <p>{profile.searchTarget || "—"}</p>
-    </div>
-
-    <div>
-      <strong>Option</strong>
-      <p>{profile.option || "—"}</p>
-    </div>
-
-    <div>
-      <strong>Localisation</strong>
-      <p>{profile.location || "—"}</p>
-    </div>
-
-    <div>
-      <strong>Nom</strong>
-      <p>
-        {profile.firstName} {profile.lastName}
-      </p>
-    </div>
-
-    <div>
-      <strong>Email</strong>
-      <p>{profile.email}</p>
-    </div>
-
-    <div>
-      <strong>Expérience</strong>
-      <p>
-        {profile.experienceLevel
-          ? `${profile.yearsExperience} — ${profile.experienceLevel}`
-          : "Non renseignée"}
-      </p>
-    </div>
-  </div>
-</section>
-
-      {/* PROFIL */}
+      {/* PROFIL PRO */}
       <section className={styles.section}>
         <h2>👤 Profil professionnel</h2>
 
@@ -345,23 +294,16 @@ export default function CompleteRegistrationPage() {
 
         <div className={styles.experienceBlock}>
           <strong>Expérience</strong>
-
           {profile.experienceLevel ? (
             <p>
               {profile.yearsExperience} —{" "}
-              <span className={styles.experienceBadge}>
-                {profile.experienceLevel}
-              </span>
+              <span className={styles.experienceBadge}>{profile.experienceLevel}</span>
             </p>
           ) : (
             <p>Aucune expérience renseignée</p>
           )}
 
-          <button
-            type="button"
-            className={styles.editButton}
-            onClick={() => setShowExperiencePopup(true)}
-          >
+          <button type="button" className={styles.editButton} onClick={() => setShowExperiencePopup(true)}>
             <FaEdit /> Modifier mon expérience
           </button>
         </div>
@@ -372,17 +314,13 @@ export default function CompleteRegistrationPage() {
         <h3>📷 Photo de profil</h3>
         <AvatarUpload
           value={avatarFile}
-          existingUrl={
-            uploadedAvatarUrl ??
-            avatarPreview ??
-            DEFAULT_AVATAR_URL
-          }
+          existingUrl={uploadedAvatarUrl ?? avatarPreview ?? DEFAULT_AVATAR_URL}
           isEditing
           onChange={handleAvatarChange}
         />
       </section>
 
-      {/* FORM */}
+      {/* FORMULAIRE COMPTE */}
       <form onSubmit={handleSubmit} className={styles.form}>
         <h2>🔐 Création du compte</h2>
 
@@ -403,15 +341,13 @@ export default function CompleteRegistrationPage() {
             onChange={handleFormChange}
             required
           />
-          <button type="button" onClick={() => setShowPassword(v => !v)}>
+          <button type="button" onClick={() => setShowPassword((v) => !v)}>
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
 
         {errors.password && (
-          <small className={styles.errorMsg}>
-            <FaTimesCircle /> {errors.password}
-          </small>
+          <small className={styles.errorMsg}><FaTimesCircle /> {errors.password}</small>
         )}
 
         <div className={styles.passwordWrapper}>
@@ -423,35 +359,25 @@ export default function CompleteRegistrationPage() {
             onChange={handleFormChange}
             required
           />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(v => !v)}
-          >
+          <button type="button" onClick={() => setShowConfirmPassword((v) => !v)}>
             {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
 
-        {!errors.confirmPassword && form.confirmPassword && (
-          <small className={styles.successMsg}>
-            <FaCheckCircle /> Les mots de passe correspondent
-          </small>
+        {form.confirmPassword && !errors.confirmPassword && (
+          <small className={styles.successMsg}><FaCheckCircle /> Les mots de passe correspondent</small>
         )}
 
         {errors.confirmPassword && (
-          <small className={styles.errorMsg}>
-            <FaTimesCircle /> {errors.confirmPassword}
-          </small>
+          <small className={styles.errorMsg}><FaTimesCircle /> {errors.confirmPassword}</small>
         )}
 
-        <button
-          type="submit"
-          disabled={!canSubmit || loading}
-          className={styles.submitButton}
-        >
+        <button type="submit" disabled={!canSubmit || loading} className={styles.submitButton}>
           {loading ? "Inscription..." : "Finaliser mon inscription"}
         </button>
       </form>
 
+      {/* POPUP EXPERIENCE */}
       {showExperiencePopup && (
         <ExperiencePopup
           onClose={() => setShowExperiencePopup(false)}

@@ -9,7 +9,7 @@ import React, {
   JSX,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 
 import iconMap from "../../../../lib/iconMap";
@@ -107,9 +107,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   );
 
   const [showExperiencePopup, setShowExperiencePopup] = useState(false);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | "">(
-    ""
-  );
+
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | "">("");
   const [yearsExperience, setYearsExperience] = useState("");
 
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
@@ -229,7 +228,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         email: formData.email,
         phone: formData.phone,
         additionalInfo: formData.additionalInfo,
-
         category: selectedCategory,
         searchTarget,
         option: selectedOptions.join(","),
@@ -321,16 +319,29 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
+                aria-label="Localisation"
               />
+
+              {/* Bouton RECHERCHE */}
               <button
+                type="submit"
+                className={styles.searchButton}
+                aria-label="Lancer la recherche"
+              >
+                <FaSearch />
+              </button>
+
+              {/* Bouton FERMER */}
+              <button
+                type="button"
                 className={styles.closeButton}
                 onClick={onClose}
-                aria-label="Fermer la fenêtre de recherche"
+                aria-label="Fermer la fenêtre"
               >
                 <FaTimes />
               </button>
-
             </form>
+
           </section>
         </div>
       )}
