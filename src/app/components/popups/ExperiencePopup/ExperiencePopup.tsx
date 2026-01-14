@@ -1,3 +1,4 @@
+// components/popups/ExperiencePopup/ExperiencePopup.tsx
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -10,7 +11,12 @@ interface ExperiencePopupProps {
   onValidate: (level: ExperienceLevel, years: string) => void;
 }
 
-const EXPERIENCE_LEVELS = [
+const EXPERIENCE_LEVELS: {
+  label: string;
+  value: ExperienceLevel;
+  years: string;
+  description: string;
+}[] = [
   {
     label: "Débutant",
     value: "debutant",
@@ -29,15 +35,13 @@ const EXPERIENCE_LEVELS = [
     years: "+3 ans",
     description: "J’ai une expérience solide et régulière.",
   },
-] as const;
+];
 
-export default function ExperiencePopup({
-  onClose,
-  onValidate,
-}: ExperiencePopupProps) {
+export default function ExperiencePopup({ onClose, onValidate }: ExperiencePopupProps) {
   const [selected, setSelected] = useState<ExperienceLevel | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
+  // Bloquer le scroll arrière-plan
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -45,6 +49,7 @@ export default function ExperiencePopup({
     };
   }, []);
 
+  // Fermer en cliquant en dehors
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
@@ -56,18 +61,20 @@ export default function ExperiencePopup({
 
   useEffect(() => {
     document.addEventListener("mousedown", handleOutsideClick);
-    return () =>
+    return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
+    };
   }, [handleOutsideClick]);
 
   const handleValidate = () => {
     if (!selected) return;
-    const level = EXPERIENCE_LEVELS.find((l) => l.value === selected)!;
+    const level = EXPERIENCE_LEVELS.find((l) => l.value === selected);
+    if (!level) return;
     onValidate(level.value, level.years);
   };
 
   return (
-    <div className={styles.popupOverlay} role="dialog" aria-modal>
+    <div className={styles.popupOverlay} role="dialog" aria-modal="true">
       <div className={styles.popupContent} ref={popupRef}>
         <h3>Quel est votre niveau d’expérience ?</h3>
 
@@ -88,8 +95,10 @@ export default function ExperiencePopup({
         </ul>
 
         <div className={styles.actions}>
-          <button onClick={onClose}>Annuler</button>
-          <button onClick={handleValidate} disabled={!selected}>
+          <button type="button" onClick={onClose}>
+            Annuler
+          </button>
+          <button type="button" onClick={handleValidate} disabled={!selected}>
             Valider
           </button>
         </div>

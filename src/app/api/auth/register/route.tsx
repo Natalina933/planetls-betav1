@@ -1,17 +1,19 @@
+// src/app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { categoryToRole } from "@/app/utils/roles";
 
-/* -----------------------------
- * 🔹 UTILITAIRES
- * ----------------------------- */
 const sanitize = (str?: string | null) =>
   str ? str.replace(/[<>]/g, "").trim().substring(0, 1000) : null;
+const mapYearsToInt = (years?: string | null): number | null => {
+  if (!years) return null;
+  if (years.startsWith("0-1")) return 1;
+  if (years.startsWith("1-3")) return 3;
+  if (years.startsWith("+3")) return 4; // ou 10, comme tu veux
+  return null;
+};
 
-/* -----------------------------
- * 🔹 SCHEMA ZOD
- * ----------------------------- */
 const registerSchema = z.object({
   username: z.string().min(3).max(30),
   password: z.string().min(8),
@@ -29,9 +31,6 @@ const registerSchema = z.object({
   yearsExperience: z.string().optional().nullable(),
 });
 
-/* -----------------------------
- * 🔹 HANDLER
- * ----------------------------- */
 export async function POST(req: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -45,52 +44,71 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: "Données invalides",
-          details: parseResult.error.issues.map(i => ({
+          details: parseResult.error.issues.map((i) => ({
             field: i.path.join("."),
             message: i.message,
           })),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const data = parseResult.data;
     const role = categoryToRole(data.category || "");
 
-    // Vérifier username/email existants
+    // Debug éventuel
+    console.log("🧪 experienceLevel / yearsExperience:", data.experienceLevel, data.yearsExperience);
+
+    // Vérifier username existant
     const { data: existingUsername } = await supabase
       .from("profiles")
       .select("username")
       .eq("username", data.username)
       .maybeSingle();
-    if (existingUsername) return NextResponse.json({ error: "Nom d'utilisateur déjà pris" }, { status: 409 });
 
-    const { data: usersList, error: usersError } = await supabase.auth.admin.listUsers();
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: "Nom d'utilisateur déjà pris" },
+        { status: 409 },
+      );
+    }
+
+    // Vérifier email existant
+    const { data: usersList, error: usersError } =
+      await supabase.auth.admin.listUsers();
     if (usersError) throw usersError;
-    if (usersList?.users?.some(u => u.email === data.email))
-      return NextResponse.json({ error: "Email déjà utilisé" }, { status: 409 });
 
-    // Création compte Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: {
-        username: data.username,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        phone: data.phone,
-        category: data.category,
-        search_target: data.searchTarget,
-        option: data.option,
-        location: data.location,
-        additional_info: data.additionalInfo,
-        experience_level: data.experienceLevel,
-        years_experience: data.yearsExperience,
-        role,
-      },
-    });
+    if (usersList?.users?.some((u) => u.email === data.email)) {
+      return NextResponse.json(
+        { error: "Email déjà utilisé" },
+        { status: 409 },
+      );
+    }
+
+    // Création utilisateur Auth
+    const { data: authData, error: authError } =
+      await supabase.auth.admin.createUser({
+        email: data.email,
+        password: data.password,
+        email_confirm: true,
+        user_metadata: {
+          username: data.username,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone,
+          category: data.category,
+          search_target: data.searchTarget,
+          option: data.option,
+          location: data.location,
+          additional_info: data.additionalInfo,
+          experience_level: data.experienceLevel,
+          years_experience: mapYearsToInt(data.yearsExperience),
+          role,
+        },
+      });
+
     if (authError) throw authError;
+
     const userId = authData.user?.id;
     if (!userId) throw new Error("Utilisateur introuvable");
 
@@ -113,22 +131,25 @@ export async function POST(req: NextRequest) {
           location: sanitize(data.location),
           additional_info: sanitize(data.additionalInfo),
           experience_level: sanitize(data.experienceLevel),
-          years_experience: sanitize(data.yearsExperience),
+          years_experience: mapYearsToInt(data.yearsExperience),
           created_at: new Date().toISOString(),
         },
       ]);
 
     if (profileError) {
-      await supabase.auth.admin.deleteUser(userId).catch(() => {});
+      await supabase.auth.admin.deleteUser(userId).catch(() => { });
       throw profileError;
     }
 
     return NextResponse.json(
       { success: true, user: { id: userId, ...data, role } },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (err) {
     console.error("[REGISTER]", err);
-    return NextResponse.json({ error: "Erreur serveur", details: String(err) }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erreur serveur", details: String(err) },
+      { status: 500 },
+    );
   }
 }

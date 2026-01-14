@@ -147,20 +147,13 @@ export default function CompleteRegistrationPage() {
   // EXPERIENCE POPUP
   // --------------------------------------------------------------------------
 
-  const handleExperienceValidate = async (level: ExperienceLevel, years: string) => {
+  // Popup expérience
+  const handleExperienceValidate = (level: ExperienceLevel, years: string) => {
     setProfile((prev) => ({
       ...prev,
       experienceLevel: level,
       yearsExperience: years,
     }));
-
-    // Update API (optionnel)
-    await fetch("/api/profiles", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ experience_level: level, years_experience: years }),
-    });
-
     setShowExperiencePopup(false);
   };
 
@@ -215,8 +208,8 @@ export default function CompleteRegistrationPage() {
         search_target: profile.searchTarget,
         option: profile.option,
         location: profile.location,
-        experience_level: profile.experienceLevel,
-        years_experience: profile.yearsExperience,
+        experienceLevel: profile.experienceLevel,
+        yearsExperience: profile.yearsExperience,
       }),
     });
 

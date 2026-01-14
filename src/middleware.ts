@@ -1,7 +1,7 @@
 // src/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { categoryToRole } from "@/app/utils/roles";
+// import { categoryToRole } from "@/app/utils/roles";
 
 // Mapping interne rôle → dossier Next.js
 const ROLE_FOLDER_MAP: Record<string, string> = {
@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 🔓 Autoriser les chemins publics
-  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
@@ -33,16 +33,17 @@ export async function middleware(req: NextRequest) {
   }
 
   // 🎭 Normalisation du rôle
-  const normalizedRole = categoryToRole(token.role as string | null);
-  if (!normalizedRole) {
-    console.error("[MIDDLEWARE] Rôle inconnu :", token.role);
+  // 🎭 Rôle déjà normalisé dans le token
+  const tokenRole = (token.role as string | undefined)?.toLowerCase();
+  if (!tokenRole) {
+    console.error("[MIDDLEWARE] Rôle absent dans le token");
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // 📂 Mapping vers le dossier cible
-  const targetFolder = ROLE_FOLDER_MAP[normalizedRole];
+  const targetFolder = ROLE_FOLDER_MAP[tokenRole];
   if (!targetFolder) {
-    console.error("[MIDDLEWARE] Rôle non mappé :", normalizedRole);
+    console.error("[MIDDLEWARE] Rôle non mappé :", tokenRole);
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -51,7 +52,9 @@ export async function middleware(req: NextRequest) {
     console.log(
       `[MIDDLEWARE] Redirection de ${token.role} → /dashboard/${targetFolder}`
     );
-    return NextResponse.redirect(new URL(`/dashboard/${targetFolder}`, req.url));
+    return NextResponse.redirect(
+      new URL(`/dashboard/${targetFolder}`, req.url)
+    );
   }
 
   // ✅ Autoriser la requête
