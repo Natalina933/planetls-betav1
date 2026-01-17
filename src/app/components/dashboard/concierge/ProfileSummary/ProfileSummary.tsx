@@ -8,7 +8,6 @@ import {
 } from "react-icons/fi";
 
 import ProfileKeyFacts from "@/app/components/ui/ProfileKeyFacts/ProfileKeyFacts";
-import ProfileExperienceBadge from "@/app/components/ui/ProfileExperienceBadge/ProfileExperienceBadge";
 
 import styles from "./ProfileSummary.module.scss";
 
@@ -102,21 +101,21 @@ const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile, onEdit }) => {
   const completionStatus =
     completionPercentage === 100
       ? {
-          color: "#10B981",
-          bgColor: "#D1FAE5",
-          icon: <FiCheckCircle />,
-          title: "Profil complet",
-          message: "Votre profil est visible et attractif pour les clients",
-        }
+        color: "#10B981",
+        bgColor: "#D1FAE5",
+        icon: <FiCheckCircle />,
+        title: "Profil complet",
+        message: "Votre profil est visible et attractif pour les clients",
+      }
       : completionPercentage >= 70
-      ? {
+        ? {
           color: "#F59E0B",
           bgColor: "#FEF3C7",
           icon: <FiAlertCircle />,
           title: "Profil presque prêt",
           message: "Encore quelques champs pour maximiser votre visibilité",
         }
-      : {
+        : {
           color: "#EF4444",
           bgColor: "#FEE2E2",
           icon: <FiAlertCircle />,
@@ -145,16 +144,6 @@ const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile, onEdit }) => {
         certificationsCount={
           profile.certifications?.split(",").filter(Boolean).length ?? 0
         }
-      />
-
-      {/* =============================
-          Badge d’expérience (sans notion 5 ans)
-      ============================= */}
-      <ProfileExperienceBadge
-        experienceLevel={profile.experience_level ?? null}
-        yearsExperience={profile.years_experience ?? null}
-        missionsCount={undefined}
-        averageRating={undefined}
       />
 
       {/* =============================

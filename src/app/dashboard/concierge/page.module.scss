@@ -1,0 +1,131 @@
+/* src/app/dashboard/concierge/page.module.scss */
+@import '../../styles/abstracts/mixins.scss';
+@import '../../styles/abstracts/functions.scss';
+@import '../../styles/abstracts/variables.scss';
+@import '../../styles/base/animations.scss';
+
+/* ==========================================================================
+   CONCIERGE DASHBOARD - CHARTE 1900
+   ========================================================================== */
+
+.conciergeDashboardPage {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  padding: $spacing-lg;
+  background: $mucha-paper;
+  color: $text-dark;
+  max-width: $max-content-width;
+  margin: $spacing-md auto;
+  border-radius: $radius-lg;
+  box-shadow: $shadow;
+  border: 2px solid $gold-border-soft;
+  position: relative;
+
+  // Texture 1900 subtile
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 25% 25%, rgba($gold, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba($gold, 0.02) 0%, transparent 50%);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.dashboardHeader {
+  @include flex-column;
+  gap: $spacing-sm;
+  padding-bottom: $spacing-md;
+  border-bottom: 3px double $mucha-ink;
+
+  h1 {
+    @include flex-center;
+    gap: $spacing-sm;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $color-title;
+    margin: 0;
+
+    .headerIcon {
+      font-size: 2.2rem;
+      color: $primary-dark-color-sass;
+    }
+  }
+
+  .subtitle {
+    font-family: $font-text;
+    font-size: 0.95rem;
+    color: $color-text-neutral;
+    margin: 0;
+  }
+
+  .profileExperienceBadgeWrapper {
+    margin-top: $spacing-xs;
+  }
+}
+
+.dashboardGrid {
+  @include grid-template(repeat(auto-fit, minmax(280px, 1fr)), $spacing-lg);
+}
+
+.dashboardSection {
+  padding: $spacing-lg;
+  border-radius: $radius-lg;
+  @include backdrop-blur(8px, rgba(255, 255, 255, 0.92));
+  border: 1px solid $gold-border-soft;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.06);
+
+  h2 {
+    font-size: 1.4rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $color-title;
+    border-bottom: 2px solid $primary-dark-color-sass;
+    padding-bottom: $spacing-xs;
+    margin-bottom: $spacing-md;
+  }
+
+  // Grille responsive des fonctionnalités
+  & > .grid {
+    @include grid(1, $spacing-lg);
+
+    @include respond-to(md) {
+      @include grid(2, $spacing-lg);
+    }
+  }
+}
+
+.dashboardLoadingContainer {
+  min-height: 60vh;
+  @include flex-center;
+  background: $mucha-paper;
+  color: $text-dark;
+  border-radius: $radius-lg;
+}
+
+// Responsive avec mixins
+@include mq(md) {
+  .conciergeDashboardPage {
+    padding: $spacing-md;
+    margin: $spacing-sm;
+  }
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  .conciergeDashboardPage {
+    background: rgba(21, 24, 35, 0.95);
+    color: $text-light;
+    border-color: $mucha-ink;
+  }
+}
