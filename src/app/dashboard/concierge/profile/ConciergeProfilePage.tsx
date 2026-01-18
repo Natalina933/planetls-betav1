@@ -5,12 +5,15 @@ import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./ConciergeProfilePage.module.scss";
 
+// UI Components
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 import {
   CONCIERGE_TABS,
   ConciergeTabId,
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+
+// Business Components
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
