@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./ConciergeProfilePage.module.scss";
@@ -42,7 +42,6 @@ import {
   Save,
   X as LucideX,
   Edit2,
-  // Camera,
   MapPin,
   Phone as LucidePhone,
   Mail as LucideMail,
@@ -123,9 +122,13 @@ export default function ConciergeProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<TabId>(
-    (searchParams.get("tab") as TabId) || "fiche",
-  );
+  // ✅ Extraire le tab de manière stable avec useMemo
+  const tabFromUrl = useMemo(() => {
+    const tab = searchParams.get("tab") as TabId;
+    return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "fiche";
+  }, [searchParams]);
+
+  const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -140,23 +143,24 @@ export default function ConciergeProfilePage() {
     [normalizeSectionId("Ma grille tarifaire")]: true,
   });
 
+  // ✅ Synchroniser activeTab avec l'URL
   useEffect(() => {
-    const tab = searchParams.get("tab") as TabId;
-    if (tab && CONCIERGE_TABS.some((t) => t.id === tab)) {
-      setActiveTab(tab);
+    if (tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
     }
-  }, [searchParams]);
+  }, [tabFromUrl, activeTab]); // ✅ Inclure activeTab
 
-  const handleTabChange = (tabId: TabId) => {
-    setActiveTab(tabId);
-    router.push(`?tab=${tabId}`, { scroll: false });
-  };
-
+  // ✅ Charger le profil une seule fois au montage
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProfile = async () => {
       try {
         const response = await fetch("/api/profiles/current");
         const data: Profile | { error: string } = await response.json();
+
+        if (!isMounted) return;
+
         if ("error" in data) {
           throw new Error(data.error);
         }
@@ -171,6 +175,8 @@ export default function ConciergeProfilePage() {
         setProfile(data);
         setEditProfile(data);
       } catch (error: unknown) {
+        if (!isMounted) return;
+
         const errorMessage =
           error instanceof Error ? error.message : "Erreur inconnue";
         console.error(
@@ -182,7 +188,16 @@ export default function ConciergeProfilePage() {
     };
 
     fetchProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const handleTabChange = (tabId: TabId) => {
+    setActiveTab(tabId);
+    router.push(`?tab=${tabId}`, { scroll: false });
+  };
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -194,13 +209,14 @@ export default function ConciergeProfilePage() {
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setEditProfile((prev) =>
-        prev ? { ...prev, [name]: checked as unknown as unknown } : prev,
+        prev ? { ...prev, [name]: checked } : prev,
       );
       return;
     }
 
+    // ✅ Correction: utiliser value au lieu de checked
     setEditProfile((prev) =>
-      prev ? { ...prev, [name]: value as unknown as unknown } : prev,
+      prev ? { ...prev, [name]: value } : prev,
     );
 
     let errorMessage = "";
@@ -322,9 +338,9 @@ export default function ConciergeProfilePage() {
 
       setSuccessMsg(
         `✅ Profil sauvegardé ! ` +
-          `Avatar: ${(updatedProfile.avatar_scale ?? 1).toFixed(2)}x, ` +
-          `Position: ${updatedProfile.avatar_offset_x ?? 0}/${updatedProfile.avatar_offset_y ?? 0}, ` +
-          `Rotation: ${updatedProfile.avatar_rotation ?? 0}°`,
+        `Avatar: ${(updatedProfile.avatar_scale ?? 1).toFixed(2)}x, ` +
+        `Position: ${updatedProfile.avatar_offset_x ?? 0}/${updatedProfile.avatar_offset_y ?? 0}, ` +
+        `Rotation: ${updatedProfile.avatar_rotation ?? 0}°`,
       );
 
       console.log("✅ Sauvegardé:", {
@@ -443,9 +459,8 @@ export default function ConciergeProfilePage() {
     return (
       <div className={styles.section}>
         <h2
-          className={`${styles.sectionTitleToggle} ${
-            isOpen ? styles.sectionTitleToggleActive : ""
-          }`}
+          className={`${styles.sectionTitleToggle} ${isOpen ? styles.sectionTitleToggleActive : ""
+            }`}
           onClick={() => toggleSection(sectionId)}
         >
           <div className={styles.sectionTitleLeft}>
@@ -453,17 +468,15 @@ export default function ConciergeProfilePage() {
             {title}
           </div>
           <span
-            className={`${styles.toggleIcon} ${
-              isOpen ? styles.toggleIconOpen : ""
-            }`}
+            className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
+              }`}
           >
             <ChevronDown size={16} />
           </span>
         </h2>
         <div
-          className={`${styles.sectionContent} ${
-            isOpen ? styles.sectionContentOpen : ""
-          }`}
+          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
+            }`}
         >
           {children}
         </div>
@@ -503,10 +516,10 @@ export default function ConciergeProfilePage() {
                       setEditProfile((prev) =>
                         prev
                           ? {
-                              ...prev,
-                              avatar_offset_x: offsetX,
-                              avatar_offset_y: offsetY,
-                            }
+                            ...prev,
+                            avatar_offset_x: offsetX,
+                            avatar_offset_y: offsetY,
+                          }
                           : prev,
                       )
                     }
@@ -521,13 +534,13 @@ export default function ConciergeProfilePage() {
                       setEditProfile((prev) =>
                         prev
                           ? {
-                              ...prev,
-                              avatar_url: null,
-                              avatar_scale: 1,
-                              avatar_offset_x: 0,
-                              avatar_offset_y: 0,
-                              avatar_rotation: 0,
-                            }
+                            ...prev,
+                            avatar_url: null,
+                            avatar_scale: 1,
+                            avatar_offset_x: 0,
+                            avatar_offset_y: 0,
+                            avatar_rotation: 0,
+                          }
                           : prev,
                       );
                     }}
@@ -549,10 +562,7 @@ export default function ConciergeProfilePage() {
                     <p className={styles.profileStatLabel}>Note</p>
                     <p className={styles.profileStatValue}>
                       4.9
-                      <Star
-                        size={14}
-                        className={styles.profileStatIconStar}
-                      />
+                      <Star size={14} className={styles.profileStatIconStar} />
                     </p>
                   </div>
                   <div className={styles.profileStatItem}>
@@ -614,12 +624,7 @@ export default function ConciergeProfilePage() {
                 <LucideUser />,
                 <>
                   <div className={styles.fieldsGrid}>
-                    {renderField(
-                      "Nom d'utilisateur",
-                      "username",
-                      false,
-                      true,
-                    )}
+                    {renderField("Nom d'utilisateur", "username", false, true)}
                     {renderField("Prénom", "first_name", false, true)}
                     {renderField("Nom", "last_name", false, true)}
                     {renderField(
@@ -661,10 +666,9 @@ export default function ConciergeProfilePage() {
                           setEditProfile((prev) =>
                             prev
                               ? {
-                                  ...prev,
-                                  experience_level:
-                                    value === "" ? null : value,
-                                }
+                                ...prev,
+                                experience_level: value === "" ? null : value,
+                              }
                               : prev,
                           );
                         }}
@@ -847,8 +851,8 @@ export default function ConciergeProfilePage() {
                 value={
                   editProfile.mission_settings
                     ? (JSON.parse(
-                        editProfile.mission_settings,
-                      ) as MissionAvailability)
+                      editProfile.mission_settings,
+                    ) as MissionAvailability)
                     : null
                 }
                 isEditing={isEditing}
@@ -856,9 +860,9 @@ export default function ConciergeProfilePage() {
                   setEditProfile((prev) =>
                     prev
                       ? {
-                          ...prev,
-                          mission_settings: JSON.stringify(data),
-                        }
+                        ...prev,
+                        mission_settings: JSON.stringify(data),
+                      }
                       : prev,
                   )
                 }
@@ -866,11 +870,11 @@ export default function ConciergeProfilePage() {
             )}
 
             {renderSection(
-              "Règles d’acceptation des missions",
+              "Règles d'acceptation des missions",
               <FiSliders />,
               <div className={styles.placeholderContent}>
                 <p>
-                  Définissez les conditions d’acceptation automatique ou
+                  Définissez les conditions d&apos;acceptation automatique ou
                   manuelle des missions.
                 </p>
                 <ul>
@@ -887,12 +891,12 @@ export default function ConciergeProfilePage() {
               <FiStarOutline />,
               <div className={styles.placeholderContent}>
                 <p>
-                  Classez vos missions par niveau de priorité afin d’optimiser
+                  Classez vos missions par niveau de priorité afin d&apos;optimiser
                   votre organisation.
                 </p>
                 <p>
                   Chaque type de mission pourra être associé à un niveau de
-                  priorité et à un mode d’acceptation.
+                  priorité et à un mode d&apos;acceptation.
                 </p>
               </div>,
             )}
@@ -1145,9 +1149,8 @@ export default function ConciergeProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`${styles.tab} ${
-                  isActive ? styles.tabActive : ""
-                }`}
+                className={`${styles.tab} ${isActive ? styles.tabActive : ""
+                  }`}
               >
                 <span className={styles.tabIcon}>
                   <Icon />

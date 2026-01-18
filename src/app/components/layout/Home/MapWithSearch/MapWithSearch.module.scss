@@ -1,8 +1,9 @@
 @use "sass:math";
 @use "sass:color";
-@use "@/app/styles/abstracts/mixins" as *;
+@use "app/styles/abstracts/variables" as *;
+@use "app/styles/abstracts/mixins" as *;
 @use "@/app/styles/abstracts/functions" as *;
-@use "@/app/styles/abstracts/variables" as *;
+
 
 /* -------------------------------------------------------
 🌟 1. VARIABLES THEME (Mucha / Art Nouveau)

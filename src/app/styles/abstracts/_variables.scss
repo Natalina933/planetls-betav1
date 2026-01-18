@@ -171,3 +171,35 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
    ========================================================================== */
 $success-color: #2d6a4f;
 $error-color: #8b2a2a;
+
+
+/* ==========================================================================
+   COULEURS SERVICES DISPLAY (Dark Theme)
+   ========================================================================== */
+
+// Arrière-plans
+$services-bg-primary: rgba(15, 23, 42, 0.9);
+$services-bg-secondary: rgba(10, 10, 20, 0.98);
+
+// Bordures
+$services-border-slate: rgba(148, 163, 184, 0.3);
+$services-border-gold: rgba(212, 175, 55, 0.4);
+
+// Textes
+$services-text-primary: #f9fafb;
+$services-text-secondary: #e5e7eb;
+$services-text-muted: #9ca3af;
+
+// Ombres spécifiques
+$services-shadow-wrapper: 
+  0 10px 30px rgba(0, 0, 0, 0.35),
+  0 0 0 1px rgba(148, 163, 184, 0.3);
+$services-shadow-item: 0 2px 6px rgba(15, 23, 42, 0.35);
+
+/* ==========================================================================
+   NOTES D'UTILISATION
+   ========================================================================== */
+
+// Ces variables sont utilisées dans ServicesDisplay.module.scss
+// Elles peuvent être réutilisées dans d'autres composants similaires
+// qui nécessitent un thème sombre avec des accents dorés

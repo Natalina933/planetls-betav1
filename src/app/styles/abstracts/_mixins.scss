@@ -3,31 +3,30 @@
 @use "sass:color";
 @use "sass:math";
 @use "sass:meta";
-@use "variables" as *;
-@use "@/app/styles/base/animations" as anim;
+@use "app/styles/abstracts/variables" as *;
+@use "app/styles/base/animations" as anim;
 
 // --------------------------------------------------
 // 📱 Media Queries
 // --------------------------------------------------
 @mixin mq($size) {
-    @if map.has-key($breakpoints, $size) {
-        @media (max-width: map.get($breakpoints, $size)) {
-            @content;
-        }
+  @if map.has-key($breakpoints, $size) {
+    @media (max-width: map.get($breakpoints, $size)) {
+      @content;
     }
-
-    @else {
-        @error "⚠️ Breakpoint '#{$size}' non trouvé. Clés valides : #{map.keys($breakpoints)}";
-    }
+  } @else {
+    @error "⚠️ Breakpoint '#{$size}' non trouvé. Clés valides : #{map.keys($breakpoints)}";
+  }
 }
 
 @mixin respond-to($breakpoint) {
-    @if map.has-key($breakpoints, $breakpoint) {
-        @media (min-width: map.get($breakpoints, $breakpoint)) {
-            @content;
-        }
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (min-width: map.get($breakpoints, $breakpoint)) {
+      @content;
     }
+  }
 }
+
 @mixin flex-between {
   display: flex;
   align-items: center;
@@ -38,283 +37,292 @@
 // 📦 Layout & Containers
 // --------------------------------------------------
 @mixin container($max-width: $max-content-width, $padding: $spacing-md) {
-    width: 100%;
-    max-width: $max-width;
-    margin: 0 auto;
-    padding-inline: $padding;
+  width: 100%;
+  max-width: $max-width;
+  margin: 0 auto;
+  padding-inline: $padding;
 }
 
 @mixin centered-section($max-width: $max-content-width) {
-    max-width: $max-width;
-    margin-inline: auto;
-    padding: $spacing-md $spacing-lg;
+  max-width: $max-width;
+  margin-inline: auto;
+  padding: $spacing-md $spacing-lg;
 }
 
 @mixin grid($columns: 2, $gap: $spacing-md) {
-    display: grid;
-    grid-template-columns: repeat($columns, 1fr);
-    gap: $gap;
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
 }
 
 @mixin grid-template($template, $gap: $spacing-md) {
-    display: grid;
-    grid-template-columns: $template;
-    gap: $gap;
+  display: grid;
+  grid-template-columns: $template;
+  gap: $gap;
 }
 
 // --------------------------------------------------
 // 🎨 Flexbox
 // --------------------------------------------------
 @mixin flex-center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @mixin flex-column {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 // --------------------------------------------------
 // ✨ Text & Typography
 // --------------------------------------------------
 @mixin text-ellipsis {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 @mixin heading-style($level: 1) {
-    font-family: $font-title;
-    font-weight: $font-weight-bold;
-    line-height: 1.2;
-    letter-spacing: 0.01em;
+  font-family: $font-title;
+  font-weight: $font-weight-bold;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
 
-    @if $level ==1 {
-        font-size: 2.6rem;
-    }
-
-    @else if $level ==2 {
-        font-size: 2rem;
-    }
-
-    @else if $level ==3 {
-        font-size: 1.5rem;
-    }
+  @if $level == 1 {
+    font-size: 2.6rem;
+  } @else if $level == 2 {
+    font-size: 2rem;
+  } @else if $level == 3 {
+    font-size: 1.5rem;
+  }
 }
 
 @mixin highlight-gold {
-    color: $gold-dark;
-    font-weight: 700;
-    position: relative;
-    display: inline-block;
+  color: $gold-dark;
+  font-weight: 700;
+  position: relative;
+  display: inline-block;
 
-    &::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: -2px;
-        height: 0.3em;
-        width: 0;
-        background: linear-gradient(90deg, #fceabb 20%, #f8d98f 30%, $gold 60%, $gold-dark 100%);
-        border-radius: 4px;
-        opacity: 0.8;
-        box-shadow: 0 1px 4px rgba($gold, 0.4);
-        transform-origin: left;
-        animation: underlineExpandElegant 1.52s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-    }
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 0.3em;
+    width: 0;
+    background: linear-gradient(
+      90deg,
+      #fceabb 20%,
+      #f8d98f 30%,
+      $gold 60%,
+      $gold-dark 100%
+    );
+    border-radius: 4px;
+    opacity: 0.8;
+    box-shadow: 0 1px 4px rgba($gold, 0.4);
+    transform-origin: left;
+    animation: underlineExpandElegant 1.52s cubic-bezier(0.77, 0, 0.175, 1)
+      forwards;
+  }
 }
 
 @keyframes underlineExpandElegant {
-    0% {
-        width: 0;
-        opacity: 0;
-        transform: scaleX(0);
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        width: 100%;
-        transform: scaleX(1);
-    }
+  0% {
+    width: 0;
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    transform: scaleX(1);
+  }
 }
 
 // --------------------------------------------------
 // 🧠 Accessibilité
 // --------------------------------------------------
 @mixin visually-hidden {
-    position: absolute !important;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-@mixin focus-ring($color: $primary-color) {
-    &:focus-visible {
-        outline: 2px solid $color;
-        outline-offset: 4px;
-    }
+@mixin focus-ring($color: $primary-color-sass) {
+  &:focus-visible {
+    outline: 2px solid $color;
+    outline-offset: 4px;
+  }
 }
 
 // --------------------------------------------------
 // 🧼 UI Elements
 // --------------------------------------------------
 @mixin box-shadow($color: rgba(0, 0, 0, 0.08)) {
-    box-shadow: 0 2px 8px $color;
+  box-shadow: 0 2px 8px $color;
 }
 
 @mixin soft-hover($color: $gold) {
-    transition: $transition;
+  transition: $transition;
 
-    &:hover {
-        box-shadow: 0 0 8px $color;
-        transform: translateY(-2px);
-    }
+  &:hover {
+    box-shadow: 0 0 8px $color;
+    transform: translateY(-2px);
+  }
 }
 
 @mixin button-base {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: $radius-pill;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: $radius-pill;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 // --------------------------------------------------
 // 🖼️ Visual Effects
 // --------------------------------------------------
-// Animation statique (ne dépend d'aucune variable)
 @keyframes fadeInStatic {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-// Mixin dynamique : applique un décalage initial + animation
-@mixin fadeInVariant($offset: 1.5rem, $duration: 0.8s, $delay: 0s) {
-    opacity: 0;
-    transform: translateY($offset);
-    animation: #{anim.get("fadeIn")} $duration ease $delay forwards;
-}
-
-// Mixin dynamique : applique une animation de fadeOut
-@mixin fadeOutVariant($duration: 0.8s, $delay: 0s) {
+  to {
     opacity: 1;
     transform: translateY(0);
-    animation: #{anim.get("fadeOut")} $duration ease $delay forwards;
+  }
+}
+
+@mixin fadeInVariant($offset: 1.5rem, $duration: 0.8s, $delay: 0s) {
+  opacity: 0;
+  transform: translateY($offset);
+  animation: #{anim.get("fadeIn")} $duration ease $delay forwards;
+}
+
+@mixin fadeOutVariant($duration: 0.8s, $delay: 0s) {
+  opacity: 1;
+  transform: translateY(0);
+  animation: #{anim.get("fadeOut")} $duration ease $delay forwards;
 }
 
 @mixin fadeIn($duration: 0.8s, $delay: 0s) {
-    opacity: 0;
-    transform: translateY(1.5rem);
-    animation: #{anim.get("fadeIn")} $duration ease $delay forwards;
+  opacity: 0;
+  transform: translateY(1.5rem);
+  animation: #{anim.get("fadeIn")} $duration ease $delay forwards;
 }
 
 @mixin fadeOut($duration: 0.8s, $delay: 0s) {
-    opacity: 1;
-    transform: translateY(0);
-    animation: #{anim.get("fadeOut")} $duration ease $delay forwards;
+  opacity: 1;
+  transform: translateY(0);
+  animation: #{anim.get("fadeOut")} $duration ease $delay forwards;
 }
 
 @keyframes fadeInTitle {
-    0% {
-        opacity: 0;
-        transform: translateY(1rem);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @mixin fadeInTitle($duration: 0.5s, $delay: 0s) {
-    animation: #{anim.get("fadeInTitle")} $duration ease-out $delay both;
+  animation: #{anim.get("fadeInTitle")} $duration ease-out $delay both;
 }
 
 @mixin fadeOutTitle($duration: 0.5s, $delay: 0s) {
-    animation: #{anim.get("fadeOutTitle")} $duration ease-out $delay both;
+  animation: #{anim.get("fadeOutTitle")} $duration ease-out $delay both;
 }
 
 // --------------------------------------------------
 // 🧼 Utilities
 // --------------------------------------------------
 @mixin no-select {
-    -webkit-user-select: none;
-    user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 @mixin clearfix {
-    &::after {
-        content: "";
-        display: table;
-        clear: both;
-    }
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
 }
 
 // --------------------------------------------------
 // 🌗 Theme Modes
 // --------------------------------------------------
 @mixin darkMode {
-    [data-theme="dark"] & {
-        background-color: var(--bg);
-        color: var(--text);
-        border-color: var(--border);
-    }
+  [data-theme="dark"] & {
+    background-color: var(--bg);
+    color: var(--text);
+    border-color: var(--border);
+  }
 }
 
 @mixin lightMode {
-    [data-theme="light"] & {
-        background-color: var(--bg);
-        color: var(--text);
-        border-color: var(--border);
-    }
+  [data-theme="light"] & {
+    background-color: var(--bg);
+    color: var(--text);
+    border-color: var(--border);
+  }
 }
 
 // --------------------------------------------------
 // 🎨 Mucha Style
 // --------------------------------------------------
 @mixin mucha-frame($color: $gold, $radius: $radius-2xl, $thickness: 2.5px) {
-    border: $thickness double $color;
-    border-radius: $radius;
-    box-shadow: 0 2px 16px rgba($gold, 0.09), 0 0 0 8px $gold-soft;
-    background: linear-gradient(120deg, $gold-soft 80%, $gold-light 100%);
+  border: $thickness double $color;
+  border-radius: $radius;
+  box-shadow:
+    0 2px 16px rgba($gold, 0.09),
+    0 0 0 8px $gold-soft;
+  background: linear-gradient(120deg, $gold-soft 80%, $gold-light 100%);
 }
 
-@mixin backdrop-blur($amount: 4px, $fallback-bg: rgba(255, 255, 255, 0.85), $fallback-border: null) {
-    background: $fallback-bg;
+@mixin backdrop-blur(
+  $amount: 4px,
+  $fallback-bg: rgba(255, 255, 255, 0.85),
+  $fallback-border: null
+) {
+  background: $fallback-bg;
 
-    @if $fallback-border !=null {
-        border: 1px solid $fallback-border;
-    }
+  @if $fallback-border != null {
+    border: 1px solid $fallback-border;
+  }
 
-    @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
-        -webkit-backdrop-filter: blur($amount);
-        backdrop-filter: blur($amount);
-    }
+  @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
+    -webkit-backdrop-filter: blur($amount);
+    backdrop-filter: blur($amount);
+  }
 }
 
-@mixin button($bg: transparent, $color: #000, $border: none, $radius: 50px, $padding: 0.5rem 1rem) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: $padding;
-    border: $border;
-    border-radius: $radius;
-    color: $color;
-    background: $bg;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+@mixin button(
+  $bg: transparent,
+  $color: #000,
+  $border: none,
+  $radius: 50px,
+  $padding: 0.5rem 1rem
+) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $padding;
+  border: $border;
+  border-radius: $radius;
+  color: $color;
+  background: $bg;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }

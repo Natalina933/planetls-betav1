@@ -1,7 +1,7 @@
 // src/app/components/MapWithList/MapWithList.module.scss
 @use "sass:math";
 @use "sass:color";
-@use "../../styles/abstracts/variables" as *;
+@use "./variables" as *; 
 @use "../../styles/abstracts/mixins" as *;
 
 .mapListContainer {

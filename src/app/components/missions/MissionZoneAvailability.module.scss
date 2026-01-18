@@ -1,47 +1,168 @@
-@use "sass:math";
-@use "sass:color";
-@use "../../styles/abstracts/variables" as *;
-@use "../../styles/abstracts/mixins" as *;
+/* =========================
+   Palette Art Nouveau / 1900
+========================= */
+$color-primary: #2a3d66;      // Bleu profond
+$color-accent: #d4af37;       // Doré
+$color-bg: #f5f3ee;           // Beige clair
+$color-text: #2b2b2b;         // Gris foncé
+$color-helper: #6b6b6b;       // Gris secondaire
+$color-highlight: #c9d6d5;    // Vert d’eau subtil
+
+$border-radius: 12px;
+$transition: all 0.3s ease;
 
 /* =========================
-   RANGE SLIDER
+   Container global
 ========================= */
-:global(input[type="range"]) {
-    appearance: none;
-    /* standard */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+.container {
+  background: $color-bg;
+  padding: 1.5rem;
+  border-radius: $border-radius;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-family: 'Garamond', serif;
+  color: $color-text;
+}
 
-    width: 100%;
-    height: 8px;
-    border-radius: $radius-pill;
-    background: $gold-light;
-    outline: none;
+/* =========================
+   Sections
+========================= */
+.block {
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  background: lighten($color-bg, 2%);
+  border: 1px solid $color-accent;
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  
+  h4 {
+    font-family: 'Cinzel', serif;
+    color: $color-primary;
+    margin-bottom: 1rem;
+    position: relative;
+
+    &::after {
+      content: '';
+      display: block;
+      width: 50px;
+      height: 2px;
+      background: $color-accent;
+      margin-top: 4px;
+      border-radius: 2px;
+    }
+  }
+}
+
+/* =========================
+   Helpers
+========================= */
+.helper {
+  font-size: 0.9rem;
+  color: $color-helper;
+}
+
+/* =========================
+   Schedule
+========================= */
+.scheduleRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+
+  strong {
+    width: 100px;
+    color: $color-primary;
+  }
+
+  .scheduleInput {
+    flex: 1;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid $color-accent;
+    border-radius: $border-radius / 2;
+    background: #fff9f0;
     transition: $transition;
 
-    &::-webkit-slider-thumb {
-        appearance: none;
-        /* standard */
-        -webkit-appearance: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: $gold-main;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba($sepia-ink, 0.2);
-        transition: $transition;
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 5px $color-accent;
+    }
+  }
+
+  .scheduleDisplay {
+    font-style: italic;
+    color: $color-text;
+  }
+
+  .placeholder {
+    font-style: italic;
+    color: $color-helper;
+  }
+}
+
+/* =========================
+   Rules
+========================= */
+.rulesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+
+  .ruleItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $color-highlight;
+    padding: 0.5rem 1rem;
+    border-radius: $border-radius;
+    transition: $transition;
+
+    input {
+      width: 18px;
+      height: 18px;
+      accent-color: $color-accent;
+      cursor: pointer;
     }
 
-    &::-moz-range-thumb {
-        appearance: none;
-        /* standard */
-        -moz-appearance: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: $gold-main;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba($sepia-ink, 0.2);
-        transition: $transition;
+    &:hover {
+      background: lighten($color-highlight, 5%);
     }
+  }
+}
+
+/* =========================
+   Range input local
+========================= */
+.rangeInput {
+  width: 100%;
+  margin-top: 0.5rem;
+  accent-color: $color-accent;
+  border-radius: $border-radius / 2;
+}
+
+/* =========================
+   Leaflet Map container local
+========================= */
+.mapContainer {
+  height: 300px;
+  border: 1px solid $color-accent;
+  border-radius: $border-radius;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* =========================
+   Boutons locaux
+========================= */
+.btnPrimary {
+  cursor: pointer;
+  background: $color-accent;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: $border-radius / 2;
+  font-family: 'Cinzel', serif;
+  transition: $transition;
+
+  &:hover {
+    background: darken($color-accent, 10%);
+  }
 }

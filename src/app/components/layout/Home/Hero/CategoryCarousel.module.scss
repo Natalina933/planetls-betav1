@@ -1,5 +1,4 @@
-@use "src/app/styles/abstracts/_mixins.scss" as *;
-
+@use "app/styles/abstracts/mixins" as *;
 .carousel {
   width: 92%;
   max-width: 520px;

@@ -1,8 +1,8 @@
 @use "sass:color";
 @use "sass:math";
-@use "src/app/styles/abstracts/_variables" as *;
-@use "src/app/styles/abstracts/_mixins" as *;
-@use "src/app/styles/abstracts/_functions" as *;
+@use "app/styles/abstracts/variables" as *;
+@use "app/styles/abstracts/mixins" as *;
+@use "app/styles/abstracts/functions" as *;
 
 // Couleurs cohérentes avec la navbar
 $gold: #d4af37;

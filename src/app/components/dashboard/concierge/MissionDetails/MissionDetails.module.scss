@@ -1,47 +1,92 @@
-@use "@/app/styles/abstracts/variables" as *;
-@use "@/app/styles/abstracts/mixins" as *;
+// src/app/components/dashboard/concierge/MissionDetails/MissionDetails.module.scss
+@use "app/styles/abstracts/variables" as *;
+@use "app/styles/abstracts/mixins" as *;
+
+// ============================================================================
+// VARIABLES LOCALES SPÉCIFIQUES AU COMPOSANT
+// ============================================================================
+
+// Couleurs spécifiques (à ajouter dans _variables.scss si réutilisées ailleurs)
+$services-bg-primary: rgba(15, 23, 42, 0.9);
+$services-bg-secondary: rgba(10, 10, 20, 0.98);
+$services-border-slate: rgba(148, 163, 184, 0.3);
+$services-border-gold: rgba(212, 175, 55, 0.4);
+$services-text-primary: #f9fafb;
+$services-text-secondary: #e5e7eb;
+$services-text-muted: #9ca3af;
+
+// Ombres spécifiques
+$services-shadow-wrapper:
+  0 10px 30px rgba(0, 0, 0, 0.35),
+  0 0 0 1px $services-border-slate;
+$services-shadow-item: 0 2px 6px rgba(15, 23, 42, 0.35);
+
+// ============================================================================
+// CONTENEUR PRINCIPAL
+// ============================================================================
 
 .wrapper {
-  padding: 1rem 0.75rem;
-  border-radius: 16px;
+  padding: $spacing-lg $spacing-md;
+  border-radius: $radius-xl;
   background: linear-gradient(
     135deg,
-    rgba(15, 23, 42, 0.9),
-    rgba(10, 10, 20, 0.98)
+    $services-bg-primary,
+    $services-bg-secondary
   );
-  color: #f9fafb;
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(148, 163, 184, 0.3);
+  color: $services-text-primary;
+  box-shadow: $services-shadow-wrapper;
+  transition: $transition;
+
+  &:hover {
+    box-shadow:
+      0 12px 35px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(148, 163, 184, 0.4);
+  }
 }
 
-/* Ligne principale "Services proposés" */
+// ============================================================================
+// STRUCTURE DES CHAMPS
+// ============================================================================
+
 .fieldRow {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  @include flex-column;
+  gap: $spacing-sm;
 }
 
 .servicesRow {
-  margin-bottom: 0.5rem;
+  margin-bottom: $spacing-sm;
 }
 
 .fieldLabel {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: $font-weight-bold;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: #e5e7eb;
+  color: $services-text-secondary;
+  margin: 0;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
 }
 
-/* Liste des services (lecture seule) */
+.labelIcon {
+  color: $gold;
+  font-size: 1rem;
+}
+
+// ============================================================================
+// LISTE DES SERVICES
+// ============================================================================
+
 .servicesList {
   list-style: none;
   padding: 0;
-  margin: 0.25rem 0 0;
+  margin: $spacing-xs 0 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
+  gap: $spacing-sm $spacing-md;
+  animation: fadeIn 0.3s $ease-out-cubic;
 }
 
 .serviceItem {
@@ -49,39 +94,112 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: #f9fafb;
+  border-radius: $radius-pill;
+  background: $services-bg-primary;
+  border: 1px solid $services-border-gold;
+  color: $services-text-primary;
   font-size: 0.8rem;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+  box-shadow: $services-shadow-item;
+  transition: $transition;
+
+  // Amélioration visuelle au survol
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
+    border-color: rgba(212, 175, 55, 0.6);
+  }
+
+  // État focus pour l'accessibilité
+  &:focus-within {
+    @include focus-ring($gold);
+  }
 }
 
 .serviceIcon {
   font-size: 0.9rem;
-  color: #d4af37;
+  color: $gold;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .serviceCount {
   font-size: 0.78rem;
   opacity: 0.85;
+  font-variant-numeric: tabular-nums;
 }
 
-/* États vides / chargement */
+// ============================================================================
+// ÉTATS SPÉCIAUX
+// ============================================================================
+
 .emptyState {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: $services-text-muted;
   font-style: italic;
+  padding: $spacing-sm 0;
+
+  // Amélioration du contraste pour l'accessibilité
+  @media (prefers-contrast: high) {
+    color: lighten($services-text-muted, 20%);
+  }
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+// État de chargement
+.loadingState {
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-sm 0;
+
+  .skeleton {
+    height: 1.8rem;
+    width: 5rem;
+    border-radius: $radius-pill;
+    background: linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.1) 0%,
+      rgba(148, 163, 184, 0.2) 50%,
+      rgba(148, 163, 184, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// ============================================================================
+// RESPONSIVE
+// ============================================================================
+
+@include mq(sm) {
   .wrapper {
-    border-radius: 14px;
-    padding: 0.9rem 0.75rem;
+    border-radius: $radius-lg;
+    padding: 0.9rem $spacing-md;
   }
 
   .servicesList {
@@ -91,5 +209,60 @@
   .serviceItem {
     font-size: 0.78rem;
     padding: 0.3rem 0.65rem;
+  }
+
+  .fieldLabel {
+    font-size: 0.85rem;
+  }
+}
+
+// Tablette
+@include respond-to(md) {
+  .wrapper {
+    padding: 0.95rem $spacing-md;
+  }
+}
+
+// Support du mode sombre forcé
+@media (prefers-color-scheme: dark) {
+  .wrapper {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.95),
+      rgba(10, 10, 20, 1)
+    );
+  }
+}
+
+// Réduction du mouvement pour l'accessibilité
+@media (prefers-reduced-motion: reduce) {
+  .wrapper,
+  .serviceItem,
+  .servicesList,
+  .skeleton {
+    animation: none;
+    transition: none;
+  }
+}
+
+// ============================================================================
+// MODIFICATEURS UTILITAIRES
+// ============================================================================
+
+// Service actif/sélectionné
+.serviceItem--active {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: $gold;
+  font-weight: $font-weight-bold;
+}
+
+// Service désactivé
+.serviceItem--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+
+  &:hover {
+    transform: none;
+    box-shadow: $services-shadow-item;
   }
 }
