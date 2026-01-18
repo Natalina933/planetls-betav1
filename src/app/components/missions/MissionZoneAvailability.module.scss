@@ -1,12 +1,15 @@
+@use "sass:math";
+@use "sass:color";
+
 /* =========================
    Palette Art Nouveau / 1900
 ========================= */
-$color-primary: #2a3d66;      // Bleu profond
-$color-accent: #d4af37;       // Doré
-$color-bg: #f5f3ee;           // Beige clair
-$color-text: #2b2b2b;         // Gris foncé
-$color-helper: #6b6b6b;       // Gris secondaire
-$color-highlight: #c9d6d5;    // Vert d’eau subtil
+$color-primary: #2a3d66; // Bleu profond
+$color-accent: #d4af37; // Doré
+$color-bg: #f5f3ee; // Beige clair
+$color-text: #2b2b2b; // Gris foncé
+$color-helper: #6b6b6b; // Gris secondaire
+$color-highlight: #c9d6d5; // Vert d’eau subtil
 
 $border-radius: 12px;
 $transition: all 0.3s ease;
@@ -18,8 +21,8 @@ $transition: all 0.3s ease;
   background: $color-bg;
   padding: 1.5rem;
   border-radius: $border-radius;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  font-family: 'Garamond', serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: "Garamond", serif;
   color: $color-text;
 }
 
@@ -29,19 +32,19 @@ $transition: all 0.3s ease;
 .block {
   margin-bottom: 2rem;
   padding: 1rem 1.5rem;
-  background: lighten($color-bg, 2%);
+  background: color.adjust($color-bg, $lightness: 2%);
   border: 1px solid $color-accent;
   border-radius: $border-radius;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
   h4 {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     color: $color-primary;
     margin-bottom: 1rem;
     position: relative;
 
     &::after {
-      content: '';
+      content: "";
       display: block;
       width: 50px;
       height: 2px;
@@ -78,7 +81,7 @@ $transition: all 0.3s ease;
     flex: 1;
     padding: 0.3rem 0.6rem;
     border: 1px solid $color-accent;
-    border-radius: $border-radius / 2;
+    border-radius: math.div($border-radius, 2);
     background: #fff9f0;
     transition: $transition;
 
@@ -124,7 +127,7 @@ $transition: all 0.3s ease;
     }
 
     &:hover {
-      background: lighten($color-highlight, 5%);
+      background: color.adjust($color-highlight, $lightness: 5%);
     }
   }
 }
@@ -136,7 +139,7 @@ $transition: all 0.3s ease;
   width: 100%;
   margin-top: 0.5rem;
   accent-color: $color-accent;
-  border-radius: $border-radius / 2;
+  border-radius: math.div($border-radius, 2);
 }
 
 /* =========================
@@ -146,7 +149,7 @@ $transition: all 0.3s ease;
   height: 300px;
   border: 1px solid $color-accent;
   border-radius: $border-radius;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* =========================
@@ -158,11 +161,11 @@ $transition: all 0.3s ease;
   color: #fff;
   padding: 0.4rem 0.8rem;
   border: none;
-  border-radius: $border-radius / 2;
-  font-family: 'Cinzel', serif;
+  border-radius: math.div($border-radius, 2);
+  font-family: "Cinzel", serif;
   transition: $transition;
 
   &:hover {
-    background: darken($color-accent, 10%);
+    background: color.adjust($color-accent, $lightness: -10%);
   }
 }

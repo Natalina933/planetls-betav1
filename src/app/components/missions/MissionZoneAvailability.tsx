@@ -1,8 +1,21 @@
 "use client";
 
+import React from "react";
+// 1. Import de dynamic pour gérer le problème de SSR de Leaflet
+import dynamic from "next/dynamic";
 import styles from "./MissionZoneAvailability.module.scss";
-import MissionMap from "./MissionMap";
 import type { MissionAvailability, WeekDay } from "./types";
+
+// 2. Import dynamique de MissionMap avec désactivation du rendu serveur (ssr: false)
+const MissionMap = dynamic(() => import("./MissionMap"), {
+  ssr: false,
+  loading: () => (
+    <div className={styles.mapLoading}>
+      <div className={styles.spinnerMini} />
+      <span>Chargement de la carte interactive...</span>
+    </div>
+  ),
+});
 
 interface Props {
   value: MissionAvailability | null;
@@ -34,102 +47,117 @@ const DAY_LABELS: Record<WeekDay, string> = {
 };
 
 export default function MissionZoneAvailability({ value, isEditing, onChange }: Props) {
+  // On utilise une valeur par défaut si "value" est null (évite les crashs au rendu)
   const state = value ?? DEFAULT_VALUE;
 
-  const updateZones = (zones: MissionAvailability["zones"]) => onChange({ ...state, zones });
-  const updateRadius = (radiusKm: number) => onChange({ ...state, radiusKm });
+  const updateZones = (zones: MissionAvailability["zones"]) => 
+    onChange({ ...state, zones });
+
+  const updateRadius = (radiusKm: number) => 
+    onChange({ ...state, radiusKm });
+
   const toggleRule = (key: keyof MissionAvailability["rules"]) =>
     onChange({ ...state, rules: { ...state.rules, [key]: !state.rules[key] } });
-  const updateSchedule = (day: WeekDay, ranges: { start: string; end: string }[]) => {
+
+  const updateSchedule = (day: WeekDay, input: string) => {
     const otherDays = state.schedule.filter((d) => d.day !== day);
-    onChange({ ...state, schedule: [...otherDays, { day, ranges }] });
+    
+    // Parsing sécurisé de la chaîne "08:00-12:00,14:00-18:00"
+    const newRanges = input
+      .split(",")
+      .map((r) => {
+        const [start, end] = r.split("-");
+        return { start: start?.trim() ?? "", end: end?.trim() ?? "" };
+      })
+      .filter((r) => r.start.length === 5 && r.end.length === 5); // Vérification basique format HH:mm
+
+    onChange({ ...state, schedule: [...otherDays, { day, ranges: newRanges }] });
   };
 
   return (
     <div className={styles.container}>
+      {/* SECTION CARTE */}
       <section className={styles.block}>
         <h4 className={styles.blockTitle}>📍 Zone d’intervention</h4>
-
-        <MissionMap
-          zones={state.zones}
-          radiusKm={state.radiusKm}
-          onZonesChange={updateZones}
-          onRadiusChange={updateRadius}
-          isEditing={isEditing}
-        />
+        
+        <div className={styles.mapWrapper}>
+          <MissionMap
+            zones={state.zones}
+            radiusKm={state.radiusKm}
+            onZonesChange={updateZones}
+            onRadiusChange={updateRadius}
+            isEditing={isEditing}
+          />
+        </div>
 
         <p className={styles.helper}>
-          Rayon actuel : <strong>{state.radiusKm} km</strong>
+          Rayon actuel : <strong>{state.radiusKm} km</strong> autour des points sélectionnés.
         </p>
       </section>
 
+      {/* SECTION HORAIRES */}
       <section className={styles.block}>
-        <h4 className={styles.blockTitle}>⏱️ Disponibilités</h4>
-        {WEEK_DAYS.map((day) => {
-          const daySchedule = state.schedule.find((s) => s.day === day);
-          const ranges = daySchedule?.ranges ?? [];
+        <h4 className={styles.blockTitle}>⏱️ Disponibilités hebdomadaires</h4>
+        <div className={styles.scheduleGrid}>
+          {WEEK_DAYS.map((day) => {
+            const daySchedule = state.schedule.find((s) => s.day === day);
+            const ranges = daySchedule?.ranges ?? [];
+            const displayValue = ranges.map((r) => `${r.start}-${r.end}`).join(",");
 
-          return (
-            <div key={day} className={styles.scheduleRow}>
-              <strong>{DAY_LABELS[day]} :</strong>
-              {isEditing ? (
-                <input
-                  type="text"
-                  className={styles.scheduleInput}
-                  placeholder="Ex : 09:00-12:00,14:00-18:00"
-                  value={ranges.map((r) => `${r.start}-${r.end}`).join(",")}
-                  onChange={(e) => {
-                    const newRanges = e.target.value
-                      .split(",")
-                      .map((r) => {
-                        const [start, end] = r.split("-");
-                        return { start: start?.trim() ?? "", end: end?.trim() ?? "" };
-                      })
-                      .filter((r) => r.start && r.end);
-                    updateSchedule(day, newRanges);
-                  }}
-                />
-              ) : ranges.length > 0 ? (
-                <span className={styles.scheduleDisplay}>
-                  {ranges.map((r) => `${r.start}-${r.end}`).join(", ")}
-                </span>
-              ) : (
-                <span className={styles.placeholder}>Non défini</span>
-              )}
-            </div>
-          );
-        })}
+            return (
+              <div key={day} className={styles.scheduleRow}>
+                <span className={styles.dayLabel}>{DAY_LABELS[day]}</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    className={styles.scheduleInput}
+                    placeholder="Ex: 09:00-12:00, 14:00-18:00"
+                    defaultValue={displayValue}
+                    onBlur={(e) => updateSchedule(day, e.target.value)}
+                  />
+                ) : (
+                  <span className={displayValue ? styles.scheduleDisplay : styles.placeholder}>
+                    {displayValue || "Non défini"}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
+      {/* SECTION RÈGLES */}
       <section className={styles.block}>
-        <h4 className={styles.blockTitle}>🤖 Règles automatiques</h4>
+        <h4 className={styles.blockTitle}>🤖 Automatisation</h4>
         <div className={styles.rulesGrid}>
-          <label className={styles.ruleItem}>
+          <label className={`${styles.ruleItem} ${!isEditing ? styles.disabled : ""}`}>
             <input
               type="checkbox"
               checked={state.rules.refuseOutOfZone}
               disabled={!isEditing}
               onChange={() => toggleRule("refuseOutOfZone")}
             />
-            Refuser automatiquement hors zone
+            <span>Refuser automatiquement hors zone</span>
           </label>
-          <label className={styles.ruleItem}>
+          
+          <label className={`${styles.ruleItem} ${!isEditing ? styles.disabled : ""}`}>
             <input
               type="checkbox"
               checked={state.rules.refuseOutOfSchedule}
               disabled={!isEditing}
               onChange={() => toggleRule("refuseOutOfSchedule")}
             />
-            Refuser hors horaires définis
+            <span>Refuser hors horaires définis</span>
           </label>
-          <label className={styles.ruleItem}>
+
+          <label className={`${styles.ruleItem} ${!isEditing ? styles.disabled : ""}`}>
             <input
               type="checkbox"
               checked={state.rules.autoAcceptEmergency}
               disabled={!isEditing}
               onChange={() => toggleRule("autoAcceptEmergency")}
             />
-            Accepter automatiquement les missions urgentes
+            <span>Accepter les missions urgentes (24h/24)</span>
           </label>
         </div>
       </section>

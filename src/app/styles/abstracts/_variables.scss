@@ -172,7 +172,6 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 $success-color: #2d6a4f;
 $error-color: #8b2a2a;
 
-
 /* ==========================================================================
    COULEURS SERVICES DISPLAY (Dark Theme)
    ========================================================================== */
@@ -191,7 +190,7 @@ $services-text-secondary: #e5e7eb;
 $services-text-muted: #9ca3af;
 
 // Ombres spécifiques
-$services-shadow-wrapper: 
+$services-shadow-wrapper:
   0 10px 30px rgba(0, 0, 0, 0.35),
   0 0 0 1px rgba(148, 163, 184, 0.3);
 $services-shadow-item: 0 2px 6px rgba(15, 23, 42, 0.35);
@@ -203,3 +202,27 @@ $services-shadow-item: 0 2px 6px rgba(15, 23, 42, 0.35);
 // Ces variables sont utilisées dans ServicesDisplay.module.scss
 // Elles peuvent être réutilisées dans d'autres composants similaires
 // qui nécessitent un thème sombre avec des accents dorés
+
+/* ==========================================================================
+   CARDS 
+   ========================================================================== */
+$card-bg: #f9fafb;
+$card-bg-light: #ffffff;
+$card-bg-dark: #1e293b;
+$card-border-light: rgba(0, 0, 0, 0.1);
+$card-border-dark: rgba(255, 255, 255, 0.1);
+
+$card-shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+$card-shadow-dark: 0 4px 12px rgba(0, 0, 0, 0.2);  
+$card-radius: 12px;
+$card-padding: 1.5rem;
+$card-margin-bottom: 2rem;
+$card-font-family: 'Garamond', serif;
+$card-accent-color: #d4af37;
+$card-helper-color: #6b6b6b;
+$card-highlight-color: #c9d6d5;
+$card-transition: all 0.3s ease;
+$card-border-radius: 12px;
+$card-box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+$card-font-family-serif: 'Garamond', serif;
+$card-font-family-title: 'Cinzel', serif;

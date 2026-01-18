@@ -1,4 +1,8 @@
 // src/app/components/dashboard/concierge/MissionDetails/MissionDetails.module.scss
+
+@use "sass:math";
+@use "sass:color";
+
 @use "app/styles/abstracts/variables" as *;
 @use "app/styles/abstracts/mixins" as *;
 
@@ -143,7 +147,7 @@ $services-shadow-item: 0 2px 6px rgba(15, 23, 42, 0.35);
 
   // Amélioration du contraste pour l'accessibilité
   @media (prefers-contrast: high) {
-    color: lighten($services-text-muted, 20%);
+    color: color.adjust($services-text-muted, $lightness: 20%);
   }
 }
 

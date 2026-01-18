@@ -1,8 +1,11 @@
 /* src/app/dashboard/concierge/page.module.scss */
-@import '../../styles/abstracts/mixins.scss';
-@import '../../styles/abstracts/functions.scss';
-@import '../../styles/abstracts/variables.scss';
-@import '../../styles/base/animations.scss';
+@use "sass:color";
+@use "sass:math";
+@use "app/styles/abstracts/_mixins" as *;
+@use "app/styles/abstracts/_variables" as *;
+@use "app/styles/abstracts/_functions" as *;
+@use "app/styles/base/_animations" as *;
+
 
 /* ==========================================================================
    CONCIERGE DASHBOARD - CHARTE 1900
