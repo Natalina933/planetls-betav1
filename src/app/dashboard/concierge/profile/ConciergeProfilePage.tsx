@@ -1,21 +1,16 @@
 "use client";
-
 import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./ConciergeProfilePage.module.scss";
-
-import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import {
-  CONCIERGE_TABS,
-  ConciergeTabId,
-} from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+import { CONCIERGE_TABS, ConciergeTabId, } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
 import type { MissionAvailability } from "@/app/components/missions/types";
+import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 
 import {
   FiBarChart,
@@ -33,7 +28,6 @@ import {
   FiSliders,
   FiTrendingUp,
 } from "react-icons/fi";
-
 import {
   User as LucideUser,
   Shield,
@@ -42,18 +36,13 @@ import {
   Save,
   X as LucideX,
   Edit2,
-  MapPin,
-  Phone as LucidePhone,
-  Mail as LucideMail,
+  // MapPin,
   Star,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
-
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
-
 type TabId = ConciergeTabId;
-
 export interface Profile {
   id: string;
   username: string;
@@ -98,7 +87,6 @@ export interface Profile {
   iban: string | null;
   bic: string | null;
 }
-
 const formatExperienceLabel = (
   level: "debutant" | "intermediaire" | "experimente" | null,
 ): string => {
@@ -113,21 +101,16 @@ const formatExperienceLabel = (
       return "Non renseigné";
   }
 };
-
 const normalizeSectionId = (title: string) =>
   title.replace(/[^a-zA-Z0-9]/g, "_");
-
 export default function ConciergeProfilePage() {
   const { update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // ✅ Extraire le tab de manière stable avec useMemo
   const tabFromUrl = useMemo(() => {
     const tab = searchParams.get("tab") as TabId;
     return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "fiche";
   }, [searchParams]);
-
   const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
@@ -144,14 +127,12 @@ export default function ConciergeProfilePage() {
   });
 
   // const isEditing = editingSection !== null;
-
   // ✅ Synchroniser activeTab avec l'URL
   useEffect(() => {
     if (tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
   }, [tabFromUrl, activeTab]);
-
   // ✅ Charger le profil une seule fois au montage
   useEffect(() => {
     let isMounted = true;
@@ -195,12 +176,10 @@ export default function ConciergeProfilePage() {
       isMounted = false;
     };
   }, []);
-
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
     router.push(`?tab=${tabId}`, { scroll: false });
   };
-
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -269,7 +248,6 @@ export default function ConciergeProfilePage() {
 
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
   };
-
   const handleAvatarUpload = async (file: File): Promise<string | null> => {
     if (!editProfile) return null;
     try {
@@ -299,7 +277,6 @@ export default function ConciergeProfilePage() {
       throw error;
     }
   };
-
   const handleSaveSection = async (sectionTitle: string) => {
     if (!editProfile) return;
 
@@ -360,14 +337,12 @@ export default function ConciergeProfilePage() {
       setLoading(false);
     }
   };
-
   const toggleSection = (sectionId: string) => {
     setOpenSections((prev) => ({
       ...prev,
       [sectionId]: !prev[sectionId],
     }));
   };
-
   const renderField = (
     label: string,
     name: keyof Profile | "service_area" | "service_radius_km",
@@ -439,7 +414,6 @@ export default function ConciergeProfilePage() {
       </div>
     );
   };
-
   const renderSection = (
     title: string,
     icon: React.ReactNode,
@@ -526,18 +500,15 @@ export default function ConciergeProfilePage() {
       </div>
     );
   };
-
   const handleSocialChange = (field: string, value: string) => {
     setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
-
-  const handleCancelEditing = () => {
-    setEditingSection(null);
-    setEditProfile(profile);
-    setErrors({});
-    setAvatarFile(null);
-  };
-
+  // const handleCancelEditing = () => {
+  //   setEditingSection(null);
+  //   setEditProfile(profile);
+  //   setErrors({});
+  //   setAvatarFile(null);
+  // };
   const renderTabContent = () => {
     if (!profile || !editProfile) return null;
 
@@ -548,38 +519,43 @@ export default function ConciergeProfilePage() {
             <aside className={styles.leftColumn}>
               <div className={styles.profileCard}>
                 <div className={styles.avatarWrapper}>
-                  <AvatarUpload
-                    value={avatarFile}
-                    existingUrl={editProfile.avatar_url || DEFAULT_AVATAR}
+
+                </div>
+
+                <div className={styles.profileIdentity}>
+                  <ProfileIdentity
+                    fullName={`${editProfile.first_name} ${editProfile.last_name}`}
+                    roleLabel="Concierge partenaire"
+                    email={editProfile.email}
+                    phone={editProfile.phone}
+                    city={editProfile.city ?? "Ville non renseignée, FR"}
+                    isEditing={editingSection === "Photo de profil"}
+                    avatarFile={avatarFile}
+                    existingAvatarUrl={editProfile.avatar_url ?? DEFAULT_AVATAR}
                     existingScale={editProfile.avatar_scale ?? 1}
                     existingOffsetX={editProfile.avatar_offset_x ?? 0}
                     existingOffsetY={editProfile.avatar_offset_y ?? 0}
                     existingRotation={editProfile.avatar_rotation ?? 0}
-                    isEditing={editingSection === "Photo_de_profil"}
-                    onChange={setAvatarFile}
-                    onScaleChange={(scale) =>
+                    onAvatarChange={setAvatarFile}
+                    onAvatarScaleChange={(scale) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_scale: scale } : prev,
+                        prev ? { ...prev, avatar_scale: scale } : prev
                       )
                     }
-                    onOffsetChange={(offsetX, offsetY) =>
+                    onAvatarOffsetChange={(offsetX, offsetY) =>
                       setEditProfile((prev) =>
                         prev
-                          ? {
-                            ...prev,
-                            avatar_offset_x: offsetX,
-                            avatar_offset_y: offsetY,
-                          }
-                          : prev,
+                          ? { ...prev, avatar_offset_x: offsetX, avatar_offset_y: offsetY }
+                          : prev
                       )
                     }
-                    onRotationChange={(rotation) =>
+                    onAvatarRotationChange={(rotation) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_rotation: rotation } : prev,
+                        prev ? { ...prev, avatar_rotation: rotation } : prev
                       )
                     }
-                    onSave={() => handleSaveSection("Photo de profil")}
-                    onRemove={() => {
+                    onAvatarSave={() => handleSaveSection("Photo de profil")}
+                    onAvatarRemove={() => {
                       setAvatarFile(null);
                       setEditProfile((prev) =>
                         prev
@@ -591,38 +567,14 @@ export default function ConciergeProfilePage() {
                             avatar_offset_y: 0,
                             avatar_rotation: 0,
                           }
-                          : prev,
+                          : prev
                       );
                     }}
+                    onEditAvatarClick={() => setEditingSection("Photo de profil")}
                   />
-                </div>
 
-                <div className={styles.profileIdentity}>
-                  <h2 className={styles.profileName}>
-                    {profile.first_name} {profile.last_name}
-                  </h2>
-                  <p className={styles.profileLocation}>
-                    <MapPin size={14} />
-                    <span>{profile.city || "Ville non renseignée"}, FR</span>
-                  </p>
-                </div>
 
-                <div className={styles.avatarActions}>
-                  {editingSection !== "Photo_de_profil" ? (
-                    <button
-                      onClick={() => setEditingSection("Photo_de_profil")}
-                      className={styles.editLink}
-                    >
-                      Changer la photo
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleCancelEditing}
-                      className={styles.cancelLink}
-                    >
-                      Annuler
-                    </button>
-                  )}
+
                 </div>
 
                 <div className={styles.profileStats}>
@@ -641,18 +593,7 @@ export default function ConciergeProfilePage() {
                   </div>
                 </div>
 
-                <div className={styles.profileContacts}>
-                  <div className={styles.profileContactItem}>
-                    <LucideMail size={14} />
-                    <span>{profile.email}</span>
-                  </div>
-                  {profile.phone && (
-                    <div className={styles.profileContactItem}>
-                      <LucidePhone size={14} />
-                      <span>{profile.phone}</span>
-                    </div>
-                  )}
-                </div>
+
               </div>
 
               <div className={styles.badgeCard}>
@@ -667,23 +608,13 @@ export default function ConciergeProfilePage() {
                 </p>
               </div>
 
-              <div className={styles.section}>
-                <h2
-                  className={`${styles.sectionTitleToggle} ${styles.sectionTitleToggleActive}`}
-                >
-                  <div className={styles.sectionTitleLeft}>
-                    <span className={styles.sectionIcon}>
-                      <FiBarChart />
-                    </span>
-                    <h2>Résumé du profil</h2>
-                  </div>
-                </h2>
-                <div
-                  className={`${styles.sectionContent} ${styles.sectionContentOpen}`}
-                >
-                  <ProfileSummary profile={profile} />
-                </div>
-              </div>
+              {renderSection(
+                "Résumé du profil",
+                <FiBarChart />,
+                <ProfileSummary profile={profile} />,
+                false,
+              )}
+
             </aside>
 
             <section className={styles.rightColumn}>
@@ -1291,15 +1222,12 @@ export default function ConciergeProfilePage() {
         return null;
     }
   };
-
   if (errorMsg && !profile) {
     return <div className={styles.errorMsg}>{errorMsg}</div>;
   }
-
   if (!profile || !editProfile) {
     return <div className={styles.loading}>Chargement du profil...</div>;
   }
-
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
@@ -1309,46 +1237,7 @@ export default function ConciergeProfilePage() {
           </div>
           <h1 className={styles.pageTitle}>Espace Concierge</h1>
         </div>
-
-        {/* <div className={styles.pageHeaderRight}>
-          {isEditing ? (
-            <>
-              <button
-                type="button"
-                onClick={() => handleSaveSection("Profil complet")}
-                disabled={loading}
-                className={styles.saveButton}
-              >
-                {loading ? (
-                  <span className={styles.saveSpinner} />
-                ) : (
-                  <Save size={16} />
-                )}
-                <span>Sauvegarder</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelEditing}
-                disabled={loading}
-                className={styles.cancelButton}
-              >
-                <LucideX size={16} />
-                <span>Annuler</span>
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setEditingSection("general")}
-              className={styles.editButton}
-            >
-              <Edit2 size={16} />
-              <span>Modifier le profil</span>
-            </button>
-          )}
-        </div> */}
       </header>
-
       <main className={styles.main}>
         {successMsg && (
           <div
@@ -1366,7 +1255,6 @@ export default function ConciergeProfilePage() {
             <span>{errorMsg}</span>
           </div>
         )}
-
         <div className={styles.tabs}>
           {CONCIERGE_TABS.map((tab) => {
             const Icon = tab.icon;
@@ -1386,7 +1274,6 @@ export default function ConciergeProfilePage() {
             );
           })}
         </div>
-
         <div className={styles.tabContent}>{renderTabContent()}</div>
       </main>
     </div>

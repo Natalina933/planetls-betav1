@@ -52,8 +52,6 @@ const REQUIRED_FIELDS: Record<keyof ProfileData, string> = {
   postal_code: "Code postal",
   city: "Ville",
   experience_level: "Niveau d'expérience",
-
-  // non requis ici
   created_at: "",
   years_experience: "",
   certifications: "",

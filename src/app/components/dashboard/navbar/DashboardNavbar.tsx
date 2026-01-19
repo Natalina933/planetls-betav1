@@ -89,7 +89,7 @@ export default function DashboardNavbar({
         </button>
 
         <div className={styles.titleBlock}>
-          <span className={styles.logoText}>Tableau de bord</span>
+          {/* <span className={styles.logoText}>Tableau de bord</span> */}
           <span className={styles.userNameInline}> {userName}</span>
         </div>
 

@@ -1,0 +1,173 @@
+.profileIdentity {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+  padding: 2rem 2.4rem;
+  border-radius: 1.2rem;
+  background: #0b1120;
+  color: #e5e7eb;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.45); // style dashboard moderne [web:4]
+  border: 1px solid rgba(148, 163, 184, 0.18);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.6rem 1.4rem;
+    gap: 1.6rem;
+  }
+}
+
+.avatarWrapper {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  overflow: visible;
+  border: 2px solid rgba(148, 163, 184, 0.8);
+  background: radial-gradient(circle at 30% 0, #1d4ed8, #020617); // halo léger [web:1]
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    width: 80px;
+    height: 80px;
+  }
+
+  // Si ton AvatarUpload ne couvre pas tout, tu peux forcer l’img interne :
+  :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.avatarCameraButton {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  transform: translate(15%, 15%);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.85);
+  background: radial-gradient(circle at 30% 0, #22c55e, #16a34a);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #e5e7eb;
+  box-shadow: 0 10px 30px rgba(22, 163, 74, 0.45); // bouton « caméra » qui flotte [web:2]
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background 0.15s ease-out;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    transform: translate(15%, 15%) scale(1.05);
+    box-shadow: 0 16px 36px rgba(22, 163, 74, 0.55);
+    background: radial-gradient(circle at 30% 0, #22c55e, #15803d);
+  }
+
+  &:active {
+    transform: translate(15%, 15%) scale(0.95);
+    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.4);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 0; // pour le text-overflow
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.name {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f9fafb;
+  margin: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    font-size: 1.4rem;
+    white-space: normal;
+  }
+}
+
+.roleBadge {
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: rgba(59, 130, 246, 0.16);
+  color: #bfdbfe;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.6rem;
+  font-size: 0.9rem;
+  color: #cbd5f5;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.9;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #64748b;
+  }
+
+  span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+/* Variante pendant l’édition pour que l’avatar et les champs respirent mieux */
+.isEditing {
+  .profileIdentity {
+    align-items: flex-start;
+  }
+
+  .avatarWrapper {
+    border-style: dashed;
+    border-color: rgba(148, 163, 184, 0.7);
+  }
+}

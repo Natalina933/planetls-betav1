@@ -1,7 +1,9 @@
 @use "sass:color";
+@use "app/styles/abstracts/variables" as *;
+@use "app/styles/abstracts/mixins" as *;
 
 /* ======================================================
-   VARIABLES LOCALES (alignées avec ton design system)
+   VARIABLES LOCALES
 ====================================================== */
 $page-bg: var(--color-bg-page, #f4f6f8);
 $card-bg: var(--color-bg-card, #ffffff);
@@ -10,8 +12,15 @@ $accent: var(--color-accent, #c9a24d);
 $text-main: var(--color-text-main, #1f2933);
 $text-muted: var(--color-text-muted, #6b7280);
 $border-soft: rgba(0, 0, 0, 0.08);
+$success-color: rgba(34, 197, 94, 0.12);
+$success-text: #166534;
+$error-bg: rgba(220, 38, 38, 0.12);
+$error-text: #7f1d1d;
 $radius: 14px;
 $transition: 0.25s ease;
+$transition-slow: 0.35s ease;
+$avatar-size: 38px;
+$button-radius: 999px;
 
 /* ======================================================
    PAGE WRAPPER
@@ -44,10 +53,10 @@ $transition: 0.25s ease;
 }
 
 .logo {
-  width: 38px;
-  height: 38px;
+  width: $avatar-size;
+  height: $avatar-size;
   border-radius: 50%;
-  background: rgba(201, 162, 77, 0.15);
+  background: rgba($accent, 0.15);
   color: $accent;
   display: flex;
   align-items: center;
@@ -76,7 +85,7 @@ $transition: 0.25s ease;
   align-items: center;
   gap: 0.4rem;
   padding: 0.55rem 1.2rem;
-  border-radius: 999px;
+  border-radius: $button-radius;
   font-weight: 500;
   cursor: pointer;
   border: none;
@@ -86,26 +95,29 @@ $transition: 0.25s ease;
 .editButton {
   background: $primary;
   color: #fff;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .saveButton {
   background: $accent;
-  color: #1f2933;
+  color: $text-main;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .cancelButton {
   background: transparent;
   border: 1px solid $border-soft;
   color: $text-muted;
-}
 
-.editButton:hover,
-.saveButton:hover {
-  transform: translateY(-1px);
-}
-
-.cancelButton:hover {
-  background: rgba(0, 0, 0, 0.04);
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
 }
 
 .saveSpinner {
@@ -137,13 +149,13 @@ $transition: 0.25s ease;
 }
 
 .notificationSuccess {
-  background: rgba(34, 197, 94, 0.12);
-  color: #166534;
+  background: $success-color;
+  color: $success-text;
 }
 
 .notificationError {
-  background: rgba(220, 38, 38, 0.12);
-  color: #7f1d1d;
+  background: $error-bg;
+  color: $error-text;
 }
 
 /* ======================================================
@@ -159,28 +171,27 @@ $transition: 0.25s ease;
 
 .tab {
   display: flex;
-  
   align-items: center;
   gap: 0.45rem;
   padding: 0.55rem 1rem;
-  border-radius: 999px;
+  border-radius: $button-radius;
   background: $card-bg;
   border: 1px solid $border-soft;
   color: $text-muted;
   cursor: pointer;
   transition: all $transition;
-}
 
-.tab:hover {
-  border-color: $accent;
-  color: $primary;
+  &:hover {
+    border-color: $accent;
+    color: $primary;
+  }
 }
 
 .tabActive {
   background: linear-gradient(
     135deg,
-    rgba(201, 162, 77, 0.18),
-    rgba(201, 162, 77, 0.05)
+    rgba($accent, 0.18),
+    rgba($accent, 0.05)
   );
   border-color: $accent;
   color: $primary;
@@ -236,11 +247,17 @@ $transition: 0.25s ease;
   bottom: 0.25rem;
   right: 0.25rem;
   background: $accent;
-  color: #1f2933;
+  color: $text-main;
   border-radius: 50%;
   padding: 0.35rem;
   border: none;
   cursor: pointer;
+  transition: $transition;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba($accent, 0.3);
+  }
 }
 
 .profileIdentity {
@@ -319,12 +336,12 @@ $transition: 0.25s ease;
 .badgeCard {
   background: linear-gradient(
     135deg,
-    rgba(201, 162, 77, 0.18),
-    rgba(201, 162, 77, 0.05)
+    rgba($accent, 0.18),
+    rgba($accent, 0.05)
   );
   border-radius: $radius;
   padding: 1rem 1.25rem;
-  border: 1px solid rgba(201, 162, 77, 0.3);
+  border: 1px solid rgba($accent, 0.3);
 }
 
 .badgeTitle {
@@ -360,15 +377,16 @@ $transition: 0.25s ease;
   color: $primary;
   background: linear-gradient(
     to right,
-    rgba(201, 162, 77, 0.1),
+    rgba($accent, 0.1),
     transparent
   );
+  transition: $transition;
 }
 
 .sectionTitleToggleActive {
   background: linear-gradient(
     to right,
-    rgba(201, 162, 77, 0.2),
+    rgba($accent, 0.2),
     transparent
   );
 }
