@@ -274,3 +274,195 @@
   font-size: 0.8rem;
   color: #fecaca;
 }
+
+/* ============================================
+   MODAL - POPUP POUR EDITER L'AVATAR
+   ============================================ */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(51, 65, 85, 0.85);
+  border-radius: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 40px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(148, 163, 184, 0.15);
+  animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+
+  @media (max-width: 480px) {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.8rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+  background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.1), transparent);
+}
+
+.modalTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #f9fafb;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.6rem;
+  transition:
+    background 0.15s ease-out,
+    color 0.15s ease-out,
+    transform 0.1s ease-out;
+
+  &:hover {
+    background: rgba(148, 163, 184, 0.1);
+    color: #f9fafb;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.8rem;
+  overflow-y: auto;
+  flex: 1;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.4);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 999px;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.6);
+    }
+  }
+}
+
+.previewLarge {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 2px solid rgba(148, 163, 184, 0.6);
+  background: radial-gradient(circle at 30% 0, #1d4ed8, #020617);
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.4),
+    inset 0 1px 0 rgba(148, 163, 184, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderLarge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80%;
+  height: 80%;
+  border-radius: 0.8rem;
+  background: rgba(15, 23, 42, 0.85);
+  color: #9ca3af;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.modalFooter {
+  display: flex;
+  gap: 0.8rem;
+  padding: 1.5rem 1.8rem;
+  border-top: 1px solid rgba(51, 65, 85, 0.6);
+  background: rgba(15, 23, 42, 0.4);
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    padding: 1.2rem;
+    gap: 0.6rem;
+  }
+}
+
+.cancel {
+  background: rgba(51, 65, 85, 0.2);
+  color: #cbd5f5;
+  border-color: rgba(148, 163, 184, 0.4);
+
+  &:hover {
+    background: rgba(51, 65, 85, 0.35);
+    box-shadow: 0 10px 25px rgba(51, 65, 85, 0.3);
+  }
+}
+
+.validateDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}

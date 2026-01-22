@@ -4,26 +4,26 @@ import styles from "./ProfileIdentity.module.scss";
 
 
 type ProfileIdentityProps = {
-  fullName: string;
-  roleLabel?: string;
-  email?: string | null;
-  phone?: string | null;
-  city?: string | null;
+    fullName: string;
+    roleLabel?: string;
+    email?: string | null;
+    phone?: string | null;
+    city?: string | null;
 
-  isEditing: boolean;
-  avatarFile: File | null;
-  existingAvatarUrl?: string | null;
-  existingScale?: number;
-  existingOffsetX?: number;
-  existingOffsetY?: number;
-  existingRotation?: number;
-  onAvatarChange: (file: File | null) => void;
-  onAvatarScaleChange?: (scale: number) => void;
-  onAvatarOffsetChange?: (offsetX: number, offsetY: number) => void;
-  onAvatarRotationChange?: (rotation: number) => void;
-  onAvatarSave?: () => void;
-  onAvatarRemove?: () => void;
-  onEditAvatarClick: () => void;
+    isEditing: boolean;
+    avatarFile: File | null;
+    existingAvatarUrl?: string | null;
+    existingScale?: number;
+    existingOffsetX?: number;
+    existingOffsetY?: number;
+    existingRotation?: number;
+    onAvatarChange: (file: File | null) => void;
+    onAvatarScaleChange?: (scale: number) => void;
+    onAvatarOffsetChange?: (offsetX: number, offsetY: number) => void;
+    onAvatarRotationChange?: (rotation: number) => void;
+    onAvatarSave?: () => void;
+    onAvatarRemove?: () => void;
+    onEditAvatarClick: () => void;
 };
 
 export function ProfileIdentity(props: ProfileIdentityProps) {
@@ -54,12 +54,11 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
             <div className={styles.avatarWrapper}>
                 <AvatarUpload
                     value={avatarFile}
-                    existingUrl={existingAvatarUrl ?? undefined}
+                    existingUrl={existingAvatarUrl}
                     existingScale={existingScale}
                     existingOffsetX={existingOffsetX}
                     existingOffsetY={existingOffsetY}
                     existingRotation={existingRotation}
-                    isEditing={isEditing}
                     onChange={onAvatarChange}
                     onScaleChange={onAvatarScaleChange}
                     onOffsetChange={onAvatarOffsetChange}

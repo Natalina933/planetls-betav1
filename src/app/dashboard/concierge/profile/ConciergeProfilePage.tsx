@@ -572,11 +572,6 @@ export default function ConciergeProfilePage() {
                     }}
                     onEditAvatarClick={() => setEditingSection("Photo de profil")}
                   />
-
-
-
-                </div>
-
                 <div className={styles.profileStats}>
                   <div className={styles.profileStatItem}>
                     <p className={styles.profileStatLabel}>Note</p>
@@ -592,6 +587,11 @@ export default function ConciergeProfilePage() {
                     </p>
                   </div>
                 </div>
+
+
+                </div>
+
+
 
 
               </div>

@@ -67,11 +67,11 @@ $themes: (
 
 .dashboard-content {
   flex-grow: 1;
-  padding: var.$spacing-lg;
+  padding: var.$spacing-sm;
   max-width: var.$max-content-width;
   margin: var.$spacing-xs auto;
   width: 95%;
-//   background: theme(dark, gold);
+  background: theme(dark, gold);
   border: 3px solid theme(dark, ink);
   box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
 
