@@ -13,6 +13,12 @@ import {
 import styles from "./SocialLinksManager.module.scss";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 
+/* -------------------------------------------------------------------------- */
+/*                                   Types                                    */
+/* -------------------------------------------------------------------------- */
+
+export type SocialField = "website" | "linkedin" | "instagram" | "facebook";
+
 interface SocialLinksManagerProps {
   website?: string | null;
   linkedin?: string | null;
@@ -20,17 +26,12 @@ interface SocialLinksManagerProps {
   facebook?: string | null;
   isEditing: boolean;
   onEdit?: () => void;
-  onChange: (field: string, value: string) => void;
-  errors?: {
-    website?: string;
-    linkedin?: string;
-    instagram?: string;
-    facebook?: string;
-  };
+  onChange: (field: SocialField, value: string) => void;
+  errors?: Partial<Record<SocialField, string>>;
 }
 
 interface SocialLink {
-  id: string;
+  id: SocialField;
   label: string;
   icon: React.ReactNode;
   color: string;
@@ -38,6 +39,10 @@ interface SocialLink {
   value?: string | null;
   gradient?: string;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                              Component                                     */
+/* -------------------------------------------------------------------------- */
 
 const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
   website,
@@ -71,7 +76,8 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
       label: "Instagram",
       icon: <FiInstagram size={20} />,
       color: "#E4405F",
-      gradient: "linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)",
+      gradient:
+        "linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)",
       placeholder: "https://instagram.com/ma_conciergerie",
       value: instagram,
     },
@@ -85,44 +91,52 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
     },
   ];
 
-  const hasAnyLink = socialLinks.some((link) => link.value);
+  const hasAnyLink = socialLinks.some((link) => !!link.value);
 
-  const formatUrl = (url: string) => {
-    return url.startsWith("http") ? url : `https://${url}`;
-  };
+  const formatUrl = (url: string) =>
+    url.startsWith("http") ? url : `https://${url}`;
 
-  // Mode lecture : Affichage des liens
+  /* ------------------------------------------------------------------------ */
+  /*                               View mode                                  */
+  /* ------------------------------------------------------------------------ */
+
   if (!isEditing) {
     return (
       <div className={styles.container}>
         {hasAnyLink ? (
           <div className={styles.linksGrid}>
-            {socialLinks.map((link) =>
-              link.value ? (
-                <a
-                  key={link.id}
-                  href={formatUrl(link.value)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.linkCard}
-                >
-                  <div
-                    className={styles.linkIcon}
-                    style={{
-                      background: link.gradient || link.color,
-                    }}
+            {socialLinks.map(
+              (link) =>
+                link.value && (
+                  <a
+                    key={link.id}
+                    href={formatUrl(link.value)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.linkCard}
                   >
-                    {link.icon}
-                  </div>
-                  <div className={styles.linkContent}>
-                    <span className={styles.linkLabel}>{link.label}</span>
-                    <span className={styles.linkUrl}>
-                      {link.value.replace(/^https?:\/\/(www\.)?/, "")}
-                    </span>
-                  </div>
-                  <FiExternalLink size={16} className={styles.externalIcon} />
-                </a>
-              ) : null
+                    <div
+                      className={styles.linkIcon}
+                      style={{
+                        background: link.gradient || link.color,
+                      }}
+                    >
+                      {link.icon}
+                    </div>
+
+                    <div className={styles.linkContent}>
+                      <span className={styles.linkLabel}>{link.label}</span>
+                      <span className={styles.linkUrl}>
+                        {link.value.replace(/^https?:\/\/(www\.)?/, "")}
+                      </span>
+                    </div>
+
+                    <FiExternalLink
+                      size={16}
+                      className={styles.externalIcon}
+                    />
+                  </a>
+                ),
             )}
           </div>
         ) : (
@@ -132,6 +146,7 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
             </div>
             <h4>Aucun réseau social configuré</h4>
             <p>Ajoutez vos liens pour permettre aux clients de vous suivre</p>
+
             {onEdit && (
               <button onClick={onEdit} className={styles.emptyButton}>
                 <FiGlobe size={18} />
@@ -144,7 +159,10 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
     );
   }
 
-  // Mode édition : Formulaire
+  /* ------------------------------------------------------------------------ */
+  /*                               Edit mode                                  */
+  /* ------------------------------------------------------------------------ */
+
   return (
     <div className={styles.container}>
       <div className={styles.formGrid}>
@@ -159,10 +177,12 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
             >
               {link.icon}
             </div>
+
             <div className={styles.fieldInput}>
               <label htmlFor={link.id} className={styles.fieldLabel}>
                 {link.label}
               </label>
+
               <InputWithValidation
                 id={link.id}
                 name={link.id}
@@ -170,10 +190,8 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
                 value={link.value || ""}
                 onChange={(e) => onChange(link.id, e.target.value)}
                 placeholder={link.placeholder}
-                error={errors[link.id as keyof typeof errors] || ""}
-                isValid={
-                  !errors[link.id as keyof typeof errors] && !!link.value
-                }
+                error={errors[link.id] || ""}
+                isValid={!errors[link.id] && !!link.value}
               />
             </div>
           </div>
@@ -184,7 +202,7 @@ const SocialLinksManager: React.FC<SocialLinksManagerProps> = ({
         <FiInfo size={16} />
         <span>
           Ces liens apparaîtront sur votre profil public et permettront aux
-          clients de vous suivre sur vos réseaux sociaux.
+          clients de vous suivre.
         </span>
       </div>
     </div>

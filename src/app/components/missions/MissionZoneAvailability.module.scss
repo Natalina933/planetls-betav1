@@ -1,171 +1,278 @@
-@use "sass:math";
-@use "sass:color";
+// ============================================
+// AVAILABILITY EDITOR STYLES
+// ============================================
 
-/* =========================
-   Palette Art Nouveau / 1900
-========================= */
-$color-primary: #2a3d66; // Bleu profond
-$color-accent: #d4af37; // Doré
-$color-bg: #f5f3ee; // Beige clair
-$color-text: #2b2b2b; // Gris foncé
-$color-helper: #6b6b6b; // Gris secondaire
-$color-highlight: #c9d6d5; // Vert d’eau subtil
+$color-primary: #d4af37;
+$color-primary-light: #f4d03f;
+$color-primary-dark: #b8941e;
+$color-bg-card: #ffffff;
+$color-text-primary: #1a1a2e;
+$color-text-secondary: #6b7280;
+$color-border: #e5e7eb;
+$color-border-light: #f3f4f6;
+$color-error: #ef4444;
 
-$border-radius: 12px;
-$transition: all 0.3s ease;
+$radius-sm: 6px;
+$radius-md: 10px;
 
-/* =========================
-   Container global
-========================= */
+$transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+// ============================================
+// CONTAINER
+// ============================================
+
 .container {
-  background: $color-bg;
-  padding: 1.5rem;
-  border-radius: $border-radius;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  font-family: "Garamond", serif;
-  color: $color-text;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* =========================
-   Sections
-========================= */
-.block {
-  margin-bottom: 2rem;
-  padding: 1rem 1.5rem;
-  background: color.adjust($color-bg, $lightness: 2%);
-  border: 1px solid $color-accent;
-  border-radius: $border-radius;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-
-  h4 {
-    font-family: "Cinzel", serif;
-    color: $color-primary;
-    margin-bottom: 1rem;
-    position: relative;
-
-    &::after {
-      content: "";
-      display: block;
-      width: 50px;
-      height: 2px;
-      background: $color-accent;
-      margin-top: 4px;
-      border-radius: 2px;
-    }
-  }
-}
-
-/* =========================
-   Helpers
-========================= */
-.helper {
-  font-size: 0.9rem;
-  color: $color-helper;
-}
-
-/* =========================
-   Schedule
-========================= */
-.scheduleRow {
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, $color-primary-dark, $color-primary-light);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
   gap: 0.5rem;
-
-  strong {
-    width: 100px;
-    color: $color-primary;
-  }
-
-  .scheduleInput {
-    flex: 1;
-    padding: 0.3rem 0.6rem;
-    border: 1px solid $color-accent;
-    border-radius: math.div($border-radius, 2);
-    background: #fff9f0;
-    transition: $transition;
-
-    &:focus {
-      outline: none;
-      box-shadow: 0 0 5px $color-accent;
-    }
-  }
-
-  .scheduleDisplay {
-    font-style: italic;
-    color: $color-text;
-  }
-
-  .placeholder {
-    font-style: italic;
-    color: $color-helper;
-  }
 }
 
-/* =========================
-   Rules
-========================= */
-.rulesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+// ============================================
+// DAYS GRID
+// ============================================
+
+.daysGrid {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-
-  .ruleItem {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: $color-highlight;
-    padding: 0.5rem 1rem;
-    border-radius: $border-radius;
-    transition: $transition;
-
-    input {
-      width: 18px;
-      height: 18px;
-      accent-color: $color-accent;
-      cursor: pointer;
-    }
-
-    &:hover {
-      background: color.adjust($color-highlight, $lightness: 5%);
-    }
-  }
 }
 
-/* =========================
-   Range input local
-========================= */
-.rangeInput {
-  width: 100%;
-  margin-top: 0.5rem;
-  accent-color: $color-accent;
-  border-radius: math.div($border-radius, 2);
-}
-
-/* =========================
-   Leaflet Map container local
-========================= */
-.mapContainer {
-  height: 300px;
-  border: 1px solid $color-accent;
-  border-radius: $border-radius;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* =========================
-   Boutons locaux
-========================= */
-.btnPrimary {
-  cursor: pointer;
-  background: $color-accent;
-  color: #fff;
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: math.div($border-radius, 2);
-  font-family: "Cinzel", serif;
-  transition: $transition;
+.dayBlock {
+  padding: 1rem;
+  background: rgba($color-primary, 0.02);
+  border: 1px solid rgba($color-primary, 0.1);
+  border-radius: $radius-md;
+  transition: all $transition-base;
 
   &:hover {
-    background: color.adjust($color-accent, $lightness: -10%);
+    background: rgba($color-primary, 0.04);
+    border-color: rgba($color-primary, 0.2);
+  }
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.dayLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: $color-text-primary;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.addRangeBtn {
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, $color-primary-dark, $color-primary-light);
+  color: white;
+  border: none;
+  border-radius: $radius-sm;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba($color-primary, 0.3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.noRanges {
+  font-size: 0.875rem;
+  color: $color-text-secondary;
+  font-style: italic;
+  margin: 0;
+}
+
+// ============================================
+// TIME RANGES
+// ============================================
+
+.rangesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rangeItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeInputWrapper {
+  position: relative;
+}
+
+.timeInput {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: white;
+  color: $color-text-primary;
+  transition: all $transition-base;
+  min-width: 110px;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+  }
+
+  &:disabled,
+  &:read-only {
+    background: $color-border-light;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  &:hover:not(:disabled):not(:read-only) {
+    border-color: $color-primary;
+  }
+}
+
+.separator {
+  color: $color-text-secondary;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.removeBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba($color-error, 0.1);
+  color: $color-error;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: all $transition-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba($color-error, 0.2);
+    transform: scale(1.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-error;
+    outline-offset: 2px;
+  }
+}
+
+// ============================================
+// SCREEN READER ONLY
+// ============================================
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// ============================================
+// EMERGENCY TOGGLE
+// ============================================
+
+.emergencyToggle {
+  padding-top: 1.5rem;
+  border-top: 1px solid $color-border-light;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.925rem;
+
+  strong {
+    display: block;
+    color: $color-primary-dark;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  &:hover .checkbox:not(:disabled) {
+    border-color: $color-primary;
+  }
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: $color-primary;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.checkboxDesc {
+  display: block;
+  font-size: 0.8rem;
+  color: $color-text-secondary;
+  line-height: 1.4;
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 640px) {
+  .dayBlock {
+    padding: 0.875rem;
+  }
+
+  .rangeItem {
+    flex-wrap: wrap;
+  }
+
+  .timeInput {
+    min-width: 100px;
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -8,17 +8,20 @@ import {
   Marker,
   useMapEvents,
 } from "react-leaflet";
-import L, { LatLngExpression } from "leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MissionAvailability } from "./types";
 
-// 🔹 Fix TS pour les icônes Leaflet
-interface IconDefaultWithFix extends L.Icon.Default {
-  _getIconUrl?: () => string;
-}
+/* -------------------------------------------------------------------------- */
+/* Leaflet icon fix                                                           */
+/* -------------------------------------------------------------------------- */
 
-const DefaultIcon = L.Icon.Default.prototype as IconDefaultWithFix;
-delete DefaultIcon._getIconUrl;
+type LeafletIconProto = {
+  _getIconUrl?: () => string;
+};
+
+delete (L.Icon.Default.prototype as LeafletIconProto)._getIconUrl;
+
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -29,12 +32,32 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+/* -------------------------------------------------------------------------- */
+
 interface MissionMapProps {
   zones: MissionAvailability["zones"];
   radiusKm: number;
   onZonesChange: (zones: MissionAvailability["zones"]) => void;
   onRadiusChange: (radiusKm: number) => void;
   isEditing: boolean;
+}
+
+function MapClickHandler({
+  enabled,
+  onAdd,
+}: {
+  enabled: boolean;
+  onAdd: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      if (enabled) {
+        onAdd(e.latlng.lat, e.latlng.lng);
+      }
+    },
+  });
+
+  return null;
 }
 
 export default function MissionMap({
@@ -46,56 +69,37 @@ export default function MissionMap({
 }: MissionMapProps) {
   const [newZoneLabel, setNewZoneLabel] = useState("");
 
-  // Ajouter une zone via input
-  const addZone = () => {
+  const addZoneAt = useCallback(
+    (lat: number, lng: number, label = "Nouveau point") => {
+      onZonesChange([
+        ...zones,
+        {
+          placeId: crypto.randomUUID(),
+          label,
+          lat,
+          lng,
+        },
+      ]);
+    },
+    [zones, onZonesChange]
+  );
+
+  const addZoneFromInput = () => {
     if (!newZoneLabel) return;
-
-    const mockLatLng: LatLngExpression = [48.8566, 2.3522]; // Paris par défaut
-    onZonesChange([
-      ...zones,
-      {
-        placeId: Date.now().toString(),
-        label: newZoneLabel,
-        lat: (mockLatLng as [number, number])[0],
-        lng: (mockLatLng as [number, number])[1],
-      },
-    ]);
+    addZoneAt(48.8566, 2.3522, newZoneLabel);
     setNewZoneLabel("");
-  };
-
-  // Ajouter une zone via clic sur la carte
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(e) {
-        if (!isEditing) return;
-
-        onZonesChange([
-          ...zones,
-          {
-            placeId: Date.now().toString(),
-            label: "Nouveau point",
-            lat: e.latlng.lat,
-            lng: e.latlng.lng,
-          },
-        ]);
-      },
-    });
-    return null;
   };
 
   return (
     <div>
       {isEditing && (
-        <div style={{ marginBottom: "0.5rem", display: "flex", gap: "0.5rem" }}>
+        <div style={{ marginBottom: 8, display: "flex", gap: 8 }}>
           <input
-            type="text"
-            placeholder="Ajouter une zone..."
             value={newZoneLabel}
             onChange={(e) => setNewZoneLabel(e.target.value)}
+            placeholder="Ajouter une zone…"
           />
-          <button type="button" onClick={addZone}>
-            Ajouter
-          </button>
+          <button onClick={addZoneFromInput}>Ajouter</button>
         </div>
       )}
 
@@ -105,8 +109,8 @@ export default function MissionMap({
         style={{ height: 300, width: "100%" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="© OpenStreetMap"
         />
 
         {zones.map((z) => (
@@ -115,29 +119,30 @@ export default function MissionMap({
 
         {zones.map((z) => (
           <Circle
-            key={z.placeId}
+            key={`${z.placeId}-circle`}
             center={[z.lat, z.lng]}
             radius={radiusKm * 1000}
             pathOptions={{ color: "blue", fillOpacity: 0.2 }}
           />
         ))}
 
-        <MapClickHandler />
+        <MapClickHandler
+          enabled={isEditing}
+          onAdd={(lat, lng) => addZoneAt(lat, lng)}
+        />
       </MapContainer>
 
       {isEditing && (
-        <div style={{ marginTop: "0.5rem" }}>
-          <label>
-            Rayon : {radiusKm} km
-            <input
-              type="range"
-              min={5}
-              max={100}
-              value={radiusKm}
-              onChange={(e) => onRadiusChange(Number(e.target.value))}
-            />
-          </label>
-        </div>
+        <label style={{ marginTop: 8, display: "block" }}>
+          Rayon : {radiusKm} km
+          <input
+            type="range"
+            min={5}
+            max={100}
+            value={radiusKm}
+            onChange={(e) => onRadiusChange(Number(e.target.value))}
+          />
+        </label>
       )}
     </div>
   );

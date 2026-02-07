@@ -1,10 +1,21 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
+
+import React, {
+  useState,
+  useEffect,
+  ChangeEvent,
+  useMemo,
+  KeyboardEvent,
+} from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import styles from "./ConciergeProfilePage.module.scss";
+
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import { CONCIERGE_TABS, ConciergeTabId, } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+import {
+  CONCIERGE_TABS,
+  ConciergeTabId,
+} from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
@@ -36,13 +47,15 @@ import {
   Save,
   X as LucideX,
   Edit2,
-  // MapPin,
   Star,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
+
 type TabId = ConciergeTabId;
+
 export interface Profile {
   id: string;
   username: string;
@@ -86,7 +99,11 @@ export interface Profile {
   experience_level: "debutant" | "intermediaire" | "experimente" | null;
   iban: string | null;
   bic: string | null;
+  // champs étendus pour l'onglet équipe
+  service_area?: string | null;
+  service_radius_km?: number | null;
 }
+
 const formatExperienceLabel = (
   level: "debutant" | "intermediaire" | "experimente" | null,
 ): string => {
@@ -101,16 +118,31 @@ const formatExperienceLabel = (
       return "Non renseigné";
   }
 };
+
 const normalizeSectionId = (title: string) =>
   title.replace(/[^a-zA-Z0-9]/g, "_");
+
+const SECTION_IDS = {
+  INFO_PERSO: normalizeSectionId("Informations personnelles"),
+  SERVICES_ZONE: normalizeSectionId("Services & Zone d'intervention"),
+  TARIFS: normalizeSectionId("Ma grille tarifaire"),
+} as const;
+
+type ExtendedFieldName =
+  | keyof Profile
+  | "service_area"
+  | "service_radius_km";
+
 export default function ConciergeProfilePage() {
   const { update } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const tabFromUrl = useMemo(() => {
     const tab = searchParams.get("tab") as TabId;
     return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "fiche";
   }, [searchParams]);
+
   const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
@@ -121,19 +153,19 @@ export default function ConciergeProfilePage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    [normalizeSectionId("Informations personnelles")]: true,
-    [normalizeSectionId("Services & Zone d'intervention")]: true,
-    [normalizeSectionId("Ma grille tarifaire")]: true,
+    [SECTION_IDS.INFO_PERSO]: true,
+    [SECTION_IDS.SERVICES_ZONE]: true,
+    [SECTION_IDS.TARIFS]: true,
   });
 
-  // const isEditing = editingSection !== null;
-  // ✅ Synchroniser activeTab avec l'URL
-  useEffect(() => {
-    if (tabFromUrl !== activeTab) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [tabFromUrl, activeTab]);
-  // ✅ Charger le profil une seule fois au montage
+  // Synchroniser l'onglet avec l'URL
+useEffect(() => {
+  if (tabFromUrl !== activeTab) {
+    setActiveTab(tabFromUrl);
+  }
+}, [tabFromUrl, activeTab]);
+
+  // Charger le profil au montage
   useEffect(() => {
     let isMounted = true;
 
@@ -159,7 +191,6 @@ export default function ConciergeProfilePage() {
         setEditProfile(data);
       } catch (error: unknown) {
         if (!isMounted) return;
-
         const errorMessage =
           error instanceof Error ? error.message : "Erreur inconnue";
         console.error(
@@ -176,10 +207,60 @@ export default function ConciergeProfilePage() {
       isMounted = false;
     };
   }, []);
+
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
     router.push(`?tab=${tabId}`, { scroll: false });
   };
+
+  const validateField = (name: string, value: string): string => {
+    if (!value) return "";
+
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(value) ? "" : "Email invalide";
+    }
+
+    if (name === "phone") {
+      const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
+      return phoneRegex.test(value) ? "" : "Téléphone invalide";
+    }
+
+    if (name === "siret") {
+      const siretRegex = /^[0-9]{14}$/;
+      return siretRegex.test(value.replace(/\s/g, ""))
+        ? ""
+        : "SIRET invalide (14 chiffres)";
+    }
+
+    if (name === "siren") {
+      const sirenRegex = /^[0-9]{9}$/;
+      return sirenRegex.test(value.replace(/\s/g, ""))
+        ? ""
+        : "SIREN invalide (9 chiffres)";
+    }
+
+    if (name === "postal_code") {
+      const postalRegex = /^[0-9]{5}$/;
+      return postalRegex.test(value) ? "" : "Code postal invalide (5 chiffres)";
+    }
+
+    if (name === "website") {
+      const urlRegex =
+        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
+      return urlRegex.test(value) ? "" : "URL invalide";
+    }
+
+    if (name === "iban") {
+      const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
+      return ibanRegex.test(value.replace(/\s/g, ""))
+        ? ""
+        : "IBAN invalide";
+    }
+
+    return "";
+  };
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -189,65 +270,16 @@ export default function ConciergeProfilePage() {
 
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
-      setEditProfile((prev) =>
-        prev ? { ...prev, [name]: checked } : prev,
-      );
+      setEditProfile((prev) => (prev ? { ...prev, [name]: checked } : prev));
       return;
     }
 
-    // ✅ Correction: utiliser value au lieu de checked
-    setEditProfile((prev) =>
-      prev ? { ...prev, [name]: value } : prev,
-    );
+    setEditProfile((prev) => (prev ? { ...prev, [name]: value } : prev));
 
-    let errorMessage = "";
-
-    if (name === "email" && value) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      errorMessage = emailRegex.test(value) ? "" : "Email invalide";
-    }
-
-    if (name === "phone" && value) {
-      const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
-      errorMessage = phoneRegex.test(value) ? "" : "Téléphone invalide";
-    }
-
-    if (name === "siret" && value) {
-      const siretRegex = /^[0-9]{14}$/;
-      errorMessage = siretRegex.test(value.replace(/\s/g, ""))
-        ? ""
-        : "SIRET invalide (14 chiffres)";
-    }
-
-    if (name === "siren" && value) {
-      const sirenRegex = /^[0-9]{9}$/;
-      errorMessage = sirenRegex.test(value.replace(/\s/g, ""))
-        ? ""
-        : "SIREN invalide (9 chiffres)";
-    }
-
-    if (name === "postal_code" && value) {
-      const postalRegex = /^[0-9]{5}$/;
-      errorMessage = postalRegex.test(value)
-        ? ""
-        : "Code postal invalide (5 chiffres)";
-    }
-
-    if (name === "website" && value) {
-      const urlRegex =
-        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w .-]*)*\/?$/;
-      errorMessage = urlRegex.test(value) ? "" : "URL invalide";
-    }
-
-    if (name === "iban" && value) {
-      const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
-      errorMessage = ibanRegex.test(value.replace(/\s/g, ""))
-        ? ""
-        : "IBAN invalide";
-    }
-
+    const errorMessage = validateField(name, value);
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
   };
+
   const handleAvatarUpload = async (file: File): Promise<string | null> => {
     if (!editProfile) return null;
     try {
@@ -277,6 +309,7 @@ export default function ConciergeProfilePage() {
       throw error;
     }
   };
+
   const handleSaveSection = async (sectionTitle: string) => {
     if (!editProfile) return;
 
@@ -337,15 +370,27 @@ export default function ConciergeProfilePage() {
       setLoading(false);
     }
   };
+
   const toggleSection = (sectionId: string) => {
     setOpenSections((prev) => ({
       ...prev,
       [sectionId]: !prev[sectionId],
     }));
   };
+
+  const handleSectionHeaderKeyDown = (
+    e: KeyboardEvent<HTMLDivElement>,
+    sectionId: string,
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleSection(sectionId);
+    }
+  };
+
   const renderField = (
     label: string,
-    name: keyof Profile | "service_area" | "service_radius_km",
+    name: ExtendedFieldName,
     sectionId: string,
     isTextarea: boolean = false,
     required: boolean = false,
@@ -354,8 +399,8 @@ export default function ConciergeProfilePage() {
     inputProps?: Record<string, number | string>,
   ) => {
     const isThisSectionEditing = editingSection === sectionId;
-    // @ts-expect-error champs étendus pour l'onglet équipe
-    const value = editProfile?.[name] ?? "";
+    const value = (editProfile?.[name as keyof Profile] ??
+      "") as string | number | null;
     const error = errors[name as string];
 
     if (type === "checkbox") {
@@ -387,7 +432,7 @@ export default function ConciergeProfilePage() {
             <textarea
               id={name.toString()}
               name={name.toString()}
-              value={value as string}
+              value={(value ?? "") as string}
               onChange={handleChange}
               className={styles.fieldTextarea}
               placeholder={placeholder || label}
@@ -398,7 +443,7 @@ export default function ConciergeProfilePage() {
               id={name.toString()}
               name={name.toString()}
               type={type}
-              value={value as string}
+              value={(value ?? "") as string}
               onChange={handleChange}
               placeholder={placeholder || label}
               error={error || ""}
@@ -414,6 +459,7 @@ export default function ConciergeProfilePage() {
       </div>
     );
   };
+
   const renderSection = (
     title: string,
     icon: React.ReactNode,
@@ -430,6 +476,7 @@ export default function ConciergeProfilePage() {
           <div
             className={styles.sectionTitleWrapper}
             onClick={() => toggleSection(sectionId)}
+            onKeyDown={(e) => handleSectionHeaderKeyDown(e, sectionId)}
             role="button"
             tabIndex={0}
           >
@@ -439,8 +486,9 @@ export default function ConciergeProfilePage() {
             </div>
             <ChevronDown
               size={16}
-              className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
-                }`}
+              className={`${styles.toggleIcon} ${
+                isOpen ? styles.toggleIconOpen : ""
+              }`}
             />
           </div>
 
@@ -466,6 +514,7 @@ export default function ConciergeProfilePage() {
                       setEditingSection(null);
                       setEditProfile(profile);
                       setErrors({});
+                      setAvatarFile(null);
                     }}
                     className={styles.cancelBtn}
                     title="Annuler"
@@ -492,23 +541,118 @@ export default function ConciergeProfilePage() {
         </div>
 
         <div
-          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
-            }`}
+          className={`${styles.sectionContent} ${
+            isOpen ? styles.sectionContentOpen : ""
+          }`}
         >
           {children}
         </div>
       </div>
     );
   };
-  const handleSocialChange = (field: string, value: string) => {
+
+  const handleSocialChange = (
+    field: "website" | "linkedin" | "instagram" | "facebook",
+    value: string,
+  ) => {
     setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
-  // const handleCancelEditing = () => {
-  //   setEditingSection(null);
-  //   setEditProfile(profile);
-  //   setErrors({});
-  //   setAvatarFile(null);
-  // };
+
+  const renderPlaceholderRules = () => (
+    <div className={styles.placeholderContent}>
+      <p>
+        Définissez les conditions d&apos;acceptation automatique ou manuelle des
+        missions.
+      </p>
+      <ul>
+        <li>• Refuser automatiquement hors zone</li>
+        <li>• Refuser hors horaires définis</li>
+        <li>• Accepter automatiquement les missions urgentes</li>
+        <li>• Prioriser les clients récurrents</li>
+      </ul>
+    </div>
+  );
+
+  const renderPlaceholderPriorities = () => (
+    <div className={styles.placeholderContent}>
+      <p>
+        Classez vos missions par niveau de priorité afin d&apos;optimiser votre
+        organisation.
+      </p>
+      <p>
+        Chaque type de mission pourra être associé à un niveau de priorité et à
+        un mode d&apos;acceptation.
+      </p>
+    </div>
+  );
+
+  const renderPlaceholderCurrentMissions = () => (
+    <div className={styles.placeholderContent}>
+      <p>Aucune mission en cours</p>
+      <p>
+        Les missions actives apparaîtront ici avec leur statut, le logement
+        concerné et le client.
+      </p>
+    </div>
+  );
+
+  const renderPlaceholderHistory = () => (
+    <div className={styles.placeholderContent}>
+      <p>Aucune mission terminée</p>
+      <p>
+        Vous retrouverez ici l&apos;historique de vos interventions, factures et
+        évaluations clients.
+      </p>
+    </div>
+  );
+
+  const renderPlaceholderKpis = () => (
+    <div className={styles.placeholderContent}>
+      <p>Ces indicateurs seront calculés automatiquement :</p>
+      <ul>
+        <li>• Taux d&apos;acceptation des missions</li>
+        <li>• Délai moyen d&apos;intervention</li>
+        <li>• Nombre de missions ce mois-ci</li>
+        <li>• Note moyenne des clients</li>
+      </ul>
+    </div>
+  );
+
+  const renderMissionsStaticSections = () => (
+    <>
+      {renderSection(
+        "Règles d'acceptation des missions",
+        <FiSliders />,
+        renderPlaceholderRules(),
+        false,
+      )}
+      {renderSection(
+        "Priorité & typologie des missions",
+        <FiStarOutline />,
+        renderPlaceholderPriorities(),
+        false,
+      )}
+      {renderSection(
+        "Missions en cours",
+        <FiClockOutline />,
+        renderPlaceholderCurrentMissions(),
+        false,
+      )}
+      {renderSection(
+        "Historique des missions",
+        <FiCheckCircleOutline />,
+        renderPlaceholderHistory(),
+        false,
+      )}
+      {renderSection(
+        "Indicateurs de performance",
+        <FiTrendingUp />,
+        renderPlaceholderKpis(),
+        false,
+      )}
+    </>
+  );
+
   const renderTabContent = () => {
     if (!profile || !editProfile) return null;
 
@@ -518,9 +662,7 @@ export default function ConciergeProfilePage() {
           <div className={styles.grid}>
             <aside className={styles.leftColumn}>
               <div className={styles.profileCard}>
-                <div className={styles.avatarWrapper}>
-
-                </div>
+                <div className={styles.avatarWrapper} />
 
                 <div className={styles.profileIdentity}>
                   <ProfileIdentity
@@ -531,7 +673,9 @@ export default function ConciergeProfilePage() {
                     city={editProfile.city ?? "Ville non renseignée, FR"}
                     isEditing={editingSection === "Photo de profil"}
                     avatarFile={avatarFile}
-                    existingAvatarUrl={editProfile.avatar_url ?? DEFAULT_AVATAR}
+                    existingAvatarUrl={
+                      editProfile.avatar_url ?? DEFAULT_AVATAR
+                    }
                     existingScale={editProfile.avatar_scale ?? 1}
                     existingOffsetX={editProfile.avatar_offset_x ?? 0}
                     existingOffsetY={editProfile.avatar_offset_y ?? 0}
@@ -539,19 +683,23 @@ export default function ConciergeProfilePage() {
                     onAvatarChange={setAvatarFile}
                     onAvatarScaleChange={(scale) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_scale: scale } : prev
+                        prev ? { ...prev, avatar_scale: scale } : prev,
                       )
                     }
                     onAvatarOffsetChange={(offsetX, offsetY) =>
                       setEditProfile((prev) =>
                         prev
-                          ? { ...prev, avatar_offset_x: offsetX, avatar_offset_y: offsetY }
-                          : prev
+                          ? {
+                              ...prev,
+                              avatar_offset_x: offsetX,
+                              avatar_offset_y: offsetY,
+                            }
+                          : prev,
                       )
                     }
                     onAvatarRotationChange={(rotation) =>
                       setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_rotation: rotation } : prev
+                        prev ? { ...prev, avatar_rotation: rotation } : prev,
                       )
                     }
                     onAvatarSave={() => handleSaveSection("Photo de profil")}
@@ -560,40 +708,40 @@ export default function ConciergeProfilePage() {
                       setEditProfile((prev) =>
                         prev
                           ? {
-                            ...prev,
-                            avatar_url: null,
-                            avatar_scale: 1,
-                            avatar_offset_x: 0,
-                            avatar_offset_y: 0,
-                            avatar_rotation: 0,
-                          }
-                          : prev
+                              ...prev,
+                              avatar_url: null,
+                              avatar_scale: 1,
+                              avatar_offset_x: 0,
+                              avatar_offset_y: 0,
+                              avatar_rotation: 0,
+                            }
+                          : prev,
                       );
                     }}
-                    onEditAvatarClick={() => setEditingSection("Photo de profil")}
+                    onEditAvatarClick={() =>
+                      setEditingSection("Photo de profil")
+                    }
                   />
-                <div className={styles.profileStats}>
-                  <div className={styles.profileStatItem}>
-                    <p className={styles.profileStatLabel}>Note</p>
-                    <p className={styles.profileStatValue}>
-                      4.9
-                      <Star size={14} className={styles.profileStatIconStar} />
-                    </p>
-                  </div>
-                  <div className={styles.profileStatItem}>
-                    <p className={styles.profileStatLabel}>Expérience</p>
-                    <p className={styles.profileStatValue}>
-                      {profile.years_experience ?? "—"} ans
-                    </p>
+
+                  <div className={styles.profileStats}>
+                    <div className={styles.profileStatItem}>
+                      <p className={styles.profileStatLabel}>Note</p>
+                      <p className={styles.profileStatValue}>
+                        4.9
+                        <Star
+                          size={14}
+                          className={styles.profileStatIconStar}
+                        />
+                      </p>
+                    </div>
+                    <div className={styles.profileStatItem}>
+                      <p className={styles.profileStatLabel}>Expérience</p>
+                      <p className={styles.profileStatValue}>
+                        {profile.years_experience ?? "—"} ans
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-
-                </div>
-
-
-
-
               </div>
 
               <div className={styles.badgeCard}>
@@ -614,7 +762,6 @@ export default function ConciergeProfilePage() {
                 <ProfileSummary profile={profile} />,
                 false,
               )}
-
             </aside>
 
             <section className={styles.rightColumn}>
@@ -623,13 +770,28 @@ export default function ConciergeProfilePage() {
                 <LucideUser />,
                 <>
                   <div className={styles.fieldsGrid}>
-                    {renderField("Nom d'utilisateur", "username", "Informations_personnelles", true)}
-                    {renderField("Prénom", "first_name", "Informations_personnelles", true)}
-                    {renderField("Nom", "last_name", "Informations_personnelles", true)}
+                    {renderField(
+                      "Nom d'utilisateur",
+                      "username",
+                      SECTION_IDS.INFO_PERSO,
+                      true,
+                    )}
+                    {renderField(
+                      "Prénom",
+                      "first_name",
+                      SECTION_IDS.INFO_PERSO,
+                      true,
+                    )}
+                    {renderField(
+                      "Nom",
+                      "last_name",
+                      SECTION_IDS.INFO_PERSO,
+                      true,
+                    )}
                     {renderField(
                       "Email",
                       "email",
-                      "Informations_personnelles",
+                      SECTION_IDS.INFO_PERSO,
                       false,
                       true,
                       "email@exemple.com",
@@ -638,7 +800,7 @@ export default function ConciergeProfilePage() {
                     {renderField(
                       "Téléphone",
                       "phone",
-                      "Informations_personnelles",
+                      SECTION_IDS.INFO_PERSO,
                       false,
                       true,
                       "+33 6 12 34 56 78",
@@ -653,7 +815,7 @@ export default function ConciergeProfilePage() {
                     >
                       Niveau d&apos;expérience
                     </label>
-                    {editingSection === "Informations_personnelles" ? (
+                    {editingSection === SECTION_IDS.INFO_PERSO ? (
                       <select
                         id="experience_level"
                         name="experience_level"
@@ -667,9 +829,10 @@ export default function ConciergeProfilePage() {
                           setEditProfile((prev) =>
                             prev
                               ? {
-                                ...prev,
-                                experience_level: value === "" ? null : value,
-                              }
+                                  ...prev,
+                                  experience_level:
+                                    value === "" ? null : value,
+                                }
                               : prev,
                           );
                         }}
@@ -696,7 +859,7 @@ export default function ConciergeProfilePage() {
                   {renderField(
                     "Années d'expérience",
                     "years_experience",
-                    "Informations_personnelles",
+                    SECTION_IDS.INFO_PERSO,
                     false,
                     false,
                     "Nombre d'années",
@@ -773,8 +936,22 @@ export default function ConciergeProfilePage() {
                     true,
                     "75001",
                   )}
-                  {renderField("Ville", "city", "Adresse_professionnelle", false, true, "Paris")}
-                  {renderField("Pays", "country", "Adresse_professionnelle", false, false, "France")}
+                  {renderField(
+                    "Ville",
+                    "city",
+                    "Adresse_professionnelle",
+                    false,
+                    true,
+                    "Paris",
+                  )}
+                  {renderField(
+                    "Pays",
+                    "country",
+                    "Adresse_professionnelle",
+                    false,
+                    false,
+                    "France",
+                  )}
                 </>,
               )}
 
@@ -817,8 +994,12 @@ export default function ConciergeProfilePage() {
                   linkedin={editProfile.linkedin}
                   instagram={editProfile.instagram}
                   facebook={editProfile.facebook}
-                  isEditing={editingSection === "Web___R_seaux_sociaux"}
-                  onEdit={() => setEditingSection("Web___R_seaux_sociaux")}
+                  isEditing={
+                    editingSection === "Web___R_seaux_sociaux"
+                  }
+                  onEdit={() =>
+                    setEditingSection("Web___R_seaux_sociaux")
+                  }
                   onChange={handleSocialChange}
                   errors={{
                     website: errors.website,
@@ -863,240 +1044,31 @@ export default function ConciergeProfilePage() {
                 value={
                   editProfile.mission_settings
                     ? (JSON.parse(
-                      editProfile.mission_settings,
-                    ) as MissionAvailability)
+                        editProfile.mission_settings,
+                      ) as MissionAvailability)
                     : null
                 }
-                isEditing={editingSection === "Zone__disponibilit_s___r_gles_de_mission"}
+                isEditing={
+                  editingSection ===
+                  "Zone__disponibilit_s___r_gles_de_mission"
+                }
                 onChange={(data) =>
                   setEditProfile((prev) =>
                     prev
                       ? {
-                        ...prev,
-                        mission_settings: JSON.stringify(data),
-                      }
+                          ...prev,
+                          mission_settings: JSON.stringify(data),
+                        }
                       : prev,
                   )
                 }
               />,
             )}
 
-            {renderSection(
-              "Règles d'acceptation des missions",
-              <FiSliders />,
-              <div className={styles.placeholderContent}>
-                <p>
-                  Définissez les conditions d&apos;acceptation automatique ou
-                  manuelle des missions.
-                </p>
-                <ul>
-                  <li>• Refuser automatiquement hors zone</li>
-                  <li>• Refuser hors horaires définis</li>
-                  <li>• Accepter automatiquement les missions urgentes</li>
-                  <li>• Prioriser les clients récurrents</li>
-                </ul>
-              </div>,
-              false,
-            )}
-
-            {renderSection(
-              "Priorité & typologie des missions",
-              <FiStarOutline />,
-              <div className={styles.placeholderContent}>
-                <p>
-                  Classez vos missions par niveau de priorité afin d&apos;optimiser
-                  votre organisation.
-                </p>
-                <p>
-                  Chaque type de mission pourra être associé à un niveau de
-                  priorité et à un mode d&apos;acceptation.
-                </p>
-              </div>,
-              false,
-            )}
-
-            {renderSection(
-              "Missions en cours",
-              <FiClockOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Aucune mission en cours</p>
-                <p>
-                  Les missions actives apparaîtront ici avec leur statut, le
-                  logement concerné et le client.
-                </p>
-              </div>,
-              false,
-            )}
-
-            {renderSection(
-              "Historique des missions",
-              <FiCheckCircleOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Aucune mission terminée</p>
-                <p>
-                  Vous retrouverez ici l&apos;historique de vos interventions,
-                  factures et évaluations clients.
-                </p>
-              </div>,
-              false,
-            )}
-
-            {renderSection(
-              "Indicateurs de performance",
-              <FiTrendingUp />,
-              <div className={styles.placeholderContent}>
-                <p>Ces indicateurs seront calculés automatiquement :</p>
-                <ul>
-                  <li>• Taux d&apos;acceptation des missions</li>
-                  <li>• Délai moyen d&apos;intervention</li>
-                  <li>• Nombre de missions ce mois-ci</li>
-                  <li>• Note moyenne des clients</li>
-                </ul>
-              </div>,
-              false,
-            )}
-
-            {renderSection(
-              "Règles d'acceptation des missions",
-              <FiSliders />,
-              <div className={styles.placeholderContent}>
-                <p>
-                  Définissez les conditions d&apos;acceptation automatique ou
-                  manuelle des missions.
-                </p>
-                <ul>
-                  <li>• Refuser automatiquement hors zone</li>
-                  <li>• Refuser hors horaires définis</li>
-                  <li>• Accepter automatiquement les missions urgentes</li>
-                  <li>• Prioriser les clients récurrents</li>
-                </ul>
-              </div>,
-            )}
-
-            {renderSection(
-              "Priorité & typologie des missions",
-              <FiStarOutline />,
-              <div className={styles.placeholderContent}>
-                <p>
-                  Classez vos missions par niveau de priorité afin d&apos;optimiser
-                  votre organisation.
-                </p>
-                <p>
-                  Chaque type de mission pourra être associé à un niveau de
-                  priorité et à un mode d&apos;acceptation.
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Missions en cours",
-              <FiClockOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Aucune mission en cours</p>
-                <p>
-                  Les missions actives apparaîtront ici avec leur statut, le
-                  logement concerné et le client.
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Historique des missions",
-              <FiCheckCircleOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Aucune mission terminée</p>
-                <p>
-                  Vous retrouverez ici l&apos;historique de vos interventions,
-                  factures et évaluations clients.
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Indicateurs de performance",
-              <FiTrendingUp />,
-              <div className={styles.placeholderContent}>
-                <p>Ces indicateurs seront calculés automatiquement :</p>
-                <ul>
-                  <li>• Taux d&apos;acceptation des missions</li>
-                  <li>• Délai moyen d&apos;intervention</li>
-                  <li>• Nombre de missions ce mois-ci</li>
-                  <li>• Note moyenne des clients</li>
-                </ul>
-              </div>,
-            )}
-
-            {renderSection(
-              "Règles d'acceptation des missions",
-              <FiSliders />,
-              <div className={styles.placeholderContent}>
-                <p>
-                  Définissez les conditions d&apos;acceptation automatique ou
-                  manuelle des missions.
-                </p>
-                <ul>
-                  <li>• Refuser automatiquement hors zone</li>
-                  <li>• Refuser hors horaires définis</li>
-                  <li>• Accepter automatiquement les missions urgentes</li>
-                  <li>• Prioriser les clients récurrents</li>
-                </ul>
-              </div>,
-            )}
-
-            {renderSection(
-              "Priorité & typologie des missions",
-              <FiStarOutline />,
-              <div className={styles.placeholderContent}>
-                <p>
-                  Classez vos missions par niveau de priorité afin d&apos;optimiser
-                  votre organisation.
-                </p>
-                <p>
-                  Chaque type de mission pourra être associé à un niveau de
-                  priorité et à un mode d&apos;acceptation.
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Missions en cours",
-              <FiClockOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Aucune mission en cours</p>
-                <p>
-                  Les missions actives apparaîtront ici avec leur statut, le
-                  logement concerné et le client.
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Historique des missions",
-              <FiCheckCircleOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Aucune mission terminée</p>
-                <p>
-                  Vous retrouverez ici l&apos;historique de vos interventions,
-                  factures et évaluations clients.
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Indicateurs de performance",
-              <FiTrendingUp />,
-              <div className={styles.placeholderContent}>
-                <p>Ces indicateurs seront calculés automatiquement :</p>
-                <ul>
-                  <li>• Taux d&apos;acceptation des missions</li>
-                  <li>• Délai moyen d&apos;intervention</li>
-                  <li>• Nombre de missions ce mois-ci</li>
-                  <li>• Note moyenne des clients</li>
-                </ul>
-              </div>,
-            )}
+            {renderMissionsStaticSections()}
           </>
         );
+
       case "tarifs":
         return (
           <div className={styles.financeGrid}>
@@ -1104,16 +1076,14 @@ export default function ConciergeProfilePage() {
               {renderSection(
                 "Ma grille tarifaire",
                 <FiDollarSignOutline />,
-                <>
-                  <div className={styles.pricingQuickStats}>
-                    <h4>📊 Mes tarifs les plus demandés</h4>
-                    <ul>
-                      <li>💼 Tarif horaire standard : 45 €/h</li>
-                      <li>🏠 Forfait ménage 2 pièces : 60 €</li>
-                      <li>🚗 Frais déplacement moyen : 15 €</li>
-                    </ul>
-                  </div>
-                </>,
+                <div className={styles.pricingQuickStats}>
+                  <h4>📊 Mes tarifs les plus demandés</h4>
+                  <ul>
+                    <li>💼 Tarif horaire standard : 45 €/h</li>
+                    <li>🏠 Forfait ménage 2 pièces : 60 €</li>
+                    <li>🚗 Frais déplacement moyen : 15 €</li>
+                  </ul>
+                </div>,
               )}
             </div>
 
@@ -1222,12 +1192,15 @@ export default function ConciergeProfilePage() {
         return null;
     }
   };
+
   if (errorMsg && !profile) {
     return <div className={styles.errorMsg}>{errorMsg}</div>;
   }
+
   if (!profile || !editProfile) {
     return <div className={styles.loading}>Chargement du profil...</div>;
   }
+
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
@@ -1238,6 +1211,7 @@ export default function ConciergeProfilePage() {
           <h1 className={styles.pageTitle}>Espace Concierge</h1>
         </div>
       </header>
+
       <main className={styles.main}>
         {successMsg && (
           <div
@@ -1247,6 +1221,7 @@ export default function ConciergeProfilePage() {
             <span>{successMsg}</span>
           </div>
         )}
+
         {errorMsg && (
           <div
             className={`${styles.notification} ${styles.notificationError}`}
@@ -1255,6 +1230,7 @@ export default function ConciergeProfilePage() {
             <span>{errorMsg}</span>
           </div>
         )}
+
         <div className={styles.tabs}>
           {CONCIERGE_TABS.map((tab) => {
             const Icon = tab.icon;
@@ -1263,8 +1239,9 @@ export default function ConciergeProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`${styles.tab} ${isActive ? styles.tabActive : ""
-                  }`}
+                className={`${styles.tab} ${
+                  isActive ? styles.tabActive : ""
+                }`}
               >
                 <span className={styles.tabIcon}>
                   <Icon />
@@ -1274,6 +1251,7 @@ export default function ConciergeProfilePage() {
             );
           })}
         </div>
+
         <div className={styles.tabContent}>{renderTabContent()}</div>
       </main>
     </div>
