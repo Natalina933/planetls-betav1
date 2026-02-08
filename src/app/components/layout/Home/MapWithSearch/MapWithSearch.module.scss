@@ -1,452 +1,674 @@
-@use "sass:math";
 @use "sass:color";
+@use "sass:math";
 @use "app/styles/abstracts/variables" as *;
 @use "app/styles/abstracts/mixins" as *;
-@use "@/app/styles/abstracts/functions" as *;
-
 
 /* -------------------------------------------------------
-🌟 1. VARIABLES THEME (Mucha / Art Nouveau)
+🌟 VARIABLES LOCALES & THEME
 ------------------------------------------------------- */
 $mucha-overlay: url("/textures/mucha-background-pattern.png");
-
 $paper-ivory: #f7f4ee;
 $paper-warm: #f2efe8;
-
+$gold-main: #d4af37;
+$gold-hover: #b8941e;
+$gold-light: #f4d03f;
 $ink-main: #1f2937;
 $ink-soft: #4b5563;
+$shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+$shadow-medium: 0 10px 40px rgba(0, 0, 0, 0.12);
+$shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 
 /* -------------------------------------------------------
-🌟 2. OVERLAY GLOBAL (POPUPS)
+🌟 OVERLAY
 ------------------------------------------------------- */
-.searchOverlay,
-.popupOverlay {
+.searchOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(31, 41, 55, 0.8));
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 3000;
-  animation: overlayFade 0.3s ease forwards;
+  animation: overlayFade 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: $spacing-lg;
+
+  @include mq(sm) {
+    padding: 0;
+  }
 }
 
 /* -------------------------------------------------------
-🌟 3. CONTAINER PRINCIPAL
+🌟 CONTAINER PRINCIPAL
 ------------------------------------------------------- */
 .mapWithSearchContainer {
   position: relative;
-  width: min(880px, 95%);
-  margin: auto;
-  padding: $spacing-xl;
-  border-radius: $radius-2xl;
-
-  background:
-    linear-gradient(135deg,
-      rgba($paper-ivory, 0.96),
-      rgba($paper-warm, 0.9)
-    );
-
-  border: 1px solid rgba($gold, 0.35);
-  box-shadow:
-    inset 0 0 60px rgba(255, 255, 255, 0.35),
-    0 20px 50px rgba(0, 0, 0, 0.28);
-
-  backdrop-filter: blur(10px);
-  animation: popupSlideUp 0.45s cubic-bezier(.22,.61,.36,1);
-
+  width: min(920px, 95%);
+  max-height: 90vh;
+  padding: 4rem 8rem;
+  border-radius: $radius-3xl;
+  background: 
+    
+    $paper-ivory;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  box-shadow: 
+    $shadow-strong,
+    0 0 0 1px rgba($gold-main, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  animation: popupSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
 
   &::before {
     content: "";
     position: absolute;
     inset: 0;
     background-image: $mucha-overlay;
-    background-size: 340px;
-    opacity: 0.12;
+    background-size: 280px;
+    opacity: 0.05;
     pointer-events: none;
-    border-radius: inherit;
-  }
-
-  /* 📱 MOBILE FULLSCREEN */
-  @include mq(sm) {
-    width: 100%;
-    height: 100dvh;
-    border-radius: 0;
-    padding: $spacing-lg $spacing-md;
-
-    &::before {
-      opacity: 0.06;
-      background-size: 420px;
-    }
-  }
-}
-
-/* -------------------------------------------------------
-🌟 4. HEADER
-------------------------------------------------------- */
-.categorySearchSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $spacing-lg;
-  text-align: center;
-}
-
-.highlightGold {
-  color: $gold-dark;
-  font-weight: 600;
-}
-
-/* -------------------------------------------------------
-🌟 5. BOUTON FERMETURE
-------------------------------------------------------- */
-.closeButton {
-  position: absolute;
-  top: $spacing-md;
-  right: $spacing-md;
-  background: transparent;
-  border: none;
-  color: $gold-dark;
-  font-size: 1.4rem;
-  cursor: pointer;
-
-  transition: transform 0.25s ease, color 0.25s ease;
-
-  &:hover {
-    transform: scale(1.15);
-    color: $gold;
-  }
-
-  &:focus-visible {
-    outline: 2px solid $gold;
-    outline-offset: 3px;
-  }
-}
-
-/* -------------------------------------------------------
-🌟 6. TOGGLE CATEGORIES
-------------------------------------------------------- */
-.tripleToggleGroup {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-  max-width: 760px;
-  padding: 0.5rem;
-
-  background:
-    linear-gradient(
-      to bottom,
-      rgba($paper-ivory, 0.95),
-      rgba($paper-warm, 0.9)
-    );
-
-  border-radius: $radius-pill;
-  border: 2px solid $gold;
-
-  box-shadow:
-    inset 0 0 12px rgba($gold, 0.12),
-    0 6px 16px rgba(0, 0, 0, 0.12);
-
-  @include mq(sm) {
-    flex-direction: column;
-  }
-}
-
-.tripleToggleButton {
-  flex: 1;
-  padding: 0.75rem 1.2rem;
-  font-family: $font-elegant;
-  font-size: 1rem;
-
-  background: transparent;
-  border: none;
-  border-radius: $radius-pill;
-  color: #6b5210;
-  cursor: pointer;
-
-  position: relative;
-  transition: all 0.25s ease;
-
-  &:hover {
-    background: rgba($gold, 0.12);
+    animation: patternFloat 60s linear infinite;
   }
 
   &::after {
     content: "";
     position: absolute;
-    inset: 4px;
-    border-radius: inherit;
-    border: 1px solid transparent;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, $gold-main, $gold-light, $gold-main, transparent);
+    animation: shimmer 3s ease-in-out infinite;
   }
 
-  &:hover::after {
-    border-color: rgba($gold, 0.4);
+  @include mq(md) {
+    padding: $spacing-2xl $spacing-xl;
+    max-height: 95vh;
+  }
+
+  @include mq(sm) {
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: $spacing-xl $spacing-md;
+  }
+}
+
+/* -------------------------------------------------------
+🌟 SECTION PRINCIPALE
+------------------------------------------------------- */
+.categorySearchSection {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  h2 {
+    font-family: $font-elegant;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    color: $ink-main;
+    text-align: center;
+    line-height: 1.3;
+    margin: 0;
+    background: linear-gradient(135deg, $ink-main, lighten($ink-main, 15%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fadeInDown 0.6s ease-out 0.2s both;
+
+    @include mq(sm) {
+      font-size: 1.4rem;
+    }
+  }
+}
+
+/* -------------------------------------------------------
+🌟 TOGGLE CATEGORIES
+------------------------------------------------------- */
+.tripleToggleGroup {
+  display: flex;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+  padding: 0.5rem;
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6)),
+    rgba($gold-main, 0.08);
+  border-radius: $radius-pill;
+  border: 1.5px solid rgba($gold-main, 0.25);
+  box-shadow: 
+    $shadow-soft,
+    inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+
+  @include mq(md) {
+    max-width: 100%;
+  }
+
+  @include mq(sm) {
+    flex-direction: column;
+    border-radius: $radius-lg;
+    gap: 0.5rem;
+  }
+}
+
+.tripleToggleButton {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 1rem 1.5rem;
+  font-family: $font-elegant;
+  font-size: 0.975rem;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-radius: $radius-pill;
+  color: darken($gold-main, 20%);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba($gold-main, 0.15), rgba($gold-light, 0.1));
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    border-radius: inherit;
+  }
+
+  .toggleIcon {
+    font-size: 1.3rem;
+    transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  &:hover:not(.active) {
+    color: $gold-hover;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba($gold-main, 0.15);
+
+    &::before {
+      opacity: 1;
+    }
+
+    .toggleIcon {
+      transform: scale(1.15) rotate(-5deg);
+    }
   }
 
   &.active {
-    background: linear-gradient(to right, $gold, $gold-alt);
+    background: linear-gradient(135deg, $gold-main, $gold-light);
     color: #fff;
-    box-shadow: 0 0 0 3px rgba($gold, 0.35);
+    box-shadow: 
+      0 8px 25px rgba($gold-main, 0.35),
+      0 2px 8px rgba($gold-main, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px) scale(1.02);
+
+    .toggleIcon {
+      transform: scale(1.1);
+      animation: iconBounce 0.6s ease;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 2px;
+    }
   }
 
   &:focus-visible {
-    outline: 2px solid $gold;
-    outline-offset: 4px;
+    outline: 2px solid $gold-main;
+    outline-offset: 3px;
+  }
+
+  @include mq(sm) {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.925rem;
   }
 }
 
 /* -------------------------------------------------------
-🌟 7. BULLE TEXTE DESCRIPTION
+🌟 DESCRIPTION BUBBLE
 ------------------------------------------------------- */
 .categoryTextBubble1900 {
-  width: min(520px, 95%);
-  padding: 1rem 1.2rem;
-
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 22px;
-  border: 2px solid $gold;
-
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  border-left: 5px solid $gold-main;
+  padding: 1.25rem 1.75rem;
+  border-radius: $radius-lg;
   color: $ink-soft;
-  font-size: 0.95rem;
+  font-size: 1.025rem;
+  line-height: 1.6;
+  font-style: italic;
+  max-width: 680px;
+  margin: 0 auto;
+  box-shadow: 
+    $shadow-soft,
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  animation: fadeInScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
 
-  box-shadow:
-    inset 0 0 10px rgba(255, 255, 255, 0.3),
-    0 6px 18px rgba(0, 0, 0, 0.25);
+  &::before {
+    content: "\201C"; // Guillemet ouvrant en unicode
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-size: 3.5rem;
+    color: rgba($gold-main, 0.2);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
 
-  animation: fadeInSoft 0.35s ease;
+  .highlightGold {
+    color: $gold-hover;
+    font-weight: 700;
+    font-style: normal;
+    position: relative;
+    
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, $gold-main, transparent);
+      opacity: 0.4;
+    }
+  }
+
+  @include mq(sm) {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
 }
 
 /* -------------------------------------------------------
-🌟 8. BARRE DE RECHERCHE
+🌟 SEARCH BAR
 ------------------------------------------------------- */
 .searchBar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  width: min(500px, 100%);
-  padding: 0.4rem;
+  gap: 0.625rem;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: $radius-pill;
+  padding: 0.5rem;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 
+    $shadow-medium,
+    0 0 0 1px rgba($gold-main, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out 0.5s both;
+  position: relative;
 
-  background: #fffef9;
-  border-radius: 999px;
-  border: 2px solid $gold;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, $gold-main, $gold-light);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+  }
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  &:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 15px 45px rgba($gold-main, 0.25),
+      0 0 0 1px $gold-main;
 
-  input {
-    flex: 1;
-    padding: 0.7rem 1rem;
-    border: none;
-    background: transparent;
-    font-size: 1rem;
-    color: $ink-main;
-
-    &::placeholder {
-      color: #9c8c6d;
-      font-style: italic;
+    &::before {
+      opacity: 0.15;
     }
 
-    &:focus {
-      outline: none;
-      box-shadow: inset 0 0 0 2px rgba($gold, 0.4);
+    input {
+      color: $ink-main;
+      &::placeholder {
+        color: rgba($ink-soft, 0.6);
+      }
     }
   }
 
-  button {
-    background: $gold;
+  input {
+    flex: 1;
+    padding: 1rem 1.5rem;
     border: none;
-    border-radius: 50%;
-    padding: 0.65rem;
-    cursor: pointer;
+    background: transparent;
+    font-size: 1.025rem;
+    color: $ink-main;
+    font-weight: 500;
+    transition: all 0.3s ease;
 
-    transition: transform 0.25s ease;
+    &:focus { 
+      outline: none; 
+    }
+
+    &::placeholder { 
+      color: rgba($ink-soft, 0.5);
+      font-weight: 400;
+    }
+  }
+
+  @include mq(sm) {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: $radius-lg;
+    max-width: 100%;
+
+    input {
+      padding: 0.875rem 1.25rem;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.searchButton {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, $gold-main, $gold-light);
+  color: #fff;
+  border: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  @include flex-center;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 
+    0 4px 15px rgba($gold-main, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, $gold-light, $gold-main);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  svg {
+    position: relative;
+    z-index: 1;
+    font-size: 1.1rem;
+    transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  &:hover {
+    transform: scale(1.08) rotate(-5deg);
+    box-shadow: 
+      0 8px 25px rgba($gold-main, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+    &::before {
+      opacity: 1;
+    }
 
     svg {
-      color: #fff;
-      font-size: 1.2rem;
+      transform: scale(1.15);
     }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  @include mq(sm) {
+    width: 100%;
+    height: 48px;
+    border-radius: $radius-md;
+  }
+}
+
+/* -------------------------------------------------------
+🌟 BOUTON FERMETURE
+------------------------------------------------------- */
+.closeButton {
+  position: absolute;
+  top: $spacing-lg;
+  right: $spacing-lg;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba($gold-main, 0.25);
+  color: $gold-hover;
+  font-size: 1.2rem;
+  @include flex-center;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: $shadow-soft;
+
+  &:hover {
+    background: linear-gradient(135deg, $gold-main, $gold-light);
+    color: #fff;
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 8px 20px rgba($gold-main, 0.3);
+    border-color: transparent;
+  }
+
+  &:active {
+    transform: rotate(90deg) scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $gold-main;
+    outline-offset: 3px;
+  }
+
+  @include mq(sm) {
+    top: $spacing-md;
+    right: $spacing-md;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* -------------------------------------------------------
+🌙 DARK MODE
+------------------------------------------------------- */
+:global(.dark) {
+  .mapWithSearchContainer {
+    background: 
+      linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95)),
+      #0f172a;
+    border-color: rgba($gold-main, 0.3);
+    box-shadow: 
+      0 25px 60px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgba($gold-main, 0.2);
+
+    &::before { 
+      opacity: 0.03; 
+    }
+
+    &::after {
+      background: linear-gradient(90deg, transparent, rgba($gold-main, 0.4), rgba($gold-light, 0.4), rgba($gold-main, 0.4), transparent);
+    }
+  }
+
+  .categorySearchSection h2 {
+    background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tripleToggleGroup {
+    background: 
+      linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03)),
+      rgba($gold-main, 0.08);
+    border-color: rgba($gold-main, 0.25);
+  }
+
+  .tripleToggleButton {
+    color: #cbd5e1;
+
+    &::before {
+      background: linear-gradient(135deg, rgba($gold-main, 0.2), rgba($gold-light, 0.15));
+    }
+
+    &.active { 
+      color: #000; 
+    }
+
+    &:hover:not(.active) {
+      color: $gold-light;
+    }
+  }
+
+  .categoryTextBubble1900 {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+    color: #cbd5e1;
+    border-left-color: $gold-light;
+
+    .highlightGold {
+      color: $gold-light;
+    }
+  }
+
+  .searchBar {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba($gold-main, 0.3);
+    box-shadow: 
+      0 10px 40px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba($gold-main, 0.2);
+
+    &:focus-within {
+      box-shadow: 
+        0 15px 45px rgba($gold-main, 0.4),
+        0 0 0 1px $gold-light;
+    }
+
+    input { 
+      color: #f8fafc; 
+      &::placeholder { 
+        color: #64748b; 
+      }
+    }
+  }
+
+  .closeButton {
+    background: rgba(30, 41, 59, 0.9);
+    color: $gold-light;
+    border-color: rgba($gold-main, 0.3);
 
     &:hover {
-      transform: scale(1.1) rotate(6deg);
-    }
-
-    &:focus-visible {
-      outline: 2px solid $gold-dark;
+      color: #000;
     }
   }
 }
 
 /* -------------------------------------------------------
-🌟 9. ANIMATIONS
+🌟 ANIMATIONS
 ------------------------------------------------------- */
 @keyframes popupSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px) scale(0.96);
+  from { 
+    opacity: 0; 
+    transform: translateY(40px) scale(0.96); 
+    filter: blur(10px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+    filter: blur(0);
   }
 }
 
 @keyframes overlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fadeInSoft {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  from { 
+    opacity: 0; 
+    backdrop-filter: blur(0);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-/* =======================================================
-🌙 DARK MODE — MUCHA NOCTURNE
-======================================================= */
-
-.dark {
-  --paper-ivory: #0f172a;
-  --paper-warm: #111827;
-}
-
-/* -------------------------------------------------------
-🌙 OVERLAY
-------------------------------------------------------- */
-.dark .searchOverlay,
-.dark .popupOverlay {
-  background: rgba(8, 10, 20, 0.85);
-}
-
-/* -------------------------------------------------------
-🌙 CONTAINER PRINCIPAL
-------------------------------------------------------- */
-.dark .mapWithSearchContainer {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(15, 23, 42, 0.95),
-      rgba(17, 24, 39, 0.9)
-    );
-
-  border: 1px solid rgba($gold, 0.28);
-
-  box-shadow:
-    inset 0 0 80px rgba(255, 255, 255, 0.04),
-    0 30px 60px rgba(0, 0, 0, 0.7);
-
-  color: #e5e7eb;
-
-  &::before {
-    opacity: 0.06;
-    filter: contrast(120%) brightness(80%);
+  to { 
+    opacity: 1; 
+    backdrop-filter: blur(8px);
   }
 }
 
-/* -------------------------------------------------------
-🌙 TITRES & TEXTE
-------------------------------------------------------- */
-.dark .categorySearchSection {
-  color: #e5e7eb;
-}
-
-.dark .highlightGold {
-  color: #facc15;
-}
-
-/* -------------------------------------------------------
-🌙 BOUTON FERMETURE
-------------------------------------------------------- */
-.dark .closeButton {
-  color: #fcd34d;
-
-  &:hover {
-    color: #fde68a;
+@keyframes fadeInDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
   }
 }
 
-/* -------------------------------------------------------
-🌙 TOGGLE GROUP
-------------------------------------------------------- */
-.dark .tripleToggleGroup {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(30, 41, 59, 0.9),
-      rgba(17, 24, 39, 0.95)
-    );
-
-  border-color: rgba($gold, 0.35);
-
-  box-shadow:
-    inset 0 0 20px rgba($gold, 0.08),
-    0 8px 20px rgba(0, 0, 0, 0.6);
-}
-
-.dark .tripleToggleButton {
-  color: #d1d5db;
-
-  &:hover {
-    background: rgba($gold, 0.12);
+@keyframes fadeInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
   }
-
-  &.active {
-    background: linear-gradient(to right, #facc15, #eab308);
-    color: #111827;
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
   }
 }
 
-/* -------------------------------------------------------
-🌙 BULLE TEXTE
-------------------------------------------------------- */
-.dark .categoryTextBubble1900 {
-  background: rgba(17, 24, 39, 0.9);
-  color: #e5e7eb;
-  border-color: rgba($gold, 0.5);
-
-  box-shadow:
-    inset 0 0 20px rgba(255, 255, 255, 0.04),
-    0 10px 24px rgba(0, 0, 0, 0.7);
-}
-
-/* -------------------------------------------------------
-🌙 SEARCH BAR
-------------------------------------------------------- */
-.dark .searchBar {
-  background: rgba(17, 24, 39, 0.95);
-  border-color: rgba($gold, 0.45);
-
-  input {
-    color: #e5e7eb;
-
-    &::placeholder {
-      color: #9ca3af;
-    }
-
-    &:focus {
-      box-shadow: inset 0 0 0 2px rgba($gold, 0.4);
-    }
+@keyframes fadeInScale {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
   }
-
-  button {
-    background: linear-gradient(to bottom, #facc15, #eab308);
-
-    svg {
-      color: #111827;
-    }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
   }
 }
 
+@keyframes iconBounce {
+  0%, 100% { transform: scale(1.1); }
+  50% { transform: scale(1.25); }
+}
+
+@keyframes shimmer {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: translateX(-100%);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes patternFloat {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
 /* -------------------------------------------------------
-🌙 FOCUS ACCESSIBILITÉ
+🌟 UTILITIES
 ------------------------------------------------------- */
-.dark :focus-visible {
-  outline: 2px solid #facc15;
-  outline-offset: 3px;
+.fadeIn {
+  animation: fadeInScale 0.5s ease-out;
 }

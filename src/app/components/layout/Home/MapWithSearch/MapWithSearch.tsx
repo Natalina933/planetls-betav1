@@ -54,7 +54,7 @@ const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
     <>
       <span className={styles.highlightGold}>Trouvez la conciergerie idéale</span>{" "}
-      pour simplifier la gestion de vos locations.
+      pour simplifier la gestion de vos locations et maximiser vos revenus.
     </>
   ),
   concierge: (
@@ -62,7 +62,7 @@ const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
       <span className={styles.highlightGold}>
         Accédez directement aux propriétaires
       </span>{" "}
-      qui recherchent une conciergerie fiable.
+      qui recherchent une conciergerie fiable et professionnelle.
     </>
   ),
   artisan: (
@@ -93,6 +93,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const pathname = usePathname();
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   // ---------------------------------------------------------------------------
   // STATE
@@ -102,12 +103,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | "">("");
   const [searchTarget, setSearchTarget] = useState("");
   const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   const [showExperiencePopup, setShowExperiencePopup] = useState(false);
-
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | "">("");
   const [yearsExperience, setYearsExperience] = useState("");
 
@@ -116,31 +114,44 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
   // ---------------------------------------------------------------------------
-  // ACCESSIBILITÉ
+  // ACCESSIBILITÉ & UX
   // ---------------------------------------------------------------------------
 
+  // Gestion de la touche Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Focus automatique sur l'input de recherche
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 600); // Attend la fin de l'animation
 
-    const focusable = el.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-
-    focusable[0]?.focus();
+    return () => clearTimeout(timer);
   }, []);
 
+  // Fermeture automatique lors de la navigation
   useEffect(() => {
     if (pathname === "/complete-registration") onClose();
   }, [pathname, onClose]);
+
+  // Bloquer le scroll du body
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   // ---------------------------------------------------------------------------
   // DATA
@@ -151,7 +162,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       setStatus("loading");
       try {
         const res = await fetch("/api/categories/groups");
-        if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error("Erreur lors du chargement");
 
         const data: Category[] = await res.json();
         const first = CATEGORY_ORDER.find((key) =>
@@ -161,8 +172,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         setCategories(data);
         setSelectedCategory(first || data[0]?.key || "");
         setStatus("success");
-      } catch {
-        toast.error("Impossible de charger les filtres 😢");
+      } catch (error) {
+        console.error("Erreur chargement catégories:", error);
+        toast.error("Impossible de charger les catégories 😢", {
+          position: "top-center",
+        });
         setStatus("error");
       }
     };
@@ -177,23 +191,39 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   }, [selectedCategory]);
 
   // ---------------------------------------------------------------------------
-  // FLOW
+  // HANDLERS
   // ---------------------------------------------------------------------------
+
+  const handleCategoryChange = useCallback((key: CategoryKey) => {
+    setSelectedCategory(key);
+    // Petit délai pour que l'utilisateur voie le changement
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+  }, []);
 
   const handleSearch = useCallback(
     (e?: React.FormEvent) => {
       e?.preventDefault();
 
-      if (!location.trim()) {
-        toast.warn("Veuillez renseigner une localisation 📍");
+      const trimmedLocation = location.trim();
+
+      if (!trimmedLocation) {
+        toast.warn("📍 Veuillez renseigner une localisation", {
+          position: "top-center",
+        });
+        searchInputRef.current?.focus();
         return;
       }
 
       if (!selectedCategory) {
-        toast.warn("Veuillez sélectionner une catégorie 🧭");
+        toast.warn("🧭 Veuillez sélectionner une catégorie", {
+          position: "top-center",
+        });
         return;
       }
 
+      // Animation de transition
       setShowExperiencePopup(true);
     },
     [location, selectedCategory]
@@ -204,7 +234,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       setExperienceLevel(level);
       setYearsExperience(years);
       setShowExperiencePopup(false);
-      setShowCategoryPopup(true);
+      
+      // Petit délai pour une transition fluide
+      setTimeout(() => {
+        setShowCategoryPopup(true);
+      }, 150);
     },
     []
   );
@@ -212,12 +246,17 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const handleOptionSelect = useCallback((options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
-    setShowAccessPopup(true);
+    
+    setTimeout(() => {
+      setShowAccessPopup(true);
+    }, 150);
   }, []);
 
   const handleBackToCategoryPopup = useCallback(() => {
     setShowAccessPopup(false);
-    setShowCategoryPopup(true);
+    setTimeout(() => {
+      setShowCategoryPopup(true);
+    }, 150);
   }, []);
 
   const handleAccessValidate = useCallback(
@@ -231,7 +270,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         category: selectedCategory,
         searchTarget,
         option: selectedOptions.join(","),
-        location,
+        location: location.trim(),
         experienceLevel,
         yearsExperience,
       }).toString();
@@ -251,6 +290,15 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     ]
   );
 
+  const handleOverlayClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
   // ---------------------------------------------------------------------------
   // MEMO
   // ---------------------------------------------------------------------------
@@ -264,94 +312,115 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   // RENDER
   // ---------------------------------------------------------------------------
 
+  const isMainModalVisible = !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
+
   return (
     <>
-      {!showExperiencePopup && !showCategoryPopup && !showAccessPopup && (
+      {isMainModalVisible && (
         <div
-          ref={containerRef}
-          className={`dark ${styles.mapWithSearchContainer} ${styles.fadeIn}`}
-          role="dialog"
-          aria-modal="true"
+          className={styles.searchOverlay}
+          onClick={handleOverlayClick}
+          role="presentation"
         >
-          <ToastContainer position="top-right" autoClose={4000} />
-
-          <button
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label="Fermer"
+          <div
+            ref={containerRef}
+            className={styles.mapWithSearchContainer}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
           >
-            <FaTimes />
-          </button>
+            <ToastContainer 
+              position="top-center" 
+              autoClose={4000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnHover
+              draggable
+            />
 
-          <section className={styles.categorySearchSection}>
-            <h2>Inscrivez-vous et connectez-vous aux bons partenaires</h2>
+            <button
+              className={styles.closeButton}
+              onClick={onClose}
+              aria-label="Fermer la fenêtre"
+              type="button"
+            >
+              <FaTimes />
+            </button>
 
-            <div className={styles.tripleToggleGroup}>
-              {orderedCategories.map(({ key, label, icon }) => {
-                const Icon = iconMap[icon];
-                const active = selectedCategory === key;
+            <section className={styles.categorySearchSection}>
+              <h2 id="modal-title">
+                Inscrivez-vous et connectez-vous aux bons partenaires
+              </h2>
 
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    aria-pressed={active}
-                    className={`${styles.tripleToggleButton} ${active ? styles.active : ""
+              {/* Toggle Categories */}
+              <div className={styles.tripleToggleGroup} role="group" aria-label="Catégories">
+                {orderedCategories.map(({ key, label, icon }) => {
+                  const Icon = iconMap[icon];
+                  const isActive = selectedCategory === key;
+
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      aria-pressed={isActive}
+                      aria-label={`Catégorie ${label}`}
+                      className={`${styles.tripleToggleButton} ${
+                        isActive ? styles.active : ""
                       }`}
-                    onClick={() => setSelectedCategory(key)}
-                  >
-                    {Icon && <Icon size="1.3em" />} {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {status === "success" && selectedCategory && (
-              <div className={`${styles.categoryTextBubble1900} ${styles.fadeIn}`}>
-                {DESCRIPTIONS[selectedCategory]}
+                      onClick={() => handleCategoryChange(key)}
+                    >
+                      {Icon && <Icon className={styles.toggleIcon} />}
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            )}
 
-            <form onSubmit={handleSearch} className={styles.searchBar}>
-              <input
-                type="search"
-                placeholder="Où recherchez-vous ?"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                required
-                aria-label="Localisation"
-              />
+              {/* Description */}
+              {status === "success" && selectedCategory && (
+                <div className={styles.categoryTextBubble1900}>
+                  {DESCRIPTIONS[selectedCategory]}
+                </div>
+              )}
 
-              {/* Bouton RECHERCHE */}
-              <button
-                type="submit"
-                className={styles.searchButton}
-                aria-label="Lancer la recherche"
+              {/* Search Bar */}
+              <form 
+                onSubmit={handleSearch} 
+                className={styles.searchBar}
+                role="search"
               >
-                <FaSearch />
-              </button>
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  placeholder="Où recherchez-vous ?"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  required
+                  aria-label="Localisation de recherche"
+                  autoComplete="off"
+                  spellCheck="false"
+                />
 
-              {/* Bouton FERMER */}
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={onClose}
-                aria-label="Fermer la fenêtre"
-              >
-                <FaTimes />
-              </button>
-            </form>
-
-          </section>
+                <button
+                  type="submit"
+                  className={styles.searchButton}
+                  aria-label="Lancer la recherche"
+                  disabled={!location.trim() || !selectedCategory}
+                >
+                  <FaSearch />
+                </button>
+              </form>
+            </section>
+          </div>
         </div>
       )}
 
+      {/* Popups */}
       {showExperiencePopup && (
         <ExperiencePopup
           onClose={() => setShowExperiencePopup(false)}
           onValidate={handleExperienceSelect}
         />
-
       )}
 
       {showCategoryPopup && selectedCategory && (
@@ -368,7 +437,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           recap={{
             category: selectedCategory,
             searchTarget,
-            location,
+            location: location.trim(),
             experienceLevel,
             yearsExperience,
           }}
@@ -379,7 +448,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           }}
           onValidate={handleAccessValidate}
         />
-
       )}
     </>
   );

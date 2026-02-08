@@ -41,6 +41,8 @@ $gold-light: #f5e6c7;
 $gold-soft: #fffaf3;
 $gold-border-soft: #e6d4a3;
 $gold-main: #d4af37;
+$gold-hover: #b8941e;
+$gold-light: #f4d03f;
 
 $primary-dark-color-sass: #b99b2e;
 $primary-color-sass: #d4af37;
@@ -146,7 +148,8 @@ $spacing-sm: 0.5rem;
 $spacing-md: 1rem;
 $spacing-lg: 2rem;
 $spacing-xl: 4rem;
-
+$spacing-2xl: 8rem;
+$spacing-3xl: 16rem;
 /* ==========================================================================
    BORDER RADIUS
    ========================================================================== */
@@ -156,6 +159,7 @@ $radius-md: 0.5rem;
 $radius-lg: 1rem;
 $radius-xl: 24px;
 $radius-2xl: 1.5rem;
+ $radius-3xl: 2rem;
 $radius-pill: 50px;
 
 /* ==========================================================================
