@@ -22,7 +22,8 @@ $bg: var(--background);
 
   a,
   button {
-    font-family: "Cormorant Garamond", serif; /* Style 1900 */
+    font-family: "Cormorant Garamond", serif;
+    /* Style 1900 */
     font-size: 1.1rem;
     letter-spacing: 0.5px;
     color: $gold;
@@ -62,45 +63,71 @@ $bg: var(--background);
 }
 
 
-// ⚠️ MODAL D'AVERTISSEMENT D'INACTIVITÉ
+// ⚠️ MODAL D'AVERTISSEMENT D'INACTIVITÉ — style amélioré
 .warningOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(10, 12, 15, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease-in-out;
+  backdrop-filter: blur(6px) saturate(1.05);
+  animation: fadeIn 0.22s ease-in-out;
 }
 
 .warningModal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 480px;
-  width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s ease-out;
+  background: var(--background);
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 520px;
+  width: 92%;
+  box-shadow: 0 18px 50px rgba(15, 20, 30, 0.35);
+  animation: slideUp 0.26s cubic-bezier(.2, .9, .4, 1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
   h3 {
-    margin: 0 0 16px 0;
-    font-size: 24px;
-    color: #ff6b35;
+    margin: 0;
+    font-size: 20px;
+    color: var(--color-text, #222);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    color: var(--color-text-muted, rgba(0, 0, 0, 0.75));
+    line-height: 1.5;
+  }
+
+  .warningSubtext {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--color-text-muted, rgba(0, 0, 0, 0.6));
+  }
+
+  .warningHeader {
     display: flex;
     align-items: center;
     gap: 12px;
   }
 
-  p {
-    margin: 0 0 24px 0;
-    font-size: 16px;
-    color: #333;
-    line-height: 1.6;
+  .warningIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: inline-grid;
+    place-items: center;
+    background: rgba(255, 107, 53, 0.09);
+    color: #ff6b35;
+    flex-shrink: 0;
   }
 }
 
@@ -108,19 +135,20 @@ $bg: var(--background);
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+  margin-top: 6px;
 
   button {
-    padding: 12px 24px;
-    border: none;
+    padding: 10px 18px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+    border: 1px solid transparent;
 
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(45, 143, 221, 0.12);
     }
 
     &:active {
@@ -130,20 +158,23 @@ $bg: var(--background);
 }
 
 .extendButton {
-  background: #4caf50;
+  background: linear-gradient(180deg, #2d8fdd 0%, #1b7fc6 100%);
   color: white;
+  border: 1px solid rgba(27, 127, 198, 0.15);
 
   &:hover {
-    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(27, 127, 198, 0.18);
   }
 }
 
 .logoutNowButton {
-  background: #f44336;
-  color: white;
+  background: transparent;
+  color: var(--color-text-muted, rgba(0, 0, 0, 0.85));
+  border: 1px solid rgba(0, 0, 0, 0.08);
 
   &:hover {
-    background: #da190b;
+    background: rgba(0, 0, 0, 0.03);
   }
 }
 
@@ -177,6 +208,7 @@ $bg: var(--background);
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -187,6 +219,7 @@ $bg: var(--background);
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -196,10 +229,10 @@ $bg: var(--background);
 // Responsive
 @media (max-width: 768px) {
   .warningModal {
-    padding: 24px;
-    
+    padding: 18px;
+
     h3 {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     p {
@@ -208,13 +241,14 @@ $bg: var(--background);
   }
 
   .warningActions {
-    flex-direction: column;
+    flex-direction: column-reverse;
 
     button {
       width: 100%;
     }
   }
 }
+
 /* BURGER */
 .burger {
   display: none;
@@ -235,9 +269,11 @@ $bg: var(--background);
     span:nth-child(1) {
       transform: rotate(45deg) translate(5px, 6px);
     }
+
     span:nth-child(2) {
       opacity: 0;
     }
+
     span:nth-child(3) {
       transform: rotate(-45deg) translate(6px, -5px);
     }
@@ -259,7 +295,7 @@ $bg: var(--background);
     padding: 1rem;
     width: 240px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
     transform: translateY(-20px);
     opacity: 0;

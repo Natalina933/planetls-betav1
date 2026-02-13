@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
@@ -24,10 +24,11 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: session, status } = useSession();
   const { userType } = useUserType();
-  
+
   const [showWarning, setShowWarning] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [warningTimeoutId, setWarningTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const extendButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const isAuthenticated = status === "authenticated";
   const isDashboardRoute = pathname?.startsWith("/dashboard");
@@ -47,42 +48,64 @@ export default function Navbar() {
   };
 
   // 🔄 Réinitialiser le timer d'inactivité
-  const resetInactivityTimer = () => {
-    // Nettoyer les timers existants
-    if (timeoutId) clearTimeout(timeoutId);
-    if (warningTimeoutId) clearTimeout(warningTimeoutId);
-    setShowWarning(false);
+  const resetInactivityTimer = useCallback(() => {
+  if (timeoutId) clearTimeout(timeoutId);
+  if (warningTimeoutId) clearTimeout(warningTimeoutId);
+  setShowWarning(false);
 
-    // Ne démarrer les timers que si on est connecté ET sur le dashboard
-    if (isAuthenticated && isDashboardRoute) {
-      // Timer pour l'avertissement
-      const warningId = setTimeout(() => {
-        setShowWarning(true);
-      }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
+  if (isAuthenticated && isDashboardRoute) {
+    const warningId = setTimeout(() => {
+      setShowWarning(true);
+    }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
 
-      // Timer pour la déconnexion automatique
-      const logoutId = setTimeout(() => {
-        handleAutoLogout();
-      }, INACTIVITY_TIMEOUT);
+    const logoutId = setTimeout(() => {
+      handleAutoLogout();
+    }, INACTIVITY_TIMEOUT);
 
-      setWarningTimeoutId(warningId);
-      setTimeoutId(logoutId);
-    }
-  };
+    setWarningTimeoutId(warningId);
+    setTimeoutId(logoutId);
+  }
+}, [timeoutId, warningTimeoutId, isAuthenticated, isDashboardRoute]);
+
 
   // 🚪 Déconnexion automatique
   const handleAutoLogout = async () => {
-    await signOut({ 
+    await signOut({
       callbackUrl: "/",
-      redirect: true 
+      redirect: true
     });
   };
 
   // 🔄 Prolonger la session
-  const extendSession = () => {
-    setShowWarning(false);
-    resetInactivityTimer();
+const extendSession = useCallback(() => {
+  setShowWarning(false);
+  resetInactivityTimer();
+}, [resetInactivityTimer]);
+
+
+  // Focus clavier, gestion Escape et blocage du scroll quand la modale est ouverte
+ useEffect(() => {
+  if (!showWarning) return;
+
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+
+  extendButtonRef.current?.focus();
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      extendSession();
+    }
   };
+
+  window.addEventListener("keydown", onKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", onKeyDown);
+    document.body.style.overflow = prevOverflow;
+  };
+}, [showWarning, extendSession]);
+
 
   // 👂 Écouter les événements d'activité utilisateur
   useEffect(() => {
@@ -110,7 +133,7 @@ export default function Navbar() {
       if (timeoutId) clearTimeout(timeoutId);
       if (warningTimeoutId) clearTimeout(warningTimeoutId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isDashboardRoute, pathname]);
 
   // 🚪 Arrêter les timers lors de la sortie du dashboard

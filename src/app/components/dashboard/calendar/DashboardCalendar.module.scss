@@ -1,5 +1,7 @@
 /* src/app/components/dashboard/Calendar/DashboardCalendar.module.scss */
 
+@use "sass:color";
+
 // Importez vos variables si nécessaire
 // @import '@/app/styles/abstracts/variables';
 
@@ -9,7 +11,7 @@
     border: 1px solid $mucha-ink;
     background: $mucha-paper; // Le fond du calendrier est blanc cassé
     box-shadow: $shadow;
-    
+
     .calendar-title {
         font-family: $font-elegant;
         font-size: 1.5rem;
@@ -36,11 +38,12 @@
         color: $mucha-ink;
         font-family: $font-title;
         transition: $transition;
-        
+
         &:hover {
             background-color: $primary-light-color-sass;
             color: $mucha-ink;
         }
+
         &.rbc-active {
             background-color: $primary-color-sass;
             color: $mucha-paper;
@@ -68,6 +71,6 @@
     }
 
     .rbc-today {
-        background-color: lighten($gold-light, 5%); // Mise en évidence d'aujourd'hui
+        background-color: color.scale($gold-light, $lightness: 5%); // Mise en évidence d'aujourd'hui
     }
 }

@@ -25,11 +25,9 @@
 
 .maxLevel {
   border-color: $primary-color-sass;
-  background: linear-gradient(
-    135deg,
-    rgba($primary-light-color-sass, 0.05),
-    rgba($primary-color-sass, 0.02)
-  );
+  background: linear-gradient(135deg,
+      rgba($primary-light-color-sass, 0.05),
+      rgba($primary-color-sass, 0.02));
 }
 
 .maxLevelContent {
@@ -127,11 +125,9 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--bg-color, $primary-color-sass),
-    var(--bg-color-light, $primary-light-color-sass)
-  );
+  background: linear-gradient(90deg,
+      var(--bg-color, $primary-color-sass),
+      var(--bg-color-light, $primary-light-color-sass));
   border-radius: 999px;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -147,12 +143,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3) 50%,
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent);
     animation: shimmer 2s infinite;
   }
 
@@ -247,11 +241,9 @@
 }
 
 .actionButton {
-  background: linear-gradient(
-    135deg,
-    $success-color,
-    color.adjust($success-color, $lightness: -10%)
-  );
+  background: linear-gradient(135deg,
+      $success-color,
+      color.adjust($success-color, $lightness: -10%));
   color: white;
   box-shadow: 0 2px 8px rgba($success-color, 0.3);
 
@@ -347,39 +339,47 @@
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
 
 @keyframes complete-pulse {
+
   0%,
   100% {
     transform: scaleX(1);
   }
+
   50% {
     transform: scaleX(1.02);
   }
 }
 
 @keyframes bounce {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.2);
   }
 }
 
 @keyframes celebrate {
+
   0%,
   100% {
     transform: rotate(0deg) scale(1);
   }
+
   25% {
     transform: rotate(-10deg) scale(1.1);
   }
+
   75% {
     transform: rotate(10deg) scale(1.1);
   }
@@ -430,7 +430,13 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  :global(*) {
+
+  .container,
+  .container *,
+  .actionButton,
+  .actionButton *,
+  .detailsButton,
+  .detailsButton * {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }

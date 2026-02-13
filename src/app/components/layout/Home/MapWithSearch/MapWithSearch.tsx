@@ -234,7 +234,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       setExperienceLevel(level);
       setYearsExperience(years);
       setShowExperiencePopup(false);
-      
+
       // Petit délai pour une transition fluide
       setTimeout(() => {
         setShowCategoryPopup(true);
@@ -246,7 +246,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const handleOptionSelect = useCallback((options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
-    
+
     setTimeout(() => {
       setShowAccessPopup(true);
     }, 150);
@@ -316,6 +316,15 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
   return (
     <>
+      {/* Croix globale */}
+      <button
+        className={styles.globalCloseButton}
+        onClick={onClose}
+        aria-label="Fermer"
+        type="button"
+      >
+        <FaTimes />
+      </button>
       {isMainModalVisible && (
         <div
           className={styles.searchOverlay}
@@ -329,8 +338,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
             aria-modal="true"
             aria-labelledby="modal-title"
           >
-            <ToastContainer 
-              position="top-center" 
+            <ToastContainer
+              position="top-center"
               autoClose={4000}
               hideProgressBar={false}
               closeOnClick
@@ -364,9 +373,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                       type="button"
                       aria-pressed={isActive}
                       aria-label={`Catégorie ${label}`}
-                      className={`${styles.tripleToggleButton} ${
-                        isActive ? styles.active : ""
-                      }`}
+                      className={`${styles.tripleToggleButton} ${isActive ? styles.active : ""
+                        }`}
                       onClick={() => handleCategoryChange(key)}
                     >
                       {Icon && <Icon className={styles.toggleIcon} />}
@@ -384,8 +392,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
               )}
 
               {/* Search Bar */}
-              <form 
-                onSubmit={handleSearch} 
+              <form
+                onSubmit={handleSearch}
                 className={styles.searchBar}
                 role="search"
               >

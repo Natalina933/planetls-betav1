@@ -30,11 +30,9 @@
 
 .current {
   border-color: $primary-color-sass;
-  background: linear-gradient(
-    135deg,
-    rgba($primary-light-color-sass, 0.05),
-    rgba($primary-color-sass, 0.02)
-  );
+  background: linear-gradient(135deg,
+      rgba($primary-light-color-sass, 0.05),
+      rgba($primary-color-sass, 0.02));
 
   &::before {
     content: "";
@@ -156,11 +154,9 @@
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
   margin-bottom: $spacing-md;
-  background: linear-gradient(
-    135deg,
-    rgba($gold-light, 0.2),
-    rgba($gold-main, 0.1)
-  );
+  background: linear-gradient(135deg,
+      rgba($gold-light, 0.2),
+      rgba($gold-main, 0.1));
   border: 2px solid $gold-border-soft;
   border-radius: $radius-sm;
 }
@@ -327,11 +323,13 @@
    ========================================================================== */
 
 @keyframes pulse-border {
+
   0%,
   100% {
     opacity: 0.3;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.6;
     transform: scale(1.01);
@@ -384,7 +382,13 @@
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  :global(*) {
+
+  .card,
+  .card *,
+  .iconWrapper,
+  .iconWrapper *,
+  .upgradeButton,
+  .upgradeButton * {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }
