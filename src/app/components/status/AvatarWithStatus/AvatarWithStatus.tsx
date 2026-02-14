@@ -15,16 +15,17 @@ interface AvatarWithStatusProps {
 export default function AvatarWithStatus({
   avatarUrl = "/icons/account-svgrepo-com.svg",
   status,
-  size = 64,
+  size = 32,
 }: AvatarWithStatusProps) {
   return (
     <div className={styles.wrapper} style={{ width: size, height: size }}>
       <Image
         src={avatarUrl}
-        alt=""
+        alt="Avatar utilisateur"
         width={size}
         height={size}
-        className={styles.avatar}
+        className={`${styles.avatar} ${avatarUrl === "/icons/account-svgrepo-com.svg" ? styles.defaultAvatar : ""
+          }`}
       />
 
       <span className={`${styles.statusDot} ${styles[status]}`} />

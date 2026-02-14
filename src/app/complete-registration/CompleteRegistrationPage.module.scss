@@ -1,6 +1,6 @@
 @use "sass:color";
-@use "src/app/styles/abstracts/_variables" as *;
-@use "src/app/styles/abstracts/_mixins" as *;
+@use "../styles/abstracts/variables" as *;
+@use "../styles/abstracts/_mixins" as *;
 
 /* ============================================================================
   THEME

@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Camera } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import styles from "./ProfileIdentity.module.scss";
 
@@ -33,7 +33,6 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
         email,
         phone,
         city,
-        isEditing,
         avatarFile,
         existingAvatarUrl,
         existingScale,
@@ -46,7 +45,6 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
         onAvatarRotationChange,
         onAvatarSave,
         onAvatarRemove,
-        onEditAvatarClick,
     } = props;
 
     return (
@@ -67,16 +65,7 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
                     onRemove={onAvatarRemove}
                 />
 
-                {!isEditing && (
-                    <button
-                        type="button"
-                        className={styles.avatarCameraButton}
-                        onClick={onEditAvatarClick}
-                        aria-label="Modifier la photo de profil"
-                    >
-                        <Camera />
-                    </button>
-                )}
+      
             </div>
 
             <div className={styles.info}>

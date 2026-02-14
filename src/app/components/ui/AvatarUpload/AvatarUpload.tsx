@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { FaCamera } from "react-icons/fa";
 import styles from "./AvatarUpload.module.scss";
@@ -42,178 +42,315 @@ export default function AvatarUpload({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasChanged, setHasChanged] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
+  // Cleanup URL au démontage
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current && previewUrlRef.current !== existingUrl) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, [existingUrl]);
+
+  // Gestion URL de prévisualisation
   useEffect(() => {
     if (value) {
       const url = URL.createObjectURL(value);
+      previewUrlRef.current = url;
       setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(existingUrl || null);
+      previewUrlRef.current = existingUrl || null;
     }
-    setPreviewUrl(existingUrl || null);
   }, [value, existingUrl]);
 
-  const openModal = () => {
-    setIsModalOpen(true);
-    setTimeout(() => fileInputRef.current?.click(), 0);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (!file) return;
-    onChange(file);
-    setHasChanged(true);
-  };
-
-  const handleValidate = () => {
-    onSave?.();
-    setIsModalOpen(false);
-    setHasChanged(false);
-  };
-
-  const handleRemove = () => {
-    onChange(null);
-    onRemove?.();
-    setPreviewUrl(null);
+  // Reset des transformations si nouvelle image
+  const resetTransformations = useCallback(() => {
     setScale(1);
     setOffsetX(0);
     setOffsetY(0);
     setRotation(0);
+    setHasChanged(false);
+  }, []);
+
+  const openModal = useCallback(() => {
+    setIsModalOpen(true);
+    // Délai pour laisser le modal s'afficher
+    setTimeout(() => fileInputRef.current?.click(), 100);
+  }, []);
+
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
-  };
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+
+    // Validation fichier image
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image valide.');
+      return;
+    }
+
+    // Validation taille (5Mo max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('L\'image ne doit pas dépasser 5 Mo.');
+      return;
+    }
+
+    onChange(file);
+    setHasChanged(true);
+    e.target.value = ''; // Reset input pour permettre re-sélection du même fichier
+  }, [onChange]);
+
+  const handleValidate = useCallback(() => {
+    if (onSave) onSave();
+    closeModal();
+    resetTransformations();
+  }, [onSave, closeModal, resetTransformations]);
+
+  const handleRemove = useCallback(() => {
+    onChange(null);
+    if (onRemove) onRemove();
+    resetTransformations();
+  }, [onChange, onRemove, resetTransformations]);
+
+  const updateScale = useCallback((newScale: number) => {
+    setScale(newScale);
+    setHasChanged(true);
+    onScaleChange?.(newScale);
+  }, [onScaleChange]);
+
+  const updateOffset = useCallback((newX: number, newY: number) => {
+    setOffsetX(newX);
+    setOffsetY(newY);
+    setHasChanged(true);
+    onOffsetChange?.(newX, newY);
+  }, [onOffsetChange]);
+
+  const updateRotation = useCallback((newRotation: number) => {
+    setRotation(newRotation);
+    setHasChanged(true);
+    onRotationChange?.(newRotation);
+  }, [onRotationChange]);
+
+  const imageTransform = `
+    translate(${offsetX}%, ${offsetY}%)
+    scale(${scale})
+    rotate(${rotation}deg)
+  `;
 
   return (
     <div className={styles.container}>
-      {/* AVATAR */}
+      {/* AVATAR PRINCIPAL */}
       <div className={styles.imageWrapper}>
         {previewUrl ? (
           <Image
             src={previewUrl}
             alt="Avatar"
             fill
+            sizes="(max-width: 640px) 96px, 130px"
+            className={styles.image}
             style={{
               objectFit: "cover",
-              transform: `
-                translate(${offsetX}%, ${offsetY}%)
-                scale(${scale})
-                rotate(${rotation}deg)
-              `,
+              transform: imageTransform,
             }}
+            priority={false}
+            draggable={false}
           />
         ) : (
-          <div className={styles.placeholder}>Avatar</div>
+          <div className={styles.placeholder}>
+            <span>Avatar</span>
+          </div>
         )}
 
         <button
           type="button"
           className={styles.cameraButton}
           onClick={openModal}
-          aria-label="Modifier l’avatar"
+          aria-label="Modifier l'avatar"
+          title="Modifier l'avatar"
         >
           <FaCamera />
         </button>
+
+        <input
+          ref={fileInputRef}
+          id="avatar-file-input"
+          type="file"
+          accept="image/*"
+          className={styles.hiddenFileInput}
+          onChange={handleFileChange}
+          aria-hidden="true"
+        />
       </div>
 
-      {/* MODALE */}
+      {/* MODALE D'ÉDITION */}
       {isModalOpen && (
         <>
-          <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)} />
-          <div className={styles.modal}>
-            <h3 className={styles.modalTitle}>Personnaliser l’avatar</h3>
-
-            <div className={styles.previewLarge}>
-              {previewUrl ? (
-                <Image
-                  src={previewUrl}
-                  alt="Avatar preview"
-                  fill
-                  style={{
-                    objectFit: "cover",
-                    transform: `
-                      translate(${offsetX}%, ${offsetY}%)
-                      scale(${scale})
-                      rotate(${rotation}deg)
-                    `,
-                  }}
-                />
-              ) : (
-                <div className={styles.placeholderLarge}>Avatar</div>
-              )}
+          <div
+            className={styles.modalOverlay}
+            onClick={closeModal}
+            role="button"
+            tabIndex={0}
+            aria-label="Fermer la modale"
+          />
+          <div
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="avatar-modal-title"
+          >
+            <div className={styles.modalHeader}>
+              <h3 id="avatar-modal-title" className={styles.modalTitle}>
+                Personnaliser l&apos;avatar
+              </h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={closeModal}
+                aria-label="Fermer la fenêtre de personnalisation"
+              >
+                ×
+              </button>
             </div>
 
-            {/* CONTROLES */}
-            <div className={styles.controls}>
-              <input
-                type="range"
-                min={0.5}
-                max={3}
-                step={0.01}
-                value={scale}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setScale(v);
-                  setHasChanged(true);
-                  onScaleChange?.(v);
-                }}
-              />
+            <div className={styles.modalContent}>
+              {/* Prévisualisation grande */}
+              <div className={styles.previewLarge}>
+                {previewUrl ? (
+                  <Image
+                    src={previewUrl}
+                    alt="Prévisualisation de l'avatar"
+                    fill
+                    sizes="500px"
+                    className={styles.image}
+                    style={{
+                      objectFit: "cover",
+                      transform: imageTransform,
+                    }}
+                    draggable={false}
+                  />
+                ) : (
+                  <div className={styles.placeholderLarge}>
+                    <span>Aucun avatar</span>
+                  </div>
+                )}
+              </div>
 
-              <input
-                type="range"
-                min={-50}
-                max={50}
-                value={offsetX}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setOffsetX(v);
-                  setHasChanged(true);
-                  onOffsetChange?.(v, offsetY);
-                }}
-              />
+              {/* CONTRÔLES */}
+              <div className={styles.controls}>
+                <button
+                  type="button"
+                  className={styles.uploadButton}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  📁 Télécharger une image
+                </button>
 
-              <input
-                type="range"
-                min={-50}
-                max={50}
-                value={offsetY}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setOffsetY(v);
-                  setHasChanged(true);
-                  onOffsetChange?.(offsetX, v);
-                }}
-              />
+                <div className={styles.controlGroup}>
+                  <label htmlFor="avatar-scale" className={styles.controlLabel}>
+                    Zoom
+                  </label>
+                  <input
+                    id="avatar-scale"
+                    type="range"
+                    min="0.5"
+                    max="3"
+                    step="0.01"
+                    value={scale}
+                    className={styles.rangeSlider}
+                    onChange={(e) => updateScale(Number(e.target.value))}
+                    aria-label="Zoom de l'image"
+                  />
+                </div>
 
-              <input
-                type="range"
-                min={-45}
-                max={45}
-                value={rotation}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setRotation(v);
-                  setHasChanged(true);
-                  onRotationChange?.(v);
-                }}
-              />
+                <div className={styles.offsetControls}>
+                  <div className={styles.controlGroup}>
+                    <label htmlFor="avatar-offset-x" className={styles.controlLabel}>
+                      ↔️ Horizontal
+                    </label>
+                    <input
+                      id="avatar-offset-x"
+                      type="range"
+                      min="-50"
+                      max="50"
+                      value={offsetX}
+                      className={styles.rangeSlider}
+                      onChange={(e) => updateOffset(
+                        Number(e.target.value), 
+                        offsetY
+                      )}
+                      aria-label="Déplacement horizontal"
+                    />
+                  </div>
+
+                  <div className={styles.controlGroup}>
+                    <label htmlFor="avatar-offset-y" className={styles.controlLabel}>
+                      ↕️ Vertical
+                    </label>
+                    <input
+                      id="avatar-offset-y"
+                      type="range"
+                      min="-50"
+                      max="50"
+                      value={offsetY}
+                      className={styles.rangeSlider}
+                      onChange={(e) => updateOffset(
+                        offsetX, 
+                        Number(e.target.value)
+                      )}
+                      aria-label="Déplacement vertical"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.controlGroup}>
+                  <label htmlFor="avatar-rotation" className={styles.controlLabel}>
+                    🔄 Rotation
+                  </label>
+                  <input
+                    id="avatar-rotation"
+                    type="range"
+                    min="-45"
+                    max="45"
+                    value={rotation}
+                    className={styles.rangeSlider}
+                    onChange={(e) => updateRotation(Number(e.target.value))}
+                    aria-label="Rotation de l'image"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* ACTIONS */}
             <div className={styles.modalFooter}>
-              <button onClick={() => setIsModalOpen(false)}>Annuler</button>
-              <button onClick={handleRemove} className={styles.remove}>
+              <button 
+                type="button" 
+                className={styles.cancel} 
+                onClick={closeModal}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                className={styles.remove}
+                onClick={handleRemove}
+              >
                 Supprimer
               </button>
-              <button onClick={handleValidate} disabled={!hasChanged}>
-                Valider
+              <button
+                type="button"
+                className={`${styles.validate} ${
+                  !hasChanged ? styles.validateDisabled : ""
+                }`}
+                onClick={handleValidate}
+                disabled={!hasChanged}
+              >
+                Valider les modifications
               </button>
             </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={handleFileChange}
-            />
           </div>
         </>
       )}
