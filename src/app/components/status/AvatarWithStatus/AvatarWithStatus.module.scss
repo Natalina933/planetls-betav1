@@ -6,23 +6,25 @@
   border-radius: 999px;
   overflow: visible;
   isolation: isolate;
-  
-  // 🔴 EFFET DORÉ SUR L'AVATAR
-  box-shadow: 
+
+  box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
     inset 0 2px 8px rgba(255, 248, 220, 0.3),
     inset 0 -2px 8px rgba(199, 154, 59, 0.4);
   border: 2px solid transparent;
-  background: 
-    radial-gradient(circle at center, rgba(244, 226, 176, 0.15) 0%, transparent 70%);
-  transition: 
+  background: radial-gradient(
+    circle at center,
+    rgba(244, 226, 176, 0.15) 0%,
+    transparent 70%
+  );
+  transition:
     transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.2s ease-out;
 }
 
 .wrapper:hover {
   transform: translateY(-2px);
-  box-shadow: 
+  box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.5),
     inset 0 4px 12px rgba(255, 248, 220, 0.4),
     inset 0 -4px 12px rgba(199, 154, 59, 0.6),
@@ -34,27 +36,35 @@
   height: 100%;
   border-radius: 999px;
   object-fit: cover;
-  
-  // 🔴 BORDURE DORÉE LUXUEUSE
+
   border: 2px solid rgba(212, 167, 62, 0.8);
-  box-shadow: 
+  box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     0 4px 16px rgba(0, 0, 0, 0.3);
-  
-  transition: 
+
+  transition:
     border-color 0.2s ease-out,
     box-shadow 0.2s ease-out;
 }
 
-/* Placeholder doré si pas d'image */
-.wrapper img[src="/icons/account-svgrepo-com.svg"] {
-  filter: 
-    brightness(0) saturate(100%) 
-    invert(88%) sepia(58%) saturate(1125%) hue-rotate(4deg) brightness(103%) contrast(97%);
+/* 🟡 SVG DORÉ - PRIORITÉ MAX */
+.defaultAvatar {
+  filter: brightness(0) saturate(100%) invert(85%) sepia(65%) saturate(1280%)
+    hue-rotate(9deg) brightness(105%) contrast(102%);
+
+  transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Point de statut - position bas droite */
+.wrapper:hover .defaultAvatar {
+  filter: brightness(0) saturate(100%) invert(94%) sepia(89%) saturate(1420%)
+    hue-rotate(12deg) brightness(125%) contrast(110%);
+}
+
+/* SUPPRIME CETTE LIGNE (conflit) */
+/* .wrapper img[src="/icons/account-svgrepo-com.svg"] { SUPPRIMÉ } */
+
+/* Status dots (reste identique) */
 .statusDot {
   position: absolute;
   bottom: -2px;
@@ -62,8 +72,8 @@
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  border: 3px solid #f8f5f0; // Bordure crème épaisse
-  box-shadow: 
+  border: 3px solid #f8f5f0;
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.5),
     inset 0 1px 2px rgba(255, 255, 255, 0.6);
   z-index: 10;
@@ -71,73 +81,40 @@
   animation: statusPulse 2s infinite;
 }
 
-/* Statuts avec dégradés premium */
+/* Statuts */
 .online {
-  background: 
-    radial-gradient(circle closest-side, #22c55e 0%, #16a34a 80%);
-  box-shadow: 
+  background: radial-gradient(circle closest-side, #22c55e 0%, #16a34a 80%);
+  box-shadow:
     0 0 0 2px rgba(34, 197, 94, 0.6),
     0 4px 12px rgba(22, 163, 74, 0.8);
 }
-
-@keyframes statusPulse {
-  0%, 100% { 
-    transform: scale(1);
-    box-shadow: 
-      0 2px 8px rgba(0, 0, 0, 0.5),
-      inset 0 1px 2px rgba(255, 255, 255, 0.6);
-  }
-  50% { 
-    transform: scale(1.05);
-  }
-}
-
 .busy {
-  background: 
-    radial-gradient(circle closest-side, #ef4444 0%, #dc2626 80%);
-  box-shadow: 
+  background: radial-gradient(circle closest-side, #ef4444 0%, #dc2626 80%);
+  box-shadow:
     0 0 0 2px rgba(239, 68, 68, 0.6),
     0 4px 12px rgba(220, 38, 38, 0.8);
 }
-
 .away {
-  background: 
-    radial-gradient(circle closest-side, #f59e0b 0%, #d97706 80%);
-  box-shadow: 
+  background: radial-gradient(circle closest-side, #f59e0b 0%, #d97706 80%);
+  box-shadow:
     0 0 0 2px rgba(245, 158, 11, 0.6),
     0 4px 12px rgba(217, 119, 6, 0.8);
 }
-
 .offline {
-  background: 
-    radial-gradient(circle closest-side, #6b7280 0%, #4b5563 80%);
-  box-shadow: 
+  background: radial-gradient(circle closest-side, #6b7280 0%, #4b5563 80%);
+  box-shadow:
     0 0 0 2px rgba(107, 114, 128, 0.6),
     0 4px 12px rgba(75, 85, 99, 0.8);
 }
-.defaultAvatar {
-  /* 🟡 OR MÉTALLIQUE PARFAIT */
-  filter: 
-    brightness(0) saturate(100%)
-    invert(84%) sepia(63%) saturate(1348%) hue-rotate(8deg) 
-    brightness(106%) contrast(101%);
-  
-  /* ✨ Effet brillant subtil */
-  @supports (backdrop-filter: blur(1px)) {
-    filter: 
-      brightness(0) saturate(100%)
-      invert(84%) sepia(63%) saturate(1348%) hue-rotate(8deg) 
-      brightness(106%) contrast(101%)
-      drop-shadow(0 1px 2px rgba(255, 215, 0, 0.6));
-  }
-}
 
-/* Hover encore plus doré */
-.wrapper:hover .defaultAvatar {
-  filter: 
-    brightness(0) saturate(100%)
-    invert(92%) sepia(82%) saturate(1492%) hue-rotate(11deg) 
-    brightness(120%) contrast(108%);
+@keyframes statusPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 /* Responsive */
@@ -149,7 +126,6 @@
   }
 }
 
-/* Petites tailles */
 .wrapper[style*="32"] .statusDot,
 .wrapper[style*="40"] .statusDot {
   width: 10px;

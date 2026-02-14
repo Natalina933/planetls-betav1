@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
+
 import styles from "./ConciergeProfilePage.module.scss";
 
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
@@ -159,11 +160,11 @@ export default function ConciergeProfilePage() {
   });
 
   // Synchroniser l'onglet avec l'URL
-useEffect(() => {
-  if (tabFromUrl !== activeTab) {
-    setActiveTab(tabFromUrl);
-  }
-}, [tabFromUrl, activeTab]);
+  useEffect(() => {
+    if (tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl, activeTab]);
 
   // Charger le profil au montage
   useEffect(() => {
@@ -352,12 +353,14 @@ useEffect(() => {
 
       await update({
         user: {
-          avatar_url: avatarUrl,
+          image: avatarUrl,              // 👈 CHAMP CLÉ NEXTAUTH
+          avatar_url: avatarUrl,         // 👈 ton champ custom (OK)
+          name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
           firstName: editProfile.first_name,
           lastName: editProfile.last_name,
-          name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
         },
       });
+window.dispatchEvent(new Event("user-profile-updated"));
 
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (error: unknown) {
@@ -486,9 +489,8 @@ useEffect(() => {
             </div>
             <ChevronDown
               size={16}
-              className={`${styles.toggleIcon} ${
-                isOpen ? styles.toggleIconOpen : ""
-              }`}
+              className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
+                }`}
             />
           </div>
 
@@ -541,9 +543,8 @@ useEffect(() => {
         </div>
 
         <div
-          className={`${styles.sectionContent} ${
-            isOpen ? styles.sectionContentOpen : ""
-          }`}
+          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
+            }`}
         >
           {children}
         </div>
@@ -690,10 +691,10 @@ useEffect(() => {
                       setEditProfile((prev) =>
                         prev
                           ? {
-                              ...prev,
-                              avatar_offset_x: offsetX,
-                              avatar_offset_y: offsetY,
-                            }
+                            ...prev,
+                            avatar_offset_x: offsetX,
+                            avatar_offset_y: offsetY,
+                          }
                           : prev,
                       )
                     }
@@ -708,13 +709,13 @@ useEffect(() => {
                       setEditProfile((prev) =>
                         prev
                           ? {
-                              ...prev,
-                              avatar_url: null,
-                              avatar_scale: 1,
-                              avatar_offset_x: 0,
-                              avatar_offset_y: 0,
-                              avatar_rotation: 0,
-                            }
+                            ...prev,
+                            avatar_url: null,
+                            avatar_scale: 1,
+                            avatar_offset_x: 0,
+                            avatar_offset_y: 0,
+                            avatar_rotation: 0,
+                          }
                           : prev,
                       );
                     }}
@@ -829,10 +830,10 @@ useEffect(() => {
                           setEditProfile((prev) =>
                             prev
                               ? {
-                                  ...prev,
-                                  experience_level:
-                                    value === "" ? null : value,
-                                }
+                                ...prev,
+                                experience_level:
+                                  value === "" ? null : value,
+                              }
                               : prev,
                           );
                         }}
@@ -1044,8 +1045,8 @@ useEffect(() => {
                 value={
                   editProfile.mission_settings
                     ? (JSON.parse(
-                        editProfile.mission_settings,
-                      ) as MissionAvailability)
+                      editProfile.mission_settings,
+                    ) as MissionAvailability)
                     : null
                 }
                 isEditing={
@@ -1056,9 +1057,9 @@ useEffect(() => {
                   setEditProfile((prev) =>
                     prev
                       ? {
-                          ...prev,
-                          mission_settings: JSON.stringify(data),
-                        }
+                        ...prev,
+                        mission_settings: JSON.stringify(data),
+                      }
                       : prev,
                   )
                 }
@@ -1239,9 +1240,8 @@ useEffect(() => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`${styles.tab} ${
-                  isActive ? styles.tabActive : ""
-                }`}
+                className={`${styles.tab} ${isActive ? styles.tabActive : ""
+                  }`}
               >
                 <span className={styles.tabIcon}>
                   <Icon />

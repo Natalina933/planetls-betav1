@@ -18,6 +18,7 @@ interface AvatarUploadProps {
   onRotationChange?: (rotation: number) => void;
   onSave?: () => void;
   onRemove?: () => void;
+  isEditing?: boolean;
 }
 
 export default function AvatarUpload({
@@ -280,7 +281,7 @@ export default function AvatarUpload({
                       value={offsetX}
                       className={styles.rangeSlider}
                       onChange={(e) => updateOffset(
-                        Number(e.target.value), 
+                        Number(e.target.value),
                         offsetY
                       )}
                       aria-label="Déplacement horizontal"
@@ -299,7 +300,7 @@ export default function AvatarUpload({
                       value={offsetY}
                       className={styles.rangeSlider}
                       onChange={(e) => updateOffset(
-                        offsetX, 
+                        offsetX,
                         Number(e.target.value)
                       )}
                       aria-label="Déplacement vertical"
@@ -326,9 +327,9 @@ export default function AvatarUpload({
             </div>
 
             <div className={styles.modalFooter}>
-              <button 
-                type="button" 
-                className={styles.cancel} 
+              <button
+                type="button"
+                className={styles.cancel}
                 onClick={closeModal}
               >
                 Annuler
@@ -342,9 +343,8 @@ export default function AvatarUpload({
               </button>
               <button
                 type="button"
-                className={`${styles.validate} ${
-                  !hasChanged ? styles.validateDisabled : ""
-                }`}
+                className={`${styles.validate} ${!hasChanged ? styles.validateDisabled : ""
+                  }`}
                 onClick={handleValidate}
                 disabled={!hasChanged}
               >
