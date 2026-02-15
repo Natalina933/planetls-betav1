@@ -1,272 +1,156 @@
-// src/app/components/dashboard/concierge/MissionDetails/MissionDetails.module.scss
-
-@use "sass:math";
-@use "sass:color";
-
-@use "app/styles/abstracts/variables" as *;
-@use "app/styles/abstracts/mixins" as *;
-
-// ============================================================================
-// VARIABLES LOCALES SPÉCIFIQUES AU COMPOSANT
-// ============================================================================
-
-// Couleurs spécifiques (à ajouter dans _variables.scss si réutilisées ailleurs)
-$services-bg-primary: rgba(15, 23, 42, 0.9);
-$services-bg-secondary: rgba(10, 10, 20, 0.98);
-$services-border-slate: rgba(148, 163, 184, 0.3);
-$services-border-gold: rgba(212, 175, 55, 0.4);
-$services-text-primary: #f9fafb;
-$services-text-secondary: #e5e7eb;
-$services-text-muted: #9ca3af;
-
-// Ombres spécifiques
-$services-shadow-wrapper:
-  0 10px 30px rgba(0, 0, 0, 0.35),
-  0 0 0 1px $services-border-slate;
-$services-shadow-item: 0 2px 6px rgba(15, 23, 42, 0.35);
-
-// ============================================================================
-// CONTENEUR PRINCIPAL
-// ============================================================================
+// Variables de thèmes (à adapter selon votre charte)
+$gold-primary: #b4975a;
+$green-dark: #2d4a3e;
+$cream-light: #f9f4e8;
+$text-muted: #666;
+$border-color: #e2e2e2;
+$white: #ffffff;
 
 .wrapper {
-  padding: $spacing-lg $spacing-md;
-  border-radius: $radius-xl;
-  background: linear-gradient(
-    135deg,
-    $services-bg-primary,
-    $services-bg-secondary
-  );
-  color: $services-text-primary;
-  box-shadow: $services-shadow-wrapper;
-  transition: $transition;
+  background: $white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  font-family: 'Playfair Display', serif; // Pour l'esprit 1900
 
-  &:hover {
-    box-shadow:
-      0 12px 35px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(148, 163, 184, 0.4);
+  .contentSection {
+    margin-top: 1rem;
   }
 }
 
-// ============================================================================
-// STRUCTURE DES CHAMPS
-// ============================================================================
+// --- Mode Édition (Selector) ---
+.editorBox {
+  background: rgba($cream-light, 0.5);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px dashed $gold-primary;
 
-.fieldRow {
-  @include flex-column;
-  gap: $spacing-sm;
+  .infoText {
+    font-style: italic;
+    color: $green-dark;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
 }
 
-.servicesRow {
-  margin-bottom: $spacing-sm;
+// --- Mode Lecture (Viewer) ---
+.viewerBox {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  min-height: 150px;
+  position: relative;
+
+  .loading {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+
+    .spin {
+      font-size: 2rem;
+      color: $gold-primary;
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .error {
+    grid-column: 1 / -1;
+    color: #d9534f;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #fff5f5;
+    border-radius: 6px;
+  }
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: $text-muted;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    font-style: italic;
+  }
 }
 
-.fieldLabel {
-  font-size: 0.9rem;
-  font-weight: $font-weight-bold;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: $services-text-secondary;
-  margin: 0;
-  line-height: 1.4;
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
+// --- Cartes de Catégories ---
+.categoryCard {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    border-color: $gold-primary;
+    transform: translateY(-3px);
+  }
+
+  .categoryTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: $green-dark;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid $cream-light;
+
+    .badge {
+      background: $gold-primary;
+      color: $white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+    }
+  }
 }
 
-.labelIcon {
-  color: $gold;
-  font-size: 1rem;
-}
-
-// ============================================================================
-// LISTE DES SERVICES
-// ============================================================================
-
-.servicesList {
+// --- Liste des Services ---
+.serviceList {
   list-style: none;
   padding: 0;
-  margin: $spacing-xs 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-sm $spacing-md;
-  animation: fadeIn 0.3s $ease-out-cubic;
-}
-
-.serviceItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.7rem;
-  border-radius: $radius-pill;
-  background: $services-bg-primary;
-  border: 1px solid $services-border-gold;
-  color: $services-text-primary;
-  font-size: 0.8rem;
-  box-shadow: $services-shadow-item;
-  transition: $transition;
-
-  // Amélioration visuelle au survol
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
-    border-color: rgba(212, 175, 55, 0.6);
-  }
-
-  // État focus pour l'accessibilité
-  &:focus-within {
-    @include focus-ring($gold);
-  }
-}
-
-.serviceIcon {
-  font-size: 0.9rem;
-  color: $gold;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.serviceCount {
-  font-size: 0.78rem;
-  opacity: 0.85;
-  font-variant-numeric: tabular-nums;
-}
-
-// ============================================================================
-// ÉTATS SPÉCIAUX
-// ============================================================================
-
-.emptyState {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  color: $services-text-muted;
-  font-style: italic;
-  padding: $spacing-sm 0;
-
-  // Amélioration du contraste pour l'accessibilité
-  @media (prefers-contrast: high) {
-    color: color.adjust($services-text-muted, $lightness: 20%);
-  }
-}
-
-// État de chargement
-.loadingState {
-  display: flex;
-  gap: $spacing-sm;
-  padding: $spacing-sm 0;
-
-  .skeleton {
-    height: 1.8rem;
-    width: 5rem;
-    border-radius: $radius-pill;
-    background: linear-gradient(
-      90deg,
-      rgba(148, 163, 184, 0.1) 0%,
-      rgba(148, 163, 184, 0.2) 50%,
-      rgba(148, 163, 184, 0.1) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-}
-
-// ============================================================================
-// ANIMATIONS
-// ============================================================================
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-// ============================================================================
-// RESPONSIVE
-// ============================================================================
-
-@include mq(sm) {
-  .wrapper {
-    border-radius: $radius-lg;
-    padding: 0.9rem $spacing-md;
-  }
-
-  .servicesList {
-    gap: 0.4rem 0.6rem;
-  }
+  margin: 0;
 
   .serviceItem {
-    font-size: 0.78rem;
-    padding: 0.3rem 0.65rem;
-  }
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 0.6rem;
+    font-family: 'Inter', sans-serif; // Police plus lisible pour la liste
 
-  .fieldLabel {
-    font-size: 0.85rem;
+    .checkIcon {
+      color: $gold-primary;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 
-// Tablette
-@include respond-to(md) {
+// --- Animations ---
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Responsive
+@media (max-width: 640px) {
+  .viewerBox {
+    grid-template-columns: 1fr;
+  }
+  
   .wrapper {
-    padding: 0.95rem $spacing-md;
-  }
-}
-
-// Support du mode sombre forcé
-@media (prefers-color-scheme: dark) {
-  .wrapper {
-    background: linear-gradient(
-      135deg,
-      rgba(15, 23, 42, 0.95),
-      rgba(10, 10, 20, 1)
-    );
-  }
-}
-
-// Réduction du mouvement pour l'accessibilité
-@media (prefers-reduced-motion: reduce) {
-  .wrapper,
-  .serviceItem,
-  .servicesList,
-  .skeleton {
-    animation: none;
-    transition: none;
-  }
-}
-
-// ============================================================================
-// MODIFICATEURS UTILITAIRES
-// ============================================================================
-
-// Service actif/sélectionné
-.serviceItem--active {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: $gold;
-  font-weight: $font-weight-bold;
-}
-
-// Service désactivé
-.serviceItem--disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-
-  &:hover {
-    transform: none;
-    box-shadow: $services-shadow-item;
+    padding: 1rem;
   }
 }

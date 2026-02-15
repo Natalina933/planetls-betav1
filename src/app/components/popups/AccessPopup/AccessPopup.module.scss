@@ -1,236 +1,208 @@
 @use "sass:color";
-@use "app/styles/abstracts/variables" as *;
-@use "app/styles/abstracts/mixins" as *;
+// -----------------------------------------------------------------------------
+// VARIABLES ART NOUVEAU
+// -----------------------------------------------------------------------------
+$gold-antique: #b4975a;
+$green-deep: #2d4a3e;
+$cream-paper: #f9f4e8;
+$text-ink: #1a1a1a;
+$border-soft: #d1c7b1;
 
-/* ===========================
-   OVERLAY
-=========================== */
-.popupOverlay {
+// -----------------------------------------------------------------------------
+// STYLES
+// -----------------------------------------------------------------------------
+.overlay {
   position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100dvh;
-
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
 
-  background: rgba(10, 10, 20, 0.55);
-  backdrop-filter: blur(10px);
+.popup {
+  position: relative;
+  background-color: $cream-paper;
+  background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png"); // Effet papier ancien
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 40px;
+  border-radius: 5px;
+  border: 2px solid $gold-antique;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: $text-ink;
 
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
+  // Ornement de coin typique 1900
+  &::before {
+    content: "❧";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: $gold-antique;
+    font-size: 24px;
+    opacity: 0.6;
+  }
 
-  overflow: hidden;
-  z-index: 50;
-
-  @media (max-width: 600px) {
-    align-items: flex-end;
-    padding: 0;
+  h2 {
+    font-family:
+      "Playfair Display", serif; // À importer ou utiliser une cursive élégante
+    text-align: center;
+    color: $green-deep;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px double $gold-antique;
+    padding-bottom: 10px;
   }
 }
 
-/* ===========================
-   POPUP CONTENT
-=========================== */
-.popupContent {
-  width: min(92%, 520px);
-  max-height: 90vh;
+.close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: 1px solid $border-soft;
+  color: $gold-antique;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 5px 10px;
+  border-radius: 50%;
 
-  background: linear-gradient(135deg, #ffffff, #f9f9fb);
-  border-radius: 20px;
-  padding: 2rem;
-
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-
-  overflow: hidden;
-  position: relative;
-
-  animation: popIn 0.35s ease-out;
-
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #1e222a, #23272f);
-    box-shadow:
-      0 12px 40px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(0, 0, 0, 0.4) inset;
+  &:hover {
+    background: $gold-antique;
+    color: white;
+    transform: rotate(90deg);
   }
+}
 
-  @media (max-width: 600px) {
-    width: 100%;
-    border-radius: 16px 16px 0 0;
-    padding: 1.8rem;
-
-    height: calc(100dvh - env(safe-area-inset-top));
-    max-height: calc(100dvh - env(safe-area-inset-top));
-  }
+// -----------------------------------------------------------------------------
+// RÉCAPITULATIF (Section ornementée)
+// -----------------------------------------------------------------------------
+.recapBox {
+  background: rgba(180, 151, 90, 0.1);
+  border: 1px solid $border-soft;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 8px;
 
   h3 {
-    font-size: 1.45rem;
-    font-weight: 700;
-    margin-bottom: 1.8rem;
+    font-size: 1rem;
+    color: $green-deep;
+    margin-bottom: 15px;
+    text-decoration: underline wavy $gold-antique;
+  }
 
-    background: linear-gradient(90deg, #b89226, #d4af37, #e2c874);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+  ul {
+    list-style: none;
+    padding: 0;
+
+    li {
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      line-height: 1.4;
+
+      strong {
+        color: $green-deep;
+        font-variant: small-caps;
+      }
+    }
   }
 }
 
-/* ===========================
-   SCROLLABLE CONTENT
-=========================== */
-.content {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-
-  padding-bottom: 1rem;
-
-  scrollbar-width: thin;
-  scrollbar-color: #d4af37 transparent;
-}
-
-/* ===========================
-   HIGHLIGHT
-=========================== */
-.highlight {
-  margin-bottom: 1.4rem;
-  padding: 0.9rem 1.1rem;
-
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.4;
-
-  color: #7a5c00;
-  background: #fff6dc;
-
-  border-left: 4px solid #d4af37;
-  border-radius: 10px;
-}
-
-/* ===========================
-   FORM
-=========================== */
+// -----------------------------------------------------------------------------
+// FORMULAIRE
+// -----------------------------------------------------------------------------
 .form {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 
   label {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #444;
-  }
-
-  input,
-  textarea {
-    font-family: inherit;
+    font-family: "Georgia", serif;
     font-size: 0.95rem;
+    color: $green-deep;
+    font-style: italic;
+    gap: 8px;
 
-    padding: 0.65rem 0.8rem;
-    border-radius: 10px;
-    border: 1.5px solid #ddd;
-    background: #fff;
+    input,
+    textarea {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid $border-soft;
+      padding: 10px 5px;
+      font-family: "Times New Roman", serif;
+      font-size: 1rem;
+      color: $text-ink;
+      transition: border-color 0.3s;
 
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-
-    &:focus {
-      outline: none;
-      border-color: #d4af37;
-      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+      &:focus {
+        outline: none;
+        border-bottom: 2px solid $gold-antique;
+        background: rgba(255, 255, 255, 0.5);
+      }
     }
-  }
 
-  textarea {
-    resize: vertical;
-    min-height: 80px;
+    textarea {
+      min-height: 80px;
+      border: 1px solid $border-soft;
+      border-radius: 4px;
+    }
   }
 }
 
-/* ===========================
-   ACTIONS
-=========================== */
+// -----------------------------------------------------------------------------
+// ACTIONS & BOUTONS
+// -----------------------------------------------------------------------------
 .actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-
-  margin-top: 1.4rem;
-  padding-top: 1rem;
-
-  position: sticky;
-  bottom: 0;
-  background: inherit;
-
-  @media (max-width: 480px) {
-    flex-direction: column;
-    gap: 0.6rem;
-
-    button {
-      width: 100%;
-    }
-  }
-
-  button {
-    border: none;
-    border-radius: 50px;
-
-    font-weight: 600;
-    font-size: 0.95rem;
-
-    padding: 0.75rem 1.6rem;
-    cursor: pointer;
-
-    transition: all 0.25s ease;
-  }
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 15px;
 }
 
-.closeButton {
-  background: #f2f2f2;
-  color: #555;
+.primaryButton,
+.secondaryButton {
+  padding: 12px 25px;
+  font-family: "Playfair Display", serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 2px;
+}
+
+.primaryButton {
+  background-color: $green-deep;
+  color: $cream-paper;
+  border: 1px solid $green-deep;
+  flex: 2;
 
   &:hover {
-    background: #e0e0e0;
-    color: #222;
+    background-color: color.adjust($green-deep, $lightness: 5%);
+    box-shadow: 0 4px 12px rgba(45, 74, 62, 0.3);
   }
 }
 
-.actions button:not(.closeButton) {
-  background: linear-gradient(90deg, #d4af37, #e7c65a);
-  color: #fff;
-
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.35);
+.secondaryButton {
+  background-color: transparent;
+  color: $gold-antique;
+  border: 1px solid $gold-antique;
+  flex: 1;
 
   &:hover {
-    background: linear-gradient(90deg, #e7c65a, #d4af37);
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.45);
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-/* ===========================
-   ANIMATIONS
-=========================== */
-@keyframes popIn {
-  from {
-    transform: translateY(15px) scale(0.98);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
+    background-color: $gold-antique;
+    color: white;
   }
 }

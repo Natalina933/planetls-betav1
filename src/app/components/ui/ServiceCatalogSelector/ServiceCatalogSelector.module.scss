@@ -1,234 +1,131 @@
-@use "app/styles/abstracts/variables" as *;
-@use "app/styles/abstracts/mixins" as *;
+$gold: #b4975a;
+$green-dark: #2d4a3e;
+$cream: #fdfaf3;
+$border: #e2e2e2;
 
 .serviceCatalog {
-    border-radius: 18px;
-    padding: 1.1rem 0.9rem;
-    background: radial-gradient(circle at top left, #111827, #020617 65%);
-    color: #f9fafb;
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.35),
-        0 0 0 1px rgba(15, 23, 42, 0.7);
-}
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 
-.catalogIntro {
-    font-size: 0.85rem;
-    line-height: 1.4;
-    color: #d1d5db;
-    margin-bottom: 0.9rem;
+  .catalogIntro {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    line-height: 1.5;
+    border-left: 3px solid $gold;
+    padding-left: 1rem;
+  }
 }
-
-.catalogContent {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1rem;
-}
-
-/* ========== Catégories (accordéon) ========== */
 
 .categorySection {
-    padding: 0.5rem 0.6rem 0.65rem;
-    border-radius: 14px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(31, 41, 55, 0.9);
-}
+  margin-bottom: 0.5rem;
+  border: 1px solid $border;
+  border-radius: 8px;
+  overflow: hidden;
 
-.categoryHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .categoryHeader {
     width: 100%;
-    background: transparent;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #fff;
     border: none;
-    padding: 0.2rem 0;
-    margin-bottom: 0.35rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #f9fafb;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
     cursor: pointer;
-    text-align: left;
-}
+    transition: background 0.2s;
 
-.categoryHeaderOpen {
-    color: #facc15;
-}
+    &:hover { background: $cream; }
 
-.chevron {
-    font-size: 0.9rem;
-    transition: transform 0.15s ease, color 0.15s ease;
-    color: #9ca3af;
-}
+    &Open { background: rgba($gold, 0.05); }
 
-.chevronOpen {
-    transform: rotate(180deg);
-    color: #facc15;
-}
+    .categoryTitle {
+      flex: 1;
+      text-align: left;
+      font-weight: 600;
+      color: $green-dark;
+    }
 
-/* ========== Grille de services ========== */
+    .categoryStats {
+      font-size: 0.8rem;
+      background: $gold;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-right: 1rem;
+    }
+
+    .chevron {
+      transition: transform 0.3s;
+      &Open { transform: rotate(180deg); }
+    }
+  }
+}
 
 .serviceGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 0.6rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: #fafafa;
+  border-top: 1px solid $border;
 }
 
 .serviceItem {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.55rem;
-    padding: 0.6rem 0.65rem;
-    border-radius: 12px;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(51, 65, 85, 0.9);
-    transition:
-        border-color 0.2s ease,
-        background 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.15s ease;
-    cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-    &:hover {
-        border-color: rgba(212, 175, 55, 0.6);
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.5);
-        transform: translateY(-1px);
-    }
-}
+  &:hover { border-color: $gold; }
 
-.selected {
-    border-color: rgba(212, 175, 55, 0.8);
-    background: radial-gradient(circle at top left, #1f2937, #020617 70%);
-    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
-}
+  &.selected {
+    border-color: $gold;
+    background: rgba($gold, 0.03);
+    box-shadow: 0 2px 8px rgba($gold, 0.1);
+  }
 
-.disabled {
+  &.disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
 
-    &:hover {
-        transform: none;
-        box-shadow: none;
-        border-color: rgba(51, 65, 85, 0.9);
-    }
-}
+  .serviceCheckbox {
+    accent-color: $gold;
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+  }
 
-.serviceCheckbox {
-    margin-top: 0.25rem;
-    cursor: pointer;
-    accent-color: #d4af37;
-}
-
-.serviceContent {
+  .serviceContent {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
-}
+    gap: 0.25rem;
 
-.serviceLabel {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #f9fafb;
-}
+    .serviceLabel {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: $green-dark;
+    }
 
-.serviceDescription {
-    font-size: 0.8rem;
-    color: #9ca3af;
-    line-height: 1.35;
+    .serviceDescription {
+      font-size: 0.8rem;
+      color: #777;
+      line-height: 1.4;
+      margin: 0;
+    }
+  }
 }
-
-/* ========== Compteur sélection ========== */
 
 .selectedCount {
-    margin-top: 0.9rem;
-    font-size: 0.8rem;
-    color: #e5e7eb;
-    text-align: right;
-    font-style: italic;
-}
-
-/* ========== États de chargement / erreur / vide ========== */
-
-.loadingContainer,
-.errorContainer,
-.emptyContainer {
-    border-radius: 14px;
-    padding: 0.85rem 0.75rem;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(51, 65, 85, 0.9);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.loadingContainer {
-    align-items: center;
-    justify-content: center;
-}
-
-.loadingSpinner {
-    width: 1.4rem;
-    height: 1.4rem;
-    color: #d4af37;
-    animation: spin 0.9s linear infinite;
-}
-
-.loadingText {
-    font-size: 0.8rem;
-    color: #e5e7eb;
-}
-
-.errorText {
-    font-size: 0.8rem;
-    color: #fecaca;
-}
-
-.retryButton {
-    align-self: flex-start;
-    margin-top: 0.25rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    border-radius: 999px;
-    border: 1px solid rgba(248, 113, 113, 0.8);
-    padding: 0.3rem 0.7rem;
-    background: transparent;
-    color: #fecaca;
-    cursor: pointer;
-    transition:
-        background 0.2s ease,
-        transform 0.15s ease;
-
-    &:hover {
-        background: rgba(248, 113, 113, 0.1);
-        transform: translateY(-1px);
-    }
-}
-
-.emptyText {
-    font-size: 0.8rem;
-    color: #9ca3af;
-}
-
-/* ========== Animations ========== */
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* ========== Responsive ========== */
-
-@media (max-width: 640px) {
-    .serviceGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .serviceItem {
-        padding: 0.55rem 0.6rem;
-    }
-
-    .catalogIntro {
-        font-size: 0.8rem;
-    }
+  text-align: right;
+  font-weight: 600;
+  color: $gold;
+  font-size: 0.9rem;
+  padding: 1rem;
+  background: $cream;
+  border-radius: 8px;
 }

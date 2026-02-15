@@ -360,7 +360,7 @@ export default function ConciergeProfilePage() {
           lastName: editProfile.last_name,
         },
       });
-window.dispatchEvent(new Event("user-profile-updated"));
+      window.dispatchEvent(new Event("user-profile-updated"));
 
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (error: unknown) {
@@ -671,7 +671,7 @@ window.dispatchEvent(new Event("user-profile-updated"));
                     roleLabel="Concierge partenaire"
                     email={editProfile.email}
                     phone={editProfile.phone}
-                    city={editProfile.city ?? "Ville non renseignée, FR"}
+                    location={editProfile.location ?? "Ville non renseignée, FR"}
                     isEditing={editingSection === "Photo de profil"}
                     avatarFile={avatarFile}
                     existingAvatarUrl={
@@ -1023,11 +1023,7 @@ window.dispatchEvent(new Event("user-profile-updated"));
               <MissionDetails
                 profile={editProfile as Profile}
                 isEditing={editingSection === "Services_propos_s"}
-                onChangeField={(name, value) =>
-                  setEditProfile((prev) =>
-                    prev ? { ...prev, [name]: value } : prev,
-                  )
-                }
+                // On retire onChangeField car il n'est plus défini dans les Props de MissionDetails
                 onChangeOption={(selected) =>
                   setEditProfile((prev) =>
                     prev

@@ -1,23 +1,19 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { FiCheckCircle, FiAlertCircle, FiLoader } from "react-icons/fi";
 import styles from "./MissionDetails.module.scss";
 import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
-import { FiTarget } from "react-icons/fi";
 import type { Profile } from "@/app/dashboard/concierge/profile/ConciergeProfilePage";
 
 /* =========================
-   Types
+    Types
 ========================= */
 
 interface MissionDetailsProps {
     profile: Profile;
     isEditing: boolean;
     onChangeOption?: (selected: string[]) => void;
-    onChangeField?: (
-        name: keyof Profile,
-        value: string | number | boolean
-    ) => void;
 }
 
 interface ServiceCatalogItem {
@@ -26,43 +22,34 @@ interface ServiceCatalogItem {
     service: string;
 }
 
-interface CategorySummary {
+interface DetailedCategory {
     category: string;
-    count: number;
+    services: string[];
 }
 
 /* =========================
-   Helpers
+    Helpers
 ========================= */
 
-/**
- * Parse une chaîne JSON de services en tableau
- * Supporte les formats: '["service1","service2"]' ou 'service1,service2'
- */
 const parseServicesString = (option: string | null | undefined): string[] => {
     if (!option || option.trim() === "") return [];
-
     try {
-        // Tenter de parser comme JSON d'abord
         if (option.startsWith("[") && option.endsWith("]")) {
             const parsed = JSON.parse(option);
             return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
         }
-
-        // Sinon, traiter comme une chaîne délimitée par des virgules
         return option
             .replace(/^\[|\]$/g, "")
             .split(",")
             .map((s) => s.replace(/"/g, "").trim())
             .filter(Boolean);
-    } catch (error) {
-        console.error("Erreur lors du parsing des services:", error);
+    } catch {
         return [];
     }
 };
 
 /* =========================
-   Component
+    Component
 ========================= */
 
 const MissionDetails: React.FC<MissionDetailsProps> = ({
@@ -72,153 +59,110 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
 }) => {
     const { option } = profile;
 
-    /* =========================
-       Services actifs
-    ========================= */
-    const services: string[] = useMemo(
-        () => parseServicesString(option),
-        [option]
-    );
-
-    /* =========================
-       Catalogue services (API)
-    ========================= */
     const [catalog, setCatalog] = useState<ServiceCatalogItem[]>([]);
     const [loadingCatalog, setLoadingCatalog] = useState(true);
     const [errorCatalog, setErrorCatalog] = useState<string | null>(null);
+
+    const activeServices: string[] = useMemo(
+        () => parseServicesString(option),
+        [option]
+    );
 
     useEffect(() => {
         const fetchCatalog = async () => {
             try {
                 setLoadingCatalog(true);
-                setErrorCatalog(null);
-
                 const res = await fetch("/api/services/services-catalog");
-
-                if (!res.ok) {
-                    throw new Error(`Erreur HTTP: ${res.status}`);
-                }
-
+                if (!res.ok) throw new Error("Erreur de chargement du catalogue");
                 const data = await res.json();
-
-                if (!Array.isArray(data)) {
-                    throw new Error("Format de données invalide");
-                }
-
-                setCatalog(data);
+                setCatalog(Array.isArray(data) ? data : []);
             } catch (error) {
-                const message =
-                    error instanceof Error
-                        ? error.message
-                        : "Erreur inconnue";
-                console.error("Erreur chargement catalog services:", error);
-                setErrorCatalog(message);
+                setErrorCatalog(error instanceof Error ? error.message : "Erreur");
             } finally {
                 setLoadingCatalog(false);
             }
         };
-
         fetchCatalog();
     }, []);
 
-    /* =========================
-       Regroupement par catégorie
-    ========================= */
-    const categorySummary: CategorySummary[] = useMemo(() => {
-        if (!catalog.length || !services.length) return [];
+    // 3. Mapping détaillé (Strictement basé sur le catalogue)
+    const detailedSummary: DetailedCategory[] = useMemo(() => {
+        if (loadingCatalog || !catalog.length || !activeServices.length) return [];
 
-        const counts: Record<string, number> = {};
+        const groups: Record<string, string[]> = {};
 
-        services.forEach((serviceName) => {
-            const found = catalog.find(
-                (item) => item.service.toLowerCase() === serviceName.toLowerCase()
-            );
+        activeServices.forEach((serviceName) => {
+            const normalizedInput = serviceName.trim().toLowerCase();
 
-            if (!found) {
-                console.warn(`Service non trouvé dans le catalogue: ${serviceName}`);
-                return;
+            // On cherche si le service de l'inscription correspond à une CATEGORIE ou un SERVICE du SQL
+            const found = catalog.find((item) => {
+                const s = item.service.toLowerCase();
+                const c = item.category.toLowerCase();
+                // Match si le nom de l'inscription est inclus dans la catégorie ou vice-versa
+                return s.includes(normalizedInput) || normalizedInput.includes(s) ||
+                    c.includes(normalizedInput) || normalizedInput.includes(c);
+            });
+
+            // UN SERVICE EST AFFICHÉ UNIQUEMENT S'IL EXISTE DANS LE CATALOGUE
+            if (found) {
+                if (!groups[found.category]) groups[found.category] = [];
+                if (!groups[found.category].includes(found.service)) {
+                    groups[found.category].push(found.service);
+                }
             }
-
-            counts[found.category] = (counts[found.category] || 0) + 1;
         });
 
-        // Trier par nombre de services (décroissant)
-        return Object.entries(counts)
-            .map(([category, count]) => ({ category, count }))
-            .sort((a, b) => b.count - a.count);
-    }, [services, catalog]);
+        // Tri par les catégories officielles
+        const order = ["Ménage", "Linge", "Accueil", "Maintenance", "Courses", "Administratif", "Extérieur", "Sécurité", "Confort", "Éco"];
 
-    /* =========================
-       Handler pour le sélecteur
-    ========================= */
-    const handleServiceChange = (selected: string[]) => {
-        if (onChangeOption) {
-            onChangeOption(selected);
-        }
-    };
+        return Object.entries(groups)
+            .map(([category, services]) => ({ category, services }))
+            .sort((a, b) => {
+                const indexA = order.indexOf(a.category);
+                const indexB = order.indexOf(b.category);
+                return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
+            });
+    }, [activeServices, catalog, loadingCatalog]);
 
-    /* =========================
-       Render
-    ========================= */
     return (
         <div className={styles.wrapper}>
-            {/* Services proposés */}
-            <div className={`${styles.fieldRow} ${styles.servicesRow}`}>
-                <label className={styles.fieldLabel}>
-                    <FiTarget className={styles.labelIcon} aria-hidden="true" />
-                    Services proposés
-                </label>
-
+            <div className={styles.contentSection}>
                 {isEditing ? (
-                    // Mode édition : affiche le sélecteur
-                    <ServiceCatalogSelector
-                        selected={services}
-                        onChange={handleServiceChange}
-                        disabled={false}
-                    />
+                    <div className={styles.editorBox}>
+                        <p className={styles.infoText}>Mettez à jour vos prestations :</p>
+                        <ServiceCatalogSelector
+                            selected={activeServices}
+                            onChange={(vals) => onChangeOption?.(vals)}
+                            disabled={loadingCatalog}
+                        />
+                    </div>
                 ) : (
-                    // Mode lecture : affiche le résumé
-                    <>
-                        {loadingCatalog && (
-                            <div className={styles.loadingState}>
-                                <div className={styles.skeleton} />
-                                <div className={styles.skeleton} />
-                                <div className={styles.skeleton} />
+                    <div className={styles.viewerBox}>
+                        {loadingCatalog && <div className={styles.loading}><FiLoader className={styles.spin} /></div>}
+
+                        {errorCatalog && <div className={styles.error}><FiAlertCircle /> {errorCatalog}</div>}
+
+                        {!loadingCatalog && detailedSummary.map((group) => (
+                            <div key={group.category} className={styles.categoryCard}>
+                                <h4 className={styles.categoryTitle}>
+                                    {group.category}
+                                    <span className={styles.badge}>{group.services.length}</span>
+                                </h4>
+                                <ul className={styles.serviceList}>
+                                    {group.services.map((s, i) => (
+                                        <li key={i} className={styles.serviceItem}>
+                                            <FiCheckCircle className={styles.checkIcon} />
+                                            {s}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        )}
+                        ))}
 
-                        {errorCatalog && !loadingCatalog && (
-                            <span className={styles.emptyState} role="alert">
-                                ⚠️ Erreur: {errorCatalog}
-                            </span>
+                        {!loadingCatalog && detailedSummary.length === 0 && !errorCatalog && (
+                            <div className={styles.empty}>Aucun service reconnu. Veuillez éditer votre profil.</div>
                         )}
-
-                        {!loadingCatalog && !errorCatalog && categorySummary.length > 0 && (
-                            <ul className={styles.servicesList} role="list">
-                                {categorySummary.map(({ category, count }) => (
-                                    <li
-                                        key={category}
-                                        className={styles.serviceItem}
-                                    >
-                                        <FiTarget
-                                            className={styles.serviceIcon}
-                                            aria-hidden="true"
-                                        />
-                                        <strong>{category}</strong>
-                                        <span className={styles.serviceCount}>
-                                            {count} service{count > 1 ? "s" : ""}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-
-                        {!loadingCatalog && !errorCatalog && categorySummary.length === 0 && (
-                            <span className={styles.emptyState}>
-                                Aucun service sélectionné
-                            </span>
-                        )}
-                    </>
+                    </div>
                 )}
             </div>
         </div>

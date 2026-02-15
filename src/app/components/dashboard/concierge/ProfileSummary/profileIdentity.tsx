@@ -8,7 +8,7 @@ type ProfileIdentityProps = {
     roleLabel?: string;
     email?: string | null;
     phone?: string | null;
-    city?: string | null;
+    location?: string | null;
 
     isEditing: boolean;
     avatarFile: File | null;
@@ -32,7 +32,7 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
         roleLabel,
         email,
         phone,
-        city,
+        location,
         avatarFile,
         existingAvatarUrl,
         existingScale,
@@ -87,10 +87,10 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
                             <span>{phone}</span>
                         </span>
                     )}
-                    {city && (
+                    {location && (
                         <span className={styles.metaItem}>
                             <MapPin />
-                            <span>{city}</span>
+                            <span>{location}</span>
                         </span>
                     )}
                 </div>

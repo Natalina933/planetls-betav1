@@ -92,7 +92,7 @@ export default function AccessPopup({
         {/* RÉCAP */}
         {/* ------------------------------------------------------------------ */}
         <section className={styles.recapBox}>
-          <h3>🧾 Récapitulatif</h3>
+          <h3>Récapitulatif</h3>
 
           <ul>
             <li>

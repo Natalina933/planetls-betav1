@@ -13,39 +13,39 @@ const POPUP_CONTENT: Record<string, { title: string; options: string[] }> = {
   proprietaire: {
     title: "Quel type de service recherchez-vous ?",
     options: [
-      "Accueil des voyageurs (check-in / check-out)",
-      "Ménage entre les séjours",
-      "Gestion complète du logement (planning, communication, ménage)",
-      "Maintenance et petits travaux",
-      "Gestion des clés et des accès",
-      "Service ponctuel (remplacement, urgence, imprévu)",
-      "Conciergerie digitale (suivi à distance, automatisation)",
-      "Autre besoin spécifique",
+      "Accueil et check-in/check-out", // Harmonisé avec concierge
+      "Ménage", 
+      "Gestion complète",
+      "Maintenance et petites réparations",
+      "Gestion des clés",
+      "Services ponctuels",
+      "Conciergerie digitale",
+      "Autres services"
     ],
   },
   concierge: {
     title: "Quel type de service proposez-vous ?",
     options: [
-      "Ménage et entretien intérieur",
-      "Gestion du linge",
+      "Ménage", 
+      "Linge", 
       "Accueil et check-in/check-out",
       "Maintenance et petites réparations",
       "Courses et intendance",
-      "Gestion administrative des locations",
-      "Entretien extérieur (jardin, piscine, terrasses)",
+      "Gestion administrative",
+      "Entretien extérieur",
       "Sécurité du logement",
-      "Services de confort (chef, massage, baby-sitting…)",
-      "Conciergerie digitale (suivi à distance, automatisation)",
-
+      "Services de confort",
+      "Conciergerie digitale"
     ],
   },
   artisan: {
     title: "Quel est votre domaine d’activité ?",
     options: [
-      "Plomberie / Électricité",
-      "Jardinage / Espaces verts",
-      "Petits travaux / Rénovation",
-      "Services commerciaux (épicerie, pressing, etc.)",
+      "Plomberie",
+      "Électricité",
+      "Jardinage et espaces verts",
+      "Petits travaux et rénovation",
+      "Services commerciaux"
     ],
   },
 };
