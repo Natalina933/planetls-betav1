@@ -21,6 +21,7 @@ import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
+import MissionAcceptanceRules from "@/app/components/missions/MissionAcceptanceRules";
 import type { MissionAvailability } from "@/app/components/missions/types";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 
@@ -94,8 +95,10 @@ export interface Profile {
   insurance_company: string | null;
   hourly_rate: number | null;
   monthly_rate: number | null;
+  availability_hours?: string | null;
+  emergency_service?: boolean | null;
   certifications: string | null;
-  mission_settings: string | null;
+  mission_settings?: string | null;
   years_experience: number | null;
   experience_level: "debutant" | "intermediaire" | "experimente" | null;
   iban: string | null;
@@ -129,10 +132,88 @@ const SECTION_IDS = {
   TARIFS: normalizeSectionId("Ma grille tarifaire"),
 } as const;
 
+const MISSION_SECTION_IDS = {
+  SERVICES: normalizeSectionId("Services proposés"),
+  ZONE_RULES: normalizeSectionId("Zone, disponibilités & règles de mission"),
+  ACCEPTANCE_RULES: normalizeSectionId("Règles d'acceptation des missions"),
+} as const;
+
 type ExtendedFieldName =
   | keyof Profile
   | "service_area"
   | "service_radius_km";
+
+const DEFAULT_MISSION_CENTER = { lat: 48.8566, lng: 2.3522 };
+
+const parseMissionPayload = (
+  value?: string | null,
+): Pick<MissionAvailability, "schedule" | "rules"> => {
+  const defaultRules: MissionAvailability["rules"] = {
+    refuseOutOfZone: true,
+    refuseOutOfSchedule: true,
+    autoAcceptEmergency: false,
+  };
+
+  if (!value) {
+    return { schedule: [], rules: defaultRules };
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    // Backward compatible: old format stored only schedule array.
+    if (Array.isArray(parsed)) {
+      return { schedule: parsed, rules: defaultRules };
+    }
+
+    const schedule = Array.isArray(parsed?.schedule) ? parsed.schedule : [];
+    const rules = parsed?.rules
+      ? {
+          refuseOutOfZone:
+            typeof parsed.rules.refuseOutOfZone === "boolean"
+              ? parsed.rules.refuseOutOfZone
+              : true,
+          refuseOutOfSchedule:
+            typeof parsed.rules.refuseOutOfSchedule === "boolean"
+              ? parsed.rules.refuseOutOfSchedule
+              : true,
+          autoAcceptEmergency:
+            typeof parsed.rules.autoAcceptEmergency === "boolean"
+              ? parsed.rules.autoAcceptEmergency
+              : false,
+        }
+      : defaultRules;
+
+    return { schedule, rules };
+  } catch {
+    return { schedule: [], rules: defaultRules };
+  }
+};
+
+const buildMissionAvailabilityFromProfile = (
+  profile: Profile | null,
+): MissionAvailability | null => {
+  if (!profile) return null;
+  const missionPayload = parseMissionPayload(profile.availability_hours);
+
+  const labels = (profile.service_area ?? profile.location ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return {
+    zones: labels.map((label, index) => ({
+      placeId: `zone-${index}-${label}`,
+      label,
+      lat: DEFAULT_MISSION_CENTER.lat + index * 0.01,
+      lng: DEFAULT_MISSION_CENTER.lng + index * 0.01,
+    })),
+    radiusKm: profile.service_radius_km ?? 30,
+    schedule: missionPayload.schedule,
+    emergency24h: Boolean(profile.emergency_service),
+    rules: missionPayload.rules,
+  };
+};
 
 export default function ConciergeProfilePage() {
   const { update } = useSession();
@@ -188,8 +269,14 @@ export default function ConciergeProfilePage() {
           );
         }
 
-        setProfile(data);
-        setEditProfile(data);
+        const hydratedData: Profile = {
+          ...data,
+          service_area: data.service_area ?? data.location ?? null,
+          service_radius_km: data.service_radius_km ?? null,
+        };
+
+        setProfile(hydratedData);
+        setEditProfile(hydratedData);
       } catch (error: unknown) {
         if (!isMounted) return;
         const errorMessage =
@@ -559,22 +646,7 @@ export default function ConciergeProfilePage() {
     setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
-  const renderPlaceholderRules = () => (
-    <div className={styles.placeholderContent}>
-      <p>
-        Définissez les conditions d&apos;acceptation automatique ou manuelle des
-        missions.
-      </p>
-      <ul>
-        <li>• Refuser automatiquement hors zone</li>
-        <li>• Refuser hors horaires définis</li>
-        <li>• Accepter automatiquement les missions urgentes</li>
-        <li>• Prioriser les clients récurrents</li>
-      </ul>
-    </div>
-  );
-
-  const renderPlaceholderPriorities = () => (
+    const renderPlaceholderPriorities = () => (
     <div className={styles.placeholderContent}>
       <p>
         Classez vos missions par niveau de priorité afin d&apos;optimiser votre
@@ -624,8 +696,29 @@ export default function ConciergeProfilePage() {
       {renderSection(
         "Règles d'acceptation des missions",
         <FiSliders />,
-        renderPlaceholderRules(),
-        false,
+        <MissionAcceptanceRules
+          value={
+            buildMissionAvailabilityFromProfile(editProfile)?.rules ?? {
+              refuseOutOfZone: true,
+              refuseOutOfSchedule: true,
+              autoAcceptEmergency: false,
+            }
+          }
+          isEditing={editingSection === MISSION_SECTION_IDS.ACCEPTANCE_RULES}
+          onChange={(rules) =>
+            setEditProfile((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    availability_hours: JSON.stringify({
+                      schedule: parseMissionPayload(prev.availability_hours).schedule,
+                      rules,
+                    }),
+                  }
+                : prev,
+            )
+          }
+        />,
       )}
       {renderSection(
         "Priorité & typologie des missions",
@@ -1022,7 +1115,7 @@ export default function ConciergeProfilePage() {
               <FiTarget />,
               <MissionDetails
                 profile={editProfile as Profile}
-                isEditing={editingSection === "Services_propos_s"}
+                isEditing={editingSection === MISSION_SECTION_IDS.SERVICES}
                 // On retire onChangeField car il n'est plus défini dans les Props de MissionDetails
                 onChangeOption={(selected) =>
                   setEditProfile((prev) =>
@@ -1038,24 +1131,24 @@ export default function ConciergeProfilePage() {
               "Zone, disponibilités & règles de mission",
               <FiMapPinOutline />,
               <MissionZoneAvailability
-                value={
-                  editProfile.mission_settings
-                    ? (JSON.parse(
-                      editProfile.mission_settings,
-                    ) as MissionAvailability)
-                    : null
-                }
-                isEditing={
-                  editingSection ===
-                  "Zone__disponibilit_s___r_gles_de_mission"
-                }
+                value={buildMissionAvailabilityFromProfile(editProfile)}
+                isEditing={editingSection === MISSION_SECTION_IDS.ZONE_RULES}
                 onChange={(data) =>
                   setEditProfile((prev) =>
                     prev
                       ? {
-                        ...prev,
-                        mission_settings: JSON.stringify(data),
-                      }
+                          ...prev,
+                          service_area:
+                            data.zones.length > 0
+                              ? data.zones.map((z) => z.label).join(", ")
+                              : prev.service_area ?? prev.location ?? null,
+                          service_radius_km: data.radiusKm,
+                          availability_hours: JSON.stringify({
+                            schedule: data.schedule,
+                            rules: data.rules,
+                          }),
+                          emergency_service: data.emergency24h,
+                        }
                       : prev,
                   )
                 }
@@ -1253,3 +1346,7 @@ export default function ConciergeProfilePage() {
     </div>
   );
 }
+
+
+
+

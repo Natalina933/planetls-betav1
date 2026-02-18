@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import styles from "./MissionZoneAvailability.module.scss";
 import type { MissionAvailability, WeekDay } from "./types";
+import MissionAcceptanceRules from "./MissionAcceptanceRules";
 
 // Import dynamique de MissionMap avec SSR désactivé
 const MissionMap = dynamic(() => import("./MissionMap"), {
@@ -61,9 +62,6 @@ export default function MissionZoneAvailability({
     const updatedZones = state.zones.filter((z) => z.placeId !== placeId);
     updateZones(updatedZones);
   };
-
-  const toggleRule = (key: keyof MissionAvailability["rules"]) =>
-    onChange({ ...state, rules: { ...state.rules, [key]: !state.rules[key] } });
 
   const toggleEmergency24h = () =>
     onChange({ ...state, emergency24h: !state.emergency24h });
@@ -338,69 +336,13 @@ export default function MissionZoneAvailability({
           Règles d&apos;automatisation
         </h4>
 
-        <div className={styles.rulesGrid}>
-          <label
-            className={`${styles.ruleItem} ${!isEditing ? styles.disabled : ""}`}
-          >
-            <input
-              type="checkbox"
-              checked={state.rules.refuseOutOfZone}
-              disabled={!isEditing}
-              onChange={() => toggleRule("refuseOutOfZone")}
-              className={styles.checkbox}
-            />
-            <div className={styles.ruleContent}>
-              <span className={styles.ruleTitle}>
-                Refuser automatiquement les missions hors zone
-              </span>
-              <span className={styles.ruleDescription}>
-                Les demandes en dehors de votre périmètre seront déclinées
-                automatiquement
-              </span>
-            </div>
-          </label>
-
-          <label
-            className={`${styles.ruleItem} ${!isEditing ? styles.disabled : ""}`}
-          >
-            <input
-              type="checkbox"
-              checked={state.rules.refuseOutOfSchedule}
-              disabled={!isEditing}
-              onChange={() => toggleRule("refuseOutOfSchedule")}
-              className={styles.checkbox}
-            />
-            <div className={styles.ruleContent}>
-              <span className={styles.ruleTitle}>
-                Refuser les missions hors horaires
-              </span>
-              <span className={styles.ruleDescription}>
-                Seules les demandes pendant vos créneaux définis seront acceptées
-              </span>
-            </div>
-          </label>
-
-          <label
-            className={`${styles.ruleItem} ${!isEditing ? styles.disabled : ""}`}
-          >
-            <input
-              type="checkbox"
-              checked={state.rules.autoAcceptEmergency}
-              disabled={!isEditing}
-              onChange={() => toggleRule("autoAcceptEmergency")}
-              className={styles.checkbox}
-            />
-            <div className={styles.ruleContent}>
-              <span className={styles.ruleTitle}>
-                Accepter automatiquement les urgences
-              </span>
-              <span className={styles.ruleDescription}>
-                Les missions urgentes seront acceptées même hors horaires
-              </span>
-            </div>
-          </label>
-        </div>
+        <MissionAcceptanceRules
+          value={state.rules}
+          isEditing={isEditing}
+          onChange={(rules) => onChange({ ...state, rules })}
+        />
       </section>
     </div>
   );
 }
+
