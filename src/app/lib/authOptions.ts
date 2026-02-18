@@ -28,17 +28,17 @@ interface CustomUser {
   id: string;
   email: string;
   emailVerified: Date | null;
-  username: string;
+  username: string | null;
   name: string;
-  firstName: string;
-  lastName: string;
+  firstName: string | null;
+  lastName: string | null;
   phone: string | null;
   role: UserRole;
   avatar_url: string | null;
   location: string | null;
   option: string | null;
   search_target: string | null;
-  company_name: string;
+  company_name: string | null;
   status: string;
 }
 
@@ -102,17 +102,17 @@ export const authOptions: NextAuthConfig = {
             id: profile.id,
             email: profile.email,
             emailVerified: profile.email_confirmed_at ? new Date(profile.email_confirmed_at) : null,
-            username: profile.username || "",
+            username: profile.username || null,
             name: fullName,
-            firstName: profile.first_name || "",
-            lastName: profile.last_name || "",
+            firstName: profile.first_name || null,
+            lastName: profile.last_name || null,
             phone: profile.phone || null,
             role,
             avatar_url: profile.avatar_url || null,
             location: profile.location || null,
             option: profile.option || null,
             search_target: profile.search_target || null,
-            company_name: profile.company_name || "",
+            company_name: profile.company_name || null,
             status: profile.status ?? "active",
           } satisfies CustomUser;
         } catch (error) {
@@ -135,6 +135,7 @@ export const authOptions: NextAuthConfig = {
         const u = user as CustomUser;
         token.id = u.id;
         token.email = u.email;
+        token.emailVerified = u.emailVerified;
         token.username = u.username;
         token.name = u.name;
         token.avatar_url = u.avatar_url;
@@ -160,18 +161,18 @@ export const authOptions: NextAuthConfig = {
         id: (token.id as string) || "",
         email: (token.email as string) || "",
         emailVerified: (token.emailVerified as Date | null) ?? null,
-        username: (token.username as string) || "",
+        username: (token.username as string | null) ?? null,
         name: (token.name as string) || "",
         avatar_url: (token.avatar_url as string) || null,
         role: (token.role as UserRole) || "owner",
         status: (token.status as string) || "active",
-        firstName: (token.firstName as string) || "",
-        lastName: (token.lastName as string) || "",
+        firstName: (token.firstName as string | null) ?? null,
+        lastName: (token.lastName as string | null) ?? null,
         phone: (token.phone as string) || null,
         location: (token.location as string) || null,
         option: (token.option as string) || null,
         search_target: (token.search_target as string) || null,
-        company_name: (token.company_name as string) || "",
+        company_name: (token.company_name as string | null) ?? null,
       };
 
       return session;

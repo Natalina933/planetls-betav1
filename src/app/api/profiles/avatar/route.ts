@@ -1,147 +1,112 @@
 // src/app/api/profiles/avatar/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getToken } from "next-auth/jwt";
+
+function getAdminClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Configuration serveur manquante");
+  }
+
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+async function getCurrentUserId(req: NextRequest): Promise<string | null> {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  return typeof token?.sub === "string" ? token.sub : null;
+}
 
 export async function POST(req: NextRequest) {
   try {
-    // ✅ Utilisation de SUPABASE_URL (sans NEXT_PUBLIC_) pour les routes API
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-      console.error(
-        "[API Avatar Upload] ❌ Variables d'environnement manquantes"
-      );
-      console.error("SUPABASE_URL:", SUPABASE_URL ? "✓" : "✗");
-      console.error("SUPABASE_SERVICE_ROLE_KEY:", SUPABASE_KEY ? "✓" : "✗");
-
-      return NextResponse.json(
-        { error: "Configuration serveur manquante" },
-        { status: 500 }
-      );
+    const userId = await getCurrentUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // ✅ Créer le client APRÈS vérification
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
-    // Récupération des données du formulaire
+    const supabaseAdmin = getAdminClient();
     const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const userId = formData.get("userId") as string;
+    const file = formData.get("file") as File | null;
 
-    console.log("[API Avatar Upload] File:", file?.name, file?.size, "bytes");
-    console.log("[API Avatar Upload] User ID:", userId);
-
-    // Validation
-    if (!file || !userId) {
-      return NextResponse.json(
-        { error: "Fichier ou userId manquant" },
-        { status: 400 }
-      );
+    if (!file) {
+      return NextResponse.json({ error: "Fichier manquant" }, { status: 400 });
     }
 
-    // Validation du type de fichier
     if (!file.type.startsWith("image/")) {
-      return NextResponse.json(
-        { error: "Le fichier doit être une image" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Le fichier doit être une image" }, { status: 400 });
     }
 
-    // Validation de la taille (5MB max)
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json(
-        { error: "Image trop volumineuse (max 5MB)" },
-        { status: 400 }
-      );
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: "Image trop volumineuse (max 5MB)" }, { status: 400 });
     }
 
-    // Génération du chemin unique
-    const fileExt = file.name.split(".").pop();
+    const fileExt = file.name.split(".").pop() || "bin";
     const filePath = `${userId}/${Date.now()}.${fileExt}`;
 
-    console.log("[API Avatar Upload] Uploading to:", filePath);
-
-    // Upload vers Supabase Storage
     const { data, error } = await supabaseAdmin.storage
       .from("avatars")
       .upload(filePath, file, {
         cacheControl: "3600",
-        upsert: false, // Évite les conflits
+        upsert: false,
       });
 
     if (error) {
-      console.error("[API Avatar Upload] ❌ Supabase upload error:", error);
-      return NextResponse.json(
-        { error: `Échec upload: ${error.message}` },
-        { status: 500 }
-      );
+      console.error("[API Avatar Upload] Supabase upload error:", error);
+      return NextResponse.json({ error: "Echec upload" }, { status: 500 });
     }
 
-    // Récupération de l'URL publique
     const { data: publicUrlData } = supabaseAdmin.storage
       .from("avatars")
       .getPublicUrl(data.path);
 
-    const publicUrl = publicUrlData.publicUrl;
-
-    console.log("[API Avatar Upload] ✅ Success! URL:", publicUrl);
-
     return NextResponse.json({
-      url: publicUrl,
+      url: publicUrlData.publicUrl,
       path: data.path,
       success: true,
     });
   } catch (err) {
-    console.error("[API Avatar Upload] ❌ Erreur serveur:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur inconnue" },
-      { status: 500 }
-    );
+    console.error("[API Avatar Upload] Erreur serveur:", err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-// ✅ Optionnel : Route DELETE pour supprimer les anciens avatars
 export async function DELETE(req: NextRequest) {
   try {
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
-      return NextResponse.json(
-        { error: "Configuration serveur manquante" },
-        { status: 500 }
-      );
+    const userId = await getCurrentUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-
-    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const { searchParams } = new URL(req.url);
     const path = searchParams.get("path");
-
     if (!path) {
       return NextResponse.json({ error: "Path manquant" }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin.storage
-      .from("avatars")
-      .remove([path]);
-
-    if (error) {
-      console.error("[API Avatar Delete] ❌ Error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // A user can only delete files in their own folder.
+    if (!path.startsWith(`${userId}/`)) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
-    console.log("[API Avatar Delete] ✅ Deleted:", path);
+    const supabaseAdmin = getAdminClient();
+    const { error } = await supabaseAdmin.storage.from("avatars").remove([path]);
+
+    if (error) {
+      console.error("[API Avatar Delete] Supabase error:", error);
+      return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[API Avatar Delete] ❌ Erreur:", err);
+    console.error("[API Avatar Delete] Erreur serveur:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

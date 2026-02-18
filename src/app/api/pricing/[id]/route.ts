@@ -1,12 +1,12 @@
 // src/app/api/pricing/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";
+import { db } from "@/app/lib/dbServer";
 
 type PricingType = "hourly" | "fixed" | "monthly" | "custom";
 
 interface PricingUpdateBody {
-  service_id?: number | null; // number comme dans Supabase
+  service_id?: number | null;
   label?: string;
   type?: PricingType;
   amount?: number;
@@ -14,14 +14,22 @@ interface PricingUpdateBody {
   is_default?: boolean;
 }
 
-// GET /api/pricing/[id] -> Récupérer un tarif spécifique
+async function getCurrentUserId(req: NextRequest): Promise<string | null> {
+  const token = await getToken({ req });
+  return typeof token?.sub === "string" ? token.sub : null;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const userId = await getCurrentUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    }
 
+    const { id } = await params;
     const { data, error } = await db
       .from("services_pricing")
       .select(
@@ -31,6 +39,7 @@ export async function GET(
       `
       )
       .eq("id", id)
+      .eq("profile_id", userId)
       .maybeSingle();
 
     if (error) {
@@ -44,28 +53,22 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error(`[GET /api/pricing/:id] ERROR:`, err);
+    console.error("[GET /api/pricing/:id] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-// PATCH /api/pricing/[id] -> Modifier un tarif
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-
-    // Vérification auth
-    const token = await getToken({ req });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-
+    const userId = await getCurrentUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // Vérifier que le tarif appartient bien à l'utilisateur
     const { data: existing } = await db
       .from("services_pricing")
       .select("profile_id")
@@ -76,7 +79,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
-    // Parser le body avec conversion service_id en number
     const rawBody = await req.json();
     const body: PricingUpdateBody = {
       service_id:
@@ -94,9 +96,7 @@ export async function PATCH(
       is_default: rawBody.is_default,
     };
 
-    // Construire l'objet de mise à jour (seulement les champs fournis)
     const updateObj: Partial<PricingUpdateBody> = {};
-
     if (body.service_id !== undefined) updateObj.service_id = body.service_id;
     if (body.label !== undefined) updateObj.label = body.label;
     if (body.type !== undefined) updateObj.type = body.type;
@@ -130,28 +130,22 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error(`[PATCH /api/pricing/:id] ERROR:`, err);
+    console.error("[PATCH /api/pricing/:id] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-// DELETE /api/pricing/[id] -> Supprimer un tarif
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-
-    // Vérification auth
-    const token = await getToken({ req });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-
+    const userId = await getCurrentUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // Vérifier que le tarif appartient bien à l'utilisateur
     const { data: existing } = await db
       .from("services_pricing")
       .select("profile_id")
@@ -163,7 +157,6 @@ export async function DELETE(
     }
 
     const { error } = await db.from("services_pricing").delete().eq("id", id);
-
     if (error) {
       console.error(`[DELETE /api/pricing/${id}] DB error:`, error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
@@ -171,7 +164,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: "Tarif supprimé" });
   } catch (err) {
-    console.error(`[DELETE /api/pricing/:id] ERROR:`, err);
+    console.error("[DELETE /api/pricing/:id] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

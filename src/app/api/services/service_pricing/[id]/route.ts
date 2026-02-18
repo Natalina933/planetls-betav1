@@ -1,9 +1,8 @@
-// src/app/api/service-pricing/[id]/route.ts
+// src/app/api/services/service_pricing/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";
+import { db } from "@/app/lib/dbServer";
 
-// Type inline pour la mise à jour
 interface ServicePricingUpdate {
   service_id?: number | null;
   label?: string;
@@ -13,18 +12,22 @@ interface ServicePricingUpdate {
   is_default?: boolean | null;
 }
 
-/**
- * GET /api/service-pricing/[id]
- * Récupère une tarification spécifique
- */
+async function getCurrentUserId(req: NextRequest): Promise<string | null> {
+  const token = await getToken({ req });
+  return typeof token?.sub === "string" ? token.sub : null;
+}
+
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const params = await context.params;
-    const { id } = params;
+    const userId = await getCurrentUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    }
 
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
@@ -33,60 +36,39 @@ export async function GET(
       .from("services_pricing")
       .select("*")
       .eq("id", id)
+      .eq("profile_id", userId)
       .single();
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Tarification introuvable" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Tarification introuvable" }, { status: 404 });
       }
-      console.error("[GET /api/service-pricing/[id]] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la récupération", details: error.message },
-        { status: 500 }
-      );
+      console.error("[GET /api/services/service_pricing/[id]] DB error:", error);
+      return NextResponse.json({ error: "Erreur lors de la récupération" }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("[GET /api/service-pricing/[id]] ERROR:", err);
-    return NextResponse.json(
-      { error: "Erreur serveur interne" },
-      { status: 500 }
-    );
+    console.error("[GET /api/services/service_pricing/[id]] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
 
-/**
- * PATCH /api/service-pricing/[id]
- * Met à jour une tarification existante
- */
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Vérification de l'authentification
-    const token = await getToken({ req });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-
+    const userId = await getCurrentUserId(req);
     if (!userId) {
-      return NextResponse.json(
-        { error: "Authentification requise" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
     }
 
-    const params = await context.params;
-    const { id } = params;
-
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
-    // Vérifier que l'utilisateur est propriétaire de cette tarification
     const { data: existing, error: fetchError } = await db
       .from("services_pricing")
       .select("profile_id")
@@ -95,19 +77,10 @@ export async function PATCH(
 
     if (fetchError) {
       if (fetchError.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Tarification introuvable" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Tarification introuvable" }, { status: 404 });
       }
-      console.error("[PATCH /api/service-pricing/[id]] DB error:", fetchError);
-      return NextResponse.json(
-        {
-          error: "Erreur lors de la vérification",
-          details: fetchError.message,
-        },
-        { status: 500 }
-      );
+      console.error("[PATCH /api/services/service_pricing/[id]] DB error:", fetchError);
+      return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
     }
 
     if (existing.profile_id !== userId) {
@@ -118,8 +91,6 @@ export async function PATCH(
     }
 
     const body = await req.json();
-
-    // Construction de l'objet de mise à jour
     const updateObj: ServicePricingUpdate = {};
 
     if (body.service_id !== undefined) {
@@ -154,7 +125,6 @@ export async function PATCH(
     if (body.unit !== undefined) updateObj.unit = body.unit;
     if (body.is_default !== undefined) updateObj.is_default = body.is_default;
 
-    // Vérification qu'il y a au moins un champ à mettre à jour
     if (Object.keys(updateObj).length === 0) {
       return NextResponse.json(
         { error: "Aucune donnée à mettre à jour" },
@@ -170,60 +140,38 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error("[PATCH /api/service-pricing/[id]] DB error:", error);
-
-      // Gestion des erreurs spécifiques
+      console.error("[PATCH /api/services/service_pricing/[id]] DB error:", error);
       if (error.code === "23503") {
         return NextResponse.json(
           { error: "Le service_id spécifié n'existe pas" },
           { status: 400 }
         );
       }
-
-      return NextResponse.json(
-        { error: "Erreur lors de la mise à jour", details: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la mise à jour" }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err) {
-    console.error("[PATCH /api/service-pricing/[id]] ERROR:", err);
-    return NextResponse.json(
-      { error: "Erreur serveur interne" },
-      { status: 500 }
-    );
+    console.error("[PATCH /api/services/service_pricing/[id]] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
 
-/**
- * DELETE /api/service-pricing/[id]
- * Supprime une tarification
- */
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Vérification de l'authentification
-    const token = await getToken({ req });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-
+    const userId = await getCurrentUserId(req);
     if (!userId) {
-      return NextResponse.json(
-        { error: "Authentification requise" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
     }
 
-    const params = await context.params;
-    const { id } = params;
-
+    const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
     }
 
-    // Vérifier que l'utilisateur est propriétaire de cette tarification
     const { data: existing, error: fetchError } = await db
       .from("services_pricing")
       .select("profile_id")
@@ -232,19 +180,10 @@ export async function DELETE(
 
     if (fetchError) {
       if (fetchError.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Tarification introuvable" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "Tarification introuvable" }, { status: 404 });
       }
-      console.error("[DELETE /api/service-pricing/[id]] DB error:", fetchError);
-      return NextResponse.json(
-        {
-          error: "Erreur lors de la vérification",
-          details: fetchError.message,
-        },
-        { status: 500 }
-      );
+      console.error("[DELETE /api/services/service_pricing/[id]] DB error:", fetchError);
+      return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
     }
 
     if (existing.profile_id !== userId) {
@@ -255,24 +194,14 @@ export async function DELETE(
     }
 
     const { error } = await db.from("services_pricing").delete().eq("id", id);
-
     if (error) {
-      console.error("[DELETE /api/service-pricing/[id]] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la suppression", details: error.message },
-        { status: 500 }
-      );
+      console.error("[DELETE /api/services/service_pricing/[id]] DB error:", error);
+      return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Tarification supprimée",
-    });
+    return NextResponse.json({ success: true, message: "Tarification supprimée" });
   } catch (err) {
-    console.error("[DELETE /api/service-pricing/[id]] ERROR:", err);
-    return NextResponse.json(
-      { error: "Erreur serveur interne" },
-      { status: 500 }
-    );
+    console.error("[DELETE /api/services/service_pricing/[id]] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }

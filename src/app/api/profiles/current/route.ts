@@ -30,10 +30,7 @@ export async function GET(req: NextRequest) {
   const token = rawToken as AuthToken | null;
 
   if (!token?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized", token },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = token.id;
@@ -46,10 +43,7 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     console.error("[profiles/current] DB error:", error);
-    return NextResponse.json(
-      { error: "Database error", details: error },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
   return NextResponse.json(profile, { status: 200 });

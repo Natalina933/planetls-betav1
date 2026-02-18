@@ -13,16 +13,6 @@ export interface CurrentUser {
   company_name?: string | null;
   avatar_url?: string | null;
 }
-// même fichier route.ts
-export interface AuthToken extends CurrentUser {
-  name?: string | null;
-  lastName?: string | null;
-  phone?: string | null;
-  location?: string | null;
-  option?: string | null;
-  search_target?: string | null;
-  status?: string | null;
-}
 
 export function useCurrentUser() {
   const { data: session, status } = useSession();
@@ -31,7 +21,6 @@ export function useCurrentUser() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchUser = useCallback(async () => {
-    // pas de session => pas d'appel API
     if (!session?.user?.id) {
       setUser(null);
       setLoading(false);

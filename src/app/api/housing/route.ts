@@ -62,6 +62,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const proprietaireId =
+      typeof body?.proprietaire?.id === "string"
+        ? body.proprietaire.id
+        : typeof body?.proprietaire?.userId === "string"
+        ? body.proprietaire.userId
+        : typeof body?.proprietaire?.profile_id === "string"
+        ? body.proprietaire.profile_id
+        : null;
 
     // Ici tu peux effectuer des validations basiques
     if (!body.infos?.nomLogement || !body.proprietaire) {
@@ -69,6 +77,10 @@ export async function POST(req: NextRequest) {
         { error: "Champs requis manquants" },
         { status: 400 }
       );
+    }
+
+    if (proprietaireId && proprietaireId !== userId) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
     // Insère. Utilise returning/select pour renvoyer l'enregistrement inséré
