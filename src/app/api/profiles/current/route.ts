@@ -3,12 +3,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
 
-export async function GET(req: NextRequest) {
-  const token = await getToken({ req });
+// 1) Définir le type ici
+interface AuthToken {
+  id?: string;
+  email?: string;
+  username?: string;
+  name?: string;
+  avatar_url?: string | null;
+  role?: string;
+  status?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string | null;
+  location?: string | null;
+  option?: string | null;
+  search_target?: string | null;
+  company_name?: string;
+}
 
-  if (!token || typeof token.id !== "string") {
+export async function GET(req: NextRequest) {
+  const rawToken = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const token = rawToken as AuthToken | null;
+
+  if (!token?.id) {
     return NextResponse.json(
-      { error: "Unauthorized" },
+      { error: "Unauthorized", token },
       { status: 401 }
     );
   }
@@ -22,9 +45,9 @@ export async function GET(req: NextRequest) {
     .single();
 
   if (error) {
-    console.error("[profiles/current]", error);
+    console.error("[profiles/current] DB error:", error);
     return NextResponse.json(
-      { error: "Database error" },
+      { error: "Database error", details: error },
       { status: 500 }
     );
   }

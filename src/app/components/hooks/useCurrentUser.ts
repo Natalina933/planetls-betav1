@@ -4,24 +4,24 @@
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
-/**
- * À adapter selon ton modèle User / Profile
- * (tu peux l'importer depuis /types si tu en as un)
- */
-// src/app/components/hooks/useCurrentUser.ts
-
 export interface CurrentUser {
   id: string;
-
   email?: string | null;
   username?: string | null;
   firstName?: string | null;
-
   role?: string | null;
-
   company_name?: string | null;
-
   avatar_url?: string | null;
+}
+// même fichier route.ts
+export interface AuthToken extends CurrentUser {
+  name?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  option?: string | null;
+  search_target?: string | null;
+  status?: string | null;
 }
 
 export function useCurrentUser() {
@@ -31,7 +31,12 @@ export function useCurrentUser() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchUser = useCallback(async () => {
-    if (!session?.user?.id) return;
+    // pas de session => pas d'appel API
+    if (!session?.user?.id) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
 
@@ -41,6 +46,13 @@ export function useCurrentUser() {
       });
 
       if (!res.ok) {
+        const text = await res.text();
+        console.error(
+          "Erreur chargement profil:",
+          res.status,
+          res.statusText,
+          text
+        );
         throw new Error("Erreur chargement profil");
       }
 
@@ -54,12 +66,10 @@ export function useCurrentUser() {
     }
   }, [session?.user?.id]);
 
-  // Chargement initial
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  // Écoute les updates globaux
   useEffect(() => {
     const handleUpdate = () => {
       fetchUser();
