@@ -13,7 +13,7 @@ function extractOwnerId(proprietaire: unknown): string | null {
 }
 
 async function getAuthContext(req: NextRequest) {
-  const token = await getToken({ req });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
   const userId = typeof token?.sub === "string" ? token.sub : undefined;
   const role = typeof token?.role === "string" ? token.role : "";
   const isAdmin = role === "admin" || role === "super_admin";
@@ -213,3 +213,5 @@ export async function DELETE(
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
+
+

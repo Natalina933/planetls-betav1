@@ -14,7 +14,7 @@ interface ContractBody {
 // --- GET /api/contracts -> Liste des contrats de l'utilisateur (avec filtres) ---
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 // --- POST /api/contracts -> Créer un contrat ---
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -97,3 +97,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
+

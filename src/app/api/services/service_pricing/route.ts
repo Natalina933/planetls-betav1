@@ -15,7 +15,7 @@ interface ServicePricingInsert {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
     if (!userId) {
       return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
     if (!userId) {
       return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
     if (!userId) {
       return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
@@ -185,3 +185,5 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
+
+

@@ -17,7 +17,7 @@ interface PricingInsertBody {
 export async function GET(req: NextRequest) {
   try {
     // Vérification auth
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 // POST reste IDENTIQUE (parfait)
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -128,3 +128,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
+

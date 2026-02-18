@@ -13,7 +13,7 @@ interface ServicePricingUpdate {
 }
 
 async function getCurrentUserId(req: NextRequest): Promise<string | null> {
-  const token = await getToken({ req });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
   return typeof token?.sub === "string" ? token.sub : null;
 }
 
@@ -205,3 +205,5 @@ export async function DELETE(
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
+
+

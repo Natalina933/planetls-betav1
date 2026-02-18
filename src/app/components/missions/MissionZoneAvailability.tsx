@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import dynamic from "next/dynamic";
 import styles from "./MissionZoneAvailability.module.scss";
 import type { MissionAvailability, WeekDay } from "./types";
@@ -57,6 +56,11 @@ export default function MissionZoneAvailability({
 
   const updateRadius = (radiusKm: number) =>
     onChange({ ...state, radiusKm });
+
+  const removeZone = (placeId: string) => {
+    const updatedZones = state.zones.filter((z) => z.placeId !== placeId);
+    updateZones(updatedZones);
+  };
 
   const toggleRule = (key: keyof MissionAvailability["rules"]) =>
     onChange({ ...state, rules: { ...state.rules, [key]: !state.rules[key] } });
@@ -126,13 +130,88 @@ export default function MissionZoneAvailability({
           />
         </div>
 
-        {state.zones.length === 0 && (
-          <p className={styles.emptyState}>
-            {isEditing
-              ? "Cliquez sur la carte ou utilisez le champ de recherche pour ajouter des zones"
-              : "Aucune zone définie"}
-          </p>
-        )}
+        {/* Sélecteur de rayon */}
+        <div className={styles.radiusSection}>
+          <div className={styles.radiusHeader}>
+            <div>
+              <label htmlFor="radius-input" className={styles.radiusLabel}>
+                <span>Rayon de couverture:</span>
+                <span className={styles.radiusValue}>{state.radiusKm} km</span>
+              </label>
+            </div>
+            {!isEditing && state.radiusKm > 0 && (
+              <span className={styles.savedIndicator} role="status">
+                ✓ Sauvegardé
+              </span>
+            )}
+          </div>
+          {isEditing && (
+            <input
+              id="radius-input"
+              type="range"
+              min="1"
+              max="100"
+              value={state.radiusKm}
+              onChange={(e) => updateRadius(Number(e.target.value))}
+              className={styles.radiusSlider}
+              aria-label="Ajuster le rayon de couverture en kilomètres"
+            />
+          )}
+        </div>
+
+        {/* Zones sélectionnées */}
+        <div className={styles.zonesSection}>
+          <div className={styles.zonesSectionHeader}>
+            <h5 className={styles.zonesSectionTitle}>
+              {state.zones.length === 0
+                ? "Aucune zone sélectionnée"
+                : `${state.zones.length} zone${state.zones.length > 1 ? "s" : ""} sélectionnée${state.zones.length > 1 ? "s" : ""}`}
+            </h5>
+            {!isEditing && state.zones.length > 0 && (
+              <span className={styles.savedIndicator} role="status">
+                ✓ Sauvegardé
+              </span>
+            )}
+          </div>
+
+          {state.zones.length > 0 && (
+            <div className={styles.zonesList}>
+              {state.zones.map((zone) => (
+                <div key={zone.placeId} className={styles.zoneCard}>
+                  <div className={styles.zoneCardContent}>
+                    <span className={styles.zoneLabel}>{zone.label}</span>
+                    <span className={styles.zoneCoordinates}>
+                      {zone.lat.toFixed(4)}°, {zone.lng.toFixed(4)}°
+                    </span>
+                  </div>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      className={styles.removeZoneBtn}
+                      onClick={() => removeZone(zone.placeId)}
+                      aria-label={`Supprimer la zone ${zone.label}`}
+                      title="Supprimer cette zone"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {state.zones.length === 0 && isEditing && (
+            <p className={styles.emptyZoneState}>
+              Cliquez sur la carte ou utilisez le champ de recherche pour ajouter des zones
+            </p>
+          )}
+
+          {state.zones.length === 0 && !isEditing && (
+            <p className={styles.emptyZoneState}>
+              Aucune zone définie pour le moment
+            </p>
+          )}
+        </div>
       </section>
 
       {/* SECTION HORAIRES */}

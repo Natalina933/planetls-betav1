@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     if (!token)
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
@@ -72,3 +72,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+

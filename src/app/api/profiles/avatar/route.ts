@@ -4,7 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { getToken } from "next-auth/jwt";
 
 function getAdminClient() {
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl =
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
@@ -20,7 +21,7 @@ function getAdminClient() {
 }
 
 async function getCurrentUserId(req: NextRequest): Promise<string | null> {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
   return typeof token?.sub === "string" ? token.sub : null;
 }
 
@@ -110,3 +111,5 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
+

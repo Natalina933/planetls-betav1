@@ -17,7 +17,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -59,7 +59,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -122,7 +122,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
 
     if (!userId) {
@@ -162,3 +162,4 @@ export async function DELETE(
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+

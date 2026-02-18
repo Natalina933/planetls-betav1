@@ -24,7 +24,7 @@ interface AuthToken {
 export async function GET(req: NextRequest) {
   const rawToken = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
   });
 
   const token = rawToken as AuthToken | null;
@@ -48,3 +48,5 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(profile, { status: 200 });
 }
+
+

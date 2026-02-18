@@ -5,7 +5,7 @@ import { db } from "@/app/lib/dbServer";
 
 export async function PATCH(req: NextRequest) {
   try {
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
     const userId = typeof token?.sub === "string" ? token.sub : undefined;
     const role = typeof token?.role === "string" ? token.role : "";
     const isAdmin = role === "admin" || role === "super_admin";
@@ -31,10 +31,7 @@ export async function PATCH(req: NextRequest) {
     if (body.search_target !== undefined) updateData.search_target = body.search_target;
     if (body.travel_fee !== undefined) updateData.travel_fee = body.travel_fee;
 
-    if (body.role !== undefined) {
-      if (!isAdmin) {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
-      }
+    if (body.role !== undefined && isAdmin) {
       updateData.role = body.role;
     }
 
@@ -97,3 +94,5 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
+
