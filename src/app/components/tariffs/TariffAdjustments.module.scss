@@ -1,0 +1,21 @@
+.grid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 120px 42px;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 8px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #111);
+  padding: 0.45rem 0.55rem;
+}

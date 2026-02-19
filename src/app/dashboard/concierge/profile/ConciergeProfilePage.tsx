@@ -21,8 +21,16 @@ import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
-import MissionAcceptanceRules from "@/app/components/missions/MissionAcceptanceRules";
-import type { MissionAvailability } from "@/app/components/missions/types";
+import MissionProfileModule from "@/app/components/missions/MissionProfileModule";
+import TariffServicePackages from "@/app/components/tariffs/TariffServicePackages";
+import TariffAdjustments from "@/app/components/tariffs/TariffAdjustments";
+import type {
+  ConciergeMissionProfile,
+  MissionAvailability,
+  MissionCatalogItem,
+  MissionPreferences,
+} from "@/app/components/missions/types";
+import type { SeasonalPricingConfig } from "@/app/components/tariffs/types";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 
 import {
@@ -38,7 +46,6 @@ import {
   FiFile,
   FiStar as FiStarOutline,
   FiCheckCircle as FiCheckCircleOutline,
-  FiSliders,
   FiTrendingUp,
 } from "react-icons/fi";
 import {
@@ -132,10 +139,17 @@ const SECTION_IDS = {
   TARIFS: normalizeSectionId("Ma grille tarifaire"),
 } as const;
 
+const TARIFF_SECTION_IDS = {
+  BASE: normalizeSectionId("Tarifs de base"),
+  PACKS: normalizeSectionId("Packs location saisonniere"),
+  ADJUSTMENTS: normalizeSectionId("Majorations et regles de facturation"),
+} as const;
+
 const MISSION_SECTION_IDS = {
   SERVICES: normalizeSectionId("Services proposés"),
   ZONE_RULES: normalizeSectionId("Zone, disponibilités & règles de mission"),
   ACCEPTANCE_RULES: normalizeSectionId("Règles d'acceptation des missions"),
+  PRIORITY_TYPES: normalizeSectionId("Priorité & typologie des missions"),
 } as const;
 
 type ExtendedFieldName =
@@ -145,25 +159,207 @@ type ExtendedFieldName =
 
 const DEFAULT_MISSION_CENTER = { lat: 48.8566, lng: 2.3522 };
 
+const DEFAULT_MISSION_CATALOG: MissionCatalogItem[] = [
+  {
+    id: "check-in-check-out",
+    label: "Check-in / Check-out",
+    basePrice: null,
+    customizable: false,
+  },
+  { id: "menage", label: "Menage", basePrice: null, customizable: false },
+  {
+    id: "maintenance",
+    label: "Maintenance",
+    basePrice: null,
+    customizable: false,
+  },
+  { id: "intendance", label: "Intendance", basePrice: null, customizable: false },
+  {
+    id: "accueil-voyageurs",
+    label: "Accueil voyageurs",
+    basePrice: null,
+    customizable: false,
+  },
+  {
+    id: "urgence-de-nuit",
+    label: "Urgence de nuit",
+    basePrice: null,
+    customizable: false,
+  },
+];
+
+const toMissionTypeId = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const defaultMissionPreferences = (): MissionPreferences => ({
+  acceptedMissionTypeIds: [],
+  priorityFlags: {
+    urgent: true,
+    recurrent: false,
+    premium: false,
+  },
+});
+
+const buildDefaultMissionProfile = (
+  missionCatalog: MissionCatalogItem[] = DEFAULT_MISSION_CATALOG,
+): ConciergeMissionProfile => ({
+  positioning: "standard",
+  missions: missionCatalog.map((item) => ({
+    id: item.id,
+    label: item.label,
+    isActive: false,
+    minNoticeHours: 24,
+    allowUrgent: false,
+    urgentMultiplier: 1.3,
+  })),
+  specialConditions: {
+    acceptNightInterventions: false,
+    acceptWeekendInterventions: false,
+    acceptHighSeasonInterventions: false,
+    highSeasonMultiplier: 1.2,
+    geographicNotes: "",
+  },
+});
+
+const inferPositioningFromLegacy = (
+  preferences: MissionPreferences,
+): ConciergeMissionProfile["positioning"] => {
+  if (preferences.priorityFlags.urgent) return "urgent_24_7";
+  if (preferences.priorityFlags.premium) return "premium";
+  return "standard";
+};
+
+const buildLegacyFromMissionProfile = (missionProfile: ConciergeMissionProfile) => {
+  const missionCatalog: MissionCatalogItem[] = missionProfile.missions.map(
+    (mission) => ({
+      id: mission.id,
+      label: mission.label,
+      basePrice: null,
+      customizable: false,
+    }),
+  );
+
+  const preferences: MissionPreferences = {
+    acceptedMissionTypeIds: missionProfile.missions
+      .filter((mission) => mission.isActive)
+      .map((mission) => mission.id),
+    priorityFlags: {
+      urgent: missionProfile.missions.some(
+        (mission) => mission.isActive && mission.allowUrgent,
+      ),
+      recurrent: false,
+      premium: missionProfile.positioning === "premium",
+    },
+  };
+
+  return { missionCatalog, preferences };
+};
+
+const defaultSeasonalPricing = (): SeasonalPricingConfig => ({
+  checkInFee: 35,
+  checkOutFee: 35,
+  cleaningStudioFee: 55,
+  cleaningTwoRoomsFee: 85,
+  linenKitFee: 20,
+  welcomePackFee: 25,
+  urgentPercent: 30,
+  nightPercent: 20,
+  weekendPercent: 15,
+  highSeasonPercent: 25,
+  extraKmFee: 2,
+  minimumInvoice: 35,
+});
+
+const parseAvailabilityPayloadRaw = (
+  value?: string | null,
+): Record<string, unknown> => {
+  if (!value) return {};
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      return { schedule: parsed };
+    }
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+const parseSeasonalPricing = (value?: string | null): SeasonalPricingConfig => {
+  const defaults = defaultSeasonalPricing();
+  const raw = parseAvailabilityPayloadRaw(value);
+  const pricing =
+    raw.pricing && typeof raw.pricing === "object"
+      ? (raw.pricing as Record<string, unknown>)
+      : null;
+  if (!pricing) return defaults;
+
+  const readNumber = (key: keyof SeasonalPricingConfig, fallback: number) =>
+    typeof pricing[key] === "number" ? (pricing[key] as number) : fallback;
+
+  return {
+    checkInFee: readNumber("checkInFee", defaults.checkInFee),
+    checkOutFee: readNumber("checkOutFee", defaults.checkOutFee),
+    cleaningStudioFee: readNumber("cleaningStudioFee", defaults.cleaningStudioFee),
+    cleaningTwoRoomsFee: readNumber(
+      "cleaningTwoRoomsFee",
+      defaults.cleaningTwoRoomsFee,
+    ),
+    linenKitFee: readNumber("linenKitFee", defaults.linenKitFee),
+    welcomePackFee: readNumber("welcomePackFee", defaults.welcomePackFee),
+    urgentPercent: readNumber("urgentPercent", defaults.urgentPercent),
+    nightPercent: readNumber("nightPercent", defaults.nightPercent),
+    weekendPercent: readNumber("weekendPercent", defaults.weekendPercent),
+    highSeasonPercent: readNumber(
+      "highSeasonPercent",
+      defaults.highSeasonPercent,
+    ),
+    extraKmFee: readNumber("extraKmFee", defaults.extraKmFee),
+    minimumInvoice: readNumber("minimumInvoice", defaults.minimumInvoice),
+  };
+};
+
 const parseMissionPayload = (
   value?: string | null,
-): Pick<MissionAvailability, "schedule" | "rules"> => {
+): Pick<MissionAvailability, "schedule" | "rules"> & {
+  missionCatalog: MissionCatalogItem[];
+  preferences: MissionPreferences;
+  missionProfile: ConciergeMissionProfile;
+} => {
   const defaultRules: MissionAvailability["rules"] = {
     refuseOutOfZone: true,
     refuseOutOfSchedule: true,
     autoAcceptEmergency: false,
   };
+  const defaultPreferences = defaultMissionPreferences();
 
   if (!value) {
-    return { schedule: [], rules: defaultRules };
+    return {
+      schedule: [],
+      rules: defaultRules,
+      missionCatalog: DEFAULT_MISSION_CATALOG,
+      preferences: defaultPreferences,
+      missionProfile: buildDefaultMissionProfile(DEFAULT_MISSION_CATALOG),
+    };
   }
 
   try {
     const parsed = JSON.parse(value);
 
-    // Backward compatible: old format stored only schedule array.
     if (Array.isArray(parsed)) {
-      return { schedule: parsed, rules: defaultRules };
+      return {
+        schedule: parsed,
+        rules: defaultRules,
+        missionCatalog: DEFAULT_MISSION_CATALOG,
+        preferences: defaultPreferences,
+        missionProfile: buildDefaultMissionProfile(DEFAULT_MISSION_CATALOG),
+      };
     }
 
     const schedule = Array.isArray(parsed?.schedule) ? parsed.schedule : [];
@@ -184,9 +380,207 @@ const parseMissionPayload = (
         }
       : defaultRules;
 
-    return { schedule, rules };
+    const rawPriorityFlags = parsed?.preferences?.priorityFlags ?? parsed?.priorities;
+    const priorityFlags = {
+      urgent:
+        typeof rawPriorityFlags?.urgent === "boolean"
+          ? rawPriorityFlags.urgent
+          : true,
+      recurrent:
+        typeof rawPriorityFlags?.recurrent === "boolean"
+          ? rawPriorityFlags.recurrent
+          : false,
+      premium:
+        typeof rawPriorityFlags?.premium === "boolean"
+          ? rawPriorityFlags.premium
+          : false,
+    };
+
+    const parsedCatalog = Array.isArray(parsed?.missionCatalog)
+      ? parsed.missionCatalog
+          .map((item: unknown) => {
+            if (!item || typeof item !== "object") return null;
+            const obj = item as Record<string, unknown>;
+            const id = typeof obj.id === "string" ? obj.id : "";
+            const label = typeof obj.label === "string" ? obj.label : "";
+            if (!id || !label) return null;
+            return {
+              id,
+              label,
+              basePrice:
+                typeof obj.basePrice === "number" ? obj.basePrice : null,
+              customizable:
+                typeof obj.customizable === "boolean" ? obj.customizable : true,
+            } as MissionCatalogItem;
+          })
+          .filter((item: MissionCatalogItem | null): item is MissionCatalogItem =>
+            Boolean(item),
+          )
+      : [];
+
+    const legacyMissionTypeOptions = Array.isArray(parsed?.missionTypeOptions)
+      ? parsed.missionTypeOptions.filter(
+          (item: unknown): item is string => typeof item === "string",
+        )
+      : [];
+
+    const missionCatalog: MissionCatalogItem[] =
+      parsedCatalog.length > 0
+        ? parsedCatalog
+        : legacyMissionTypeOptions.length > 0
+          ? legacyMissionTypeOptions.map((label: string) => ({
+              id: toMissionTypeId(label),
+              label,
+              basePrice: null,
+              customizable: true,
+            }))
+          : DEFAULT_MISSION_CATALOG;
+
+    const acceptedFromPreferences = Array.isArray(
+      parsed?.preferences?.acceptedMissionTypeIds,
+    )
+      ? parsed.preferences.acceptedMissionTypeIds.filter(
+          (item: unknown): item is string => typeof item === "string",
+        )
+      : [];
+
+    const acceptedFromLegacyLabels = Array.isArray(parsed?.missionTypes)
+      ? parsed.missionTypes
+          .filter((item: unknown): item is string => typeof item === "string")
+          .map((label: string) => {
+            const byLabel = missionCatalog.find(
+              (item: MissionCatalogItem) => item.label === label,
+            );
+            return byLabel?.id ?? toMissionTypeId(label);
+          })
+      : [];
+
+    const acceptedMissionTypeIds = (
+      acceptedFromPreferences.length > 0
+        ? acceptedFromPreferences
+        : acceptedFromLegacyLabels
+    ).filter((id: string) =>
+      missionCatalog.some((item: MissionCatalogItem) => item.id === id),
+    );
+
+    const rawMissionProfile = parsed?.missionProfile;
+    const missionProfileFromPayload =
+      rawMissionProfile && typeof rawMissionProfile === "object"
+        ? (rawMissionProfile as Record<string, unknown>)
+        : null;
+    const specialConditionsPayload =
+      missionProfileFromPayload?.specialConditions &&
+      typeof missionProfileFromPayload.specialConditions === "object"
+        ? (missionProfileFromPayload.specialConditions as Record<
+            string,
+            unknown
+          >)
+        : null;
+
+    const missionProfile: ConciergeMissionProfile = missionProfileFromPayload
+      ? {
+          positioning:
+            missionProfileFromPayload.positioning === "premium" ||
+            missionProfileFromPayload.positioning === "urgent_24_7" ||
+            missionProfileFromPayload.positioning === "checkin_specialist" ||
+            missionProfileFromPayload.positioning === "full_service"
+              ? missionProfileFromPayload.positioning
+              : "standard",
+          missions: Array.isArray(missionProfileFromPayload.missions)
+            ? missionProfileFromPayload.missions
+                .map((mission) => {
+                  if (!mission || typeof mission !== "object") return null;
+                  const item = mission as unknown as Record<string, unknown>;
+                  const id = typeof item.id === "string" ? item.id : "";
+                  const label = typeof item.label === "string" ? item.label : "";
+                  if (!id || !label) return null;
+                  return {
+                    id,
+                    label,
+                    isActive:
+                      typeof item.isActive === "boolean" ? item.isActive : false,
+                    minNoticeHours:
+                      typeof item.minNoticeHours === "number"
+                        ? item.minNoticeHours
+                        : 24,
+                    allowUrgent:
+                      typeof item.allowUrgent === "boolean"
+                        ? item.allowUrgent
+                        : false,
+                    urgentMultiplier:
+                      typeof item.urgentMultiplier === "number"
+                        ? item.urgentMultiplier
+                        : 1.3,
+                  };
+                })
+                .filter(Boolean) as ConciergeMissionProfile["missions"]
+            : buildDefaultMissionProfile(missionCatalog).missions,
+          specialConditions: {
+            acceptNightInterventions:
+              typeof specialConditionsPayload?.acceptNightInterventions ===
+              "boolean"
+                ? specialConditionsPayload.acceptNightInterventions
+                : false,
+            acceptWeekendInterventions:
+              typeof specialConditionsPayload?.acceptWeekendInterventions ===
+              "boolean"
+                ? specialConditionsPayload.acceptWeekendInterventions
+                : false,
+            acceptHighSeasonInterventions:
+              typeof specialConditionsPayload?.acceptHighSeasonInterventions ===
+              "boolean"
+                ? specialConditionsPayload.acceptHighSeasonInterventions
+                : false,
+            highSeasonMultiplier:
+              typeof specialConditionsPayload?.highSeasonMultiplier === "number"
+                ? specialConditionsPayload.highSeasonMultiplier
+                : 1.2,
+            geographicNotes:
+              typeof specialConditionsPayload?.geographicNotes === "string"
+                ? specialConditionsPayload.geographicNotes
+                : "",
+          },
+        }
+      : {
+          positioning: inferPositioningFromLegacy({
+            acceptedMissionTypeIds,
+            priorityFlags,
+          }),
+          missions: missionCatalog.map((item) => ({
+            id: item.id,
+            label: item.label,
+            isActive: acceptedMissionTypeIds.includes(item.id),
+            minNoticeHours: 24,
+            allowUrgent: priorityFlags.urgent,
+            urgentMultiplier: 1.3,
+          })),
+          specialConditions: {
+            acceptNightInterventions: false,
+            acceptWeekendInterventions: false,
+            acceptHighSeasonInterventions: false,
+            highSeasonMultiplier: 1.2,
+            geographicNotes: "",
+          },
+        };
+
+    return {
+      schedule,
+      rules,
+      missionCatalog,
+      preferences: {
+        acceptedMissionTypeIds,
+        priorityFlags,
+      },
+      missionProfile,
+    };
   } catch {
-    return { schedule: [], rules: defaultRules };
+    return {
+      schedule: [],
+      rules: defaultRules,
+      missionCatalog: DEFAULT_MISSION_CATALOG,
+      preferences: defaultPreferences,
+      missionProfile: buildDefaultMissionProfile(DEFAULT_MISSION_CATALOG),
+    };
   }
 };
 
@@ -234,6 +628,14 @@ export default function ConciergeProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const missionPayload = useMemo(
+    () => parseMissionPayload(editProfile?.availability_hours),
+    [editProfile?.availability_hours],
+  );
+  const seasonalPricing = useMemo(
+    () => parseSeasonalPricing(editProfile?.availability_hours),
+    [editProfile?.availability_hours],
+  );
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.INFO_PERSO]: true,
     [SECTION_IDS.SERVICES_ZONE]: true,
@@ -646,19 +1048,6 @@ export default function ConciergeProfilePage() {
     setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
-    const renderPlaceholderPriorities = () => (
-    <div className={styles.placeholderContent}>
-      <p>
-        Classez vos missions par niveau de priorité afin d&apos;optimiser votre
-        organisation.
-      </p>
-      <p>
-        Chaque type de mission pourra être associé à un niveau de priorité et à
-        un mode d&apos;acceptation.
-      </p>
-    </div>
-  );
-
   const renderPlaceholderCurrentMissions = () => (
     <div className={styles.placeholderContent}>
       <p>Aucune mission en cours</p>
@@ -693,38 +1082,32 @@ export default function ConciergeProfilePage() {
 
   const renderMissionsStaticSections = () => (
     <>
-      {renderSection(
-        "Règles d'acceptation des missions",
-        <FiSliders />,
-        <MissionAcceptanceRules
-          value={
-            buildMissionAvailabilityFromProfile(editProfile)?.rules ?? {
-              refuseOutOfZone: true,
-              refuseOutOfSchedule: true,
-              autoAcceptEmergency: false,
-            }
-          }
-          isEditing={editingSection === MISSION_SECTION_IDS.ACCEPTANCE_RULES}
-          onChange={(rules) =>
-            setEditProfile((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    availability_hours: JSON.stringify({
-                      schedule: parseMissionPayload(prev.availability_hours).schedule,
-                      rules,
-                    }),
-                  }
-                : prev,
-            )
-          }
-        />,
-      )}
+
       {renderSection(
         "Priorité & typologie des missions",
         <FiStarOutline />,
-        renderPlaceholderPriorities(),
-        false,
+        <MissionProfileModule
+          value={missionPayload.missionProfile}
+          isEditing={editingSection === MISSION_SECTION_IDS.PRIORITY_TYPES}
+          onChange={(next) =>
+            setEditProfile((prev) =>
+              prev
+                ? (() => {
+                    const legacy = buildLegacyFromMissionProfile(next);
+                    return {
+                      ...prev,
+                      availability_hours: JSON.stringify({
+                        ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                        missionProfile: next,
+                        missionCatalog: legacy.missionCatalog,
+                        preferences: legacy.preferences,
+                      }),
+                    };
+                  })()
+                : prev,
+            )
+          }
+        />
       )}
       {renderSection(
         "Missions en cours",
@@ -1144,6 +1527,7 @@ export default function ConciergeProfilePage() {
                               : prev.service_area ?? prev.location ?? null,
                           service_radius_km: data.radiusKm,
                           availability_hours: JSON.stringify({
+                            ...parseAvailabilityPayloadRaw(prev.availability_hours),
                             schedule: data.schedule,
                             rules: data.rules,
                           }),
@@ -1164,52 +1548,117 @@ export default function ConciergeProfilePage() {
           <div className={styles.financeGrid}>
             <div className={styles.financeCard}>
               {renderSection(
-                "Ma grille tarifaire",
+                "Positionnement tarifaire",
                 <FiDollarSignOutline />,
                 <div className={styles.pricingQuickStats}>
-                  <h4>📊 Mes tarifs les plus demandés</h4>
+                  <h4>Repere rapide location saisonniere</h4>
                   <ul>
-                    <li>💼 Tarif horaire standard : 45 €/h</li>
-                    <li>🏠 Forfait ménage 2 pièces : 60 €</li>
-                    <li>🚗 Frais déplacement moyen : 15 €</li>
+                    <li>
+                      Tarif horaire: {editProfile.hourly_rate ?? 0} EUR/h
+                    </li>
+                    <li>
+                      Check-in + check-out:{" "}
+                      {seasonalPricing.checkInFee + seasonalPricing.checkOutFee} EUR
+                    </li>
+                    <li>
+                      Menage T2/T3: {seasonalPricing.cleaningTwoRoomsFee} EUR
+                    </li>
+                    <li>
+                      Panier urgence nuit:{" "}
+                      {Math.round(
+                        (editProfile.hourly_rate ?? 0) *
+                          (1 + seasonalPricing.urgentPercent / 100) *
+                          (1 + seasonalPricing.nightPercent / 100),
+                      )}{" "}
+                      EUR/h
+                    </li>
                   </ul>
                 </div>,
+                false,
               )}
             </div>
 
             <div className={styles.financeCard}>
               {renderSection(
-                "Tarifs par défaut",
+                "Tarifs de base",
                 <DollarSign />,
                 <>
                   {renderField(
-                    "Tarif horaire (€/h)",
+                    "Tarif horaire (EUR/h)",
                     "hourly_rate",
-                    "Tarifs_par_defaut",
+                    TARIFF_SECTION_IDS.BASE,
                     false,
                     true,
                     "45",
                     "number",
                   )}
                   {renderField(
-                    "Forfait mensuel (€)",
+                    "Forfait mensuel (EUR)",
                     "monthly_rate",
-                    "Tarifs_par_defaut",
+                    TARIFF_SECTION_IDS.BASE,
                     false,
                     false,
                     "1500",
                     "number",
                   )}
                   {renderField(
-                    "Frais de déplacement (€)",
+                    "Frais de deplacement (EUR)",
                     "travel_fee",
-                    "Tarifs_par_defaut",
+                    TARIFF_SECTION_IDS.BASE,
                     false,
                     false,
                     "15",
                     "number",
                   )}
                 </>,
+              )}
+            </div>
+
+            <div className={styles.financeCard}>
+              {renderSection(
+                "Packs location saisonniere",
+                <FiBriefcase />,
+                <TariffServicePackages
+                  value={seasonalPricing}
+                  isEditing={editingSection === TARIFF_SECTION_IDS.PACKS}
+                  onChange={(next) =>
+                    setEditProfile((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            availability_hours: JSON.stringify({
+                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                              pricing: next,
+                            }),
+                          }
+                        : prev,
+                    )
+                  }
+                />,
+              )}
+            </div>
+
+            <div className={styles.financeCard}>
+              {renderSection(
+                "Majorations et regles de facturation",
+                <FiTrendingUp />,
+                <TariffAdjustments
+                  value={seasonalPricing}
+                  isEditing={editingSection === TARIFF_SECTION_IDS.ADJUSTMENTS}
+                  onChange={(next) =>
+                    setEditProfile((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            availability_hours: JSON.stringify({
+                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                              pricing: next,
+                            }),
+                          }
+                        : prev,
+                    )
+                  }
+                />,
               )}
             </div>
           </div>
@@ -1346,6 +1795,9 @@ export default function ConciergeProfilePage() {
     </div>
   );
 }
+
+
+
 
 
 
