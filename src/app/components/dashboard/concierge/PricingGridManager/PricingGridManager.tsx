@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiHome, FiSquare, FiClock, FiDollarSign, FiFilter, FiSearch } from 'react-icons/fi';
 

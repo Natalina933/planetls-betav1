@@ -544,6 +544,132 @@ export type Database = {
         Relationships: [];
       };
 
+      services_packages: {
+        Row: {
+          id: string;
+          profile_id: string;
+          name: string;
+          description: string | null;
+          category: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          name: string;
+          description?: string | null;
+          category?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          name?: string;
+          description?: string | null;
+          category?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "services_packages_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "services_packages_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      services_package_items: {
+        Row: {
+          id: string;
+          package_id: string;
+          service_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          package_id: string;
+          service_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          package_id?: string;
+          service_id?: string;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "services_package_items_package_id_fkey";
+            columns: ["package_id"];
+            isOneToOne: false;
+            referencedRelation: "services_packages";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      contract_templates: {
+        Row: {
+          id: string;
+          profile_id: string;
+          package_id: string;
+          title: string;
+          content: string;
+          variables: Json | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          package_id: string;
+          title: string;
+          content: string;
+          variables?: Json | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          package_id?: string;
+          title?: string;
+          content?: string;
+          variables?: Json | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contract_templates_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contract_templates_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contract_templates_package_id_fkey";
+            columns: ["package_id"];
+            isOneToOne: false;
+            referencedRelation: "services_packages";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       services_catalog: {
         Row: {
           category: string;
