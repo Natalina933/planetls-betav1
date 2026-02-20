@@ -1,0 +1,121 @@
+// ============================================
+// THÈME MUCHA NOCTURNE
+// ============================================
+// Thème sombre avec esthétique Art Nouveau
+// Inspiré par Alphonse Mucha - tons profonds, or riche
+
+[data-theme="mucha-dark"] {
+    // --- COULEURS PRIMAIRES (OR RICHE) ---
+    --color-primary: #d4af37;
+    --color-primary-rgb: 212, 175, 55;
+    --color-primary-hover: #feca53;
+    --color-primary-light: #f5d76e;
+
+    // --- ARRIÈRE-PLANS (NUIT PROFONDE) ---
+    --background: #1a1a2e;
+    --background-secondary: #16213e;
+    --background-tertiary: #0f3460;
+    --color-bg: #1a1f3a;
+
+    // --- TEXTE (CLAIR SUR SOMBRE) ---
+    --color-text: #f0f0f0;
+    --color-text-secondary: #d0d0d0;
+    --color-text-muted: rgba(240, 240, 240, 0.7);
+    --color-text-light: rgba(240, 240, 240, 0.6);
+
+    // --- BORDURES (OR SUBTIL) ---
+    --color-border: #4a4a5e;
+    --color-border-light: #3a3a4e;
+    --color-border-dark: #5a5a6e;
+
+    // --- ACCENTS (COULEURS ART NOUVEAU) ---
+    --color-accent: #d4af37;
+    --color-accent-light: #3a3a4e;
+    --color-success: #66bb6a;
+    --color-error: #ff6b6b;
+    --color-warning: #ffa500;
+    --color-info: #4a9eff;
+
+    // --- OVERLAY & OMBRES (PROFONDES) ---
+    --color-overlay: rgba(0, 0, 0, 0.7);
+    --color-shadow: rgba(0, 0, 0, 0.3);
+    --color-focus-ring: #f5d76e;
+
+    // --- BOUTONS ---
+    --button-primary-bg: linear-gradient(135deg, #d4af37 0%, #b99b2e 100%);
+    --button-primary-text: #1a1a2e;
+    --button-primary-hover: #feca53;
+    --button-secondary-bg: transparent;
+    --button-secondary-border: #d4af37;
+    --button-secondary-text: #d4af37;
+
+    // --- LIENS (COLORÉS) ---
+    --link-color: #4a9eff;
+    --link-hover: #66d9ff;
+    --link-visited: #a084dc;
+
+    // --- INPUT ---
+    --input-bg: #16213e;
+    --input-border: #4a4a5e;
+    --input-text: #f0f0f0;
+    --input-placeholder: #8a8a9a;
+    --input-focus-ring: rgba(212, 175, 55, 0.3);
+
+    // --- EFFETS SPÉCIAUX (ART NOUVEAU) ---
+    --glass-bg: rgba(26, 33, 46, 0.8);
+    --glass-border: rgba(212, 175, 55, 0.2);
+    --gradient-primary: linear-gradient(135deg, #d4af37 0%, #b99b2e 100%);
+    --gradient-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+
+    // --- TRANSITIONS ---
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+// Support du prefers-color-scheme pour détection automatique
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --color-primary: #d4af37;
+        --color-primary-rgb: 212, 175, 55;
+        --color-primary-hover: #feca53;
+        --color-primary-light: #f5d76e;
+        --background: #1a1a2e;
+        --background-secondary: #16213e;
+        --background-tertiary: #0f3460;
+        --color-bg: #1a1f3a;
+        --color-text: #f0f0f0;
+        --color-text-secondary: #d0d0d0;
+        --color-text-muted: rgba(240, 240, 240, 0.7);
+        --color-text-light: rgba(240, 240, 240, 0.6);
+        --color-border: #4a4a5e;
+        --color-border-light: #3a3a4e;
+        --color-border-dark: #5a5a6e;
+        --color-accent: #d4af37;
+        --color-accent-light: #3a3a4e;
+        --color-success: #66bb6a;
+        --color-error: #ff6b6b;
+        --color-warning: #ffa500;
+        --color-info: #4a9eff;
+        --color-overlay: rgba(0, 0, 0, 0.7);
+        --color-shadow: rgba(0, 0, 0, 0.3);
+        --color-focus-ring: #f5d76e;
+        --button-primary-bg: linear-gradient(135deg, #d4af37 0%, #b99b2e 100%);
+        --button-primary-text: #1a1a2e;
+        --button-primary-hover: #feca53;
+        --button-secondary-bg: transparent;
+        --button-secondary-border: #d4af37;
+        --button-secondary-text: #d4af37;
+        --link-color: #4a9eff;
+        --link-hover: #66d9ff;
+        --link-visited: #a084dc;
+        --input-bg: #16213e;
+        --input-border: #4a4a5e;
+        --input-text: #f0f0f0;
+        --input-placeholder: #8a8a9a;
+        --input-focus-ring: rgba(212, 175, 55, 0.3);
+        --glass-bg: rgba(26, 33, 46, 0.8);
+        --glass-border: rgba(212, 175, 55, 0.2);
+        --gradient-primary: linear-gradient(135deg, #d4af37 0%, #b99b2e 100%);
+        --gradient-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        --transition-smooth: 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+}

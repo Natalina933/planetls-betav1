@@ -1,34 +1,64 @@
 // styles/abstracts/_root.scss
 // Ce fichier centralise TOUTES les variables CSS globales (custom properties).
+// Les valeurs par défaut correspondent au Mode Clair
 
 :root {
-    // --- Couleurs ---
-    // Neutres
-    --color-text: #222;
-    --color-bg: #f4f6f8;
-    --color-border: #eaeaea;
-    --background: #ffffff;
-    --foreground: #171717;
-
-    // Système
-    --color-success: #4caf50;
-    --color-error: #e53935;
-    --color-accent: #ffc107;
-    
-    // Thème Principal (Or)
+    // --- COULEURS PRIMAIRES ---
     --color-primary: #d4af37;
     --color-primary-rgb: 212, 175, 55;
-    --couleur-primaire-claire: #ffe099;
-    --couleur-primaire-foncée: #b99b2e;
-    --couleur-texte-primaire: #333;
+    --color-primary-hover: #b99b2e;
+    --color-primary-light: #ffe099;
 
-    // Thème Secondaire
-    --couleur-secondaire: rgba(32, 95, 120, 0.5);
-    --couleur-secondaire-claire: #f7fbfe;
-    --couleur-secondaire-foncée: #0e1a2a;
+    // --- ARRIÈRE-PLANS ---
+    --background: #ffffff;
+    --background-secondary: #f5f7fa;
+    --background-tertiary: #eef1f5;
+    --color-bg: #f4f6f8;
 
-    // Focus Ring pour l'accessibilité
+    // --- TEXTE ---
+    --color-text: #1a1a1a;
+    --color-text-secondary: #555555;
+    --color-text-muted: rgba(0, 0, 0, 0.6);
+    --color-text-light: rgba(0, 0, 0, 0.5);
+    --foreground: #171717;
+
+    // --- BORDURES ---
+    --color-border: #e0e6ed;
+    --color-border-light: #ececec;
+    --color-border-dark: #d0d0d0;
+
+    // --- ACCENTS & FEEDBACK ---
+    --color-accent: #ffc107;
+    --color-accent-light: #fff9e6;
+    --color-success: #4caf50;
+    --color-error: #e53935;
+    --color-warning: #ff9800;
+    --color-info: #2196f3;
+
+    // --- OVERLAY & OMBRES ---
+    --color-overlay: rgba(0, 0, 0, 0.5);
+    --color-shadow: rgba(0, 0, 0, 0.1);
     --color-focus-ring: #ffe09b;
+
+    // --- BOUTONS ---
+    --button-primary-bg: #d4af37;
+    --button-primary-text: #1a1a1a;
+    --button-primary-hover: #b99b2e;
+    --button-secondary-bg: transparent;
+    --button-secondary-border: #d4af37;
+    --button-secondary-text: #d4af37;
+
+    // --- LIENS ---
+    --link-color: #2196f3;
+    --link-hover: #1976d2;
+    --link-visited: #7c4dff;
+
+    // --- INPUT ---
+    --input-bg: #ffffff;
+    --input-border: #d0d0d0;
+    --input-text: #1a1a1a;
+    --input-placeholder: #999999;
+    --input-focus-ring: rgba(212, 175, 55, 0.3);
 
     // --- Typographie ---
     // Familles de polices (déjà chargées dans layout.tsx)
@@ -36,11 +66,12 @@
     --font-primary: "Cormorant Garamond", serif;
     --font-text: "Open Sans", sans-serif;
     --font-main: var(--font-text); // Variable principale pour le body
+    --font-elegant: "Cormorant Garamond", serif;
 
     // Tailles de police
-    --font-size-base: 1rem;       // 16px par défaut
+    --font-size-base: 1rem; // 16px par défaut
     --font-size-title-xl: 2.5rem; // Titres H1
-    --font-size-title: 2rem;      // Titres H2
+    --font-size-title: 2rem; // Titres H2
     --font-size-title-md: 1.5rem; // Titres H3
     --font-size-small: 0.9rem;
 
@@ -48,6 +79,7 @@
     --line-height: 1.5;
     --font-weight-normal: 400;
     --font-weight-bold: 700;
+    --font-weight-light: 300;
 
     // --- Espacements ---
     --spacing-xs: 0.25rem;
@@ -63,4 +95,16 @@
     --radius-lg: 16px;
     --radius-xl: 24px;
     --radius-pill: 500px;
+
+    // --- Transitions ---
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.3s ease;
+    --transition-slow: 0.5s ease;
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // --- Ombres ---
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+    --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.2);
 }

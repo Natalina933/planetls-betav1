@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
+import { useTheme } from "../../../context/ThemeContext";
 import { useSession, signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
 
@@ -11,6 +12,7 @@ const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then(mod => mod.FaUser), { ssr: false }),
   FaSearch: dynamic(() => import("react-icons/fa").then(mod => mod.FaSearch), { ssr: false }),
   FaTachometerAlt: dynamic(() => import("react-icons/fa").then(mod => mod.FaTachometerAlt), { ssr: false }),
+  FaPalette: dynamic(() => import("react-icons/fa").then(mod => mod.FaPalette), { ssr: false }),
 };
 
 // ⏱️ Configuration du timeout d'inactivité (en millisecondes)
@@ -21,7 +23,9 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { setSearchOpen } = useSearchPopup();
+  const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const { data: session, status } = useSession();
   const { userType } = useUserType();
 
@@ -29,10 +33,11 @@ export default function Navbar() {
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const [warningTimeoutId, setWarningTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const extendButtonRef = useRef<HTMLButtonElement | null>(null);
+  const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
   const isAuthenticated = status === "authenticated";
   const isDashboardRoute = pathname?.startsWith("/dashboard");
-  const isHomePage = pathname === "/" || pathname === "/home";
+  // const isHomePage = pathname === "/" || pathname === "/home";
 
   // 🎯 Fonction pour obtenir le chemin du dashboard selon le rôle
   const getDashboardPath = () => {
@@ -49,23 +54,23 @@ export default function Navbar() {
 
   // 🔄 Réinitialiser le timer d'inactivité
   const resetInactivityTimer = useCallback(() => {
-  if (timeoutId) clearTimeout(timeoutId);
-  if (warningTimeoutId) clearTimeout(warningTimeoutId);
-  setShowWarning(false);
+    if (timeoutId) clearTimeout(timeoutId);
+    if (warningTimeoutId) clearTimeout(warningTimeoutId);
+    setShowWarning(false);
 
-  if (isAuthenticated && isDashboardRoute) {
-    const warningId = setTimeout(() => {
-      setShowWarning(true);
-    }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
+    if (isAuthenticated && isDashboardRoute) {
+      const warningId = setTimeout(() => {
+        setShowWarning(true);
+      }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
 
-    const logoutId = setTimeout(() => {
-      handleAutoLogout();
-    }, INACTIVITY_TIMEOUT);
+      const logoutId = setTimeout(() => {
+        handleAutoLogout();
+      }, INACTIVITY_TIMEOUT);
 
-    setWarningTimeoutId(warningId);
-    setTimeoutId(logoutId);
-  }
-}, [timeoutId, warningTimeoutId, isAuthenticated, isDashboardRoute]);
+      setWarningTimeoutId(warningId);
+      setTimeoutId(logoutId);
+    }
+  }, [timeoutId, warningTimeoutId, isAuthenticated, isDashboardRoute]);
 
 
   // 🚪 Déconnexion automatique
@@ -77,34 +82,34 @@ export default function Navbar() {
   };
 
   // 🔄 Prolonger la session
-const extendSession = useCallback(() => {
-  setShowWarning(false);
-  resetInactivityTimer();
-}, [resetInactivityTimer]);
+  const extendSession = useCallback(() => {
+    setShowWarning(false);
+    resetInactivityTimer();
+  }, [resetInactivityTimer]);
 
 
   // Focus clavier, gestion Escape et blocage du scroll quand la modale est ouverte
- useEffect(() => {
-  if (!showWarning) return;
+  useEffect(() => {
+    if (!showWarning) return;
 
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-  extendButtonRef.current?.focus();
+    extendButtonRef.current?.focus();
 
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      extendSession();
-    }
-  };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        extendSession();
+      }
+    };
 
-  window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
 
-  return () => {
-    window.removeEventListener("keydown", onKeyDown);
-    document.body.style.overflow = prevOverflow;
-  };
-}, [showWarning, extendSession]);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [showWarning, extendSession]);
 
 
   // 👂 Écouter les événements d'activité utilisateur
@@ -147,6 +152,20 @@ const extendSession = useCallback(() => {
 
   const closeMenu = () => setMenuOpen(false);
 
+  // 🎨 Fermer le menu thème quand on clique en dehors
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+        setThemeMenuOpen(false);
+      }
+    };
+
+    if (themeMenuOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }
+  }, [themeMenuOpen]);
+
   const handleLogout = async () => {
     closeMenu();
     await signOut({ callbackUrl: "/" });
@@ -165,6 +184,37 @@ const extendSession = useCallback(() => {
   return (
     <>
       <nav className={styles.navbar}>
+        {/* 🎨 Sélecteur de Thèmes */}
+        <div className={styles.themeSwitcher} ref={themeMenuRef}>
+          <button
+            className={styles.themeTrigger}
+            onClick={() => setThemeMenuOpen(!themeMenuOpen)}
+            title="Changer de thème"
+            aria-label="Changer de thème"
+          >
+            <Icons.FaPalette size={18} />
+            <span className={styles.themeLabel}>{getCurrentLabel()}</span>
+          </button>
+
+          {themeMenuOpen && (
+            <div className={styles.themeDropdown}>
+              {Object.entries(themes).map(([key, value]) => (
+                <button
+                  key={key}
+                  className={`${styles.themeOption} ${theme === value ? styles.active : ""}`}
+                  onClick={() => {
+                    changeTheme(value as string);
+                    setThemeMenuOpen(false);
+                  }}
+                  aria-label={`Sélectionner thème ${labels[value as string]}`}
+                >
+                  {labels[value as string]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Burger Menu */}
         <button
           className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
@@ -215,22 +265,6 @@ const extendSession = useCallback(() => {
                 className={styles.dashboardButton}
               >
                 <Icons.FaTachometerAlt size={18} /> Mon Dashboard
-              </button>
-            </li>
-          )}
-
-          {/* 🏠 Bouton Retour Accueil (si connecté ET sur dashboard) */}
-          {isAuthenticated && isDashboardRoute && !isHomePage && (
-            <li className={styles["nav-home"]}>
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  router.push("/");
-                }}
-                className={styles.homeButton}
-              >
-                🏠 Accueil
               </button>
             </li>
           )}

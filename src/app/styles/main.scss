@@ -8,19 +8,26 @@
 @use 'abstracts/mixins';
 @use 'abstracts/dashboards';
 
-// 2. Base : Styles globaux, reset, typographie de base.
+// 2. Thèmes : Variables CSS pour chaque thème
+// Doit être APRÈS abstracts mais AVANT base
+@use 'themes/theme.tokens' as *; // Tokens communs
+@use 'themes/theme.light' as *; // Thème Mode Clair (défaut)
+@use 'themes/theme.sepia' as *; // Thème Sepia 1900
+@use 'themes/theme.dark' as *; // Thème Mucha Nocturne
+
+// 3. Base : Styles globaux, reset, typographie de base.
 // Produisent le CSS de base.
 @use 'abstracts/root'; // Contient toutes les variables CSS (--)
 @use 'base/reset';
 @use 'base/typography';
 @use 'base/animations'; // Si animations.scss contient des classes globales.
 
-// 3. Components : Styles pour les composants réutilisables.
+// 4. Components : Styles pour les composants réutilisables.
 // Décommentez ou ajoutez des imports pour vos composants.
 // @use '../components/common/Buttons/CTAButton/CTAButton.module.scss';
 // @use '../components/Card/Card.scss';
 // @use '../components/MapWithList/MapWithList.module.scss'; // Attention aux modules
 
-// 4. Layout : Styles pour les sections principales de la page (header, footer, etc.).
+// 5. Layout : Styles pour les sections principales de la page (header, footer, etc.).
 // @use '../components/layout/Header/Header.scss';
 // @use '../components/layout/Footer/Footer.scss';

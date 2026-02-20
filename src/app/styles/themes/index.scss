@@ -1,0 +1,9 @@
+// ============================================
+// INDEX THEMES
+// ============================================
+// Centralise tous les fichiers de thème
+
+@use 'theme.tokens' as *;
+@use 'theme.light' as *;
+@use 'theme.sepia' as *;
+@use 'theme.dark' as *;

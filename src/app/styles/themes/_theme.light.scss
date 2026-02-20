@@ -1,0 +1,105 @@
+// ============================================
+// THÈME MODE CLAIR (Light Mode)
+// ============================================
+// Thème lumineux, moderne et accessible
+
+[data-theme="light"] {
+    // --- COULEURS PRIMAIRES ---
+    --color-primary: #d4af37;
+    --color-primary-rgb: 212, 175, 55;
+    --color-primary-hover: #b99b2e;
+    --color-primary-light: #ffe099;
+
+    // --- ARRIÈRE-PLANS ---
+    --background: #ffffff;
+    --background-secondary: #f5f7fa;
+    --background-tertiary: #eef1f5;
+    --color-bg: #f4f6f8;
+
+    // --- TEXTE ---
+    --color-text: #1a1a1a;
+    --color-text-secondary: #555555;
+    --color-text-muted: rgba(0, 0, 0, 0.6);
+    --color-text-light: rgba(0, 0, 0, 0.5);
+
+    // --- BORDURES ---
+    --color-border: #e0e6ed;
+    --color-border-light: #ececec;
+    --color-border-dark: #d0d0d0;
+
+    // --- ACCENTS ---
+    --color-accent: #ffc107;
+    --color-accent-light: #fff9e6;
+    --color-success: #4caf50;
+    --color-error: #e53935;
+    --color-warning: #ff9800;
+    --color-info: #2196f3;
+
+    // --- OVERLAY & OMBRES ---
+    --color-overlay: rgba(0, 0, 0, 0.5);
+    --color-shadow: rgba(0, 0, 0, 0.1);
+    --color-focus-ring: #ffe09b;
+
+    // --- BOUTONS ---
+    --button-primary-bg: #d4af37;
+    --button-primary-text: #1a1a1a;
+    --button-primary-hover: #b99b2e;
+    --button-secondary-bg: transparent;
+    --button-secondary-border: #d4af37;
+    --button-secondary-text: #d4af37;
+
+    // --- LIENS ---
+    --link-color: #2196f3;
+    --link-hover: #1976d2;
+    --link-visited: #7c4dff;
+
+    // --- INPUT ---
+    --input-bg: #ffffff;
+    --input-border: #d0d0d0;
+    --input-text: #1a1a1a;
+    --input-placeholder: #999999;
+    --input-focus-ring: rgba(212, 175, 55, 0.3);
+}
+
+// Applique également au document sans attribut data-theme
+:root:not([data-theme]),
+html:not([data-theme]) body {
+    --color-primary: #d4af37;
+    --color-primary-rgb: 212, 175, 55;
+    --color-primary-hover: #b99b2e;
+    --color-primary-light: #ffe099;
+    --background: #ffffff;
+    --background-secondary: #f5f7fa;
+    --background-tertiary: #eef1f5;
+    --color-bg: #f4f6f8;
+    --color-text: #1a1a1a;
+    --color-text-secondary: #555555;
+    --color-text-muted: rgba(0, 0, 0, 0.6);
+    --color-text-light: rgba(0, 0, 0, 0.5);
+    --color-border: #e0e6ed;
+    --color-border-light: #ececec;
+    --color-border-dark: #d0d0d0;
+    --color-accent: #ffc107;
+    --color-accent-light: #fff9e6;
+    --color-success: #4caf50;
+    --color-error: #e53935;
+    --color-warning: #ff9800;
+    --color-info: #2196f3;
+    --color-overlay: rgba(0, 0, 0, 0.5);
+    --color-shadow: rgba(0, 0, 0, 0.1);
+    --color-focus-ring: #ffe09b;
+    --button-primary-bg: #d4af37;
+    --button-primary-text: #1a1a1a;
+    --button-primary-hover: #b99b2e;
+    --button-secondary-bg: transparent;
+    --button-secondary-border: #d4af37;
+    --button-secondary-text: #d4af37;
+    --link-color: #2196f3;
+    --link-hover: #1976d2;
+    --link-visited: #7c4dff;
+    --input-bg: #ffffff;
+    --input-border: #d0d0d0;
+    --input-text: #1a1a1a;
+    --input-placeholder: #999999;
+    --input-focus-ring: rgba(212, 175, 55, 0.3);
+}
