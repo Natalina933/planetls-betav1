@@ -49,9 +49,8 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       children: [
         { label: "Fiche & Infos", path: "/dashboard/concierge/profile?tab=fiche", icon: FiClipboard },
         { label: "Missions", path: "/dashboard/concierge/profile?tab=missions", icon: FiCalendar },
-        { label: "Mes Packs", path: "/dashboard/concierge/services-packages", icon: FiPackage },
-        { label: "Grille Tarifaire", path: "/dashboard/concierge/pricing", icon: FiFileText },
-        { label: "Modeles de Contrats", path: "/dashboard/concierge/contract-templates", icon: FiFileText },
+        { label: "Mes Packs", path: "/dashboard/concierge/profile?tab=packs", icon: FiPackage },
+        { label: "Grille Tarifaire", path: "/dashboard/concierge/profile?tab=tarifs", icon: FiFileText },
         { label: "Equipe & Zones", path: "/dashboard/concierge/profile?tab=equipe", icon: FiUsers },
         { label: "Documents & Avis", path: "/dashboard/concierge/profile?tab=documents", icon: FiFileText },
       ],

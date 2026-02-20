@@ -28,9 +28,13 @@ $radius-md: 10px;
 $radius-lg: 14px;
 $radius-xl: 18px;
 
-$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+$easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+$easing-soft: cubic-bezier(0.22, 1, 0.36, 1);
+$easing-emphasis: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+$transition-fast: 160ms $easing-standard;
+$transition-base: 240ms $easing-soft;
+$transition-slow: 380ms $easing-soft;
 
 // ============================================
 // MIXINS
@@ -91,10 +95,12 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   justify-content: center;
   color: white;
   box-shadow: 0 4px 12px rgba($color-primary, 0.3);
-  transition: transform $transition-base;
+  transition: transform $transition-base, box-shadow $transition-base, filter $transition-base;
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 18px rgba($color-primary, 0.35);
+    filter: saturate(1.05);
   }
 }
 
@@ -145,13 +151,47 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.925rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all $transition-base;
+  transition:
+    color $transition-base,
+    background-color $transition-base,
+    border-color $transition-base,
+    transform $transition-fast;
   white-space: nowrap;
   position: relative;
+  will-change: transform;
+  animation: tabButtonIn 360ms $easing-soft both;
+  animation-delay: calc(var(--tab-index, 0) * 34ms);
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -2px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, $color-primary-dark, $color-primary-light);
+    transform: scaleX(0.15);
+    opacity: 0;
+    transition: transform $transition-base, opacity $transition-base;
+    transform-origin: center;
+  }
 
   &:hover {
     color: $color-primary;
     background: rgba($color-primary, 0.05);
+    border-radius: $radius-sm $radius-sm 0 0;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($color-primary, 0.45);
+    outline-offset: -1px;
+    background: rgba($color-primary, 0.07);
     border-radius: $radius-sm $radius-sm 0 0;
   }
 
@@ -159,17 +199,24 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
     color: $color-primary;
     border-bottom-color: $color-primary;
     font-weight: 600;
+    background: rgba($color-primary, 0.06);
+    border-radius: $radius-sm $radius-sm 0 0;
 
     .tabIcon {
       color: $color-primary;
       transform: scale(1.1);
+    }
+
+    &::after {
+      transform: scaleX(1);
+      opacity: 1;
     }
   }
 }
 
 .tabIcon {
   font-size: 1.1rem;
-  transition: all $transition-base;
+  transition: transform $transition-base, color $transition-base;
 }
 
 .tabLabel {
@@ -188,7 +235,22 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
 .tabContent {
   margin-top: 2rem;
+  animation: contentFadeIn 360ms $easing-soft both;
 }
+
+.tabPane {
+  animation: tabPaneIn 320ms $easing-emphasis both;
+  transform-origin: 50% 0;
+}
+
+.tabPane > * {
+  animation: paneItemIn 420ms $easing-soft both;
+}
+
+.tabPane > *:nth-child(1) { animation-delay: 50ms; }
+.tabPane > *:nth-child(2) { animation-delay: 100ms; }
+.tabPane > *:nth-child(3) { animation-delay: 140ms; }
+.tabPane > *:nth-child(4) { animation-delay: 180ms; }
 
 // ============================================
 // GRID LAYOUT
@@ -323,12 +385,17 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: $radius-lg;
   border: 1px solid $color-border-light;
   overflow: hidden;
-  transition: all $transition-base;
+  transition:
+    box-shadow $transition-base,
+    border-color $transition-base,
+    transform $transition-base;
   box-shadow: $shadow-sm;
+  will-change: transform;
 
   &:hover {
     box-shadow: $shadow-md;
     border-color: rgba($color-primary, 0.2);
+    transform: translateY(-2px);
   }
 }
 
@@ -339,7 +406,7 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: 1rem 1.5rem;
   background: linear-gradient(to right, rgba($color-primary, 0.03), rgba($color-primary, 0.01));
   border-bottom: 1px solid $color-border-light;
-  transition: background $transition-base;
+  transition: background $transition-base, border-color $transition-base;
 
   &:hover {
     background: linear-gradient(to right, rgba($color-primary, 0.05), rgba($color-primary, 0.02));
@@ -383,17 +450,18 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   color: white;
   font-size: 1rem;
   box-shadow: 0 2px 8px rgba($color-primary, 0.3);
-  transition: all $transition-base;
+  transition: transform $transition-base, box-shadow $transition-base, filter $transition-base;
 
   .section:hover & {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba($color-primary, 0.4);
+    filter: saturate(1.06);
   }
 }
 
 .toggleIcon {
   color: $color-text-secondary;
-  transition: transform $transition-base;
+  transition: transform $transition-base, color $transition-base;
   margin-left: 0.5rem;
 
   &Open {
@@ -419,7 +487,12 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   border-radius: $radius-sm;
   cursor: pointer;
-  transition: all $transition-base;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-base,
+    background-color $transition-base,
+    color $transition-base,
+    opacity $transition-base;
   font-size: 0.875rem;
 }
 
@@ -429,7 +502,7 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     background: rgba($color-primary, 0.2);
-    transform: scale(1.05);
+    transform: translateY(-1px) scale(1.03);
   }
 }
 
@@ -439,7 +512,7 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 6px rgba($color-success, 0.3);
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(1.02);
     box-shadow: 0 4px 10px rgba($color-success, 0.4);
   }
 
@@ -455,18 +528,25 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
     background: rgba($color-error, 0.2);
-    transform: scale(1.05);
+    transform: translateY(-1px) scale(1.03);
   }
 }
 
 .sectionContent {
   max-height: 0;
   overflow: hidden;
-  transition: max-height $transition-slow;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    max-height $transition-slow,
+    opacity $transition-base,
+    transform $transition-base;
 
   &Open {
     max-height: 5000px;
     padding: 1.5rem;
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -518,7 +598,7 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.925rem;
   font-family: inherit;
   resize: vertical;
-  transition: all $transition-base;
+  transition: border-color $transition-base, box-shadow $transition-base, background-color $transition-base;
 
   &:focus {
     outline: none;
@@ -536,7 +616,7 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
   background: white;
   cursor: pointer;
-  transition: all $transition-base;
+  transition: border-color $transition-base, box-shadow $transition-base, background-color $transition-base;
 
   &:focus {
     outline: none;
@@ -596,7 +676,7 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.925rem;
   font-weight: 500;
   box-shadow: $shadow-md;
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 380ms $easing-soft;
 
   &Success {
     background: rgba($color-success, 0.1);
@@ -622,13 +702,61 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
 @keyframes slideIn {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-10px) scale(0.985);
     opacity: 0;
   }
 
   to {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tabButtonIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tabPaneIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+    filter: blur(1px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes paneItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -651,10 +779,12 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: $radius-lg;
   border: 1px solid $color-border-light;
   box-shadow: $shadow-sm;
-  transition: all $transition-base;
+  transition: box-shadow $transition-base, border-color $transition-base, transform $transition-base;
 
   &:hover {
     box-shadow: $shadow-md;
+    border-color: rgba($color-primary, 0.2);
+    transform: translateY(-2px);
   }
 }
 
@@ -785,5 +915,34 @@ $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   .fieldsGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .tabIcon,
+  .section,
+  .sectionHeader,
+  .toggleIcon,
+  .editBtn,
+  .saveBtn,
+  .cancelBtn,
+  .sectionContent,
+  .notification,
+  .logo,
+  .tabContent,
+  .tabPane,
+  .financeCard {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .tab::after {
+    transition: none !important;
+  }
+
+  .tabPane > * {
+    animation: none !important;
   }
 }

@@ -5,11 +5,13 @@ import {
   FiFileText,
   FiUsers,
   FiDollarSign,
+  FiPackage,
 } from "react-icons/fi";
 
 export type ConciergeTabId =
   | "fiche"
   | "missions"
+  | "packs"
   | "tarifs"
   | "equipe"
   | "documents";
@@ -23,7 +25,8 @@ export interface ConciergeTab {
 export const CONCIERGE_TABS: ConciergeTab[] = [
   { id: "fiche", label: "Fiche & Infos", icon: FiUser },
   { id: "missions", label: "Missions", icon: FiTarget },
-  { id: "tarifs", label: "Tarifs & Contrats", icon: FiDollarSign },
-  { id: "equipe", label: "Équipe & Zones", icon: FiUsers },
+  { id: "packs", label: "Mes Packs", icon: FiPackage },
+  { id: "tarifs", label: "Grille tarifaire", icon: FiDollarSign },
+  { id: "equipe", label: "Equipe & Zones", icon: FiUsers },
   { id: "documents", label: "Documents & Avis", icon: FiFileText },
 ];

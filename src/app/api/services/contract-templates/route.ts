@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getToken } from "next-auth/jwt";
+import type { Json, TablesInsert } from "@/types/supabase";
 
 interface ContractTemplateBody {
   package_id: string;
   title: string;
   content: string;
-  variables?: Record<string, unknown>;
+  variables?: Json;
 }
 
 const getUserId = async (req: NextRequest): Promise<string | null> => {
@@ -65,15 +66,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const insertPayload: TablesInsert<"contract_templates"> = {
+      profile_id: userId,
+      package_id: body.package_id,
+      title: body.title,
+      content: body.content,
+      variables: body.variables ?? ({} as Json),
+    };
+
     const { data, error } = await db
       .from("contract_templates")
-      .insert({
-        profile_id: userId,
-        package_id: body.package_id,
-        title: body.title,
-        content: body.content,
-        variables: body.variables ?? {},
-      })
+      .insert(insertPayload)
       .select("id, profile_id, package_id, title, content, variables, created_at")
       .single();
 

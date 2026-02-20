@@ -5,10 +5,12 @@ import React, {
   useEffect,
   ChangeEvent,
   useMemo,
+  useCallback,
   KeyboardEvent,
 } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
 import styles from "./ConciergeProfilePage.module.scss";
 
@@ -22,6 +24,7 @@ import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
 import MissionProfileModule from "@/app/components/missions/MissionProfileModule";
+import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import TariffServicePackages from "@/app/components/tariffs/TariffServicePackages";
 import TariffAdjustments from "@/app/components/tariffs/TariffAdjustments";
 import type {
@@ -702,6 +705,20 @@ export default function ConciergeProfilePage() {
     setActiveTab(tabId);
     router.push(`?tab=${tabId}`, { scroll: false });
   };
+
+  const applySeasonalPricing = useCallback((next: SeasonalPricingConfig) => {
+    setEditProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            availability_hours: JSON.stringify({
+              ...parseAvailabilityPayloadRaw(prev.availability_hours),
+              pricing: next,
+            }),
+          }
+        : prev,
+    );
+  }, []);
 
   const validateField = (name: string, value: string): string => {
     if (!value) return "";
@@ -1543,6 +1560,31 @@ export default function ConciergeProfilePage() {
           </>
         );
 
+      case "packs":
+        return (
+          <div className={styles.financeGrid}>
+            <div className={styles.financeCard}>
+              {renderSection(
+                "Mes packs de services",
+                <FiBriefcase />,
+                <>
+                  <p>
+                    Creez et gerez vos packs directement depuis votre profil concierge.
+                    Vous pourrez ensuite les relier a votre grille tarifaire et vos modeles de contrats.
+                  </p>
+                  <p>
+                    <Link href="/dashboard/concierge/services-packages/seed">
+                      Ouvrir la page seed test (2 packs + 2 modeles)
+                    </Link>
+                  </p>
+                  <ServicePackageManager />
+                </>,
+                false,
+              )}
+            </div>
+          </div>
+        );
+
       case "tarifs":
         return (
           <div className={styles.financeGrid}>
@@ -1621,19 +1663,7 @@ export default function ConciergeProfilePage() {
                 <TariffServicePackages
                   value={seasonalPricing}
                   isEditing={editingSection === TARIFF_SECTION_IDS.PACKS}
-                  onChange={(next) =>
-                    setEditProfile((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            availability_hours: JSON.stringify({
-                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                              pricing: next,
-                            }),
-                          }
-                        : prev,
-                    )
-                  }
+                  onChange={applySeasonalPricing}
                 />,
               )}
             </div>
@@ -1645,19 +1675,7 @@ export default function ConciergeProfilePage() {
                 <TariffAdjustments
                   value={seasonalPricing}
                   isEditing={editingSection === TARIFF_SECTION_IDS.ADJUSTMENTS}
-                  onChange={(next) =>
-                    setEditProfile((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            availability_hours: JSON.stringify({
-                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                              pricing: next,
-                            }),
-                          }
-                        : prev,
-                    )
-                  }
+                  onChange={applySeasonalPricing}
                 />,
               )}
             </div>
@@ -1771,7 +1789,7 @@ export default function ConciergeProfilePage() {
         )}
 
         <div className={styles.tabs}>
-          {CONCIERGE_TABS.map((tab) => {
+          {CONCIERGE_TABS.map((tab, index) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -1780,6 +1798,7 @@ export default function ConciergeProfilePage() {
                 onClick={() => handleTabChange(tab.id)}
                 className={`${styles.tab} ${isActive ? styles.tabActive : ""
                   }`}
+                style={{ "--tab-index": index } as React.CSSProperties}
               >
                 <span className={styles.tabIcon}>
                   <Icon />
@@ -1790,7 +1809,11 @@ export default function ConciergeProfilePage() {
           })}
         </div>
 
-        <div className={styles.tabContent}>{renderTabContent()}</div>
+        <div className={styles.tabContent}>
+          <div key={activeTab} className={styles.tabPane} aria-live="polite">
+            {renderTabContent()}
+          </div>
+        </div>
       </main>
     </div>
   );
