@@ -1,13 +1,19 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import ContractTemplateManager from "@/app/components/dashboard/concierge/ContractTemplateManager/ContractTemplateManager";
 
-export default function ConciergeContractTemplatesPage() {
-  const searchParams = useSearchParams();
-  const packageId = searchParams.get("packageId") ?? undefined;
-  const packageName = searchParams.get("packageName") ?? undefined;
+interface PageProps {
+  searchParams?: {
+    packageId?: string | string[];
+    packageName?: string | string[];
+  };
+}
+
+const pickFirst = (value: string | string[] | undefined): string | undefined =>
+  Array.isArray(value) ? value[0] : value;
+
+export default function ConciergeContractTemplatesPage({ searchParams }: PageProps) {
+  const packageId = pickFirst(searchParams?.packageId);
+  const packageName = pickFirst(searchParams?.packageName);
 
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
