@@ -4,14 +4,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FiCheckCircle, FiAlertCircle, FiLoader } from "react-icons/fi";
 import styles from "./MissionDetails.module.scss";
 import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
-import type { Profile } from "@/app/dashboard/concierge/profile/ConciergeProfilePage";
 
 /* =========================
     Types
 ========================= */
 
 interface MissionDetailsProps {
-    profile: Profile;
+    selectedServices: string[];
     isEditing: boolean;
     onChangeOption?: (selected: string[]) => void;
 }
@@ -31,41 +30,22 @@ interface DetailedCategory {
     Helpers
 ========================= */
 
-const parseServicesString = (option: string | null | undefined): string[] => {
-    if (!option || option.trim() === "") return [];
-    try {
-        if (option.startsWith("[") && option.endsWith("]")) {
-            const parsed = JSON.parse(option);
-            return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
-        }
-        return option
-            .replace(/^\[|\]$/g, "")
-            .split(",")
-            .map((s) => s.replace(/"/g, "").trim())
-            .filter(Boolean);
-    } catch {
-        return [];
-    }
-};
-
 /* =========================
     Component
 ========================= */
 
 const MissionDetails: React.FC<MissionDetailsProps> = ({
-    profile,
+    selectedServices,
     isEditing,
     onChangeOption,
 }) => {
-    const { option } = profile;
-
     const [catalog, setCatalog] = useState<ServiceCatalogItem[]>([]);
     const [loadingCatalog, setLoadingCatalog] = useState(true);
     const [errorCatalog, setErrorCatalog] = useState<string | null>(null);
 
-    const activeServices: string[] = useMemo(
-        () => parseServicesString(option),
-        [option]
+    const activeServices = useMemo(
+        () => selectedServices.filter(Boolean),
+        [selectedServices]
     );
 
     useEffect(() => {

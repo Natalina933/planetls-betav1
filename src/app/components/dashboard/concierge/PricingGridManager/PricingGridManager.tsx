@@ -62,7 +62,7 @@ const EMPTY_FORM: PricingFormData = {
   label: '',
   type: 'hourly',
   amount: '',
-  unit: '€',
+  unit: 'EUR',
   is_default: false,
   property_type: 'appartement',
   surface_min: '',
@@ -70,7 +70,11 @@ const EMPTY_FORM: PricingFormData = {
   estimated_duration: ''
 };
 
-const PricingGridManager = () => {
+interface PricingGridManagerProps {
+  activeServiceIds?: string[];
+}
+
+const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
   const [pricings, setPricings] = useState<Pricing[]>([]);
   const [servicesCatalog, setServicesCatalog] = useState<ServicesCatalog>({ byCategory: {} });
   const [loading, setLoading] = useState(false);
@@ -82,20 +86,21 @@ const PricingGridManager = () => {
   const [filterPropertyType, setFilterPropertyType] = useState<PropertyType | ''>('');
   const [filterPricingType, setFilterPricingType] = useState<PricingType | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showInactiveLinkedPricings, setShowInactiveLinkedPricings] = useState(true);
 
   const propertyTypes: Array<{ value: PropertyType; label: string }> = [
-    { value: 'appartement', label: '🏢 Appartement' },
-    { value: 'maison', label: '🏠 Maison' },
-    { value: 'villa', label: '🏡 Villa' },
-    { value: 'studio', label: '🚪 Studio' },
-    { value: 'bureau', label: '💼 Bureau' }
+    { value: 'appartement', label: 'Appartement' },
+    { value: 'maison', label: 'Maison' },
+    { value: 'villa', label: 'Villa' },
+    { value: 'studio', label: 'Studio' },
+    { value: 'bureau', label: 'Bureau' }
   ];
 
   const pricingTypes: Array<{ value: PricingType; label: string }> = [
-    { value: 'hourly', label: '⏱️ Horaire' },
-    { value: 'fixed', label: '📦 Forfait' },
-    { value: 'monthly', label: '📅 Mensuel' },
-    { value: 'custom', label: '🎯 Personnalisé' }
+    { value: 'hourly', label: 'Horaire' },
+    { value: 'fixed', label: 'Forfait' },
+    { value: 'monthly', label: 'Mensuel' },
+    { value: 'custom', label: 'Personnalise' }
   ];
 
   /* -------------------------------------------------------------------------- */
@@ -199,7 +204,7 @@ const PricingGridManager = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette règle tarifaire ?')) return;
+    if (!window.confirm('Etes-vous sur de vouloir supprimer cette regle tarifaire ?')) return;
     
     try {
       await fetch(`/api/pricing/${id}`, { method: 'DELETE' });
@@ -228,29 +233,65 @@ const PricingGridManager = () => {
     });
   }, [pricings, filterPropertyType, filterPricingType, searchTerm]);
 
+  const hasActiveServiceFilter = Array.isArray(activeServiceIds);
+  const activeServiceIdSet = useMemo(
+    () => new Set((activeServiceIds ?? []).filter(Boolean)),
+    [activeServiceIds],
+  );
+  const selectableServicesByCategory = useMemo(() => {
+    if (!hasActiveServiceFilter) return servicesCatalog.byCategory;
+
+    return Object.entries(servicesCatalog.byCategory).reduce<Record<string, ServiceCatalogItem[]>>(
+      (acc, [category, services]) => {
+        const filtered = services.filter((service) => activeServiceIdSet.has(service.id));
+        if (filtered.length > 0) {
+          acc[category] = filtered;
+        }
+        return acc;
+      },
+      {},
+    );
+  }, [hasActiveServiceFilter, servicesCatalog.byCategory, activeServiceIdSet]);
+  const selectableServiceCount = useMemo(
+    () => Object.values(selectableServicesByCategory).reduce((acc, items) => acc + items.length, 0),
+    [selectableServicesByCategory],
+  );
+  const visiblePricings = useMemo(() => {
+    if (!hasActiveServiceFilter || showInactiveLinkedPricings) return filteredPricings;
+
+    return filteredPricings.filter(
+      (pricing) => !pricing.service_id || activeServiceIdSet.has(pricing.service_id),
+    );
+  }, [
+    hasActiveServiceFilter,
+    showInactiveLinkedPricings,
+    filteredPricings,
+    activeServiceIdSet,
+  ]);
+
   /* -------------------------------------------------------------------------- */
   /*                                 HELPERS                                    */
   /* -------------------------------------------------------------------------- */
   const getSurfaceLabel = (min?: number, max?: number) => {
-    if (!min && !max) return '—';
-    if (!max || max >= 1000) return `${min}m² et plus`;
-    return `${min}m² - ${max}m²`;
+    if (!min && !max) return '-';
+    if (!max || max >= 1000) return `${min}m2 et plus`;
+    return `${min}m2 - ${max}m2`;
   };
 
   const getPriceDisplay = (pricing: Pricing) => {
     const price = pricing.amount.toFixed(2);
     if (pricing.type === 'fixed') {
-      return `${price}€ forfait`;
+      return `${price} EUR forfait`;
     }
     if (pricing.type === 'hourly' && pricing.estimated_duration) {
-      return `${price}€/h (≈${Math.round(pricing.amount * pricing.estimated_duration)}€)`;
+      return `${price} EUR/h (~${Math.round(pricing.amount * pricing.estimated_duration)} EUR)`;
     }
     return `${price}${pricing.unit}`;
   };
 
   const getPropertyTypeLabel = (type?: PropertyType) => {
     const found = propertyTypes.find(pt => pt.value === type);
-    return found ? found.label : '—';
+    return found ? found.label : '-';
   };
 
   /* -------------------------------------------------------------------------- */
@@ -269,10 +310,10 @@ const PricingGridManager = () => {
       }}>
         <div style={{ flex: 1, minWidth: '300px' }}>
           <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-            Ma grille tarifaire personnalisée
+            Ma grille tarifaire personnalisee
           </h3>
           <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.9rem' }}>
-            Définissez vos tarifs selon le type de bien, la surface et la durée
+            Definissez vos tarifs selon le type de bien, la surface et la duree
           </p>
         </div>
 
@@ -317,6 +358,29 @@ const PricingGridManager = () => {
             </select>
           </div>
 
+          {hasActiveServiceFilter && (
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                color: '#475569',
+                background: '#f8fafc',
+                padding: '0.5rem 0.65rem',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={showInactiveLinkedPricings}
+                onChange={(e) => setShowInactiveLinkedPricings(e.target.checked)}
+              />
+              Afficher les tarifs lies a des services inactifs
+            </label>
+          )}
+
           {/* Recherche */}
           <div style={{ position: 'relative' }}>
             <FiSearch style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} size={16} aria-hidden="true" />
@@ -357,7 +421,7 @@ const PricingGridManager = () => {
             onMouseOut={(e) => e.currentTarget.style.background = '#2563eb'}
           >
             <FiPlus size={18} />
-            Nouvelle règle
+            Nouvelle regle
           </button>
         </div>
       </div>
@@ -372,19 +436,26 @@ const PricingGridManager = () => {
           marginBottom: '1.5rem'
         }}>
           <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
-            {editingId ? '✏️ Modifier la règle' : '➕ Nouvelle règle tarifaire'}
+            {editingId ? 'Modifier la regle' : 'Nouvelle regle tarifaire'}
           </h4>
           
           <div style={{ display: 'grid', gap: '1rem' }}>
             {/* Service (optionnel) */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                Service associé (optionnel)
+                Service associe (optionnel)
               </label>
+              {hasActiveServiceFilter && (
+                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: '#6b7280' }}>
+                  {selectableServiceCount > 0
+                    ? "Seuls les services actifs dans l'onglet Missions sont proposes."
+                    : 'Aucun service actif: activez un service dans Missions ou laissez ce champ vide.'}
+                </p>
+              )}
               <select
                 value={formData.service_id}
                 onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
-                aria-label="Service associé"
+                aria-label="Service associe"
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -393,8 +464,8 @@ const PricingGridManager = () => {
                   fontSize: '0.95rem'
                 }}
               >
-                <option value="">— Service personnalisé —</option>
-                {Object.entries(servicesCatalog.byCategory).map(([cat, services]) => (
+                <option value="">- Service personnalise -</option>
+                {Object.entries(selectableServicesByCategory).map(([cat, services]) => (
                   <optgroup key={cat} label={cat}>
                     {services.map((s) => (
                       <option key={s.id} value={s.id}>{s.service}</option>
@@ -404,14 +475,14 @@ const PricingGridManager = () => {
               </select>
             </div>
 
-            {/* Libellé */}
+            {/* Libelle */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                Libellé du tarif *
+                Libelle du tarif *
               </label>
               <input
                 type="text"
-                placeholder="Ex: Ménage appartement 2 pièces"
+                placeholder="Ex: Menage appartement 2 pieces"
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                 style={{
@@ -474,13 +545,13 @@ const PricingGridManager = () => {
               {/* Surface min */}
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                  Surface min (m²)
+                  Surface min (m2)
                 </label>
                 <input
                   type="number"
                   value={formData.surface_min}
                   onChange={(e) => setFormData({ ...formData, surface_min: e.target.value })}
-                  aria-label="Surface minimum en mètres carrés"
+                  aria-label="Surface minimum en metres carres"
                   placeholder="Ex: 0"
                   style={{
                     width: '100%',
@@ -496,13 +567,13 @@ const PricingGridManager = () => {
               {/* Surface max */}
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                  Surface max (m²)
+                  Surface max (m2)
                 </label>
                 <input
                   type="number"
                   value={formData.surface_max}
                   onChange={(e) => setFormData({ ...formData, surface_max: e.target.value })}
-                  aria-label="Surface maximum en mètres carrés"
+                  aria-label="Surface maximum en metres carres"
                   placeholder="Ex: 50"
                   style={{
                     width: '100%',
@@ -518,7 +589,7 @@ const PricingGridManager = () => {
               {/* Prix */}
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                  {formData.type === 'fixed' ? 'Prix forfait (€) *' : 'Tarif (€) *'}
+                  {formData.type === 'fixed' ? 'Prix forfait (EUR) *' : 'Tarif (EUR) *'}
                 </label>
                 <input
                   type="number"
@@ -538,16 +609,16 @@ const PricingGridManager = () => {
                 />
               </div>
 
-              {/* Durée estimée */}
+              {/* Duree estimee */}
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                  Durée estimée (h)
+                  Duree estimee (h)
                 </label>
                 <input
                   type="number"
                   value={formData.estimated_duration}
                   onChange={(e) => setFormData({ ...formData, estimated_duration: e.target.value })}
-                  aria-label="Durée estimée en heures"
+                  aria-label="Duree estimee en heures"
                   placeholder="Ex: 2.5"
                   style={{
                     width: '100%',
@@ -562,7 +633,7 @@ const PricingGridManager = () => {
               </div>
             </div>
 
-            {/* Tarif par défaut */}
+            {/* Tarif par defaut */}
             <div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input
@@ -571,7 +642,7 @@ const PricingGridManager = () => {
                   onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
-                <span style={{ fontSize: '0.95rem' }}>Définir comme tarif par défaut</span>
+                <span style={{ fontSize: '0.95rem' }}>Definir comme tarif par defaut</span>
               </label>
             </div>
 
@@ -591,7 +662,7 @@ const PricingGridManager = () => {
                   fontWeight: 500
                 }}
               >
-                {loading ? 'Enregistrement...' : (editingId ? 'Mettre à jour' : 'Ajouter')}
+                {loading ? 'Enregistrement...' : (editingId ? 'Mettre a jour' : 'Ajouter')}
               </button>
               <button
                 onClick={resetForm}
@@ -625,7 +696,7 @@ const PricingGridManager = () => {
           <thead>
             <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
               <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
-                LIBELLÉ
+                LIBELLE
               </th>
               <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
                 TYPE DE BIEN
@@ -637,7 +708,7 @@ const PricingGridManager = () => {
                 TARIFICATION
               </th>
               <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
-                DURÉE
+                DUREE
               </th>
               <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
                 ACTIONS
@@ -645,24 +716,40 @@ const PricingGridManager = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredPricings.length === 0 ? (
+            {visiblePricings.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>
                   {searchTerm || filterPropertyType || filterPricingType
                     ? 'Aucun tarif ne correspond aux filtres'
-                    : 'Aucune règle tarifaire définie. Cliquez sur "Nouvelle règle" pour commencer.'}
+                    : 'Aucune regle tarifaire definie. Cliquez sur "Nouvelle regle" pour commencer.'}
                 </td>
               </tr>
             ) : (
-              filteredPricings.map((pricing, index) => (
+              visiblePricings.map((pricing, index) => {
+                const isLinkedToInactiveService =
+                  hasActiveServiceFilter &&
+                  Boolean(pricing.service_id) &&
+                  !activeServiceIdSet.has(pricing.service_id as string);
+
+                return (
                 <tr 
                   key={pricing.id}
                   style={{ 
-                    borderBottom: index < filteredPricings.length - 1 ? '1px solid #f3f4f6' : 'none',
-                    transition: 'background 0.2s'
+                    borderBottom: index < visiblePricings.length - 1 ? '1px solid #f3f4f6' : 'none',
+                    transition: 'background 0.2s',
+                    opacity: isLinkedToInactiveService ? 0.58 : 1,
+                    background: isLinkedToInactiveService ? '#f8fafc' : 'white',
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.background = '#f9fafb'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = isLinkedToInactiveService
+                      ? '#f1f5f9'
+                      : '#f9fafb')
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = isLinkedToInactiveService
+                      ? '#f8fafc'
+                      : 'white')
+                  }
                 >
                   <td style={{ padding: '1rem' }}>
                     <div>
@@ -677,12 +764,27 @@ const PricingGridManager = () => {
                           fontSize: '0.75rem',
                           fontWeight: 600
                         }}>
-                          PAR DÉFAUT
+                          PAR DEFAUT
+                        </span>
+                      )}
+                      {isLinkedToInactiveService && (
+                        <span
+                          style={{
+                            marginLeft: '0.5rem',
+                            padding: '0.25rem 0.5rem',
+                            background: '#fff7ed',
+                            color: '#9a3412',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          SERVICE INACTIF
                         </span>
                       )}
                       {pricing.service && (
                         <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                          {pricing.service.category} → {pricing.service.service}
+                          {pricing.service.category} {"->"} {pricing.service.service}
                         </div>
                       )}
                     </div>
@@ -712,7 +814,7 @@ const PricingGridManager = () => {
                   <td style={{ padding: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <FiClock size={16} color="#6b7280" />
-                      <span>{pricing.estimated_duration ? `${pricing.estimated_duration}h` : '—'}</span>
+                      <span>{pricing.estimated_duration ? `${pricing.estimated_duration}h` : '-'}</span>
                     </div>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
@@ -758,14 +860,14 @@ const PricingGridManager = () => {
                     </div>
                   </td>
                 </tr>
-              ))
+              )})
             )}
           </tbody>
         </table>
       </div>
 
       {/* QUICK STATS */}
-      {filteredPricings.length > 0 && (
+      {visiblePricings.length > 0 && (
         <div style={{
           marginTop: '1.5rem',
           padding: '1.5rem',
@@ -774,12 +876,12 @@ const PricingGridManager = () => {
           borderRadius: '12px'
         }}>
           <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
-            📊 Statistiques rapides
+            Statistiques rapides
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div>
               <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
-                Règles définies
+                Regles definies
               </div>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0369a1' }}>
                 {pricings.length}
@@ -795,7 +897,7 @@ const PricingGridManager = () => {
                   return forfaits.length > 0
                     ? Math.round(forfaits.reduce((acc, r) => acc + r.amount, 0) / forfaits.length)
                     : 0;
-                })()}€
+                })()} EUR
               </div>
             </div>
             <div>
@@ -808,7 +910,7 @@ const PricingGridManager = () => {
                   return horaires.length > 0
                     ? Math.round(horaires.reduce((acc, r) => acc + r.amount, 0) / horaires.length)
                     : 0;
-                })()}€/h
+                })()} EUR/h
               </div>
             </div>
           </div>
