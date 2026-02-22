@@ -30,9 +30,15 @@ export default function Navbar() {
   const { userType } = useUserType();
 
   const [showWarning, setShowWarning] = useState(false);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const [warningTimeoutId, setWarningTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [warningDeadline, setWarningDeadline] = useState<number | null>(null);
+  const [warningSecondsLeft, setWarningSecondsLeft] = useState(
+    Math.floor(WARNING_BEFORE_LOGOUT / 1000),
+  );
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showWarningRef = useRef(false);
   const extendButtonRef = useRef<HTMLButtonElement | null>(null);
+  const warningModalRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
 
   const isAuthenticated = status === "authenticated";
@@ -53,24 +59,36 @@ export default function Navbar() {
   };
 
   // 🔄 Réinitialiser le timer d'inactivité
+  const clearInactivityTimers = useCallback(() => {
+    if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+    if (warningTimeoutIdRef.current) clearTimeout(warningTimeoutIdRef.current);
+    timeoutIdRef.current = null;
+    warningTimeoutIdRef.current = null;
+  }, []);
+
   const resetInactivityTimer = useCallback(() => {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (warningTimeoutId) clearTimeout(warningTimeoutId);
-    setShowWarning(false);
+    clearInactivityTimers();
+
+    if (showWarningRef.current) {
+      return;
+    }
 
     if (isAuthenticated && isDashboardRoute) {
       const warningId = setTimeout(() => {
+        showWarningRef.current = true;
         setShowWarning(true);
+        setWarningDeadline(Date.now() + WARNING_BEFORE_LOGOUT);
+        setWarningSecondsLeft(Math.floor(WARNING_BEFORE_LOGOUT / 1000));
       }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
 
       const logoutId = setTimeout(() => {
         handleAutoLogout();
       }, INACTIVITY_TIMEOUT);
 
-      setWarningTimeoutId(warningId);
-      setTimeoutId(logoutId);
+      warningTimeoutIdRef.current = warningId;
+      timeoutIdRef.current = logoutId;
     }
-  }, [timeoutId, warningTimeoutId, isAuthenticated, isDashboardRoute]);
+  }, [clearInactivityTimers, isAuthenticated, isDashboardRoute]);
 
 
   // 🚪 Déconnexion automatique
@@ -83,7 +101,9 @@ export default function Navbar() {
 
   // 🔄 Prolonger la session
   const extendSession = useCallback(() => {
+    showWarningRef.current = false;
     setShowWarning(false);
+    setWarningDeadline(null);
     resetInactivityTimer();
   }, [resetInactivityTimer]);
 
@@ -103,10 +123,21 @@ export default function Navbar() {
       }
     };
 
+    const onMouseDownCapture = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (warningModalRef.current?.contains(target)) {
+        return;
+      }
+      e.stopPropagation();
+      e.preventDefault();
+    };
+
     window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onMouseDownCapture, true);
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onMouseDownCapture, true);
       document.body.style.overflow = prevOverflow;
     };
   }, [showWarning, extendSession]);
@@ -119,6 +150,7 @@ export default function Navbar() {
     const events = ["mousedown", "keydown", "scroll", "touchstart", "mousemove"];
 
     const handleActivity = () => {
+      if (showWarningRef.current) return;
       resetInactivityTimer();
     };
 
@@ -135,20 +167,49 @@ export default function Navbar() {
       events.forEach(event => {
         window.removeEventListener(event, handleActivity);
       });
-      if (timeoutId) clearTimeout(timeoutId);
-      if (warningTimeoutId) clearTimeout(warningTimeoutId);
+      clearInactivityTimers();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isDashboardRoute, pathname]);
+  }, [isAuthenticated, isDashboardRoute, pathname, clearInactivityTimers, resetInactivityTimer]);
 
   // 🚪 Arrêter les timers lors de la sortie du dashboard
   useEffect(() => {
     if (isAuthenticated && !isDashboardRoute) {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (warningTimeoutId) clearTimeout(warningTimeoutId);
+      clearInactivityTimers();
+      showWarningRef.current = false;
       setShowWarning(false);
+      setWarningDeadline(null);
     }
-  }, [pathname, isDashboardRoute, isAuthenticated, timeoutId, warningTimeoutId]);
+  }, [pathname, isDashboardRoute, isAuthenticated, clearInactivityTimers]);
+
+  useEffect(() => {
+    showWarningRef.current = showWarning;
+  }, [showWarning]);
+
+  useEffect(() => {
+    if (!showWarning || !warningDeadline) return;
+
+    const tick = () => {
+      const seconds = Math.max(
+        0,
+        Math.ceil((warningDeadline - Date.now()) / 1000),
+      );
+      setWarningSecondsLeft(seconds);
+    };
+
+    tick();
+    const intervalId = window.setInterval(tick, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [showWarning, warningDeadline]);
+
+  const warningTimeLabel = `${Math.floor(warningSecondsLeft / 60)
+    .toString()
+    .padStart(2, "0")}:${(warningSecondsLeft % 60)
+    .toString()
+    .padStart(2, "0")}`;
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -294,16 +355,18 @@ export default function Navbar() {
       {/* ⚠️ Modal d'avertissement d'inactivité */}
       {showWarning && (
         <div className={styles.warningOverlay}>
-          <div className={styles.warningModal}>
+          <div className={styles.warningModal} ref={warningModalRef}>
             <h3>⏱️ Session bientôt expirée</h3>
             <p>
               Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.
             </p>
             <p className={styles.warningSubtext}>
-              Cliquez sur &quot;Rester connecté&quot; pour continuer votre session.
+              Temps restant: <strong>{warningTimeLabel}</strong>. Cliquez sur
+              &quot;Rester connecté&quot; pour continuer votre session.
             </p>
             <div className={styles.warningActions}>
               <button
+                ref={extendButtonRef}
                 onClick={extendSession}
                 className={styles.extendButton}
               >

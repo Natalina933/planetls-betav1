@@ -20,12 +20,21 @@ interface ServicePackage {
   category: string;
   service_ids: string[];
   services: Service[];
-  attached_pricing_ids: string[];
+  attached_pricings: AttachedPricing[];
   attached_contract_ids: string[];
 }
 
 interface ApiPackageItem {
   service_id: string;
+}
+
+interface AttachedPricing {
+  id: string;
+  package_id: string;
+  label: string;
+  type: "hourly" | "fixed" | "monthly" | "custom";
+  amount: number;
+  property_type?: string | null;
 }
 
 interface ApiPackage {
@@ -44,6 +53,8 @@ interface ApiError {
 interface Props {
   onPackCreated?: (pack: ServicePackage) => void;
   onPacksLoaded?: (packs: ServicePackage[]) => void;
+  activeMissionServiceIds?: string[];
+  activeMissionServiceLabels?: string[];
 }
 
 const PROPOSED_SERVICES: Service[] = [
@@ -71,20 +82,26 @@ const normalizePackage = (pkg: ApiPackage, services: Service[]): ServicePackage 
     category: pkg.category ?? "General",
     service_ids: serviceIds,
     services: services.filter((svc) => serviceIds.includes(svc.id)),
-    attached_pricing_ids: [],
+    attached_pricings: [],
     attached_contract_ids: [],
   };
 };
 
-const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }) => {
+const ServicePackageManager: React.FC<Props> = ({
+  onPackCreated,
+  onPacksLoaded,
+  activeMissionServiceIds,
+  activeMissionServiceLabels,
+}) => {
   const router = useRouter();
   const [packages, setPackages] = useState<ServicePackage[]>([]);
-  const [proposedServices] = useState<Service[]>(PROPOSED_SERVICES);
+  const [proposedServices, setProposedServices] = useState<Service[]>(PROPOSED_SERVICES);
   const [showNewPackForm, setShowNewPackForm] = useState(false);
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPackages, setIsLoadingPackages] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingAttachedPricings, setIsLoadingAttachedPricings] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -93,18 +110,81 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
     selected_service_ids: [] as string[],
   });
 
+  const normalizeServiceText = useCallback(
+    (value: string) =>
+      value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim(),
+    [],
+  );
+
+  const missionLabelSet = useMemo(
+    () =>
+      new Set(
+        (activeMissionServiceLabels ?? [])
+          .filter(Boolean)
+          .map((label) => normalizeServiceText(label)),
+      ),
+    [activeMissionServiceLabels, normalizeServiceText],
+  );
+  const missionIdSet = useMemo(
+    () => new Set((activeMissionServiceIds ?? []).filter(Boolean)),
+    [activeMissionServiceIds],
+  );
+
+  const availableServices = useMemo(() => {
+    const hasMissionFilter = missionLabelSet.size > 0 || missionIdSet.size > 0;
+    if (!hasMissionFilter) return proposedServices;
+
+    return proposedServices.filter(
+      (service) =>
+        missionIdSet.has(service.id) ||
+        missionLabelSet.has(normalizeServiceText(service.service)),
+    );
+  }, [proposedServices, missionIdSet, missionLabelSet, normalizeServiceText]);
+
   React.useEffect(() => {
     const loadPackages = async () => {
       setIsLoadingPackages(true);
       setLoadError(null);
       try {
+        let servicesForMapping = PROPOSED_SERVICES;
+        try {
+          const servicesRes = await fetch("/api/services/services-catalog");
+          if (servicesRes.ok) {
+            const servicesData = (await servicesRes.json()) as Array<{
+              id: number;
+              category: string;
+              service: string;
+              description?: string | null;
+            }>;
+            const mappedServices = (Array.isArray(servicesData) ? servicesData : []).map(
+              (item) => ({
+                id: String(item.id),
+                category: item.category,
+                service: item.service,
+                description: item.description ?? "",
+                isProposed: true,
+              }),
+            );
+            if (mappedServices.length > 0) {
+              servicesForMapping = mappedServices;
+              setProposedServices(mappedServices);
+            }
+          }
+        } catch {
+          // Fallback to static list if services catalog is unavailable
+        }
+
         const response = await fetch("/api/services/packages");
         if (!response.ok) {
           const payload: ApiError | null = await response.json().catch(() => null);
           throw new Error(payload?.error ?? "Erreur chargement packs");
         }
         const data: ApiPackage[] = await response.json();
-        const mapped = data.map((pkg) => normalizePackage(pkg, PROPOSED_SERVICES));
+        const mapped = data.map((pkg) => normalizePackage(pkg, servicesForMapping));
         setPackages(mapped);
         onPacksLoaded?.(mapped);
       } catch (err) {
@@ -121,15 +201,20 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
 
   const servicesByCategory = useMemo(() => {
     const grouped: Record<string, Service[]> = {};
-    proposedServices.forEach((svc) => {
+    availableServices.forEach((svc) => {
       if (!grouped[svc.category]) grouped[svc.category] = [];
       grouped[svc.category].push(svc);
     });
     return grouped;
-  }, [proposedServices]);
+  }, [availableServices]);
 
   const handleCreatePackage = useCallback(async () => {
-    if (!formData.name.trim() || !formData.category || formData.selected_service_ids.length === 0) {
+    const availableIdSet = new Set(availableServices.map((service) => service.id));
+    const selectedAllowedServiceIds = formData.selected_service_ids.filter((id) =>
+      availableIdSet.has(id),
+    );
+
+    if (!formData.name.trim() || !formData.category || selectedAllowedServiceIds.length === 0) {
       alert("Remplissez tous les champs et selectionnez au moins un service");
       return;
     }
@@ -143,7 +228,7 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
           name: formData.name,
           description: formData.description,
           category: formData.category,
-          service_ids: formData.selected_service_ids,
+          service_ids: selectedAllowedServiceIds,
         }),
       });
 
@@ -167,7 +252,17 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, proposedServices, onPackCreated, onPacksLoaded]);
+  }, [formData, proposedServices, onPackCreated, onPacksLoaded, availableServices]);
+
+  React.useEffect(() => {
+    const availableIdSet = new Set(availableServices.map((service) => service.id));
+    setFormData((prev) => ({
+      ...prev,
+      selected_service_ids: prev.selected_service_ids.filter((id) =>
+        availableIdSet.has(id),
+      ),
+    }));
+  }, [availableServices]);
 
   const handleToggleService = (serviceId: string) => {
     setFormData((prev) => ({
@@ -188,6 +283,69 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
   };
 
   const selectedPackage = packages.find((p) => p.id === selectedPackId);
+
+  React.useEffect(() => {
+    if (!selectedPackId) return;
+
+    const loadAttachedPricings = async () => {
+      setIsLoadingAttachedPricings(true);
+      try {
+        const response = await fetch(
+          `/api/services/pricing-packages?packageId=${encodeURIComponent(selectedPackId)}`,
+        );
+        if (!response.ok) {
+          throw new Error("Erreur chargement tarifs lies");
+        }
+
+        const data = (await response.json()) as AttachedPricing[];
+        setPackages((prev) =>
+          prev.map((pkg) =>
+            pkg.id === selectedPackId
+              ? { ...pkg, attached_pricings: Array.isArray(data) ? data : [] }
+              : pkg,
+          ),
+        );
+      } catch (err) {
+        console.warn("Chargement tarifs lies indisponible:", err);
+      } finally {
+        setIsLoadingAttachedPricings(false);
+      }
+    };
+
+    loadAttachedPricings();
+  }, [selectedPackId]);
+
+  const handleRemoveAttachedPricing = useCallback(
+    async (pricingId: string) => {
+      if (!selectedPackId) return;
+
+      try {
+        const response = await fetch(`/api/services/pricing-packages/${pricingId}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) {
+          throw new Error("Erreur suppression tarif lie");
+        }
+
+        setPackages((prev) =>
+          prev.map((pkg) =>
+            pkg.id === selectedPackId
+              ? {
+                  ...pkg,
+                  attached_pricings: pkg.attached_pricings.filter(
+                    (pricing) => pricing.id !== pricingId,
+                  ),
+                }
+              : pkg,
+          ),
+        );
+      } catch (err) {
+        console.error("Erreur suppression tarif lie:", err);
+        alert("Erreur lors de la suppression du tarif lie");
+      }
+    },
+    [selectedPackId],
+  );
 
   return (
     <div className={styles.container}>
@@ -246,7 +404,19 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
 
               <div className={styles.serviceSelection}>
                 <label>Services du pack *</label>
-                <p className={styles.hint}>Selectionnez au moins un service propose :</p>
+                <p className={styles.hint}>
+                  Selectionnez au moins un service propose actif dans Missions :
+                </p>
+                <p className={styles.hint}>
+                  {availableServices.length} service(s) disponible(s) selon vos services actifs.
+                </p>
+
+                {availableServices.length === 0 && (
+                  <p className={styles.hint}>
+                    Aucun service actif trouve dans Missions. Activez vos services dans
+                    l&apos;onglet Missions pour les utiliser dans les packs.
+                  </p>
+                )}
 
                 {Object.entries(servicesByCategory).map(([category, services]) => (
                   <div key={category} className={styles.categoryGroup}>
@@ -371,14 +541,23 @@ const ServicePackageManager: React.FC<Props> = ({ onPackCreated, onPacksLoaded }
                   <Zap size={16} /> Ajouter Tarif
                 </button>
               </div>
-              {selectedPackage.attached_pricing_ids.length === 0 ? (
+              {isLoadingAttachedPricings ? (
+                <p className={styles.emptyState}>Chargement des tarifs lies...</p>
+              ) : selectedPackage.attached_pricings.length === 0 ? (
                 <p className={styles.emptyState}>Aucun tarif lie. Creez un tarif pour ce pack.</p>
               ) : (
                 <ul>
-                  {selectedPackage.attached_pricing_ids.map((priceId) => (
-                    <li key={priceId}>
-                      <span>Tarif #{priceId}</span>
-                      <button className={styles.unlinkButton}>
+                  {selectedPackage.attached_pricings.map((pricing) => (
+                    <li key={pricing.id}>
+                      <span>
+                        {pricing.label} ({Number(pricing.amount).toFixed(2)} EUR)
+                      </span>
+                      <button
+                        className={styles.unlinkButton}
+                        onClick={() => handleRemoveAttachedPricing(pricing.id)}
+                        type="button"
+                        aria-label={`Supprimer le tarif lie ${pricing.label}`}
+                      >
                         <Unlink size={14} />
                       </button>
                     </li>

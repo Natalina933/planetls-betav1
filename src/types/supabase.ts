@@ -617,6 +617,62 @@ export type Database = {
         ];
       };
 
+      pricing_packages: {
+        Row: {
+          id: string;
+          profile_id: string;
+          package_id: string;
+          label: string;
+          type: string;
+          amount: number;
+          property_type: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          package_id: string;
+          label: string;
+          type: string;
+          amount: number;
+          property_type?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          package_id?: string;
+          label?: string;
+          type?: string;
+          amount?: number;
+          property_type?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pricing_packages_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pricing_packages_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pricing_packages_package_id_fkey";
+            columns: ["package_id"];
+            isOneToOne: false;
+            referencedRelation: "services_packages";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       contract_templates: {
         Row: {
           id: string;

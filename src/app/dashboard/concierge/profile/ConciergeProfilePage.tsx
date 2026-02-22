@@ -6,6 +6,7 @@ import React, {
   ChangeEvent,
   useMemo,
   useCallback,
+  useRef,
   KeyboardEvent,
 } from "react";
 import { useSession } from "next-auth/react";
@@ -161,6 +162,12 @@ type ExtendedFieldName =
   | "service_area"
   | "service_radius_km";
 
+interface CatalogServiceItem {
+  id: number;
+  category: string;
+  service: string;
+}
+
 const DEFAULT_MISSION_CENTER = { lat: 48.8566, lng: 2.3522 };
 
 const DEFAULT_MISSION_CATALOG: MissionCatalogItem[] = [
@@ -198,6 +205,79 @@ const toMissionTypeId = (value: string) =>
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+const normalizeServiceLabel = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const parseLegacySelectedOptions = (value?: string | null): string[] => {
+  if (!value) return [];
+  const raw = value.trim();
+  if (!raw) return [];
+
+  try {
+    if (raw.startsWith("[") && raw.endsWith("]")) {
+      const parsed = JSON.parse(raw);
+      const options = Array.isArray(parsed)
+        ? parsed.filter((item): item is string => typeof item === "string")
+        : [];
+      return Array.from(new Set(options));
+    }
+  } catch {
+    // fallback csv parsing below
+  }
+
+  const options = raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return Array.from(new Set(options));
+};
+
+const ONBOARDING_OPTION_CATEGORY_MATCHERS: Record<string, string[]> = {
+  menage: ["menage", "nettoyage"],
+  linge: ["linge", "blanchisserie", "textile"],
+  "accueil et check-in/check-out": ["accueil", "check-in", "check out", "voyageur"],
+  "maintenance et petites reparations": ["maintenance", "reparation", "depannage"],
+  "courses et intendance": ["courses", "intendance", "approvisionnement"],
+  "gestion administrative": ["gestion administrative", "administratif", "fiscal"],
+  "entretien exterieur": ["entretien exterieur", "jardin", "terrasse", "piscine", "toiture"],
+  "securite du logement": ["securite", "surveillance", "controle"],
+  "services de confort": ["services de confort", "confort"],
+  "conciergerie digitale": ["conciergerie digitale", "digital", "automatisation"],
+  "gestion complete": ["gestion complete"],
+  "gestion des cles": ["cles"],
+  "services ponctuels": ["services ponctuels", "urgence", "intervention"],
+  "autres services": ["autres services", "autre"],
+};
+
+const ONBOARDING_OPTION_LABEL_FALLBACK: Record<string, string[]> = {
+  "accueil et check-in/check-out": ["accueil", "check-in", "check out"],
+  "maintenance et petites reparations": ["maintenance", "reparation"],
+  "courses et intendance": ["courses", "intendance"],
+};
+
+const matchesOnboardingOption = (
+  optionNormalized: string,
+  service: CatalogServiceItem,
+): boolean => {
+  const normalizedCategory = normalizeServiceLabel(service.category);
+  const normalizedLabel = normalizeServiceLabel(service.service);
+
+  const categoryKeywords = ONBOARDING_OPTION_CATEGORY_MATCHERS[optionNormalized] ?? [
+    optionNormalized,
+  ];
+
+  if (categoryKeywords.some((keyword) => normalizedCategory.includes(keyword))) {
+    return true;
+  }
+
+  const labelKeywords = ONBOARDING_OPTION_LABEL_FALLBACK[optionNormalized] ?? [];
+  return labelKeywords.some((keyword) => normalizedLabel.includes(keyword));
+};
 
 const defaultMissionPreferences = (): MissionPreferences => ({
   acceptedMissionTypeIds: [],
@@ -632,6 +712,8 @@ export default function ConciergeProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [catalogServices, setCatalogServices] = useState<CatalogServiceItem[]>([]);
+  const didSeedFromOnboardingRef = useRef(false);
   const missionPayload = useMemo(
     () => parseMissionPayload(editProfile?.availability_hours),
     [editProfile?.availability_hours],
@@ -640,17 +722,34 @@ export default function ConciergeProfilePage() {
     () => parseSeasonalPricing(editProfile?.availability_hours),
     [editProfile?.availability_hours],
   );
-  const activeMissionServiceIds = useMemo(
+  const activeMissionServiceLabels = useMemo(
     () =>
       Array.from(
         new Set(
           missionPayload.missionProfile.missions
             .filter((mission) => mission.isActive)
-            .map((mission) => mission.id),
+            .map((mission) => mission.label),
         ),
       ),
     [missionPayload.missionProfile.missions],
   );
+  const activeMissionServiceCatalogIds = useMemo(() => {
+    if (catalogServices.length === 0 || activeMissionServiceLabels.length === 0) return [];
+
+    const labelSet = new Set(
+      activeMissionServiceLabels.map((label) => normalizeServiceLabel(label)),
+    );
+
+    return Array.from(
+      new Set(
+        catalogServices
+          .filter((service) =>
+            labelSet.has(normalizeServiceLabel(service.service)),
+          )
+          .map((service) => String(service.id)),
+      ),
+    );
+  }, [catalogServices, activeMissionServiceLabels]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.INFO_PERSO]: true,
     [SECTION_IDS.SERVICES_ZONE]: true,
@@ -707,6 +806,135 @@ export default function ConciergeProfilePage() {
     };
 
     fetchProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (didSeedFromOnboardingRef.current) return;
+    if (!catalogServices.length) return;
+    if (!editProfile) return;
+
+    const parsed = parseMissionPayload(editProfile.availability_hours);
+    const payloadRaw = parseAvailabilityPayloadRaw(editProfile.availability_hours);
+
+    if (payloadRaw.onboardingCategorySeedApplied === true) {
+      didSeedFromOnboardingRef.current = true;
+      return;
+    }
+
+    // Do not overwrite if user already selected detailed services in missions.
+    if (parsed.missionProfile.missions.some((mission) => mission.isActive)) {
+      didSeedFromOnboardingRef.current = true;
+      return;
+    }
+
+    const selectedOptions = parseLegacySelectedOptions(editProfile.option);
+    if (selectedOptions.length === 0) {
+      didSeedFromOnboardingRef.current = true;
+      return;
+    }
+
+    const normalizedOptions = selectedOptions.map((opt) => normalizeServiceLabel(opt));
+    const matchedCatalogItems = catalogServices.filter((service) => {
+      return normalizedOptions.some((option) =>
+        matchesOnboardingOption(option, service),
+      );
+    });
+
+    if (matchedCatalogItems.length === 0) {
+      didSeedFromOnboardingRef.current = true;
+      return;
+    }
+
+    const matchedLabelSet = new Set(
+      matchedCatalogItems.map((item) => normalizeServiceLabel(item.service)),
+    );
+
+    setEditProfile((prev) => {
+      if (!prev) return prev;
+
+      const existingPayload = parseAvailabilityPayloadRaw(prev.availability_hours);
+      const parsedFromPrev = parseMissionPayload(prev.availability_hours);
+      const hasMissionProfile = parsedFromPrev.missionProfile.missions.length > 0;
+
+      const baseMissions = hasMissionProfile
+        ? parsedFromPrev.missionProfile.missions
+        : parsedFromPrev.missionCatalog.map((catalogItem) => ({
+            id: catalogItem.id,
+            label: catalogItem.label,
+            isActive: false,
+            minNoticeHours: 24,
+            allowUrgent: false,
+            urgentMultiplier: 1.3,
+          }));
+
+      const existingIdSet = new Set(baseMissions.map((mission) => mission.id));
+      const missingMissions = matchedCatalogItems
+        .map((item) => {
+          const id = toMissionTypeId(item.service);
+          if (existingIdSet.has(id)) return null;
+          existingIdSet.add(id);
+          return {
+            id,
+            label: item.service,
+            isActive: true,
+            minNoticeHours: 24,
+            allowUrgent: false,
+            urgentMultiplier: 1.3,
+          };
+        })
+        .filter(
+          (
+            mission,
+          ): mission is ConciergeMissionProfile["missions"][number] => Boolean(mission),
+        );
+
+      const nextMissions = [...baseMissions, ...missingMissions].map((mission) => ({
+        ...mission,
+        isActive: matchedLabelSet.has(normalizeServiceLabel(mission.label)),
+      }));
+
+      const nextMissionProfile: ConciergeMissionProfile = {
+        ...parsedFromPrev.missionProfile,
+        missions: nextMissions,
+      };
+      const legacy = buildLegacyFromMissionProfile(nextMissionProfile);
+
+      return {
+        ...prev,
+        availability_hours: JSON.stringify({
+          ...existingPayload,
+          missionProfile: nextMissionProfile,
+          missionCatalog: legacy.missionCatalog,
+          preferences: legacy.preferences,
+          onboardingCategorySeedApplied: true,
+        }),
+      };
+    });
+
+    didSeedFromOnboardingRef.current = true;
+  }, [catalogServices, editProfile]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchServicesCatalog = async () => {
+      try {
+        const response = await fetch("/api/services/services-catalog");
+        if (!response.ok) return;
+        const data = (await response.json()) as CatalogServiceItem[];
+        if (!isMounted) return;
+        setCatalogServices(Array.isArray(data) ? data : []);
+      } catch {
+        if (!isMounted) return;
+        setCatalogServices([]);
+      }
+    };
+
+    fetchServicesCatalog();
 
     return () => {
       isMounted = false;
@@ -1702,7 +1930,10 @@ export default function ConciergeProfilePage() {
                       Ouvrir la page seed test (2 packs + 2 modeles)
                     </Link>
                   </p>
-                  <ServicePackageManager />
+                  <ServicePackageManager
+                    activeMissionServiceIds={activeMissionServiceCatalogIds}
+                    activeMissionServiceLabels={activeMissionServiceLabels}
+                  />
                 </>,
                 false,
               )}
@@ -1804,7 +2035,10 @@ export default function ConciergeProfilePage() {
                     <AlertCircle size={14} />
                     Enregistrement independant du profil
                   </div>
-                  <PricingGridManager activeServiceIds={activeMissionServiceIds} />
+                  <PricingGridManager
+                    activeServiceIds={activeMissionServiceCatalogIds}
+                    activeServiceLabels={activeMissionServiceLabels}
+                  />
                 </>,
                 false,
               )}

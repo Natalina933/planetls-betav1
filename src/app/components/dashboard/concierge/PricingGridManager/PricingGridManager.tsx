@@ -72,21 +72,40 @@ const EMPTY_FORM: PricingFormData = {
 
 interface PricingGridManagerProps {
   activeServiceIds?: string[];
+  activeServiceLabels?: string[];
+  linkedPackageId?: string;
+  linkedPackageName?: string;
 }
 
-const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
+const PricingGridManager = ({
+  activeServiceIds,
+  activeServiceLabels,
+  linkedPackageId,
+  linkedPackageName,
+}: PricingGridManagerProps) => {
   const [pricings, setPricings] = useState<Pricing[]>([]);
   const [servicesCatalog, setServicesCatalog] = useState<ServicesCatalog>({ byCategory: {} });
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<PricingFormData>(EMPTY_FORM);
+  const [linkToPackage, setLinkToPackage] = useState(Boolean(linkedPackageId));
 
   // Filtres
   const [filterPropertyType, setFilterPropertyType] = useState<PropertyType | ''>('');
   const [filterPricingType, setFilterPricingType] = useState<PricingType | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showInactiveLinkedPricings, setShowInactiveLinkedPricings] = useState(true);
+  const [selectedPricingIdsForPack, setSelectedPricingIdsForPack] = useState<string[]>([]);
+  const [linkedPricingSignatures, setLinkedPricingSignatures] = useState<Set<string>>(new Set());
+  const [isLinkingSelected, setIsLinkingSelected] = useState(false);
+
+  const normalizeServiceText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
 
   const propertyTypes: Array<{ value: PropertyType; label: string }> = [
     { value: 'appartement', label: 'Appartement' },
@@ -109,6 +128,39 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
   useEffect(() => {
     Promise.all([fetchPricings(), fetchServicesCatalog()]);
   }, []);
+
+  useEffect(() => {
+    if (!linkedPackageId) {
+      setLinkedPricingSignatures(new Set());
+      setSelectedPricingIdsForPack([]);
+      return;
+    }
+
+    const fetchLinkedPackPricings = async () => {
+      try {
+        const res = await fetch(
+          `/api/services/pricing-packages?packageId=${encodeURIComponent(linkedPackageId)}`,
+        );
+        if (!res.ok) return;
+        const data: Array<{
+          label: string;
+          type: PricingType;
+          amount: number;
+          property_type?: string | null;
+        }> = await res.json();
+        const nextSet = new Set(
+          (Array.isArray(data) ? data : []).map((item) =>
+            `${item.label}__${item.type}__${Number(item.amount)}__${item.property_type ?? ""}`,
+          ),
+        );
+        setLinkedPricingSignatures(nextSet);
+      } catch {
+        // silent fail: this feature is optional
+      }
+    };
+
+    fetchLinkedPackPricings();
+  }, [linkedPackageId]);
 
   /* -------------------------------------------------------------------------- */
   /*                                   FETCH                                    */
@@ -176,6 +228,35 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
         throw new Error(err?.error || 'Erreur serveur');
       }
 
+      const savedPricing: Pricing | null = await res.json().catch(() => null);
+
+      if (!editingId && linkedPackageId && linkToPackage && savedPricing) {
+        const linkRes = await fetch('/api/services/pricing-packages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            package_id: linkedPackageId,
+            label: savedPricing.label,
+            type: savedPricing.type,
+            amount: savedPricing.amount,
+            property_type: savedPricing.property_type ?? null,
+          }),
+        });
+
+        if (!linkRes.ok) {
+          const linkErr = await linkRes.json().catch(() => null);
+          console.warn('[Pricing] Link package warning', linkErr);
+        } else {
+          setLinkedPricingSignatures((prev) => {
+            const next = new Set(prev);
+            next.add(
+              `${savedPricing.label}__${savedPricing.type}__${Number(savedPricing.amount)}__${savedPricing.property_type ?? ""}`,
+            );
+            return next;
+          });
+        }
+      }
+
       await fetchPricings();
       resetForm();
     } catch (err) {
@@ -219,6 +300,68 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
     setFormData(EMPTY_FORM);
     setEditingId(null);
     setShowAddForm(false);
+    setLinkToPackage(Boolean(linkedPackageId));
+  };
+
+  const getPricingSignature = (pricing: Pricing) =>
+    `${pricing.label}__${pricing.type}__${Number(pricing.amount)}__${pricing.property_type ?? ""}`;
+
+  const togglePricingSelectionForPack = (pricingId: string) => {
+    setSelectedPricingIdsForPack((prev) =>
+      prev.includes(pricingId)
+        ? prev.filter((id) => id !== pricingId)
+        : [...prev, pricingId],
+    );
+  };
+
+  const handleAttachSelectedToPack = async () => {
+    if (!linkedPackageId || selectedPricingIdsForPack.length === 0) return;
+
+    const selectedPricings = pricings.filter((pricing) =>
+      selectedPricingIdsForPack.includes(pricing.id),
+    );
+    const toAttach = selectedPricings.filter(
+      (pricing) => !linkedPricingSignatures.has(getPricingSignature(pricing)),
+    );
+
+    if (toAttach.length === 0) {
+      alert("Les tarifs selectionnes sont deja lies au pack.");
+      return;
+    }
+
+    setIsLinkingSelected(true);
+    try {
+      for (const pricing of toAttach) {
+        const res = await fetch('/api/services/pricing-packages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            package_id: linkedPackageId,
+            label: pricing.label,
+            type: pricing.type,
+            amount: pricing.amount,
+            property_type: pricing.property_type ?? null,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          throw new Error(err?.error || `Erreur liaison tarif ${pricing.label}`);
+        }
+      }
+
+      setLinkedPricingSignatures((prev) => {
+        const next = new Set(prev);
+        toAttach.forEach((pricing) => next.add(getPricingSignature(pricing)));
+        return next;
+      });
+      setSelectedPricingIdsForPack([]);
+      alert(`${toAttach.length} tarif(s) lie(s) au pack.`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Erreur liaison au pack";
+      alert(errorMessage);
+    } finally {
+      setIsLinkingSelected(false);
+    }
   };
 
   /* -------------------------------------------------------------------------- */
@@ -233,17 +376,32 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
     });
   }, [pricings, filterPropertyType, filterPricingType, searchTerm]);
 
-  const hasActiveServiceFilter = Array.isArray(activeServiceIds);
+  const hasActiveServiceFilter =
+    (Array.isArray(activeServiceIds) && activeServiceIds.length > 0) ||
+    (Array.isArray(activeServiceLabels) && activeServiceLabels.length > 0);
   const activeServiceIdSet = useMemo(
     () => new Set((activeServiceIds ?? []).filter(Boolean)),
     [activeServiceIds],
+  );
+  const activeServiceLabelSet = useMemo(
+    () =>
+      new Set(
+        (activeServiceLabels ?? [])
+          .filter(Boolean)
+          .map((label) => normalizeServiceText(label)),
+      ),
+    [activeServiceLabels],
   );
   const selectableServicesByCategory = useMemo(() => {
     if (!hasActiveServiceFilter) return servicesCatalog.byCategory;
 
     return Object.entries(servicesCatalog.byCategory).reduce<Record<string, ServiceCatalogItem[]>>(
       (acc, [category, services]) => {
-        const filtered = services.filter((service) => activeServiceIdSet.has(service.id));
+        const filtered = services.filter(
+          (service) =>
+            activeServiceIdSet.has(service.id) ||
+            activeServiceLabelSet.has(normalizeServiceText(service.service)),
+        );
         if (filtered.length > 0) {
           acc[category] = filtered;
         }
@@ -251,7 +409,12 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
       },
       {},
     );
-  }, [hasActiveServiceFilter, servicesCatalog.byCategory, activeServiceIdSet]);
+  }, [
+    hasActiveServiceFilter,
+    servicesCatalog.byCategory,
+    activeServiceIdSet,
+    activeServiceLabelSet,
+  ]);
   const selectableServiceCount = useMemo(
     () => Object.values(selectableServicesByCategory).reduce((acc, items) => acc + items.length, 0),
     [selectableServicesByCategory],
@@ -260,13 +423,20 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
     if (!hasActiveServiceFilter || showInactiveLinkedPricings) return filteredPricings;
 
     return filteredPricings.filter(
-      (pricing) => !pricing.service_id || activeServiceIdSet.has(pricing.service_id),
+      (pricing) =>
+        !pricing.service_id ||
+        activeServiceIdSet.has(pricing.service_id) ||
+        Boolean(
+          pricing.service &&
+            activeServiceLabelSet.has(normalizeServiceText(pricing.service.service)),
+        ),
     );
   }, [
     hasActiveServiceFilter,
     showInactiveLinkedPricings,
     filteredPricings,
     activeServiceIdSet,
+    activeServiceLabelSet,
   ]);
 
   /* -------------------------------------------------------------------------- */
@@ -315,6 +485,11 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
           <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.9rem' }}>
             Definissez vos tarifs selon le type de bien, la surface et la duree
           </p>
+          {linkedPackageId && (
+            <p style={{ margin: '0.35rem 0 0', color: '#0f766e', fontSize: '0.85rem', fontWeight: 500 }}>
+              Les nouveaux tarifs seront aussi lies au pack: {linkedPackageName ?? linkedPackageId}
+            </p>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -646,6 +821,22 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
               </label>
             </div>
 
+            {linkedPackageId && !editingId && (
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={linkToPackage}
+                    onChange={(e) => setLinkToPackage(e.target.checked)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '0.95rem' }}>
+                    Lier ce tarif au pack {linkedPackageName ?? linkedPackageId}
+                  </span>
+                </label>
+              </div>
+            )}
+
             {/* Actions */}
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
               <button
@@ -686,6 +877,45 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
       )}
 
       {/* PRICING RULES TABLE */}
+      {linkedPackageId && (
+        <div
+          style={{
+            marginBottom: '0.85rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569' }}>
+            Selectionnez des tarifs existants puis integrez-les au pack {linkedPackageName ?? linkedPackageId}.
+          </p>
+          <button
+            type="button"
+            onClick={handleAttachSelectedToPack}
+            disabled={selectedPricingIdsForPack.length === 0 || isLinkingSelected}
+            style={{
+              padding: '0.55rem 0.9rem',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              background:
+                selectedPricingIdsForPack.length === 0 || isLinkingSelected ? '#e2e8f0' : '#0f766e',
+              color:
+                selectedPricingIdsForPack.length === 0 || isLinkingSelected ? '#64748b' : '#ffffff',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              cursor:
+                selectedPricingIdsForPack.length === 0 || isLinkingSelected ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {isLinkingSelected
+              ? 'Integration...'
+              : `Integrer au pack (${selectedPricingIdsForPack.length})`}
+          </button>
+        </div>
+      )}
+
       <div style={{
         background: 'white',
         border: '1px solid #e5e7eb',
@@ -695,6 +925,11 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+              {linkedPackageId && (
+                <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+                  PACK
+                </th>
+              )}
               <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
                 LIBELLE
               </th>
@@ -718,7 +953,7 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
           <tbody>
             {visiblePricings.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>
+                <td colSpan={linkedPackageId ? 7 : 6} style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>
                   {searchTerm || filterPropertyType || filterPricingType
                     ? 'Aucun tarif ne correspond aux filtres'
                     : 'Aucune regle tarifaire definie. Cliquez sur "Nouvelle regle" pour commencer.'}
@@ -729,7 +964,16 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
                 const isLinkedToInactiveService =
                   hasActiveServiceFilter &&
                   Boolean(pricing.service_id) &&
-                  !activeServiceIdSet.has(pricing.service_id as string);
+                  !activeServiceIdSet.has(pricing.service_id as string) &&
+                  !Boolean(
+                    pricing.service &&
+                      activeServiceLabelSet.has(
+                        normalizeServiceText(pricing.service.service),
+                      ),
+                  );
+                const isAlreadyLinkedToCurrentPack =
+                  linkedPackageId && linkedPricingSignatures.has(getPricingSignature(pricing));
+                const isCheckedForPack = selectedPricingIdsForPack.includes(pricing.id);
 
                 return (
                 <tr 
@@ -751,6 +995,21 @@ const PricingGridManager = ({ activeServiceIds }: PricingGridManagerProps) => {
                       : 'white')
                   }
                 >
+                  {linkedPackageId && (
+                    <td style={{ padding: '1rem' }}>
+                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={isCheckedForPack}
+                          onChange={() => togglePricingSelectionForPack(pricing.id)}
+                          disabled={Boolean(isAlreadyLinkedToCurrentPack)}
+                        />
+                        <span style={{ fontSize: '0.8rem', color: '#475569' }}>
+                          {isAlreadyLinkedToCurrentPack ? 'Deja lie' : 'Lier'}
+                        </span>
+                      </label>
+                    </td>
+                  )}
                   <td style={{ padding: '1rem' }}>
                     <div>
                       <span style={{ fontWeight: 500 }}>{pricing.label}</span>
