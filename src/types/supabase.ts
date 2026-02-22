@@ -726,6 +726,242 @@ export type Database = {
         ];
       };
 
+      missions: {
+        Row: {
+          id: string;
+          concierge_profile_id: string;
+          owner_profile_id: string | null;
+          property_id: string | null;
+          service_id: number | null;
+          title: string;
+          description: string | null;
+          status: string;
+          priority: string;
+          amount: number | null;
+          currency: string;
+          scheduled_start: string | null;
+          scheduled_end: string | null;
+          response_time_minutes: number | null;
+          started_at: string | null;
+          completed_at: string | null;
+          canceled_at: string | null;
+          cancel_reason: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          concierge_profile_id: string;
+          owner_profile_id?: string | null;
+          property_id?: string | null;
+          service_id?: number | null;
+          title: string;
+          description?: string | null;
+          status?: string;
+          priority?: string;
+          amount?: number | null;
+          currency?: string;
+          scheduled_start?: string | null;
+          scheduled_end?: string | null;
+          response_time_minutes?: number | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          canceled_at?: string | null;
+          cancel_reason?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          concierge_profile_id?: string;
+          owner_profile_id?: string | null;
+          property_id?: string | null;
+          service_id?: number | null;
+          title?: string;
+          description?: string | null;
+          status?: string;
+          priority?: string;
+          amount?: number | null;
+          currency?: string;
+          scheduled_start?: string | null;
+          scheduled_end?: string | null;
+          response_time_minutes?: number | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          canceled_at?: string | null;
+          cancel_reason?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "missions_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "missions_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "missions_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "missions_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "missions_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "missions_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      mission_events: {
+        Row: {
+          id: string;
+          mission_id: string;
+          actor_profile_id: string | null;
+          event_type: string;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          mission_id: string;
+          actor_profile_id?: string | null;
+          event_type: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          mission_id?: string;
+          actor_profile_id?: string | null;
+          event_type?: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mission_events_mission_id_fkey";
+            columns: ["mission_id"];
+            isOneToOne: false;
+            referencedRelation: "missions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mission_events_actor_profile_id_fkey";
+            columns: ["actor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mission_events_actor_profile_id_fkey";
+            columns: ["actor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      mission_reviews: {
+        Row: {
+          id: string;
+          mission_id: string;
+          reviewer_profile_id: string;
+          reviewed_profile_id: string;
+          rating: number;
+          comment: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          mission_id: string;
+          reviewer_profile_id: string;
+          reviewed_profile_id: string;
+          rating: number;
+          comment?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          mission_id?: string;
+          reviewer_profile_id?: string;
+          reviewed_profile_id?: string;
+          rating?: number;
+          comment?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mission_reviews_mission_id_fkey";
+            columns: ["mission_id"];
+            isOneToOne: false;
+            referencedRelation: "missions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mission_reviews_reviewer_profile_id_fkey";
+            columns: ["reviewer_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mission_reviews_reviewer_profile_id_fkey";
+            columns: ["reviewer_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mission_reviews_reviewed_profile_id_fkey";
+            columns: ["reviewed_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mission_reviews_reviewed_profile_id_fkey";
+            columns: ["reviewed_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       services_catalog: {
         Row: {
           category: string;

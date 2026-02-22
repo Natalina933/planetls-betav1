@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import { LucideLoader2 } from "lucide-react";
 import styles from "./ServiceCatalogSelector.module.scss";
 
@@ -115,7 +115,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
         return (
             <div className={styles.errorContainer}>
                 <p className={styles.errorText}>
-                    ❌ Erreur lors du chargement du catalogue : {error}
+                    ⚠️ Erreur lors du chargement du catalogue : {error}
                 </p>
                 <button
                     onClick={() => window.location.reload()}
@@ -235,3 +235,4 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
 };
 
 export default ServiceCatalogSelector;
+

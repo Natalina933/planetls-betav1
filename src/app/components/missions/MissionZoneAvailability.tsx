@@ -20,6 +20,9 @@ interface Props {
   value: MissionAvailability | null;
   isEditing: boolean;
   onChange: (value: MissionAvailability) => void;
+  showZoneSection?: boolean;
+  showScheduleSection?: boolean;
+  showRulesSection?: boolean;
 }
 
 const DEFAULT_VALUE: MissionAvailability = {
@@ -49,6 +52,9 @@ export default function MissionZoneAvailability({
   value,
   isEditing,
   onChange,
+  showZoneSection = true,
+  showScheduleSection = true,
+  showRulesSection = true,
 }: Props) {
   const state = value ?? DEFAULT_VALUE;
 
@@ -112,6 +118,7 @@ export default function MissionZoneAvailability({
   return (
     <div className={styles.container}>
       {/* SECTION CARTE */}
+      {showZoneSection && (
       <section className={styles.block}>
         <h4 className={styles.blockTitle}>
           <span className={styles.titleIcon}>📍</span>
@@ -211,8 +218,10 @@ export default function MissionZoneAvailability({
           )}
         </div>
       </section>
+      )}
 
       {/* SECTION HORAIRES */}
+      {showScheduleSection && (
       <section className={styles.block}>
         <h4 className={styles.blockTitle}>
           <span className={styles.titleIcon}>⏱️</span>
@@ -328,8 +337,10 @@ export default function MissionZoneAvailability({
           </label>
         </div>
       </section>
+      )}
 
       {/* SECTION RÈGLES */}
+      {showRulesSection && (
       <section className={styles.block}>
         <h4 className={styles.blockTitle}>
           <span className={styles.titleIcon}>🤖</span>
@@ -342,6 +353,7 @@ export default function MissionZoneAvailability({
           onChange={(rules) => onChange({ ...state, rules })}
         />
       </section>
+      )}
     </div>
   );
 }

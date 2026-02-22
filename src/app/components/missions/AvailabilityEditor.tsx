@@ -1,7 +1,7 @@
 // src/app/components/missions/AvailabilityEditor.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { MissionAvailability, WeekDay } from "./types";
 import styles from "./AvailabilityEditor.module.scss";
 
@@ -17,6 +17,9 @@ const DAYS: { id: WeekDay; label: string }[] = [
   { id: "sat", label: "Samedi" },
   { id: "sun", label: "Dimanche" },
 ];
+const WEEKDAY_IDS: WeekDay[] = ["mon", "tue", "wed", "thu", "fri"];
+const ALL_DAY_IDS: WeekDay[] = DAYS.map((day) => day.id);
+const DEFAULT_PRESET_RANGE: TimeRange = { start: "09:00", end: "18:00" };
 
 interface AvailabilityEditorProps {
   value: DaySchedule[];
@@ -31,7 +34,39 @@ export default function AvailabilityEditor({
   isEditing,
   onChange,
 }: AvailabilityEditorProps) {
+  const [dayErrors, setDayErrors] = useState<Partial<Record<WeekDay, string>>>({});
+
+  const validateRanges = (ranges: TimeRange[]): string | null => {
+    const sorted = [...ranges].sort((a, b) => a.start.localeCompare(b.start));
+
+    for (let i = 0; i < sorted.length; i += 1) {
+      if (sorted[i].start >= sorted[i].end) {
+        return "Chaque plage doit avoir une heure de fin supérieure à l'heure de début.";
+      }
+    }
+
+    for (let i = 1; i < sorted.length; i += 1) {
+      if (sorted[i].start < sorted[i - 1].end) {
+        return "Les plages se chevauchent. Ajustez les horaires.";
+      }
+    }
+
+    return null;
+  };
+
   const updateDay = (day: WeekDay, ranges: TimeRange[]) => {
+    const validationError = validateRanges(ranges);
+    if (validationError) {
+      setDayErrors((prev) => ({ ...prev, [day]: validationError }));
+      return;
+    }
+
+    setDayErrors((prev) => {
+      const next = { ...prev };
+      delete next[day];
+      return next;
+    });
+
     const next = value.filter((d) => d.day !== day);
     if (ranges.length) next.push({ day, ranges });
     onChange(next, emergency24h);
@@ -61,9 +96,69 @@ export default function AvailabilityEditor({
     updateDay(day, updatedRanges);
   };
 
+  const copyDayToAll = (day: WeekDay) => {
+    const source = value.find((v) => v.day === day);
+    const ranges = source?.ranges ?? [];
+    const normalizedRanges = ranges
+      .map((range) => ({ start: range.start, end: range.end }))
+      .sort((a, b) => a.start.localeCompare(b.start));
+
+    const validationError = validateRanges(normalizedRanges);
+    if (validationError) {
+      setDayErrors((prev) => ({ ...prev, [day]: validationError }));
+      return;
+    }
+
+    setDayErrors({});
+    const next = DAYS.map((currentDay) => ({
+      day: currentDay.id,
+      ranges: normalizedRanges.map((range) => ({ ...range })),
+    }));
+    onChange(next, emergency24h);
+  };
+
+  const applyPreset = (days: WeekDay[]) => {
+    setDayErrors({});
+
+    const next = ALL_DAY_IDS.map((day) => ({
+      day,
+      ranges: days.includes(day) ? [{ ...DEFAULT_PRESET_RANGE }] : [],
+    })).filter((item) => item.ranges.length > 0);
+
+    onChange(next, emergency24h);
+  };
+
   return (
     <div className={styles.container}>
       <h4 className={styles.title}>⏱️ Disponibilités hebdomadaires</h4>
+      {isEditing && (
+        <div className={styles.presetBar}>
+          <button
+            type="button"
+            className={styles.presetBtn}
+            onClick={() => applyPreset(WEEKDAY_IDS)}
+          >
+            Lun-Ven 09:00-18:00
+          </button>
+          <button
+            type="button"
+            className={styles.presetBtn}
+            onClick={() => applyPreset(ALL_DAY_IDS)}
+          >
+            7j/7 09:00-18:00
+          </button>
+          <button
+            type="button"
+            className={styles.presetBtnGhost}
+            onClick={() => {
+              setDayErrors({});
+              onChange([], emergency24h);
+            }}
+          >
+            Effacer les horaires
+          </button>
+        </div>
+      )}
 
       <div className={styles.daysGrid}>
         {DAYS.map((d) => {
@@ -75,19 +170,31 @@ export default function AvailabilityEditor({
               <div className={styles.dayHeader}>
                 <strong className={styles.dayLabel}>{d.label}</strong>
                 {isEditing && (
-                  <button
-                    type="button"
-                    className={styles.addRangeBtn}
-                    onClick={() =>
-                      updateDay(d.id, [
-                        ...ranges,
-                        { start: "09:00", end: "18:00" },
-                      ])
-                    }
-                    aria-label={`Ajouter une plage horaire pour ${d.label}`}
-                  >
-                    + Plage
-                  </button>
+                  <div className={styles.dayActions}>
+                    <button
+                      type="button"
+                      className={styles.addRangeBtn}
+                      onClick={() =>
+                        updateDay(d.id, [
+                          ...ranges,
+                          { start: "09:00", end: "18:00" },
+                        ])
+                      }
+                      aria-label={`Ajouter une plage horaire pour ${d.label}`}
+                    >
+                      + Plage
+                    </button>
+                    {ranges.length > 0 && (
+                      <button
+                        type="button"
+                        className={styles.copyDayBtn}
+                        onClick={() => copyDayToAll(d.id)}
+                        aria-label={`Copier les horaires de ${d.label} sur tous les jours`}
+                      >
+                        Copier sur tous
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -158,6 +265,12 @@ export default function AvailabilityEditor({
                     </div>
                   ))}
                 </div>
+              )}
+
+              {dayErrors[d.id] && (
+                <p className={styles.dayError} role="alert">
+                  {dayErrors[d.id]}
+                </p>
               )}
             </div>
           );

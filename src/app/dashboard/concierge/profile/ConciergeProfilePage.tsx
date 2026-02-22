@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, {
   useState,
@@ -25,6 +25,7 @@ import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
 import MissionProfileModule from "@/app/components/missions/MissionProfileModule";
+import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import TariffServicePackages from "@/app/components/tariffs/TariffServicePackages";
 import TariffAdjustments from "@/app/components/tariffs/TariffAdjustments";
@@ -34,6 +35,7 @@ import type {
   MissionAvailability,
   MissionCatalogItem,
   MissionPreferences,
+  WeekDay,
 } from "@/app/components/missions/types";
 import type { SeasonalPricingConfig } from "@/app/components/tariffs/types";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
@@ -153,6 +155,7 @@ const TARIFF_SECTION_IDS = {
 const MISSION_SECTION_IDS = {
   SERVICES: normalizeSectionId("Services proposés"),
   ZONE_RULES: normalizeSectionId("Zone, disponibilités & règles de mission"),
+  WEEKLY_AVAILABILITY: normalizeSectionId("Disponibilités hebdomadaires"),
   ACCEPTANCE_RULES: normalizeSectionId("Règles d'acceptation des missions"),
   PRIORITY_TYPES: normalizeSectionId("Priorité & typologie des missions"),
 } as const;
@@ -358,6 +361,27 @@ const defaultSeasonalPricing = (): SeasonalPricingConfig => ({
   minimumInvoice: 35,
 });
 
+const WEEK_DAY_ORDER: WeekDay[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+const normalizeMissionSchedule = (
+  schedule: MissionAvailability["schedule"],
+): MissionAvailability["schedule"] =>
+  WEEK_DAY_ORDER.map((day) => {
+    const currentDay = schedule.find((item) => item.day === day);
+    if (!currentDay) return null;
+
+    const ranges = currentDay.ranges
+      .filter((range) => range.start < range.end)
+      .sort((a, b) => a.start.localeCompare(b.start));
+
+    if (ranges.length === 0) return null;
+    return { day, ranges };
+  }).filter(
+    (
+      item,
+    ): item is MissionAvailability["schedule"][number] => item !== null,
+  );
+
 const parseAvailabilityPayloadRaw = (
   value?: string | null,
 ): Record<string, unknown> => {
@@ -438,7 +462,7 @@ const parseMissionPayload = (
 
     if (Array.isArray(parsed)) {
       return {
-        schedule: parsed,
+        schedule: normalizeMissionSchedule(parsed),
         rules: defaultRules,
         missionCatalog: DEFAULT_MISSION_CATALOG,
         preferences: defaultPreferences,
@@ -446,7 +470,9 @@ const parseMissionPayload = (
       };
     }
 
-    const schedule = Array.isArray(parsed?.schedule) ? parsed.schedule : [];
+    const schedule = normalizeMissionSchedule(
+      Array.isArray(parsed?.schedule) ? parsed.schedule : [],
+    );
     const rules = parsed?.rules
       ? {
           refuseOutOfZone:
@@ -708,15 +734,24 @@ export default function ConciergeProfilePage() {
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [sectionEditSnapshots, setSectionEditSnapshots] = useState<
+    Record<string, string>
+  >({});
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showPendingMissionStepsOnly, setShowPendingMissionStepsOnly] =
+    useState(false);
   const [catalogServices, setCatalogServices] = useState<CatalogServiceItem[]>([]);
   const didSeedFromOnboardingRef = useRef(false);
   const missionPayload = useMemo(
     () => parseMissionPayload(editProfile?.availability_hours),
     [editProfile?.availability_hours],
+  );
+  const missionAvailability = useMemo(
+    () => buildMissionAvailabilityFromProfile(editProfile),
+    [editProfile],
   );
   const seasonalPricing = useMemo(
     () => parseSeasonalPricing(editProfile?.availability_hours),
@@ -750,6 +785,76 @@ export default function ConciergeProfilePage() {
       ),
     );
   }, [catalogServices, activeMissionServiceLabels]);
+  const missionOpenDaysCount = useMemo(
+    () =>
+      missionAvailability?.schedule.filter((day) => day.ranges.length > 0).length ?? 0,
+    [missionAvailability],
+  );
+  const missionRangesCount = useMemo(
+    () =>
+      missionAvailability?.schedule.reduce(
+        (acc, day) => acc + day.ranges.length,
+        0,
+      ) ?? 0,
+    [missionAvailability],
+  );
+  const missionProgressSteps = useMemo(
+    () => [
+      {
+        key: "services",
+        label: "Services proposes",
+        hint: "Definissez les prestations que vous acceptez.",
+        done: activeMissionServiceLabels.length > 0,
+        sectionId: MISSION_SECTION_IDS.SERVICES,
+      },
+      {
+        key: "zone",
+        label: "Zone d'intervention",
+        hint: "Ajoutez des zones et un rayon de couverture.",
+        done: (missionAvailability?.zones.length ?? 0) > 0,
+        sectionId: MISSION_SECTION_IDS.ZONE_RULES,
+      },
+      {
+        key: "availability",
+        label: "Disponibilites hebdomadaires",
+        hint: "Renseignez vos jours et plages horaires.",
+        done: missionOpenDaysCount > 0 && missionRangesCount > 0,
+        sectionId: MISSION_SECTION_IDS.WEEKLY_AVAILABILITY,
+      },
+      {
+        key: "priority",
+        label: "Priorites de mission",
+        hint: "Ajustez votre positionnement et vos regles.",
+        done:
+          missionPayload.missionProfile.positioning !== "standard" ||
+          missionPayload.missionProfile.specialConditions.acceptNightInterventions ||
+          missionPayload.missionProfile.specialConditions.acceptWeekendInterventions ||
+          missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions,
+        sectionId: MISSION_SECTION_IDS.PRIORITY_TYPES,
+      },
+    ],
+    [
+      activeMissionServiceLabels.length,
+      missionAvailability,
+      missionOpenDaysCount,
+      missionPayload.missionProfile.positioning,
+      missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions,
+      missionPayload.missionProfile.specialConditions.acceptNightInterventions,
+      missionPayload.missionProfile.specialConditions.acceptWeekendInterventions,
+      missionRangesCount,
+    ],
+  );
+  const missionProgressDoneCount = useMemo(
+    () => missionProgressSteps.filter((step) => step.done).length,
+    [missionProgressSteps],
+  );
+  const missionProgressPercent = useMemo(
+    () =>
+      missionProgressSteps.length > 0
+        ? Math.round((missionProgressDoneCount / missionProgressSteps.length) * 100)
+        : 0,
+    [missionProgressDoneCount, missionProgressSteps.length],
+  );
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.INFO_PERSO]: true,
     [SECTION_IDS.SERVICES_ZONE]: true,
@@ -941,7 +1046,37 @@ export default function ConciergeProfilePage() {
     };
   }, []);
 
+
+  const hasUnsavedChanges = (sectionId: string | null): boolean => {
+    if (!sectionId || !editProfile) return false;
+    const snapshot = sectionEditSnapshots[sectionId];
+    if (typeof snapshot !== "string") return false;
+    return snapshot !== JSON.stringify(editProfile);
+  };
+
+  const confirmDiscardIfNeeded = (sectionId: string | null): boolean => {
+    if (!hasUnsavedChanges(sectionId)) return true;
+    return window.confirm(
+      "Vous avez des modifications non enregistrées. Voulez-vous quitter sans sauvegarder ?",
+    );
+  };
+
   const handleTabChange = (tabId: TabId) => {
+    if (tabId === activeTab) return;
+    if (!confirmDiscardIfNeeded(editingSection)) return;
+
+    if (editingSection) {
+      setSectionEditSnapshots((prev) => {
+        const next = { ...prev };
+        delete next[editingSection];
+        return next;
+      });
+      setEditingSection(null);
+      setEditProfile(profile);
+      setErrors({});
+      setAvatarFile(null);
+    }
+
     setActiveTab(tabId);
     router.push(`?tab=${tabId}`, { scroll: false });
   };
@@ -959,6 +1094,7 @@ export default function ConciergeProfilePage() {
         : prev,
     );
   }, []);
+
 
   const validateField = (name: string, value: string): string => {
     if (!value) return "";
@@ -1062,7 +1198,7 @@ export default function ConciergeProfilePage() {
 
     const hasErrors = Object.values(errors).some((error) => error !== "");
     if (hasErrors) {
-      alert("⚠️ Veuillez corriger les erreurs avant de sauvegarder.");
+      alert("âš ï¸ Veuillez corriger les erreurs avant de sauvegarder.");
       return;
     }
 
@@ -1090,17 +1226,23 @@ export default function ConciergeProfilePage() {
       }
 
       const updatedProfile: Profile = result;
+      const savedSectionId = editingSection ?? normalizeSectionId(sectionTitle);
       setProfile(updatedProfile);
       setEditProfile(updatedProfile);
       setEditingSection(null);
+      setSectionEditSnapshots((prev) => {
+        const next = { ...prev };
+        delete next[savedSectionId];
+        return next;
+      });
       setAvatarFile(null);
 
       setSuccessMsg(`✅ ${sectionTitle} mis à jour avec succès`);
 
       await update({
         user: {
-          image: avatarUrl,              // 👈 CHAMP CLÉ NEXTAUTH
-          avatar_url: avatarUrl,         // 👈 ton champ custom (OK)
+          image: avatarUrl,              // CHAMP CLE NEXTAUTH
+          avatar_url: avatarUrl,         // champ custom (OK)
           name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
           firstName: editProfile.first_name,
           lastName: editProfile.last_name,
@@ -1125,6 +1267,46 @@ export default function ConciergeProfilePage() {
       ...prev,
       [sectionId]: !prev[sectionId],
     }));
+  };
+
+  const beginSectionEdit = (sectionId: string) => {
+    if (editingSection && editingSection !== sectionId) {
+      if (!confirmDiscardIfNeeded(editingSection)) return;
+      setSectionEditSnapshots((prev) => {
+        const next = { ...prev };
+        delete next[editingSection];
+        return next;
+      });
+    }
+
+    if (editProfile) {
+      setSectionEditSnapshots((prev) => ({
+        ...prev,
+        [sectionId]: JSON.stringify(editProfile),
+      }));
+    }
+    setEditingSection(sectionId);
+  };
+
+  const openMissionSectionForEdit = (sectionId: string) => {
+    beginSectionEdit(sectionId);
+    setOpenSections((prev) => ({ ...prev, [sectionId]: true }));
+  };
+
+  const cancelSectionEdit = () => {
+    if (!confirmDiscardIfNeeded(editingSection)) return;
+
+    if (editingSection) {
+      setSectionEditSnapshots((prev) => {
+        const next = { ...prev };
+        delete next[editingSection];
+        return next;
+      });
+    }
+    setEditingSection(null);
+    setEditProfile(profile);
+    setErrors({});
+    setAvatarFile(null);
   };
 
   const handleSectionHeaderKeyDown = (
@@ -1202,7 +1384,7 @@ export default function ConciergeProfilePage() {
           )
         ) : (
           <span className={styles.fieldValue}>
-            {value !== null && value !== "" ? value : "—"}
+            {value !== null && value !== "" ? value : "â€”"}
           </span>
         )}
       </div>
@@ -1215,68 +1397,78 @@ export default function ConciergeProfilePage() {
     children: React.ReactNode,
     canEdit: boolean = true,
     sectionIdOverride?: string,
+    collapsible: boolean = true,
   ) => {
     const sectionId = sectionIdOverride ?? normalizeSectionId(title);
-    const isOpen = openSections[sectionId] ?? false;
+    const isOpen = collapsible ? (openSections[sectionId] ?? false) : true;
     const isEditingThis = editingSection === sectionId;
+    const sectionSnapshot = sectionEditSnapshots[sectionId];
+    const isSectionDirty =
+      isEditingThis &&
+      typeof sectionSnapshot === "string" &&
+      Boolean(editProfile) &&
+      sectionSnapshot !== JSON.stringify(editProfile);
+    const renderEditActions = () => (
+      <>
+        <button
+          onClick={() => handleSaveSection(title)}
+          className={styles.saveBtn}
+          disabled={loading}
+          title="Sauvegarder"
+          aria-label="Sauvegarder"
+        >
+          {loading ? <div className={styles.spinnerMini} /> : <Save size={16} />}
+        </button>
+        <button
+          onClick={cancelSectionEdit}
+          className={styles.cancelBtn}
+          title="Annuler"
+          aria-label="Annuler"
+        >
+          <LucideX size={16} />
+        </button>
+      </>
+    );
 
     return (
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <div
-            className={styles.sectionTitleWrapper}
-            onClick={() => toggleSection(sectionId)}
-            onKeyDown={(e) => handleSectionHeaderKeyDown(e, sectionId)}
-            role="button"
-            tabIndex={0}
-          >
-            <div className={styles.sectionTitleLeft}>
-              <span className={styles.sectionIcon}>{icon}</span>
-              <h2 className={styles.sectionTitle}>{title}</h2>
+          {collapsible ? (
+            <div
+              className={styles.sectionTitleWrapper}
+              onClick={() => toggleSection(sectionId)}
+              onKeyDown={(e) => handleSectionHeaderKeyDown(e, sectionId)}
+              role="button"
+              tabIndex={0}
+            >
+              <div className={styles.sectionTitleLeft}>
+                <span className={styles.sectionIcon}>{icon}</span>
+                <h2 className={styles.sectionTitle}>{title}</h2>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
+                  }`}
+              />
             </div>
-            <ChevronDown
-              size={16}
-              className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
-                }`}
-            />
-          </div>
+          ) : (
+            <div className={styles.sectionTitleWrapper}>
+              <div className={styles.sectionTitleLeft}>
+                <span className={styles.sectionIcon}>{icon}</span>
+                <h2 className={styles.sectionTitle}>{title}</h2>
+              </div>
+            </div>
+          )}
 
           {canEdit && (
             <div className={styles.sectionActions}>
               {isEditingThis ? (
-                <>
-                  <button
-                    onClick={() => handleSaveSection(title)}
-                    className={styles.saveBtn}
-                    disabled={loading}
-                    title="Sauvegarder"
-                    aria-label="Sauvegarder"
-                  >
-                    {loading ? (
-                      <div className={styles.spinnerMini} />
-                    ) : (
-                      <Save size={16} />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingSection(null);
-                      setEditProfile(profile);
-                      setErrors({});
-                      setAvatarFile(null);
-                    }}
-                    className={styles.cancelBtn}
-                    title="Annuler"
-                    aria-label="Annuler"
-                  >
-                    <LucideX size={16} />
-                  </button>
-                </>
+                renderEditActions()
               ) : (
                 <button
                   onClick={() => {
-                    setEditingSection(sectionId);
-                    if (!isOpen) toggleSection(sectionId);
+                    beginSectionEdit(sectionId);
+                    if (collapsible && !isOpen) toggleSection(sectionId);
                   }}
                   className={styles.editBtn}
                   title="Modifier"
@@ -1288,12 +1480,20 @@ export default function ConciergeProfilePage() {
             </div>
           )}
         </div>
+        {canEdit && isEditingThis && isSectionDirty && (
+          <div className={styles.unsavedBadge} role="status">
+            Modifications non enregistrées
+          </div>
+        )}
 
         <div
           className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
             }`}
         >
           {children}
+          {canEdit && isEditingThis && isOpen && (
+            <div className={styles.sectionActionsBottom}>{renderEditActions()}</div>
+          )}
         </div>
       </div>
     );
@@ -1306,35 +1506,71 @@ export default function ConciergeProfilePage() {
     setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
-  const renderPlaceholderCurrentMissions = () => (
-    <div className={styles.placeholderContent}>
-      <p>Aucune mission en cours</p>
-      <p>
-        Les missions actives apparaîtront ici avec leur statut, le logement
-        concerné et le client.
-      </p>
-    </div>
-  );
-
-  const renderPlaceholderHistory = () => (
-    <div className={styles.placeholderContent}>
-      <p>Aucune mission terminée</p>
-      <p>
-        Vous retrouverez ici l&apos;historique de vos interventions, factures et
-        évaluations clients.
-      </p>
-    </div>
-  );
-
-  const renderPlaceholderKpis = () => (
-    <div className={styles.placeholderContent}>
-      <p>Ces indicateurs seront calculés automatiquement :</p>
-      <ul>
-        <li>• Taux d&apos;acceptation des missions</li>
-        <li>• Délai moyen d&apos;intervention</li>
-        <li>• Nombre de missions ce mois-ci</li>
-        <li>• Note moyenne des clients</li>
-      </ul>
+  const renderMissionProgressPanel = () => (
+    <div className={styles.missionProgressPanel}>
+      <div className={styles.missionProgressHeader}>
+        <h4>Parcours de configuration</h4>
+        <span>
+          {missionProgressDoneCount}/
+          {missionProgressSteps.length} completes
+        </span>
+      </div>
+      <div className={styles.missionProgressFilters}>
+        <button
+          type="button"
+          className={`${styles.missionProgressFilterBtn} ${
+            !showPendingMissionStepsOnly ? styles.missionProgressFilterBtnActive : ""
+          }`}
+          onClick={() => setShowPendingMissionStepsOnly(false)}
+        >
+          Tout
+        </button>
+        <button
+          type="button"
+          className={`${styles.missionProgressFilterBtn} ${
+            showPendingMissionStepsOnly ? styles.missionProgressFilterBtnActive : ""
+          }`}
+          onClick={() => setShowPendingMissionStepsOnly(true)}
+        >
+          A configurer
+        </button>
+      </div>
+      <div className={styles.missionProgressList}>
+        {(showPendingMissionStepsOnly
+          ? missionProgressSteps.filter((step) => !step.done)
+          : missionProgressSteps
+        ).map((step, index) => (
+          <div
+            key={step.key}
+            className={`${styles.missionProgressItem} ${
+              step.done ? styles.missionProgressItemDone : ""
+            }`}
+          >
+            <div className={styles.missionProgressIndex}>
+              {step.done ? <FiCheckCircleOutline /> : index + 1}
+            </div>
+            <div className={styles.missionProgressBody}>
+              <p className={styles.missionProgressLabel}>{step.label}</p>
+              <p className={styles.missionProgressHint}>{step.hint}</p>
+            </div>
+            {step.sectionId && (
+              <button
+                type="button"
+                className={styles.missionProgressAction}
+                onClick={() => openMissionSectionForEdit(step.sectionId)}
+              >
+                {step.done ? "Modifier" : "Configurer"}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {showPendingMissionStepsOnly &&
+        missionProgressSteps.every((step) => step.done) && (
+          <p className={styles.missionProgressEmpty}>
+            Tout est configure. Vous pouvez maintenant affiner les reglages.
+          </p>
+        )}
     </div>
   );
 
@@ -1344,46 +1580,30 @@ export default function ConciergeProfilePage() {
       {renderSection(
         "Priorité & typologie des missions",
         <FiStarOutline />,
-        <MissionProfileModule
-          value={missionPayload.missionProfile}
-          isEditing={editingSection === MISSION_SECTION_IDS.PRIORITY_TYPES}
-          onChange={(next) =>
-            setEditProfile((prev) =>
-              prev
-                ? (() => {
-                    const legacy = buildLegacyFromMissionProfile(next);
-                    return {
-                      ...prev,
-                      availability_hours: JSON.stringify({
-                        ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                        missionProfile: next,
-                        missionCatalog: legacy.missionCatalog,
-                        preferences: legacy.preferences,
-                      }),
-                    };
-                  })()
-                : prev,
-            )
-          }
-        />
-      )}
-      {renderSection(
-        "Missions en cours",
-        <FiClockOutline />,
-        renderPlaceholderCurrentMissions(),
-        false,
-      )}
-      {renderSection(
-        "Historique des missions",
-        <FiCheckCircleOutline />,
-        renderPlaceholderHistory(),
-        false,
-      )}
-      {renderSection(
-        "Indicateurs de performance",
-        <FiTrendingUp />,
-        renderPlaceholderKpis(),
-        false,
+        <>
+          <MissionProfileModule
+            value={missionPayload.missionProfile}
+            isEditing={editingSection === MISSION_SECTION_IDS.PRIORITY_TYPES}
+            onChange={(next) =>
+              setEditProfile((prev) =>
+                prev
+                  ? (() => {
+                      const legacy = buildLegacyFromMissionProfile(next);
+                      return {
+                        ...prev,
+                        availability_hours: JSON.stringify({
+                          ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                          missionProfile: next,
+                          missionCatalog: legacy.missionCatalog,
+                          preferences: legacy.preferences,
+                        }),
+                      };
+                    })()
+                  : prev,
+              )
+            }
+          />
+        </>
       )}
     </>
   );
@@ -1454,7 +1674,7 @@ export default function ConciergeProfilePage() {
                       );
                     }}
                     onEditAvatarClick={() =>
-                      setEditingSection("Photo de profil")
+                      beginSectionEdit("Photo de profil")
                     }
                   />
 
@@ -1472,7 +1692,7 @@ export default function ConciergeProfilePage() {
                     <div className={styles.profileStatItem}>
                       <p className={styles.profileStatLabel}>Expérience</p>
                       <p className={styles.profileStatValue}>
-                        {profile.years_experience ?? "—"} ans
+                        {profile.years_experience ?? "â€”"} ans
                       </p>
                     </div>
                   </div>
@@ -1733,7 +1953,7 @@ export default function ConciergeProfilePage() {
                     editingSection === "Web___R_seaux_sociaux"
                   }
                   onEdit={() =>
-                    setEditingSection("Web___R_seaux_sociaux")
+                    beginSectionEdit("Web___R_seaux_sociaux")
                   }
                   onChange={handleSocialChange}
                   errors={{
@@ -1750,63 +1970,83 @@ export default function ConciergeProfilePage() {
 
       case "missions":
         return (
-          <>
+          <div className={styles.missionsLayout}>
+            <div className={styles.missionsHero}>
+              <div className={styles.missionsHeroTitle}>
+                <h3>Pilotage des missions</h3>
+                <p>Configurez vos services, zones et disponibilites, puis suivez vos indicateurs.</p>
+              </div>
+              <div className={styles.missionsHeroProgress}>
+                <div className={styles.missionsHeroProgressMeta}>
+                  <span>Progression de configuration</span>
+                  <strong>{missionProgressPercent}%</strong>
+                </div>
+                <button
+                  type="button"
+                  className={styles.missionProgressTrackButton}
+                  onClick={() =>
+                    setShowPendingMissionStepsOnly((prev) => !prev)
+                  }
+                  title="Filtrer les etapes a configurer"
+                >
+                  <div className={styles.missionProgressTrack} aria-hidden="true">
+                    <div
+                      className={styles.missionProgressFill}
+                      style={{ width: `${missionProgressPercent}%` }}
+                    />
+                  </div>
+                </button>
+                <p className={styles.missionsHeroProgressHint}>
+                  {missionProgressDoneCount}/{missionProgressSteps.length} etapes completees
+                </p>
+              </div>
+              <div className={styles.missionsHeroStats}>
+                <div className={styles.missionStat}>
+                  <span className={styles.missionStatLabel}>Services actifs</span>
+                  <strong>{activeMissionServiceLabels.length}</strong>
+                </div>
+                <div className={styles.missionStat}>
+                  <span className={styles.missionStatLabel}>Jours ouverts</span>
+                  <strong>{missionOpenDaysCount}/7</strong>
+                </div>
+                <div className={styles.missionStat}>
+                  <span className={styles.missionStatLabel}>Plages horaires</span>
+                  <strong>{missionRangesCount}</strong>
+                </div>
+                <div className={styles.missionStat}>
+                  <span className={styles.missionStatLabel}>Zones couvertes</span>
+                  <strong>{missionAvailability?.zones.length ?? 0}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.missionsColumns}>
+              <div className={styles.missionsPrimary}>
             {renderSection(
               "Services proposés",
               <FiTarget />,
-              <MissionDetails
-                selectedServices={missionPayload.missionProfile.missions
-                  .filter((mission) => mission.isActive)
-                  .map((mission) => mission.label)}
-                isEditing={editingSection === MISSION_SECTION_IDS.SERVICES}
-                onChangeOption={(selected) =>
-                  setEditProfile((prev) =>
-                    prev
-                      ? (() => {
-                          const existingPayload = parseAvailabilityPayloadRaw(
-                            prev.availability_hours,
-                          );
-                          const parsed = parseMissionPayload(
-                            prev.availability_hours,
-                          );
-                          const normalizedSelected = selected.map((item) =>
-                            item.trim().toLowerCase(),
-                          );
-                          const selectedIdSet = new Set<string>();
+              <>
+                <MissionDetails
+                  selectedServices={missionPayload.missionProfile.missions
+                    .filter((mission) => mission.isActive)
+                    .map((mission) => mission.label)}
+                  isEditing={editingSection === MISSION_SECTION_IDS.SERVICES}
+                  onChangeOption={(selected) =>
+                    setEditProfile((prev) =>
+                      prev
+                        ? (() => {
+                            const existingPayload = parseAvailabilityPayloadRaw(
+                              prev.availability_hours,
+                            );
+                            const parsed = parseMissionPayload(
+                              prev.availability_hours,
+                            );
+                            const normalizedSelected = selected.map((item) =>
+                              item.trim().toLowerCase(),
+                            );
+                            const selectedIdSet = new Set<string>();
 
-                          selected.forEach((item) => {
-                            const byCatalogLabel = parsed.missionCatalog.find(
-                              (catalogItem) =>
-                                catalogItem.label.trim().toLowerCase() ===
-                                item.trim().toLowerCase(),
-                            );
-                            const byCatalogId = parsed.missionCatalog.find(
-                              (catalogItem) => catalogItem.id === item,
-                            );
-                            selectedIdSet.add(
-                              byCatalogLabel?.id ??
-                                byCatalogId?.id ??
-                                toMissionTypeId(item),
-                            );
-                          });
-
-                          const hasMissionProfile =
-                            parsed.missionProfile.missions.length > 0;
-                          const baseMissions = hasMissionProfile
-                            ? parsed.missionProfile.missions
-                            : parsed.missionCatalog.map((catalogItem) => ({
-                                id: catalogItem.id,
-                                label: catalogItem.label,
-                                isActive: false,
-                                minNoticeHours: 24,
-                                allowUrgent: false,
-                                urgentMultiplier: 1.3,
-                              }));
-                          const existingMissionIds = new Set(
-                            baseMissions.map((mission) => mission.id),
-                          );
-                          const missingSelectedMissions = selected
-                            .map((item) => {
+                            selected.forEach((item) => {
                               const byCatalogLabel = parsed.missionCatalog.find(
                                 (catalogItem) =>
                                   catalogItem.label.trim().toLowerCase() ===
@@ -1815,102 +2055,170 @@ export default function ConciergeProfilePage() {
                               const byCatalogId = parsed.missionCatalog.find(
                                 (catalogItem) => catalogItem.id === item,
                               );
-                              const id =
+                              selectedIdSet.add(
                                 byCatalogLabel?.id ??
-                                byCatalogId?.id ??
-                                toMissionTypeId(item);
-                              const label =
-                                byCatalogLabel?.label ??
-                                byCatalogId?.label ??
-                                item;
+                                  byCatalogId?.id ??
+                                  toMissionTypeId(item),
+                              );
+                            });
 
-                              if (existingMissionIds.has(id)) return null;
-                              existingMissionIds.add(id);
-
-                              return {
-                                id,
-                                label,
-                                isActive: true,
-                                minNoticeHours: 24,
-                                allowUrgent: false,
-                                urgentMultiplier: 1.3,
-                              };
-                            })
-                            .filter(
-                              (
-                                mission,
-                              ): mission is ConciergeMissionProfile["missions"][number] =>
-                                Boolean(mission),
+                            const hasMissionProfile =
+                              parsed.missionProfile.missions.length > 0;
+                            const baseMissions = hasMissionProfile
+                              ? parsed.missionProfile.missions
+                              : parsed.missionCatalog.map((catalogItem) => ({
+                                  id: catalogItem.id,
+                                  label: catalogItem.label,
+                                  isActive: false,
+                                  minNoticeHours: 24,
+                                  allowUrgent: false,
+                                  urgentMultiplier: 1.3,
+                                }));
+                            const existingMissionIds = new Set(
+                              baseMissions.map((mission) => mission.id),
                             );
+                            const missingSelectedMissions = selected
+                              .map((item) => {
+                                const byCatalogLabel = parsed.missionCatalog.find(
+                                  (catalogItem) =>
+                                    catalogItem.label.trim().toLowerCase() ===
+                                    item.trim().toLowerCase(),
+                                );
+                                const byCatalogId = parsed.missionCatalog.find(
+                                  (catalogItem) => catalogItem.id === item,
+                                );
+                                const id =
+                                  byCatalogLabel?.id ??
+                                  byCatalogId?.id ??
+                                  toMissionTypeId(item);
+                                const label =
+                                  byCatalogLabel?.label ??
+                                  byCatalogId?.label ??
+                                  item;
 
-                          const nextMissions = [
-                            ...baseMissions,
-                            ...missingSelectedMissions,
-                          ].map((mission) => ({
-                            ...mission,
-                            isActive:
-                              selectedIdSet.has(mission.id) ||
-                              normalizedSelected.includes(
-                                mission.label.trim().toLowerCase(),
-                              ),
-                          }));
+                                if (existingMissionIds.has(id)) return null;
+                                existingMissionIds.add(id);
 
-                          const nextMissionProfile: ConciergeMissionProfile = {
-                            ...parsed.missionProfile,
-                            missions: nextMissions,
-                          };
-                          const legacy =
-                            buildLegacyFromMissionProfile(nextMissionProfile);
+                                return {
+                                  id,
+                                  label,
+                                  isActive: true,
+                                  minNoticeHours: 24,
+                                  allowUrgent: false,
+                                  urgentMultiplier: 1.3,
+                                };
+                              })
+                              .filter(
+                                (
+                                  mission,
+                                ): mission is ConciergeMissionProfile["missions"][number] =>
+                                  Boolean(mission),
+                              );
 
-                          return {
-                            ...prev,
-                            availability_hours: JSON.stringify({
-                              ...existingPayload,
-                              missionProfile: nextMissionProfile,
-                              missionCatalog: legacy.missionCatalog,
-                              preferences: legacy.preferences,
-                            }),
-                          };
-                        })()
-                      : prev,
-                  )
-                }
-              />,
+                            const nextMissions = [
+                              ...baseMissions,
+                              ...missingSelectedMissions,
+                            ].map((mission) => ({
+                              ...mission,
+                              isActive:
+                                selectedIdSet.has(mission.id) ||
+                                normalizedSelected.includes(
+                                  mission.label.trim().toLowerCase(),
+                                ),
+                            }));
+
+                            const nextMissionProfile: ConciergeMissionProfile = {
+                              ...parsed.missionProfile,
+                              missions: nextMissions,
+                            };
+                            const legacy =
+                              buildLegacyFromMissionProfile(nextMissionProfile);
+
+                            return {
+                              ...prev,
+                              availability_hours: JSON.stringify({
+                                ...existingPayload,
+                                missionProfile: nextMissionProfile,
+                                missionCatalog: legacy.missionCatalog,
+                                preferences: legacy.preferences,
+                              }),
+                            };
+                          })()
+                        : prev,
+                    )
+                  }
+                />
+              </>,
               true,
               MISSION_SECTION_IDS.SERVICES,
+              false,
             )}
 
             {renderSection(
-              "Zone, disponibilités & règles de mission",
+              "Zone d'intervention & règles de mission",
               <FiMapPinOutline />,
-              <MissionZoneAvailability
-                value={buildMissionAvailabilityFromProfile(editProfile)}
-                isEditing={editingSection === MISSION_SECTION_IDS.ZONE_RULES}
-                onChange={(data) =>
-                  setEditProfile((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          service_area:
-                            data.zones.length > 0
-                              ? data.zones.map((z) => z.label).join(", ")
-                              : prev.service_area ?? prev.location ?? null,
-                          service_radius_km: data.radiusKm,
-                          availability_hours: JSON.stringify({
-                            ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                            schedule: data.schedule,
-                            rules: data.rules,
-                          }),
-                          emergency_service: data.emergency24h,
-                        }
-                      : prev,
-                  )
-                }
-              />,
+              <>
+                <MissionZoneAvailability
+                  value={missionAvailability}
+                  isEditing={editingSection === MISSION_SECTION_IDS.ZONE_RULES}
+                  showScheduleSection={false}
+                  onChange={(data) =>
+                    setEditProfile((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            service_area:
+                              data.zones.length > 0
+                                ? data.zones.map((z) => z.label).join(", ")
+                                : prev.service_area ?? prev.location ?? null,
+                            service_radius_km: data.radiusKm,
+                            availability_hours: JSON.stringify({
+                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                              rules: data.rules,
+                            }),
+                          }
+                        : prev,
+                    )
+                  }
+                />
+              </>,
             )}
 
-            {renderMissionsStaticSections()}
-          </>
+            {renderSection(
+              "Disponibilités hebdomadaires",
+              <FiClockOutline />,
+              <>
+                <AvailabilityEditor
+                  value={missionAvailability?.schedule ?? []}
+                  emergency24h={missionAvailability?.emergency24h ?? false}
+                  isEditing={editingSection === MISSION_SECTION_IDS.WEEKLY_AVAILABILITY}
+                  onChange={(schedule, emergency24h) =>
+                    setEditProfile((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            availability_hours: JSON.stringify({
+                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                              schedule: normalizeMissionSchedule(schedule),
+                            }),
+                            emergency_service: emergency24h,
+                          }
+                        : prev,
+                    )
+                  }
+                />
+              </>,
+              true,
+              MISSION_SECTION_IDS.WEEKLY_AVAILABILITY,
+            )}
+
+              </div>
+              <aside className={styles.missionsSecondary}>
+                {renderMissionProgressPanel()}
+                {renderMissionsStaticSections()}
+              </aside>
+            </div>
+          </div>
         );
 
       case "packs":
@@ -2206,6 +2514,9 @@ export default function ConciergeProfilePage() {
     </div>
   );
 }
+
+
+
 
 
 

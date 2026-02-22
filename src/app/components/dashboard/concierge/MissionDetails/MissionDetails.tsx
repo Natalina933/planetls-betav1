@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { FiCheckCircle, FiAlertCircle, FiLoader } from "react-icons/fi";
@@ -109,7 +109,6 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
             <div className={styles.contentSection}>
                 {isEditing ? (
                     <div className={styles.editorBox}>
-                        <p className={styles.infoText}>Mettez à jour vos prestations :</p>
                         <ServiceCatalogSelector
                             selected={activeServices}
                             onChange={(vals) => onChangeOption?.(vals)}
@@ -150,3 +149,4 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
 };
 
 export default MissionDetails;
+

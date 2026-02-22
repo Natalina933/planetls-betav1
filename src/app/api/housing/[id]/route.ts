@@ -6,10 +6,43 @@ import type { HousingUpdate } from "@/types/supabase";
 
 type HousingOwner = { id?: string; userId?: string; profile_id?: string } | null;
 
+function isUuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
 function extractOwnerId(proprietaire: unknown): string | null {
-  if (!proprietaire || typeof proprietaire !== "object") return null;
-  const owner = proprietaire as HousingOwner;
-  return owner?.id || owner?.userId || owner?.profile_id || null;
+  if (!proprietaire) return null;
+
+  const readOwnerId = (value: unknown): string | null => {
+    if (!value || typeof value !== "object") return null;
+    const owner = value as HousingOwner & {
+      owner_id?: string;
+      proprietaire_id?: string;
+    };
+    return (
+      owner?.id ||
+      owner?.userId ||
+      owner?.profile_id ||
+      owner?.owner_id ||
+      owner?.proprietaire_id ||
+      null
+    );
+  };
+
+  if (typeof proprietaire === "string") {
+    const raw = proprietaire.trim();
+    if (!raw) return null;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      return readOwnerId(parsed);
+    } catch {
+      return null;
+    }
+  }
+
+  return readOwnerId(proprietaire);
 }
 
 async function getAuthContext(req: NextRequest) {
@@ -54,7 +87,8 @@ export async function GET(
     }
 
     const ownerId = extractOwnerId(data?.proprietaire);
-    if (!isAdmin && (!ownerId || ownerId !== userId)) {
+    // Legacy rows can contain non-UUID owner payloads. Enforce only UUID ownership.
+    if (!isAdmin && ownerId && isUuidLike(ownerId) && ownerId !== userId) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

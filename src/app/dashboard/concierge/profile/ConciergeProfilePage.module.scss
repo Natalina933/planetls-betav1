@@ -476,6 +476,39 @@ $transition-slow: 380ms $easing-soft;
   margin-left: 1rem;
 }
 
+.sectionActionsBottom {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 1.1rem;
+  padding: 0.75rem 0 0.15rem;
+  border-top: 1px dashed rgba($color-border, 0.9);
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.98) 55%,
+    rgba(255, 255, 255, 0.8) 100%
+  );
+  backdrop-filter: blur(4px);
+  z-index: 3;
+}
+
+.unsavedBadge {
+  margin: 0 1.5rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba($color-warning, 0.45);
+  background: rgba($color-warning, 0.12);
+  color: color.scale($color-warning, $lightness: -22%);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .editBtn,
 .saveBtn,
 .cancelBtn {
@@ -660,6 +693,662 @@ $transition-slow: 380ms $easing-soft;
       font-size: 0.875rem;
     }
   }
+}
+
+// ============================================
+// MISSIONS LAYOUT
+// ============================================
+
+.missionsLayout {
+  display: grid;
+  gap: 1rem;
+}
+
+.missionsHero {
+  background: linear-gradient(135deg, rgba($color-primary, 0.08), rgba($color-primary-light, 0.03));
+  border: 1px solid rgba($color-primary, 0.22);
+  border-radius: $radius-lg;
+  padding: 1rem 1.2rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.missionsHeroTitle {
+  h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    color: $color-text-primary;
+  }
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+    font-size: 0.88rem;
+  }
+}
+
+.missionCreateBox {
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-md;
+  background: rgba($color-bg-card, 0.9);
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.missionCreateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+
+  h4 {
+    margin: 0;
+    font-size: 0.86rem;
+    color: $color-text-primary;
+  }
+}
+
+.missionCreateToggle {
+  border: 1px solid rgba($color-primary, 0.34);
+  background: rgba($color-primary, 0.1);
+  color: $color-primary-dark;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.26rem 0.56rem;
+  cursor: pointer;
+}
+
+.missionCreateError,
+.missionCreateSuccess {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.missionCreateError {
+  color: $color-error;
+}
+
+.missionCreateSuccess {
+  color: color.scale($color-success, $lightness: -10%);
+}
+
+.missionCreateForm {
+  display: grid;
+  gap: 0.5rem;
+
+  label {
+    display: grid;
+    gap: 0.22rem;
+  }
+
+  span {
+    font-size: 0.71rem;
+    color: $color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    border: 1px solid $color-border;
+    background: white;
+    color: $color-text-primary;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    padding: 0.42rem 0.55rem;
+    font-family: inherit;
+  }
+}
+
+.missionCreateGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ownerAutocomplete {
+  position: relative;
+}
+
+.ownerAutocompleteInputRow {
+  position: relative;
+
+  input {
+    padding-right: 2rem !important;
+  }
+}
+
+.ownerAutocompleteClear {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: $color-text-secondary;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ownerAutocompleteList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 20;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: $shadow-md;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.ownerAutocompleteItem {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  color: $color-text-primary;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($color-primary, 0.08);
+  }
+}
+
+.ownerAutocompleteState {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.78rem;
+  color: $color-text-secondary;
+}
+
+.missionCreateActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.missionCreateSubmit {
+  border: 1px solid rgba($color-primary, 0.42);
+  background: $color-primary;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.36rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.missionsHeroProgress {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.missionsHeroProgressMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: $color-text-secondary;
+
+  strong {
+    color: $color-primary-dark;
+    font-size: 0.85rem;
+  }
+}
+
+.missionProgressTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba($color-primary, 0.18);
+  overflow: hidden;
+}
+
+.missionProgressTrackButton {
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.missionProgressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, $color-primary-dark 0%, $color-primary 55%, $color-primary-light 100%);
+  transition: width $transition-base;
+}
+
+.missionsHeroProgressHint {
+  margin: 0;
+  font-size: 0.76rem;
+  color: $color-text-secondary;
+}
+
+.missionsHeroStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 0.7rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  @media (max-width: 620px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionStat {
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.6rem 0.75rem;
+  display: grid;
+  gap: 0.2rem;
+
+  strong {
+    color: $color-text-primary;
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+}
+
+.missionStatLabel {
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: $color-text-secondary;
+  font-weight: 700;
+}
+
+.missionsColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionsPrimary,
+.missionsSecondary {
+  display: grid;
+  gap: 1rem;
+}
+
+.missionProgressPanel {
+  background: $color-bg-card;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  padding: 1rem;
+}
+
+.missionProgressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+
+  h4 {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: $color-text-primary;
+  }
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $color-primary-dark;
+    background: rgba($color-primary, 0.12);
+    border: 1px solid rgba($color-primary, 0.25);
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+  }
+}
+
+.missionProgressFilters {
+  display: inline-flex;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.missionProgressFilterBtn {
+  border: 1px solid $color-border;
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.18rem 0.52rem;
+  cursor: pointer;
+}
+
+.missionProgressFilterBtnActive {
+  border-color: rgba($color-primary, 0.45);
+  background: rgba($color-primary, 0.12);
+  color: $color-primary-dark;
+}
+
+.missionProgressList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.missionProgressItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.7rem;
+  align-items: center;
+  border: 1px solid $color-border-light;
+  border-radius: $radius-md;
+  background: rgba($color-bg-main, 0.7);
+  padding: 0.6rem 0.7rem;
+}
+
+.missionProgressItemDone {
+  border-color: rgba($color-success, 0.35);
+  background: rgba($color-success, 0.06);
+}
+
+.missionProgressIndex {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.12);
+  color: $color-primary-dark;
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  .missionProgressItemDone & {
+    border-color: rgba($color-success, 0.4);
+    background: rgba($color-success, 0.16);
+    color: color.scale($color-success, $lightness: -12%);
+  }
+}
+
+.missionProgressBody {
+  min-width: 0;
+}
+
+.missionProgressLabel {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.missionProgressHint {
+  margin: 0.12rem 0 0;
+  font-size: 0.76rem;
+  color: $color-text-secondary;
+}
+
+.missionProgressAction {
+  border: 1px solid rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.1);
+  color: $color-primary-dark;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.28rem 0.55rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform $transition-fast, box-shadow $transition-base, background-color $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
+    background: rgba($color-primary, 0.16);
+  }
+}
+
+.missionProgressEmpty {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+  color: $color-text-secondary;
+}
+
+.missionCards {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.missionCard {
+  border: 1px solid rgba($color-primary, 0.18);
+  background: rgba($color-bg-main, 0.7);
+  border-radius: $radius-md;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.missionCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  h5 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: $color-text-primary;
+  }
+}
+
+.missionCardDescription {
+  margin: 0;
+  font-size: 0.8rem;
+  color: $color-text-secondary;
+}
+
+.missionCardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  font-size: 0.76rem;
+  color: $color-text-secondary;
+}
+
+.missionCardActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.missionDetailButton {
+  border: 1px solid rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.1);
+  color: $color-primary-dark;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($color-primary, 0.16);
+  }
+}
+
+.missionToolbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionToolbarItem {
+  display: grid;
+  gap: 0.3rem;
+
+  span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-text-secondary;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    background: white;
+    color: $color-text-primary;
+  }
+}
+
+.missionStatusBadge {
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.missionStatusDone {
+  color: color.scale($color-success, $lightness: -12%);
+  border-color: rgba($color-success, 0.35);
+  background: rgba($color-success, 0.12);
+}
+
+.missionStatusRunning {
+  color: color.scale($color-primary-dark, $lightness: -5%);
+  border-color: rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.14);
+}
+
+.missionStatusDefault {
+  color: $color-text-secondary;
+  border-color: rgba($color-border, 0.7);
+  background: rgba($color-bg-main, 0.7);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpiCard {
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-md;
+  background: rgba($color-primary, 0.05);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.25rem;
+
+  span {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $color-text-secondary;
+    font-weight: 700;
+  }
+
+  strong {
+    font-size: 1.05rem;
+    line-height: 1.1;
+    color: $color-text-primary;
+  }
+}
+
+.missionDetailPanel {
+  border: 1px solid rgba($color-primary, 0.24);
+  border-radius: $radius-md;
+  background: rgba($color-primary, 0.05);
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.missionDetailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+
+  h5 {
+    margin: 0;
+    font-size: 0.92rem;
+    color: $color-text-primary;
+  }
+}
+
+.missionDetailClose {
+  border: 1px solid rgba($color-border, 0.9);
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+}
+
+.missionDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.8rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: $color-text-secondary;
+  }
+}
+
+.missionDetailDescription {
+  margin: 0;
+  font-size: 0.82rem;
+  color: $color-text-secondary;
+  line-height: 1.5;
 }
 
 // ============================================
