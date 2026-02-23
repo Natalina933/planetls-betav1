@@ -1477,35 +1477,124 @@ $transition-slow: 380ms $easing-soft;
   }
 }
 
-.pricingQuickStats {
-  padding: 1.25rem;
-  background: linear-gradient(135deg, rgba($color-primary, 0.05), rgba($color-primary-light, 0.02));
-  border-radius: $radius-md;
-  margin-bottom: 1rem;
+.financeCardFull {
+  grid-column: 1 / -1;
+}
 
-  h4 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: $color-primary-dark;
-    margin: 0 0 1rem;
+.financeCardWide {
+  grid-column: 1 / -1;
+}
+
+.tariffWorkflow {
+  display: grid;
+  gap: 1rem;
+}
+
+.tariffWorkflowLead {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: $color-text-secondary;
+}
+
+.tariffSteps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.tariffStep {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0.55rem;
+  align-items: flex-start;
+  padding: 0.72rem;
+  border-radius: 12px;
+  border: 1px solid rgba($color-border, 0.85);
+  background: linear-gradient(180deg, rgba($color-bg-main, 0.92), rgba($color-bg-card, 0.98));
+}
+
+.tariffStepIcon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: $color-primary-dark;
+  background: rgba($color-primary, 0.12);
+}
+
+.tariffStepTitle {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.tariffStepDesc {
+  margin: 0.24rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.38;
+  color: $color-text-secondary;
+}
+
+.tariffQuickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.tariffNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.54rem 0.82rem;
+  border-radius: 8px;
+  border: 1px solid rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.08);
+  color: $color-primary-dark;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform $transition-base, box-shadow $transition-base,
+    background $transition-base;
+
+  &:hover {
+    background: rgba($color-primary, 0.14);
+    box-shadow: $shadow-sm;
+    transform: translateY(-1px);
   }
+}
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.tariffHint {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: $color-text-secondary;
+}
 
-    li {
-      padding: 0.5rem 0;
-      font-size: 0.875rem;
-      color: $color-text-secondary;
-      border-bottom: 1px solid rgba($color-border, 0.5);
+.tariffTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+  padding: 0.38rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba($color-border, 0.88);
+  background: rgba($color-bg-main, 0.92);
+  color: $color-text-secondary;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
 
-      &:last-child {
-        border-bottom: none;
-      }
-    }
-  }
+.tariffSubsectionTitle {
+  margin: 1.2rem 0 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: $color-primary-dark;
 }
 
 // ============================================
@@ -1569,6 +1658,10 @@ $transition-slow: 380ms $easing-soft;
   .profileCard {
     position: static;
   }
+
+  .tariffSteps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -1604,6 +1697,10 @@ $transition-slow: 380ms $easing-soft;
   .fieldsGrid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .tariffSteps {
+    grid-template-columns: 1fr;
   }
 }
 

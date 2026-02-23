@@ -171,6 +171,8 @@ export type Database = {
           iban: string | null;
           bic: string | null;
           travel_fee: number | null;
+          onboarding_complete: boolean;
+          onboarding_completed_at: string | null;
         };
         Insert: {
           additional_info?: string | null;
@@ -217,6 +219,8 @@ export type Database = {
           iban?: string | null;
           bic?: string | null;
           travel_fee?: number | null;
+          onboarding_complete?: boolean;
+          onboarding_completed_at?: string | null;
         };
         Update: {
           additional_info?: string | null;
@@ -262,6 +266,8 @@ export type Database = {
           experience_level?: string | null;
           iban?: string | null;
           bic?: string | null;
+          onboarding_complete?: boolean;
+          onboarding_completed_at?: string | null;
         };
         Relationships: [
           {
@@ -955,6 +961,713 @@ export type Database = {
           {
             foreignKeyName: "mission_reviews_reviewed_profile_id_fkey";
             columns: ["reviewed_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      contact_conversations: {
+        Row: {
+          id: string;
+          concierge_profile_id: string;
+          owner_profile_id: string;
+          source: string;
+          source_reference: string | null;
+          subject: string | null;
+          status: string;
+          last_message_preview: string | null;
+          last_message_at: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          concierge_profile_id: string;
+          owner_profile_id: string;
+          source?: string;
+          source_reference?: string | null;
+          subject?: string | null;
+          status?: string;
+          last_message_preview?: string | null;
+          last_message_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          concierge_profile_id?: string;
+          owner_profile_id?: string;
+          source?: string;
+          source_reference?: string | null;
+          subject?: string | null;
+          status?: string;
+          last_message_preview?: string | null;
+          last_message_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contact_conversations_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contact_conversations_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contact_conversations_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contact_conversations_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      contact_messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_profile_id: string;
+          message_type: string;
+          body: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_profile_id: string;
+          message_type?: string;
+          body: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_profile_id?: string;
+          message_type?: string;
+          body?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contact_messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "contact_conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contact_messages_sender_profile_id_fkey";
+            columns: ["sender_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contact_messages_sender_profile_id_fkey";
+            columns: ["sender_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      concierge_owner_matches: {
+        Row: {
+          id: string;
+          concierge_profile_id: string;
+          listing_id: string;
+          listing_source: string;
+          owner_profile_id: string | null;
+          title: string;
+          city: string | null;
+          postal_code: string | null;
+          property_type: string | null;
+          surface_m2: number | null;
+          services_wanted: Json;
+          matched_services: Json;
+          compatibility_ratio: string | null;
+          compatibility_score: number;
+          distance_km: number | null;
+          budget_note: string | null;
+          match_status: string;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          concierge_profile_id: string;
+          listing_id: string;
+          listing_source: string;
+          owner_profile_id?: string | null;
+          title: string;
+          city?: string | null;
+          postal_code?: string | null;
+          property_type?: string | null;
+          surface_m2?: number | null;
+          services_wanted?: Json;
+          matched_services?: Json;
+          compatibility_ratio?: string | null;
+          compatibility_score?: number;
+          distance_km?: number | null;
+          budget_note?: string | null;
+          match_status?: string;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          concierge_profile_id?: string;
+          listing_id?: string;
+          listing_source?: string;
+          owner_profile_id?: string | null;
+          title?: string;
+          city?: string | null;
+          postal_code?: string | null;
+          property_type?: string | null;
+          surface_m2?: number | null;
+          services_wanted?: Json;
+          matched_services?: Json;
+          compatibility_ratio?: string | null;
+          compatibility_score?: number;
+          distance_km?: number | null;
+          budget_note?: string | null;
+          match_status?: string;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "concierge_owner_matches_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_owner_matches_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_owner_matches_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concierge_owner_matches_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      quotes: {
+        Row: {
+          id: string;
+          quote_number: string;
+          concierge_profile_id: string;
+          owner_profile_id: string | null;
+          mission_id: string | null;
+          package_id: string | null;
+          status: string;
+          currency: string;
+          subtotal: number;
+          discount_amount: number;
+          tax_rate: number;
+          tax_amount: number;
+          total_amount: number;
+          valid_until: string | null;
+          notes: string | null;
+          metadata: Json;
+          sent_at: string | null;
+          accepted_at: string | null;
+          rejected_at: string | null;
+          canceled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          quote_number?: string;
+          concierge_profile_id: string;
+          owner_profile_id?: string | null;
+          mission_id?: string | null;
+          package_id?: string | null;
+          status?: string;
+          currency?: string;
+          subtotal?: number;
+          discount_amount?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total_amount?: number;
+          valid_until?: string | null;
+          notes?: string | null;
+          metadata?: Json;
+          sent_at?: string | null;
+          accepted_at?: string | null;
+          rejected_at?: string | null;
+          canceled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          quote_number?: string;
+          concierge_profile_id?: string;
+          owner_profile_id?: string | null;
+          mission_id?: string | null;
+          package_id?: string | null;
+          status?: string;
+          currency?: string;
+          subtotal?: number;
+          discount_amount?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total_amount?: number;
+          valid_until?: string | null;
+          notes?: string | null;
+          metadata?: Json;
+          sent_at?: string | null;
+          accepted_at?: string | null;
+          rejected_at?: string | null;
+          canceled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quotes_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_mission_id_fkey";
+            columns: ["mission_id"];
+            isOneToOne: false;
+            referencedRelation: "missions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_package_id_fkey";
+            columns: ["package_id"];
+            isOneToOne: false;
+            referencedRelation: "services_packages";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      quote_items: {
+        Row: {
+          id: string;
+          quote_id: string;
+          service_id: number | null;
+          pricing_id: string | null;
+          label: string;
+          description: string | null;
+          quantity: number;
+          unit_price: number;
+          line_total: number;
+          sort_order: number;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          quote_id: string;
+          service_id?: number | null;
+          pricing_id?: string | null;
+          label: string;
+          description?: string | null;
+          quantity?: number;
+          unit_price: number;
+          line_total: number;
+          sort_order?: number;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          quote_id?: string;
+          service_id?: number | null;
+          pricing_id?: string | null;
+          label?: string;
+          description?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          line_total?: number;
+          sort_order?: number;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_items_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_items_pricing_id_fkey";
+            columns: ["pricing_id"];
+            isOneToOne: false;
+            referencedRelation: "services_pricing";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      quote_events: {
+        Row: {
+          id: string;
+          quote_id: string;
+          actor_profile_id: string | null;
+          event_type: string;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          quote_id: string;
+          actor_profile_id?: string | null;
+          event_type: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          quote_id?: string;
+          actor_profile_id?: string | null;
+          event_type?: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quote_events_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_events_actor_profile_id_fkey";
+            columns: ["actor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_events_actor_profile_id_fkey";
+            columns: ["actor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      invoices: {
+        Row: {
+          id: string;
+          invoice_number: string;
+          quote_id: string | null;
+          concierge_profile_id: string;
+          owner_profile_id: string | null;
+          mission_id: string | null;
+          status: string;
+          issue_date: string;
+          due_date: string | null;
+          currency: string;
+          subtotal: number;
+          discount_amount: number;
+          tax_rate: number;
+          tax_amount: number;
+          total_amount: number;
+          paid_amount: number;
+          balance_amount: number;
+          notes: string | null;
+          metadata: Json;
+          issued_at: string | null;
+          paid_at: string | null;
+          canceled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          invoice_number?: string;
+          quote_id?: string | null;
+          concierge_profile_id: string;
+          owner_profile_id?: string | null;
+          mission_id?: string | null;
+          status?: string;
+          issue_date?: string;
+          due_date?: string | null;
+          currency?: string;
+          subtotal?: number;
+          discount_amount?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total_amount?: number;
+          paid_amount?: number;
+          balance_amount?: number;
+          notes?: string | null;
+          metadata?: Json;
+          issued_at?: string | null;
+          paid_at?: string | null;
+          canceled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          invoice_number?: string;
+          quote_id?: string | null;
+          concierge_profile_id?: string;
+          owner_profile_id?: string | null;
+          mission_id?: string | null;
+          status?: string;
+          issue_date?: string;
+          due_date?: string | null;
+          currency?: string;
+          subtotal?: number;
+          discount_amount?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total_amount?: number;
+          paid_amount?: number;
+          balance_amount?: number;
+          notes?: string | null;
+          metadata?: Json;
+          issued_at?: string | null;
+          paid_at?: string | null;
+          canceled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_owner_profile_id_fkey";
+            columns: ["owner_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_mission_id_fkey";
+            columns: ["mission_id"];
+            isOneToOne: false;
+            referencedRelation: "missions";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      invoice_items: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          service_id: number | null;
+          pricing_id: string | null;
+          label: string;
+          description: string | null;
+          quantity: number;
+          unit_price: number;
+          line_total: number;
+          sort_order: number;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          service_id?: number | null;
+          pricing_id?: string | null;
+          label: string;
+          description?: string | null;
+          quantity?: number;
+          unit_price: number;
+          line_total: number;
+          sort_order?: number;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          invoice_id?: string;
+          service_id?: number | null;
+          pricing_id?: string | null;
+          label?: string;
+          description?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          line_total?: number;
+          sort_order?: number;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_items_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_items_pricing_id_fkey";
+            columns: ["pricing_id"];
+            isOneToOne: false;
+            referencedRelation: "services_pricing";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      invoice_events: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          actor_profile_id: string | null;
+          event_type: string;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          actor_profile_id?: string | null;
+          event_type: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          invoice_id?: string;
+          actor_profile_id?: string | null;
+          event_type?: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_events_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_events_actor_profile_id_fkey";
+            columns: ["actor_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_events_actor_profile_id_fkey";
+            columns: ["actor_profile_id"];
             isOneToOne: false;
             referencedRelation: "user_dashboard_view";
             referencedColumns: ["id"];

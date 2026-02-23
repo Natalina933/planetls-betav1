@@ -16,6 +16,9 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json();
     const updateData: Partial<Record<string, string | number | boolean | null>> = {};
+    let onboardingWasComplete = false;
+    const onboardingCompleteInput =
+      typeof body.onboarding_complete === "boolean" ? body.onboarding_complete : null;
 
     if (body.username !== undefined) updateData.username = body.username;
     if (body.first_name !== undefined) updateData.first_name = body.first_name;
@@ -68,6 +71,24 @@ export async function PATCH(req: NextRequest) {
 
     if (body.iban !== undefined) updateData.iban = body.iban;
     if (body.bic !== undefined) updateData.bic = body.bic;
+    if (onboardingCompleteInput !== null) {
+      const { data: currentProfile, error: onboardingReadError } = await db
+        .from("profiles")
+        .select("onboarding_complete")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (onboardingReadError) {
+        console.error("[PATCH /api/profiles] onboarding read error:", onboardingReadError);
+        return NextResponse.json({ error: "Erreur lecture onboarding" }, { status: 500 });
+      }
+
+      onboardingWasComplete = currentProfile?.onboarding_complete === true;
+      updateData.onboarding_complete = onboardingCompleteInput;
+      updateData.onboarding_completed_at = onboardingCompleteInput
+        ? new Date().toISOString()
+        : null;
+    }
 
     updateData.updated_at = new Date().toISOString();
 
@@ -86,6 +107,34 @@ export async function PATCH(req: NextRequest) {
     if (selectError) {
       console.error("[PATCH /api/profiles] select error:", selectError);
       return NextResponse.json({ error: "Erreur récupération profil" }, { status: 500 });
+    }
+
+    const shouldRefreshMatches =
+      onboardingCompleteInput === true && onboardingWasComplete === false;
+
+    if (shouldRefreshMatches) {
+      try {
+        const refreshUrl = new URL(
+          "/api/concierge/match-owner-requests?limit=12",
+          req.nextUrl.origin,
+        );
+        const refreshResponse = await fetch(refreshUrl.toString(), {
+          method: "POST",
+          headers: {
+            cookie: req.headers.get("cookie") ?? "",
+          },
+          cache: "no-store",
+        });
+
+        if (!refreshResponse.ok) {
+          console.error(
+            "[PATCH /api/profiles] onboarding match refresh failed:",
+            refreshResponse.status,
+          );
+        }
+      } catch (refreshError) {
+        console.error("[PATCH /api/profiles] onboarding match refresh error:", refreshError);
+      }
     }
 
     return NextResponse.json(updatedProfile);

@@ -81,6 +81,106 @@
   @include grid-template(repeat(auto-fit, minmax(280px, 1fr)), $spacing-lg);
 }
 
+.matchesSection {
+  padding: $spacing-lg;
+  border-radius: $radius-lg;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.86));
+  border: 1px solid $gold-border-soft;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.06);
+}
+
+.matchesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: $color-title;
+  }
+}
+
+.matchesHeaderAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: $radius-md;
+  border: 1px solid rgba($primary-dark-color-sass, 0.25);
+  color: $primary-dark-color-sass;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba($primary-dark-color-sass, 0.45);
+    background: rgba($primary-dark-color-sass, 0.08);
+  }
+}
+
+.matchesInfo {
+  margin: 0;
+  color: $color-text-neutral;
+}
+
+.matchesError {
+  margin: 0;
+  color: $error-color;
+  font-weight: 600;
+}
+
+.matchesGrid {
+  margin-top: $spacing-md;
+  @include grid-template(repeat(auto-fit, minmax(220px, 1fr)), $spacing-md);
+}
+
+.matchCard {
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  border: 1px solid rgba($gold, 0.2);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.matchCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: $text-dark;
+  }
+}
+
+.matchScore {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $primary-dark-color-sass;
+  background: rgba($gold, 0.18);
+}
+
+.matchMeta {
+  margin: 0 0 $spacing-xs;
+  color: $color-text-neutral;
+  font-size: 0.9rem;
+}
+
+.matchServices {
+  margin: 0;
+  color: $text-dark;
+  font-size: 0.9rem;
+}
+
 .dashboardSection {
   padding: $spacing-lg;
   border-radius: $radius-lg;

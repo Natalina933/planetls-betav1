@@ -1,0 +1,559 @@
+.root {
+  display: grid;
+  gap: 1rem;
+  color: #0f172a;
+}
+
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headingBlock {
+  flex: 1;
+  min-width: 280px;
+}
+
+.headingTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.headingText {
+  margin: 0.45rem 0 0;
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.headingPackHint {
+  margin: 0.4rem 0 0;
+  color: #0f766e;
+  font-size: 0.84rem;
+}
+
+.inlineStats {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.inlineStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  font-size: 0.8rem;
+  color: #334155;
+}
+
+.controlsPanel {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.filterIcon {
+  color: #64748b;
+}
+
+.selectControl,
+.inputControl {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.9rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.selectControl {
+  width: auto;
+  min-width: 145px;
+}
+
+.selectControl:focus,
+.inputControl:focus,
+.searchInput:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.togglePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.togglePill input {
+  accent-color: #0f766e;
+}
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.searchInput {
+  width: 220px;
+  padding: 0.58rem 0.6rem 0.58rem 2.1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #ffffff;
+}
+
+.buttonWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.ghostButton,
+.successButton,
+.packLinkButton {
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.86rem;
+  transition: all 150ms ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.primaryButton {
+  padding: 0.58rem 0.9rem;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.primaryButton:hover {
+  background: #1e40af;
+}
+
+.ghostButton {
+  padding: 0.58rem 0.78rem;
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.ghostButton:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.secondaryButton {
+  padding: 0.72rem 1.1rem;
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #dbe3ee;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.successButton {
+  padding: 0.72rem 1.2rem;
+  background: #059669;
+  color: #ffffff;
+}
+
+.successButton:hover:not(:disabled) {
+  background: #047857;
+}
+
+.packLinkButton {
+  padding: 0.55rem 0.88rem;
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.packLinkButton:hover:not(:disabled) {
+  background: #115e59;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.ghostButton:disabled,
+.successButton:disabled,
+.packLinkButton:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+.formCard {
+  border: 1px solid #dbe3ee;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  padding: 1.2rem;
+}
+
+.formTitle {
+  margin: 0 0 0.95rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.formLayout {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.fieldHint {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.checkboxGroup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.checkboxRow input {
+  accent-color: #2563eb;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.packageBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.packageBar p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.88rem;
+}
+
+.tableCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.pricingTable {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+}
+
+.tableHeaderRow {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tableHeadCell {
+  padding: 0.8rem;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.03em;
+}
+
+.tableHeadCellRight {
+  text-align: right;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 140ms ease;
+}
+
+.tableRow:hover {
+  background: #f8fafc;
+}
+
+.tableRowMuted {
+  opacity: 0.6;
+  background: #f8fafc;
+}
+
+.tableCell {
+  padding: 0.8rem;
+  vertical-align: middle;
+  font-size: 0.88rem;
+}
+
+.packToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.packToggle input {
+  accent-color: #0f766e;
+}
+
+.packToggleText {
+  color: #475569;
+  font-size: 0.78rem;
+}
+
+.labelCell {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.labelText {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.badgeDefault {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badgeWarning {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.serviceMeta {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.inlineCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #475569;
+}
+
+.priceCell {
+  color: #059669;
+  font-weight: 600;
+}
+
+.actionsCell {
+  text-align: right;
+}
+
+.rowActions {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.iconActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.iconActionEdit {
+  border-color: #dbe3ee;
+}
+
+.iconActionEdit:hover {
+  background: #eef2ff;
+}
+
+.iconActionDelete {
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.iconActionDelete:hover {
+  background: #ffe4e6;
+}
+
+.emptyCell {
+  padding: 2.2rem 1rem;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.emptyAction {
+  margin-top: 0.6rem;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 0.84rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.quickStatsCard {
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #eff6ff, #f8fafc);
+  padding: 1rem;
+}
+
+.quickStatsTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.quickStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.65rem;
+}
+
+.quickStatItem {
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0.72rem;
+}
+
+.quickStatLabel {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.quickStatValue {
+  margin-top: 0.15rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+@media (max-width: 900px) {
+  .controlsPanel {
+    justify-content: flex-start;
+  }
+
+  .searchInput {
+    width: 100%;
+    min-width: 220px;
+  }
+
+  .packageBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    gap: 0.7rem;
+  }
+
+  .headingTitle {
+    font-size: 1.08rem;
+  }
+
+  .filterGroup {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .selectControl {
+    width: 100%;
+  }
+
+  .searchWrapper {
+    width: 100%;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+}

@@ -1,7 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiHome, FiSquare, FiClock, FiDollarSign, FiFilter, FiSearch } from 'react-icons/fi';
+import {
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
+  FiHome,
+  FiSquare,
+  FiClock,
+  FiDollarSign,
+  FiFilter,
+  FiSearch,
+  FiRefreshCw,
+} from 'react-icons/fi';
+import styles from './PricingGridManager.module.scss';
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -75,6 +87,8 @@ interface PricingGridManagerProps {
   activeServiceLabels?: string[];
   linkedPackageId?: string;
   linkedPackageName?: string;
+  showHeader?: boolean;
+  showQuickStats?: boolean;
 }
 
 const PricingGridManager = ({
@@ -82,6 +96,8 @@ const PricingGridManager = ({
   activeServiceLabels,
   linkedPackageId,
   linkedPackageName,
+  showHeader = true,
+  showQuickStats = true,
 }: PricingGridManagerProps) => {
   const [pricings, setPricings] = useState<Pricing[]>([]);
   const [servicesCatalog, setServicesCatalog] = useState<ServicesCatalog>({ byCategory: {} });
@@ -464,89 +480,118 @@ const PricingGridManager = ({
     return found ? found.label : '-';
   };
 
+  const hasFilters = Boolean(filterPropertyType || filterPricingType || searchTerm);
+
+  const resetFilters = () => {
+    setFilterPropertyType('');
+    setFilterPricingType('');
+    setSearchTerm('');
+  };
+
+  const isPricingLinkedToInactiveService = (pricing: Pricing) =>
+    hasActiveServiceFilter &&
+    Boolean(pricing.service_id) &&
+    !activeServiceIdSet.has(pricing.service_id as string) &&
+    !Boolean(
+      pricing.service &&
+        activeServiceLabelSet.has(normalizeServiceText(pricing.service.service)),
+    );
+
+  const visibleDefaultCount = useMemo(
+    () => visiblePricings.filter((pricing) => pricing.is_default).length,
+    [visiblePricings],
+  );
+
+  const visibleInactiveServiceCount = visiblePricings.filter((pricing) =>
+    isPricingLinkedToInactiveService(pricing),
+  ).length;
+
+  const averageFixedAmount = useMemo(() => {
+    const fixedPricings = visiblePricings.filter((pricing) => pricing.type === 'fixed');
+    if (fixedPricings.length === 0) return 0;
+    return Math.round(
+      fixedPricings.reduce((acc, pricing) => acc + pricing.amount, 0) / fixedPricings.length,
+    );
+  }, [visiblePricings]);
+
+  const averageHourlyAmount = useMemo(() => {
+    const hourlyPricings = visiblePricings.filter((pricing) => pricing.type === 'hourly');
+    if (hourlyPricings.length === 0) return 0;
+    return Math.round(
+      hourlyPricings.reduce((acc, pricing) => acc + pricing.amount, 0) / hourlyPricings.length,
+    );
+  }, [visiblePricings]);
+
   /* -------------------------------------------------------------------------- */
   /*                                   RENDER                                   */
   /* -------------------------------------------------------------------------- */
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className={styles.root}>
       {/* HEADER & FILTERS */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start',
-        marginBottom: '1.5rem',
-        gap: '1rem',
-        flexWrap: 'wrap'
-      }}>
-        <div style={{ flex: 1, minWidth: '300px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>
-            Ma grille tarifaire personnalisee
-          </h3>
-          <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.9rem' }}>
-            Definissez vos tarifs selon le type de bien, la surface et la duree
-          </p>
-          {linkedPackageId && (
-            <p style={{ margin: '0.35rem 0 0', color: '#0f766e', fontSize: '0.85rem', fontWeight: 500 }}>
-              Les nouveaux tarifs seront aussi lies au pack: {linkedPackageName ?? linkedPackageId}
+      <div className={styles.toolbar}>
+        {showHeader && (
+          <div className={styles.headingBlock}>
+            <h3 className={styles.headingTitle}>Ma grille tarifaire personnalisee</h3>
+            <p className={styles.headingText}>
+              Definissez vos tarifs selon le type de bien, la surface et la duree.
             </p>
-          )}
-        </div>
+            {linkedPackageId && (
+              <p className={styles.headingPackHint}>
+                Les nouveaux tarifs seront aussi lies au pack :{' '}
+                <strong>{linkedPackageName ?? linkedPackageId}</strong>
+              </p>
+            )}
+            <div className={styles.inlineStats}>
+              <span className={styles.inlineStat}>
+                <strong>{pricings.length}</strong> regles
+              </span>
+              <span className={styles.inlineStat}>
+                <strong>{visibleDefaultCount}</strong> par defaut
+              </span>
+              {hasActiveServiceFilter && (
+                <span className={styles.inlineStat}>
+                  <strong>{visibleInactiveServiceCount}</strong> service(s) inactif(s)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className={styles.controlsPanel}>
           {/* Filtres */}
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#f8fafc', padding: '0.5rem', borderRadius: '8px' }}>
-            <FiFilter size={16} color="#6b7280" aria-hidden="true" />
+          <div className={styles.filterGroup}>
+            <FiFilter size={16} className={styles.filterIcon} aria-hidden="true" />
             <select
+              className={styles.selectControl}
               value={filterPropertyType}
               onChange={(e) => setFilterPropertyType(e.target.value as PropertyType | '')}
               aria-label="Filtrer par type de bien"
-              style={{
-                padding: '0.5rem',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.9rem',
-                background: 'white'
-              }}
             >
               <option value="">Tous les types</option>
-              {propertyTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+              {propertyTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
               ))}
             </select>
 
             <select
+              className={styles.selectControl}
               value={filterPricingType}
               onChange={(e) => setFilterPricingType(e.target.value as PricingType | '')}
               aria-label="Filtrer par type de tarification"
-              style={{
-                padding: '0.5rem',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.9rem',
-                background: 'white'
-              }}
             >
               <option value="">Toutes tarifications</option>
-              {pricingTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+              {pricingTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
               ))}
             </select>
           </div>
 
           {hasActiveServiceFilter && (
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontSize: '0.85rem',
-                color: '#475569',
-                background: '#f8fafc',
-                padding: '0.5rem 0.65rem',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-              }}
-            >
+            <label className={styles.togglePill}>
               <input
                 type="checkbox"
                 checked={showInactiveLinkedPricings}
@@ -557,87 +602,65 @@ const PricingGridManager = ({
           )}
 
           {/* Recherche */}
-          <div style={{ position: 'relative' }}>
-            <FiSearch style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} size={16} aria-hidden="true" />
+          <div className={styles.searchWrapper}>
+            <FiSearch size={16} className={styles.searchIcon} aria-hidden="true" />
             <input
+              className={styles.searchInput}
               type="text"
-              placeholder="Rechercher..."
+              placeholder="Rechercher un libelle..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               aria-label="Rechercher un tarif"
-              style={{
-                padding: '0.5rem 0.5rem 0.5rem 2.5rem',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.9rem',
-                width: '200px'
-              }}
             />
           </div>
 
+          <button
+            type="button"
+            className={`${styles.ghostButton} ${styles.buttonWithIcon}`}
+            onClick={resetFilters}
+            disabled={!hasFilters}
+          >
+            <FiRefreshCw size={14} aria-hidden="true" />
+            Reinitialiser
+          </button>
+
           {/* Bouton Ajouter */}
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.5rem 1rem',
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              transition: 'background 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#1d4ed8'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#2563eb'}
+            type="button"
+            className={`${styles.primaryButton} ${styles.buttonWithIcon}`}
+            onClick={() => setShowAddForm((prev) => !prev)}
           >
-            <FiPlus size={18} />
-            Nouvelle regle
+            <FiPlus size={16} aria-hidden="true" />
+            {showAddForm ? 'Fermer le formulaire' : 'Nouvelle regle'}
           </button>
         </div>
       </div>
 
       {/* ADD/EDIT FORM */}
       {showAddForm && (
-        <div style={{
-          background: '#f8fafc',
-          border: '2px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          marginBottom: '1.5rem'
-        }}>
-          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>
+        <div className={styles.formCard}>
+          <h4 className={styles.formTitle}>
             {editingId ? 'Modifier la regle' : 'Nouvelle regle tarifaire'}
           </h4>
           
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className={styles.formLayout}>
             {/* Service (optionnel) */}
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+              <label className={styles.fieldLabel}>
                 Service associe (optionnel)
               </label>
               {hasActiveServiceFilter && (
-                <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: '#6b7280' }}>
+                <p className={styles.fieldHint}>
                   {selectableServiceCount > 0
                     ? "Seuls les services actifs dans l'onglet Missions sont proposes."
                     : 'Aucun service actif: activez un service dans Missions ou laissez ce champ vide.'}
                 </p>
               )}
               <select
+                className={styles.inputControl}
                 value={formData.service_id}
                 onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
                 aria-label="Service associe"
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.95rem'
-                }}
               >
                 <option value="">- Service personnalise -</option>
                 {Object.entries(selectableServicesByCategory).map(([cat, services]) => (
@@ -652,41 +675,29 @@ const PricingGridManager = ({
 
             {/* Libelle */}
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+              <label className={styles.fieldLabel}>
                 Libelle du tarif *
               </label>
               <input
+                className={styles.inputControl}
                 type="text"
                 placeholder="Ex: Menage appartement 2 pieces"
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.95rem'
-                }}
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            <div className={styles.formGrid}>
               {/* Type de bien */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <label className={styles.fieldLabel}>
                   Type de bien
                 </label>
                 <select
+                  className={styles.inputControl}
                   value={formData.property_type}
                   onChange={(e) => setFormData({ ...formData, property_type: e.target.value as PropertyType })}
                   aria-label="Type de bien"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.95rem'
-                  }}
                 >
                   {propertyTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -696,20 +707,14 @@ const PricingGridManager = ({
 
               {/* Type de tarification */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <label className={styles.fieldLabel}>
                   Type de tarification
                 </label>
                 <select
+                  className={styles.inputControl}
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as PricingType })}
                   aria-label="Type de tarification"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.95rem'
-                  }}
                 >
                   {pricingTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -719,66 +724,48 @@ const PricingGridManager = ({
 
               {/* Surface min */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <label className={styles.fieldLabel}>
                   Surface min (m2)
                 </label>
                 <input
+                  className={styles.inputControl}
                   type="number"
                   value={formData.surface_min}
                   onChange={(e) => setFormData({ ...formData, surface_min: e.target.value })}
                   aria-label="Surface minimum en metres carres"
                   placeholder="Ex: 0"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.95rem'
-                  }}
                   min="0"
                 />
               </div>
 
               {/* Surface max */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <label className={styles.fieldLabel}>
                   Surface max (m2)
                 </label>
                 <input
+                  className={styles.inputControl}
                   type="number"
                   value={formData.surface_max}
                   onChange={(e) => setFormData({ ...formData, surface_max: e.target.value })}
                   aria-label="Surface maximum en metres carres"
                   placeholder="Ex: 50"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.95rem'
-                  }}
                   min="0"
                 />
               </div>
 
               {/* Prix */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <label className={styles.fieldLabel}>
                   {formData.type === 'fixed' ? 'Prix forfait (EUR) *' : 'Tarif (EUR) *'}
                 </label>
                 <input
+                  className={styles.inputControl}
                   type="number"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   aria-label="Montant du tarif en euros"
                   placeholder="Ex: 45"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.95rem'
-                  }}
                   min="0"
                   step="0.01"
                 />
@@ -786,22 +773,16 @@ const PricingGridManager = ({
 
               {/* Duree estimee */}
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <label className={styles.fieldLabel}>
                   Duree estimee (h)
                 </label>
                 <input
+                  className={styles.inputControl}
                   type="number"
                   value={formData.estimated_duration}
                   onChange={(e) => setFormData({ ...formData, estimated_duration: e.target.value })}
                   aria-label="Duree estimee en heures"
                   placeholder="Ex: 2.5"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.95rem'
-                  }}
                   min="0"
                   step="0.5"
                 />
@@ -809,28 +790,26 @@ const PricingGridManager = ({
             </div>
 
             {/* Tarif par defaut */}
-            <div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <div className={styles.checkboxGroup}>
+              <label className={styles.checkboxRow}>
                 <input
                   type="checkbox"
                   checked={formData.is_default}
                   onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
-                <span style={{ fontSize: '0.95rem' }}>Definir comme tarif par defaut</span>
+                <span>Definir comme tarif par defaut</span>
               </label>
             </div>
 
             {linkedPackageId && !editingId && (
-              <div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <div className={styles.checkboxGroup}>
+                <label className={styles.checkboxRow}>
                   <input
                     type="checkbox"
                     checked={linkToPackage}
                     onChange={(e) => setLinkToPackage(e.target.checked)}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                   />
-                  <span style={{ fontSize: '0.95rem' }}>
+                  <span>
                     Lier ce tarif au pack {linkedPackageName ?? linkedPackageId}
                   </span>
                 </label>
@@ -838,36 +817,20 @@ const PricingGridManager = ({
             )}
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+            <div className={styles.formActions}>
               <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: loading ? '#9ca3af' : '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.95rem',
-                  fontWeight: 500
-                }}
+                className={styles.successButton}
               >
                 {loading ? 'Enregistrement...' : (editingId ? 'Mettre a jour' : 'Ajouter')}
               </button>
               <button
+                type="button"
                 onClick={resetForm}
                 disabled={loading}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#e5e7eb',
-                  color: '#374151',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.95rem',
-                  fontWeight: 500
-                }}
+                className={styles.secondaryButton}
               >
                 Annuler
               </button>
@@ -878,36 +841,15 @@ const PricingGridManager = ({
 
       {/* PRICING RULES TABLE */}
       {linkedPackageId && (
-        <div
-          style={{
-            marginBottom: '0.85rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '0.75rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569' }}>
+        <div className={styles.packageBar}>
+          <p>
             Selectionnez des tarifs existants puis integrez-les au pack {linkedPackageName ?? linkedPackageId}.
           </p>
           <button
             type="button"
             onClick={handleAttachSelectedToPack}
             disabled={selectedPricingIdsForPack.length === 0 || isLinkingSelected}
-            style={{
-              padding: '0.55rem 0.9rem',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              background:
-                selectedPricingIdsForPack.length === 0 || isLinkingSelected ? '#e2e8f0' : '#0f766e',
-              color:
-                selectedPricingIdsForPack.length === 0 || isLinkingSelected ? '#64748b' : '#ffffff',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              cursor:
-                selectedPricingIdsForPack.length === 0 || isLinkingSelected ? 'not-allowed' : 'pointer',
-            }}
+            className={styles.packLinkButton}
           >
             {isLinkingSelected
               ? 'Integration...'
@@ -916,36 +858,32 @@ const PricingGridManager = ({
         </div>
       )}
 
-      <div style={{
-        background: 'white',
-        border: '1px solid #e5e7eb',
-        borderRadius: '12px',
-        overflow: 'hidden'
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className={styles.tableCard}>
+        <div className={styles.tableScroll}>
+        <table className={styles.pricingTable}>
           <thead>
-            <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+            <tr className={styles.tableHeaderRow}>
               {linkedPackageId && (
-                <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+                <th className={styles.tableHeadCell}>
                   PACK
                 </th>
               )}
-              <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+              <th className={styles.tableHeadCell}>
                 LIBELLE
               </th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+              <th className={styles.tableHeadCell}>
                 TYPE DE BIEN
               </th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+              <th className={styles.tableHeadCell}>
                 SURFACE
               </th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+              <th className={styles.tableHeadCell}>
                 TARIFICATION
               </th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+              <th className={styles.tableHeadCell}>
                 DUREE
               </th>
-              <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem', fontWeight: 600, color: '#6b7280' }}>
+              <th className={`${styles.tableHeadCell} ${styles.tableHeadCellRight}`}>
                 ACTIONS
               </th>
             </tr>
@@ -953,166 +891,115 @@ const PricingGridManager = ({
           <tbody>
             {visiblePricings.length === 0 ? (
               <tr>
-                <td colSpan={linkedPackageId ? 7 : 6} style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af' }}>
-                  {searchTerm || filterPropertyType || filterPricingType
-                    ? 'Aucun tarif ne correspond aux filtres'
-                    : 'Aucune regle tarifaire definie. Cliquez sur "Nouvelle regle" pour commencer.'}
+                <td colSpan={linkedPackageId ? 7 : 6} className={styles.emptyCell}>
+                  <p className={styles.emptyTitle}>
+                    {searchTerm || filterPropertyType || filterPricingType
+                      ? 'Aucun tarif ne correspond aux filtres'
+                      : 'Aucune regle tarifaire definie.'}
+                  </p>
+                  {(searchTerm || filterPropertyType || filterPricingType) && (
+                    <button
+                      type="button"
+                      className={styles.emptyAction}
+                      onClick={resetFilters}
+                    >
+                      Effacer les filtres
+                    </button>
+                  )}
                 </td>
               </tr>
             ) : (
-              visiblePricings.map((pricing, index) => {
-                const isLinkedToInactiveService =
-                  hasActiveServiceFilter &&
-                  Boolean(pricing.service_id) &&
-                  !activeServiceIdSet.has(pricing.service_id as string) &&
-                  !Boolean(
-                    pricing.service &&
-                      activeServiceLabelSet.has(
-                        normalizeServiceText(pricing.service.service),
-                      ),
-                  );
+              visiblePricings.map((pricing) => {
+                const isLinkedToInactiveService = isPricingLinkedToInactiveService(pricing);
                 const isAlreadyLinkedToCurrentPack =
                   linkedPackageId && linkedPricingSignatures.has(getPricingSignature(pricing));
                 const isCheckedForPack = selectedPricingIdsForPack.includes(pricing.id);
 
                 return (
-                <tr 
+                <tr
                   key={pricing.id}
-                  style={{ 
-                    borderBottom: index < visiblePricings.length - 1 ? '1px solid #f3f4f6' : 'none',
-                    transition: 'background 0.2s',
-                    opacity: isLinkedToInactiveService ? 0.58 : 1,
-                    background: isLinkedToInactiveService ? '#f8fafc' : 'white',
-                  }}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background = isLinkedToInactiveService
-                      ? '#f1f5f9'
-                      : '#f9fafb')
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = isLinkedToInactiveService
-                      ? '#f8fafc'
-                      : 'white')
-                  }
+                  className={`${styles.tableRow} ${isLinkedToInactiveService ? styles.tableRowMuted : ''}`}
                 >
                   {linkedPackageId && (
-                    <td style={{ padding: '1rem' }}>
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <td className={styles.tableCell}>
+                      <label className={styles.packToggle}>
                         <input
                           type="checkbox"
                           checked={isCheckedForPack}
                           onChange={() => togglePricingSelectionForPack(pricing.id)}
                           disabled={Boolean(isAlreadyLinkedToCurrentPack)}
                         />
-                        <span style={{ fontSize: '0.8rem', color: '#475569' }}>
+                        <span className={styles.packToggleText}>
                           {isAlreadyLinkedToCurrentPack ? 'Deja lie' : 'Lier'}
                         </span>
                       </label>
                     </td>
                   )}
-                  <td style={{ padding: '1rem' }}>
-                    <div>
-                      <span style={{ fontWeight: 500 }}>{pricing.label}</span>
+                  <td className={styles.tableCell}>
+                    <div className={styles.labelCell}>
+                      <span className={styles.labelText}>{pricing.label}</span>
                       {pricing.is_default && (
-                        <span style={{ 
-                          marginLeft: '0.5rem',
-                          padding: '0.25rem 0.5rem',
-                          background: '#dbeafe',
-                          color: '#1e40af',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600
-                        }}>
+                        <span className={`${styles.badge} ${styles.badgeDefault}`}>
                           PAR DEFAUT
                         </span>
                       )}
                       {isLinkedToInactiveService && (
-                        <span
-                          style={{
-                            marginLeft: '0.5rem',
-                            padding: '0.25rem 0.5rem',
-                            background: '#fff7ed',
-                            color: '#9a3412',
-                            borderRadius: '4px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                          }}
-                        >
+                        <span className={`${styles.badge} ${styles.badgeWarning}`}>
                           SERVICE INACTIF
                         </span>
                       )}
                       {pricing.service && (
-                        <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                        <div className={styles.serviceMeta}>
                           {pricing.service.category} {"->"} {pricing.service.service}
                         </div>
                       )}
                     </div>
                   </td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <td className={styles.tableCell}>
+                    <div className={styles.inlineCell}>
                       <FiHome size={16} color="#6b7280" />
-                      <span style={{ textTransform: 'capitalize' }}>
+                      <span>
                         {getPropertyTypeLabel(pricing.property_type)}
                       </span>
                     </div>
                   </td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <td className={styles.tableCell}>
+                    <div className={styles.inlineCell}>
                       <FiSquare size={16} color="#6b7280" />
                       <span>{getSurfaceLabel(pricing.surface_min, pricing.surface_max)}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <td className={styles.tableCell}>
+                    <div className={`${styles.inlineCell} ${styles.priceCell}`}>
                       <FiDollarSign size={16} color="#10b981" />
-                      <span style={{ fontWeight: 500, color: '#10b981' }}>
+                      <span>
                         {getPriceDisplay(pricing)}
                       </span>
                     </div>
                   </td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <td className={styles.tableCell}>
+                    <div className={styles.inlineCell}>
                       <FiClock size={16} color="#6b7280" />
                       <span>{pricing.estimated_duration ? `${pricing.estimated_duration}h` : '-'}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <td className={`${styles.tableCell} ${styles.actionsCell}`}>
+                    <div className={styles.rowActions}>
                       <button
+                        type="button"
                         onClick={() => handleEdit(pricing)}
                         aria-label={`Modifier le tarif ${pricing.label}`}
                         title="Modifier"
-                        style={{
-                          padding: '0.5rem',
-                          background: '#f3f4f6',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                        onMouseOut={(e) => e.currentTarget.style.background = '#f3f4f6'}
+                        className={`${styles.iconActionButton} ${styles.iconActionEdit}`}
                       >
                         <FiEdit2 size={16} color="#6b7280" aria-hidden="true" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(pricing.id)}
                         aria-label={`Supprimer le tarif ${pricing.label}`}
                         title="Supprimer"
-                        style={{
-                          padding: '0.5rem',
-                          background: '#fee2e2',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = '#fecaca'}
-                        onMouseOut={(e) => e.currentTarget.style.background = '#fee2e2'}
+                        className={`${styles.iconActionButton} ${styles.iconActionDelete}`}
                       >
                         <FiTrash2 size={16} color="#dc2626" aria-hidden="true" />
                       </button>
@@ -1124,52 +1011,45 @@ const PricingGridManager = ({
           </tbody>
         </table>
       </div>
+      </div>
 
       {/* QUICK STATS */}
-      {visiblePricings.length > 0 && (
-        <div style={{
-          marginTop: '1.5rem',
-          padding: '1.5rem',
-          background: '#f0f9ff',
-          border: '1px solid #bae6fd',
-          borderRadius: '12px'
-        }}>
-          <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
+      {showQuickStats && visiblePricings.length > 0 && (
+        <div className={styles.quickStatsCard}>
+          <h4 className={styles.quickStatsTitle}>
             Statistiques rapides
           </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+          <div className={styles.quickStatsGrid}>
+            <div className={styles.quickStatItem}>
+              <div className={styles.quickStatLabel}>
                 Regles definies
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0369a1' }}>
-                {pricings.length}
+              <div className={styles.quickStatValue}>
+                {visiblePricings.length}
               </div>
             </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+            <div className={styles.quickStatItem}>
+              <div className={styles.quickStatLabel}>
+                Tarifs par defaut
+              </div>
+              <div className={styles.quickStatValue}>
+                {visibleDefaultCount}
+              </div>
+            </div>
+            <div className={styles.quickStatItem}>
+              <div className={styles.quickStatLabel}>
                 Tarif moyen forfait
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0369a1' }}>
-                {(() => {
-                  const forfaits = pricings.filter(r => r.type === 'fixed');
-                  return forfaits.length > 0
-                    ? Math.round(forfaits.reduce((acc, r) => acc + r.amount, 0) / forfaits.length)
-                    : 0;
-                })()} EUR
+              <div className={styles.quickStatValue}>
+                {averageFixedAmount} EUR
               </div>
             </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+            <div className={styles.quickStatItem}>
+              <div className={styles.quickStatLabel}>
                 Tarif horaire moyen
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0369a1' }}>
-                {(() => {
-                  const horaires = pricings.filter(r => r.type === 'hourly');
-                  return horaires.length > 0
-                    ? Math.round(horaires.reduce((acc, r) => acc + r.amount, 0) / horaires.length)
-                    : 0;
-                })()} EUR/h
+              <div className={styles.quickStatValue}>
+                {averageHourlyAmount} EUR/h
               </div>
             </div>
           </div>

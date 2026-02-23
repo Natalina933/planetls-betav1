@@ -29,6 +29,8 @@ import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import TariffServicePackages from "@/app/components/tariffs/TariffServicePackages";
 import TariffAdjustments from "@/app/components/tariffs/TariffAdjustments";
+import TariffRevenueEstimator from "@/app/components/tariffs/TariffRevenueEstimator";
+import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
 import type {
   ConciergeMissionProfile,
@@ -120,6 +122,8 @@ export interface Profile {
   // champs étendus pour l'onglet équipe
   service_area?: string | null;
   service_radius_km?: number | null;
+  onboarding_complete?: boolean;
+  onboarding_completed_at?: string | null;
 }
 
 const formatExperienceLabel = (
@@ -148,8 +152,7 @@ const SECTION_IDS = {
 
 const TARIFF_SECTION_IDS = {
   BASE: normalizeSectionId("Tarifs de base"),
-  PACKS: normalizeSectionId("Packs location saisonniere"),
-  ADJUSTMENTS: normalizeSectionId("Majorations et regles de facturation"),
+  BILLING: normalizeSectionId("Parametres de facturation"),
 } as const;
 
 const MISSION_SECTION_IDS = {
@@ -169,6 +172,15 @@ interface CatalogServiceItem {
   id: number;
   category: string;
   service: string;
+}
+
+interface MissionListItem {
+  id: string;
+  title: string;
+  status: string;
+  amount: number | null;
+  currency: string;
+  owner_profile_id: string | null;
 }
 
 const DEFAULT_MISSION_CENTER = { lat: 48.8566, lng: 2.3522 };
@@ -744,6 +756,10 @@ export default function ConciergeProfilePage() {
   const [showPendingMissionStepsOnly, setShowPendingMissionStepsOnly] =
     useState(false);
   const [catalogServices, setCatalogServices] = useState<CatalogServiceItem[]>([]);
+  const [missionRows, setMissionRows] = useState<MissionListItem[]>([]);
+  const [selectedMissionQuoteId, setSelectedMissionQuoteId] = useState("");
+  const [missionQuoteBusy, setMissionQuoteBusy] = useState(false);
+  const [missionQuoteFeedback, setMissionQuoteFeedback] = useState("");
   const didSeedFromOnboardingRef = useRef(false);
   const missionPayload = useMemo(
     () => parseMissionPayload(editProfile?.availability_hours),
@@ -916,6 +932,38 @@ export default function ConciergeProfilePage() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "missions") return;
+
+    let isMounted = true;
+    const fetchMissions = async () => {
+      try {
+        const response = await fetch("/api/missions?scope=concierge&limit=60", {
+          cache: "no-store",
+        });
+        const data: MissionListItem[] | { error: string } = await response.json();
+        if (!isMounted) return;
+
+        if (!response.ok || !Array.isArray(data)) {
+          return;
+        }
+
+        setMissionRows(data);
+        if (!selectedMissionQuoteId && data.length > 0) {
+          setSelectedMissionQuoteId(data[0].id);
+        }
+      } catch {
+        // silent fail: missions panel remains usable
+      }
+    };
+
+    fetchMissions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, selectedMissionQuoteId]);
 
   useEffect(() => {
     if (didSeedFromOnboardingRef.current) return;
@@ -1204,6 +1252,13 @@ export default function ConciergeProfilePage() {
 
     setLoading(true);
     let avatarUrl = editProfile.avatar_url;
+    const onboardingReady =
+      missionProgressSteps.length > 0 &&
+      missionProgressSteps.every((step) => step.done);
+    const shouldMarkOnboardingComplete =
+      activeTab === "missions" &&
+      onboardingReady &&
+      editProfile.onboarding_complete !== true;
 
     try {
       if (avatarFile && sectionTitle === "Photo de profil") {
@@ -1216,6 +1271,7 @@ export default function ConciergeProfilePage() {
         body: JSON.stringify({
           ...editProfile,
           avatar_url: avatarUrl,
+          ...(shouldMarkOnboardingComplete ? { onboarding_complete: true } : {}),
         }),
       });
 
@@ -1576,6 +1632,83 @@ export default function ConciergeProfilePage() {
 
   const renderMissionsStaticSections = () => (
     <>
+
+      {renderSection(
+        "Devis rapides depuis mission",
+        <FiFile />,
+        <>
+          <div className={styles.missionToolbar}>
+            <div className={styles.missionToolbarItem}>
+              <span>Mission source</span>
+              <select
+                value={selectedMissionQuoteId}
+                onChange={(e) => setSelectedMissionQuoteId(e.target.value)}
+                disabled={missionRows.length === 0 || missionQuoteBusy}
+              >
+                {missionRows.length === 0 && <option value="">Aucune mission disponible</option>}
+                {missionRows.map((mission) => (
+                  <option key={mission.id} value={mission.id}>
+                    {mission.title} - {mission.status}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.missionToolbarItem}>
+              <span>Action</span>
+              <button
+                type="button"
+                className={styles.missionDetailButton}
+                disabled={!selectedMissionQuoteId || missionQuoteBusy}
+                onClick={async () => {
+                  if (!selectedMissionQuoteId) return;
+                  try {
+                    setMissionQuoteBusy(true);
+                    setMissionQuoteFeedback("");
+                    const response = await fetch("/api/quotes/from-mission", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ mission_id: selectedMissionQuoteId }),
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                      throw new Error(
+                        typeof result?.error === "string"
+                          ? result.error
+                          : "Erreur creation devis depuis mission",
+                      );
+                    }
+
+                    const quoteNumber =
+                      typeof result?.quote_number === "string"
+                        ? result.quote_number
+                        : "devis cree";
+
+                    setMissionQuoteFeedback(`${quoteNumber} genere. Onglet Tarifs mis a jour.`);
+                    handleTabChange("tarifs");
+                  } catch (error) {
+                    setMissionQuoteFeedback(
+                      error instanceof Error ? error.message : "Erreur creation devis",
+                    );
+                  } finally {
+                    setMissionQuoteBusy(false);
+                  }
+                }}
+              >
+                {missionQuoteBusy ? "Generation..." : "Creer devis"}
+              </button>
+            </div>
+          </div>
+          <p className={styles.missionProgressHint}>
+            Transformez une mission en devis brouillon sans ressaisie.
+          </p>
+          {missionQuoteFeedback && (
+            <p className={styles.missionProgressHint}>{missionQuoteFeedback}</p>
+          )}
+        </>,
+        false,
+        undefined,
+        false,
+      )}
 
       {renderSection(
         "Priorité & typologie des missions",
@@ -2252,33 +2385,91 @@ export default function ConciergeProfilePage() {
       case "tarifs":
         return (
           <div className={styles.financeGrid}>
-            <div className={styles.financeCard}>
+            <div className={`${styles.financeCard} ${styles.financeCardFull}`}>
               {renderSection(
-                "Positionnement tarifaire",
-                <FiDollarSignOutline />,
-                <div className={styles.pricingQuickStats}>
-                  <h4>Repere rapide location saisonniere</h4>
-                  <ul>
-                    <li>
-                      Tarif horaire: {editProfile.hourly_rate ?? 0} EUR/h
-                    </li>
-                    <li>
-                      Check-in + check-out:{" "}
-                      {seasonalPricing.checkInFee + seasonalPricing.checkOutFee} EUR
-                    </li>
-                    <li>
-                      Menage T2/T3: {seasonalPricing.cleaningTwoRoomsFee} EUR
-                    </li>
-                    <li>
-                      Panier urgence nuit:{" "}
-                      {Math.round(
-                        (editProfile.hourly_rate ?? 0) *
-                          (1 + seasonalPricing.urgentPercent / 100) *
-                          (1 + seasonalPricing.nightPercent / 100),
-                      )}{" "}
-                      EUR/h
-                    </li>
-                  </ul>
+                "Parcours devis & facturation",
+                <FiTarget />,
+                <div className={styles.tariffWorkflow}>
+                  <p className={styles.tariffWorkflowLead}>
+                    Le role de cet onglet Tarifs est de transformer vos
+                    donnees Missions + Packs + Grille tarifaire en devis puis
+                    en factures, rapidement et sans ressaisie.
+                  </p>
+
+                  <div className={styles.tariffSteps}>
+                    <article className={styles.tariffStep}>
+                      <span className={styles.tariffStepIcon}>
+                        <FiTarget />
+                      </span>
+                      <div>
+                        <h4 className={styles.tariffStepTitle}>1. Missions</h4>
+                        <p className={styles.tariffStepDesc}>
+                          Definir les services actifs et le cadre
+                          de travail.
+                        </p>
+                      </div>
+                    </article>
+
+                    <article className={styles.tariffStep}>
+                      <span className={styles.tariffStepIcon}>
+                        <FiBriefcase />
+                      </span>
+                      <div>
+                        <h4 className={styles.tariffStepTitle}>2. Mes packs</h4>
+                        <p className={styles.tariffStepDesc}>
+                          Structurer des offres pretes a vendre par type de
+                          client.
+                        </p>
+                      </div>
+                    </article>
+
+                    <article className={styles.tariffStep}>
+                      <span className={styles.tariffStepIcon}>
+                        <FiDollarSignOutline />
+                      </span>
+                      <div>
+                        <h4 className={styles.tariffStepTitle}>
+                          3. Grille tarifaire
+                        </h4>
+                        <p className={styles.tariffStepDesc}>
+                          Appliquer les regles de prix selon bien, surface et
+                          duree.
+                        </p>
+                      </div>
+                    </article>
+
+                    <article className={styles.tariffStep}>
+                      <span className={styles.tariffStepIcon}>
+                        <FiCheckCircleOutline />
+                      </span>
+                      <div>
+                        <h4 className={styles.tariffStepTitle}>
+                          4. Devis / Factures
+                        </h4>
+                        <p className={styles.tariffStepDesc}>
+                          Generer des documents coherents, tracables et
+                          reutilisables.
+                        </p>
+                      </div>
+                    </article>
+                  </div>
+
+                  <div className={styles.tariffQuickActions}>
+                    <button
+                      type="button"
+                      className={styles.tariffNavBtn}
+                      onClick={() => handleTabChange("missions")}
+                    >
+                      Configurer Missions
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.tariffNavBtn}
+                      onClick={() => handleTabChange("packs")}
+                    >
+                      Configurer Mes Packs
+                    </button>
+                  </div>
                 </div>,
                 false,
               )}
@@ -2289,6 +2480,10 @@ export default function ConciergeProfilePage() {
                 "Tarifs de base",
                 <DollarSign />,
                 <>
+                  <p className={styles.tariffHint}>
+                    Parametres utilises pour les devis rapides et les factures
+                    hors cas specifiques de la grille detaillee.
+                  </p>
                   {renderField(
                     "Tarif horaire (EUR/h)",
                     "hourly_rate",
@@ -2296,15 +2491,6 @@ export default function ConciergeProfilePage() {
                     false,
                     true,
                     "45",
-                    "number",
-                  )}
-                  {renderField(
-                    "Forfait mensuel (EUR)",
-                    "monthly_rate",
-                    TARIFF_SECTION_IDS.BASE,
-                    false,
-                    false,
-                    "1500",
                     "number",
                   )}
                   {renderField(
@@ -2320,33 +2506,42 @@ export default function ConciergeProfilePage() {
               )}
             </div>
 
-            <div className={styles.financeCard}>
+            <div className={`${styles.financeCard} ${styles.financeCardWide}`}>
               {renderSection(
                 "Grille tarifaire detaillee",
                 <FiDollarSignOutline />,
                 <>
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.4rem",
-                      marginBottom: "0.9rem",
-                      padding: "0.45rem 0.7rem",
-                      borderRadius: "999px",
-                      border: "1px solid #cbd5e1",
-                      background: "#f8fafc",
-                      color: "#334155",
-                      fontSize: "0.82rem",
-                      fontWeight: 500,
-                    }}
-                  >
+                  <div className={styles.tariffTag}>
                     <AlertCircle size={14} />
                     Enregistrement independant du profil
                   </div>
+                  <p className={styles.tariffHint}>
+                    Base principale pour preparer des devis fiables selon le
+                    contexte de la demande (type de bien, surface, duree,
+                    service).
+                  </p>
                   <PricingGridManager
                     activeServiceIds={activeMissionServiceCatalogIds}
                     activeServiceLabels={activeMissionServiceLabels}
+                    showHeader={false}
+                    showQuickStats={false}
                   />
+                </>,
+                false,
+              )}
+            </div>
+
+            <div className={`${styles.financeCard} ${styles.financeCardFull}`}>
+              {renderSection(
+                "Devis et factures operationnels",
+                <FiFile />,
+                <>
+                  <p className={styles.tariffHint}>
+                    Lancez les premiers devis depuis vos missions, puis
+                    convertissez-les en factures avec suivi des statuts et du
+                    reste a encaisser.
+                  </p>
+                  <TariffBillingDesk />
                 </>,
                 false,
               )}
@@ -2354,25 +2549,51 @@ export default function ConciergeProfilePage() {
 
             <div className={styles.financeCard}>
               {renderSection(
-                "Packs location saisonniere",
-                <FiBriefcase />,
-                <TariffServicePackages
-                  value={seasonalPricing}
-                  isEditing={editingSection === TARIFF_SECTION_IDS.PACKS}
-                  onChange={applySeasonalPricing}
-                />,
+                "Parametres de facturation",
+                <FiTrendingUp />,
+                <>
+                  <p className={styles.tariffHint}>
+                    Regles transverses appliquees aux devis et factures : frais
+                    standards, majorations, minimum de facturation.
+                  </p>
+                  <h3 className={styles.tariffSubsectionTitle}>
+                    Prestations standard sejour
+                  </h3>
+                  <TariffServicePackages
+                    value={seasonalPricing}
+                    isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
+                    onChange={applySeasonalPricing}
+                  />
+                  <h3 className={styles.tariffSubsectionTitle}>
+                    Majorations et seuil minimum
+                  </h3>
+                  <TariffAdjustments
+                    value={seasonalPricing}
+                    isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
+                    onChange={applySeasonalPricing}
+                  />
+                </>,
+                true,
+                TARIFF_SECTION_IDS.BILLING,
               )}
             </div>
 
             <div className={styles.financeCard}>
               {renderSection(
-                "Majorations et regles de facturation",
-                <FiTrendingUp />,
-                <TariffAdjustments
-                  value={seasonalPricing}
-                  isEditing={editingSection === TARIFF_SECTION_IDS.ADJUSTMENTS}
-                  onChange={applySeasonalPricing}
-                />,
+                "Prevision de revenus",
+                <FiBarChart />,
+                <>
+                  <p className={styles.tariffHint}>
+                    Simulez limpact de vos regles tarifaires pour ajuster vos
+                    devis avant envoi.
+                  </p>
+                  <TariffRevenueEstimator
+                    hourlyRate={editProfile.hourly_rate ?? 0}
+                    travelFee={editProfile.travel_fee ?? 0}
+                    pricing={seasonalPricing}
+                  />
+                </>,
+                false,
               )}
             </div>
           </div>

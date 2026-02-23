@@ -169,7 +169,6 @@ export default function Navbar() {
       });
       clearInactivityTimers();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, isDashboardRoute, pathname, clearInactivityTimers, resetInactivityTimer]);
 
   // 🚪 Arrêter les timers lors de la sortie du dashboard

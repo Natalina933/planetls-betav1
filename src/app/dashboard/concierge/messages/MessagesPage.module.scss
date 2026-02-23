@@ -1,0 +1,260 @@
+.page {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.header {
+  border: 1px solid rgba(30, 64, 175, 0.22);
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem;
+  background:
+    radial-gradient(120% 180% at 0% 0%, rgba(20, 94, 179, 0.14) 0%, rgba(20, 94, 179, 0) 60%),
+    #f8fafc;
+
+  h1 {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0.38rem 0 0;
+    font-size: 0.84rem;
+    color: #475569;
+  }
+}
+
+.errorBox {
+  margin: 0;
+  border: 1px solid rgba(185, 28, 28, 0.28);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 980px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sidebar {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.72rem;
+  min-height: 62vh;
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+
+  h2 {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #0f172a;
+  }
+
+  span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #1e3a8a;
+  }
+}
+
+.conversationList {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.conversationItem {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.9);
+  padding: 0.55rem;
+  text-align: left;
+  cursor: pointer;
+  display: grid;
+  gap: 0.26rem;
+
+  p,
+  small {
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.78rem;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  small {
+    font-size: 0.73rem;
+    color: #64748b;
+    line-height: 1.35;
+  }
+}
+
+.conversationItemActive {
+  border-color: rgba(30, 64, 175, 0.55);
+  background: rgba(219, 234, 254, 0.55);
+}
+
+.conversationHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+
+  strong {
+    font-size: 0.8rem;
+    color: #1f2937;
+  }
+
+  span {
+    font-size: 0.68rem;
+    color: #64748b;
+  }
+}
+
+.thread {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.72rem;
+  min-height: 62vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.6rem;
+}
+
+.threadHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+
+  h2 {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+
+  span {
+    border: 1px solid rgba(30, 64, 175, 0.3);
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    background: rgba(30, 64, 175, 0.1);
+  }
+}
+
+.messageList {
+  overflow: auto;
+  display: grid;
+  gap: 0.45rem;
+  padding-right: 0.15rem;
+}
+
+.message {
+  border-radius: 10px;
+  padding: 0.5rem 0.6rem;
+  max-width: 85%;
+  border: 1px solid transparent;
+
+  p {
+    margin: 0.24rem 0 0;
+    font-size: 0.82rem;
+    line-height: 1.42;
+    color: #1f2937;
+    white-space: pre-wrap;
+  }
+}
+
+.messageMine {
+  margin-left: auto;
+  background: rgba(37, 99, 235, 0.11);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.messageOther {
+  margin-right: auto;
+  background: rgba(241, 245, 249, 0.9);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.messageMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+
+  strong {
+    color: #1e3a8a;
+  }
+
+  span {
+    color: #64748b;
+  }
+}
+
+.composer {
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+  padding-top: 0.55rem;
+  display: grid;
+  gap: 0.4rem;
+
+  textarea {
+    width: 100%;
+    min-height: 74px;
+    max-height: 180px;
+    border: 1px solid rgba(148, 163, 184, 0.65);
+    border-radius: 9px;
+    padding: 0.55rem 0.6rem;
+    resize: vertical;
+    font-size: 0.84rem;
+    color: #0f172a;
+    background: #fff;
+  }
+
+  button {
+    justify-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34rem;
+    border: 1px solid rgba(30, 64, 175, 0.35);
+    border-radius: 8px;
+    background: rgba(30, 64, 175, 0.1);
+    color: #1e3a8a;
+    font-size: 0.79rem;
+    font-weight: 700;
+    padding: 0.42rem 0.64rem;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.emptyState {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.82rem;
+}
