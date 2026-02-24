@@ -1,4 +1,8 @@
 .root {
+  --accent: #b8941e;
+  --accent-light: #d4af37;
+  --accent-soft: rgba(212, 175, 55, 0.14);
+  --accent-border: rgba(184, 148, 30, 0.26);
   display: grid;
   gap: 1rem;
   color: #0f172a;
@@ -10,6 +14,12 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  border: 1px solid var(--accent-border);
+  border-radius: 14px;
+  padding: 0.8rem 0.9rem;
+  background:
+    radial-gradient(circle at 0% 0%, var(--accent-soft) 0%, rgba(212, 175, 55, 0.04) 52%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 248, 0.98));
 }
 
 .headingBlock {
@@ -33,7 +43,7 @@
 
 .headingPackHint {
   margin: 0.4rem 0 0;
-  color: #0f766e;
+  color: #8a6a12;
   font-size: 0.84rem;
 }
 
@@ -49,11 +59,11 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.2rem 0.55rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(184, 148, 30, 0.28);
   border-radius: 999px;
-  background: #f8fafc;
-  font-size: 0.8rem;
-  color: #334155;
+  background: rgba(212, 175, 55, 0.1);
+  font-size: 0.78rem;
+  color: #8a6a12;
 }
 
 .controlsPanel {
@@ -62,6 +72,10 @@
   justify-content: flex-end;
   gap: 0.65rem;
   flex-wrap: wrap;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 0.5rem;
 }
 
 .filterGroup {
@@ -69,9 +83,9 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem;
-  border: 1px solid #dbe3ee;
+  border: 1px solid rgba(148, 163, 184, 0.42);
   border-radius: 10px;
-  background: #f8fafc;
+  background: rgba(249, 250, 251, 0.94);
 }
 
 .filterIcon {
@@ -99,8 +113,8 @@
 .inputControl:focus,
 .searchInput:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+  border-color: rgba(184, 148, 30, 0.7);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
 }
 
 .togglePill {
@@ -109,15 +123,15 @@
   gap: 0.45rem;
   padding: 0.5rem 0.7rem;
   border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  background: rgba(249, 250, 251, 0.95);
   color: #475569;
   font-size: 0.82rem;
   white-space: nowrap;
 }
 
 .togglePill input {
-  accent-color: #0f766e;
+  accent-color: var(--accent);
 }
 
 .searchWrapper {
@@ -162,19 +176,20 @@
 
 .primaryButton {
   padding: 0.58rem 0.9rem;
-  background: #1d4ed8;
+  background: linear-gradient(135deg, rgba(184, 148, 30, 0.98), rgba(212, 175, 55, 0.98));
+  border-color: rgba(184, 148, 30, 0.55);
   color: #ffffff;
 }
 
 .primaryButton:hover {
-  background: #1e40af;
+  background: linear-gradient(135deg, rgba(177, 139, 23, 1), rgba(206, 168, 41, 1));
 }
 
 .ghostButton {
   padding: 0.58rem 0.78rem;
   background: #ffffff;
   color: #334155;
-  border-color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.52);
 }
 
 .ghostButton:hover:not(:disabled) {
@@ -194,22 +209,24 @@
 
 .successButton {
   padding: 0.72rem 1.2rem;
-  background: #059669;
+  background: linear-gradient(135deg, rgba(184, 148, 30, 0.98), rgba(212, 175, 55, 0.98));
+  border-color: rgba(184, 148, 30, 0.55);
   color: #ffffff;
 }
 
 .successButton:hover:not(:disabled) {
-  background: #047857;
+  background: linear-gradient(135deg, rgba(177, 139, 23, 1), rgba(206, 168, 41, 1));
 }
 
 .packLinkButton {
   padding: 0.55rem 0.88rem;
-  background: #0f766e;
+  background: #8a6a12;
+  border-color: #8a6a12;
   color: #ffffff;
 }
 
 .packLinkButton:hover:not(:disabled) {
-  background: #115e59;
+  background: #74580f;
 }
 
 .primaryButton:disabled,
@@ -222,10 +239,11 @@
 }
 
 .formCard {
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--accent-border);
   border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  background: linear-gradient(180deg, #ffffff, rgba(250, 250, 248, 0.98));
   padding: 1.2rem;
+  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.05);
 }
 
 .formTitle {
@@ -273,7 +291,7 @@
 }
 
 .checkboxRow input {
-  accent-color: #2563eb;
+  accent-color: var(--accent);
 }
 
 .formActions {
@@ -288,9 +306,9 @@
   justify-content: space-between;
   gap: 0.7rem;
   padding: 0.72rem 0.85rem;
-  border: 1px solid #dbe3ee;
+  border: 1px solid rgba(184, 148, 30, 0.26);
   border-radius: 10px;
-  background: #f8fafc;
+  background: rgba(250, 250, 248, 0.95);
 }
 
 .packageBar p {
@@ -300,10 +318,11 @@
 }
 
 .tableCard {
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(184, 148, 30, 0.23);
   border-radius: 12px;
   background: #ffffff;
   overflow: hidden;
+  box-shadow: 0 6px 14px rgba(17, 24, 39, 0.04);
 }
 
 .tableScroll {
@@ -317,8 +336,8 @@
 }
 
 .tableHeaderRow {
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, rgba(250, 250, 248, 0.96), rgba(245, 247, 250, 0.96));
+  border-bottom: 1px solid rgba(184, 148, 30, 0.2);
 }
 
 .tableHeadCell {
@@ -326,7 +345,7 @@
   text-align: left;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #64748b;
+  color: #6b7280;
   letter-spacing: 0.03em;
 }
 
@@ -340,12 +359,12 @@
 }
 
 .tableRow:hover {
-  background: #f8fafc;
+  background: rgba(250, 250, 248, 0.75);
 }
 
 .tableRowMuted {
   opacity: 0.6;
-  background: #f8fafc;
+  background: rgba(249, 250, 251, 0.85);
 }
 
 .tableCell {
@@ -361,7 +380,7 @@
 }
 
 .packToggle input {
-  accent-color: #0f766e;
+  accent-color: var(--accent);
 }
 
 .packToggleText {
@@ -390,8 +409,8 @@
 }
 
 .badgeDefault {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: rgba(212, 175, 55, 0.18);
+  color: #8a6a12;
 }
 
 .badgeWarning {
@@ -443,7 +462,7 @@
 }
 
 .iconActionEdit:hover {
-  background: #eef2ff;
+  background: rgba(212, 175, 55, 0.14);
 }
 
 .iconActionDelete {
@@ -470,16 +489,16 @@
   margin-top: 0.6rem;
   border: none;
   background: none;
-  color: #2563eb;
+  color: #8a6a12;
   font-size: 0.84rem;
   cursor: pointer;
   text-decoration: underline;
 }
 
 .quickStatsCard {
-  border: 1px solid #bfdbfe;
+  border: 1px solid rgba(184, 148, 30, 0.24);
   border-radius: 12px;
-  background: linear-gradient(180deg, #eff6ff, #f8fafc);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 248, 0.96));
   padding: 1rem;
 }
 
@@ -487,7 +506,7 @@
   margin: 0 0 0.75rem;
   font-size: 0.92rem;
   font-weight: 700;
-  color: #1e3a8a;
+  color: #8a6a12;
 }
 
 .quickStatsGrid {
@@ -497,7 +516,7 @@
 }
 
 .quickStatItem {
-  border: 1px solid #dbeafe;
+  border: 1px solid rgba(184, 148, 30, 0.2);
   border-radius: 10px;
   background: #ffffff;
   padding: 0.72rem;

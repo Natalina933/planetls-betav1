@@ -12,6 +12,8 @@ interface DbErrorLike {
   message?: string;
 }
 
+const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205", "PGRST204"]);
+
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
 const getUserId = async (req: NextRequest): Promise<string | null> => {
@@ -40,6 +42,15 @@ const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string 
 
   return error?.message ?? fallback;
 };
+
+const buildFeatureDisabledResponse = () =>
+  NextResponse.json(
+    {
+      error: "Module devis non active: executez la migration SQL 20260223_quotes_invoices_core.sql dans Supabase.",
+      feature_disabled: true,
+    },
+    { status: 503 },
+  );
 
 const quoteSelect = `
   id,
@@ -123,7 +134,6 @@ export async function POST(req: NextRequest) {
         .from("services_pricing")
         .select("id, amount")
         .eq("profile_id", userId)
-        .order("is_default", { ascending: false })
         .order("created_at", { ascending: true })
         .limit(1);
 
@@ -147,7 +157,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Aucun montant exploitable sur la mission. Definissez un montant de mission ou un tarif par defaut.",
+            "Aucun montant exploitable sur la mission. Definissez un montant de mission ou un tarif correspondant.",
         },
         { status: 400 },
       );
@@ -181,6 +191,9 @@ export async function POST(req: NextRequest) {
 
     if (quoteError || !createdQuote) {
       console.error("[POST /api/quotes/from-mission] quote error:", quoteError);
+      if (MISSING_TABLE_CODES.has(quoteError?.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(quoteError, "Erreur creation devis") },
         { status: 500 },
@@ -205,6 +218,9 @@ export async function POST(req: NextRequest) {
     if (itemError) {
       console.error("[POST /api/quotes/from-mission] quote_item error:", itemError);
       await db.from("quotes").delete().eq("id", createdQuote.id);
+      if (MISSING_TABLE_CODES.has(itemError.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(itemError, "Erreur creation ligne devis") },
         { status: 500 },

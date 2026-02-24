@@ -10,7 +10,6 @@ interface ServicePricingInsert {
   type?: string | null;
   amount: number;
   unit?: string | null;
-  is_default?: boolean | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -25,7 +24,6 @@ export async function GET(req: NextRequest) {
     const profileId = searchParams.get("profile_id");
     const serviceIdParam = searchParams.get("service_id");
     const type = searchParams.get("type");
-    const isDefault = searchParams.get("is_default");
 
     if (profileId && profileId !== userId) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
@@ -45,9 +43,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (type) query = query.eq("type", type);
-
-    if (isDefault === "true") query = query.eq("is_default", true);
-    if (isDefault === "false") query = query.eq("is_default", false);
 
     const { data, error } = await query.order("created_at", { ascending: false });
     if (error) {
@@ -108,7 +103,6 @@ export async function POST(req: NextRequest) {
       type: body.type ?? null,
       amount,
       unit: body.unit ?? null,
-      is_default: body.is_default ?? false,
     };
 
     const { data, error } = await db

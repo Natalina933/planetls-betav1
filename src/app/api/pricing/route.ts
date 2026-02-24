@@ -10,7 +10,6 @@ interface PricingInsertBody {
   type?: PricingType;
   amount: number;
   unit?: string;
-  is_default?: boolean;
 }
 
 // GET /api/pricing -> Liste des tarifs (avec filtres optionnels)
@@ -90,7 +89,6 @@ export async function POST(req: NextRequest) {
       type: rawBody.type,
       amount: rawBody.amount,
       unit: rawBody.unit,
-      is_default: rawBody.is_default,
     };
 
     if (!body.label || body.amount === undefined) {
@@ -109,7 +107,6 @@ export async function POST(req: NextRequest) {
         type: body.type ?? "custom",
         amount: body.amount,
         unit: body.unit ?? "€",
-        is_default: body.is_default ?? false,
       })
       .select(`
         *,

@@ -41,6 +41,8 @@ interface DbErrorLike {
   message?: string;
 }
 
+const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205", "PGRST204"]);
+
 const VALID_QUOTE_STATUS: QuoteStatus[] = [
   "draft",
   "sent",
@@ -78,6 +80,15 @@ const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string 
 
   return error?.message ?? fallback;
 };
+
+const buildFeatureDisabledResponse = (resource: "devis" | "factures") =>
+  NextResponse.json(
+    {
+      error: `Module ${resource} non active: executez la migration SQL 20260223_quotes_invoices_core.sql dans Supabase.`,
+      feature_disabled: true,
+    },
+    { status: 503 },
+  );
 
 const sanitizeCurrency = (value?: string | null): string => {
   const upper = (value ?? "EUR").trim().toUpperCase();
@@ -190,6 +201,9 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) {
+      if (error.code === "PGRST205" || error.code === "PGRST204" || error.code === "42P01") {
+        return NextResponse.json([]);
+      }
       console.error("[GET /api/quotes] DB error:", error);
       return NextResponse.json(
         { error: getDbErrorMessage(error, "Erreur chargement devis") },
@@ -262,6 +276,9 @@ export async function POST(req: NextRequest) {
 
     if (quoteError || !createdQuote) {
       console.error("[POST /api/quotes] create quote error:", quoteError);
+      if (MISSING_TABLE_CODES.has(quoteError?.code ?? "")) {
+        return buildFeatureDisabledResponse("devis");
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(quoteError, "Erreur creation devis") },
         { status: 500 },
@@ -286,6 +303,9 @@ export async function POST(req: NextRequest) {
       if (itemsError) {
         console.error("[POST /api/quotes] create items error:", itemsError);
         await db.from("quotes").delete().eq("id", createdQuote.id);
+        if (MISSING_TABLE_CODES.has(itemsError.code ?? "")) {
+          return buildFeatureDisabledResponse("devis");
+        }
         return NextResponse.json(
           { error: getDbErrorMessage(itemsError, "Erreur creation lignes devis") },
           { status: 500 },

@@ -109,9 +109,7 @@ export async function GET(req: NextRequest) {
 
     let query = db
       .from("missions")
-      .select(
-        "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at",
-      )
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(limit);
 

@@ -44,7 +44,6 @@ interface Pricing {
   type: PricingType;
   amount: number;
   unit: string;
-  is_default: boolean;
   service?: PricingServiceRelation | null;
   
   // Nouveaux champs pour la grille tarifaire
@@ -60,7 +59,6 @@ interface PricingFormData {
   type: PricingType;
   amount: string;
   unit: string;
-  is_default: boolean;
   
   // Nouveaux champs
   property_type: PropertyType;
@@ -75,7 +73,6 @@ const EMPTY_FORM: PricingFormData = {
   type: 'hourly',
   amount: '',
   unit: 'EUR',
-  is_default: false,
   property_type: 'appartement',
   surface_min: '',
   surface_max: '',
@@ -111,7 +108,6 @@ const PricingGridManager = ({
   const [filterPropertyType, setFilterPropertyType] = useState<PropertyType | ''>('');
   const [filterPricingType, setFilterPricingType] = useState<PricingType | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showInactiveLinkedPricings, setShowInactiveLinkedPricings] = useState(true);
   const [selectedPricingIdsForPack, setSelectedPricingIdsForPack] = useState<string[]>([]);
   const [linkedPricingSignatures, setLinkedPricingSignatures] = useState<Set<string>>(new Set());
   const [isLinkingSelected, setIsLinkingSelected] = useState(false);
@@ -290,7 +286,6 @@ const PricingGridManager = ({
       type: pricing.type,
       amount: pricing.amount.toString(),
       unit: pricing.unit,
-      is_default: pricing.is_default,
       property_type: pricing.property_type || 'appartement',
       surface_min: pricing.surface_min?.toString() || '',
       surface_max: pricing.surface_max?.toString() || '',
@@ -436,8 +431,7 @@ const PricingGridManager = ({
     [selectableServicesByCategory],
   );
   const visiblePricings = useMemo(() => {
-    if (!hasActiveServiceFilter || showInactiveLinkedPricings) return filteredPricings;
-
+    if (!hasActiveServiceFilter) return filteredPricings;
     return filteredPricings.filter(
       (pricing) =>
         !pricing.service_id ||
@@ -449,7 +443,6 @@ const PricingGridManager = ({
     );
   }, [
     hasActiveServiceFilter,
-    showInactiveLinkedPricings,
     filteredPricings,
     activeServiceIdSet,
     activeServiceLabelSet,
@@ -488,23 +481,10 @@ const PricingGridManager = ({
     setSearchTerm('');
   };
 
-  const isPricingLinkedToInactiveService = (pricing: Pricing) =>
-    hasActiveServiceFilter &&
-    Boolean(pricing.service_id) &&
-    !activeServiceIdSet.has(pricing.service_id as string) &&
-    !Boolean(
-      pricing.service &&
-        activeServiceLabelSet.has(normalizeServiceText(pricing.service.service)),
-    );
-
-  const visibleDefaultCount = useMemo(
-    () => visiblePricings.filter((pricing) => pricing.is_default).length,
+  const linkedServiceCount = useMemo(
+    () => visiblePricings.filter((pricing) => Boolean(pricing.service_id)).length,
     [visiblePricings],
   );
-
-  const visibleInactiveServiceCount = visiblePricings.filter((pricing) =>
-    isPricingLinkedToInactiveService(pricing),
-  ).length;
 
   const averageFixedAmount = useMemo(() => {
     const fixedPricings = visiblePricings.filter((pricing) => pricing.type === 'fixed');
@@ -546,13 +526,8 @@ const PricingGridManager = ({
                 <strong>{pricings.length}</strong> regles
               </span>
               <span className={styles.inlineStat}>
-                <strong>{visibleDefaultCount}</strong> par defaut
+                <strong>{linkedServiceCount}</strong> liees a un service
               </span>
-              {hasActiveServiceFilter && (
-                <span className={styles.inlineStat}>
-                  <strong>{visibleInactiveServiceCount}</strong> service(s) inactif(s)
-                </span>
-              )}
             </div>
           </div>
         )}
@@ -589,17 +564,6 @@ const PricingGridManager = ({
               ))}
             </select>
           </div>
-
-          {hasActiveServiceFilter && (
-            <label className={styles.togglePill}>
-              <input
-                type="checkbox"
-                checked={showInactiveLinkedPricings}
-                onChange={(e) => setShowInactiveLinkedPricings(e.target.checked)}
-              />
-              Afficher les tarifs lies a des services inactifs
-            </label>
-          )}
 
           {/* Recherche */}
           <div className={styles.searchWrapper}>
@@ -789,18 +753,6 @@ const PricingGridManager = ({
               </div>
             </div>
 
-            {/* Tarif par defaut */}
-            <div className={styles.checkboxGroup}>
-              <label className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={formData.is_default}
-                  onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-                />
-                <span>Definir comme tarif par defaut</span>
-              </label>
-            </div>
-
             {linkedPackageId && !editingId && (
               <div className={styles.checkboxGroup}>
                 <label className={styles.checkboxRow}>
@@ -910,7 +862,6 @@ const PricingGridManager = ({
               </tr>
             ) : (
               visiblePricings.map((pricing) => {
-                const isLinkedToInactiveService = isPricingLinkedToInactiveService(pricing);
                 const isAlreadyLinkedToCurrentPack =
                   linkedPackageId && linkedPricingSignatures.has(getPricingSignature(pricing));
                 const isCheckedForPack = selectedPricingIdsForPack.includes(pricing.id);
@@ -918,7 +869,7 @@ const PricingGridManager = ({
                 return (
                 <tr
                   key={pricing.id}
-                  className={`${styles.tableRow} ${isLinkedToInactiveService ? styles.tableRowMuted : ''}`}
+                  className={styles.tableRow}
                 >
                   {linkedPackageId && (
                     <td className={styles.tableCell}>
@@ -938,16 +889,6 @@ const PricingGridManager = ({
                   <td className={styles.tableCell}>
                     <div className={styles.labelCell}>
                       <span className={styles.labelText}>{pricing.label}</span>
-                      {pricing.is_default && (
-                        <span className={`${styles.badge} ${styles.badgeDefault}`}>
-                          PAR DEFAUT
-                        </span>
-                      )}
-                      {isLinkedToInactiveService && (
-                        <span className={`${styles.badge} ${styles.badgeWarning}`}>
-                          SERVICE INACTIF
-                        </span>
-                      )}
                       {pricing.service && (
                         <div className={styles.serviceMeta}>
                           {pricing.service.category} {"->"} {pricing.service.service}
@@ -1030,10 +971,10 @@ const PricingGridManager = ({
             </div>
             <div className={styles.quickStatItem}>
               <div className={styles.quickStatLabel}>
-                Tarifs par defaut
+                Tarifs lies a un service
               </div>
               <div className={styles.quickStatValue}>
-                {visibleDefaultCount}
+                {linkedServiceCount}
               </div>
             </div>
             <div className={styles.quickStatItem}>

@@ -9,7 +9,6 @@ interface ServicePricingUpdate {
   type?: string | null;
   amount?: number;
   unit?: string | null;
-  is_default?: boolean | null;
 }
 
 async function getCurrentUserId(req: NextRequest): Promise<string | null> {
@@ -123,7 +122,6 @@ export async function PATCH(
     }
 
     if (body.unit !== undefined) updateObj.unit = body.unit;
-    if (body.is_default !== undefined) updateObj.is_default = body.is_default;
 
     if (Object.keys(updateObj).length === 0) {
       return NextResponse.json(

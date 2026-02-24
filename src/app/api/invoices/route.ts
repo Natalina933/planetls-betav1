@@ -43,6 +43,8 @@ interface DbErrorLike {
   message?: string;
 }
 
+const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205", "PGRST204"]);
+
 const VALID_INVOICE_STATUS: InvoiceStatus[] = [
   "draft",
   "issued",
@@ -80,6 +82,15 @@ const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string 
 
   return error?.message ?? fallback;
 };
+
+const buildFeatureDisabledResponse = () =>
+  NextResponse.json(
+    {
+      error: "Module factures non active: executez la migration SQL 20260223_quotes_invoices_core.sql dans Supabase.",
+      feature_disabled: true,
+    },
+    { status: 503 },
+  );
 
 const sanitizeCurrency = (value?: string | null): string => {
   const upper = (value ?? "EUR").trim().toUpperCase();
@@ -194,6 +205,9 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) {
+      if (error.code === "PGRST205" || error.code === "PGRST204" || error.code === "42P01") {
+        return NextResponse.json([]);
+      }
       console.error("[GET /api/invoices] DB error:", error);
       return NextResponse.json(
         { error: getDbErrorMessage(error, "Erreur chargement factures") },
@@ -280,6 +294,9 @@ export async function POST(req: NextRequest) {
 
     if (invoiceError || !createdInvoice) {
       console.error("[POST /api/invoices] create invoice error:", invoiceError);
+      if (MISSING_TABLE_CODES.has(invoiceError?.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(invoiceError, "Erreur creation facture") },
         { status: 500 },
@@ -304,6 +321,9 @@ export async function POST(req: NextRequest) {
       if (itemsError) {
         console.error("[POST /api/invoices] create items error:", itemsError);
         await db.from("invoices").delete().eq("id", createdInvoice.id);
+        if (MISSING_TABLE_CODES.has(itemsError.code ?? "")) {
+          return buildFeatureDisabledResponse();
+        }
         return NextResponse.json(
           { error: getDbErrorMessage(itemsError, "Erreur creation lignes facture") },
           { status: 500 },

@@ -339,10 +339,13 @@ const TariffBillingDesk = () => {
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <p className={styles.lead}>
-          Ce panneau relie vos missions et vos tarifs a la generation de devis puis
-          factures. Version MVP orientee usage quotidien.
-        </p>
+        <div className={styles.headerIntro}>
+          <h4 className={styles.headerTitle}>Production devis et factures</h4>
+          <p className={styles.lead}>
+            Transformez rapidement les missions en devis puis en factures, avec
+            suivi des statuts et des montants restants.
+          </p>
+        </div>
         <button
           type="button"
           className={styles.refreshBtn}

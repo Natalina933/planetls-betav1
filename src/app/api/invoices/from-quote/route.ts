@@ -14,6 +14,8 @@ interface DbErrorLike {
   message?: string;
 }
 
+const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205", "PGRST204"]);
+
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
 const getUserId = async (req: NextRequest): Promise<string | null> => {
@@ -42,6 +44,15 @@ const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string 
 
   return error?.message ?? fallback;
 };
+
+const buildFeatureDisabledResponse = () =>
+  NextResponse.json(
+    {
+      error: "Module factures non active: executez la migration SQL 20260223_quotes_invoices_core.sql dans Supabase.",
+      feature_disabled: true,
+    },
+    { status: 503 },
+  );
 
 const invoiceSelect = `
   id,
@@ -107,6 +118,9 @@ export async function POST(req: NextRequest) {
 
     if (quoteError) {
       console.error("[POST /api/invoices/from-quote] quote error:", quoteError);
+      if (MISSING_TABLE_CODES.has(quoteError.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(quoteError, "Erreur lecture devis") },
         { status: 500 },
@@ -126,6 +140,9 @@ export async function POST(req: NextRequest) {
 
     if (quoteItemsError) {
       console.error("[POST /api/invoices/from-quote] quote_items error:", quoteItemsError);
+      if (MISSING_TABLE_CODES.has(quoteItemsError.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(quoteItemsError, "Erreur lecture lignes devis") },
         { status: 500 },
@@ -182,6 +199,9 @@ export async function POST(req: NextRequest) {
 
     if (invoiceError || !createdInvoice) {
       console.error("[POST /api/invoices/from-quote] create invoice error:", invoiceError);
+      if (MISSING_TABLE_CODES.has(invoiceError?.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(invoiceError, "Erreur creation facture") },
         { status: 500 },
@@ -205,6 +225,9 @@ export async function POST(req: NextRequest) {
     if (invoiceItemsError) {
       console.error("[POST /api/invoices/from-quote] invoice_items error:", invoiceItemsError);
       await db.from("invoices").delete().eq("id", createdInvoice.id);
+      if (MISSING_TABLE_CODES.has(invoiceItemsError.code ?? "")) {
+        return buildFeatureDisabledResponse();
+      }
       return NextResponse.json(
         { error: getDbErrorMessage(invoiceItemsError, "Erreur creation lignes facture") },
         { status: 500 },

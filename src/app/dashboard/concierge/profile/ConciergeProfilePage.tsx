@@ -146,11 +146,13 @@ const normalizeSectionId = (title: string) =>
 
 const SECTION_IDS = {
   INFO_PERSO: normalizeSectionId("Informations personnelles"),
+  PRESENTATION: normalizeSectionId("Presentation de la conciergerie"),
   SERVICES_ZONE: normalizeSectionId("Services & Zone d'intervention"),
   TARIFS: normalizeSectionId("Ma grille tarifaire"),
 } as const;
 
 const TARIFF_SECTION_IDS = {
+  WORKFLOW: normalizeSectionId("Parcours devis & facturation"),
   BASE: normalizeSectionId("Tarifs de base"),
   BILLING: normalizeSectionId("Parametres de facturation"),
 } as const;
@@ -871,10 +873,61 @@ export default function ConciergeProfilePage() {
         : 0,
     [missionProgressDoneCount, missionProgressSteps.length],
   );
+  const tariffReadinessChecks = useMemo(
+    () => [
+      {
+        id: "services",
+        label: "Services actifs",
+        ready: activeMissionServiceLabels.length > 0,
+      },
+      {
+        id: "rate",
+        label: "Tarif horaire defini",
+        ready: Number(editProfile?.hourly_rate ?? 0) > 0,
+      },
+      {
+        id: "zone",
+        label: "Zone d'intervention",
+        ready: Boolean((editProfile?.service_area ?? editProfile?.location ?? "").trim()),
+      },
+      {
+        id: "missions",
+        label: "Missions disponibles",
+        ready: missionRows.length > 0,
+      },
+    ],
+    [
+      activeMissionServiceLabels.length,
+      editProfile?.hourly_rate,
+      editProfile?.location,
+      editProfile?.service_area,
+      missionRows.length,
+    ],
+  );
+  const tariffReadinessDoneCount = useMemo(
+    () => tariffReadinessChecks.filter((check) => check.ready).length,
+    [tariffReadinessChecks],
+  );
+  const tariffReadinessPercent = useMemo(
+    () =>
+      tariffReadinessChecks.length > 0
+        ? Math.round((tariffReadinessDoneCount / tariffReadinessChecks.length) * 100)
+        : 0,
+    [tariffReadinessDoneCount, tariffReadinessChecks.length],
+  );
+  const pendingTariffReadinessChecks = useMemo(
+    () => tariffReadinessChecks.filter((check) => !check.ready),
+    [tariffReadinessChecks],
+  );
+  const scrollToTariffSection = useCallback((sectionId: string) => {
+    const target = document.getElementById(sectionId);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.INFO_PERSO]: true,
     [SECTION_IDS.SERVICES_ZONE]: true,
     [SECTION_IDS.TARIFS]: true,
+    [TARIFF_SECTION_IDS.WORKFLOW]: true,
   });
 
   // Synchroniser l'onglet avec l'URL
@@ -1440,7 +1493,7 @@ export default function ConciergeProfilePage() {
           )
         ) : (
           <span className={styles.fieldValue}>
-            {value !== null && value !== "" ? value : "â€”"}
+            {value !== null && value !== "" ? value : "Non renseigné"}
           </span>
         )}
       </div>
@@ -1759,6 +1812,9 @@ export default function ConciergeProfilePage() {
                     email={editProfile.email}
                     phone={editProfile.phone}
                     location={editProfile.location ?? "Ville non renseignée, FR"}
+                    showOnboardingActions
+                    onNext={() => handleTabChange("tarifs")}
+                    onSaveForLater={() => handleSaveSection("Fiche & Infos")}
                     isEditing={editingSection === "Photo de profil"}
                     avatarFile={avatarFile}
                     existingAvatarUrl={
@@ -1825,11 +1881,47 @@ export default function ConciergeProfilePage() {
                     <div className={styles.profileStatItem}>
                       <p className={styles.profileStatLabel}>Expérience</p>
                       <p className={styles.profileStatValue}>
-                        {profile.years_experience ?? "â€”"} ans
+                        {profile.years_experience != null
+                          ? `${profile.years_experience} ans`
+                          : "Non renseigné"}
                       </p>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className={styles.presentationFeatured}>
+                {renderSection(
+                  "Présentation",
+                  <FiTarget />,
+                  <>
+                    <p className={styles.sectionIntroText}>
+                      Cette présentation est visible par les propriétaires sur
+                      votre profil et dans la recherche. Elle augmente vos
+                      chances d&apos;être contacté.
+                    </p>
+                    {editingSection === SECTION_IDS.PRESENTATION && (
+                      <div className={styles.presentationExample}>
+                        <strong>Exemple</strong>
+                        <p>
+                          Conciergerie locale à Paris, disponible 7j/7, spécialisée
+                          en accueil voyageurs, ménage et intendance.
+                        </p>
+                      </div>
+                    )}
+                    {renderField(
+                      "Ma présentation",
+                      "additional_info",
+                      SECTION_IDS.PRESENTATION,
+                      true,
+                      false,
+                      "Décrivez votre zone d’intervention, vos services clés et ce qui vous différencie.",
+                    )}
+                  </>,
+                  true,
+                  SECTION_IDS.PRESENTATION,
+                  false,
+                )}
               </div>
 
               <div className={styles.badgeCard}>
@@ -1961,14 +2053,6 @@ export default function ConciergeProfilePage() {
                 "Informations entreprise",
                 <FiBriefcase />,
                 <>
-                  {renderField(
-                    "Nom commercial",
-                    "company_name",
-                    "Informations_entreprise",
-                    false,
-                    true,
-                    "Ma Conciergerie",
-                  )}
                   {renderField(
                     "Forme juridique",
                     "legal_form",
@@ -2385,79 +2469,74 @@ export default function ConciergeProfilePage() {
       case "tarifs":
         return (
           <div className={styles.financeGrid}>
-            <div className={`${styles.financeCard} ${styles.financeCardFull}`}>
+            <div
+              className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard}`}
+            >
               {renderSection(
                 "Parcours devis & facturation",
                 <FiTarget />,
                 <div className={styles.tariffWorkflow}>
-                  <p className={styles.tariffWorkflowLead}>
-                    Le role de cet onglet Tarifs est de transformer vos
-                    donnees Missions + Packs + Grille tarifaire en devis puis
-                    en factures, rapidement et sans ressaisie.
-                  </p>
-
-                  <div className={styles.tariffSteps}>
-                    <article className={styles.tariffStep}>
-                      <span className={styles.tariffStepIcon}>
-                        <FiTarget />
-                      </span>
-                      <div>
-                        <h4 className={styles.tariffStepTitle}>1. Missions</h4>
-                        <p className={styles.tariffStepDesc}>
-                          Definir les services actifs et le cadre
-                          de travail.
-                        </p>
+                  <div className={styles.tariffHero}>
+                    <div className={styles.tariffHeroIntro}>
+                      <span className={styles.tariffPill}>Pilotage global</span>
+                      <p className={styles.tariffWorkflowLead}>
+                        Centralisez vos regles de prix, puis produisez devis et
+                        factures sans ressaisie.
+                      </p>
+                    </div>
+                    <div className={styles.tariffHeroStats}>
+                      <article className={styles.tariffMetric}>
+                        <span>Services actifs</span>
+                        <strong>{activeMissionServiceLabels.length}</strong>
+                      </article>
+                      <article className={styles.tariffMetric}>
+                        <span>Missions configurees</span>
+                        <strong>{missionProgressPercent}%</strong>
+                      </article>
+                      <article className={styles.tariffMetric}>
+                        <span>Tarif horaire</span>
+                        <strong>
+                          {editProfile.hourly_rate != null
+                            ? `${editProfile.hourly_rate} EUR/h`
+                            : "A definir"}
+                        </strong>
+                      </article>
+                      <article className={styles.tariffMetric}>
+                        <span>Minimum facture</span>
+                        <strong>{seasonalPricing.minimumInvoice} EUR</strong>
+                      </article>
+                    </div>
+                    <div className={styles.tariffReadiness}>
+                      <div className={styles.tariffReadinessHeader}>
+                        <strong>Pret a chiffrer</strong>
+                        <span>{tariffReadinessPercent}%</span>
                       </div>
-                    </article>
-
-                    <article className={styles.tariffStep}>
-                      <span className={styles.tariffStepIcon}>
-                        <FiBriefcase />
-                      </span>
-                      <div>
-                        <h4 className={styles.tariffStepTitle}>2. Mes packs</h4>
-                        <p className={styles.tariffStepDesc}>
-                          Structurer des offres pretes a vendre par type de
-                          client.
-                        </p>
+                      <div className={styles.tariffReadinessTrack}>
+                        <span style={{ width: `${tariffReadinessPercent}%` }} />
                       </div>
-                    </article>
-
-                    <article className={styles.tariffStep}>
-                      <span className={styles.tariffStepIcon}>
-                        <FiDollarSignOutline />
-                      </span>
-                      <div>
-                        <h4 className={styles.tariffStepTitle}>
-                          3. Grille tarifaire
-                        </h4>
-                        <p className={styles.tariffStepDesc}>
-                          Appliquer les regles de prix selon bien, surface et
-                          duree.
+                      {pendingTariffReadinessChecks.length > 0 ? (
+                        <div className={styles.tariffReadinessList}>
+                          {pendingTariffReadinessChecks.map((check) => (
+                            <div key={check.id} className={styles.tariffReadinessItem}>
+                              <span className={styles.tariffReadinessDot}>
+                                <AlertCircle size={12} />
+                              </span>
+                              <span>{check.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className={styles.tariffReadinessSuccess}>
+                          Configuration complete. Vous pouvez lancer vos devis.
                         </p>
-                      </div>
-                    </article>
-
-                    <article className={styles.tariffStep}>
-                      <span className={styles.tariffStepIcon}>
-                        <FiCheckCircleOutline />
-                      </span>
-                      <div>
-                        <h4 className={styles.tariffStepTitle}>
-                          4. Devis / Factures
-                        </h4>
-                        <p className={styles.tariffStepDesc}>
-                          Generer des documents coherents, tracables et
-                          reutilisables.
-                        </p>
-                      </div>
-                    </article>
+                      )}
+                    </div>
                   </div>
 
                   <div className={styles.tariffQuickActions}>
                     <button
                       type="button"
-                      className={styles.tariffNavBtn}
+                      className={`${styles.tariffNavBtn} ${styles.tariffNavBtnPrimary}`}
                       onClick={() => handleTabChange("missions")}
                     >
                       Configurer Missions
@@ -2469,129 +2548,289 @@ export default function ConciergeProfilePage() {
                     >
                       Configurer Mes Packs
                     </button>
+                    <button
+                      type="button"
+                      className={styles.tariffNavBtn}
+                      onClick={() => scrollToTariffSection("tariffs-billing-desk")}
+                    >
+                      Aller a Devis / Factures
+                    </button>
+                  </div>
+
+                  <div className={styles.tariffSectionNav}>
+                    <button
+                      type="button"
+                      className={styles.tariffSectionLink}
+                      onClick={() => scrollToTariffSection("tariffs-base")}
+                    >
+                      Tarifs de base
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.tariffSectionLink}
+                      onClick={() => scrollToTariffSection("tariffs-grid")}
+                    >
+                      Grille detaillee
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.tariffSectionLink}
+                      onClick={() => scrollToTariffSection("tariffs-billing-desk")}
+                    >
+                      Devis / Factures
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.tariffSectionLink}
+                      onClick={() => scrollToTariffSection("tariffs-settings")}
+                    >
+                      Parametres
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.tariffSectionLink}
+                      onClick={() => scrollToTariffSection("tariffs-forecast")}
+                    >
+                      Prevision
+                    </button>
                   </div>
                 </div>,
                 false,
+                TARIFF_SECTION_IDS.WORKFLOW,
               )}
             </div>
 
-            <div className={styles.financeCard}>
+            <div
+              id="tariffs-base"
+              className={`${styles.financeCard} ${styles.tariffPanelCard}`}
+            >
               {renderSection(
                 "Tarifs de base",
                 <DollarSign />,
                 <>
-                  <p className={styles.tariffHint}>
-                    Parametres utilises pour les devis rapides et les factures
-                    hors cas specifiques de la grille detaillee.
-                  </p>
-                  {renderField(
-                    "Tarif horaire (EUR/h)",
-                    "hourly_rate",
-                    TARIFF_SECTION_IDS.BASE,
-                    false,
-                    true,
-                    "45",
-                    "number",
-                  )}
-                  {renderField(
-                    "Frais de deplacement (EUR)",
-                    "travel_fee",
-                    TARIFF_SECTION_IDS.BASE,
-                    false,
-                    false,
-                    "15",
-                    "number",
-                  )}
-                </>,
-              )}
-            </div>
-
-            <div className={`${styles.financeCard} ${styles.financeCardWide}`}>
-              {renderSection(
-                "Grille tarifaire detaillee",
-                <FiDollarSignOutline />,
-                <>
-                  <div className={styles.tariffTag}>
-                    <AlertCircle size={14} />
-                    Enregistrement independant du profil
+                  <div className={styles.tariffCardIntro}>
+                    <div className={styles.tariffInlineHeader}>
+                      <h3 className={styles.tariffMiniTitle}>Base de chiffrage</h3>
+                      <span className={styles.tariffConfigChip}>Base principale</span>
+                    </div>
+                    <p className={styles.tariffHint}>
+                      Appliquee automatiquement sur les devis hors cas specifiques.
+                    </p>
+                    <div className={styles.tariffMetaGrid}>
+                      <article className={styles.tariffMetaCard}>
+                        <span className={styles.tariffMetaLabel}>Statut</span>
+                        <strong className={styles.tariffMetaValue}>
+                          {Number(editProfile.hourly_rate ?? 0) > 0
+                            ? "Base tarifaire renseignee"
+                            : "Tarif horaire a definir"}
+                        </strong>
+                      </article>
+                      <article className={styles.tariffMetaCard}>
+                        <span className={styles.tariffMetaLabel}>Tarif actuel</span>
+                        <strong className={styles.tariffMetaValue}>
+                          {editProfile.hourly_rate != null
+                            ? `${editProfile.hourly_rate} EUR/h`
+                            : "Non renseigne"}
+                        </strong>
+                      </article>
+                      <article className={styles.tariffMetaCard}>
+                        <span className={styles.tariffMetaLabel}>Deplacement</span>
+                        <strong className={styles.tariffMetaValue}>
+                          {editProfile.travel_fee != null
+                            ? `${editProfile.travel_fee} EUR`
+                            : "A confirmer"}
+                        </strong>
+                      </article>
+                    </div>
                   </div>
-                  <p className={styles.tariffHint}>
-                    Base principale pour preparer des devis fiables selon le
-                    contexte de la demande (type de bien, surface, duree,
-                    service).
-                  </p>
-                  <PricingGridManager
-                    activeServiceIds={activeMissionServiceCatalogIds}
-                    activeServiceLabels={activeMissionServiceLabels}
-                    showHeader={false}
-                    showQuickStats={false}
-                  />
+                  <div className={styles.tariffFieldPanel}>
+                    {renderField(
+                      "Tarif horaire (EUR/h)",
+                      "hourly_rate",
+                      TARIFF_SECTION_IDS.BASE,
+                      false,
+                      true,
+                      "45",
+                      "number",
+                    )}
+                    {renderField(
+                      "Frais de deplacement (EUR)",
+                      "travel_fee",
+                      TARIFF_SECTION_IDS.BASE,
+                      false,
+                      false,
+                      "15",
+                      "number",
+                    )}
+                  </div>
                 </>,
-                false,
               )}
             </div>
 
-            <div className={`${styles.financeCard} ${styles.financeCardFull}`}>
-              {renderSection(
-                "Devis et factures operationnels",
-                <FiFile />,
-                <>
-                  <p className={styles.tariffHint}>
-                    Lancez les premiers devis depuis vos missions, puis
-                    convertissez-les en factures avec suivi des statuts et du
-                    reste a encaisser.
-                  </p>
-                  <TariffBillingDesk />
-                </>,
-                false,
-              )}
-            </div>
-
-            <div className={styles.financeCard}>
+            <div
+              id="tariffs-settings"
+              className={`${styles.financeCard} ${styles.tariffPanelCard}`}
+            >
               {renderSection(
                 "Parametres de facturation",
                 <FiTrendingUp />,
                 <>
-                  <p className={styles.tariffHint}>
-                    Regles transverses appliquees aux devis et factures : frais
-                    standards, majorations, minimum de facturation.
-                  </p>
-                  <h3 className={styles.tariffSubsectionTitle}>
-                    Prestations standard sejour
-                  </h3>
-                  <TariffServicePackages
-                    value={seasonalPricing}
-                    isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
-                    onChange={applySeasonalPricing}
-                  />
-                  <h3 className={styles.tariffSubsectionTitle}>
-                    Majorations et seuil minimum
-                  </h3>
-                  <TariffAdjustments
-                    value={seasonalPricing}
-                    isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
-                    onChange={applySeasonalPricing}
-                  />
+                  <div className={styles.tariffCardIntro}>
+                    <div className={styles.tariffInlineHeader}>
+                      <h3 className={styles.tariffMiniTitle}>Regles transverses</h3>
+                      <span className={styles.tariffConfigChip}>Appliquees aux devis/factures</span>
+                    </div>
+                    <p className={styles.tariffHint}>
+                      Definissez les frais standards, majorations et seuils
+                      minimum.
+                    </p>
+                    </div>
+                    <div className={styles.tariffConfigSnapshot}>
+                      <span className={styles.tariffConfigChip}>
+                        Urgence +{seasonalPricing.urgentPercent}%
+                      </span>
+                      <span className={styles.tariffConfigChip}>
+                        Nuit +{seasonalPricing.nightPercent}%
+                      </span>
+                      <span className={styles.tariffConfigChip}>
+                        Week-end +{seasonalPricing.weekendPercent}%
+                      </span>
+                      <span className={styles.tariffConfigChip}>
+                        Haute saison +{seasonalPricing.highSeasonPercent}%
+                      </span>
+                      <span className={styles.tariffConfigChip}>
+                        Minimum {seasonalPricing.minimumInvoice} EUR
+                      </span>
+                    </div>
+                  <div className={styles.tariffToolPanel}>
+                    <h3 className={styles.tariffSubsectionTitle}>
+                      Prestations standard sejour
+                    </h3>
+                    <TariffServicePackages
+                      value={seasonalPricing}
+                      isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
+                      onChange={applySeasonalPricing}
+                    />
+                    <h3 className={styles.tariffSubsectionTitle}>
+                      Majorations et seuil minimum
+                    </h3>
+                    <TariffAdjustments
+                      value={seasonalPricing}
+                      isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
+                      onChange={applySeasonalPricing}
+                    />
+                  </div>
                 </>,
                 true,
                 TARIFF_SECTION_IDS.BILLING,
               )}
             </div>
 
-            <div className={styles.financeCard}>
+            <div
+              id="tariffs-grid"
+              className={`${styles.financeCard} ${styles.financeCardWide} ${styles.tariffPanelCard}`}
+            >
+              {renderSection(
+                "Grille tarifaire detaillee",
+                <FiDollarSignOutline />,
+                <>
+                  <div className={styles.tariffCardIntro}>
+                    <div className={styles.tariffInlineHeader}>
+                      <h3 className={styles.tariffMiniTitle}>Tarification contextuelle</h3>
+                      <span className={styles.tariffConfigChip}>Regles avancees</span>
+                    </div>
+                    <p className={styles.tariffHint}>
+                      Affinez vos prix selon le type de demande et le contexte
+                      d&apos;intervention.
+                    </p>
+                    <div className={styles.tariffContextLine}>
+                      <div className={styles.tariffContextItem}>
+                        <CheckCircle2 size={14} />
+                        <span>{activeMissionServiceLabels.length} services relies</span>
+                      </div>
+                      <div className={styles.tariffContextItem}>
+                        <CheckCircle2 size={14} />
+                        <span>Regles par bien, surface et duree</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.tariffToolPanel}>
+                    <PricingGridManager
+                      activeServiceIds={activeMissionServiceCatalogIds}
+                      activeServiceLabels={activeMissionServiceLabels}
+                      showHeader={false}
+                      showQuickStats={false}
+                    />
+                  </div>
+                </>,
+                false,
+              )}
+            </div>
+
+            <div
+              id="tariffs-billing-desk"
+              className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard} ${styles.tariffEmphasisCard}`}
+            >
+              {renderSection(
+                "Devis et factures operationnels",
+                <FiFile />,
+                <>
+                  <div className={styles.tariffCardIntro}>
+                    <div className={styles.tariffInlineHeader}>
+                      <h3 className={styles.tariffMiniTitle}>Production documentaire</h3>
+                      <span className={styles.tariffConfigChip}>
+                        {missionRows.length} mission(s) disponible(s)
+                      </span>
+                    </div>
+                    <p className={styles.tariffHint}>
+                      Creez, validez et suivez vos devis/factures depuis une
+                      interface unique.
+                    </p>
+                  </div>
+                  <div className={styles.tariffToolPanel}>
+                    <TariffBillingDesk />
+                  </div>
+                </>,
+                false,
+              )}
+            </div>
+
+            <div
+              id="tariffs-forecast"
+              className={`${styles.financeCard} ${styles.tariffPanelCard}`}
+            >
               {renderSection(
                 "Prevision de revenus",
                 <FiBarChart />,
                 <>
-                  <p className={styles.tariffHint}>
-                    Simulez limpact de vos regles tarifaires pour ajuster vos
-                    devis avant envoi.
-                  </p>
-                  <TariffRevenueEstimator
-                    hourlyRate={editProfile.hourly_rate ?? 0}
-                    travelFee={editProfile.travel_fee ?? 0}
-                    pricing={seasonalPricing}
-                  />
+                  <div className={styles.tariffCardIntro}>
+                    <div className={styles.tariffInlineHeader}>
+                      <h3 className={styles.tariffMiniTitle}>Simulation rapide</h3>
+                      <span className={styles.tariffConfigChip}>Aide a la decision</span>
+                    </div>
+                    <p className={styles.tariffHint}>
+                      Ajustez vos propositions avant envoi selon vos regles
+                      actuelles.
+                    </p>
+                    <div className={styles.tariffForecastPanel}>
+                      <span className={styles.tariffConfigChip}>
+                        Base horaire: {editProfile.hourly_rate ?? 0} EUR/h
+                      </span>
+                      <span className={styles.tariffConfigChip}>
+                        Deplacement: {editProfile.travel_fee ?? 0} EUR
+                      </span>
+                      <span className={styles.tariffConfigChip}>
+                        Minimum facture: {seasonalPricing.minimumInvoice} EUR
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.tariffToolPanel}>
+                    <TariffRevenueEstimator
+                      hourlyRate={editProfile.hourly_rate ?? 0}
+                      travelFee={editProfile.travel_fee ?? 0}
+                      pricing={seasonalPricing}
+                    />
+                  </div>
                 </>,
                 false,
               )}

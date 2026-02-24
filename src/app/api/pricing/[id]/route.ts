@@ -11,7 +11,6 @@ interface PricingUpdateBody {
   type?: PricingType;
   amount?: number;
   unit?: string;
-  is_default?: boolean;
 }
 
 async function getCurrentUserId(req: NextRequest): Promise<string | null> {
@@ -93,7 +92,6 @@ export async function PATCH(
       type: rawBody.type,
       amount: rawBody.amount,
       unit: rawBody.unit,
-      is_default: rawBody.is_default,
     };
 
     const updateObj: Partial<PricingUpdateBody> = {};
@@ -102,7 +100,6 @@ export async function PATCH(
     if (body.type !== undefined) updateObj.type = body.type;
     if (body.amount !== undefined) updateObj.amount = body.amount;
     if (body.unit !== undefined) updateObj.unit = body.unit;
-    if (body.is_default !== undefined) updateObj.is_default = body.is_default;
 
     if (Object.keys(updateObj).length === 0) {
       return NextResponse.json(
