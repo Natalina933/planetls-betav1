@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { FiMessageCircle, FiSend } from "react-icons/fi";
@@ -68,7 +68,7 @@ const getResponseError = async (res: Response, fallback: string): Promise<string
   }
 };
 
-export default function ConciergeMessagesPage() {
+function ConciergeMessagesContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -317,5 +317,13 @@ export default function ConciergeMessagesPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+export default function ConciergeMessagesPage() {
+  return (
+    <Suspense fallback={<div className={styles.page}>Chargement de la messagerie...</div>}>
+      <ConciergeMessagesContent />
+    </Suspense>
   );
 }
