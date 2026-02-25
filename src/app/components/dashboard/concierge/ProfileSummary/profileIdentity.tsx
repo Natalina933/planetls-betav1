@@ -1,5 +1,4 @@
 import { Mail, Phone, MapPin } from "lucide-react";
-import type { ReactNode } from "react";
 import AvatarUpload from "@/app/components/ui/AvatarUpload/AvatarUpload";
 import styles from "./ProfileIdentity.module.scss";
 
@@ -12,10 +11,6 @@ type ProfileIdentityProps = {
     location?: string | null;
     title?: string;
     subtitle?: string;
-    presentationPanel?: ReactNode;
-    showOnboardingActions?: boolean;
-    onNext?: () => void;
-    onSaveForLater?: () => void;
 
     isEditing: boolean;
     avatarFile: File | null;
@@ -42,10 +37,6 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
         location,
         title,
         subtitle,
-        presentationPanel,
-        showOnboardingActions = false,
-        onNext,
-        onSaveForLater,
         avatarFile,
         existingAvatarUrl,
         existingScale,
@@ -88,10 +79,6 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
                         {subtitle && <p className={styles.introSubtitle}>{subtitle}</p>}
                     </div>
                 )}
-                {presentationPanel && (
-                    <div className={styles.presentationPanel}>{presentationPanel}</div>
-                )}
-
                 <div className={styles.nameRow}>
                     <h1 className={styles.name}>{fullName}</h1>
                     {roleLabel && <span className={styles.roleBadge}>{roleLabel}</span>}
@@ -117,25 +104,6 @@ export function ProfileIdentity(props: ProfileIdentityProps) {
                         </span>
                     )}
                 </div>
-
-                {showOnboardingActions && (
-                    <div className={styles.actionsRow}>
-                        <button
-                            type="button"
-                            className={styles.secondaryButton}
-                            onClick={onSaveForLater}
-                        >
-                            Enregistrer et continuer plus tard
-                        </button>
-                        <button
-                            type="button"
-                            className={styles.primaryButton}
-                            onClick={onNext}
-                        >
-                            Suivant
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );

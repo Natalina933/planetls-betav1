@@ -154,7 +154,7 @@ const SECTION_IDS = {
 const TARIFF_SECTION_IDS = {
   WORKFLOW: normalizeSectionId("Parcours devis & facturation"),
   BASE: normalizeSectionId("Tarifs de base"),
-  BILLING: normalizeSectionId("Parametres de facturation"),
+  BILLING: normalizeSectionId("Paramètres de facturation"),
 } as const;
 
 const MISSION_SECTION_IDS = {
@@ -164,6 +164,32 @@ const MISSION_SECTION_IDS = {
   ACCEPTANCE_RULES: normalizeSectionId("Règles d'acceptation des missions"),
   PRIORITY_TYPES: normalizeSectionId("Priorité & typologie des missions"),
 } as const;
+
+const SECTION_HEADER_BADGES: Record<string, string> = {
+  "Devis rapides depuis mission": "Automatisation",
+  "Priorité & typologie des missions": "Pilotage",
+  "Présentation": "Identité",
+  "Résumé du profil": "Synthèse",
+  "Informations personnelles": "Essentiel",
+  "Informations entreprise": "Entreprise",
+  "Adresse professionnelle": "Localisation",
+  "Assurance & Certifications": "Confiance",
+  "Web & Réseaux sociaux": "Visibilité",
+  "Services proposés": "Offre",
+  "Zone d'intervention & règles de mission": "Couverture",
+  "Disponibilités hebdomadaires": "Planning",
+  "Mes packs de services": "Monétisation",
+  "Parcours devis & facturation": "Workflow",
+  "Tarifs de base": "Tarification",
+  "Paramètres de facturation": "Finance",
+  "Grille tarifaire détaillée": "Détail",
+  "Devis et factures opérationnels": "Opérations",
+  "Prévision de revenus": "Prévision",
+  "Mon équipe": "Ressources",
+  "Zones d'intervention": "Territoire",
+  "Documents professionnels": "Conformité",
+  "Avis clients": "Réputation",
+};
 
 type ExtendedFieldName =
   | keyof Profile
@@ -923,12 +949,7 @@ export default function ConciergeProfilePage() {
     const target = document.getElementById(sectionId);
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    [SECTION_IDS.INFO_PERSO]: true,
-    [SECTION_IDS.SERVICES_ZONE]: true,
-    [SECTION_IDS.TARIFS]: true,
-    [TARIFF_SECTION_IDS.WORKFLOW]: true,
-  });
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   // Synchroniser l'onglet avec l'URL
   useEffect(() => {
@@ -1437,6 +1458,7 @@ export default function ConciergeProfilePage() {
     placeholder: string = "",
     type: string = "text",
     inputProps?: Record<string, number | string>,
+    emptyText: string = "Non renseigné",
   ) => {
     const isThisSectionEditing = editingSection === sectionId;
     const value = (editProfile?.[name as keyof Profile] ??
@@ -1493,7 +1515,7 @@ export default function ConciergeProfilePage() {
           )
         ) : (
           <span className={styles.fieldValue}>
-            {value !== null && value !== "" ? value : "Non renseigné"}
+            {value !== null && value !== "" ? value : emptyText}
           </span>
         )}
       </div>
@@ -1507,9 +1529,12 @@ export default function ConciergeProfilePage() {
     canEdit: boolean = true,
     sectionIdOverride?: string,
     collapsible: boolean = true,
+    headerBadge?: string,
+    headerSubtitle?: string,
   ) => {
     const sectionId = sectionIdOverride ?? normalizeSectionId(title);
-    const isOpen = collapsible ? (openSections[sectionId] ?? false) : true;
+    const resolvedHeaderBadge = headerBadge ?? SECTION_HEADER_BADGES[title] ?? "Section";
+    const isOpen = collapsible ? (openSections[sectionId] ?? true) : true;
     const isEditingThis = editingSection === sectionId;
     const sectionSnapshot = sectionEditSnapshots[sectionId];
     const isSectionDirty =
@@ -1552,7 +1577,15 @@ export default function ConciergeProfilePage() {
             >
               <div className={styles.sectionTitleLeft}>
                 <span className={styles.sectionIcon}>{icon}</span>
-                <h2 className={styles.sectionTitle}>{title}</h2>
+                <div>
+                  <div className={styles.sectionTitleRow}>
+                    <h2 className={styles.sectionTitle}>{title}</h2>
+                    {resolvedHeaderBadge && <span className={styles.sectionChip}>{resolvedHeaderBadge}</span>}
+                  </div>
+                  {headerSubtitle && (
+                    <p className={styles.sectionSubtitle}>{headerSubtitle}</p>
+                  )}
+                </div>
               </div>
               <ChevronDown
                 size={16}
@@ -1564,7 +1597,15 @@ export default function ConciergeProfilePage() {
             <div className={styles.sectionTitleWrapper}>
               <div className={styles.sectionTitleLeft}>
                 <span className={styles.sectionIcon}>{icon}</span>
-                <h2 className={styles.sectionTitle}>{title}</h2>
+                <div>
+                  <div className={styles.sectionTitleRow}>
+                    <h2 className={styles.sectionTitle}>{title}</h2>
+                    {resolvedHeaderBadge && <span className={styles.sectionChip}>{resolvedHeaderBadge}</span>}
+                  </div>
+                  {headerSubtitle && (
+                    <p className={styles.sectionSubtitle}>{headerSubtitle}</p>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -1812,9 +1853,6 @@ export default function ConciergeProfilePage() {
                     email={editProfile.email}
                     phone={editProfile.phone}
                     location={editProfile.location ?? "Ville non renseignée, FR"}
-                    showOnboardingActions
-                    onNext={() => handleTabChange("tarifs")}
-                    onSaveForLater={() => handleSaveSection("Fiche & Infos")}
                     isEditing={editingSection === "Photo de profil"}
                     avatarFile={avatarFile}
                     existingAvatarUrl={
@@ -1895,11 +1933,6 @@ export default function ConciergeProfilePage() {
                   "Présentation",
                   <FiTarget />,
                   <>
-                    <p className={styles.sectionIntroText}>
-                      Cette présentation est visible par les propriétaires sur
-                      votre profil et dans la recherche. Elle augmente vos
-                      chances d&apos;être contacté.
-                    </p>
                     {editingSection === SECTION_IDS.PRESENTATION && (
                       <div className={styles.presentationExample}>
                         <strong>Exemple</strong>
@@ -1909,18 +1942,42 @@ export default function ConciergeProfilePage() {
                         </p>
                       </div>
                     )}
-                    {renderField(
-                      "Ma présentation",
-                      "additional_info",
-                      SECTION_IDS.PRESENTATION,
-                      true,
-                      false,
-                      "Décrivez votre zone d’intervention, vos services clés et ce qui vous différencie.",
-                    )}
+                    <div className={styles.presentationField}>
+                      {editingSection === SECTION_IDS.PRESENTATION ? (
+                        <textarea
+                          id="additional_info"
+                          name="additional_info"
+                          value={editProfile.additional_info ?? ""}
+                          onChange={handleChange}
+                          className={`${styles.fieldTextarea} ${styles.presentationTextarea}`}
+                          placeholder="Décrivez votre zone d’intervention, vos services clés et ce qui vous différencie."
+                          rows={5}
+                        />
+                      ) : (
+                        <div
+                          className={`${styles.presentationPreviewBox} ${
+                            !editProfile.additional_info?.trim()
+                              ? styles.presentationPreviewEmpty
+                              : ""
+                          }`}
+                        >
+                          {editProfile.additional_info?.trim() ? (
+                            editProfile.additional_info
+                          ) : (
+                            <span className={styles.presentationPlaceholder}>
+                              Ajoutez une courte présentation professionnelle
+                              pour renforcer la confiance.
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </>,
                   true,
                   SECTION_IDS.PRESENTATION,
                   false,
+                  undefined,
+                  "Affichez votre positionnement et inspirez confiance en quelques lignes claires.",
                 )}
               </div>
 
@@ -2553,7 +2610,7 @@ export default function ConciergeProfilePage() {
                       className={styles.tariffNavBtn}
                       onClick={() => scrollToTariffSection("tariffs-billing-desk")}
                     >
-                      Aller a Devis / Factures
+                      Aller à Devis / Factures
                     </button>
                   </div>
 
@@ -2570,7 +2627,7 @@ export default function ConciergeProfilePage() {
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-grid")}
                     >
-                      Grille detaillee
+                      Grille détaillée
                     </button>
                     <button
                       type="button"
@@ -2584,14 +2641,14 @@ export default function ConciergeProfilePage() {
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-settings")}
                     >
-                      Parametres
+                      Paramètres
                     </button>
                     <button
                       type="button"
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-forecast")}
                     >
-                      Prevision
+                      Prévision
                     </button>
                   </div>
                 </div>,
@@ -2614,15 +2671,15 @@ export default function ConciergeProfilePage() {
                       <span className={styles.tariffConfigChip}>Base principale</span>
                     </div>
                     <p className={styles.tariffHint}>
-                      Appliquee automatiquement sur les devis hors cas specifiques.
+                      Appliquée automatiquement sur les devis hors cas spécifiques.
                     </p>
                     <div className={styles.tariffMetaGrid}>
                       <article className={styles.tariffMetaCard}>
                         <span className={styles.tariffMetaLabel}>Statut</span>
                         <strong className={styles.tariffMetaValue}>
                           {Number(editProfile.hourly_rate ?? 0) > 0
-                            ? "Base tarifaire renseignee"
-                            : "Tarif horaire a definir"}
+                            ? "Base tarifaire renseignée"
+                            : "Tarif horaire à définir"}
                         </strong>
                       </article>
                       <article className={styles.tariffMetaCard}>
@@ -2630,7 +2687,7 @@ export default function ConciergeProfilePage() {
                         <strong className={styles.tariffMetaValue}>
                           {editProfile.hourly_rate != null
                             ? `${editProfile.hourly_rate} EUR/h`
-                            : "Non renseigne"}
+                            : "Non renseigné"}
                         </strong>
                       </article>
                       <article className={styles.tariffMetaCard}>
@@ -2654,7 +2711,7 @@ export default function ConciergeProfilePage() {
                       "number",
                     )}
                     {renderField(
-                      "Frais de deplacement (EUR)",
+                  "Frais de déplacement (EUR)",
                       "travel_fee",
                       TARIFF_SECTION_IDS.BASE,
                       false,
@@ -2672,7 +2729,7 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.tariffPanelCard}`}
             >
               {renderSection(
-                "Parametres de facturation",
+                "Paramètres de facturation",
                 <FiTrendingUp />,
                 <>
                   <div className={styles.tariffCardIntro}>
@@ -2681,7 +2738,7 @@ export default function ConciergeProfilePage() {
                       <span className={styles.tariffConfigChip}>Appliquees aux devis/factures</span>
                     </div>
                     <p className={styles.tariffHint}>
-                      Definissez les frais standards, majorations et seuils
+                      Définissez les frais standards, majorations et seuils
                       minimum.
                     </p>
                     </div>
@@ -2731,7 +2788,7 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.financeCardWide} ${styles.tariffPanelCard}`}
             >
               {renderSection(
-                "Grille tarifaire detaillee",
+                "Grille tarifaire détaillée",
                 <FiDollarSignOutline />,
                 <>
                   <div className={styles.tariffCardIntro}>
@@ -2750,7 +2807,7 @@ export default function ConciergeProfilePage() {
                       </div>
                       <div className={styles.tariffContextItem}>
                         <CheckCircle2 size={14} />
-                        <span>Regles par bien, surface et duree</span>
+                        <span>Règles par bien, surface et durée</span>
                       </div>
                     </div>
                   </div>
@@ -2772,7 +2829,7 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard} ${styles.tariffEmphasisCard}`}
             >
               {renderSection(
-                "Devis et factures operationnels",
+                "Devis et factures opérationnels",
                 <FiFile />,
                 <>
                   <div className={styles.tariffCardIntro}>
@@ -2783,7 +2840,7 @@ export default function ConciergeProfilePage() {
                       </span>
                     </div>
                     <p className={styles.tariffHint}>
-                      Creez, validez et suivez vos devis/factures depuis une
+                      Créez, validez et suivez vos devis/factures depuis une
                       interface unique.
                     </p>
                   </div>
@@ -2800,16 +2857,16 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.tariffPanelCard}`}
             >
               {renderSection(
-                "Prevision de revenus",
+                "Prévision de revenus",
                 <FiBarChart />,
                 <>
                   <div className={styles.tariffCardIntro}>
                     <div className={styles.tariffInlineHeader}>
                       <h3 className={styles.tariffMiniTitle}>Simulation rapide</h3>
-                      <span className={styles.tariffConfigChip}>Aide a la decision</span>
+                      <span className={styles.tariffConfigChip}>Aide à la décision</span>
                     </div>
                     <p className={styles.tariffHint}>
-                      Ajustez vos propositions avant envoi selon vos regles
+                      Ajustez vos propositions avant envoi selon vos règles
                       actuelles.
                     </p>
                     <div className={styles.tariffForecastPanel}>
@@ -2817,7 +2874,7 @@ export default function ConciergeProfilePage() {
                         Base horaire: {editProfile.hourly_rate ?? 0} EUR/h
                       </span>
                       <span className={styles.tariffConfigChip}>
-                        Deplacement: {editProfile.travel_fee ?? 0} EUR
+                        Déplacement: {editProfile.travel_fee ?? 0} EUR
                       </span>
                       <span className={styles.tariffConfigChip}>
                         Minimum facture: {seasonalPricing.minimumInvoice} EUR
