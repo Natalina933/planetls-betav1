@@ -105,7 +105,7 @@ export default function ServiceList() {
       </ServicesBlock>
 
       <div className={styles.ctaZone}>
-        <a className={styles.CTAButton} href="/inscription" aria-label="Essayer la plateforme gratuitement">
+        <a className={styles.CTAButton} href="/complete-registration" aria-label="Essayer la plateforme gratuitement">
           Essayer gratuitement
         </a>
         <span className={styles.ctaSub}>

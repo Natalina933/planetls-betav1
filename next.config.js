@@ -27,6 +27,21 @@ const nextConfig = {
         destination: "/home",
         permanent: true,
       },
+      {
+        source: "/inscription",
+        destination: "/complete-registration",
+        permanent: true,
+      },
+      {
+        source: "/inscription/service",
+        destination: "/complete-registration?category=service",
+        permanent: true,
+      },
+      {
+        source: "/register",
+        destination: "/complete-registration",
+        permanent: true,
+      },
     ];
   },
 

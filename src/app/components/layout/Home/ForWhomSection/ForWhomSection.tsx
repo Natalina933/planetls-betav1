@@ -133,7 +133,7 @@ const ForWhomSection: React.FC = () => (
       <div className={styles.heroActions}>
         <div className={styles.buttonsRow}>
           {/* Utilisation de liens <a> sémantiques pour les actions de navigation */}
-          <a href="/inscription/service" className={styles.CTAButton}>Proposer un service</a>
+          <a href="/complete-registration?category=service" className={styles.CTAButton}>Proposer un service</a>
           <a href="/recherche/prestataire" className={styles.CTAButtonSecondary}>Rechercher un prestataire</a>
         </div>
         <a href="#fonctionnement" className={styles.ctaTertiary}>Découvrir comment ça marche</a>
