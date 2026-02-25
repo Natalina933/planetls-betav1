@@ -12,8 +12,10 @@ import {
   FiFilter,
   FiSearch,
   FiRefreshCw,
+  FiCheck,
 } from 'react-icons/fi';
 import styles from './PricingGridManager.module.scss';
+import type { PricingModifierKey, PricingOverrideValue, PricingV2Config } from '@/app/components/tariffs/types';
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -84,8 +86,11 @@ interface PricingGridManagerProps {
   activeServiceLabels?: string[];
   linkedPackageId?: string;
   linkedPackageName?: string;
+  pricingV2?: PricingV2Config;
+  onChangePricingV2?: (next: PricingV2Config) => void;
   showHeader?: boolean;
   showQuickStats?: boolean;
+  showContextualHeader?: boolean;
 }
 
 const PricingGridManager = ({
@@ -93,8 +98,11 @@ const PricingGridManager = ({
   activeServiceLabels,
   linkedPackageId,
   linkedPackageName,
+  pricingV2,
+  onChangePricingV2,
   showHeader = true,
   showQuickStats = true,
+  showContextualHeader = true,
 }: PricingGridManagerProps) => {
   const [pricings, setPricings] = useState<Pricing[]>([]);
   const [servicesCatalog, setServicesCatalog] = useState<ServicesCatalog>({ byCategory: {} });
@@ -111,6 +119,20 @@ const PricingGridManager = ({
   const [selectedPricingIdsForPack, setSelectedPricingIdsForPack] = useState<string[]>([]);
   const [linkedPricingSignatures, setLinkedPricingSignatures] = useState<Set<string>>(new Set());
   const [isLinkingSelected, setIsLinkingSelected] = useState(false);
+  const [prioritySearch, setPrioritySearch] = useState("");
+  const [showAdvancedPricingTools, setShowAdvancedPricingTools] = useState(false);
+  const [editingPriorityRows, setEditingPriorityRows] = useState<Record<string, boolean>>({});
+  const [contextualServiceScope, setContextualServiceScope] = useState<"missions" | "all">("missions");
+
+  const modifierColumns: Array<{
+    key: PricingModifierKey;
+    label: string;
+  }> = [
+    { key: 'urgentPercent', label: 'Urgence' },
+    { key: 'nightPercent', label: 'Nuit' },
+    { key: 'weekendPercent', label: 'Week-end' },
+    { key: 'highSeasonPercent', label: 'Haute saison' },
+  ];
 
   const normalizeServiceText = (value: string) =>
     value
@@ -502,6 +524,174 @@ const PricingGridManager = ({
     );
   }, [visiblePricings]);
 
+  const catalogById = useMemo(() => {
+    const entries = Object.values(servicesCatalog.byCategory).flat();
+    return entries.reduce<Record<string, ServiceCatalogItem>>((acc, item) => {
+      acc[String(item.id)] = item;
+      return acc;
+    }, {});
+  }, [servicesCatalog.byCategory]);
+
+  const activeServiceRows = useMemo(() => {
+    const rows = (activeServiceIds ?? [])
+      .map((serviceId) => {
+        const match = catalogById[String(serviceId)];
+        if (!match) return null;
+        return {
+          id: String(match.id),
+          label: match.service,
+          category: match.category,
+        };
+      })
+      .filter((item): item is { id: string; label: string; category: string } => Boolean(item));
+
+    if (rows.length > 0) return rows;
+
+    // Fallback affichage si l'ID n'est pas encore resolu (ne persiste pas d'override sans ID).
+    return (activeServiceLabels ?? [])
+      .filter(Boolean)
+      .map((label) => ({
+        id: "",
+        label,
+        category: "Service actif",
+      }));
+  }, [activeServiceIds, activeServiceLabels, catalogById]);
+
+  const allCatalogRows = useMemo(
+    () =>
+      Object.values(servicesCatalog.byCategory)
+        .flat()
+        .map((item) => ({
+          id: String(item.id),
+          label: item.service,
+          category: item.category,
+        }))
+        .sort((a, b) => `${a.category} ${a.label}`.localeCompare(`${b.category} ${b.label}`)),
+    [servicesCatalog.byCategory],
+  );
+
+  const contextualServiceRows = useMemo(() => {
+    if (contextualServiceScope === "all") return allCatalogRows;
+    return activeServiceRows;
+  }, [contextualServiceScope, allCatalogRows, activeServiceRows]);
+
+  useEffect(() => {
+    if (contextualServiceScope === "missions" && activeServiceRows.length === 0) {
+      setContextualServiceScope("all");
+    }
+  }, [contextualServiceScope, activeServiceRows.length]);
+
+  const isContextualMode = Boolean(
+    pricingV2 && onChangePricingV2 && contextualServiceRows.length > 0,
+  );
+  const shouldShowAdvancedTools = !isContextualMode || showAdvancedPricingTools;
+
+  const filteredContextualServiceRows = useMemo(() => {
+    const q = normalizeServiceText(prioritySearch);
+    if (!q) return contextualServiceRows;
+    return contextualServiceRows.filter((row) =>
+      normalizeServiceText(`${row.label} ${row.category}`).includes(q),
+    );
+  }, [contextualServiceRows, prioritySearch]);
+
+  const getServicePricingType = (serviceId: string): "hourly" | "fixed" => {
+    if (!serviceId || !pricingV2) return "hourly";
+    return pricingV2.serviceOverrides?.[serviceId]?.pricingType ?? "hourly";
+  };
+
+  const handleServicePricingTypeChange = (
+    serviceId: string,
+    pricingType: "hourly" | "fixed",
+  ) => {
+    if (!pricingV2 || !onChangePricingV2 || !serviceId) return;
+    const currentOverride = pricingV2.serviceOverrides?.[serviceId];
+
+    onChangePricingV2({
+      ...pricingV2,
+      serviceOverrides: {
+        ...(pricingV2.serviceOverrides ?? {}),
+        [serviceId]: {
+          ...(currentOverride ?? { enabled: true }),
+          enabled: true,
+          pricingType,
+        },
+      },
+    });
+  };
+
+  const togglePriorityRowEdit = (rowKey: string) => {
+    setEditingPriorityRows((prev) => ({
+      ...prev,
+      [rowKey]: !prev[rowKey],
+    }));
+  };
+
+  const closePriorityRowEdit = (rowKey: string) => {
+    setEditingPriorityRows((prev) => ({
+      ...prev,
+      [rowKey]: false,
+    }));
+  };
+
+  const getEffectiveModifierPercent = (
+    serviceId: string,
+    modifierKey: PricingModifierKey,
+  ): number => {
+    const globalValue = pricingV2?.globalModifiers?.[modifierKey] ?? 0;
+    const override = pricingV2?.serviceOverrides?.[serviceId]?.modifierOverride?.[modifierKey];
+    if (!override) return globalValue;
+    return override.mode === "replace" ? override.value : globalValue + override.value;
+  };
+
+  const updateServiceModifier = (
+    serviceId: string,
+    modifierKey: PricingModifierKey,
+    override: PricingOverrideValue | null,
+  ) => {
+    if (!pricingV2 || !onChangePricingV2 || !serviceId) return;
+
+    const currentOverride = pricingV2.serviceOverrides?.[serviceId];
+    const nextModifierOverride = {
+      ...(currentOverride?.modifierOverride ?? {}),
+    };
+
+    if (override) {
+      nextModifierOverride[modifierKey] = override;
+    } else {
+      delete nextModifierOverride[modifierKey];
+    }
+
+    const hasModifierKeys = Object.keys(nextModifierOverride).length > 0;
+    const nextServiceOverride = {
+      ...(currentOverride ?? { enabled: true }),
+      enabled: hasModifierKeys || currentOverride?.enabled === true,
+      modifierOverride: nextModifierOverride,
+    };
+
+    onChangePricingV2({
+      ...pricingV2,
+      serviceOverrides: {
+        ...(pricingV2.serviceOverrides ?? {}),
+        [serviceId]: nextServiceOverride,
+      },
+    });
+  };
+
+  const handlePriceOverrideChange = (
+    serviceId: string,
+    modifierKey: PricingModifierKey,
+    priceValue: string,
+  ) => {
+    if (!pricingV2) return;
+    const numericPrice = Number(priceValue);
+    if (!Number.isFinite(numericPrice)) return;
+
+    const base = Math.max(0, pricingV2.base.hourlyRate ?? 0);
+    const normalized = Math.max(0, numericPrice);
+    const percent = base > 0 ? ((normalized / base) - 1) * 100 : 0;
+    updateServiceModifier(serviceId, modifierKey, { mode: "replace", value: percent });
+  };
+
   /* -------------------------------------------------------------------------- */
   /*                                   RENDER                                   */
   /* -------------------------------------------------------------------------- */
@@ -511,9 +701,15 @@ const PricingGridManager = ({
       <div className={styles.toolbar}>
         {showHeader && (
           <div className={styles.headingBlock}>
-            <h3 className={styles.headingTitle}>Ma grille tarifaire personnalisee</h3>
+            <h3 className={styles.headingTitle}>
+              {isContextualMode
+                ? "Tarification contextuelle simplifiee"
+                : "Ma grille tarifaire personnalisee"}
+            </h3>
             <p className={styles.headingText}>
-              Definissez vos tarifs selon le type de bien, la surface et la duree.
+              {isContextualMode
+                ? "Modifiez rapidement vos tarifs par service et par contexte."
+                : "Definissez vos tarifs selon le type de bien, la surface et la duree."}
             </p>
             {linkedPackageId && (
               <p className={styles.headingPackHint}>
@@ -523,7 +719,7 @@ const PricingGridManager = ({
             )}
             <div className={styles.inlineStats}>
               <span className={styles.inlineStat}>
-                <strong>{pricings.length}</strong> regles
+                <strong>{pricings.length}</strong> règles
               </span>
               <span className={styles.inlineStat}>
                 <strong>{linkedServiceCount}</strong> liees a un service
@@ -533,75 +729,278 @@ const PricingGridManager = ({
         )}
 
         <div className={styles.controlsPanel}>
-          {/* Filtres */}
-          <div className={styles.filterGroup}>
-            <FiFilter size={16} className={styles.filterIcon} aria-hidden="true" />
-            <select
-              className={styles.selectControl}
-              value={filterPropertyType}
-              onChange={(e) => setFilterPropertyType(e.target.value as PropertyType | '')}
-              aria-label="Filtrer par type de bien"
-            >
-              <option value="">Tous les types</option>
-              {propertyTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
+          {isContextualMode ? (
+            <>
+              <select
+                className={styles.selectControl}
+                value={contextualServiceScope}
+                onChange={(e) =>
+                  setContextualServiceScope(e.target.value as "missions" | "all")
+                }
+                aria-label="Source des services de la grille"
+              >
+                <option value="missions">Services missions</option>
+                <option value="all">Tous les services</option>
+              </select>
+              <div className={styles.searchWrapper}>
+                <FiSearch size={16} className={styles.searchIcon} aria-hidden="true" />
+                <input
+                  className={styles.searchInput}
+                  type="text"
+                  placeholder="Rechercher un service..."
+                  value={prioritySearch}
+                  onChange={(e) => setPrioritySearch(e.target.value)}
+                  aria-label="Rechercher un service actif"
+                />
+              </div>
+              <button
+                type="button"
+                className={`${styles.ghostButton} ${styles.buttonWithIcon}`}
+                onClick={() => setPrioritySearch("")}
+                disabled={!prioritySearch.trim()}
+              >
+                <FiRefreshCw size={14} aria-hidden="true" />
+                Reinitialiser
+              </button>
+              <button
+                type="button"
+                className={`${styles.primaryButton} ${styles.buttonWithIcon}`}
+                onClick={() => setShowAdvancedPricingTools((prev) => !prev)}
+              >
+                <FiPlus size={16} aria-hidden="true" />
+                {showAdvancedPricingTools ? "Masquer options avancees" : "Options avancees"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className={styles.filterGroup}>
+                <FiFilter size={16} className={styles.filterIcon} aria-hidden="true" />
+                <select
+                  className={styles.selectControl}
+                  value={filterPropertyType}
+                  onChange={(e) => setFilterPropertyType(e.target.value as PropertyType | '')}
+                  aria-label="Filtrer par type de bien"
+                >
+                  <option value="">Tous les types</option>
+                  {propertyTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
 
-            <select
-              className={styles.selectControl}
-              value={filterPricingType}
-              onChange={(e) => setFilterPricingType(e.target.value as PricingType | '')}
-              aria-label="Filtrer par type de tarification"
-            >
-              <option value="">Toutes tarifications</option>
-              {pricingTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
+                <select
+                  className={styles.selectControl}
+                  value={filterPricingType}
+                  onChange={(e) => setFilterPricingType(e.target.value as PricingType | '')}
+                  aria-label="Filtrer par type de tarification"
+                >
+                  <option value="">Toutes tarifications</option>
+                  {pricingTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Recherche */}
-          <div className={styles.searchWrapper}>
-            <FiSearch size={16} className={styles.searchIcon} aria-hidden="true" />
-            <input
-              className={styles.searchInput}
-              type="text"
-              placeholder="Rechercher un libelle..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Rechercher un tarif"
-            />
-          </div>
+              <div className={styles.searchWrapper}>
+                <FiSearch size={16} className={styles.searchIcon} aria-hidden="true" />
+                <input
+                  className={styles.searchInput}
+                  type="text"
+                  placeholder="Rechercher un libelle..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  aria-label="Rechercher un tarif"
+                />
+              </div>
 
-          <button
-            type="button"
-            className={`${styles.ghostButton} ${styles.buttonWithIcon}`}
-            onClick={resetFilters}
-            disabled={!hasFilters}
-          >
-            <FiRefreshCw size={14} aria-hidden="true" />
-            Reinitialiser
-          </button>
+              <button
+                type="button"
+                className={`${styles.ghostButton} ${styles.buttonWithIcon}`}
+                onClick={resetFilters}
+                disabled={!hasFilters}
+              >
+                <FiRefreshCw size={14} aria-hidden="true" />
+                Reinitialiser
+              </button>
 
-          {/* Bouton Ajouter */}
-          <button
-            type="button"
-            className={`${styles.primaryButton} ${styles.buttonWithIcon}`}
-            onClick={() => setShowAddForm((prev) => !prev)}
-          >
-            <FiPlus size={16} aria-hidden="true" />
-            {showAddForm ? 'Fermer le formulaire' : 'Nouvelle regle'}
-          </button>
+              <button
+                type="button"
+                className={`${styles.primaryButton} ${styles.buttonWithIcon}`}
+                onClick={() => setShowAddForm((prev) => !prev)}
+              >
+                <FiPlus size={16} aria-hidden="true" />
+                {showAddForm ? 'Fermer le formulaire' : 'Nouvelle regle'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
+      {pricingV2 && onChangePricingV2 && contextualServiceRows.length > 0 && (
+        <div className={styles.priorityCard}>
+          {showContextualHeader && (
+            <div className={styles.priorityHeader}>
+              <h4>Tarifs par service et contexte</h4>
+              <p>
+                Modifiez vos tarifs directement ici (horaire ou forfait), puis ajustez
+                les contextes: urgence, nuit, week-end, haute saison.
+              </p>
+            </div>
+          )}
+          <div className={styles.priorityTableWrap}>
+            <table className={styles.priorityTable}>
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Type</th>
+                  <th>Base</th>
+                  {modifierColumns.map((column) => (
+                    <th key={column.key}>{column.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredContextualServiceRows.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className={styles.emptyCell}>
+                      <p className={styles.emptyTitle}>
+                        Aucun service ne correspond a la recherche.
+                      </p>
+                    </td>
+                  </tr>
+                )}
+                {filteredContextualServiceRows.map((serviceRow) => (
+                  <tr key={`${serviceRow.id || "label"}-${serviceRow.label}`}>
+                    <td>
+                      <div className={styles.priorityServiceCell}>
+                        <div className={styles.priorityServiceTop}>
+                          <strong>{serviceRow.label}</strong>
+                          {editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`] ? (
+                            <button
+                              type="button"
+                              className={`${styles.priorityEditButton} ${styles.prioritySaveButton}`}
+                              disabled={!serviceRow.id}
+                              onClick={() =>
+                                closePriorityRowEdit(serviceRow.id || `label:${serviceRow.label}`)
+                              }
+                              title="Valider les modifications"
+                              aria-label={`Valider les tarifs de ${serviceRow.label}`}
+                            >
+                              <FiCheck size={14} />
+                            </button>
+                          ) : (
+                          <button
+                            type="button"
+                            className={styles.priorityEditButton}
+                            disabled={!serviceRow.id}
+                            onClick={() =>
+                              togglePriorityRowEdit(
+                                serviceRow.id || `label:${serviceRow.label}`,
+                              )
+                            }
+                            title={
+                              editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`]
+                                ? "Terminer la modification"
+                                : "Modifier les tarifs"
+                            }
+                            aria-label={
+                              editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`]
+                                ? `Terminer la modification de ${serviceRow.label}`
+                                : `Modifier les tarifs de ${serviceRow.label}`
+                            }
+                          >
+                            <FiEdit2 size={14} />
+                          </button>
+                          )}
+                        </div>
+                        <span>{serviceRow.category}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <select
+                        className={styles.priorityTypeSelect}
+                        value={getServicePricingType(serviceRow.id)}
+                        disabled={
+                          !serviceRow.id ||
+                          !editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`]
+                        }
+                        onChange={(e) =>
+                          handleServicePricingTypeChange(
+                            serviceRow.id,
+                            e.target.value as "hourly" | "fixed",
+                          )
+                        }
+                        aria-label={`Type de tarification pour ${serviceRow.label}`}
+                      >
+                        <option value="hourly">Horaire</option>
+                        <option value="fixed">Forfait</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div className={styles.priorityCell}>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className={styles.priorityInput}
+                          value={Number(pricingV2?.base.hourlyRate ?? 0).toFixed(2)}
+                          disabled
+                          readOnly
+                        />
+                        <small>
+                          {getServicePricingType(serviceRow.id) === "fixed" ? "EUR" : "EUR/h"}
+                        </small>
+                      </div>
+                    </td>
+                    {modifierColumns.map((column) => {
+                      const baseHourly = Number(pricingV2?.base.hourlyRate ?? 0);
+                      const effectivePercent = serviceRow.id
+                        ? getEffectiveModifierPercent(serviceRow.id, column.key)
+                        : pricingV2.globalModifiers[column.key] ?? 0;
+                      const computedPrice = Math.max(
+                        0,
+                        baseHourly * (1 + effectivePercent / 100),
+                      );
+                      const disabled =
+                        !serviceRow.id ||
+                        !editingPriorityRows[serviceRow.id || `label:${serviceRow.label}`];
+
+                      return (
+                        <td key={`${serviceRow.id}-${column.key}`}>
+                          <div className={styles.priorityCell}>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className={styles.priorityInput}
+                              value={computedPrice.toFixed(2)}
+                              disabled={disabled}
+                              onChange={(e) =>
+                                handlePriceOverrideChange(
+                                  serviceRow.id,
+                                  column.key,
+                                  e.target.value,
+                                )
+                              }
+                            />
+                            <small>{effectivePercent >= 0 ? "+" : ""}{effectivePercent.toFixed(0)}%</small>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* ADD/EDIT FORM */}
-      {showAddForm && (
+      {shouldShowAdvancedTools && showAddForm && (
         <div className={styles.formCard}>
           <h4 className={styles.formTitle}>
             {editingId ? 'Modifier la regle' : 'Nouvelle regle tarifaire'}
@@ -792,7 +1191,7 @@ const PricingGridManager = ({
       )}
 
       {/* PRICING RULES TABLE */}
-      {linkedPackageId && (
+      {shouldShowAdvancedTools && linkedPackageId && (
         <div className={styles.packageBar}>
           <p>
             Selectionnez des tarifs existants puis integrez-les au pack {linkedPackageName ?? linkedPackageId}.
@@ -810,6 +1209,7 @@ const PricingGridManager = ({
         </div>
       )}
 
+      {shouldShowAdvancedTools && (
       <div className={styles.tableCard}>
         <div className={styles.tableScroll}>
         <table className={styles.pricingTable}>
@@ -953,9 +1353,10 @@ const PricingGridManager = ({
         </table>
       </div>
       </div>
+      )}
 
       {/* QUICK STATS */}
-      {showQuickStats && visiblePricings.length > 0 && (
+      {shouldShowAdvancedTools && showQuickStats && visiblePricings.length > 0 && (
         <div className={styles.quickStatsCard}>
           <h4 className={styles.quickStatsTitle}>
             Statistiques rapides
@@ -963,7 +1364,7 @@ const PricingGridManager = ({
           <div className={styles.quickStatsGrid}>
             <div className={styles.quickStatItem}>
               <div className={styles.quickStatLabel}>
-                Regles definies
+                Règles définies
               </div>
               <div className={styles.quickStatValue}>
                 {visiblePricings.length}

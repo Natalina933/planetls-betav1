@@ -24,13 +24,13 @@ import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
-import MissionProfileModule from "@/app/components/missions/MissionProfileModule";
 import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import TariffServicePackages from "@/app/components/tariffs/TariffServicePackages";
 import TariffAdjustments from "@/app/components/tariffs/TariffAdjustments";
 import TariffRevenueEstimator from "@/app/components/tariffs/TariffRevenueEstimator";
 import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
+import { parsePricingV2FromAvailabilityHours } from "@/app/components/tariffs/pricingEngine";
 import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
 import type {
   ConciergeMissionProfile,
@@ -39,7 +39,7 @@ import type {
   MissionPreferences,
   WeekDay,
 } from "@/app/components/missions/types";
-import type { SeasonalPricingConfig } from "@/app/components/tariffs/types";
+import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 
 import {
@@ -161,8 +161,6 @@ const MISSION_SECTION_IDS = {
   SERVICES: normalizeSectionId("Services proposés"),
   ZONE_RULES: normalizeSectionId("Zone, disponibilités & règles de mission"),
   WEEKLY_AVAILABILITY: normalizeSectionId("Disponibilités hebdomadaires"),
-  ACCEPTANCE_RULES: normalizeSectionId("Règles d'acceptation des missions"),
-  PRIORITY_TYPES: normalizeSectionId("Priorité & typologie des missions"),
 } as const;
 
 type ExtendedFieldName =
@@ -775,6 +773,20 @@ export default function ConciergeProfilePage() {
     () => parseSeasonalPricing(editProfile?.availability_hours),
     [editProfile?.availability_hours],
   );
+  const pricingV2 = useMemo<PricingV2Config>(
+    () =>
+      parsePricingV2FromAvailabilityHours(editProfile?.availability_hours, {
+        hourlyRate: editProfile?.hourly_rate ?? 0,
+        travelFee: editProfile?.travel_fee ?? 0,
+        seasonalPricing,
+      }),
+    [
+      editProfile?.availability_hours,
+      editProfile?.hourly_rate,
+      editProfile?.travel_fee,
+      seasonalPricing,
+    ],
+  );
   const activeMissionServiceLabels = useMemo(
     () =>
       Array.from(
@@ -839,26 +851,11 @@ export default function ConciergeProfilePage() {
         done: missionOpenDaysCount > 0 && missionRangesCount > 0,
         sectionId: MISSION_SECTION_IDS.WEEKLY_AVAILABILITY,
       },
-      {
-        key: "priority",
-        label: "Priorites de mission",
-        hint: "Ajustez votre positionnement et vos regles.",
-        done:
-          missionPayload.missionProfile.positioning !== "standard" ||
-          missionPayload.missionProfile.specialConditions.acceptNightInterventions ||
-          missionPayload.missionProfile.specialConditions.acceptWeekendInterventions ||
-          missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions,
-        sectionId: MISSION_SECTION_IDS.PRIORITY_TYPES,
-      },
     ],
     [
       activeMissionServiceLabels.length,
       missionAvailability,
       missionOpenDaysCount,
-      missionPayload.missionProfile.positioning,
-      missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions,
-      missionPayload.missionProfile.specialConditions.acceptNightInterventions,
-      missionPayload.missionProfile.specialConditions.acceptWeekendInterventions,
       missionRangesCount,
     ],
   );
@@ -1185,11 +1182,46 @@ export default function ConciergeProfilePage() {
   const applySeasonalPricing = useCallback((next: SeasonalPricingConfig) => {
     setEditProfile((prev) =>
       prev
+        ? (() => {
+            const pricingV2Next = parsePricingV2FromAvailabilityHours(prev.availability_hours, {
+              hourlyRate: prev.hourly_rate ?? 0,
+              travelFee: prev.travel_fee ?? 0,
+              seasonalPricing: next,
+            });
+
+            return {
+              ...prev,
+              availability_hours: JSON.stringify({
+                ...parseAvailabilityPayloadRaw(prev.availability_hours),
+                pricing: next,
+                pricing_v2: {
+                  ...pricingV2Next,
+                  base: {
+                    ...pricingV2Next.base,
+                    minimumInvoice: next.minimumInvoice,
+                  },
+                  globalModifiers: {
+                    urgentPercent: next.urgentPercent,
+                    nightPercent: next.nightPercent,
+                    weekendPercent: next.weekendPercent,
+                    highSeasonPercent: next.highSeasonPercent,
+                  },
+                },
+              }),
+            };
+          })()
+        : prev,
+    );
+  }, []);
+
+  const applyPricingV2 = useCallback((next: PricingV2Config) => {
+    setEditProfile((prev) =>
+      prev
         ? {
             ...prev,
             availability_hours: JSON.stringify({
               ...parseAvailabilityPayloadRaw(prev.availability_hours),
-              pricing: next,
+              pricing_v2: next,
             }),
           }
         : prev,
@@ -1763,34 +1795,6 @@ export default function ConciergeProfilePage() {
         false,
       )}
 
-      {renderSection(
-        "Priorité & typologie des missions",
-        <FiStarOutline />,
-        <>
-          <MissionProfileModule
-            value={missionPayload.missionProfile}
-            isEditing={editingSection === MISSION_SECTION_IDS.PRIORITY_TYPES}
-            onChange={(next) =>
-              setEditProfile((prev) =>
-                prev
-                  ? (() => {
-                      const legacy = buildLegacyFromMissionProfile(next);
-                      return {
-                        ...prev,
-                        availability_hours: JSON.stringify({
-                          ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                          missionProfile: next,
-                          missionCatalog: legacy.missionCatalog,
-                          preferences: legacy.preferences,
-                        }),
-                      };
-                    })()
-                  : prev,
-              )
-            }
-          />
-        </>
-      )}
     </>
   );
 
@@ -1812,9 +1816,6 @@ export default function ConciergeProfilePage() {
                     email={editProfile.email}
                     phone={editProfile.phone}
                     location={editProfile.location ?? "Ville non renseignée, FR"}
-                    showOnboardingActions
-                    onNext={() => handleTabChange("tarifs")}
-                    onSaveForLater={() => handleSaveSection("Fiche & Infos")}
                     isEditing={editingSection === "Photo de profil"}
                     avatarFile={avatarFile}
                     existingAvatarUrl={
@@ -2480,7 +2481,7 @@ export default function ConciergeProfilePage() {
                     <div className={styles.tariffHeroIntro}>
                       <span className={styles.tariffPill}>Pilotage global</span>
                       <p className={styles.tariffWorkflowLead}>
-                        Centralisez vos regles de prix, puis produisez devis et
+                        Centralisez vos règles de prix, puis produisez devis et
                         factures sans ressaisie.
                       </p>
                     </div>
@@ -2498,7 +2499,7 @@ export default function ConciergeProfilePage() {
                         <strong>
                           {editProfile.hourly_rate != null
                             ? `${editProfile.hourly_rate} EUR/h`
-                            : "A definir"}
+                            : "À définir"}
                         </strong>
                       </article>
                       <article className={styles.tariffMetric}>
@@ -2570,7 +2571,7 @@ export default function ConciergeProfilePage() {
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-grid")}
                     >
-                      Grille detaillee
+                      Grille détaillée
                     </button>
                     <button
                       type="button"
@@ -2622,7 +2623,7 @@ export default function ConciergeProfilePage() {
                         <strong className={styles.tariffMetaValue}>
                           {Number(editProfile.hourly_rate ?? 0) > 0
                             ? "Base tarifaire renseignee"
-                            : "Tarif horaire a definir"}
+                            : "Tarif horaire à définir"}
                         </strong>
                       </article>
                       <article className={styles.tariffMetaCard}>
@@ -2630,7 +2631,7 @@ export default function ConciergeProfilePage() {
                         <strong className={styles.tariffMetaValue}>
                           {editProfile.hourly_rate != null
                             ? `${editProfile.hourly_rate} EUR/h`
-                            : "Non renseigne"}
+                            : "Non renseigné"}
                         </strong>
                       </article>
                       <article className={styles.tariffMetaCard}>
@@ -2654,7 +2655,7 @@ export default function ConciergeProfilePage() {
                       "number",
                     )}
                     {renderField(
-                      "Frais de deplacement (EUR)",
+                      "Frais de déplacement (EUR)",
                       "travel_fee",
                       TARIFF_SECTION_IDS.BASE,
                       false,
@@ -2677,7 +2678,7 @@ export default function ConciergeProfilePage() {
                 <>
                   <div className={styles.tariffCardIntro}>
                     <div className={styles.tariffInlineHeader}>
-                      <h3 className={styles.tariffMiniTitle}>Regles transverses</h3>
+                      <h3 className={styles.tariffMiniTitle}>Règles transverses</h3>
                       <span className={styles.tariffConfigChip}>Appliquees aux devis/factures</span>
                     </div>
                     <p className={styles.tariffHint}>
@@ -2731,26 +2732,26 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.financeCardWide} ${styles.tariffPanelCard}`}
             >
               {renderSection(
-                "Grille tarifaire detaillee",
+                "Grille tarifaire détaillée",
                 <FiDollarSignOutline />,
                 <>
                   <div className={styles.tariffCardIntro}>
                     <div className={styles.tariffInlineHeader}>
                       <h3 className={styles.tariffMiniTitle}>Tarification contextuelle</h3>
-                      <span className={styles.tariffConfigChip}>Regles avancees</span>
+                      <span className={styles.tariffConfigChip}>Règles avancées</span>
                     </div>
                     <p className={styles.tariffHint}>
-                      Affinez vos prix selon le type de demande et le contexte
-                      d&apos;intervention.
+                      Modifiez vos tarifs par service, puis ajustez chaque
+                      contexte (urgence, nuit, week-end, haute saison).
                     </p>
                     <div className={styles.tariffContextLine}>
                       <div className={styles.tariffContextItem}>
                         <CheckCircle2 size={14} />
-                        <span>{activeMissionServiceLabels.length} services relies</span>
+                        <span>{activeMissionServiceLabels.length} services liés</span>
                       </div>
                       <div className={styles.tariffContextItem}>
                         <CheckCircle2 size={14} />
-                        <span>Regles par bien, surface et duree</span>
+                        <span>Règles par bien, surface et durée</span>
                       </div>
                     </div>
                   </div>
@@ -2758,8 +2759,11 @@ export default function ConciergeProfilePage() {
                     <PricingGridManager
                       activeServiceIds={activeMissionServiceCatalogIds}
                       activeServiceLabels={activeMissionServiceLabels}
+                      pricingV2={pricingV2}
+                      onChangePricingV2={applyPricingV2}
                       showHeader={false}
                       showQuickStats={false}
+                      showContextualHeader={false}
                     />
                   </div>
                 </>,
@@ -2809,7 +2813,7 @@ export default function ConciergeProfilePage() {
                       <span className={styles.tariffConfigChip}>Aide a la decision</span>
                     </div>
                     <p className={styles.tariffHint}>
-                      Ajustez vos propositions avant envoi selon vos regles
+                      Ajustez vos propositions avant envoi selon vos règles
                       actuelles.
                     </p>
                     <div className={styles.tariffForecastPanel}>
@@ -2829,6 +2833,7 @@ export default function ConciergeProfilePage() {
                       hourlyRate={editProfile.hourly_rate ?? 0}
                       travelFee={editProfile.travel_fee ?? 0}
                       pricing={seasonalPricing}
+                      pricingV2={pricingV2}
                     />
                   </div>
                 </>,

@@ -1257,9 +1257,27 @@ $transition-slow: 380ms $easing-soft;
 
 .missionProgressLabel {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
   font-size: 0.84rem;
   font-weight: 700;
   color: $color-text-primary;
+}
+
+.missionProgressTooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.1);
+  color: $color-primary-dark;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: help;
 }
 
 .missionProgressHint {
@@ -1630,6 +1648,52 @@ $transition-slow: 380ms $easing-soft;
   }
 }
 
+.missionsHeroAlerts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 0.7rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionsHeroAlertCard {
+  border: 1px solid rgba($color-warning, 0.35);
+  background: rgba($color-warning, 0.08);
+  border-radius: $radius-md;
+  padding: 0.7rem 0.8rem;
+  display: grid;
+  gap: 0.35rem;
+
+  strong {
+    font-size: 0.84rem;
+    color: color.scale($color-warning, $lightness: -24%);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: $color-text-secondary;
+  }
+}
+
+.missionsHeroAlertAction {
+  justify-self: start;
+  border: 1px solid rgba($color-primary, 0.4);
+  background: rgba($color-primary, 0.12);
+  color: $color-primary-dark;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.24rem 0.62rem;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($color-primary, 0.18);
+  }
+}
+
 .tariffPanelCard {
   position: relative;
   overflow: hidden;
@@ -1644,6 +1708,37 @@ $transition-slow: 380ms $easing-soft;
     background: linear-gradient(90deg, rgba($color-primary-dark, 0.78), rgba($color-primary, 0.78));
     opacity: 0.65;
   }
+}
+
+.tariffOnboardingCallout {
+  grid-column: 1 / -1;
+  border-radius: 12px;
+  border: 1px solid rgba($color-primary, 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba($color-primary, 0.14) 0%,
+    rgba($color-primary-light, 0.08) 48%,
+    rgba(255, 255, 255, 0.95) 100%
+  );
+  padding: 0.85rem 1rem;
+  box-shadow: 0 6px 18px rgba($color-primary, 0.1);
+
+  p {
+    margin: 0;
+    color: color.scale($color-text-secondary, $lightness: -6%);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.tariffOnboardingTitle {
+  display: inline-block;
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color.scale($color-primary-dark, $lightness: -6%);
 }
 
 .financeCardFull {
@@ -1998,6 +2093,11 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.9rem;
   line-height: 1.45;
   color: $color-text-secondary;
+}
+
+.tariffHintExample {
+  font-weight: 700;
+  color: color.scale($color-primary-dark, $lightness: -8%);
 }
 
 .tariffTag {

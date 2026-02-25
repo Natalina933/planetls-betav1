@@ -18,6 +18,69 @@ $border: #e2e2e2;
   }
 }
 
+.catalogControls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 260px) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.searchInput,
+.categoryFilter {
+  width: 100%;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 0.9rem;
+  padding: 0.62rem 0.75rem;
+
+  &:focus {
+    outline: none;
+    border-color: rgba($gold, 0.8);
+    box-shadow: 0 0 0 3px rgba($gold, 0.15);
+  }
+}
+
+.clearFiltersBtn {
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: #fff;
+  color: #444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: $gold;
+    color: $green-dark;
+    background: rgba($gold, 0.06);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.filterMeta {
+  margin: -0.5rem 0 0;
+  font-size: 0.82rem;
+  color: #666;
+}
+
+.noResult {
+  border: 1px dashed rgba($gold, 0.55);
+  border-radius: 8px;
+  background: rgba($gold, 0.06);
+  color: #665636;
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 0.9rem;
+}
+
 .categorySection {
   margin-bottom: 0.5rem;
   border: 1px solid $border;
@@ -105,10 +168,32 @@ $border: #e2e2e2;
     flex-direction: column;
     gap: 0.25rem;
 
+    .serviceLabelRow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
     .serviceLabel {
       font-weight: 600;
       font-size: 0.95rem;
       color: $green-dark;
+    }
+
+    .serviceHintBadge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid rgba($gold, 0.45);
+      background: rgba($gold, 0.12);
+      color: $green-dark;
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: help;
+      flex-shrink: 0;
     }
 
     .serviceDescription {
@@ -116,6 +201,14 @@ $border: #e2e2e2;
       color: #777;
       line-height: 1.4;
       margin: 0;
+    }
+
+    .serviceHintText {
+      margin: 0;
+      font-size: 0.76rem;
+      color: #666;
+      line-height: 1.35;
+      font-style: italic;
     }
   }
 }
@@ -128,4 +221,14 @@ $border: #e2e2e2;
   padding: 1rem;
   background: $cream;
   border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .catalogControls {
+    grid-template-columns: 1fr;
+  }
+
+  .clearFiltersBtn {
+    width: 100%;
+  }
 }

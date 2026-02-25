@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import styles from "./TariffRevenueEstimator.module.scss";
-import type { SeasonalPricingConfig } from "./types";
+import { computeMissionPrice, createPricingV2FromLegacy } from "./pricingEngine";
+import type { PricingV2Config, SeasonalPricingConfig } from "./types";
 
 interface Props {
   hourlyRate: number;
   travelFee: number;
   pricing: SeasonalPricingConfig;
+  pricingV2?: PricingV2Config;
 }
 
 const clamp = (value: number, min: number, max: number) =>
@@ -19,6 +21,7 @@ export default function TariffRevenueEstimator({
   hourlyRate,
   travelFee,
   pricing,
+  pricingV2,
 }: Props) {
   const [missionsPerMonth, setMissionsPerMonth] = useState(20);
   const [avgHoursPerMission, setAvgHoursPerMission] = useState(2);
@@ -27,30 +30,59 @@ export default function TariffRevenueEstimator({
   const [weekendSharePercent, setWeekendSharePercent] = useState(25);
 
   const projection = useMemo(() => {
-    const baseHourly = hourlyRate > 0 ? hourlyRate : 0;
-    const baseMission =
-      baseHourly * avgHoursPerMission +
-      pricing.checkInFee +
-      pricing.checkOutFee +
-      pricing.linenKitFee +
-      travelFee;
+    const fixedFees = pricing.checkInFee + pricing.checkOutFee + pricing.linenKitFee;
 
-    const urgentBonus = baseMission * (pricing.urgentPercent / 100);
-    const nightBonus = baseMission * (pricing.nightPercent / 100);
-    const weekendBonus = baseMission * (pricing.weekendPercent / 100);
+    const effectivePricingV2: PricingV2Config = {
+      ...(pricingV2 ??
+        createPricingV2FromLegacy({
+          hourlyRate,
+          travelFee,
+          seasonalPricing: pricing,
+        })),
+      base: {
+        hourlyRate,
+        travelFee,
+        minimumInvoice: pricing.minimumInvoice,
+      },
+      globalModifiers: {
+        urgentPercent: pricing.urgentPercent,
+        nightPercent: pricing.nightPercent,
+        weekendPercent: pricing.weekendPercent,
+        highSeasonPercent: pricing.highSeasonPercent,
+      },
+    };
+
+    const baseScenario = computeMissionPrice(effectivePricingV2, {
+      durationHours: avgHoursPerMission,
+      fixedFees,
+    });
+    const urgentScenario = computeMissionPrice(effectivePricingV2, {
+      durationHours: avgHoursPerMission,
+      fixedFees,
+      isUrgent: true,
+    });
+    const nightScenario = computeMissionPrice(effectivePricingV2, {
+      durationHours: avgHoursPerMission,
+      fixedFees,
+      isNight: true,
+    });
+    const weekendScenario = computeMissionPrice(effectivePricingV2, {
+      durationHours: avgHoursPerMission,
+      fixedFees,
+      isWeekend: true,
+    });
 
     const weightedMissionValue =
-      baseMission +
-      urgentBonus * (urgentSharePercent / 100) +
-      nightBonus * (nightSharePercent / 100) +
-      weekendBonus * (weekendSharePercent / 100);
+      baseScenario.total +
+      (urgentScenario.total - baseScenario.total) * (urgentSharePercent / 100) +
+      (nightScenario.total - baseScenario.total) * (nightSharePercent / 100) +
+      (weekendScenario.total - baseScenario.total) * (weekendSharePercent / 100);
 
-    const securedMissionValue = Math.max(weightedMissionValue, pricing.minimumInvoice);
-    const monthly = securedMissionValue * missionsPerMonth;
+    const monthly = weightedMissionValue * missionsPerMonth;
 
     return {
-      baseMission: round(baseMission),
-      weightedMissionValue: round(securedMissionValue),
+      baseMission: round(baseScenario.total),
+      weightedMissionValue: round(weightedMissionValue),
       monthly: round(monthly),
     };
   }, [
@@ -59,6 +91,7 @@ export default function TariffRevenueEstimator({
     missionsPerMonth,
     nightSharePercent,
     pricing,
+    pricingV2,
     travelFee,
     urgentSharePercent,
     weekendSharePercent,

@@ -20,6 +20,19 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Pricing Grid (Quick Rules)
+
+1. Base first: `hourlyRate + travelFee + fixedFees`.
+2. Global modifiers apply next: urgency, night, weekend, high season.
+3. Service overrides can replace or adjust base/modifiers.
+4. Context rules apply with explicit priority (`priority` ascending).
+5. `replace` overrides value; `delta` adds/subtracts value.
+6. Total is always clamped by `minimumInvoice`.
+7. If `pricing_v2` is missing, fallback to legacy pricing.
+8. During migration, keep writing both `pricing` (legacy) and `pricing_v2`.
+9. Every calculation must be traceable (`appliedRules`, final modifiers, minimum used).
+10. Detailed spec: `docs/pricing-grid-business-spec.md`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

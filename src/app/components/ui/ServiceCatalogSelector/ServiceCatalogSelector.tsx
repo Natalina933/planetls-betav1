@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { LucideLoader2 } from "lucide-react";
 import styles from "./ServiceCatalogSelector.module.scss";
 
@@ -15,9 +15,30 @@ interface ServiceCatalogSelectorProps {
     selected: string[];
     onChange: (selected: string[]) => void;
     disabled?: boolean;
+    hints?: Record<string, string>;
 }
 
 type GroupedCatalog = Record<string, ServiceItem[]>;
+
+const CATEGORY_ORDER = [
+    "Ménage",
+    "Linge",
+    "Accueil",
+    "Maintenance",
+    "Courses",
+    "Administratif",
+    "Extérieur",
+    "Sécurité",
+    "Confort",
+    "Éco",
+];
+
+const normalizeText = (value: string) =>
+    value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
 
 const groupServices = (data: ServiceItem[]): GroupedCatalog => {
     return data.reduce((acc: GroupedCatalog, item: ServiceItem) => {
@@ -31,11 +52,14 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     selected,
     onChange,
     disabled = false,
+    hints,
 }) => {
     const [catalog, setCatalog] = useState<GroupedCatalog>({});
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeCategory, setActiveCategory] = useState<string>("all");
 
     const toggleCategory = (category: string) => {
         setOpenCategories((prev) => ({
@@ -65,7 +89,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 const groupedCatalog = groupServices(data);
                 setCatalog(groupedCatalog);
 
-                // toutes les catégories ouvertes par défaut
                 const initialOpenState: Record<string, boolean> = {};
                 Object.keys(groupedCatalog).forEach((category) => {
                     initialOpenState[category] = true;
@@ -98,6 +121,80 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
             onChange(newSelected);
         },
         [selected, onChange, disabled]
+    );
+
+    const normalizeHintKey = (value: string) =>
+        value
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+
+    const getHintForItem = (item: ServiceItem): string | null => {
+        if (!hints) return null;
+        const byService = hints[normalizeHintKey(item.service)];
+        if (byService) return byService;
+        const byCategory = hints[normalizeHintKey(item.category)];
+        if (byCategory) return byCategory;
+        return null;
+    };
+
+    const orderedCategories = useMemo(() => {
+        const categories = Object.keys(catalog);
+        return categories.sort((a, b) => {
+            const indexA = CATEGORY_ORDER.indexOf(a);
+            const indexB = CATEGORY_ORDER.indexOf(b);
+
+            if (indexA === -1 && indexB === -1) return a.localeCompare(b, "fr");
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        });
+    }, [catalog]);
+
+    useEffect(() => {
+        if (activeCategory !== "all" && !orderedCategories.includes(activeCategory)) {
+            setActiveCategory("all");
+        }
+    }, [activeCategory, orderedCategories]);
+
+    const filteredCatalogEntries = useMemo(() => {
+        const normalizedQuery = normalizeText(searchQuery);
+
+        return orderedCategories
+            .filter((category) => activeCategory === "all" || category === activeCategory)
+            .map((category) => {
+                const services = catalog[category] ?? [];
+                const filteredServices = normalizedQuery
+                    ? services.filter((item) => {
+                        const haystack = normalizeText(
+                            `${item.service} ${item.description ?? ""} ${item.category}`
+                        );
+                        return haystack.includes(normalizedQuery);
+                    })
+                    : services;
+
+                return [category, filteredServices] as const;
+            })
+            .filter(([, services]) => services.length > 0);
+    }, [orderedCategories, activeCategory, searchQuery, catalog]);
+
+    const totalServicesCount = useMemo(
+        () =>
+            Object.values(catalog).reduce(
+                (total, services) => total + services.length,
+                0
+            ),
+        [catalog]
+    );
+
+    const filteredServicesCount = useMemo(
+        () =>
+            filteredCatalogEntries.reduce(
+                (total, [, services]) => total + services.length,
+                0
+            ),
+        [filteredCatalogEntries]
     );
 
     if (loading) {
@@ -145,8 +242,54 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 professionnelle auprès des propriétaires et de leur clientèle.
             </p>
 
+            <div className={styles.catalogControls}>
+                <input
+                    type="search"
+                    className={styles.searchInput}
+                    placeholder="Rechercher un service, une description..."
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    disabled={disabled}
+                />
+                <select
+                    className={styles.categoryFilter}
+                    value={activeCategory}
+                    onChange={(event) => setActiveCategory(event.target.value)}
+                    disabled={disabled}
+                >
+                    <option value="all">Toutes les catégories</option>
+                    {orderedCategories.map((category) => (
+                        <option key={category} value={category}>
+                            {category}
+                        </option>
+                    ))}
+                </select>
+                <button
+                    type="button"
+                    className={styles.clearFiltersBtn}
+                    onClick={() => {
+                        setSearchQuery("");
+                        setActiveCategory("all");
+                    }}
+                    disabled={disabled || (searchQuery === "" && activeCategory === "all")}
+                >
+                    Réinitialiser
+                </button>
+            </div>
+
+            <p className={styles.filterMeta}>
+                {filteredServicesCount} service{filteredServicesCount > 1 ? "s" : ""} affiché
+                {filteredServicesCount > 1 ? "s" : ""} sur {totalServicesCount}
+            </p>
+
             <div className={styles.catalogContent}>
-                {Object.entries(catalog).map(([category, services]) => {
+                {filteredCatalogEntries.length === 0 && (
+                    <div className={styles.noResult}>
+                        Aucun service ne correspond à votre recherche.
+                    </div>
+                )}
+
+                {filteredCatalogEntries.map(([category, services]) => {
                     const isOpen = openCategories[category] ?? false;
                     const totalServices = services.length;
                     const selectedCount = services.filter((item) =>
@@ -178,6 +321,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                                 <div className={styles.serviceGrid}>
                                     {services.map((item) => {
                                         const isSelected = selected.includes(item.service);
+                                        const hint = getHintForItem(item);
 
                                         return (
                                             <label
@@ -193,12 +337,25 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                                                     className={styles.serviceCheckbox}
                                                 />
                                                 <div className={styles.serviceContent}>
-                                                    <span className={styles.serviceLabel}>
-                                                        {item.service}
-                                                    </span>
+                                                    <div className={styles.serviceLabelRow}>
+                                                        <span className={styles.serviceLabel}>
+                                                            {item.service}
+                                                        </span>
+                                                        {hint && (
+                                                            <span
+                                                                className={styles.serviceHintBadge}
+                                                                title={hint}
+                                                            >
+                                                                ?
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className={styles.serviceDescription}>
                                                         {item.description}
                                                     </p>
+                                                    {hint && (
+                                                        <p className={styles.serviceHintText}>{hint}</p>
+                                                    )}
                                                 </div>
                                             </label>
                                         );
@@ -216,15 +373,8 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                     {selected.length > 1 ? "s" : ""} sélectionné
                     {selected.length > 1 ? "s" : ""} /
                     {" "}
-                    {Object.values(catalog).reduce(
-                        (total, services) => total + services.length,
-                        0
-                    )}{" "}
-                    proposé
-                    {Object.values(catalog).reduce(
-                        (total, services) => total + services.length,
-                        0
-                    ) > 1
+                    {totalServicesCount} proposé
+                    {totalServicesCount > 1
                         ? "s"
                         : ""}
                 </div>
@@ -235,4 +385,3 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
 };
 
 export default ServiceCatalogSelector;
-

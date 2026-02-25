@@ -113,6 +113,12 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
                             selected={activeServices}
                             onChange={(vals) => onChangeOption?.(vals)}
                             disabled={loadingCatalog}
+                            hints={{
+                                menage: "Entre deux séjours, grand ménage, remise en état, fin de location.",
+                                accueil: "Check-in/check-out voyageurs, accueil VIP, remise des clés.",
+                                maintenance: "Interventions techniques, suivi prestataires, dépannage léger.",
+                                administratif: "Coordination contrats, suivi incidents, reporting propriétaire.",
+                            }}
                         />
                     </div>
                 ) : (
