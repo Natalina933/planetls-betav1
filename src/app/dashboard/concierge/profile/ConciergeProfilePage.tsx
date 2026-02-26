@@ -26,12 +26,8 @@ import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/So
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
 import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
-import TariffServicePackages from "@/app/components/tariffs/TariffServicePackages";
-import TariffAdjustments from "@/app/components/tariffs/TariffAdjustments";
-import TariffRevenueEstimator from "@/app/components/tariffs/TariffRevenueEstimator";
 import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import { parsePricingV2FromAvailabilityHours } from "@/app/components/tariffs/pricingEngine";
-import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
 import type {
   ConciergeMissionProfile,
   MissionAvailability,
@@ -55,12 +51,10 @@ import {
   FiFile,
   FiStar as FiStarOutline,
   FiCheckCircle as FiCheckCircleOutline,
-  FiTrendingUp,
 } from "react-icons/fi";
 import {
   User as LucideUser,
   Shield,
-  DollarSign,
   ChevronDown,
   Save,
   X as LucideX,
@@ -153,8 +147,8 @@ const SECTION_IDS = {
 
 const TARIFF_SECTION_IDS = {
   WORKFLOW: normalizeSectionId("Parcours devis & facturation"),
-  BASE: normalizeSectionId("Tarifs de base"),
-  BILLING: normalizeSectionId("Parametres de facturation"),
+  CONFIG: normalizeSectionId("Configuration tarifs conciergerie"),
+  BILLING_DESK: normalizeSectionId("Devis et factures operationnels"),
 } as const;
 
 const MISSION_SECTION_IDS = {
@@ -172,7 +166,64 @@ interface CatalogServiceItem {
   id: number;
   category: string;
   service: string;
+  description?: string | null;
 }
+
+interface ActiveTariffServiceRow {
+  id: string;
+  label: string;
+  category: string;
+}
+
+type PricingTypeValue = "hourly" | "fixed" | "monthly" | "custom";
+
+interface ConciergeServicePriceRow {
+  id: string;
+  service_id: number | null;
+  label: string;
+  type: PricingTypeValue | null;
+  amount: number;
+  unit: string | null;
+  created_at: string | null;
+  service?: {
+    id: number;
+    category: string;
+    service: string;
+    description: string | null;
+  } | null;
+}
+
+interface PricingModalState {
+  id?: string;
+  serviceId: string;
+  label: string;
+  type: PricingTypeValue;
+  amount: string;
+  unit: string;
+}
+
+const PROPERTY_TYPE_OPTIONS: Array<{ key: string; label: string }> = [
+  { key: "studio", label: "Studio / T1" },
+  { key: "apartment", label: "Appartement" },
+  { key: "house", label: "Maison" },
+  { key: "villa", label: "Villa" },
+];
+
+const PRICING_UNIT_OPTIONS = [
+  "par prestation",
+  "par heure",
+  "par nuit",
+  "par sejour",
+  "par sac",
+] as const;
+
+const DEFAULT_PRICING_MODAL: PricingModalState = {
+  serviceId: "",
+  label: "",
+  type: "fixed",
+  amount: "",
+  unit: "par prestation",
+};
 
 interface MissionListItem {
   id: string;
@@ -445,6 +496,18 @@ const parseSeasonalPricing = (value?: string | null): SeasonalPricingConfig => {
   };
 };
 
+const syncSeasonalPricingFromPricingV2 = (
+  seasonal: SeasonalPricingConfig,
+  pricingV2: PricingV2Config,
+): SeasonalPricingConfig => ({
+  ...seasonal,
+  urgentPercent: pricingV2.globalModifiers.urgentPercent,
+  nightPercent: pricingV2.globalModifiers.nightPercent,
+  weekendPercent: pricingV2.globalModifiers.weekendPercent,
+  highSeasonPercent: pricingV2.globalModifiers.highSeasonPercent,
+  minimumInvoice: pricingV2.base.minimumInvoice,
+});
+
 const parseMissionPayload = (
   value?: string | null,
 ): Pick<MissionAvailability, "schedule" | "rules"> & {
@@ -712,10 +775,12 @@ const buildMissionAvailabilityFromProfile = (
   if (!profile) return null;
   const missionPayload = parseMissionPayload(profile.availability_hours);
 
-  const labels = (profile.service_area ?? profile.location ?? "")
+  const primaryLabel = (profile.location ?? profile.service_area ?? "")
     .split(",")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)[0];
+
+  const labels = primaryLabel ? [primaryLabel] : [];
 
   return {
     zones: labels.map((label, index) => ({
@@ -760,6 +825,22 @@ export default function ConciergeProfilePage() {
   const [selectedMissionQuoteId, setSelectedMissionQuoteId] = useState("");
   const [missionQuoteBusy, setMissionQuoteBusy] = useState(false);
   const [missionQuoteFeedback, setMissionQuoteFeedback] = useState("");
+  const [servicePrices, setServicePrices] = useState<ConciergeServicePriceRow[]>([]);
+  const [servicePricesLoading, setServicePricesLoading] = useState(false);
+  const [servicePricesBusyId, setServicePricesBusyId] = useState<string | null>(null);
+  const [showAllPricingServices, setShowAllPricingServices] = useState(false);
+  const [pricingModalOpen, setPricingModalOpen] = useState(false);
+  const [pricingModalSaving, setPricingModalSaving] = useState(false);
+  const [pricingModalError, setPricingModalError] = useState("");
+  const [pricingModalState, setPricingModalState] =
+    useState<PricingModalState>(DEFAULT_PRICING_MODAL);
+  const [catalogSyncBusy, setCatalogSyncBusy] = useState(false);
+  const [pricingSortMode, setPricingSortMode] = useState<"category" | "service">(
+    "category",
+  );
+  const [collapsedPricingCategories, setCollapsedPricingCategories] = useState<
+    Record<string, boolean>
+  >({});
   const didSeedFromOnboardingRef = useRef(false);
   const missionPayload = useMemo(
     () => parseMissionPayload(editProfile?.availability_hours),
@@ -788,15 +869,62 @@ export default function ConciergeProfilePage() {
     ],
   );
   const activeMissionServiceLabels = useMemo(
+    () => {
+      const rawActiveLabels = Array.from(
+        new Set(
+          missionPayload.missionProfile.missions
+            .filter((mission) => mission.isActive)
+            .map((mission) => mission.label.trim())
+            .filter(Boolean),
+        ),
+      );
+
+      // Keep mission/services tab coherent with the service catalog.
+      if (catalogServices.length === 0) return rawActiveLabels;
+
+      const catalogByNormalizedLabel = new Map(
+        catalogServices.map((service) => [
+          normalizeServiceLabel(service.service),
+          service.service,
+        ]),
+      );
+
+      const catalogMatchedLabels = rawActiveLabels
+        .map((label) => {
+          const catalogLabel = catalogByNormalizedLabel.get(normalizeServiceLabel(label));
+          return catalogLabel ?? label;
+        })
+        .filter((label): label is string => Boolean(label));
+
+      return Array.from(new Set(catalogMatchedLabels));
+    },
+    [missionPayload.missionProfile.missions, catalogServices],
+  );
+  const activeMissionRawLabels = useMemo(
     () =>
       Array.from(
         new Set(
           missionPayload.missionProfile.missions
             .filter((mission) => mission.isActive)
-            .map((mission) => mission.label),
+            .map((mission) => mission.label.trim())
+            .filter(Boolean),
         ),
       ),
     [missionPayload.missionProfile.missions],
+  );
+  const unrecognizedActiveMissionLabels = useMemo(() => {
+    if (activeMissionRawLabels.length === 0) return [];
+    if (catalogServices.length === 0) return activeMissionRawLabels;
+    const knownLabels = new Set(
+      catalogServices.map((service) => normalizeServiceLabel(service.service)),
+    );
+    return activeMissionRawLabels.filter(
+      (label) => !knownLabels.has(normalizeServiceLabel(label)),
+    );
+  }, [activeMissionRawLabels, catalogServices]);
+  const recognizedActiveMissionCount = useMemo(
+    () => Math.max(0, activeMissionRawLabels.length - unrecognizedActiveMissionLabels.length),
+    [activeMissionRawLabels.length, unrecognizedActiveMissionLabels.length],
   );
   const activeMissionServiceCatalogIds = useMemo(() => {
     if (catalogServices.length === 0 || activeMissionServiceLabels.length === 0) return [];
@@ -885,7 +1013,7 @@ export default function ConciergeProfilePage() {
       {
         id: "zone",
         label: "Zone d'intervention",
-        ready: Boolean((editProfile?.service_area ?? editProfile?.location ?? "").trim()),
+        ready: Boolean((editProfile?.location ?? editProfile?.service_area ?? "").trim()),
       },
       {
         id: "missions",
@@ -916,9 +1044,191 @@ export default function ConciergeProfilePage() {
     () => tariffReadinessChecks.filter((check) => !check.ready),
     [tariffReadinessChecks],
   );
+  const tariffCoherenceAlerts = useMemo(() => {
+    const alerts: Array<{
+      id: string;
+      label: string;
+      actionLabel: string;
+      sectionId: string;
+      level: "critical" | "warning" | "info";
+    }> = [];
+
+    if ((pricingV2.base.hourlyRate ?? 0) <= 0) {
+      alerts.push({
+        id: "base-hourly",
+        label: "Le tarif horaire de base est manquant.",
+        actionLabel: "Completer le socle",
+        sectionId: "tariffs-config",
+        level: "critical",
+      });
+    }
+
+    if (activeMissionServiceLabels.length === 0) {
+      alerts.push({
+        id: "services-empty",
+        label: "Aucun service actif n'est relie a la grille tarifaire.",
+        actionLabel: "Completer la grille",
+        sectionId: "tariffs-config",
+        level: "critical",
+      });
+    }
+
+    if ((pricingV2.base.minimumInvoice ?? 0) < (pricingV2.base.hourlyRate ?? 0)) {
+      alerts.push({
+        id: "minimum-low",
+        label: "Le minimum de facture est inferieur a une heure de base.",
+        actionLabel: "Ajuster les parametres",
+        sectionId: "tariffs-config",
+        level: "warning",
+      });
+    }
+
+    if (
+      pricingV2.globalModifiers.urgentPercent === 0 &&
+      pricingV2.globalModifiers.nightPercent === 0 &&
+      pricingV2.globalModifiers.weekendPercent === 0 &&
+      pricingV2.globalModifiers.highSeasonPercent === 0
+    ) {
+      alerts.push({
+        id: "modifiers-flat",
+        label: "Aucune majoration n'est active (urgence, nuit, week-end, haute saison).",
+        actionLabel: "Regler les majorations",
+        sectionId: "tariffs-config",
+        level: "info",
+      });
+    }
+
+    return alerts;
+  }, [
+    pricingV2.base.hourlyRate,
+    pricingV2.base.minimumInvoice,
+    pricingV2.globalModifiers.highSeasonPercent,
+    pricingV2.globalModifiers.nightPercent,
+    pricingV2.globalModifiers.urgentPercent,
+    pricingV2.globalModifiers.weekendPercent,
+    activeMissionServiceLabels.length,
+  ]);
+  const activeTariffServiceRows = useMemo<ActiveTariffServiceRow[]>(() => {
+    const catalogByLabel = new Map(
+      catalogServices.map((item) => [normalizeServiceLabel(item.service), item]),
+    );
+
+    const rows = activeMissionServiceLabels.map((label) => {
+      const match = catalogByLabel.get(normalizeServiceLabel(label));
+      return {
+        id: match ? String(match.id) : toMissionTypeId(label),
+        label: match?.service ?? label,
+        category: match?.category ?? "Mission",
+      };
+    });
+
+    const seen = new Set<string>();
+    return rows.filter((row) => {
+      if (seen.has(row.id)) return false;
+      seen.add(row.id);
+      return true;
+    });
+  }, [activeMissionServiceLabels, catalogServices]);
+
+  const activeServiceCatalogIdSet = useMemo(
+    () =>
+      new Set(
+        activeTariffServiceRows
+          .map((item) => Number(item.id))
+          .filter((value) => Number.isFinite(value)),
+      ),
+    [activeTariffServiceRows],
+  );
+  const servicePriceByServiceId = useMemo(() => {
+    const byService = new Map<number, ConciergeServicePriceRow>();
+    for (const row of servicePrices) {
+      if (typeof row.service_id !== "number") continue;
+      if (!byService.has(row.service_id)) byService.set(row.service_id, row);
+    }
+    return byService;
+  }, [servicePrices]);
+  const pricingCatalogRows = useMemo(() => {
+    const rows = catalogServices.map((service) => {
+      const pricing = servicePriceByServiceId.get(service.id) ?? null;
+      return {
+        service,
+        pricing,
+        isActiveMissionService: activeServiceCatalogIdSet.has(service.id),
+      };
+    });
+
+    rows.sort((a, b) => {
+      if (a.isActiveMissionService !== b.isActiveMissionService) {
+        return a.isActiveMissionService ? -1 : 1;
+      }
+      return a.service.service.localeCompare(b.service.service, "fr");
+    });
+
+    return rows;
+  }, [catalogServices, servicePriceByServiceId, activeServiceCatalogIdSet]);
+  const visiblePricingCatalogRows = useMemo(
+    () =>
+      showAllPricingServices
+        ? pricingCatalogRows
+        : pricingCatalogRows.filter((row) => row.isActiveMissionService),
+    [pricingCatalogRows, showAllPricingServices],
+  );
+  const sortedVisiblePricingRows = useMemo(() => {
+    const rows = [...visiblePricingCatalogRows];
+    if (pricingSortMode === "category") {
+      rows.sort((a, b) => {
+        const byCategory = a.service.category.localeCompare(b.service.category, "fr");
+        if (byCategory !== 0) return byCategory;
+        return a.service.service.localeCompare(b.service.service, "fr");
+      });
+      return rows;
+    }
+    rows.sort((a, b) => a.service.service.localeCompare(b.service.service, "fr"));
+    return rows;
+  }, [visiblePricingCatalogRows, pricingSortMode]);
+  const groupedPricingCatalogRows = useMemo(() => {
+    const map = new Map<
+      string,
+      Array<{
+        service: CatalogServiceItem;
+        pricing: ConciergeServicePriceRow | null;
+        isActiveMissionService: boolean;
+      }>
+    >();
+    for (const row of sortedVisiblePricingRows) {
+      const key = row.service.category || "Autres";
+      const bucket = map.get(key);
+      if (bucket) {
+        bucket.push(row);
+      } else {
+        map.set(key, [row]);
+      }
+    }
+    return Array.from(map.entries()).map(([category, rows]) => ({ category, rows }));
+  }, [sortedVisiblePricingRows]);
+  const togglePricingCategory = useCallback((category: string) => {
+    setCollapsedPricingCategories((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
+  }, []);
+  const configuredPricingCount = useMemo(
+    () => pricingCatalogRows.filter((row) => Boolean(row.pricing)).length,
+    [pricingCatalogRows],
+  );
+  const canEditTariffConfig = editingSection === TARIFF_SECTION_IDS.CONFIG;
+
   const scrollToTariffSection = useCallback((sectionId: string) => {
     const target = document.getElementById(sectionId);
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+  const refreshCatalogServices = useCallback(async () => {
+    const response = await fetch("/api/services/services-catalog");
+    if (!response.ok) {
+      throw new Error("Impossible de charger le catalogue.");
+    }
+    const data = (await response.json()) as CatalogServiceItem[];
+    setCatalogServices(Array.isArray(data) ? data : []);
   }, []);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.INFO_PERSO]: true,
@@ -958,6 +1268,7 @@ export default function ConciergeProfilePage() {
 
         const hydratedData: Profile = {
           ...data,
+          location: data.location ?? data.service_area ?? null,
           service_area: data.service_area ?? data.location ?? null,
           service_radius_km: data.service_radius_km ?? null,
         };
@@ -1123,26 +1434,15 @@ export default function ConciergeProfilePage() {
 
   useEffect(() => {
     let isMounted = true;
-
-    const fetchServicesCatalog = async () => {
-      try {
-        const response = await fetch("/api/services/services-catalog");
-        if (!response.ok) return;
-        const data = (await response.json()) as CatalogServiceItem[];
-        if (!isMounted) return;
-        setCatalogServices(Array.isArray(data) ? data : []);
-      } catch {
-        if (!isMounted) return;
-        setCatalogServices([]);
-      }
-    };
-
-    fetchServicesCatalog();
+    refreshCatalogServices().catch(() => {
+      if (!isMounted) return;
+      setCatalogServices([]);
+    });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshCatalogServices]);
 
 
   const hasUnsavedChanges = (sectionId: string | null): boolean => {
@@ -1179,54 +1479,450 @@ export default function ConciergeProfilePage() {
     router.push(`?tab=${tabId}`, { scroll: false });
   };
 
-  const applySeasonalPricing = useCallback((next: SeasonalPricingConfig) => {
-    setEditProfile((prev) =>
-      prev
-        ? (() => {
-            const pricingV2Next = parsePricingV2FromAvailabilityHours(prev.availability_hours, {
-              hourlyRate: prev.hourly_rate ?? 0,
-              travelFee: prev.travel_fee ?? 0,
-              seasonalPricing: next,
-            });
-
-            return {
-              ...prev,
-              availability_hours: JSON.stringify({
-                ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                pricing: next,
-                pricing_v2: {
-                  ...pricingV2Next,
-                  base: {
-                    ...pricingV2Next.base,
-                    minimumInvoice: next.minimumInvoice,
-                  },
-                  globalModifiers: {
-                    urgentPercent: next.urgentPercent,
-                    nightPercent: next.nightPercent,
-                    weekendPercent: next.weekendPercent,
-                    highSeasonPercent: next.highSeasonPercent,
-                  },
-                },
-              }),
-            };
-          })()
-        : prev,
-    );
-  }, []);
-
   const applyPricingV2 = useCallback((next: PricingV2Config) => {
     setEditProfile((prev) =>
       prev
-        ? {
+        ? (() => {
+            const legacy = parseSeasonalPricing(prev.availability_hours);
+            const syncedLegacy = syncSeasonalPricingFromPricingV2(legacy, next);
+
+            return {
             ...prev,
+            hourly_rate: next.base.hourlyRate,
+            travel_fee: next.base.travelFee,
             availability_hours: JSON.stringify({
               ...parseAvailabilityPayloadRaw(prev.availability_hours),
+              pricing: syncedLegacy,
               pricing_v2: next,
             }),
-          }
+          };
+        })()
         : prev,
     );
   }, []);
+
+  const pushTransientMessage = useCallback(
+    (kind: "success" | "error", message: string) => {
+      if (kind === "success") {
+        setSuccessMsg(message);
+        setTimeout(() => setSuccessMsg(""), 4000);
+        return;
+      }
+      setErrorMsg(message);
+      setTimeout(() => setErrorMsg(""), 5000);
+    },
+    [],
+  );
+  const removeUnrecognizedServices = useCallback(async () => {
+    if (unrecognizedActiveMissionLabels.length === 0) return;
+    setCatalogSyncBusy(true);
+    try {
+      setEditProfile((prev) => {
+        if (!prev) return prev;
+        const payload = parseMissionPayload(prev.availability_hours);
+        const knownLabels = new Set(
+          catalogServices.map((service) => normalizeServiceLabel(service.service)),
+        );
+
+        const nextMissions = payload.missionProfile.missions.filter((mission) =>
+          knownLabels.has(normalizeServiceLabel(mission.label)),
+        );
+        if (nextMissions.length === payload.missionProfile.missions.length) return prev;
+
+        const nextMissionProfile: ConciergeMissionProfile = {
+          ...payload.missionProfile,
+          missions: nextMissions,
+        };
+        const legacy = buildLegacyFromMissionProfile(nextMissionProfile);
+
+        return {
+          ...prev,
+          availability_hours: JSON.stringify({
+            ...parseAvailabilityPayloadRaw(prev.availability_hours),
+            missionProfile: nextMissionProfile,
+            missionCatalog: legacy.missionCatalog,
+            preferences: legacy.preferences,
+          }),
+        };
+      });
+
+      pushTransientMessage(
+        "success",
+        `${unrecognizedActiveMissionLabels.length} service(s) non reconnu(s) supprime(s).`,
+      );
+    } catch {
+      pushTransientMessage(
+        "error",
+        "Erreur pendant la suppression des services non reconnus.",
+      );
+    } finally {
+      setCatalogSyncBusy(false);
+    }
+  }, [unrecognizedActiveMissionLabels, catalogServices, pushTransientMessage]);
+  const fetchServicePrices = useCallback(async () => {
+    setServicePricesLoading(true);
+    try {
+      const res = await fetch("/api/pricing/get", { cache: "no-store" });
+      const data: ConciergeServicePriceRow[] | { error: string } = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        throw new Error(
+          !res.ok && data && typeof data === "object" && "error" in data
+            ? data.error
+            : "Impossible de charger la grille tarifaire.",
+        );
+      }
+      setServicePrices(data);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur lors du chargement des tarifs.";
+      pushTransientMessage("error", message);
+    } finally {
+      setServicePricesLoading(false);
+    }
+  }, [pushTransientMessage]);
+  const resetPricingModal = useCallback(() => {
+    setPricingModalState(DEFAULT_PRICING_MODAL);
+    setPricingModalError("");
+  }, []);
+  const closePricingModal = useCallback(() => {
+    setPricingModalOpen(false);
+    resetPricingModal();
+  }, [resetPricingModal]);
+  const openCreatePricingModal = useCallback(
+    (service?: CatalogServiceItem) => {
+      const suggestedLabel = service?.service ?? "";
+      const suggestedType: PricingTypeValue = pricingV2.base.hourlyRate > 0 ? "hourly" : "fixed";
+      const suggestedUnit =
+        suggestedType === "hourly" ? "par heure" : DEFAULT_PRICING_MODAL.unit;
+
+      setPricingModalState({
+        id: undefined,
+        serviceId: service ? String(service.id) : "",
+        label: suggestedLabel,
+        type: suggestedType,
+        amount:
+          suggestedType === "hourly" && pricingV2.base.hourlyRate > 0
+            ? String(Math.round(pricingV2.base.hourlyRate))
+            : "",
+        unit: suggestedUnit,
+      });
+      setPricingModalError("");
+      setPricingModalOpen(true);
+    },
+    [pricingV2.base.hourlyRate],
+  );
+  const openEditPricingModal = useCallback((row: ConciergeServicePriceRow) => {
+    setPricingModalState({
+      id: row.id,
+      serviceId: row.service_id != null ? String(row.service_id) : "",
+      label: row.label ?? "",
+      type: (row.type as PricingTypeValue | null) ?? "fixed",
+      amount: String(row.amount ?? ""),
+      unit: row.unit ?? "par prestation",
+    });
+    setPricingModalError("");
+    setPricingModalOpen(true);
+  }, []);
+  const ensureMissionServiceActiveFromPricing = useCallback(
+    (serviceIdNumber: number, fallbackLabel?: string) => {
+      setEditProfile((prev) => {
+        if (!prev) return prev;
+
+        const payload = parseMissionPayload(prev.availability_hours);
+        const catalogService = catalogServices.find((item) => item.id === serviceIdNumber);
+        const targetLabel = (catalogService?.service ?? fallbackLabel ?? "").trim();
+        if (!targetLabel) return prev;
+
+        const normalizedTargetLabel = normalizeServiceLabel(targetLabel);
+        const targetMissionId = toMissionTypeId(targetLabel);
+        const baseMissions =
+          payload.missionProfile.missions.length > 0
+            ? payload.missionProfile.missions
+            : payload.missionCatalog.map((catalogItem) => ({
+                id: catalogItem.id,
+                label: catalogItem.label,
+                isActive: false,
+                minNoticeHours: 24,
+                allowUrgent: false,
+                urgentMultiplier: 1.3,
+              }));
+
+        let didChange = false;
+        const nextMissions = baseMissions.map((mission) => {
+          if (normalizeServiceLabel(mission.label) !== normalizedTargetLabel) return mission;
+          if (mission.isActive) return mission;
+          didChange = true;
+          return { ...mission, isActive: true };
+        });
+
+        const hasMissionInProfile = nextMissions.some(
+          (mission) => normalizeServiceLabel(mission.label) === normalizedTargetLabel,
+        );
+        if (!hasMissionInProfile) {
+          didChange = true;
+          nextMissions.push({
+            id: targetMissionId,
+            label: targetLabel,
+            isActive: true,
+            minNoticeHours: 24,
+            allowUrgent: false,
+            urgentMultiplier: 1.3,
+          });
+        }
+
+        if (!didChange) return prev;
+
+        const nextMissionProfile: ConciergeMissionProfile = {
+          ...payload.missionProfile,
+          missions: nextMissions,
+        };
+        const legacy = buildLegacyFromMissionProfile(nextMissionProfile);
+
+        return {
+          ...prev,
+          availability_hours: JSON.stringify({
+            ...parseAvailabilityPayloadRaw(prev.availability_hours),
+            missionProfile: nextMissionProfile,
+            missionCatalog: legacy.missionCatalog,
+            preferences: legacy.preferences,
+          }),
+        };
+      });
+    },
+    [catalogServices],
+  );
+  const disableMissionServiceFromPricing = useCallback(
+    (serviceIdNumber: number, fallbackLabel?: string) => {
+      setEditProfile((prev) => {
+        if (!prev) return prev;
+
+        const payload = parseMissionPayload(prev.availability_hours);
+        const catalogService = catalogServices.find((item) => item.id === serviceIdNumber);
+        const targetLabel = (catalogService?.service ?? fallbackLabel ?? "").trim();
+        if (!targetLabel) return prev;
+
+        const normalizedTargetLabel = normalizeServiceLabel(targetLabel);
+        const nextMissions = payload.missionProfile.missions.map((mission) => {
+          if (normalizeServiceLabel(mission.label) !== normalizedTargetLabel) return mission;
+          if (!mission.isActive) return mission;
+          return { ...mission, isActive: false };
+        });
+
+        const didChange = nextMissions.some((mission, idx) => {
+          const prevMission = payload.missionProfile.missions[idx];
+          return prevMission && prevMission.isActive !== mission.isActive;
+        });
+        if (!didChange) return prev;
+
+        const nextMissionProfile: ConciergeMissionProfile = {
+          ...payload.missionProfile,
+          missions: nextMissions,
+        };
+        const legacy = buildLegacyFromMissionProfile(nextMissionProfile);
+
+        return {
+          ...prev,
+          availability_hours: JSON.stringify({
+            ...parseAvailabilityPayloadRaw(prev.availability_hours),
+            missionProfile: nextMissionProfile,
+            missionCatalog: legacy.missionCatalog,
+            preferences: legacy.preferences,
+          }),
+        };
+      });
+    },
+    [catalogServices],
+  );
+  const saveServicePrice = useCallback(async () => {
+    if (!canEditTariffConfig) return;
+
+    const serviceIdNumber = Number(pricingModalState.serviceId);
+    if (!Number.isFinite(serviceIdNumber) || serviceIdNumber <= 0) {
+      setPricingModalError("Selectionnez un service.");
+      return;
+    }
+
+    const parsedAmount = Number(pricingModalState.amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setPricingModalError("Le tarif doit etre superieur a 0.");
+      return;
+    }
+
+    if (!pricingModalState.unit.trim()) {
+      setPricingModalError("L'unite est obligatoire.");
+      return;
+    }
+
+    setPricingModalSaving(true);
+    setPricingModalError("");
+    try {
+      const serviceRef = catalogServices.find((item) => item.id === serviceIdNumber);
+      const payload = {
+        service_id: serviceIdNumber,
+        label: pricingModalState.label.trim() || serviceRef?.service || "Service",
+        type: pricingModalState.type,
+        amount: parsedAmount,
+        unit: pricingModalState.unit,
+      };
+      const isUpdate = Boolean(pricingModalState.id);
+      const endpoint = isUpdate
+        ? "/api/pricing/update"
+        : "/api/pricing/create";
+      const method = isUpdate ? "PATCH" : "POST";
+      const payloadWithId = isUpdate
+        ? { id: pricingModalState.id, ...payload }
+        : payload;
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payloadWithId),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data && typeof data === "object" && "error" in data
+            ? String(data.error)
+            : "Erreur lors de l'enregistrement du tarif.",
+        );
+      }
+
+      await fetchServicePrices();
+      ensureMissionServiceActiveFromPricing(serviceIdNumber, payload.label);
+      closePricingModal();
+      pushTransientMessage("success", "Tarif enregistre avec succes.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Impossible d'enregistrer ce tarif.";
+      setPricingModalError(message);
+    } finally {
+      setPricingModalSaving(false);
+    }
+  }, [
+    canEditTariffConfig,
+    pricingModalState,
+    catalogServices,
+    fetchServicePrices,
+    ensureMissionServiceActiveFromPricing,
+    closePricingModal,
+    pushTransientMessage,
+  ]);
+  const deleteServicePrice = useCallback(
+    async (row: ConciergeServicePriceRow) => {
+      if (!canEditTariffConfig) return;
+      if (!window.confirm("Supprimer ce tarif ?")) return;
+
+      setServicePricesBusyId(row.id);
+      try {
+        const res = await fetch(`/api/pricing/delete?id=${encodeURIComponent(row.id)}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+            : "Erreur lors de la suppression.",
+          );
+        }
+        const shouldDisableInMissions =
+          typeof row.service_id === "number" &&
+          !servicePrices.some(
+            (item) => item.id !== row.id && item.service_id === row.service_id,
+          );
+        await fetchServicePrices();
+        if (shouldDisableInMissions && typeof row.service_id === "number") {
+          disableMissionServiceFromPricing(row.service_id, row.label);
+        }
+        pushTransientMessage("success", "Tarif supprime.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Impossible de supprimer ce tarif.";
+        pushTransientMessage("error", message);
+      } finally {
+        setServicePricesBusyId(null);
+      }
+    },
+    [
+      canEditTariffConfig,
+      servicePrices,
+      fetchServicePrices,
+      disableMissionServiceFromPricing,
+      pushTransientMessage,
+    ],
+  );
+  const resetAllServicePrices = useCallback(async () => {
+    if (!canEditTariffConfig || servicePrices.length === 0) return;
+    if (!window.confirm("Reinitialiser la grille et supprimer tous les tarifs personnalises ?")) {
+      return;
+    }
+
+    setServicePricesBusyId("all");
+    try {
+      const serviceIdsToDisable = Array.from(
+        new Set(
+          servicePrices
+            .map((row) => row.service_id)
+            .filter((value): value is number => typeof value === "number"),
+        ),
+      );
+      await Promise.all(
+        servicePrices.map((row) =>
+          fetch(`/api/pricing/delete?id=${encodeURIComponent(row.id)}`, { method: "DELETE" }),
+        ),
+      );
+      await fetchServicePrices();
+      serviceIdsToDisable.forEach((serviceId) => disableMissionServiceFromPricing(serviceId));
+      pushTransientMessage("success", "Grille tarifaire reinitialisee.");
+    } catch {
+      pushTransientMessage("error", "Erreur pendant la reinitialisation des tarifs.");
+    } finally {
+      setServicePricesBusyId(null);
+    }
+  }, [
+    canEditTariffConfig,
+    servicePrices,
+    fetchServicePrices,
+    disableMissionServiceFromPricing,
+    pushTransientMessage,
+  ]);
+
+  useEffect(() => {
+    if (activeTab !== "tarifs") return;
+    fetchServicePrices();
+  }, [activeTab, fetchServicePrices]);
+
+  const getPropertyTypeDeltaPercent = useCallback(
+    (propertyType: string): number => {
+      const rule = pricingV2.contextRules.find(
+        (item) => item.id === `property-type-${propertyType}`,
+      );
+      if (!rule?.adjustments?.multiplier) return 0;
+      return Math.round((rule.adjustments.multiplier - 1) * 100);
+    },
+    [pricingV2.contextRules],
+  );
+
+  const updatePropertyTypeDeltaPercent = useCallback(
+    (propertyType: string, deltaPercent: number) => {
+      const safePercent = Number.isFinite(deltaPercent) ? deltaPercent : 0;
+      const nextRuleId = `property-type-${propertyType}`;
+      const existing = pricingV2.contextRules.filter((item) => item.id !== nextRuleId);
+      const nextRule = {
+        id: nextRuleId,
+        enabled: safePercent !== 0,
+        priority: 60,
+        scope: { propertyType },
+        adjustments: { multiplier: 1 + safePercent / 100 },
+      };
+
+      applyPricingV2({
+        ...pricingV2,
+        contextRules: [...existing, nextRule],
+      });
+    },
+    [applyPricingV2, pricingV2],
+  );
 
 
   const validateField = (name: string, value: string): string => {
@@ -1290,7 +1986,45 @@ export default function ConciergeProfilePage() {
       return;
     }
 
-    setEditProfile((prev) => (prev ? { ...prev, [name]: value } : prev));
+    const isBaseTariffField = name === "hourly_rate" || name === "travel_fee";
+
+    setEditProfile((prev) => {
+      if (!prev) return prev;
+
+      if (!isBaseTariffField) {
+        return { ...prev, [name]: value };
+      }
+
+      const parsedValue =
+        value.trim() === "" ? null : Number.isFinite(Number(value)) ? Number(value) : null;
+      const fallbackSeasonal = parseSeasonalPricing(prev.availability_hours);
+      const pricingV2Next = parsePricingV2FromAvailabilityHours(prev.availability_hours, {
+        hourlyRate: prev.hourly_rate ?? 0,
+        travelFee: prev.travel_fee ?? 0,
+        seasonalPricing: fallbackSeasonal,
+      });
+
+      if (name === "hourly_rate") {
+        pricingV2Next.base.hourlyRate = Math.max(0, parsedValue ?? 0);
+      } else {
+        pricingV2Next.base.travelFee = Math.max(0, parsedValue ?? 0);
+      }
+
+      const syncedLegacy = syncSeasonalPricingFromPricingV2(
+        fallbackSeasonal,
+        pricingV2Next,
+      );
+
+      return {
+        ...prev,
+        [name]: parsedValue,
+        availability_hours: JSON.stringify({
+          ...parseAvailabilityPayloadRaw(prev.availability_hours),
+          pricing: syncedLegacy,
+          pricing_v2: pricingV2Next,
+        }),
+      };
+    });
 
     const errorMessage = validateField(name, value);
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
@@ -2110,8 +2844,8 @@ export default function ConciergeProfilePage() {
                     "75001",
                   )}
                   {renderField(
-                    "Ville",
-                    "city",
+                    "Localisation",
+                    "location",
                     "Adresse_professionnelle",
                     false,
                     true,
@@ -2221,7 +2955,13 @@ export default function ConciergeProfilePage() {
               <div className={styles.missionsHeroStats}>
                 <div className={styles.missionStat}>
                   <span className={styles.missionStatLabel}>Services actifs</span>
-                  <strong>{activeMissionServiceLabels.length}</strong>
+                  <strong>{activeMissionRawLabels.length}</strong>
+                  {unrecognizedActiveMissionLabels.length > 0 && (
+                    <small className={styles.missionStatSub}>
+                      {recognizedActiveMissionCount} reconnus,{" "}
+                      {unrecognizedActiveMissionLabels.length} non reconnus
+                    </small>
+                  )}
                 </div>
                 <div className={styles.missionStat}>
                   <span className={styles.missionStatLabel}>Jours ouverts</span>
@@ -2366,6 +3106,33 @@ export default function ConciergeProfilePage() {
                     )
                   }
                 />
+                {unrecognizedActiveMissionLabels.length > 0 && (
+                  <div className={styles.missionUnknownPanel}>
+                    <p>
+                      Services actifs non reconnus dans le catalogue:{" "}
+                      {unrecognizedActiveMissionLabels.length}
+                    </p>
+                    <div className={styles.missionUnknownList}>
+                      {unrecognizedActiveMissionLabels.map((label) => (
+                        <span key={label} className={styles.missionUnknownItem}>
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                    <div className={styles.missionUnknownActions}>
+                      <button
+                        type="button"
+                        className={styles.missionUnknownActionBtn}
+                        onClick={removeUnrecognizedServices}
+                        disabled={catalogSyncBusy}
+                      >
+                        {catalogSyncBusy
+                          ? "Suppression en cours..."
+                          : "Supprimer tous les non reconnus"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>,
               true,
               MISSION_SECTION_IDS.SERVICES,
@@ -2373,22 +3140,36 @@ export default function ConciergeProfilePage() {
             )}
 
             {renderSection(
-              "Zone d'intervention & règles de mission",
+              "Zone d'intervention",
               <FiMapPinOutline />,
               <>
+                {renderField(
+                  "Zone de travail (location)",
+                  "location",
+                  MISSION_SECTION_IDS.ZONE_RULES,
+                  false,
+                  true,
+                  "Ex: Paris, Lyon, Bordeaux...",
+                )}
                 <MissionZoneAvailability
                   value={missionAvailability}
                   isEditing={editingSection === MISSION_SECTION_IDS.ZONE_RULES}
+                  lockZones
                   showScheduleSection={false}
+                  showRulesSection={false}
                   onChange={(data) =>
                     setEditProfile((prev) =>
                       prev
                         ? {
                             ...prev,
+                            location:
+                              data.zones[0]?.label?.trim()
+                                ? data.zones[0].label.trim()
+                                : prev.location ?? prev.service_area ?? null,
                             service_area:
-                              data.zones.length > 0
-                                ? data.zones.map((z) => z.label).join(", ")
-                                : prev.service_area ?? prev.location ?? null,
+                              data.zones[0]?.label?.trim()
+                                ? data.zones[0].label.trim()
+                                : prev.location ?? prev.service_area ?? null,
                             service_radius_km: data.radiusKm,
                             availability_hours: JSON.stringify({
                               ...parseAvailabilityPayloadRaw(prev.availability_hours),
@@ -2481,9 +3262,40 @@ export default function ConciergeProfilePage() {
                     <div className={styles.tariffHeroIntro}>
                       <span className={styles.tariffPill}>Pilotage global</span>
                       <p className={styles.tariffWorkflowLead}>
-                        Centralisez vos règles de prix, puis produisez devis et
-                        factures sans ressaisie.
+                        Definissez un socle unique de tarification selon vos services,
+                        le temps d&apos;intervention et le type de bien, puis generez
+                        vos devis/factures sans ressaisie.
                       </p>
+                      <div className={styles.tariffHeroHealthRow}>
+                        {tariffCoherenceAlerts.length === 0 ? (
+                          <div className={`${styles.tariffHealthCard} ${styles.tariffHealthOk}`}>
+                            <strong>Configuration coherente</strong>
+                            <span>Votre grille est exploitable pour devis/factures.</span>
+                          </div>
+                        ) : (
+                          tariffCoherenceAlerts.slice(0, 3).map((alert) => (
+                            <div
+                              key={alert.id}
+                              className={`${styles.tariffHealthCard} ${
+                                alert.level === "critical"
+                                  ? styles.tariffHealthCritical
+                                  : alert.level === "warning"
+                                    ? styles.tariffHealthWarning
+                                    : styles.tariffHealthInfo
+                              }`}
+                            >
+                              <strong>{alert.label}</strong>
+                              <button
+                                type="button"
+                                className={styles.tariffHealthAction}
+                                onClick={() => scrollToTariffSection(alert.sectionId)}
+                              >
+                                {alert.actionLabel}
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                     <div className={styles.tariffHeroStats}>
                       <article className={styles.tariffMetric}>
@@ -2497,14 +3309,14 @@ export default function ConciergeProfilePage() {
                       <article className={styles.tariffMetric}>
                         <span>Tarif horaire</span>
                         <strong>
-                          {editProfile.hourly_rate != null
-                            ? `${editProfile.hourly_rate} EUR/h`
+                          {pricingV2.base.hourlyRate > 0
+                            ? `${pricingV2.base.hourlyRate} EUR/h`
                             : "À définir"}
                         </strong>
                       </article>
                       <article className={styles.tariffMetric}>
                         <span>Minimum facture</span>
-                        <strong>{seasonalPricing.minimumInvoice} EUR</strong>
+                        <strong>{pricingV2.base.minimumInvoice} EUR</strong>
                       </article>
                     </div>
                     <div className={styles.tariffReadiness}>
@@ -2547,14 +3359,14 @@ export default function ConciergeProfilePage() {
                       className={styles.tariffNavBtn}
                       onClick={() => handleTabChange("packs")}
                     >
-                      Configurer Mes Packs
+                      Configurer Packs
                     </button>
                     <button
                       type="button"
                       className={styles.tariffNavBtn}
-                      onClick={() => scrollToTariffSection("tariffs-billing-desk")}
+                      onClick={() => scrollToTariffSection("tariffs-config")}
                     >
-                      Aller a Devis / Factures
+                      Aller a la grille
                     </button>
                   </div>
 
@@ -2562,37 +3374,16 @@ export default function ConciergeProfilePage() {
                     <button
                       type="button"
                       className={styles.tariffSectionLink}
-                      onClick={() => scrollToTariffSection("tariffs-base")}
+                      onClick={() => scrollToTariffSection("tariffs-config")}
                     >
-                      Tarifs de base
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffSectionLink}
-                      onClick={() => scrollToTariffSection("tariffs-grid")}
-                    >
-                      Grille détaillée
+                      1. Configuration tarifs
                     </button>
                     <button
                       type="button"
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-billing-desk")}
                     >
-                      Devis / Factures
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffSectionLink}
-                      onClick={() => scrollToTariffSection("tariffs-settings")}
-                    >
-                      Parametres
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffSectionLink}
-                      onClick={() => scrollToTariffSection("tariffs-forecast")}
-                    >
-                      Prevision
+                      2. Devis / Factures
                     </button>
                   </div>
                 </div>,
@@ -2602,172 +3393,432 @@ export default function ConciergeProfilePage() {
             </div>
 
             <div
-              id="tariffs-base"
-              className={`${styles.financeCard} ${styles.tariffPanelCard}`}
-            >
-              {renderSection(
-                "Tarifs de base",
-                <DollarSign />,
-                <>
-                  <div className={styles.tariffCardIntro}>
-                    <div className={styles.tariffInlineHeader}>
-                      <h3 className={styles.tariffMiniTitle}>Base de chiffrage</h3>
-                      <span className={styles.tariffConfigChip}>Base principale</span>
-                    </div>
-                    <p className={styles.tariffHint}>
-                      Appliquee automatiquement sur les devis hors cas specifiques.
-                    </p>
-                    <div className={styles.tariffMetaGrid}>
-                      <article className={styles.tariffMetaCard}>
-                        <span className={styles.tariffMetaLabel}>Statut</span>
-                        <strong className={styles.tariffMetaValue}>
-                          {Number(editProfile.hourly_rate ?? 0) > 0
-                            ? "Base tarifaire renseignee"
-                            : "Tarif horaire à définir"}
-                        </strong>
-                      </article>
-                      <article className={styles.tariffMetaCard}>
-                        <span className={styles.tariffMetaLabel}>Tarif actuel</span>
-                        <strong className={styles.tariffMetaValue}>
-                          {editProfile.hourly_rate != null
-                            ? `${editProfile.hourly_rate} EUR/h`
-                            : "Non renseigné"}
-                        </strong>
-                      </article>
-                      <article className={styles.tariffMetaCard}>
-                        <span className={styles.tariffMetaLabel}>Deplacement</span>
-                        <strong className={styles.tariffMetaValue}>
-                          {editProfile.travel_fee != null
-                            ? `${editProfile.travel_fee} EUR`
-                            : "A confirmer"}
-                        </strong>
-                      </article>
-                    </div>
-                  </div>
-                  <div className={styles.tariffFieldPanel}>
-                    {renderField(
-                      "Tarif horaire (EUR/h)",
-                      "hourly_rate",
-                      TARIFF_SECTION_IDS.BASE,
-                      false,
-                      true,
-                      "45",
-                      "number",
-                    )}
-                    {renderField(
-                      "Frais de déplacement (EUR)",
-                      "travel_fee",
-                      TARIFF_SECTION_IDS.BASE,
-                      false,
-                      false,
-                      "15",
-                      "number",
-                    )}
-                  </div>
-                </>,
-              )}
-            </div>
-
-            <div
-              id="tariffs-settings"
-              className={`${styles.financeCard} ${styles.tariffPanelCard}`}
-            >
-              {renderSection(
-                "Parametres de facturation",
-                <FiTrendingUp />,
-                <>
-                  <div className={styles.tariffCardIntro}>
-                    <div className={styles.tariffInlineHeader}>
-                      <h3 className={styles.tariffMiniTitle}>Règles transverses</h3>
-                      <span className={styles.tariffConfigChip}>Appliquees aux devis/factures</span>
-                    </div>
-                    <p className={styles.tariffHint}>
-                      Definissez les frais standards, majorations et seuils
-                      minimum.
-                    </p>
-                    </div>
-                    <div className={styles.tariffConfigSnapshot}>
-                      <span className={styles.tariffConfigChip}>
-                        Urgence +{seasonalPricing.urgentPercent}%
-                      </span>
-                      <span className={styles.tariffConfigChip}>
-                        Nuit +{seasonalPricing.nightPercent}%
-                      </span>
-                      <span className={styles.tariffConfigChip}>
-                        Week-end +{seasonalPricing.weekendPercent}%
-                      </span>
-                      <span className={styles.tariffConfigChip}>
-                        Haute saison +{seasonalPricing.highSeasonPercent}%
-                      </span>
-                      <span className={styles.tariffConfigChip}>
-                        Minimum {seasonalPricing.minimumInvoice} EUR
-                      </span>
-                    </div>
-                  <div className={styles.tariffToolPanel}>
-                    <h3 className={styles.tariffSubsectionTitle}>
-                      Prestations standard sejour
-                    </h3>
-                    <TariffServicePackages
-                      value={seasonalPricing}
-                      isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
-                      onChange={applySeasonalPricing}
-                    />
-                    <h3 className={styles.tariffSubsectionTitle}>
-                      Majorations et seuil minimum
-                    </h3>
-                    <TariffAdjustments
-                      value={seasonalPricing}
-                      isEditing={editingSection === TARIFF_SECTION_IDS.BILLING}
-                      onChange={applySeasonalPricing}
-                    />
-                  </div>
-                </>,
-                true,
-                TARIFF_SECTION_IDS.BILLING,
-              )}
-            </div>
-
-            <div
-              id="tariffs-grid"
+              id="tariffs-config"
               className={`${styles.financeCard} ${styles.financeCardWide} ${styles.tariffPanelCard}`}
             >
               {renderSection(
-                "Grille tarifaire détaillée",
+                "1. Configuration tarifs conciergerie",
                 <FiDollarSignOutline />,
                 <>
-                  <div className={styles.tariffCardIntro}>
-                    <div className={styles.tariffInlineHeader}>
-                      <h3 className={styles.tariffMiniTitle}>Tarification contextuelle</h3>
-                      <span className={styles.tariffConfigChip}>Règles avancées</span>
-                    </div>
-                    <p className={styles.tariffHint}>
-                      Modifiez vos tarifs par service, puis ajustez chaque
-                      contexte (urgence, nuit, week-end, haute saison).
-                    </p>
-                    <div className={styles.tariffContextLine}>
-                      <div className={styles.tariffContextItem}>
-                        <CheckCircle2 size={14} />
-                        <span>{activeMissionServiceLabels.length} services liés</span>
+                  <div className={styles.tariffSimpleGrid}>
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>Bloc A — Contexte mission (lecture)</h3>
+                      <div className={styles.tariffSimpleRows}>
+                        <p>
+                          <strong>Positionnement:</strong>{" "}
+                          {formatExperienceLabel(editProfile.experience_level)}
+                        </p>
+                        <p>
+                          <strong>Lieu:</strong>{" "}
+                          {editProfile.location?.trim() ||
+                            editProfile.service_area?.trim() ||
+                            "Non renseigne"}
+                        </p>
+                        <p>
+                          <strong>Rayon:</strong> {missionAvailability?.radiusKm ?? 0} km
+                        </p>
+                        <p>
+                          <strong>Urgences activees:</strong>{" "}
+                          {missionPayload.preferences.priorityFlags.urgent ? "Oui" : "Non"}{" "}
+                          (+
+                          {pricingV2.globalModifiers.urgentPercent}%)
+                        </p>
+                        <p>
+                          <strong>Haute saison:</strong>{" "}
+                          {missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions
+                            ? "Oui"
+                            : "Non"}{" "}
+                          (+{pricingV2.globalModifiers.highSeasonPercent}%)
+                        </p>
                       </div>
-                      <div className={styles.tariffContextItem}>
-                        <CheckCircle2 size={14} />
-                        <span>Règles par bien, surface et durée</span>
+                    </section>
+
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>Bloc B — Socle commun</h3>
+                      <div className={styles.tariffFieldPanel}>
+                        {renderField(
+                          "Tarif horaire (EUR/h)",
+                          "hourly_rate",
+                          TARIFF_SECTION_IDS.CONFIG,
+                          false,
+                          true,
+                          "45",
+                          "number",
+                        )}
+                        {renderField(
+                          "Frais de deplacement (EUR)",
+                          "travel_fee",
+                          TARIFF_SECTION_IDS.CONFIG,
+                          false,
+                          false,
+                          "15",
+                          "number",
+                        )}
+                        <div className={styles.fieldGroup}>
+                          <label className={styles.label}>Minimum de facture (EUR)</label>
+                          <input
+                            type="number"
+                            min={0}
+                            step="1"
+                            value={Math.round(pricingV2.base.minimumInvoice)}
+                            disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
+                            onChange={(e) =>
+                              applyPricingV2({
+                                ...pricingV2,
+                                base: {
+                                  ...pricingV2.base,
+                                  minimumInvoice: Math.max(0, Number(e.target.value || 0)),
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>Bloc C — Tarifs des services actifs</h3>
+                      <div className={styles.pricingToolbar}>
+                        <span className={styles.pricingSummary}>
+                          {configuredPricingCount} / {pricingCatalogRows.length} services configures
+                        </span>
+                        <div className={styles.pricingToolbarActions}>
+                          <label className={styles.pricingSelectRow}>
+                            <span>Trier</span>
+                            <select
+                              value={pricingSortMode}
+                              onChange={(e) =>
+                                setPricingSortMode(
+                                  e.target.value === "service" ? "service" : "category",
+                                )
+                              }
+                            >
+                              <option value="category">Par categorie</option>
+                              <option value="service">Par service</option>
+                            </select>
+                          </label>
+                          <label className={styles.pricingToggleRow}>
+                            <input
+                              type="checkbox"
+                              checked={showAllPricingServices}
+                              onChange={(e) => setShowAllPricingServices(e.target.checked)}
+                            />
+                            <span>Afficher tous les services catalogues</span>
+                          </label>
+                          <button
+                            type="button"
+                            className={styles.tariffNavBtn}
+                            disabled={!canEditTariffConfig}
+                            onClick={() => openCreatePricingModal()}
+                          >
+                            Ajouter un tarif
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.tariffNavBtn}
+                            disabled={
+                              !canEditTariffConfig ||
+                              servicePrices.length === 0 ||
+                              servicePricesBusyId === "all"
+                            }
+                            onClick={resetAllServicePrices}
+                          >
+                            Reinitialiser
+                          </button>
+                        </div>
+                      </div>
+                      {servicePricesLoading ? (
+                        <p className={styles.tariffHint}>Chargement de la grille tarifaire...</p>
+                      ) : visiblePricingCatalogRows.length === 0 ? (
+                        <p className={styles.tariffHint}>
+                          Aucun service mission actif. Activez vos services depuis l&apos;onglet
+                          Missions.
+                        </p>
+                      ) : (
+                        <div className={styles.pricingTableScroll}>
+                          <div className={styles.pricingTableHead}>
+                            <span>Service</span>
+                            <span>Tarif</span>
+                            <span>Unite</span>
+                            <span>Actions</span>
+                          </div>
+                          <div className={styles.pricingTable}>
+                            {groupedPricingCatalogRows.map((group) => (
+                              <section key={group.category} className={styles.pricingCategoryBlock}>
+                                <button
+                                  type="button"
+                                  className={styles.pricingCategoryTitle}
+                                  onClick={() => togglePricingCategory(group.category)}
+                                >
+                                  <span>{group.category}</span>
+                                  <small>{group.rows.length}</small>
+                                  <strong>
+                                    {collapsedPricingCategories[group.category] ? "+" : "-"}
+                                  </strong>
+                                </button>
+                                {!collapsedPricingCategories[group.category] &&
+                                  group.rows.map(({ service, pricing, isActiveMissionService }) => (
+                                  <div key={service.id} className={styles.pricingTableRow}>
+                                    <div className={styles.pricingServiceCell}>
+                                      <strong>{service.service}</strong>
+                                      <div className={styles.pricingBadgeRow}>
+                                        <span
+                                          className={`${styles.pricingStatusBadge} ${
+                                            pricing
+                                              ? styles.pricingStatusConfigured
+                                              : styles.pricingStatusMissing
+                                          }`}
+                                        >
+                                          {pricing ? "Actif" : "Non configure"}
+                                        </span>
+                                        {!isActiveMissionService && (
+                                          <span className={styles.pricingTagMuted}>Hors offre</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      {pricing ? (
+                                        <strong>{Math.round(pricing.amount)} EUR</strong>
+                                      ) : (
+                                        <span className={styles.pricingEmptyValue}>-</span>
+                                      )}
+                                    </div>
+                                    <div>
+                                      {pricing?.unit ? (
+                                        <span>{pricing.unit}</span>
+                                      ) : (
+                                        <span className={styles.pricingEmptyValue}>-</span>
+                                      )}
+                                    </div>
+                                    <div className={styles.pricingRowActions}>
+                                      {pricing ? (
+                                        <>
+                                          <button
+                                            type="button"
+                                            className={styles.pricingActionBtn}
+                                            disabled={!canEditTariffConfig || servicePricesBusyId != null}
+                                            onClick={() => openEditPricingModal(pricing)}
+                                          >
+                                            Modifier
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className={styles.pricingActionBtnDanger}
+                                            disabled={!canEditTariffConfig || servicePricesBusyId != null}
+                                            onClick={() => deleteServicePrice(pricing)}
+                                          >
+                                            Supprimer
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          className={styles.pricingActionBtn}
+                                          disabled={!canEditTariffConfig || servicePricesBusyId != null}
+                                          onClick={() => openCreatePricingModal(service)}
+                                        >
+                                          Ajouter
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  ))}
+                              </section>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </section>
+
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>Bloc D — Type de bien & majorations</h3>
+                      <p className={styles.tariffHint}>
+                        Adaptez vos prix selon la taille/type du logement et les cas urgents.
+                      </p>
+                      <div className={styles.tariffPropertyMatrix}>
+                        {PROPERTY_TYPE_OPTIONS.map((option) => (
+                          <label key={option.key} className={styles.tariffPropertyRow}>
+                            <span>{option.label}</span>
+                            <input
+                              type="number"
+                              step="1"
+                              value={getPropertyTypeDeltaPercent(option.key)}
+                              disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
+                              onChange={(e) =>
+                                updatePropertyTypeDeltaPercent(
+                                  option.key,
+                                  Number(e.target.value || 0),
+                                )
+                              }
+                            />
+                            <small>%</small>
+                          </label>
+                        ))}
+                      </div>
+                      <ul className={styles.tariffRuleList}>
+                        <li>Urgence (&lt;24h): +{pricingV2.globalModifiers.urgentPercent}%</li>
+                        <li>Nuit: +{pricingV2.globalModifiers.nightPercent}%</li>
+                        <li>Week-end: +{pricingV2.globalModifiers.weekendPercent}%</li>
+                        <li>Haute saison: +{pricingV2.globalModifiers.highSeasonPercent}%</li>
+                        <li>Minimum de facture: {pricingV2.base.minimumInvoice} EUR</li>
+                      </ul>
+                    </section>
+                  </div>
+                  {pricingModalOpen && (
+                    <div className={styles.pricingModalOverlay} role="dialog" aria-modal="true">
+                      <div className={styles.pricingModal}>
+                        <div className={styles.pricingModalHeader}>
+                          <h4>{pricingModalState.id ? "Modifier le tarif" : "Ajouter un tarif"}</h4>
+                          <button
+                            type="button"
+                            className={styles.pricingModalClose}
+                            onClick={closePricingModal}
+                          >
+                            <LucideX size={16} />
+                          </button>
+                        </div>
+                        <div className={styles.pricingModalBody}>
+                          <label>
+                            <span>Service</span>
+                            <select
+                              value={pricingModalState.serviceId}
+                              onChange={(e) =>
+                                setPricingModalState((prev) => ({
+                                  ...prev,
+                                  serviceId: e.target.value,
+                                  label:
+                                    prev.label ||
+                                    catalogServices.find(
+                                      (item) => String(item.id) === e.target.value,
+                                    )?.service ||
+                                    "",
+                                }))
+                              }
+                              disabled={pricingModalSaving || !canEditTariffConfig}
+                            >
+                              <option value="">Selectionner un service</option>
+                              {catalogServices.map((service) => (
+                                <option key={service.id} value={String(service.id)}>
+                                  {service.service}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            <span>Libelle (optionnel)</span>
+                            <input
+                              type="text"
+                              value={pricingModalState.label}
+                              onChange={(e) =>
+                                setPricingModalState((prev) => ({
+                                  ...prev,
+                                  label: e.target.value,
+                                }))
+                              }
+                              disabled={pricingModalSaving || !canEditTariffConfig}
+                              placeholder="Ex: Menage villa haute saison"
+                            />
+                          </label>
+                          <div className={styles.pricingModalGrid}>
+                            <label>
+                              <span>Tarif (EUR)</span>
+                              <input
+                                type="number"
+                                min={0}
+                                step="1"
+                                value={pricingModalState.amount}
+                                onChange={(e) =>
+                                  setPricingModalState((prev) => ({
+                                    ...prev,
+                                    amount: e.target.value,
+                                  }))
+                                }
+                                disabled={pricingModalSaving || !canEditTariffConfig}
+                              />
+                            </label>
+                            <label>
+                              <span>Unite</span>
+                              <select
+                                value={pricingModalState.unit}
+                                onChange={(e) =>
+                                  setPricingModalState((prev) => ({
+                                    ...prev,
+                                    unit: e.target.value,
+                                  }))
+                                }
+                                disabled={pricingModalSaving || !canEditTariffConfig}
+                              >
+                                {PRICING_UNIT_OPTIONS.map((unit) => (
+                                  <option key={unit} value={unit}>
+                                    {unit}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          </div>
+                          <label>
+                            <span>Type de tarification</span>
+                            <select
+                              value={pricingModalState.type}
+                              onChange={(e) =>
+                                setPricingModalState((prev) => ({
+                                  ...prev,
+                                  type: e.target.value as PricingTypeValue,
+                                }))
+                              }
+                              disabled={pricingModalSaving || !canEditTariffConfig}
+                            >
+                              <option value="fixed">Forfait</option>
+                              <option value="hourly">Horaire</option>
+                              <option value="monthly">Mensuel</option>
+                              <option value="custom">Personnalise</option>
+                            </select>
+                          </label>
+                          {pricingModalError && (
+                            <p className={styles.pricingModalError}>{pricingModalError}</p>
+                          )}
+                        </div>
+                        <div className={styles.pricingModalActions}>
+                          <button
+                            type="button"
+                            className={styles.pricingActionBtn}
+                            onClick={() =>
+                              setPricingModalState((prev) => ({
+                                ...prev,
+                                amount:
+                                  pricingV2.base.hourlyRate > 0
+                                    ? String(Math.round(pricingV2.base.hourlyRate))
+                                    : "",
+                                unit: prev.type === "hourly" ? "par heure" : "par prestation",
+                              }))
+                            }
+                            disabled={pricingModalSaving || !canEditTariffConfig}
+                          >
+                            Reinitialiser
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.pricingActionBtn}
+                            onClick={closePricingModal}
+                            disabled={pricingModalSaving}
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.tariffNavBtn}
+                            onClick={saveServicePrice}
+                            disabled={pricingModalSaving || !canEditTariffConfig}
+                          >
+                            {pricingModalSaving ? "Enregistrement..." : "Enregistrer"}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className={styles.tariffToolPanel}>
-                    <PricingGridManager
-                      activeServiceIds={activeMissionServiceCatalogIds}
-                      activeServiceLabels={activeMissionServiceLabels}
-                      pricingV2={pricingV2}
-                      onChangePricingV2={applyPricingV2}
-                      showHeader={false}
-                      showQuickStats={false}
-                      showContextualHeader={false}
-                    />
-                  </div>
+                  )}
                 </>,
-                false,
+                true,
+                TARIFF_SECTION_IDS.CONFIG,
               )}
             </div>
 
@@ -2776,7 +3827,7 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard} ${styles.tariffEmphasisCard}`}
             >
               {renderSection(
-                "Devis et factures operationnels",
+                "2. Devis et factures operationnels",
                 <FiFile />,
                 <>
                   <div className={styles.tariffCardIntro}>
@@ -2792,52 +3843,19 @@ export default function ConciergeProfilePage() {
                     </p>
                   </div>
                   <div className={styles.tariffToolPanel}>
-                    <TariffBillingDesk />
-                  </div>
-                </>,
-                false,
-              )}
-            </div>
-
-            <div
-              id="tariffs-forecast"
-              className={`${styles.financeCard} ${styles.tariffPanelCard}`}
-            >
-              {renderSection(
-                "Prevision de revenus",
-                <FiBarChart />,
-                <>
-                  <div className={styles.tariffCardIntro}>
-                    <div className={styles.tariffInlineHeader}>
-                      <h3 className={styles.tariffMiniTitle}>Simulation rapide</h3>
-                      <span className={styles.tariffConfigChip}>Aide a la decision</span>
-                    </div>
-                    <p className={styles.tariffHint}>
-                      Ajustez vos propositions avant envoi selon vos règles
-                      actuelles.
-                    </p>
-                    <div className={styles.tariffForecastPanel}>
-                      <span className={styles.tariffConfigChip}>
-                        Base horaire: {editProfile.hourly_rate ?? 0} EUR/h
-                      </span>
-                      <span className={styles.tariffConfigChip}>
-                        Deplacement: {editProfile.travel_fee ?? 0} EUR
-                      </span>
-                      <span className={styles.tariffConfigChip}>
-                        Minimum facture: {seasonalPricing.minimumInvoice} EUR
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.tariffToolPanel}>
-                    <TariffRevenueEstimator
-                      hourlyRate={editProfile.hourly_rate ?? 0}
-                      travelFee={editProfile.travel_fee ?? 0}
-                      pricing={seasonalPricing}
-                      pricingV2={pricingV2}
+                    <TariffBillingDesk
+                      hourlyRate={pricingV2.base.hourlyRate}
+                      travelFee={pricingV2.base.travelFee}
+                      minimumInvoice={pricingV2.base.minimumInvoice}
+                      urgentPercent={pricingV2.globalModifiers.urgentPercent}
+                      nightPercent={pricingV2.globalModifiers.nightPercent}
+                      weekendPercent={pricingV2.globalModifiers.weekendPercent}
+                      highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
                     />
                   </div>
                 </>,
                 false,
+                TARIFF_SECTION_IDS.BILLING_DESK,
               )}
             </div>
           </div>

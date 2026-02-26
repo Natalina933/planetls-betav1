@@ -4,7 +4,7 @@ import { db } from "@/app/lib/dbServer";
 
 export async function GET(request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = new URL(request.url).searchParams;
     const filter = searchParams.get("filter") || "";
 
     let query = db.from("categories").select("*");
@@ -17,7 +17,8 @@ export async function GET(request) {
 
     if (error) {
       console.error("Erreur BDD:", error);
-      return NextResponse.json({ error: error.message }, { status: 502 });
+      // Fallback non bloquant pour éviter de casser la page côté front.
+      return NextResponse.json([]);
     }
 
     // console.log("Données récupérées :", data.length, "enregistrements");

@@ -100,7 +100,25 @@ const getResponseError = async (res: Response, fallback: string): Promise<string
   }
 };
 
-const TariffBillingDesk = () => {
+type TariffBillingDeskProps = {
+  hourlyRate?: number;
+  travelFee?: number;
+  minimumInvoice?: number;
+  urgentPercent?: number;
+  nightPercent?: number;
+  weekendPercent?: number;
+  highSeasonPercent?: number;
+};
+
+const TariffBillingDesk = ({
+  hourlyRate = 0,
+  travelFee = 0,
+  minimumInvoice = 0,
+  urgentPercent = 0,
+  nightPercent = 0,
+  weekendPercent = 0,
+  highSeasonPercent = 0,
+}: TariffBillingDeskProps) => {
   const [loading, setLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -344,6 +362,10 @@ const TariffBillingDesk = () => {
           <p className={styles.lead}>
             Transformez rapidement les missions en devis puis en factures, avec
             suivi des statuts et des montants restants.
+          </p>
+          <p className={styles.lead}>
+            Base active: {hourlyRate} EUR/h · Deplacement: {travelFee} EUR · Minimum: {minimumInvoice} EUR
+            {" "}· Majorations: U {urgentPercent}% / N {nightPercent}% / WE {weekendPercent}% / HS {highSeasonPercent}%
           </p>
         </div>
         <button

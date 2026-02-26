@@ -9,7 +9,11 @@ export async function GET() {
       .select("id, key, label, icon, image, description, group_key")
       .order("label");
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("Erreur BDD /api/categories/groups:", error);
+      // Fallback non bloquant pour éviter de casser la page côté front.
+      return NextResponse.json([]);
+    }
 
     const categories = rows
       .filter((cat) => cat.key === cat.group_key)
@@ -25,9 +29,7 @@ export async function GET() {
     return NextResponse.json(categories);
   } catch (error) {
     console.error("Erreur API /api/categories/groups :", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    // Fallback non bloquant
+    return NextResponse.json([]);
   }
 }

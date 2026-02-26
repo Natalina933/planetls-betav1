@@ -2,6 +2,9 @@
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
+// Format HH:MM (TypeScript only, validation runtime toujours nécessaire)
+export type TimeHHMM = `${number}${number}:${number}${number}`;
+
 export interface MissionPriorityFlags {
   urgent: boolean;
   recurrent: boolean;
@@ -11,6 +14,7 @@ export interface MissionPriorityFlags {
 export interface MissionCatalogItem {
   id: string;
   label: string;
+  // garde la compatibilité avec ton code existant
   basePrice?: number | null;
   customizable?: boolean;
 }
@@ -31,16 +35,16 @@ export interface MissionConfig {
   id: string;
   label: string;
   isActive: boolean;
-  minNoticeHours: number;
+  minNoticeHours: number; // 0..168 recommandé
   allowUrgent: boolean;
-  urgentMultiplier: number;
+  urgentMultiplier: number; // 1..3 recommandé
 }
 
 export interface MissionSpecialConditions {
   acceptNightInterventions: boolean;
   acceptWeekendInterventions: boolean;
   acceptHighSeasonInterventions: boolean;
-  highSeasonMultiplier: number;
+  highSeasonMultiplier: number; // 1..3 recommandé
   geographicNotes: string;
 }
 
@@ -50,29 +54,36 @@ export interface ConciergeMissionProfile {
   specialConditions: MissionSpecialConditions;
 }
 
+/** Zone géographique (point + rayon appliqué côté availability) */
+export interface MissionZone {
+  placeId: string;
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+/** Plage horaire */
+export interface MissionTimeRange {
+  start: TimeHHMM; // ex: "09:00"
+  end: TimeHHMM;   // ex: "18:00"
+}
+
+/** Horaires par jour */
+export interface MissionDaySchedule {
+  day: WeekDay;
+  ranges: MissionTimeRange[];
+}
+
+export interface MissionRules {
+  refuseOutOfZone: boolean;
+  refuseOutOfSchedule: boolean;
+  autoAcceptEmergency: boolean;
+}
+
 export interface MissionAvailability {
-  zones: {
-    placeId: string;
-    label: string;
-    lat: number;
-    lng: number;
-  }[];
-
+  zones: MissionZone[];
   radiusKm: number;
-
-  schedule: {
-    day: WeekDay;
-    ranges: {
-      start: string; // "09:00"
-      end: string; // "12:00"
-    }[];
-  }[];
-
+  schedule: MissionDaySchedule[];
   emergency24h: boolean;
-
-  rules: {
-    refuseOutOfZone: boolean;
-    refuseOutOfSchedule: boolean;
-    autoAcceptEmergency: boolean;
-  };
+  rules: MissionRules;
 }

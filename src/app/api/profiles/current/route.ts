@@ -39,11 +39,15 @@ export async function GET(req: NextRequest) {
     .from("profiles")
     .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("[profiles/current] DB error:", error);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
+  }
+
+  if (!profile) {
+    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   }
 
   return NextResponse.json(profile, { status: 200 });

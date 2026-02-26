@@ -1,27 +1,22 @@
-"use client";
+﻿"use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   MapContainer,
   TileLayer,
   Circle,
   Marker,
+  Popup,
+  useMap,
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MissionAvailability } from "./types";
+import styles from "./MissionMap.module.scss";
 
-/* -------------------------------------------------------------------------- */
-/* Leaflet icon fix                                                           */
-/* -------------------------------------------------------------------------- */
-
-type LeafletIconProto = {
-  _getIconUrl?: () => string;
-};
-
+type LeafletIconProto = { _getIconUrl?: () => string };
 delete (L.Icon.Default.prototype as LeafletIconProto)._getIconUrl;
-
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -32,14 +27,27 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-/* -------------------------------------------------------------------------- */
-
 interface MissionMapProps {
   zones: MissionAvailability["zones"];
   radiusKm: number;
   onZonesChange: (zones: MissionAvailability["zones"]) => void;
-  onRadiusChange: (radiusKm: number) => void;
   isEditing: boolean;
+}
+
+const DEFAULT_CENTER: [number, number] = [48.8566, 2.3522];
+const DEFAULT_LABEL = "Nouveau point";
+
+function FitToZones({ zones }: { zones: MissionAvailability["zones"] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!zones.length) return;
+
+    const bounds = L.latLngBounds(zones.map((z) => L.latLng(z.lat, z.lng))).pad(0.25);
+    map.fitBounds(bounds, { animate: true });
+  }, [zones, map]);
+
+  return null;
 }
 
 function MapClickHandler({
@@ -51,12 +59,9 @@ function MapClickHandler({
 }) {
   useMapEvents({
     click(e) {
-      if (enabled) {
-        onAdd(e.latlng.lat, e.latlng.lng);
-      }
+      if (enabled) onAdd(e.latlng.lat, e.latlng.lng);
     },
   });
-
   return null;
 }
 
@@ -64,86 +69,157 @@ export default function MissionMap({
   zones,
   radiusKm,
   onZonesChange,
-  onRadiusChange,
   isEditing,
 }: MissionMapProps) {
   const [newZoneLabel, setNewZoneLabel] = useState("");
+  const [uiError, setUiError] = useState<string | null>(null);
+
+  const center = useMemo<[number, number]>(() => {
+    if (zones[0]) return [zones[0].lat, zones[0].lng];
+    return DEFAULT_CENTER;
+  }, [zones]);
 
   const addZoneAt = useCallback(
-    (lat: number, lng: number, label = "Nouveau point") => {
+    (lat: number, lng: number, label = DEFAULT_LABEL) => {
+      const safeLabel = label.trim() || DEFAULT_LABEL;
+
       onZonesChange([
         ...zones,
         {
           placeId: crypto.randomUUID(),
-          label,
+          label: safeLabel,
           lat,
           lng,
         },
       ]);
     },
-    [zones, onZonesChange]
+    [zones, onZonesChange],
+  );
+
+  const removeZone = useCallback(
+    (placeId: string) => {
+      onZonesChange(zones.filter((z) => z.placeId !== placeId));
+    },
+    [zones, onZonesChange],
+  );
+
+  const renameZone = useCallback(
+    (placeId: string, nextLabel: string) => {
+      onZonesChange(zones.map((z) => (z.placeId === placeId ? { ...z, label: nextLabel } : z)));
+    },
+    [zones, onZonesChange],
   );
 
   const addZoneFromInput = () => {
-    if (!newZoneLabel) return;
-    addZoneAt(48.8566, 2.3522, newZoneLabel);
+    const label = newZoneLabel.trim();
+    if (!label) {
+      setUiError("Saisis un nom de zone (ex : Paris centre).");
+      return;
+    }
+    setUiError(null);
+    addZoneAt(DEFAULT_CENTER[0], DEFAULT_CENTER[1], label);
     setNewZoneLabel("");
   };
 
+  const canEdit = isEditing;
+
   return (
-    <div>
-      {isEditing && (
-        <div style={{ marginBottom: 8, display: "flex", gap: 8 }}>
-          <input
-            value={newZoneLabel}
-            onChange={(e) => setNewZoneLabel(e.target.value)}
-            placeholder="Ajouter une zone…"
-          />
-          <button onClick={addZoneFromInput}>Ajouter</button>
+    <div className={styles.container}>
+      {canEdit && (
+        <div className={styles.toolbar}>
+          <div className={styles.addZone}>
+            <input
+              value={newZoneLabel}
+              onChange={(e) => setNewZoneLabel(e.target.value)}
+              placeholder="Ajouter une zone..."
+              className={styles.input}
+              aria-label="Nom de la zone a ajouter"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addZoneFromInput();
+              }}
+            />
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={addZoneFromInput}
+            >
+              Ajouter
+            </button>
+          </div>
+
+          <p className={styles.helpText}>Astuce : clique directement sur la carte pour ajouter un point.</p>
+
+          {uiError && (
+            <p className={styles.error} role="alert">
+              {uiError}
+            </p>
+          )}
         </div>
       )}
 
-      <MapContainer
-        center={zones[0] ? [zones[0].lat, zones[0].lng] : [48.8566, 2.3522]}
-        zoom={10}
-        style={{ height: 300, width: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="© OpenStreetMap"
-        />
-
-        {zones.map((z) => (
-          <Marker key={z.placeId} position={[z.lat, z.lng]} />
-        ))}
-
-        {zones.map((z) => (
-          <Circle
-            key={`${z.placeId}-circle`}
-            center={[z.lat, z.lng]}
-            radius={radiusKm * 1000}
-            pathOptions={{ color: "blue", fillOpacity: 0.2 }}
+      <div className={styles.mapWrap}>
+        <MapContainer center={center} zoom={10} className={styles.map}>
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="© OpenStreetMap"
           />
-        ))}
 
-        <MapClickHandler
-          enabled={isEditing}
-          onAdd={(lat, lng) => addZoneAt(lat, lng)}
-        />
-      </MapContainer>
+          <FitToZones zones={zones} />
 
-      {isEditing && (
-        <label style={{ marginTop: 8, display: "block" }}>
-          Rayon : {radiusKm} km
-          <input
-            type="range"
-            min={5}
-            max={100}
-            value={radiusKm}
-            onChange={(e) => onRadiusChange(Number(e.target.value))}
-          />
-        </label>
-      )}
+          {zones.map((z) => (
+            <Marker key={z.placeId} position={[z.lat, z.lng]}>
+              <Popup>
+                <div className={styles.popup}>
+                  {canEdit ? (
+                    <>
+                      <label className={styles.popupLabel}>
+                        Nom
+                        <input
+                          className={styles.popupInput}
+                          value={z.label}
+                          onChange={(e) => renameZone(z.placeId, e.target.value)}
+                        />
+                      </label>
+
+                      <div className={styles.popupMeta}>
+                        <span>Lat: {z.lat.toFixed(5)}</span>
+                        <span>Lng: {z.lng.toFixed(5)}</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        className={styles.dangerBtn}
+                        onClick={() => removeZone(z.placeId)}
+                      >
+                        Supprimer
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <strong className={styles.popupTitle}>{z.label}</strong>
+                      <div className={styles.popupMeta}>
+                        <span>Lat: {z.lat.toFixed(5)}</span>
+                        <span>Lng: {z.lng.toFixed(5)}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+
+          {zones.map((z) => (
+            <Circle
+              key={`${z.placeId}-circle`}
+              center={[z.lat, z.lng]}
+              radius={radiusKm * 1000}
+              pathOptions={{ color: "#2b6cb0", fillOpacity: 0.18 }}
+            />
+          ))}
+
+          <MapClickHandler enabled={canEdit} onAdd={(lat, lng) => addZoneAt(lat, lng)} />
+        </MapContainer>
+      </div>
     </div>
   );
 }

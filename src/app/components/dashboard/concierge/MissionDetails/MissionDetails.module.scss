@@ -18,6 +18,12 @@ $white: #ffffff;
   }
 }
 
+.servicesScroll {
+  max-height: min(62vh, 640px);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
 // --- Mode Édition (Selector) ---
 .editorBox {
   background: rgba($cream-light, 0.5);

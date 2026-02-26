@@ -1,0 +1,153 @@
+$border: #e5e7eb;
+$text: #111827;
+$text-muted: #6b7280;
+$bg: #ffffff;
+$bg-soft: #f9fafb;
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$danger: #dc2626;
+$danger-hover: #b91c1c;
+
+.container {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.toolbar {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: $bg-soft;
+}
+
+.addZone {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  padding: 0 0.75rem;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: $bg;
+  color: $text;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+}
+
+.primaryBtn {
+  height: 40px;
+  padding: 0 0.9rem;
+  border: 1px solid $primary;
+  border-radius: 10px;
+  background: $primary;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+
+  &:hover {
+    background: $primary-hover;
+    border-color: $primary-hover;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.helpText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: $text-muted;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: $danger;
+  font-weight: 600;
+}
+
+.mapWrap {
+  border: 1px solid $border;
+  border-radius: 14px;
+  overflow: hidden;
+  background: $bg;
+}
+
+.map {
+  width: 100%;
+  height: clamp(260px, 42vh, 420px);
+}
+
+.popup {
+  min-width: 180px;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.popupTitle {
+  display: block;
+  font-size: 0.92rem;
+  color: $text;
+}
+
+.popupLabel {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: $text-muted;
+}
+
+.popupInput {
+  width: 100%;
+  height: 32px;
+  padding: 0 0.55rem;
+  border: 1px solid $border;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: $text;
+}
+
+.popupMeta {
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  color: $text-muted;
+}
+
+.dangerBtn {
+  height: 32px;
+  padding: 0 0.7rem;
+  border: 1px solid $danger;
+  border-radius: 8px;
+  background: $danger;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $danger-hover;
+    border-color: $danger-hover;
+  }
+}

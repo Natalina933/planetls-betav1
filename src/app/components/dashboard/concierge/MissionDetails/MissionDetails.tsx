@@ -107,48 +107,50 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
     return (
         <div className={styles.wrapper}>
             <div className={styles.contentSection}>
-                {isEditing ? (
-                    <div className={styles.editorBox}>
-                        <ServiceCatalogSelector
-                            selected={activeServices}
-                            onChange={(vals) => onChangeOption?.(vals)}
-                            disabled={loadingCatalog}
-                            hints={{
-                                menage: "Entre deux séjours, grand ménage, remise en état, fin de location.",
-                                accueil: "Check-in/check-out voyageurs, accueil VIP, remise des clés.",
-                                maintenance: "Interventions techniques, suivi prestataires, dépannage léger.",
-                                administratif: "Coordination contrats, suivi incidents, reporting propriétaire.",
-                            }}
-                        />
-                    </div>
-                ) : (
-                    <div className={styles.viewerBox}>
-                        {loadingCatalog && <div className={styles.loading}><FiLoader className={styles.spin} /></div>}
+                <div className={styles.servicesScroll}>
+                    {isEditing ? (
+                        <div className={styles.editorBox}>
+                            <ServiceCatalogSelector
+                                selected={activeServices}
+                                onChange={(vals) => onChangeOption?.(vals)}
+                                disabled={loadingCatalog}
+                                hints={{
+                                    menage: "Entre deux séjours, grand ménage, remise en état, fin de location.",
+                                    accueil: "Check-in/check-out voyageurs, accueil VIP, remise des clés.",
+                                    maintenance: "Interventions techniques, suivi prestataires, dépannage léger.",
+                                    administratif: "Coordination contrats, suivi incidents, reporting propriétaire.",
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div className={styles.viewerBox}>
+                            {loadingCatalog && <div className={styles.loading}><FiLoader className={styles.spin} /></div>}
 
-                        {errorCatalog && <div className={styles.error}><FiAlertCircle /> {errorCatalog}</div>}
+                            {errorCatalog && <div className={styles.error}><FiAlertCircle /> {errorCatalog}</div>}
 
-                        {!loadingCatalog && detailedSummary.map((group) => (
-                            <div key={group.category} className={styles.categoryCard}>
-                                <h4 className={styles.categoryTitle}>
-                                    {group.category}
-                                    <span className={styles.badge}>{group.services.length}</span>
-                                </h4>
-                                <ul className={styles.serviceList}>
-                                    {group.services.map((s, i) => (
-                                        <li key={i} className={styles.serviceItem}>
-                                            <FiCheckCircle className={styles.checkIcon} />
-                                            {s}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
+                            {!loadingCatalog && detailedSummary.map((group) => (
+                                <div key={group.category} className={styles.categoryCard}>
+                                    <h4 className={styles.categoryTitle}>
+                                        {group.category}
+                                        <span className={styles.badge}>{group.services.length}</span>
+                                    </h4>
+                                    <ul className={styles.serviceList}>
+                                        {group.services.map((s, i) => (
+                                            <li key={i} className={styles.serviceItem}>
+                                                <FiCheckCircle className={styles.checkIcon} />
+                                                {s}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
 
-                        {!loadingCatalog && detailedSummary.length === 0 && !errorCatalog && (
-                            <div className={styles.empty}>Aucun service reconnu. Veuillez éditer votre profil.</div>
-                        )}
-                    </div>
-                )}
+                            {!loadingCatalog && detailedSummary.length === 0 && !errorCatalog && (
+                                <div className={styles.empty}>Aucun service reconnu. Veuillez éditer votre profil.</div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
