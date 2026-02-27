@@ -202,6 +202,27 @@ interface PricingModalState {
   unit: string;
 }
 
+interface PricingSegmentRow {
+  id: string;
+  concierge_profile_id: string;
+  name: string;
+  commission_delta_pct: number;
+  setup_fee_delta_pct: number;
+  is_default: boolean;
+  created_at: string | null;
+}
+
+interface PricingPropertyRuleRow {
+  id: string;
+  concierge_profile_id: string;
+  service_id: number | null;
+  property_type: string | null;
+  min_surface_m2: number | null;
+  max_surface_m2: number | null;
+  delta_pct: number;
+  created_at: string | null;
+}
+
 const PROPERTY_TYPE_OPTIONS: Array<{ key: string; label: string }> = [
   { key: "studio", label: "Studio / T1" },
   { key: "apartment", label: "Appartement" },
@@ -494,6 +515,31 @@ const parseSeasonalPricing = (value?: string | null): SeasonalPricingConfig => {
     extraKmFee: readNumber("extraKmFee", defaults.extraKmFee),
     minimumInvoice: readNumber("minimumInvoice", defaults.minimumInvoice),
   };
+};
+
+interface PricingMetaConfig {
+  commissionRatePct: number;
+  setupFee: number;
+}
+
+const parsePricingMeta = (value?: string | null): PricingMetaConfig => {
+  const raw = parseAvailabilityPayloadRaw(value);
+  const meta =
+    raw.pricing_meta && typeof raw.pricing_meta === "object"
+      ? (raw.pricing_meta as Record<string, unknown>)
+      : {};
+
+  const commissionRatePct =
+    typeof meta.commissionRatePct === "number" && Number.isFinite(meta.commissionRatePct)
+      ? Math.max(0, Math.min(100, meta.commissionRatePct))
+      : 20;
+
+  const setupFee =
+    typeof meta.setupFee === "number" && Number.isFinite(meta.setupFee)
+      ? Math.max(0, meta.setupFee)
+      : 0;
+
+  return { commissionRatePct, setupFee };
 };
 
 const syncSeasonalPricingFromPricingV2 = (
@@ -841,6 +887,24 @@ export default function ConciergeProfilePage() {
   const [collapsedPricingCategories, setCollapsedPricingCategories] = useState<
     Record<string, boolean>
   >({});
+  const [pricingSegments, setPricingSegments] = useState<PricingSegmentRow[]>([]);
+  const [segmentsLoading, setSegmentsLoading] = useState(false);
+  const [segmentsBusyId, setSegmentsBusyId] = useState<string | null>(null);
+  const [segmentDraft, setSegmentDraft] = useState({
+    name: "",
+    commission_delta_pct: "0",
+    setup_fee_delta_pct: "0",
+  });
+  const [propertyRules, setPropertyRules] = useState<PricingPropertyRuleRow[]>([]);
+  const [propertyRulesLoading, setPropertyRulesLoading] = useState(false);
+  const [propertyRulesBusyId, setPropertyRulesBusyId] = useState<string | null>(null);
+  const [propertyRuleDraft, setPropertyRuleDraft] = useState({
+    service_id: "",
+    property_type: "",
+    min_surface_m2: "",
+    max_surface_m2: "",
+    delta_pct: "0",
+  });
   const didSeedFromOnboardingRef = useRef(false);
   const missionPayload = useMemo(
     () => parseMissionPayload(editProfile?.availability_hours),
@@ -1044,70 +1108,6 @@ export default function ConciergeProfilePage() {
     () => tariffReadinessChecks.filter((check) => !check.ready),
     [tariffReadinessChecks],
   );
-  const tariffCoherenceAlerts = useMemo(() => {
-    const alerts: Array<{
-      id: string;
-      label: string;
-      actionLabel: string;
-      sectionId: string;
-      level: "critical" | "warning" | "info";
-    }> = [];
-
-    if ((pricingV2.base.hourlyRate ?? 0) <= 0) {
-      alerts.push({
-        id: "base-hourly",
-        label: "Le tarif horaire de base est manquant.",
-        actionLabel: "Completer le socle",
-        sectionId: "tariffs-config",
-        level: "critical",
-      });
-    }
-
-    if (activeMissionServiceLabels.length === 0) {
-      alerts.push({
-        id: "services-empty",
-        label: "Aucun service actif n'est relie a la grille tarifaire.",
-        actionLabel: "Completer la grille",
-        sectionId: "tariffs-config",
-        level: "critical",
-      });
-    }
-
-    if ((pricingV2.base.minimumInvoice ?? 0) < (pricingV2.base.hourlyRate ?? 0)) {
-      alerts.push({
-        id: "minimum-low",
-        label: "Le minimum de facture est inferieur a une heure de base.",
-        actionLabel: "Ajuster les parametres",
-        sectionId: "tariffs-config",
-        level: "warning",
-      });
-    }
-
-    if (
-      pricingV2.globalModifiers.urgentPercent === 0 &&
-      pricingV2.globalModifiers.nightPercent === 0 &&
-      pricingV2.globalModifiers.weekendPercent === 0 &&
-      pricingV2.globalModifiers.highSeasonPercent === 0
-    ) {
-      alerts.push({
-        id: "modifiers-flat",
-        label: "Aucune majoration n'est active (urgence, nuit, week-end, haute saison).",
-        actionLabel: "Regler les majorations",
-        sectionId: "tariffs-config",
-        level: "info",
-      });
-    }
-
-    return alerts;
-  }, [
-    pricingV2.base.hourlyRate,
-    pricingV2.base.minimumInvoice,
-    pricingV2.globalModifiers.highSeasonPercent,
-    pricingV2.globalModifiers.nightPercent,
-    pricingV2.globalModifiers.urgentPercent,
-    pricingV2.globalModifiers.weekendPercent,
-    activeMissionServiceLabels.length,
-  ]);
   const activeTariffServiceRows = useMemo<ActiveTariffServiceRow[]>(() => {
     const catalogByLabel = new Map(
       catalogServices.map((item) => [normalizeServiceLabel(item.service), item]),
@@ -1500,6 +1500,22 @@ export default function ConciergeProfilePage() {
         : prev,
     );
   }, []);
+  const applyPricingMeta = useCallback((next: PricingMetaConfig) => {
+    setEditProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            availability_hours: JSON.stringify({
+              ...parseAvailabilityPayloadRaw(prev.availability_hours),
+              pricing_meta: {
+                commissionRatePct: Math.max(0, Math.min(100, next.commissionRatePct)),
+                setupFee: Math.max(0, next.setupFee),
+              },
+            }),
+          }
+        : prev,
+    );
+  }, []);
 
   const pushTransientMessage = useCallback(
     (kind: "success" | "error", message: string) => {
@@ -1580,6 +1596,273 @@ export default function ConciergeProfilePage() {
       setServicePricesLoading(false);
     }
   }, [pushTransientMessage]);
+  const fetchPricingSegments = useCallback(async () => {
+    setSegmentsLoading(true);
+    try {
+      const res = await fetch("/api/pricing/segments", { cache: "no-store" });
+      const data: PricingSegmentRow[] | { error: string } = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        throw new Error(
+          !res.ok && data && typeof data === "object" && "error" in data
+            ? data.error
+            : "Impossible de charger les segments proprietaires.",
+        );
+      }
+      setPricingSegments(data);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur chargement segments.";
+      pushTransientMessage("error", message);
+    } finally {
+      setSegmentsLoading(false);
+    }
+  }, [pushTransientMessage]);
+  const fetchPricingPropertyRules = useCallback(async () => {
+    setPropertyRulesLoading(true);
+    try {
+      const res = await fetch("/api/pricing/property-rules", { cache: "no-store" });
+      const data: PricingPropertyRuleRow[] | { error: string } = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        throw new Error(
+          !res.ok && data && typeof data === "object" && "error" in data
+            ? data.error
+            : "Impossible de charger les regles de complexite.",
+        );
+      }
+      setPropertyRules(data);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur chargement regles.";
+      pushTransientMessage("error", message);
+    } finally {
+      setPropertyRulesLoading(false);
+    }
+  }, [pushTransientMessage]);
+  const createPricingSegment = useCallback(async () => {
+    if (!canEditTariffConfig) return;
+    const name = segmentDraft.name.trim();
+    if (!name) {
+      pushTransientMessage("error", "Le nom du segment est obligatoire.");
+      return;
+    }
+    setSegmentsBusyId("create");
+    try {
+      const payload = {
+        name,
+        commission_delta_pct: Number(segmentDraft.commission_delta_pct || 0),
+        setup_fee_delta_pct: Number(segmentDraft.setup_fee_delta_pct || 0),
+      };
+      const res = await fetch("/api/pricing/segments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data && typeof data === "object" && "error" in data
+            ? String(data.error)
+            : "Impossible de creer le segment.",
+        );
+      }
+      await fetchPricingSegments();
+      setSegmentDraft({ name: "", commission_delta_pct: "0", setup_fee_delta_pct: "0" });
+      pushTransientMessage("success", "Segment ajoute.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur creation segment.";
+      pushTransientMessage("error", message);
+    } finally {
+      setSegmentsBusyId(null);
+    }
+  }, [
+    canEditTariffConfig,
+    segmentDraft,
+    fetchPricingSegments,
+    pushTransientMessage,
+  ]);
+  const updatePricingSegment = useCallback(
+    async (row: PricingSegmentRow) => {
+      if (!canEditTariffConfig) return;
+      setSegmentsBusyId(row.id);
+      try {
+        const res = await fetch(`/api/pricing/segments/${encodeURIComponent(row.id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: row.name,
+            commission_delta_pct: row.commission_delta_pct,
+            setup_fee_delta_pct: row.setup_fee_delta_pct,
+            is_default: row.is_default,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+              : "Impossible de mettre a jour le segment.",
+          );
+        }
+        await fetchPricingSegments();
+        pushTransientMessage("success", "Segment mis a jour.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur mise a jour segment.";
+        pushTransientMessage("error", message);
+      } finally {
+        setSegmentsBusyId(null);
+      }
+    },
+    [canEditTariffConfig, fetchPricingSegments, pushTransientMessage],
+  );
+  const deletePricingSegment = useCallback(
+    async (id: string) => {
+      if (!canEditTariffConfig) return;
+      if (!window.confirm("Supprimer ce segment ?")) return;
+      setSegmentsBusyId(id);
+      try {
+        const res = await fetch(`/api/pricing/segments/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+              : "Impossible de supprimer ce segment.",
+          );
+        }
+        await fetchPricingSegments();
+        pushTransientMessage("success", "Segment supprime.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur suppression segment.";
+        pushTransientMessage("error", message);
+      } finally {
+        setSegmentsBusyId(null);
+      }
+    },
+    [canEditTariffConfig, fetchPricingSegments, pushTransientMessage],
+  );
+  const createPricingPropertyRule = useCallback(async () => {
+    if (!canEditTariffConfig) return;
+    setPropertyRulesBusyId("create");
+    try {
+      const payload = {
+        service_id: propertyRuleDraft.service_id ? Number(propertyRuleDraft.service_id) : null,
+        property_type: propertyRuleDraft.property_type.trim() || null,
+        min_surface_m2: propertyRuleDraft.min_surface_m2
+          ? Number(propertyRuleDraft.min_surface_m2)
+          : null,
+        max_surface_m2: propertyRuleDraft.max_surface_m2
+          ? Number(propertyRuleDraft.max_surface_m2)
+          : null,
+        delta_pct: Number(propertyRuleDraft.delta_pct || 0),
+      };
+      const res = await fetch("/api/pricing/property-rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data && typeof data === "object" && "error" in data
+            ? String(data.error)
+            : "Impossible de creer la regle.",
+        );
+      }
+      await fetchPricingPropertyRules();
+      setPropertyRuleDraft({
+        service_id: "",
+        property_type: "",
+        min_surface_m2: "",
+        max_surface_m2: "",
+        delta_pct: "0",
+      });
+      pushTransientMessage("success", "Regle ajoutee.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur creation regle.";
+      pushTransientMessage("error", message);
+    } finally {
+      setPropertyRulesBusyId(null);
+    }
+  }, [
+    canEditTariffConfig,
+    propertyRuleDraft,
+    fetchPricingPropertyRules,
+    pushTransientMessage,
+  ]);
+  const updatePricingPropertyRule = useCallback(
+    async (row: PricingPropertyRuleRow) => {
+      if (!canEditTariffConfig) return;
+      setPropertyRulesBusyId(row.id);
+      try {
+        const res = await fetch(
+          `/api/pricing/property-rules/${encodeURIComponent(row.id)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              service_id: row.service_id,
+              property_type: row.property_type,
+              min_surface_m2: row.min_surface_m2,
+              max_surface_m2: row.max_surface_m2,
+              delta_pct: row.delta_pct,
+            }),
+          },
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+              : "Impossible de mettre a jour la regle.",
+          );
+        }
+        await fetchPricingPropertyRules();
+        pushTransientMessage("success", "Regle mise a jour.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur mise a jour regle.";
+        pushTransientMessage("error", message);
+      } finally {
+        setPropertyRulesBusyId(null);
+      }
+    },
+    [canEditTariffConfig, fetchPricingPropertyRules, pushTransientMessage],
+  );
+  const deletePricingPropertyRule = useCallback(
+    async (id: string) => {
+      if (!canEditTariffConfig) return;
+      if (!window.confirm("Supprimer cette regle ?")) return;
+      setPropertyRulesBusyId(id);
+      try {
+        const res = await fetch(`/api/pricing/property-rules/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+              : "Impossible de supprimer cette regle.",
+          );
+        }
+        await fetchPricingPropertyRules();
+        pushTransientMessage("success", "Regle supprimee.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur suppression regle.";
+        pushTransientMessage("error", message);
+      } finally {
+        setPropertyRulesBusyId(null);
+      }
+    },
+    [canEditTariffConfig, fetchPricingPropertyRules, pushTransientMessage],
+  );
   const resetPricingModal = useCallback(() => {
     setPricingModalState(DEFAULT_PRICING_MODAL);
     setPricingModalError("");
@@ -1851,6 +2134,10 @@ export default function ConciergeProfilePage() {
       pushTransientMessage,
     ],
   );
+  const pricingMeta = useMemo(
+    () => parsePricingMeta(editProfile?.availability_hours),
+    [editProfile?.availability_hours],
+  );
   const resetAllServicePrices = useCallback(async () => {
     if (!canEditTariffConfig || servicePrices.length === 0) return;
     if (!window.confirm("Reinitialiser la grille et supprimer tous les tarifs personnalises ?")) {
@@ -1890,7 +2177,9 @@ export default function ConciergeProfilePage() {
   useEffect(() => {
     if (activeTab !== "tarifs") return;
     fetchServicePrices();
-  }, [activeTab, fetchServicePrices]);
+    fetchPricingSegments();
+    fetchPricingPropertyRules();
+  }, [activeTab, fetchServicePrices, fetchPricingSegments, fetchPricingPropertyRules]);
 
   const getPropertyTypeDeltaPercent = useCallback(
     (propertyType: string): number => {
@@ -3262,87 +3551,63 @@ export default function ConciergeProfilePage() {
                     <div className={styles.tariffHeroIntro}>
                       <span className={styles.tariffPill}>Pilotage global</span>
                       <p className={styles.tariffWorkflowLead}>
-                        Definissez un socle unique de tarification selon vos services,
-                        le temps d&apos;intervention et le type de bien, puis generez
-                        vos devis/factures sans ressaisie.
+                        Ajustez vos prix rapidement, puis utilisez-les directement
+                        dans vos devis et factures.
                       </p>
-                      <div className={styles.tariffHeroHealthRow}>
-                        {tariffCoherenceAlerts.length === 0 ? (
-                          <div className={`${styles.tariffHealthCard} ${styles.tariffHealthOk}`}>
-                            <strong>Configuration coherente</strong>
-                            <span>Votre grille est exploitable pour devis/factures.</span>
-                          </div>
-                        ) : (
-                          tariffCoherenceAlerts.slice(0, 3).map((alert) => (
-                            <div
-                              key={alert.id}
-                              className={`${styles.tariffHealthCard} ${
-                                alert.level === "critical"
-                                  ? styles.tariffHealthCritical
-                                  : alert.level === "warning"
-                                    ? styles.tariffHealthWarning
-                                    : styles.tariffHealthInfo
-                              }`}
-                            >
-                              <strong>{alert.label}</strong>
-                              <button
-                                type="button"
-                                className={styles.tariffHealthAction}
-                                onClick={() => scrollToTariffSection(alert.sectionId)}
-                              >
-                                {alert.actionLabel}
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                    <div className={styles.tariffHeroStats}>
-                      <article className={styles.tariffMetric}>
-                        <span>Services actifs</span>
-                        <strong>{activeMissionServiceLabels.length}</strong>
-                      </article>
-                      <article className={styles.tariffMetric}>
-                        <span>Missions configurees</span>
-                        <strong>{missionProgressPercent}%</strong>
-                      </article>
-                      <article className={styles.tariffMetric}>
-                        <span>Tarif horaire</span>
-                        <strong>
+                      <div className={styles.tariffExpertCard}>
+                        <h4>Conseil Expert</h4>
+                        <span
+                          className={`${styles.tariffMarketBadge} ${
+                            pricingMeta.commissionRatePct < 15
+                              ? styles.tariffMarketBadgeLow
+                              : pricingMeta.commissionRatePct <= 25
+                                ? styles.tariffMarketBadgeAvg
+                                : styles.tariffMarketBadgeHigh
+                          }`}
+                        >
+                          {pricingMeta.commissionRatePct < 15
+                            ? "Sous marché"
+                            : pricingMeta.commissionRatePct <= 25
+                              ? "Marché"
+                              : "Premium"}
+                        </span>
+                        <p className={styles.tariffExpertSummary}>
                           {pricingV2.base.hourlyRate > 0
-                            ? `${pricingV2.base.hourlyRate} EUR/h`
-                            : "À définir"}
-                        </strong>
-                      </article>
-                      <article className={styles.tariffMetric}>
-                        <span>Minimum facture</span>
-                        <strong>{pricingV2.base.minimumInvoice} EUR</strong>
-                      </article>
-                    </div>
-                    <div className={styles.tariffReadiness}>
-                      <div className={styles.tariffReadinessHeader}>
-                        <strong>Pret a chiffrer</strong>
-                        <span>{tariffReadinessPercent}%</span>
-                      </div>
-                      <div className={styles.tariffReadinessTrack}>
-                        <span style={{ width: `${tariffReadinessPercent}%` }} />
-                      </div>
-                      {pendingTariffReadinessChecks.length > 0 ? (
-                        <div className={styles.tariffReadinessList}>
-                          {pendingTariffReadinessChecks.map((check) => (
-                            <div key={check.id} className={styles.tariffReadinessItem}>
-                              <span className={styles.tariffReadinessDot}>
-                                <AlertCircle size={12} />
-                              </span>
-                              <span>{check.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className={styles.tariffReadinessSuccess}>
-                          Configuration complete. Vous pouvez lancer vos devis.
+                            ? `Base ${pricingV2.base.hourlyRate} EUR/h, ${configuredPricingCount} service(s) avec tarif.`
+                            : "Définissez d'abord votre tarif horaire puis ajoutez vos services à l'acte."}
                         </p>
-                      )}
+                      </div>
+                    </div>
+                    <div className={styles.tariffHeroAside}>
+                      <div className={styles.tariffTopCards}>
+                        <article className={styles.tariffMetric}>
+                          <span>Commission</span>
+                          <strong>{pricingMeta.commissionRatePct}%</strong>
+                        </article>
+                        <article className={styles.tariffMetric}>
+                          <span>Tarif horaire</span>
+                          <strong>
+                            {pricingV2.base.hourlyRate > 0
+                              ? `${pricingV2.base.hourlyRate} EUR/h`
+                              : "A définir"}
+                          </strong>
+                        </article>
+                        <article className={styles.tariffMetric}>
+                          <span>Services avec tarif</span>
+                          <strong>{configuredPricingCount}</strong>
+                        </article>
+                      </div>
+                      <article className={styles.tariffReadyCard}>
+                        <span className={styles.tariffReadyLabel}>Prêt à chiffrer</span>
+                        <strong className={styles.tariffReadyScore}>
+                          {tariffReadinessPercent}%
+                        </strong>
+                        <p>
+                          {pendingTariffReadinessChecks.length > 0
+                            ? `${pendingTariffReadinessChecks.length} point(s) à compléter.`
+                            : "Configuration complète. Vous pouvez envoyer vos devis."}
+                        </p>
+                      </article>
                     </div>
                   </div>
 
@@ -3350,23 +3615,16 @@ export default function ConciergeProfilePage() {
                     <button
                       type="button"
                       className={`${styles.tariffNavBtn} ${styles.tariffNavBtnPrimary}`}
-                      onClick={() => handleTabChange("missions")}
-                    >
-                      Configurer Missions
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffNavBtn}
-                      onClick={() => handleTabChange("packs")}
-                    >
-                      Configurer Packs
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffNavBtn}
                       onClick={() => scrollToTariffSection("tariffs-config")}
                     >
-                      Aller a la grille
+                      Configurer les tarifs
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.tariffNavBtnLink}
+                      onClick={() => handleTabChange("missions")}
+                    >
+                      Gérer mes missions
                     </button>
                   </div>
 
@@ -3376,14 +3634,14 @@ export default function ConciergeProfilePage() {
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-config")}
                     >
-                      1. Configuration tarifs
+                      1. Configurer les tarifs
                     </button>
                     <button
                       type="button"
                       className={styles.tariffSectionLink}
                       onClick={() => scrollToTariffSection("tariffs-billing-desk")}
                     >
-                      2. Devis / Factures
+                      2. Générer devis/factures
                     </button>
                   </div>
                 </div>,
@@ -3397,12 +3655,91 @@ export default function ConciergeProfilePage() {
               className={`${styles.financeCard} ${styles.financeCardWide} ${styles.tariffPanelCard}`}
             >
               {renderSection(
-                "1. Configuration tarifs conciergerie",
+                "1. Configuration tarifaire",
                 <FiDollarSignOutline />,
                 <>
+                  <div className={styles.tariffPillarsGrid}>
+                    <article className={styles.tariffPillarCard}>
+                      <h3>Pilier 1 - Tarif de base</h3>
+                      <p>Socle commun appliqué à vos prestations.</p>
+                      <div className={styles.tariffPillarStats}>
+                        <span>
+                          Horaire:{" "}
+                          <strong>
+                            {pricingV2.base.hourlyRate > 0
+                              ? `${pricingV2.base.hourlyRate} EUR/h`
+                              : "A définir"}
+                          </strong>
+                        </span>
+                        <span>
+                          Déplacement: <strong>{pricingV2.base.travelFee} EUR</strong>
+                        </span>
+                        <span>
+                          Minimum: <strong>{pricingV2.base.minimumInvoice} EUR</strong>
+                        </span>
+                      </div>
+                    </article>
+
+                    <article className={styles.tariffPillarCard}>
+                      <h3>Pilier 2 - Commission & set-up</h3>
+                      <p>Revenus variables et ponctuels par logement.</p>
+                      <div className={styles.tariffPillarFields}>
+                        <label>
+                          <span>Commission sur revenus (%)</span>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step="0.1"
+                            value={pricingMeta.commissionRatePct}
+                            disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
+                            onChange={(e) =>
+                              applyPricingMeta({
+                                ...pricingMeta,
+                                commissionRatePct: Number(e.target.value || 0),
+                              })
+                            }
+                          />
+                        </label>
+                        <label>
+                          <span>Frais de mise en place (EUR)</span>
+                          <input
+                            type="number"
+                            min={0}
+                            step="1"
+                            value={pricingMeta.setupFee}
+                            disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
+                            onChange={(e) =>
+                              applyPricingMeta({
+                                ...pricingMeta,
+                                setupFee: Number(e.target.value || 0),
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+                    </article>
+
+                    <article className={styles.tariffPillarCard}>
+                      <h3>Pilier 3 - Catalogue à l&apos;acte</h3>
+                      <p>Services nommés librement pour plus de transparence.</p>
+                      <div className={styles.tariffPillarStats}>
+                        <span>
+                          Services configurés:{" "}
+                          <strong>
+                            {configuredPricingCount} / {pricingCatalogRows.length}
+                          </strong>
+                        </span>
+                        <span>
+                          Services actifs: <strong>{activeMissionServiceLabels.length}</strong>
+                        </span>
+                      </div>
+                    </article>
+                  </div>
+
                   <div className={styles.tariffSimpleGrid}>
                     <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>Bloc A — Contexte mission (lecture)</h3>
+                      <h3 className={styles.tariffSimpleTitle}>A. Contexte automatique</h3>
                       <div className={styles.tariffSimpleRows}>
                         <p>
                           <strong>Positionnement:</strong>{" "}
@@ -3434,7 +3771,11 @@ export default function ConciergeProfilePage() {
                     </section>
 
                     <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>Bloc B — Socle commun</h3>
+                      <h3 className={styles.tariffSimpleTitle}>B. Tarif de base</h3>
+                      <p className={styles.tariffHint}>
+                        Definissez votre base de facturation commune a toutes les
+                        missions.
+                      </p>
                       <div className={styles.tariffFieldPanel}>
                         {renderField(
                           "Tarif horaire (EUR/h)",
@@ -3477,7 +3818,11 @@ export default function ConciergeProfilePage() {
                     </section>
 
                     <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>Bloc C — Tarifs des services actifs</h3>
+                      <h3 className={styles.tariffSimpleTitle}>C. Catalogue de services</h3>
+                      <p className={styles.tariffHint}>
+                        Nommez vos prestations librement et fixez un tarif par
+                        service pour plus de transparence client.
+                      </p>
                       <div className={styles.pricingToolbar}>
                         <span className={styles.pricingSummary}>
                           {configuredPricingCount} / {pricingCatalogRows.length} services configures
@@ -3631,9 +3976,10 @@ export default function ConciergeProfilePage() {
                     </section>
 
                     <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>Bloc D — Type de bien & majorations</h3>
+                      <h3 className={styles.tariffSimpleTitle}>D. Variables et majorations</h3>
                       <p className={styles.tariffHint}>
-                        Adaptez vos prix selon la taille/type du logement et les cas urgents.
+                        Adaptez vos prix selon le type de bien et les conditions
+                        d&apos;intervention.
                       </p>
                       <div className={styles.tariffPropertyMatrix}>
                         {PROPERTY_TYPE_OPTIONS.map((option) => (
@@ -3662,6 +4008,352 @@ export default function ConciergeProfilePage() {
                         <li>Haute saison: +{pricingV2.globalModifiers.highSeasonPercent}%</li>
                         <li>Minimum de facture: {pricingV2.base.minimumInvoice} EUR</li>
                       </ul>
+                    </section>
+
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>E. Segments proprietaires</h3>
+                      <p className={styles.tariffHint}>
+                        Appliquez des variations de commission et de set-up selon
+                        votre typologie client.
+                      </p>
+                      <div className={styles.pricingSegmentsDraft}>
+                        <input
+                          type="text"
+                          placeholder="Nom du segment (ex: Grands comptes)"
+                          value={segmentDraft.name}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setSegmentDraft((prev) => ({ ...prev, name: e.target.value }))
+                          }
+                        />
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="Delta commission %"
+                          value={segmentDraft.commission_delta_pct}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setSegmentDraft((prev) => ({
+                              ...prev,
+                              commission_delta_pct: e.target.value,
+                            }))
+                          }
+                        />
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="Delta set-up %"
+                          value={segmentDraft.setup_fee_delta_pct}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setSegmentDraft((prev) => ({
+                              ...prev,
+                              setup_fee_delta_pct: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          type="button"
+                          className={styles.tariffNavBtn}
+                          disabled={!canEditTariffConfig || segmentsBusyId === "create"}
+                          onClick={createPricingSegment}
+                        >
+                          Ajouter segment
+                        </button>
+                      </div>
+                      {segmentsLoading ? (
+                        <p className={styles.tariffHint}>Chargement des segments...</p>
+                      ) : pricingSegments.length === 0 ? (
+                        <p className={styles.tariffHint}>Aucun segment configure.</p>
+                      ) : (
+                        <div className={styles.pricingSegmentsList}>
+                          {pricingSegments.map((segment) => (
+                            <article key={segment.id} className={styles.pricingSegmentRow}>
+                              <input
+                                type="text"
+                                value={segment.name}
+                                disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
+                                onChange={(e) =>
+                                  setPricingSegments((prev) =>
+                                    prev.map((item) =>
+                                      item.id === segment.id
+                                        ? { ...item, name: e.target.value }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={segment.commission_delta_pct}
+                                disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
+                                onChange={(e) =>
+                                  setPricingSegments((prev) =>
+                                    prev.map((item) =>
+                                      item.id === segment.id
+                                        ? {
+                                            ...item,
+                                            commission_delta_pct: Number(e.target.value || 0),
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={segment.setup_fee_delta_pct}
+                                disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
+                                onChange={(e) =>
+                                  setPricingSegments((prev) =>
+                                    prev.map((item) =>
+                                      item.id === segment.id
+                                        ? {
+                                            ...item,
+                                            setup_fee_delta_pct: Number(e.target.value || 0),
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <label className={styles.pricingSegmentDefault}>
+                                <input
+                                  type="checkbox"
+                                  checked={segment.is_default}
+                                  disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
+                                  onChange={(e) =>
+                                    setPricingSegments((prev) =>
+                                      prev.map((item) =>
+                                        item.id === segment.id
+                                          ? { ...item, is_default: e.target.checked }
+                                          : e.target.checked
+                                            ? { ...item, is_default: false }
+                                            : item,
+                                      ),
+                                    )
+                                  }
+                                />
+                                <span>Defaut</span>
+                              </label>
+                              <div className={styles.pricingRowActions}>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtn}
+                                  disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
+                                  onClick={() => updatePricingSegment(segment)}
+                                >
+                                  Sauver
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtnDanger}
+                                  disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
+                                  onClick={() => deletePricingSegment(segment.id)}
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>F. Complexite mission</h3>
+                      <p className={styles.tariffHint}>
+                        Creez des modulateurs par type de bien et surface.
+                      </p>
+                      <div className={styles.pricingSegmentsDraft}>
+                        <select
+                          value={propertyRuleDraft.service_id}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setPropertyRuleDraft((prev) => ({
+                              ...prev,
+                              service_id: e.target.value,
+                            }))
+                          }
+                        >
+                          <option value="">Service (optionnel)</option>
+                          {catalogServices.map((service) => (
+                            <option key={service.id} value={String(service.id)}>
+                              {service.service}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          placeholder="Type de bien (ex: villa)"
+                          value={propertyRuleDraft.property_type}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setPropertyRuleDraft((prev) => ({
+                              ...prev,
+                              property_type: e.target.value,
+                            }))
+                          }
+                        />
+                        <input
+                          type="number"
+                          placeholder="Surface min m²"
+                          value={propertyRuleDraft.min_surface_m2}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setPropertyRuleDraft((prev) => ({
+                              ...prev,
+                              min_surface_m2: e.target.value,
+                            }))
+                          }
+                        />
+                        <input
+                          type="number"
+                          placeholder="Surface max m²"
+                          value={propertyRuleDraft.max_surface_m2}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setPropertyRuleDraft((prev) => ({
+                              ...prev,
+                              max_surface_m2: e.target.value,
+                            }))
+                          }
+                        />
+                        <input
+                          type="number"
+                          step="0.1"
+                          placeholder="Variation %"
+                          value={propertyRuleDraft.delta_pct}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) =>
+                            setPropertyRuleDraft((prev) => ({
+                              ...prev,
+                              delta_pct: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          type="button"
+                          className={styles.tariffNavBtn}
+                          disabled={!canEditTariffConfig || propertyRulesBusyId === "create"}
+                          onClick={createPricingPropertyRule}
+                        >
+                          Ajouter regle
+                        </button>
+                      </div>
+                      {propertyRulesLoading ? (
+                        <p className={styles.tariffHint}>Chargement des regles...</p>
+                      ) : propertyRules.length === 0 ? (
+                        <p className={styles.tariffHint}>Aucune regle definie.</p>
+                      ) : (
+                        <div className={styles.pricingSegmentsList}>
+                          {propertyRules.map((rule) => (
+                            <article key={rule.id} className={styles.pricingSegmentRow}>
+                              <input
+                                type="text"
+                                value={rule.property_type ?? ""}
+                                disabled={
+                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
+                                }
+                                onChange={(e) =>
+                                  setPropertyRules((prev) =>
+                                    prev.map((item) =>
+                                      item.id === rule.id
+                                        ? { ...item, property_type: e.target.value || null }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <input
+                                type="number"
+                                placeholder="min"
+                                value={rule.min_surface_m2 ?? ""}
+                                disabled={
+                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
+                                }
+                                onChange={(e) =>
+                                  setPropertyRules((prev) =>
+                                    prev.map((item) =>
+                                      item.id === rule.id
+                                        ? {
+                                            ...item,
+                                            min_surface_m2: e.target.value
+                                              ? Number(e.target.value)
+                                              : null,
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <input
+                                type="number"
+                                placeholder="max"
+                                value={rule.max_surface_m2 ?? ""}
+                                disabled={
+                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
+                                }
+                                onChange={(e) =>
+                                  setPropertyRules((prev) =>
+                                    prev.map((item) =>
+                                      item.id === rule.id
+                                        ? {
+                                            ...item,
+                                            max_surface_m2: e.target.value
+                                              ? Number(e.target.value)
+                                              : null,
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={rule.delta_pct}
+                                disabled={
+                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
+                                }
+                                onChange={(e) =>
+                                  setPropertyRules((prev) =>
+                                    prev.map((item) =>
+                                      item.id === rule.id
+                                        ? { ...item, delta_pct: Number(e.target.value || 0) }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <div className={styles.pricingRowActions}>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtn}
+                                  disabled={
+                                    !canEditTariffConfig || propertyRulesBusyId === rule.id
+                                  }
+                                  onClick={() => updatePricingPropertyRule(rule)}
+                                >
+                                  Sauver
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtnDanger}
+                                  disabled={
+                                    !canEditTariffConfig || propertyRulesBusyId === rule.id
+                                  }
+                                  onClick={() => deletePricingPropertyRule(rule.id)}
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      )}
                     </section>
                   </div>
                   {pricingModalOpen && (
@@ -3851,6 +4543,8 @@ export default function ConciergeProfilePage() {
                       nightPercent={pricingV2.globalModifiers.nightPercent}
                       weekendPercent={pricingV2.globalModifiers.weekendPercent}
                       highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
+                      commissionRatePct={pricingMeta.commissionRatePct}
+                      setupFee={pricingMeta.setupFee}
                     />
                   </div>
                 </>,

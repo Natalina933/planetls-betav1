@@ -516,6 +516,100 @@ export type Database = {
         ];
       };
 
+      pricing_segments: {
+        Row: {
+          id: string;
+          concierge_profile_id: string;
+          name: string;
+          commission_delta_pct: number;
+          setup_fee_delta_pct: number;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          concierge_profile_id: string;
+          name: string;
+          commission_delta_pct?: number;
+          setup_fee_delta_pct?: number;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          concierge_profile_id?: string;
+          name?: string;
+          commission_delta_pct?: number;
+          setup_fee_delta_pct?: number;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pricing_segments_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
+      pricing_property_rules: {
+        Row: {
+          id: string;
+          concierge_profile_id: string;
+          service_id: number | null;
+          property_type: string | null;
+          min_surface_m2: number | null;
+          max_surface_m2: number | null;
+          delta_pct: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          concierge_profile_id: string;
+          service_id?: number | null;
+          property_type?: string | null;
+          min_surface_m2?: number | null;
+          max_surface_m2?: number | null;
+          delta_pct?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          concierge_profile_id?: string;
+          service_id?: number | null;
+          property_type?: string | null;
+          min_surface_m2?: number | null;
+          max_surface_m2?: number | null;
+          delta_pct?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pricing_property_rules_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pricing_property_rules_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services_catalog";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       services_contracts: {
         Row: {
           id: string;

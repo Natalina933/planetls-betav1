@@ -108,6 +108,8 @@ type TariffBillingDeskProps = {
   nightPercent?: number;
   weekendPercent?: number;
   highSeasonPercent?: number;
+  commissionRatePct?: number;
+  setupFee?: number;
 };
 
 const TariffBillingDesk = ({
@@ -118,6 +120,8 @@ const TariffBillingDesk = ({
   nightPercent = 0,
   weekendPercent = 0,
   highSeasonPercent = 0,
+  commissionRatePct = 20,
+  setupFee = 0,
 }: TariffBillingDeskProps) => {
   const [loading, setLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -130,6 +134,9 @@ const TariffBillingDesk = ({
 
   const [selectedMissionId, setSelectedMissionId] = useState("");
   const [selectedQuoteId, setSelectedQuoteId] = useState("");
+  const [monthlyRevenueEstimate, setMonthlyRevenueEstimate] = useState(6000);
+  const [newListingsEstimate, setNewListingsEstimate] = useState(1);
+  const [actServicesEstimate, setActServicesEstimate] = useState(4);
 
   const loadData = useCallback(async () => {
     const [missionsRes, quotesRes, invoicesRes] = await Promise.all([
@@ -207,6 +214,30 @@ const TariffBillingDesk = ({
   );
 
   const actionPending = (actionKey: string) => busyAction === actionKey;
+
+  const quoteProjection = useMemo(() => {
+    const commissionAmount = (monthlyRevenueEstimate * commissionRatePct) / 100;
+    const actAverage = Math.max(minimumInvoice, hourlyRate * 2 + travelFee);
+    const actAmount = actAverage * actServicesEstimate;
+    const setupAmount = setupFee * newListingsEstimate;
+    const total = round2(commissionAmount + actAmount + setupAmount);
+
+    return {
+      commissionAmount: round2(commissionAmount),
+      actAmount: round2(actAmount),
+      setupAmount: round2(setupAmount),
+      total,
+    };
+  }, [
+    monthlyRevenueEstimate,
+    commissionRatePct,
+    minimumInvoice,
+    hourlyRate,
+    travelFee,
+    actServicesEstimate,
+    setupFee,
+    newListingsEstimate,
+  ]);
 
   const refreshData = async () => {
     try {
@@ -364,8 +395,9 @@ const TariffBillingDesk = ({
             suivi des statuts et des montants restants.
           </p>
           <p className={styles.lead}>
-            Base active: {hourlyRate} EUR/h · Deplacement: {travelFee} EUR · Minimum: {minimumInvoice} EUR
-            {" "}· Majorations: U {urgentPercent}% / N {nightPercent}% / WE {weekendPercent}% / HS {highSeasonPercent}%
+            Base active: {hourlyRate} EUR/h - D&eacute;placement: {travelFee} EUR - Minimum:{" "}
+            {minimumInvoice} EUR - Majorations: U {urgentPercent}% / N {nightPercent}% / WE{" "}
+            {weekendPercent}% / HS {highSeasonPercent}%
           </p>
         </div>
         <button
@@ -377,6 +409,59 @@ const TariffBillingDesk = ({
           <FiRefreshCw size={14} />
           Actualiser
         </button>
+      </div>
+
+      <div className={styles.projectionCard}>
+        <h4>Simulation devis live (3 piliers)</h4>
+        <div className={styles.projectionInputs}>
+          <label>
+            <span>Revenus locatifs mensuels (EUR)</span>
+            <input
+              type="number"
+              min={0}
+              step={100}
+              value={monthlyRevenueEstimate}
+              onChange={(e) => setMonthlyRevenueEstimate(Math.max(0, Number(e.target.value || 0)))}
+            />
+          </label>
+          <label>
+            <span>Nouveaux logements / mois</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={newListingsEstimate}
+              onChange={(e) => setNewListingsEstimate(Math.max(0, Number(e.target.value || 0)))}
+            />
+          </label>
+          <label>
+            <span>Services &agrave; l'acte / mois</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={actServicesEstimate}
+              onChange={(e) => setActServicesEstimate(Math.max(0, Number(e.target.value || 0)))}
+            />
+          </label>
+        </div>
+        <div className={styles.projectionMetrics}>
+          <span>
+            Commission ({commissionRatePct}%):{" "}
+            <strong>{formatCurrency(quoteProjection.commissionAmount, "EUR")}</strong>
+          </span>
+          <span>
+            Set-up ({newListingsEstimate}):{" "}
+            <strong>{formatCurrency(quoteProjection.setupAmount, "EUR")}</strong>
+          </span>
+          <span>
+            Actes ({actServicesEstimate}):{" "}
+            <strong>{formatCurrency(quoteProjection.actAmount, "EUR")}</strong>
+          </span>
+          <span className={styles.projectionTotal}>
+            Total estime: <strong>{formatCurrency(quoteProjection.total, "EUR")}</strong>
+          </span>
+        </div>
       </div>
 
       {errorMsg && <p className={styles.errorBox}>{errorMsg}</p>}
@@ -427,7 +512,7 @@ const TariffBillingDesk = ({
             onClick={createQuoteFromMission}
             disabled={!selectedMissionId || actionPending("create-quote")}
           >
-            {actionPending("create-quote") ? "Creation..." : "Generer devis"}
+            {actionPending("create-quote") ? "Cr&eacute;ation..." : "G&eacute;n&eacute;rer devis"}
           </button>
         </article>
 
@@ -454,7 +539,7 @@ const TariffBillingDesk = ({
             onClick={createInvoiceFromQuote}
             disabled={!selectedQuoteId || actionPending("create-invoice")}
           >
-            {actionPending("create-invoice") ? "Creation..." : "Generer facture"}
+            {actionPending("create-invoice") ? "Cr&eacute;ation..." : "G&eacute;n&eacute;rer facture"}
           </button>
         </article>
       </div>
@@ -617,3 +702,5 @@ const TariffBillingDesk = ({
 };
 
 export default TariffBillingDesk;
+
+
