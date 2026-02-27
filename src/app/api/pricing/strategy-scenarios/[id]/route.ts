@@ -1,0 +1,103 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/app/lib/dbServer";
+import { getAuthContext } from "@/app/api/pricing/_shared";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const { data: existing, error: fetchError } = await db
+      .from("pricing_strategy_scenarios")
+      .select("id, concierge_profile_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: "Scenario introuvable" }, { status: 404 });
+    }
+    if (!auth.isAdmin && existing.concierge_profile_id !== auth.userId) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const updateObj: Record<string, unknown> = {};
+    if (typeof body?.name === "string") updateObj.name = body.name.trim();
+    if (typeof body?.is_default === "boolean") updateObj.is_default = body.is_default;
+    if (body?.simulation !== undefined && isRecord(body.simulation)) {
+      updateObj.simulation = body.simulation;
+    }
+
+    if (Object.keys(updateObj).length === 0) {
+      return NextResponse.json({ error: "Aucune donnee a mettre a jour" }, { status: 400 });
+    }
+
+    if (updateObj.is_default === true) {
+      await db
+        .from("pricing_strategy_scenarios")
+        .update({ is_default: false })
+        .eq("concierge_profile_id", existing.concierge_profile_id);
+    }
+
+    const { data, error } = await db
+      .from("pricing_strategy_scenarios")
+      .update(updateObj)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("[PATCH /api/pricing/strategy-scenarios/:id] ERROR:", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const { data: existing, error: fetchError } = await db
+      .from("pricing_strategy_scenarios")
+      .select("id, concierge_profile_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: "Scenario introuvable" }, { status: 404 });
+    }
+    if (!auth.isAdmin && existing.concierge_profile_id !== auth.userId) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    }
+
+    const { error } = await db.from("pricing_strategy_scenarios").delete().eq("id", id);
+    if (error) {
+      return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[DELETE /api/pricing/strategy-scenarios/:id] ERROR:", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}

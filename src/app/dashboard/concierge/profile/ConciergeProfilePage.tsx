@@ -135,6 +135,13 @@ const formatExperienceLabel = (
   }
 };
 
+const formatCurrency = (value: number, currency = "EUR"): string =>
+  new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+  }).format(Number.isFinite(value) ? value : 0);
+
 const normalizeSectionId = (title: string) =>
   title.replace(/[^a-zA-Z0-9]/g, "_");
 
@@ -223,6 +230,29 @@ interface PricingPropertyRuleRow {
   created_at: string | null;
 }
 
+interface StrategySimState {
+  segmentId: string;
+  serviceId: string;
+  propertyType: string;
+  surfaceM2: string;
+  revenueEstimate: string;
+  newListingsCount: string;
+  actServicesCount: string;
+  isUrgent: boolean;
+  isNight: boolean;
+  isWeekend: boolean;
+  isHighSeason: boolean;
+}
+
+interface PricingStrategyScenarioRow {
+  id: string;
+  concierge_profile_id: string;
+  name: string;
+  simulation: unknown;
+  is_default: boolean;
+  created_at: string | null;
+}
+
 const PROPERTY_TYPE_OPTIONS: Array<{ key: string; label: string }> = [
   { key: "studio", label: "Studio / T1" },
   { key: "apartment", label: "Appartement" },
@@ -244,6 +274,62 @@ const DEFAULT_PRICING_MODAL: PricingModalState = {
   type: "fixed",
   amount: "",
   unit: "par prestation",
+};
+
+const DEFAULT_STRATEGY_SIM: StrategySimState = {
+  segmentId: "",
+  serviceId: "",
+  propertyType: "apartment",
+  surfaceM2: "55",
+  revenueEstimate: "6000",
+  newListingsCount: "1",
+  actServicesCount: "4",
+  isUrgent: false,
+  isNight: false,
+  isWeekend: false,
+  isHighSeason: false,
+};
+
+const toSafeString = (value: unknown, fallback: string): string =>
+  typeof value === "string" ? value : fallback;
+
+const toSafeBool = (value: unknown, fallback = false): boolean =>
+  typeof value === "boolean" ? value : fallback;
+
+const toSafeNumericString = (value: unknown, fallback: string): string => {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return fallback;
+};
+
+const normalizeStrategySim = (value: unknown): StrategySimState => {
+  const source =
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+
+  return {
+    segmentId: toSafeString(source.segmentId, DEFAULT_STRATEGY_SIM.segmentId),
+    serviceId: toSafeString(source.serviceId, DEFAULT_STRATEGY_SIM.serviceId),
+    propertyType: toSafeString(source.propertyType, DEFAULT_STRATEGY_SIM.propertyType),
+    surfaceM2: toSafeNumericString(source.surfaceM2, DEFAULT_STRATEGY_SIM.surfaceM2),
+    revenueEstimate: toSafeNumericString(
+      source.revenueEstimate,
+      DEFAULT_STRATEGY_SIM.revenueEstimate,
+    ),
+    newListingsCount: toSafeNumericString(
+      source.newListingsCount,
+      DEFAULT_STRATEGY_SIM.newListingsCount,
+    ),
+    actServicesCount: toSafeNumericString(
+      source.actServicesCount,
+      DEFAULT_STRATEGY_SIM.actServicesCount,
+    ),
+    isUrgent: toSafeBool(source.isUrgent),
+    isNight: toSafeBool(source.isNight),
+    isWeekend: toSafeBool(source.isWeekend),
+    isHighSeason: toSafeBool(source.isHighSeason),
+  };
 };
 
 interface MissionListItem {
@@ -904,6 +990,17 @@ export default function ConciergeProfilePage() {
     min_surface_m2: "",
     max_surface_m2: "",
     delta_pct: "0",
+  });
+  const [strategySim, setStrategySim] = useState<StrategySimState>(DEFAULT_STRATEGY_SIM);
+  const [pricingScenarios, setPricingScenarios] = useState<PricingStrategyScenarioRow[]>([]);
+  const [scenariosLoading, setScenariosLoading] = useState(false);
+  const [scenariosBusyId, setScenariosBusyId] = useState<string | null>(null);
+  const [scenarioDraftName, setScenarioDraftName] = useState("");
+  const [billingDeskPresetVersion, setBillingDeskPresetVersion] = useState(0);
+  const [billingDeskPreset, setBillingDeskPreset] = useState({
+    monthlyRevenueEstimate: 6000,
+    newListingsEstimate: 1,
+    actServicesEstimate: 4,
   });
   const didSeedFromOnboardingRef = useRef(false);
   const missionPayload = useMemo(
@@ -1638,6 +1735,140 @@ export default function ConciergeProfilePage() {
       setPropertyRulesLoading(false);
     }
   }, [pushTransientMessage]);
+  const fetchPricingScenarios = useCallback(async () => {
+    setScenariosLoading(true);
+    try {
+      const res = await fetch("/api/pricing/strategy-scenarios", { cache: "no-store" });
+      const data: PricingStrategyScenarioRow[] | { error: string } = await res.json();
+      if (!res.ok || !Array.isArray(data)) {
+        throw new Error(
+          !res.ok && data && typeof data === "object" && "error" in data
+            ? data.error
+            : "Impossible de charger les scenarios.",
+        );
+      }
+      setPricingScenarios(data);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur chargement scenarios.";
+      pushTransientMessage("error", message);
+    } finally {
+      setScenariosLoading(false);
+    }
+  }, [pushTransientMessage]);
+  const createPricingScenario = useCallback(async () => {
+    if (!canEditTariffConfig) return;
+    const name = scenarioDraftName.trim();
+    if (!name) {
+      pushTransientMessage("error", "Nom du scenario obligatoire.");
+      return;
+    }
+    setScenariosBusyId("create");
+    try {
+      const res = await fetch("/api/pricing/strategy-scenarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          simulation: strategySim,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(
+          data && typeof data === "object" && "error" in data
+            ? String(data.error)
+            : "Impossible de creer le scenario.",
+        );
+      }
+      await fetchPricingScenarios();
+      setScenarioDraftName("");
+      pushTransientMessage("success", "Scenario enregistre.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erreur creation scenario.";
+      pushTransientMessage("error", message);
+    } finally {
+      setScenariosBusyId(null);
+    }
+  }, [
+    canEditTariffConfig,
+    scenarioDraftName,
+    strategySim,
+    fetchPricingScenarios,
+    pushTransientMessage,
+  ]);
+  const setDefaultPricingScenario = useCallback(
+    async (row: PricingStrategyScenarioRow) => {
+      if (!canEditTariffConfig) return;
+      setScenariosBusyId(row.id);
+      try {
+        const res = await fetch(
+          `/api/pricing/strategy-scenarios/${encodeURIComponent(row.id)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_default: true }),
+          },
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+              : "Impossible de definir le scenario par defaut.",
+          );
+        }
+        await fetchPricingScenarios();
+        pushTransientMessage("success", "Scenario defini par defaut.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur mise a jour scenario.";
+        pushTransientMessage("error", message);
+      } finally {
+        setScenariosBusyId(null);
+      }
+    },
+    [canEditTariffConfig, fetchPricingScenarios, pushTransientMessage],
+  );
+  const deletePricingScenario = useCallback(
+    async (id: string) => {
+      if (!canEditTariffConfig) return;
+      if (!window.confirm("Supprimer ce scenario ?")) return;
+      setScenariosBusyId(id);
+      try {
+        const res = await fetch(
+          `/api/pricing/strategy-scenarios/${encodeURIComponent(id)}`,
+          { method: "DELETE" },
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(
+            data && typeof data === "object" && "error" in data
+              ? String(data.error)
+              : "Impossible de supprimer le scenario.",
+          );
+        }
+        await fetchPricingScenarios();
+        pushTransientMessage("success", "Scenario supprime.");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur suppression scenario.";
+        pushTransientMessage("error", message);
+      } finally {
+        setScenariosBusyId(null);
+      }
+    },
+    [canEditTariffConfig, fetchPricingScenarios, pushTransientMessage],
+  );
+  const loadPricingScenario = useCallback(
+    (row: PricingStrategyScenarioRow) => {
+      const nextSim = normalizeStrategySim(row.simulation);
+      setStrategySim(nextSim);
+      pushTransientMessage("success", `Scenario charge: ${row.name}.`);
+    },
+    [pushTransientMessage],
+  );
   const createPricingSegment = useCallback(async () => {
     if (!canEditTariffConfig) return;
     const name = segmentDraft.name.trim();
@@ -2138,6 +2369,119 @@ export default function ConciergeProfilePage() {
     () => parsePricingMeta(editProfile?.availability_hours),
     [editProfile?.availability_hours],
   );
+  const selectedPricingSegment = useMemo(() => {
+    if (pricingSegments.length === 0) return null;
+    const byId = pricingSegments.find((segment) => segment.id === strategySim.segmentId);
+    if (byId) return byId;
+    return pricingSegments.find((segment) => segment.is_default) ?? pricingSegments[0];
+  }, [pricingSegments, strategySim.segmentId]);
+  const strategyProjection = useMemo(() => {
+    const revenueEstimate = Math.max(0, Number(strategySim.revenueEstimate || 0));
+    const newListingsCount = Math.max(0, Number(strategySim.newListingsCount || 0));
+    const actServicesCount = Math.max(0, Number(strategySim.actServicesCount || 0));
+    const surfaceM2 = Math.max(0, Number(strategySim.surfaceM2 || 0));
+    const selectedServiceId = strategySim.serviceId ? Number(strategySim.serviceId) : null;
+
+    const segmentCommissionDelta = selectedPricingSegment?.commission_delta_pct ?? 0;
+    const segmentSetupDelta = selectedPricingSegment?.setup_fee_delta_pct ?? 0;
+
+    const commissionEffectivePct = Math.max(
+      0,
+      Math.min(100, pricingMeta.commissionRatePct + segmentCommissionDelta),
+    );
+    const commissionAmount = (revenueEstimate * commissionEffectivePct) / 100;
+
+    const setupUnit = pricingMeta.setupFee * (1 + segmentSetupDelta / 100);
+    const setupAmount = setupUnit * newListingsCount;
+
+    const contextPercent =
+      (strategySim.isUrgent ? pricingV2.globalModifiers.urgentPercent : 0) +
+      (strategySim.isNight ? pricingV2.globalModifiers.nightPercent : 0) +
+      (strategySim.isWeekend ? pricingV2.globalModifiers.weekendPercent : 0) +
+      (strategySim.isHighSeason ? pricingV2.globalModifiers.highSeasonPercent : 0);
+
+    const propertyRulesSorted = [...propertyRules].sort((a, b) => {
+      const scoreA =
+        (a.service_id != null ? 2 : 0) +
+        (a.property_type ? 1 : 0) +
+        (a.min_surface_m2 != null || a.max_surface_m2 != null ? 1 : 0);
+      const scoreB =
+        (b.service_id != null ? 2 : 0) +
+        (b.property_type ? 1 : 0) +
+        (b.min_surface_m2 != null || b.max_surface_m2 != null ? 1 : 0);
+      return scoreB - scoreA;
+    });
+
+    const matchedRule =
+      propertyRulesSorted.find((rule) => {
+        if (rule.service_id != null && selectedServiceId != null && rule.service_id !== selectedServiceId) {
+          return false;
+        }
+        if (rule.service_id != null && selectedServiceId == null) return false;
+        if (
+          rule.property_type &&
+          rule.property_type.trim().toLowerCase() !== strategySim.propertyType.trim().toLowerCase()
+        ) {
+          return false;
+        }
+        if (rule.min_surface_m2 != null && surfaceM2 < rule.min_surface_m2) return false;
+        if (rule.max_surface_m2 != null && surfaceM2 > rule.max_surface_m2) return false;
+        return true;
+      }) ?? null;
+
+    const propertyDeltaPct = matchedRule?.delta_pct ?? 0;
+    const actBase = Math.max(pricingV2.base.minimumInvoice, pricingV2.base.hourlyRate * 2 + pricingV2.base.travelFee);
+    const actUnit = actBase * (1 + propertyDeltaPct / 100) * (1 + contextPercent / 100);
+    const actAmount = actUnit * actServicesCount;
+
+    const total = commissionAmount + setupAmount + actAmount;
+    const contexts = [
+      strategySim.isUrgent ? "urgence" : null,
+      strategySim.isNight ? "nuit" : null,
+      strategySim.isWeekend ? "week-end" : null,
+      strategySim.isHighSeason ? "haute saison" : null,
+    ].filter((value): value is string => Boolean(value));
+
+    const narrative = `Segment ${selectedPricingSegment?.name ?? "Standard"} (${segmentCommissionDelta >= 0 ? "+" : ""}${segmentCommissionDelta}% commission), type ${strategySim.propertyType}, surface ${surfaceM2} m2, modulateur bien ${propertyDeltaPct >= 0 ? "+" : ""}${propertyDeltaPct}%${contexts.length > 0 ? `, contexte ${contexts.join(", ")}` : ""}.`;
+
+    return {
+      revenueEstimate,
+      newListingsCount,
+      actServicesCount,
+      commissionEffectivePct,
+      commissionAmount,
+      setupUnit,
+      setupAmount,
+      contextPercent,
+      propertyDeltaPct,
+      actUnit,
+      actAmount,
+      total,
+      narrative,
+    };
+  }, [
+    strategySim,
+    pricingMeta.commissionRatePct,
+    pricingMeta.setupFee,
+    selectedPricingSegment,
+    pricingV2.base.hourlyRate,
+    pricingV2.base.minimumInvoice,
+    pricingV2.base.travelFee,
+    pricingV2.globalModifiers.highSeasonPercent,
+    pricingV2.globalModifiers.nightPercent,
+    pricingV2.globalModifiers.urgentPercent,
+    pricingV2.globalModifiers.weekendPercent,
+    propertyRules,
+  ]);
+  const applyStrategyProjectionToBillingDesk = useCallback(() => {
+    setBillingDeskPreset({
+      monthlyRevenueEstimate: strategyProjection.revenueEstimate,
+      newListingsEstimate: strategyProjection.newListingsCount,
+      actServicesEstimate: strategyProjection.actServicesCount,
+    });
+    setBillingDeskPresetVersion((prev) => prev + 1);
+    scrollToTariffSection("tariffs-billing-desk");
+  }, [strategyProjection, scrollToTariffSection]);
   const resetAllServicePrices = useCallback(async () => {
     if (!canEditTariffConfig || servicePrices.length === 0) return;
     if (!window.confirm("Reinitialiser la grille et supprimer tous les tarifs personnalises ?")) {
@@ -2179,7 +2523,14 @@ export default function ConciergeProfilePage() {
     fetchServicePrices();
     fetchPricingSegments();
     fetchPricingPropertyRules();
-  }, [activeTab, fetchServicePrices, fetchPricingSegments, fetchPricingPropertyRules]);
+    fetchPricingScenarios();
+  }, [
+    activeTab,
+    fetchServicePrices,
+    fetchPricingSegments,
+    fetchPricingPropertyRules,
+    fetchPricingScenarios,
+  ]);
 
   const getPropertyTypeDeltaPercent = useCallback(
     (propertyType: string): number => {
@@ -4355,6 +4706,253 @@ export default function ConciergeProfilePage() {
                         </div>
                       )}
                     </section>
+
+                    <section className={styles.tariffSimpleCard}>
+                      <h3 className={styles.tariffSimpleTitle}>G. Simulateur strategique</h3>
+                      <p className={styles.tariffHint}>
+                        Testez un scenario commercial puis injectez-le dans le parcours
+                        devis/facturation.
+                      </p>
+                      <div className={styles.pricingSegmentsDraft}>
+                        <select
+                          value={strategySim.segmentId}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({ ...prev, segmentId: e.target.value }))
+                          }
+                        >
+                          <option value="">Segment automatique (defaut)</option>
+                          {pricingSegments.map((segment) => (
+                            <option key={segment.id} value={segment.id}>
+                              {segment.name}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={strategySim.serviceId}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({ ...prev, serviceId: e.target.value }))
+                          }
+                        >
+                          <option value="">Service acte (optionnel)</option>
+                          {catalogServices.map((service) => (
+                            <option key={service.id} value={String(service.id)}>
+                              {service.service}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={strategySim.propertyType}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({ ...prev, propertyType: e.target.value }))
+                          }
+                        >
+                          {PROPERTY_TYPE_OPTIONS.map((option) => (
+                            <option key={option.key} value={option.key}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={strategySim.surfaceM2}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({ ...prev, surfaceM2: e.target.value }))
+                          }
+                          placeholder="Surface m2"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          step={100}
+                          value={strategySim.revenueEstimate}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({
+                              ...prev,
+                              revenueEstimate: e.target.value,
+                            }))
+                          }
+                          placeholder="Revenus mensuels EUR"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={strategySim.newListingsCount}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({
+                              ...prev,
+                              newListingsCount: e.target.value,
+                            }))
+                          }
+                          placeholder="Nouveaux logements / mois"
+                        />
+                      </div>
+                      <div className={styles.pricingSegmentsDraft}>
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={strategySim.actServicesCount}
+                          onChange={(e) =>
+                            setStrategySim((prev) => ({
+                              ...prev,
+                              actServicesCount: e.target.value,
+                            }))
+                          }
+                          placeholder="Services a l'acte / mois"
+                        />
+                        <label className={styles.tariffQuoteToggle}>
+                          <input
+                            type="checkbox"
+                            checked={strategySim.isUrgent}
+                            onChange={(e) =>
+                              setStrategySim((prev) => ({
+                                ...prev,
+                                isUrgent: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span>Urgence</span>
+                        </label>
+                        <label className={styles.tariffQuoteToggle}>
+                          <input
+                            type="checkbox"
+                            checked={strategySim.isNight}
+                            onChange={(e) =>
+                              setStrategySim((prev) => ({
+                                ...prev,
+                                isNight: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span>Nuit</span>
+                        </label>
+                        <label className={styles.tariffQuoteToggle}>
+                          <input
+                            type="checkbox"
+                            checked={strategySim.isWeekend}
+                            onChange={(e) =>
+                              setStrategySim((prev) => ({
+                                ...prev,
+                                isWeekend: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span>Week-end</span>
+                        </label>
+                        <label className={styles.tariffQuoteToggle}>
+                          <input
+                            type="checkbox"
+                            checked={strategySim.isHighSeason}
+                            onChange={(e) =>
+                              setStrategySim((prev) => ({
+                                ...prev,
+                                isHighSeason: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span>Haute saison</span>
+                        </label>
+                        <button
+                          type="button"
+                          className={styles.tariffNavBtn}
+                          onClick={applyStrategyProjectionToBillingDesk}
+                        >
+                          Appliquer au devis/facturation
+                        </button>
+                      </div>
+                      <div className={styles.pricingSegmentsDraft}>
+                        <input
+                          type="text"
+                          placeholder="Nom du scenario (ex: Premium Paris)"
+                          value={scenarioDraftName}
+                          disabled={!canEditTariffConfig}
+                          onChange={(e) => setScenarioDraftName(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className={styles.tariffNavBtn}
+                          disabled={!canEditTariffConfig || scenariosBusyId === "create"}
+                          onClick={createPricingScenario}
+                        >
+                          {scenariosBusyId === "create" ? "Enregistrement..." : "Enregistrer scenario"}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.pricingActionBtn}
+                          onClick={() => setStrategySim(DEFAULT_STRATEGY_SIM)}
+                        >
+                          Reinitialiser simulation
+                        </button>
+                      </div>
+                      {scenariosLoading ? (
+                        <p className={styles.tariffHint}>Chargement des scenarios...</p>
+                      ) : pricingScenarios.length === 0 ? (
+                        <p className={styles.tariffHint}>Aucun scenario enregistre.</p>
+                      ) : (
+                        <div className={styles.pricingSegmentsList}>
+                          {pricingScenarios.map((row) => (
+                            <article key={row.id} className={styles.pricingSegmentRow}>
+                              <strong>{row.name}</strong>
+                              <span>{row.is_default ? "Par defaut" : "Scenario"}</span>
+                              <div className={styles.pricingRowActions}>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtn}
+                                  disabled={scenariosBusyId === row.id}
+                                  onClick={() => loadPricingScenario(row)}
+                                >
+                                  Charger
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtn}
+                                  disabled={scenariosBusyId === row.id}
+                                  onClick={() => setDefaultPricingScenario(row)}
+                                >
+                                  Defaut
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.pricingActionBtnDanger}
+                                  disabled={scenariosBusyId === row.id}
+                                  onClick={() => deletePricingScenario(row.id)}
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      )}
+                      <div className={styles.tariffSimpleRows}>
+                        <p>
+                          Segment actif:{" "}
+                          <strong>{selectedPricingSegment?.name ?? "Standard"}</strong>
+                        </p>
+                        <p>
+                          Commission simulee:{" "}
+                          <strong>{strategyProjection.commissionEffectivePct.toFixed(1)}%</strong>
+                        </p>
+                        <p>
+                          Projection mensuelle:{" "}
+                          <strong>{formatCurrency(strategyProjection.total, "EUR")}</strong>
+                        </p>
+                      </div>
+                      <ul className={styles.tariffRuleList}>
+                        <li>
+                          Commission:{" "}
+                          {formatCurrency(strategyProjection.commissionAmount, "EUR")}
+                        </li>
+                        <li>
+                          Set-up: {formatCurrency(strategyProjection.setupAmount, "EUR")}
+                        </li>
+                        <li>Catalogue: {formatCurrency(strategyProjection.actAmount, "EUR")}</li>
+                        <li>{strategyProjection.narrative}</li>
+                      </ul>
+                    </section>
                   </div>
                   {pricingModalOpen && (
                     <div className={styles.pricingModalOverlay} role="dialog" aria-modal="true">
@@ -4545,6 +5143,10 @@ export default function ConciergeProfilePage() {
                       highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
                       commissionRatePct={pricingMeta.commissionRatePct}
                       setupFee={pricingMeta.setupFee}
+                      presetVersion={billingDeskPresetVersion}
+                      presetMonthlyRevenueEstimate={billingDeskPreset.monthlyRevenueEstimate}
+                      presetNewListingsEstimate={billingDeskPreset.newListingsEstimate}
+                      presetActServicesEstimate={billingDeskPreset.actServicesEstimate}
                     />
                   </div>
                 </>,

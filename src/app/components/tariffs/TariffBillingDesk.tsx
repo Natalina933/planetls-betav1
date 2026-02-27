@@ -110,6 +110,10 @@ type TariffBillingDeskProps = {
   highSeasonPercent?: number;
   commissionRatePct?: number;
   setupFee?: number;
+  presetVersion?: number;
+  presetMonthlyRevenueEstimate?: number;
+  presetNewListingsEstimate?: number;
+  presetActServicesEstimate?: number;
 };
 
 const TariffBillingDesk = ({
@@ -122,6 +126,10 @@ const TariffBillingDesk = ({
   highSeasonPercent = 0,
   commissionRatePct = 20,
   setupFee = 0,
+  presetVersion = 0,
+  presetMonthlyRevenueEstimate,
+  presetNewListingsEstimate,
+  presetActServicesEstimate,
 }: TariffBillingDeskProps) => {
   const [loading, setLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -137,6 +145,23 @@ const TariffBillingDesk = ({
   const [monthlyRevenueEstimate, setMonthlyRevenueEstimate] = useState(6000);
   const [newListingsEstimate, setNewListingsEstimate] = useState(1);
   const [actServicesEstimate, setActServicesEstimate] = useState(4);
+
+  useEffect(() => {
+    if (presetMonthlyRevenueEstimate != null) {
+      setMonthlyRevenueEstimate(Math.max(0, Number(presetMonthlyRevenueEstimate || 0)));
+    }
+    if (presetNewListingsEstimate != null) {
+      setNewListingsEstimate(Math.max(0, Number(presetNewListingsEstimate || 0)));
+    }
+    if (presetActServicesEstimate != null) {
+      setActServicesEstimate(Math.max(0, Number(presetActServicesEstimate || 0)));
+    }
+  }, [
+    presetVersion,
+    presetMonthlyRevenueEstimate,
+    presetNewListingsEstimate,
+    presetActServicesEstimate,
+  ]);
 
   const loadData = useCallback(async () => {
     const [missionsRes, quotesRes, invoicesRes] = await Promise.all([

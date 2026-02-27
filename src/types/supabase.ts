@@ -610,6 +610,45 @@ export type Database = {
         ];
       };
 
+      pricing_strategy_scenarios: {
+        Row: {
+          id: string;
+          concierge_profile_id: string;
+          name: string;
+          simulation: Json;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          concierge_profile_id: string;
+          name: string;
+          simulation?: Json;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          concierge_profile_id?: string;
+          name?: string;
+          simulation?: Json;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pricing_strategy_scenarios_concierge_profile_id_fkey";
+            columns: ["concierge_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       services_contracts: {
         Row: {
           id: string;
