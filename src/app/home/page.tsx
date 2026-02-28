@@ -7,7 +7,7 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>PlanetLS | Location saisonniere intelligente</title>
+        <title>PlanetLS | Location saisonnière intelligente</title>
         <meta
           name="description"
           content="Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée. Inscription gratuite."

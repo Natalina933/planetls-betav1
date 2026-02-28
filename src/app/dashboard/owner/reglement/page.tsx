@@ -4,8 +4,8 @@ export default function OwnerReglementPage() {
   return (
     <OwnerWorkspacePage
       eyebrow="Reglement"
-      title="Reglement et paiements"
-      description="Retrouvez ici la vision de vos paiements, des methodes de reglement et du suivi administratif associe."
+      title="Règlement et paiements"
+      description="Retrouvez ici la vision de vos paiements, des méthodes de règlement et du suivi administratif associé."
       chips={["Paiements", "Factures", "Abonnements", "Historique"]}
       actions={[
         { label: "Mes factures", href: "/dashboard/owner/factures" },
@@ -14,11 +14,11 @@ export default function OwnerReglementPage() {
       cards={[
         {
           title: "Paiements centralises",
-          text: "Cette page est destinee a consolider les factures, reglements recus et futurs flux de paiement Stripe.",
+          text: "Cette page est destinée à consolider les factures, règlements reçus et futurs flux de paiement Stripe.",
         },
         {
           title: "Suivi administratif",
-          text: "Elle pourra aussi exposer les coordonnees de facturation et les methodes de paiement enregistrees.",
+          text: "Elle pourra aussi exposer les coordonnées de facturation et les méthodes de paiement enregistrées.",
         },
         {
           title: "Etape suivante",

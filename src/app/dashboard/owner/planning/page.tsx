@@ -70,7 +70,7 @@ export default function OwnerPlanningPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Planning</h1>
-        <p>Suivez les interventions planifiees pour vos logements et anticipez les prochaines etapes.</p>
+        <p>Suivez les interventions planifiées pour vos logements et anticipez les prochaines étapes.</p>
       </header>
 
       <div className="main-section">

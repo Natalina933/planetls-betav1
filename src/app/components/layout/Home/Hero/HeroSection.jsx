@@ -27,7 +27,7 @@ const HeroSection = () => {
     <section className={styles.hero}>
       <Image
         src="/images/hero-warmv2.jpg"
-        alt="Plateforme de location saisonniere"
+        alt="Plateforme de location saisonnière"
         fill
         priority
         style={{ objectFit: "cover" }}
@@ -42,7 +42,7 @@ const HeroSection = () => {
 
         <div className={styles.content}>
           <h1>
-            Simplifiez la <span className={styles.highlight}>location saisonniere</span>
+            Simplifiez la <span className={styles.highlight}>location saisonnière</span>
           </h1>
           <p className={styles.subHeadline}>
             PlanetLS connecte <strong>propriétaires</strong>, <strong>concierges</strong> et{" "}
@@ -59,14 +59,14 @@ const HeroSection = () => {
               className={`${styles.CTAButton} ${styles.primary}`}
               onClick={() => router.push("/login")}
             >
-              Creer mon compte
+              Créer mon compte
             </button>
 
             <button
               className={`${styles.CTAButton} ${styles.secondary}`}
               onClick={scrollToHowItWorks}
             >
-              Decouvrir comment ca marche
+              Découvrir comment ça marche
             </button>
           </div>
         </div>

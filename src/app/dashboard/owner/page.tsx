@@ -52,7 +52,7 @@ function getStatusLabel(status: string | null) {
     case "published":
       return "Actif";
     case "deleted":
-      return "Archive";
+      return "Archivé";
     default:
       return "Brouillon";
   }
@@ -67,7 +67,7 @@ function isOngoingMission(status: string | null) {
 }
 
 function formatMissionDate(value: string | null) {
-  if (!value) return "A planifier";
+  if (!value) return "À planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -80,7 +80,7 @@ function formatMissionDate(value: string | null) {
 }
 
 function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non defini";
+  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non défini";
 }
 
 export default function OwnerDashboardPage() {
@@ -121,7 +121,6 @@ export default function OwnerDashboardPage() {
         if (!housingResponse.ok) {
           throw new Error(housingPayload?.error || "Impossible de charger vos logements.");
         }
-
         if (!missionsResponse.ok) {
           throw new Error(missionsPayload?.error || "Impossible de charger vos missions.");
         }
@@ -177,10 +176,7 @@ export default function OwnerDashboardPage() {
     [missions],
   );
   const pendingInvoices = useMemo(
-    () =>
-      invoices.filter(
-        (invoice) => invoice.status !== "paid" && invoice.status !== "canceled",
-      ),
+    () => invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "canceled"),
     [invoices],
   );
   const latestQuotes = useMemo(() => quotes.slice(0, 4), [quotes]);
@@ -203,7 +199,7 @@ export default function OwnerDashboardPage() {
 
       <div className="stats-row">
         <div className="stat-card">
-          <h3>Biens geres</h3>
+          <h3>Biens gérés</h3>
           <p>{loading ? "..." : properties.length}</p>
         </div>
         <div className="stat-card">
@@ -215,7 +211,7 @@ export default function OwnerDashboardPage() {
           <p>{loading ? "..." : ongoingMissions.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Interventions terminees</h3>
+          <h3>Interventions terminées</h3>
           <p>{loading ? "..." : completedMissions.length}</p>
         </div>
         <div className="stat-card">
@@ -233,7 +229,7 @@ export default function OwnerDashboardPage() {
           </div>
         </div>
 
-          {loading ? <p>Chargement de votre espace propriétaire...</p> : null}
+        {loading ? <p>Chargement de votre espace propriétaire...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error ? (
@@ -249,7 +245,7 @@ export default function OwnerDashboardPage() {
                       <li key={mission.id}>
                         <strong>{mission.title || "Mission sans titre"}</strong>
                         <br />
-                        {mission.status || "Statut non defini"} - {formatMissionDate(mission.scheduled_start)}
+                        {mission.status || "Statut non défini"} - {formatMissionDate(mission.scheduled_start)}
                       </li>
                     ))}
                   </ul>
@@ -276,13 +272,13 @@ export default function OwnerDashboardPage() {
               <div className="stat-card">
                 <h3>Satisfaction concierge</h3>
                 {reviews.length === 0 ? (
-                  <p>Aucun avis publie pour le moment.</p>
+                  <p>Aucun avis publié pour le moment.</p>
                 ) : (
                   <div>
                     <p>
                       Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur {reviews.length} avis
                     </p>
-                    <p>{reviews[0]?.comment || "Dernier retour enregistre sans commentaire."}</p>
+                    <p>{reviews[0]?.comment || "Dernier retour enregistré sans commentaire."}</p>
                     <Link href="/dashboard/owner/conciergerie">Voir les avis, les badges PRO et noter</Link>
                   </div>
                 )}
@@ -295,8 +291,8 @@ export default function OwnerDashboardPage() {
                 <div>
                   <p>Vous n'avez pas encore de logement visible sur votre compte.</p>
                   <p>
-                    Si vous aviez des exemples de test avant la securisation, ils peuvent etre lies a
-                    un autre identifiant. Creez-en un nouveau pour repartir sur des donnees propres.
+                    Si vous aviez des exemples de test avant la sécurisation, ils peuvent être liés à
+                    un autre identifiant. Créez-en un nouveau pour repartir sur des données propres.
                   </p>
                 </div>
               ) : (
@@ -304,7 +300,7 @@ export default function OwnerDashboardPage() {
                   {properties.map((property) => (
                     <li key={property.id}>
                       <strong>{property.nom_logement || "Logement sans nom"}</strong> -{" "}
-                      {property.ville || "Ville non renseignee"} ({getStatusLabel(property.statut)})
+                      {property.ville || "Ville non renseignée"} ({getStatusLabel(property.statut)})
                     </li>
                   ))}
                 </ul>
@@ -324,7 +320,7 @@ export default function OwnerDashboardPage() {
                         <li key={quote.id}>
                           <strong>{quote.quote_number || "Devis sans numéro"}</strong>
                           <br />
-                          {quote.status || "Statut non defini"} - {formatAmount(quote.total_amount)}
+                          {quote.status || "Statut non défini"} - {formatAmount(quote.total_amount)}
                         </li>
                       ))}
                     </ul>
@@ -332,16 +328,16 @@ export default function OwnerDashboardPage() {
                 </div>
 
                 <div className="stat-card">
-                  <h3>Dernieres factures</h3>
+                  <h3>Dernières factures</h3>
                   {latestInvoices.length === 0 ? (
                     <p>Aucune facture disponible pour le moment.</p>
                   ) : (
                     <ul>
                       {latestInvoices.map((invoice) => (
                         <li key={invoice.id}>
-                          <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
+                          <strong>{invoice.invoice_number || "Facture sans numéro"}</strong>
                           <br />
-                          {invoice.status || "Statut non defini"} - Solde {formatAmount(invoice.balance_amount)}
+                          {invoice.status || "Statut non défini"} - Solde {formatAmount(invoice.balance_amount)}
                         </li>
                       ))}
                     </ul>
@@ -354,9 +350,9 @@ export default function OwnerDashboardPage() {
               <h2>Suivi de votre activité</h2>
               <ul>
                 <li>{ongoingMissions.length} mission(s) demandent actuellement un suivi.</li>
-                <li>{completedMissions.length} intervention(s) sont deja terminees.</li>
-                <li>{draftCount} logement(s) restent a finaliser ou publier.</li>
-                <li>{pendingInvoices.length} facture(s) restent a suivre ou regler.</li>
+                <li>{completedMissions.length} intervention(s) sont déjà terminées.</li>
+                <li>{draftCount} logement(s) restent à finaliser ou publier.</li>
+                <li>{pendingInvoices.length} facture(s) restent à suivre ou régler.</li>
               </ul>
             </div>
           </>

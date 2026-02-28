@@ -178,7 +178,7 @@ export default function OwnerConciergeriePage() {
     event.preventDefault();
 
     if (!selectedMission?.concierge_profile_id) {
-      setReviewError("Impossible d'identifier le concierge a evaluer.");
+      setReviewError("Impossible d'identifier le concierge à évaluer.");
       return;
     }
 
@@ -204,7 +204,7 @@ export default function OwnerConciergeriePage() {
       }
 
       setReviews((prev) => [payload, ...prev]);
-      setReviewSuccess("Votre avis a bien ete enregistre.");
+      setReviewSuccess("Votre avis a bien été enregistré.");
       setComment("");
       setRating("5");
       setSelectedMissionId("");
@@ -223,7 +223,7 @@ export default function OwnerConciergeriePage() {
         description={
           error
             ? error
-            : "Retrouvez vos echanges recents, le niveau d'activite de votre concierge et les premiers retours collectes apres mission."
+            : "Retrouvez vos échanges récents, le niveau d'activité de votre concierge et les premiers retours collectés après mission."
         }
         chips={[
           `${missions.length} mission(s)`,
@@ -249,7 +249,7 @@ export default function OwnerConciergeriePage() {
                     .slice(0, 3)
                     .map((mission) => `${mission.title || "Mission"} (${mission.status || "-"})`)
                     .join(" • ")
-                : "Aucune mission chargee pour le moment.",
+                : "Aucune mission chargée pour le moment.",
           },
           {
             title: "Contacts actifs",
@@ -265,21 +265,21 @@ export default function OwnerConciergeriePage() {
             title: "Pilotage",
             text:
               ongoingCount > 0
-                ? `${ongoingCount} intervention(s) demandent actuellement un suivi proprietaire.`
-                : "Aucune intervention en cours a suivre actuellement.",
+                ? `${ongoingCount} intervention(s) demandent actuellement un suivi propriétaire.`
+                : "Aucune intervention en cours à suivre actuellement.",
           },
           {
             title: "Avis et notation",
             text:
               reviews.length > 0
                 ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
-                : "Les avis laisses apres les missions terminees apparaitront ici.",
+                : "Les avis laissés après les missions terminées apparaîtront ici.",
           },
           {
             title: "Badge concierge",
             text: spotlightProfile
               ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` • ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
-              : "Le statut PRO et la note du concierge apparaitront ici des qu'un profil sera associe.",
+              : "Le statut PRO et la note du concierge apparaîtront ici dès qu'un profil sera associé.",
           },
         ]}
       />
@@ -304,7 +304,7 @@ export default function OwnerConciergeriePage() {
 
         {reviewableMissions.length === 0 ? (
           <p className={workspaceStyles.cardText}>
-            Aucun avis en attente. Les missions terminees non encore notees apparaitront ici.
+            Aucun avis en attente. Les missions terminées non encore notées apparaîtront ici.
           </p>
         ) : (
           <form onSubmit={handleSubmitReview} style={{ display: "grid", gap: "0.85rem" }}>
@@ -344,7 +344,7 @@ export default function OwnerConciergeriePage() {
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
                 rows={4}
-                placeholder="Votre retour sur la reactivite, la qualite d'execution ou la communication."
+                placeholder="Votre retour sur la réactivité, la qualité d'exécution ou la communication."
                 style={{ borderRadius: 12, padding: "0.75rem 0.8rem", resize: "vertical" }}
               />
             </label>

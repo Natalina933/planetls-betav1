@@ -161,7 +161,7 @@ export default function OwnerInvoicesPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Mes factures</h1>
-        <p>Suivez les montants emis, les echeances et le solde restant a regler.</p>
+        <p>Suivez les montants émis, les échéances et le solde restant à régler.</p>
       </header>
 
       <div className="stats-row">
@@ -188,7 +188,7 @@ export default function OwnerInvoicesPage() {
           <ul>
             {invoices.map((invoice) => (
               <li key={invoice.id} style={{ marginBottom: "1rem" }}>
-                <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
+                <strong>{invoice.invoice_number || "Facture sans numéro"}</strong>
                 <br />
                 Statut : {invoice.status || "-"} | Total : {formatAmount(invoice.total_amount)} |
                 Solde : {formatAmount(invoice.balance_amount)}

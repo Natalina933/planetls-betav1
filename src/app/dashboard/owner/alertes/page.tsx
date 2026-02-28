@@ -5,7 +5,7 @@ export default function OwnerAlertesPage() {
     <OwnerWorkspacePage
       eyebrow="Alertes"
       title="Alertes et points d'attention"
-      description="Une vue prevue pour concentrer les urgences, echeances et actions prioritaires a traiter sur vos biens."
+      description="Une vue prévue pour concentrer les urgences, échéances et actions prioritaires à traiter sur vos biens."
       chips={["Urgences", "Retards", "Factures", "Interventions"]}
       actions={[
         { label: "Voir le planning", href: "/dashboard/owner/planning" },
@@ -14,14 +14,14 @@ export default function OwnerAlertesPage() {
       cards={[
         {
           title: "Retards d'intervention",
-          text: "Les prochaines versions pourront faire remonter ici les missions en attente, depassees ou non confirmees.",
+          text: "Les prochaines versions pourront faire remonter ici les missions en attente, dépassées ou non confirmées.",
         },
         {
           title: "Suivi financier",
-          text: "Les factures a regler ou les devis en attente de validation auront aussi leur place dans cette vue.",
+          text: "Les factures à régler ou les devis en attente de validation auront aussi leur place dans cette vue.",
         },
         {
-          title: "Pilotage simplifie",
+          title: "Pilotage simplifié",
           text: "L'objectif est de fournir un cockpit prioritaire pour agir sans parcourir chaque module un par un.",
         },
       ]}

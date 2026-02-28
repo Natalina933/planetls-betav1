@@ -30,45 +30,45 @@ export default function ServiceList() {
   return (
     <>
       <Head>
-        <title>Decouvrez Notre Plateforme de Gestion Intuitive et Complete</title>
+        <title>Découvrez Notre Plateforme de Gestion Intuitive et Complète</title>
         <meta
           name="description"
-          content="Plateforme centralisee, securisee et intelligente pour proprietaires, concierges et artisans."
+          content="Plateforme centralisée, sécurisée et intelligente pour propriétaires, concierges et artisans."
         />
       </Head>
 
       <ServicesBlock
         title={
           <>
-            Decouvrir notre Plateforme <br />
+            Découvrir notre Plateforme <br />
             de gestion tout-en-un
           </>
         }
-        subtitle="La solution en ligne pour l'ensemble des acteurs de la location saisonniere"
-        description="Une application et une plateforme entierement securisees, pensees pour automatiser la gestion, fluidifier la communication, et vous assister a chaque etape, que vous soyez proprietaire, professionnel, ou en quete de solutions fiables."
+        subtitle="La solution en ligne pour l'ensemble des acteurs de la location saisonnière"
+        description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
       >
         <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
-            Concue pour{" "}
+            Conçue pour{" "}
             <span className={styles.highlightText}>
-              simplifier la vie de toutes les categories professionnelles
+              simplifier la vie de toutes les catégories professionnelles
             </span>
-            , notre plateforme centralise vos outils, automatise vos taches et securise
-            vos donnees. Que vous soyez{" "}
+            , notre plateforme centralise vos outils, automatise vos tâches et sécurise
+            vos données. Que vous soyez{" "}
             <strong className={styles.userCategory}>
-              proprietaire, concierge ou artisan
+              propriétaire, concierge ou artisan
             </strong>
-            , gagnez en efficacite et en serenite.
+            , gagnez en efficacité et en sérénité.
           </p>
 
           <a href="#contact" className={styles.CTAButton}>
-            Decouvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
+            Découvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
           </a>
         </header>
 
         <ul
           className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
-          aria-label="Points cles de la plateforme"
+          aria-label="Points clés de la plateforme"
         >
           {keyPoints.map((point) => (
             <li key={point} className={styles.keyPointChipWrapper}>
@@ -114,7 +114,7 @@ export default function ServiceList() {
         >
           Essayer gratuitement
         </a>
-        <span className={styles.ctaSub}>Assistance personnalisee et offres sans commission.</span>
+        <span className={styles.ctaSub}>Assistance personnalisée et offres sans commission.</span>
       </div>
     </>
   );

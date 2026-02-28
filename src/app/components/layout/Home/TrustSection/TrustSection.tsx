@@ -9,26 +9,26 @@ export function TrustSection() {
       <div className={styles.trustItems}>
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           <ShieldCheck size={32} />
-          <h3>Paiement securise</h3>
-          <p>Transactions protegees et donnees chiffrees.</p>
+          <h3>Paiement sécurisé</h3>
+          <p>Transactions protégées et données chiffrées.</p>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.4 }}>
           <ShieldCheck size={32} />
-          <h3>Plateforme ethique</h3>
-          <p>Charte RSE, intermediaire clair et transparence sur les interactions.</p>
+          <h3>Plateforme éthique</h3>
+          <p>Charte RSE, intermédiaire clair et transparence sur les interactions.</p>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.6 }}>
           <ShieldCheck size={32} />
-          <h3>Identite verifiee</h3>
-          <p>Profils authentifies, badge PRO visible et informations de service consolidees.</p>
+          <h3>Identité vérifiée</h3>
+          <p>Profils authentifiés, badge PRO visible et informations de service consolidées.</p>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.8 }}>
           <ShieldCheck size={32} />
           <h3>Avis visibles</h3>
-          <p>Les profils concierges publics affichent note moyenne, commentaires et services proposes.</p>
+          <p>Les profils concierges publics affichent note moyenne, commentaires et services proposés.</p>
         </motion.div>
       </div>
     </section>

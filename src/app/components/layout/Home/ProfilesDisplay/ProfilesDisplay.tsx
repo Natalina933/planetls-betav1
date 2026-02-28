@@ -6,14 +6,10 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import styles from "./ProfilesDisplay.module.scss";
 
-/* ----------------------------- */
-/* Types                         */
-/* ----------------------------- */
-
 export interface Profile {
   id: number;
   name: string;
-  type: string; // "proprietaire" | "concierge" | "artisan" | string
+  type: string;
   photo?: string;
   services?: string[];
   available?: boolean;
@@ -25,10 +21,6 @@ interface ProfilesDisplayProps {
   onHover?: (id: number) => void;
   onLeave?: () => void;
 }
-
-/* ----------------------------- */
-/* Mapping catégories            */
-/* ----------------------------- */
 
 const categoriesMap: Record<string, { label: string; description: string }> = {
   proprietaire: {
@@ -45,10 +37,6 @@ const categoriesMap: Record<string, { label: string; description: string }> = {
   },
 };
 
-/* ----------------------------- */
-/* Composant                     */
-/* ----------------------------- */
-
 export default function ProfilesDisplay({
   visibleProfiles,
   onHover,
@@ -62,7 +50,7 @@ export default function ProfilesDisplay({
 
   const handleAlertClick = async () => {
     try {
-      const userId = "a1b2c3d4-1234-5678-90ab-cdef12345678"; // TODO: remplacer par l’ID du user connecté
+      const userId = "a1b2c3d4-1234-5678-90ab-cdef12345678";
       const message = `Alerte : aucun profil trouvé pour ${category} à ${location}`;
 
       const response = await fetch("/api/alertes", {
@@ -105,9 +93,9 @@ export default function ProfilesDisplay({
                   src={photo || "/default-profile.png"}
                   alt={`Avatar de ${name}, ${type}`}
                   className={styles.profileAvatar}
-                  width={60}        // largeur souhaitée
-                  height={60}       // hauteur souhaitée
-                  style={{ borderRadius: "50%" }} // si tu veux un rond
+                  width={60}
+                  height={60}
+                  style={{ borderRadius: "50%" }}
                 />
 
                 <div className={styles.profileDetails}>
@@ -133,7 +121,7 @@ export default function ProfilesDisplay({
                     )}
                   </div>
 
-                  <p className={styles.location}>📍 Secteur : {location}</p>
+                  <p className={styles.location}>Secteur : {location}</p>
                   {created_at && (
                     <p className={styles.experience}>
                       Membre depuis {new Date(created_at).getFullYear()}
@@ -142,9 +130,9 @@ export default function ProfilesDisplay({
 
                   <div className={styles.status}>
                     {available ? (
-                      <span className={styles.available}>🟢 Disponible</span>
+                      <span className={styles.available}>Disponible</span>
                     ) : (
-                      <span className={styles.unavailable}>🔴 Indisponible</span>
+                      <span className={styles.unavailable}>Indisponible</span>
                     )}
                   </div>
 

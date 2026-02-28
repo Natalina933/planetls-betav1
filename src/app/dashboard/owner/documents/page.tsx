@@ -53,7 +53,7 @@ export default function OwnerDocumentsPage() {
   const cards = [
     ...quotes.slice(0, 4).map((quote) => ({
       title: quote.quote_number || "Devis",
-      text: `Statut : ${quote.status || "-"} - document pret a etre consulte ou telecharge.`,
+      text: `Statut : ${quote.status || "-"} - document prêt à être consulté ou téléchargé.`,
       actions: [
         {
           label: "Apercu PDF",
@@ -105,7 +105,7 @@ export default function OwnerDocumentsPage() {
           : [
               {
                 title: "Aucun document",
-                text: "Vos devis et factures apparaitront ici des qu'ils seront generes.",
+                text: "Vos devis et factures apparaîtront ici dès qu'ils seront générés.",
               },
             ]
       }

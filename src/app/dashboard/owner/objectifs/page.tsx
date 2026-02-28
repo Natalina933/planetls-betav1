@@ -5,7 +5,7 @@ export default function OwnerObjectifsPage() {
     <OwnerWorkspacePage
       eyebrow="Objectifs"
       title="Objectifs de performance"
-      description="Preparez ici le suivi de vos objectifs de revenus, d'occupation et de qualite de service."
+      description="Préparez ici le suivi de vos objectifs de revenus, d'occupation et de qualité de service."
       chips={["Revenus", "Occupation", "Qualite", "Croissance"]}
       actions={[
         { label: "Mes logements", href: "/dashboard/owner/logements" },
@@ -14,15 +14,15 @@ export default function OwnerObjectifsPage() {
       cards={[
         {
           title: "Objectifs business",
-          text: "Le module pourra suivre le revenu mensuel vise, le taux d'occupation et les priorites de rentabilite.",
+          text: "Le module pourra suivre le revenu mensuel visé, le taux d'occupation et les priorités de rentabilité.",
         },
         {
           title: "Vision par bien",
-          text: "Chaque logement pourra etre rattache a un objectif pour mieux prioriser vos arbitrages operationnels.",
+          text: "Chaque logement pourra être rattaché à un objectif pour mieux prioriser vos arbitrages opérationnels.",
         },
         {
           title: "Aide a la decision",
-          text: "Cette couche sera utile plus tard pour comparer vos resultats reels avec vos ambitions de portefeuille.",
+          text: "Cette couche sera utile plus tard pour comparer vos résultats réels avec vos ambitions de portefeuille.",
         },
       ]}
     />

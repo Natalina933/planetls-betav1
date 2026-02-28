@@ -17,7 +17,7 @@ interface CardData {
 const CARDS: CardData[] = [
   {
     key: "proprietaire",
-    title: "Proprietaires",
+    title: "Propriétaires",
     img: "/icons/proprio_belle_epoque.png",
     alt: "Illustration propriétaire location saisonnière",
     cta: "Trouver une conciergerie",
@@ -44,7 +44,7 @@ const CARDS: CardData[] = [
     alt: "Illustration artisan partenaire local",
     cta: "Proposer mon savoir-faire",
     href: "/login",
-    eyebrow: "Reseau local qualifie",
+    eyebrow: "Réseau local qualifié",
     description:
       "Rejoignez un écosystème de propriétaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
   },
@@ -102,11 +102,11 @@ const ForWhomSection: React.FC = () => (
       <div className={styles.introBlock}>
         <span className={styles.kicker}>Pour qui ?</span>
         <h2 id="for-whom-title" className={styles.planetLSTitle}>
-          Une plateforme concue pour faire grandir tout l&apos;ecosysteme locatif
+          Une plateforme conçue pour faire grandir tout l&apos;écosystème locatif
         </h2>
         <p className={styles.planetLSIntro}>
           PlanetLS relie propriétaires, concierges et partenaires terrain dans
-          une experience plus fluide, plus rassurante et beaucoup plus simple a
+          une expérience plus fluide, plus rassurante et beaucoup plus simple à
           piloter au quotidien.
         </p>
       </div>
@@ -120,13 +120,13 @@ const ForWhomSection: React.FC = () => (
       <div className={styles.sectionMission}>
         <strong>Notre mission :</strong> centraliser la mise en relation, la
         gestion des biens et la coordination terrain pour professionnaliser la
-        location saisonniere, sans complexifier le quotidien.
+        location saisonnière, sans complexifier le quotidien.
       </div>
 
       <div className={styles.heroActions}>
         <div className={styles.buttonsRow}>
           <Link href="/login" className={styles.CTAButton}>
-            Demarrer sur PlanetLS
+            Démarrer sur PlanetLS
           </Link>
           <Link href="/home#how-it-works" className={styles.CTAButtonSecondary}>
             Voir le fonctionnement

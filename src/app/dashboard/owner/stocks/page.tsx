@@ -22,7 +22,7 @@ export default function OwnerStocksPage() {
         },
         {
           title: "Valeur produit",
-          text: "C'est une brique utile pour professionnaliser la gestion de plusieurs logements sans outils disperses.",
+          text: "C'est une brique utile pour professionnaliser la gestion de plusieurs logements sans outils dispersés.",
         },
       ]}
     />

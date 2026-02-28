@@ -29,13 +29,13 @@ export default function VideoIntro() {
             height={510}
             aria-describedby="video-intro-description"
           >
-            Votre navigateur ne supporte pas la lecture video.
+            Votre navigateur ne supporte pas la lecture vidéo.
           </video>
         ) : (
           <div className={styles.videoPlaceholder}>
             <Image
               src="/videos/Gemini_Generated_Image_mv7njvmv7njvmv7n.png"
-              alt="Apercu video PlanetLS"
+              alt="Aperçu vidéo PlanetLS"
               fill
               className={styles.videoPoster}
               priority
@@ -46,7 +46,7 @@ export default function VideoIntro() {
               className={styles.playButton}
               role="button"
               tabIndex={0}
-              aria-label="Lire la video de presentation"
+              aria-label="Lire la vidéo de présentation"
               onClick={handlePlayClick}
               onKeyDown={(e) => e.key === "Enter" && handlePlayClick()}
             />
@@ -56,20 +56,20 @@ export default function VideoIntro() {
 
       <div className={styles.videoContent}>
         <h2 id="video-intro-title" className={styles.videoHeading}>
-          Decouvrez PlanetLS en 1 minute
+          Découvrez PlanetLS en 1 minute
         </h2>
 
         <p id="video-intro-description" className={styles.videoDescription}>
           Une plateforme simple, intuitive et professionnelle pour gérer votre activité locative
-          saisonniere.
+          saisonnière.
         </p>
 
         <a
           href="/login"
           className={styles.CTAButton}
-          aria-label="Creer votre profil gratuitement sur PlanetLS"
+          aria-label="Créer votre profil gratuitement sur PlanetLS"
         >
-          Creer votre profil gratuitement
+          Créer votre profil gratuitement
         </a>
 
         <p className={styles.joinMessage}>

@@ -24,7 +24,7 @@ interface StepCategory {
 
 const stepsByCategory: Record<string, StepCategory> = {
   proprietaires: {
-    label: "Proprietaires",
+    label: "Propriétaires",
     icon: Users,
     ctaLabel: "Trouver une conciergerie",
     ctaLink: "/dashboard/owner/concierges",
@@ -32,7 +32,7 @@ const stepsByCategory: Record<string, StepCategory> = {
       {
         Icon: Lightbulb,
         title: "Publiez votre besoin",
-        description: "Decrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
+        description: "Décrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
         link: "/login",
       },
       {
@@ -52,25 +52,25 @@ const stepsByCategory: Record<string, StepCategory> = {
   concierges: {
     label: "Concierges",
     icon: User,
-    ctaLabel: "Demarrer ma conciergerie",
+    ctaLabel: "Démarrer ma conciergerie",
     ctaLink: "/abonnement/concierge-pro",
     steps: [
       {
         Icon: Lightbulb,
         title: "Structurez votre offre",
-        description: "Creez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
+        description: "Créez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
         link: "/dashboard/concierge/profile?tab=fiche",
       },
       {
         Icon: Users,
-        title: "Prospectez les proprietaires",
+        title: "Prospectez les propriétaires",
         description: "Activez la recherche, ouvrez des conversations et transformez vos prises de contact.",
         link: "/dashboard/concierge/recherche",
       },
       {
         Icon: Handshake,
         title: "Pilotez l'operationnel",
-        description: "Gerez logements, missions, planning, documents et suivi Stripe depuis le dashboard.",
+        description: "Gérez logements, missions, planning, documents et suivi Stripe depuis le dashboard.",
         link: "/dashboard/concierge",
       },
     ],
@@ -83,20 +83,20 @@ const stepsByCategory: Record<string, StepCategory> = {
     steps: [
       {
         Icon: Users,
-        title: "Accedez au reseau local",
-        description: "Positionnez votre savoir-faire aupres des concierges et proprietaires actifs.",
+        title: "Accédez au réseau local",
+        description: "Positionnez votre savoir-faire auprès des concierges et propriétaires actifs.",
         link: "/home",
       },
       {
         Icon: Lightbulb,
-        title: "Recevez des missions ciblees",
+        title: "Recevez des missions ciblées",
         description: "Travaillez avec des demandes plus lisibles et un cadre plus professionnel.",
         link: "/home",
       },
       {
         Icon: Handshake,
-        title: "Renforcez votre visibilite",
-        description: "Capitalisez sur la recommandation, les avis et la qualite d'execution.",
+        title: "Renforcez votre visibilité",
+        description: "Capitalisez sur la recommandation, les avis et la qualité d'exécution.",
         link: "/home",
       },
     ],
@@ -138,7 +138,7 @@ export function HowItWorksSection() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        Comment ca marche ?
+        Comment ça marche ?
       </motion.h2>
 
       <Tabs.Root defaultValue="concierges" className={styles.tabs}>
