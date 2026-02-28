@@ -9,12 +9,12 @@ type BillingHistoryPayload = {
     reference: string | null;
     updated_at: string | null;
   } | null;
-  invoice_events: Array<{
+  events: Array<{
     id: string;
-    invoice_id: string;
-    invoice_number: string | null;
-    invoice_status: string | null;
-    event_type: string;
+    profile_id: string | null;
+    stripe_object_id: string;
+    stripe_event_type: string;
+    source: string;
     payload: Record<string, unknown> | null;
     created_at: string | null;
   }>;
@@ -85,7 +85,7 @@ export default function ConciergeBillingPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Historique Stripe</h1>
-        <p>Suivez l’état de votre abonnement PRO et les derniers événements de facturation.</p>
+        <p>Suivez l'etat de votre abonnement PRO et les derniers evenements Stripe lies a votre compte.</p>
       </header>
 
       {loading ? <p>Chargement de l'historique Stripe...</p> : null}
@@ -114,20 +114,19 @@ export default function ConciergeBillingPage() {
 
           <div className="main-section">
             <h2>Evenements de facturation</h2>
-            {data.invoice_events.length === 0 ? (
+            {data.events.length === 0 ? (
               <p>Aucun evenement Stripe ou facture enregistre pour le moment.</p>
             ) : (
               <ul>
-                {data.invoice_events.map((event) => (
+                {data.events.map((event) => (
                   <li key={event.id} style={{ marginBottom: "1rem" }}>
-                    <strong>{event.invoice_number || "Facture"}</strong>
+                    <strong>{event.stripe_object_id || "Evenement Stripe"}</strong>
                     <br />
-                    Evenement : {event.event_type} | Statut facture : {event.invoice_status || "-"}
+                    Evenement : {event.stripe_event_type}
                     <br />
                     Date : {formatDate(event.created_at)}
                     <br />
-                    Source :{" "}
-                    {typeof event.payload?.source === "string" ? event.payload.source : "non renseignee"}
+                    Source : {event.source || "non renseignee"}
                   </li>
                 ))}
               </ul>

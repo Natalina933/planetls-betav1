@@ -1,0 +1,251 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.hero {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.6rem;
+  border-radius: 24px;
+  border: 1px solid rgba(184, 139, 74, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 34%),
+    linear-gradient(145deg, #fffdf7 0%, #f4ead8 100%);
+  box-shadow: 0 16px 40px rgba(74, 53, 16, 0.08);
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a7a3b;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.95rem;
+  color: #3f2f14;
+}
+
+.description {
+  margin: 0;
+  color: #5f5237;
+  line-height: 1.55;
+  max-width: 72ch;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(184, 139, 74, 0.12);
+  color: #7b5b23;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.filters {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 139, 74, 0.18);
+  background: rgba(255, 252, 245, 0.96);
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b5b23;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field input {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 139, 74, 0.28);
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+  color: #4a3510;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  border: none;
+  background: linear-gradient(135deg, #b88b4a, #d4af37);
+  color: #fff;
+}
+
+.secondaryBtn {
+  border: 1px solid rgba(184, 139, 74, 0.35);
+  background: linear-gradient(135deg, #fff8ea, #f2e0c0);
+  color: #7b5b23;
+}
+
+.errorBox {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(188, 74, 72, 0.1);
+  color: #8a2220;
+}
+
+.successBox {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(123, 91, 35, 0.12);
+  color: #7b5b23;
+  font-weight: 700;
+}
+
+.emptyState {
+  padding: 1.35rem;
+  border-radius: 20px;
+  border: 1px dashed rgba(184, 139, 74, 0.35);
+  background: rgba(255, 252, 245, 0.96);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 139, 74, 0.18);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(74, 53, 16, 0.06);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.cardHead h2 {
+  margin: 0;
+  color: #3f2f14;
+}
+
+.cardHead p {
+  margin: 0.3rem 0 0;
+  color: #6a5841;
+}
+
+.proBadge,
+.standardBadge {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.proBadge {
+  color: #5e4209;
+  background: rgba(212, 175, 55, 0.22);
+}
+
+.standardBadge {
+  color: #6a5841;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.stats {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.stats p,
+.pricing span {
+  margin: 0;
+  color: #4a3510;
+}
+
+.pricing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.tag,
+.tagMuted {
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tag {
+  background: rgba(184, 139, 74, 0.12);
+  color: #7b5b23;
+}
+
+.tagMuted {
+  background: rgba(148, 163, 184, 0.18);
+  color: #6a5841;
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .actions,
+  .cardActions {
+    display: grid;
+  }
+}
