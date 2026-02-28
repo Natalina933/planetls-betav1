@@ -9,8 +9,10 @@ import {
   hasSectionUnsavedChanges,
   hasValidationErrors,
   removeSectionSnapshot,
+  resolveSavedSectionId,
   shouldCompleteMissionOnboarding,
   toggleOpenSection,
+  updateProfileFieldValue,
   updateSocialFieldValue,
   upsertSectionSnapshot,
 } from "../app/dashboard/concierge/profile/profileEditing.ts";
@@ -109,4 +111,46 @@ test("social field helper updates only requested field", () => {
     linkedin: null,
   });
   assert.equal(updateSocialFieldValue(null, "facebook", "x"), null);
+});
+
+test("resolveSavedSectionId prefers current editing section", () => {
+  const normalize = (value: string) => value.replaceAll(" ", "_");
+
+  assert.equal(resolveSavedSectionId("Photo_de_profil", "Photo de profil", normalize), "Photo_de_profil");
+  assert.equal(resolveSavedSectionId(null, "Photo de profil", normalize), "Photo_de_profil");
+});
+
+test("updateProfileFieldValue handles plain and tariff fields", () => {
+  const profile = {
+    first_name: "Nathalie",
+    last_name: "Charbonnel",
+    avatar_url: null,
+    availability_hours: JSON.stringify({ existing: true }),
+    hourly_rate: 40,
+    travel_fee: 10,
+    city: "Paris",
+  };
+
+  const plain = updateProfileFieldValue(profile, "city", "Lyon", {
+    parseSeasonalPricing: () => ({ minimumInvoice: 35 }),
+    parsePricingV2FromAvailabilityHours: () => ({
+      base: { hourlyRate: 40, travelFee: 10 },
+    }),
+    syncSeasonalPricingFromPricingV2: () => ({ minimumInvoice: 35 }),
+    parseAvailabilityPayloadRaw: () => ({ existing: true }),
+  });
+
+  assert.equal(plain?.city, "Lyon");
+
+  const tariff = updateProfileFieldValue(profile, "hourly_rate", "55", {
+    parseSeasonalPricing: () => ({ minimumInvoice: 35 }),
+    parsePricingV2FromAvailabilityHours: () => ({
+      base: { hourlyRate: 40, travelFee: 10 },
+    }),
+    syncSeasonalPricingFromPricingV2: () => ({ minimumInvoice: 35 }),
+    parseAvailabilityPayloadRaw: () => ({ existing: true }),
+  });
+
+  assert.equal(tariff?.hourly_rate, 55);
+  assert.match(String(tariff?.availability_hours), /pricing_v2/);
 });

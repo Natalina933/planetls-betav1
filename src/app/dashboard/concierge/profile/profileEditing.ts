@@ -7,6 +7,9 @@ interface ProfileIdentityLike {
   avatar_url: string | null;
   id?: string;
   onboarding_complete?: boolean;
+  availability_hours?: string | null;
+  hourly_rate?: number | null;
+  travel_fee?: number | null;
 }
 
 export function createSectionSnapshot<T>(value: T | null): string | null {
@@ -110,7 +113,9 @@ export function ensureOpenSection(
   };
 }
 
-export function updateSocialFieldValue<T extends Record<string, unknown>>(
+export function updateSocialFieldValue<
+  T extends { website?: unknown; linkedin?: unknown; instagram?: unknown; facebook?: unknown },
+>(
   profile: T | null,
   field: "website" | "linkedin" | "instagram" | "facebook",
   value: string,
@@ -122,6 +127,72 @@ export function updateSocialFieldValue<T extends Record<string, unknown>>(
   return {
     ...profile,
     [field]: value,
+  };
+}
+
+export function updateProfileFieldValue<
+  T extends ProfileIdentityLike & Record<string, unknown>,
+>(
+  profile: T | null,
+  name: string,
+  value: string,
+  options: {
+    parseSeasonalPricing: (value?: string | null) => unknown;
+    parsePricingV2FromAvailabilityHours: (
+      value: string | null | undefined,
+      context: {
+        hourlyRate: number;
+        travelFee: number;
+        seasonalPricing: unknown;
+      },
+    ) => any;
+    syncSeasonalPricingFromPricingV2: (seasonal: unknown, pricingV2: any) => unknown;
+    parseAvailabilityPayloadRaw: (value?: string | null) => Record<string, unknown>;
+  },
+): T | null {
+  if (!profile) {
+    return profile;
+  }
+
+  const isBaseTariffField = name === "hourly_rate" || name === "travel_fee";
+  if (!isBaseTariffField) {
+    return {
+      ...profile,
+      [name]: value,
+    };
+  }
+
+  const parsedValue =
+    value.trim() === "" ? null : Number.isFinite(Number(value)) ? Number(value) : null;
+  const fallbackSeasonal = options.parseSeasonalPricing(profile.availability_hours);
+  const pricingV2Next = options.parsePricingV2FromAvailabilityHours(
+    profile.availability_hours,
+    {
+      hourlyRate: profile.hourly_rate ?? 0,
+      travelFee: profile.travel_fee ?? 0,
+      seasonalPricing: fallbackSeasonal,
+    },
+  );
+
+  if (name === "hourly_rate") {
+    pricingV2Next.base.hourlyRate = Math.max(0, parsedValue ?? 0);
+  } else {
+    pricingV2Next.base.travelFee = Math.max(0, parsedValue ?? 0);
+  }
+
+  const syncedLegacy = options.syncSeasonalPricingFromPricingV2(
+    fallbackSeasonal,
+    pricingV2Next,
+  );
+
+  return {
+    ...profile,
+    [name]: parsedValue,
+    availability_hours: JSON.stringify({
+      ...options.parseAvailabilityPayloadRaw(profile.availability_hours),
+      pricing: syncedLegacy,
+      pricing_v2: pricingV2Next,
+    }),
   };
 }
 
@@ -140,6 +211,35 @@ export function buildSessionUserPayload(
     firstName: profile.first_name,
     lastName: profile.last_name,
   };
+}
+
+export function resolveSavedSectionId(
+  editingSection: string | null,
+  sectionTitle: string,
+  normalizeSectionId: (title: string) => string,
+): string {
+  return editingSection ?? normalizeSectionId(sectionTitle);
+}
+
+export async function patchProfileRequest<T extends ProfileIdentityLike>(
+  profile: T,
+  avatarUrl: string | null,
+  markOnboardingComplete: boolean,
+): Promise<T> {
+  const response = await fetch("/api/profiles", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      buildProfileSavePayload(profile, avatarUrl, markOnboardingComplete),
+    ),
+  });
+
+  const result = await response.json();
+  if (!response.ok || result?.error) {
+    throw new Error(result?.error || "Erreur lors de la sauvegarde");
+  }
+
+  return result as T;
 }
 
 export async function createQuoteFromMissionRequest(missionId: string): Promise<string> {

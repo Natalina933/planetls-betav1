@@ -14,19 +14,21 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 import styles from "./ConciergeProfilePage.module.scss";
 import {
-  buildProfileSavePayload,
   buildProfileSuccessMessage,
   buildSessionUserPayload,
   createQuoteFromMissionRequest,
   ensureOpenSection,
   hasSectionUnsavedChanges,
   hasValidationErrors,
+  patchProfileRequest,
   removeSectionSnapshot,
+  resolveSavedSectionId,
   type SectionEditSnapshots,
   shouldCompleteMissionOnboarding,
   toggleOpenSection,
   upsertSectionSnapshot,
   uploadProfileAvatar,
+  updateProfileFieldValue,
   updateSocialFieldValue,
 } from "./profileEditing";
 import {
@@ -2654,45 +2656,14 @@ export default function ConciergeProfilePage() {
       return;
     }
 
-    const isBaseTariffField = name === "hourly_rate" || name === "travel_fee";
-
-    setEditProfile((prev) => {
-      if (!prev) return prev;
-
-      if (!isBaseTariffField) {
-        return { ...prev, [name]: value };
-      }
-
-      const parsedValue =
-        value.trim() === "" ? null : Number.isFinite(Number(value)) ? Number(value) : null;
-      const fallbackSeasonal = parseSeasonalPricing(prev.availability_hours);
-      const pricingV2Next = parsePricingV2FromAvailabilityHours(prev.availability_hours, {
-        hourlyRate: prev.hourly_rate ?? 0,
-        travelFee: prev.travel_fee ?? 0,
-        seasonalPricing: fallbackSeasonal,
-      });
-
-      if (name === "hourly_rate") {
-        pricingV2Next.base.hourlyRate = Math.max(0, parsedValue ?? 0);
-      } else {
-        pricingV2Next.base.travelFee = Math.max(0, parsedValue ?? 0);
-      }
-
-      const syncedLegacy = syncSeasonalPricingFromPricingV2(
-        fallbackSeasonal,
-        pricingV2Next,
-      );
-
-      return {
-        ...prev,
-        [name]: parsedValue,
-        availability_hours: JSON.stringify({
-          ...parseAvailabilityPayloadRaw(prev.availability_hours),
-          pricing: syncedLegacy,
-          pricing_v2: pricingV2Next,
-        }),
-      };
-    });
+    setEditProfile((prev) =>
+      updateProfileFieldValue(prev, name, value, {
+        parseSeasonalPricing,
+        parsePricingV2FromAvailabilityHours,
+        syncSeasonalPricingFromPricingV2,
+        parseAvailabilityPayloadRaw,
+      }),
+    );
 
     const errorMessage = validateField(name, value);
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
@@ -2719,26 +2690,16 @@ export default function ConciergeProfilePage() {
         avatarUrl = await uploadProfileAvatar(avatarFile, editProfile.id);
       }
 
-      const response = await fetch("/api/profiles", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          buildProfileSavePayload(
-            editProfile,
-            avatarUrl,
-            shouldMarkOnboardingComplete,
-          ),
-        ),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || result.error) {
-        throw new Error(result.error || "Erreur lors de la sauvegarde");
-      }
-
-      const updatedProfile: Profile = result;
-      const savedSectionId = editingSection ?? normalizeSectionId(sectionTitle);
+      const updatedProfile = await patchProfileRequest(
+        editProfile,
+        avatarUrl,
+        shouldMarkOnboardingComplete,
+      );
+      const savedSectionId = resolveSavedSectionId(
+        editingSection,
+        sectionTitle,
+        normalizeSectionId,
+      );
       setProfile(updatedProfile);
       setEditProfile(updatedProfile);
       setEditingSection(null);
