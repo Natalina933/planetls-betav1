@@ -5,10 +5,13 @@ import {
   buildProfileSuccessMessage,
   buildSessionUserPayload,
   createSectionSnapshot,
+  ensureOpenSection,
   hasSectionUnsavedChanges,
   hasValidationErrors,
   removeSectionSnapshot,
   shouldCompleteMissionOnboarding,
+  toggleOpenSection,
+  updateSocialFieldValue,
   upsertSectionSnapshot,
 } from "../app/dashboard/concierge/profile/profileEditing.ts";
 
@@ -87,4 +90,23 @@ test("validation and onboarding helpers enforce expected rules", () => {
     ),
     false,
   );
+});
+
+test("section state helpers update UI state predictably", () => {
+  assert.deepEqual(toggleOpenSection({}, "missions"), { missions: true });
+  assert.deepEqual(toggleOpenSection({ missions: true }, "missions"), { missions: false });
+  assert.deepEqual(ensureOpenSection({ fiche: false }, "fiche"), { fiche: true });
+});
+
+test("social field helper updates only requested field", () => {
+  const profile = {
+    website: "https://old.example",
+    linkedin: null,
+  };
+
+  assert.deepEqual(updateSocialFieldValue(profile, "website", "https://new.example"), {
+    website: "https://new.example",
+    linkedin: null,
+  });
+  assert.equal(updateSocialFieldValue(null, "facebook", "x"), null);
 });

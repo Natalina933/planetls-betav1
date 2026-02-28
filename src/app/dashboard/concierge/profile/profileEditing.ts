@@ -1,4 +1,5 @@
 export type SectionEditSnapshots = Record<string, string>;
+export type OpenSectionsState = Record<string, boolean>;
 
 interface ProfileIdentityLike {
   first_name: string;
@@ -89,6 +90,41 @@ export function buildProfileSavePayload<T extends ProfileIdentityLike>(
   };
 }
 
+export function toggleOpenSection(
+  openSections: OpenSectionsState,
+  sectionId: string,
+): OpenSectionsState {
+  return {
+    ...openSections,
+    [sectionId]: !openSections[sectionId],
+  };
+}
+
+export function ensureOpenSection(
+  openSections: OpenSectionsState,
+  sectionId: string,
+): OpenSectionsState {
+  return {
+    ...openSections,
+    [sectionId]: true,
+  };
+}
+
+export function updateSocialFieldValue<T extends Record<string, unknown>>(
+  profile: T | null,
+  field: "website" | "linkedin" | "instagram" | "facebook",
+  value: string,
+): T | null {
+  if (!profile) {
+    return profile;
+  }
+
+  return {
+    ...profile,
+    [field]: value,
+  };
+}
+
 export function buildProfileSuccessMessage(sectionTitle: string): string {
   return `✅ ${sectionTitle} mis à jour avec succès`;
 }
@@ -104,6 +140,25 @@ export function buildSessionUserPayload(
     firstName: profile.first_name,
     lastName: profile.last_name,
   };
+}
+
+export async function createQuoteFromMissionRequest(missionId: string): Promise<string> {
+  const response = await fetch("/api/quotes/from-mission", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mission_id: missionId }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(
+      typeof result?.error === "string"
+        ? result.error
+        : "Erreur creation devis depuis mission",
+    );
+  }
+
+  return typeof result?.quote_number === "string" ? result.quote_number : "devis cree";
 }
 
 export async function uploadProfileAvatar(

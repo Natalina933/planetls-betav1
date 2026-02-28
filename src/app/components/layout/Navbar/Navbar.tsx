@@ -1,8 +1,6 @@
 "use client";
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
@@ -11,30 +9,15 @@ import { useSession, signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
 
 const Icons = {
-  FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), {
-    ssr: false,
-  }),
-  FaSearch: dynamic(() => import("react-icons/fa").then((mod) => mod.FaSearch), {
-    ssr: false,
-  }),
-  FaTachometerAlt: dynamic(
-    () => import("react-icons/fa").then((mod) => mod.FaTachometerAlt),
-    { ssr: false },
-  ),
-  FaPalette: dynamic(() => import("react-icons/fa").then((mod) => mod.FaPalette), {
-    ssr: false,
-  }),
+  FaUser: dynamic(() => import("react-icons/fa").then(mod => mod.FaUser), { ssr: false }),
+  FaSearch: dynamic(() => import("react-icons/fa").then(mod => mod.FaSearch), { ssr: false }),
+  FaTachometerAlt: dynamic(() => import("react-icons/fa").then(mod => mod.FaTachometerAlt), { ssr: false }),
+  FaPalette: dynamic(() => import("react-icons/fa").then(mod => mod.FaPalette), { ssr: false }),
 };
 
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
-const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000;
-
-const publicLinks = [
-  { href: "/home", label: "Accueil" },
-  { href: "/home#how-it-works", label: "Fonctionnement" },
-  { href: "/dashboard/owner/concierges", label: "Trouver un concierge" },
-  { href: "/abonnement/concierge-pro", label: "Offre PRO" },
-];
+// ⏱️ Configuration du timeout d'inactivité (en millisecondes)
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000; // Avertir 2 minutes avant
 
 export default function Navbar() {
   const router = useRouter();
@@ -60,37 +43,27 @@ export default function Navbar() {
 
   const isAuthenticated = status === "authenticated";
   const isDashboardRoute = pathname?.startsWith("/dashboard");
+  // const isHomePage = pathname === "/" || pathname === "/home";
 
+  // 🎯 Fonction pour obtenir le chemin du dashboard selon le rôle
   const getDashboardPath = () => {
     if (!userType) {
+      // Fallback si le contexte n'est pas encore chargé
       const role = session?.user?.role;
-      if (role === "concierge" || role === "concierge_pro") {
-        return "/dashboard/concierge";
-      }
-      if (role === "owner" || role === "owner_pro") {
-        return "/dashboard/owner";
-      }
-      if (role === "provider" || role === "provider_pro") {
-        return "/dashboard/provider";
-      }
+      if (role === "concierge") return "/dashboard/concierge";
+      if (role === "owner") return "/dashboard/owner";
+      if (role === "provider") return "/dashboard/provider";
       return "/dashboard";
     }
-
     return `/dashboard/${userType}`;
   };
 
+  // 🔄 Réinitialiser le timer d'inactivité
   const clearInactivityTimers = useCallback(() => {
     if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
     if (warningTimeoutIdRef.current) clearTimeout(warningTimeoutIdRef.current);
     timeoutIdRef.current = null;
     warningTimeoutIdRef.current = null;
-  }, []);
-
-  const handleAutoLogout = useCallback(async () => {
-    await signOut({
-      callbackUrl: "/",
-      redirect: true,
-    });
   }, []);
 
   const resetInactivityTimer = useCallback(() => {
@@ -101,19 +74,32 @@ export default function Navbar() {
     }
 
     if (isAuthenticated && isDashboardRoute) {
-      warningTimeoutIdRef.current = setTimeout(() => {
+      const warningId = setTimeout(() => {
         showWarningRef.current = true;
         setShowWarning(true);
         setWarningDeadline(Date.now() + WARNING_BEFORE_LOGOUT);
         setWarningSecondsLeft(Math.floor(WARNING_BEFORE_LOGOUT / 1000));
       }, INACTIVITY_TIMEOUT - WARNING_BEFORE_LOGOUT);
 
-      timeoutIdRef.current = setTimeout(() => {
+      const logoutId = setTimeout(() => {
         handleAutoLogout();
       }, INACTIVITY_TIMEOUT);
-    }
-  }, [clearInactivityTimers, handleAutoLogout, isAuthenticated, isDashboardRoute]);
 
+      warningTimeoutIdRef.current = warningId;
+      timeoutIdRef.current = logoutId;
+    }
+  }, [clearInactivityTimers, isAuthenticated, isDashboardRoute]);
+
+
+  // 🚪 Déconnexion automatique
+  const handleAutoLogout = async () => {
+    await signOut({
+      callbackUrl: "/",
+      redirect: true
+    });
+  };
+
+  // 🔄 Prolonger la session
   const extendSession = useCallback(() => {
     showWarningRef.current = false;
     setShowWarning(false);
@@ -121,26 +107,29 @@ export default function Navbar() {
     resetInactivityTimer();
   }, [resetInactivityTimer]);
 
+
+  // Focus clavier, gestion Escape et blocage du scroll quand la modale est ouverte
   useEffect(() => {
     if (!showWarning) return;
 
-    const previousOverflow = document.body.style.overflow;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     extendButtonRef.current?.focus();
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         extendSession();
       }
     };
 
-    const onMouseDownCapture = (event: MouseEvent) => {
-      const target = event.target as Node;
+    const onMouseDownCapture = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (warningModalRef.current?.contains(target)) {
         return;
       }
-      event.stopPropagation();
-      event.preventDefault();
+      e.stopPropagation();
+      e.preventDefault();
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -149,10 +138,12 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("mousedown", onMouseDownCapture, true);
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = prevOverflow;
     };
-  }, [extendSession, showWarning]);
+  }, [showWarning, extendSession]);
 
+
+  // 👂 Écouter les événements d'activité utilisateur
   useEffect(() => {
     if (!isAuthenticated || !isDashboardRoute) return;
 
@@ -163,26 +154,24 @@ export default function Navbar() {
       resetInactivityTimer();
     };
 
-    events.forEach((eventName) => {
-      window.addEventListener(eventName, handleActivity);
+    // Ajouter les écouteurs
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity);
     });
 
+    // Timer initial
     resetInactivityTimer();
 
+    // Nettoyage
     return () => {
-      events.forEach((eventName) => {
-        window.removeEventListener(eventName, handleActivity);
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
       });
       clearInactivityTimers();
     };
-  }, [
-    clearInactivityTimers,
-    isAuthenticated,
-    isDashboardRoute,
-    pathname,
-    resetInactivityTimer,
-  ]);
+  }, [isAuthenticated, isDashboardRoute, pathname, clearInactivityTimers, resetInactivityTimer]);
 
+  // 🚪 Arrêter les timers lors de la sortie du dashboard
   useEffect(() => {
     if (isAuthenticated && !isDashboardRoute) {
       clearInactivityTimers();
@@ -190,7 +179,7 @@ export default function Navbar() {
       setShowWarning(false);
       setWarningDeadline(null);
     }
-  }, [clearInactivityTimers, isAuthenticated, isDashboardRoute, pathname]);
+  }, [pathname, isDashboardRoute, isAuthenticated, clearInactivityTimers]);
 
   useEffect(() => {
     showWarningRef.current = showWarning;
@@ -210,15 +199,23 @@ export default function Navbar() {
     tick();
     const intervalId = window.setInterval(tick, 1000);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, [showWarning, warningDeadline]);
 
+  const warningTimeLabel = `${Math.floor(warningSecondsLeft / 60)
+    .toString()
+    .padStart(2, "0")}:${(warningSecondsLeft % 60)
+    .toString()
+    .padStart(2, "0")}`;
+
+  const closeMenu = () => setMenuOpen(false);
+
+  // 🎨 Fermer le menu thème quand on clique en dehors
   useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        themeMenuRef.current &&
-        !themeMenuRef.current.contains(event.target as Node)
-      ) {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
         setThemeMenuOpen(false);
       }
     };
@@ -228,12 +225,6 @@ export default function Navbar() {
       return () => document.removeEventListener("mousedown", handleOutsideClick);
     }
   }, [themeMenuOpen]);
-
-  const warningTimeLabel = `${Math.floor(warningSecondsLeft / 60)
-    .toString()
-    .padStart(2, "0")}:${(warningSecondsLeft % 60).toString().padStart(2, "0")}`;
-
-  const closeMenu = () => setMenuOpen(false);
 
   const handleLogout = async () => {
     closeMenu();
@@ -250,170 +241,141 @@ export default function Navbar() {
     router.push("/login");
   };
 
-  const handleOpenSearch = () => {
-    setSearchOpen(true);
-    closeMenu();
-  };
-
-  const handleOpenRegistration = () => {
-    closeMenu();
-    router.push("/login");
-  };
-
   return (
     <>
-      <nav className={styles.navbar} aria-label="Navigation principale">
-        <Link href="/home" className={styles.brand} onClick={closeMenu}>
-          <span className={styles.brandMark}>PlanetLS</span>
-          <span className={styles.brandTagline}>Conciergerie saisonniere premium</span>
-        </Link>
-
-        <div className={styles.navActions}>
-          <div className={styles.themeSwitcher} ref={themeMenuRef}>
-            <button
-              type="button"
-              className={styles.themeTrigger}
-              onClick={() => setThemeMenuOpen((open) => !open)}
-              title="Changer de theme"
-              aria-label="Changer de theme"
-            >
-              <Icons.FaPalette size={16} />
-              <span className={styles.themeLabel}>{getCurrentLabel()}</span>
-            </button>
-
-            {themeMenuOpen && (
-              <div className={styles.themeDropdown}>
-                {Object.entries(themes).map(([key, value]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`${styles.themeOption} ${theme === value ? styles.active : ""}`}
-                    onClick={() => {
-                      changeTheme(value as string);
-                      setThemeMenuOpen(false);
-                    }}
-                    aria-label={`Selectionner le theme ${labels[value as string]}`}
-                  >
-                    {labels[value as string]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
+      <nav className={styles.navbar}>
+        {/* 🎨 Sélecteur de Thèmes */}
+        <div className={styles.themeSwitcher} ref={themeMenuRef}>
           <button
-            type="button"
-            className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label="Ouvrir le menu"
-            aria-expanded={menuOpen}
+            className={styles.themeTrigger}
+            onClick={() => setThemeMenuOpen(!themeMenuOpen)}
+            title="Changer de thème"
+            aria-label="Changer de thème"
           >
-            <span />
-            <span />
-            <span />
+            <Icons.FaPalette size={18} />
+            <span className={styles.themeLabel}>{getCurrentLabel()}</span>
           </button>
+
+          {themeMenuOpen && (
+            <div className={styles.themeDropdown}>
+              {Object.entries(themes).map(([key, value]) => (
+                <button
+                  key={key}
+                  className={`${styles.themeOption} ${theme === value ? styles.active : ""}`}
+                  onClick={() => {
+                    changeTheme(value as string);
+                    setThemeMenuOpen(false);
+                  }}
+                  aria-label={`Sélectionner thème ${labels[value as string]}`}
+                >
+                  {labels[value as string]}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className={`${styles.menuShell} ${menuOpen ? styles.open : ""}`}>
-          <ul className={styles.menu}>
-            {publicLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={styles.navLink}
-                  onClick={closeMenu}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+        {/* Burger Menu */}
+        <button
+          className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
-            <li>
+        {/* Menu Items */}
+        <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
+          <li className={styles["nav-search"]}>
+            <button
+              onClick={() => {
+                setSearchOpen(true);
+                closeMenu();
+              }}
+              className={`${styles.searchBtn} ${styles.navButton}`}
+              aria-label="Ouvrir la recherche"
+            >
+              <Icons.FaSearch size={18} /> Recherche
+            </button>
+          </li>
+
+          {!isAuthenticated && (
+            <li className={styles["auth-inscription"]}>
               <button
-                type="button"
-                onClick={handleOpenSearch}
-                className={styles.secondaryButton}
-                aria-label="Ouvrir la recherche"
+                onClick={() => {
+                  setSearchOpen(true);
+                  closeMenu();
+                }}
+                className={`${styles.searchBtn} ${styles.navButton}`}
+                aria-label="Ouvrir la recherche pour inscription"
               >
-                <Icons.FaSearch size={16} />
-                Recherche
+                S&apos;inscrire
               </button>
             </li>
+          )}
 
-            {!isAuthenticated && (
-              <li>
-                <button
-                  type="button"
-                  onClick={handleOpenRegistration}
-                  className={styles.secondaryButton}
-                >
-                  S&apos;inscrire
-                </button>
-              </li>
-            )}
-
-            {isAuthenticated && !isDashboardRoute && (
-              <li>
-                <button
-                  type="button"
-                  onClick={handleGoToDashboard}
-                  className={styles.primaryButton}
-                >
-                  <Icons.FaTachometerAlt size={16} />
-                  Mon dashboard
-                </button>
-              </li>
-            )}
-
-            <li>
-              {isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={styles.secondaryButton}
-                >
-                  <Icons.FaUser size={16} />
-                  Se deconnecter
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleLogin}
-                  className={styles.primaryButton}
-                >
-                  <Icons.FaUser size={16} />
-                  Se connecter
-                </button>
-              )}
+          {/* 🎯 Bouton Dashboard (uniquement si connecté ET pas déjà sur dashboard) */}
+          {isAuthenticated && !isDashboardRoute && (
+            <li className={styles["auth-dashboard"]}>
+              <button
+                type="button"
+                onClick={handleGoToDashboard}
+                className={styles.dashboardButton}
+              >
+                <Icons.FaTachometerAlt size={18} /> Mon Dashboard
+              </button>
             </li>
-          </ul>
-        </div>
+          )}
+
+          <li className={styles["auth-connexion"]}>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.logoutButton}
+              >
+                <Icons.FaUser size={18} /> Se déconnecter
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleLogin}
+                className={styles.loginButton}
+              >
+                <Icons.FaUser size={18} /> Se connecter
+              </button>
+            )}
+          </li>
+        </ul>
       </nav>
 
+      {/* ⚠️ Modal d'avertissement d'inactivité */}
       {showWarning && (
         <div className={styles.warningOverlay}>
           <div className={styles.warningModal} ref={warningModalRef}>
-            <h3>Session bientot expiree</h3>
-            <p>Vous serez deconnecte dans 2 minutes en raison d&apos;inactivite.</p>
+            <h3>⏱️ Session bientôt expirée</h3>
+            <p>
+              Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.
+            </p>
             <p className={styles.warningSubtext}>
-              Temps restant : <strong>{warningTimeLabel}</strong>. Cliquez sur
-              &quot;Rester connecte&quot; pour continuer votre session.
+              Temps restant: <strong>{warningTimeLabel}</strong>. Cliquez sur
+              &quot;Rester connecté&quot; pour continuer votre session.
             </p>
             <div className={styles.warningActions}>
               <button
                 ref={extendButtonRef}
-                type="button"
                 onClick={extendSession}
                 className={styles.extendButton}
               >
-                Rester connecte
+                ✓ Rester connecté
               </button>
               <button
-                type="button"
                 onClick={handleAutoLogout}
                 className={styles.logoutNowButton}
               >
-                Se deconnecter
+                Se déconnecter
               </button>
             </div>
           </div>

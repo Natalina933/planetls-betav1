@@ -17,24 +17,21 @@ import {
   buildProfileSavePayload,
   buildProfileSuccessMessage,
   buildSessionUserPayload,
+  createQuoteFromMissionRequest,
+  ensureOpenSection,
   hasSectionUnsavedChanges,
   hasValidationErrors,
   removeSectionSnapshot,
   type SectionEditSnapshots,
   shouldCompleteMissionOnboarding,
+  toggleOpenSection,
   upsertSectionSnapshot,
   uploadProfileAvatar,
+  updateSocialFieldValue,
 } from "./profileEditing";
 import {
-  ConciergeDocumentsTabContent,
-  ConciergeFicheTabContent,
-  ConciergeMissionsTabContent,
-  ConciergeNotifications,
-  ConciergePacksTabContent,
-  ConciergePageHeader,
-  ConciergeTariffsTabContent,
-  ConciergeTeamTabContent,
-  ConciergeTabNavigation,
+  ConciergeProfileActiveTabContent,
+  ConciergeProfileShell,
   EditableProfileField,
   EditableProfileSection,
 } from "./profileTabSections";
@@ -2765,10 +2762,7 @@ export default function ConciergeProfilePage() {
   };
 
   const toggleSection = (sectionId: string) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
+    setOpenSections((prev) => toggleOpenSection(prev, sectionId));
   };
 
   const beginSectionEdit = (sectionId: string) => {
@@ -2785,7 +2779,7 @@ export default function ConciergeProfilePage() {
 
   const openMissionSectionForEdit = (sectionId: string) => {
     beginSectionEdit(sectionId);
-    setOpenSections((prev) => ({ ...prev, [sectionId]: true }));
+    setOpenSections((prev) => ensureOpenSection(prev, sectionId));
   };
 
   const cancelSectionEdit = () => {
@@ -2887,7 +2881,7 @@ export default function ConciergeProfilePage() {
     field: "website" | "linkedin" | "instagram" | "facebook",
     value: string,
   ) => {
-    setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
+    setEditProfile((prev) => updateSocialFieldValue(prev, field, value));
   };
 
   const createQuoteFromMission = useCallback(async () => {
@@ -2895,25 +2889,7 @@ export default function ConciergeProfilePage() {
     try {
       setMissionQuoteBusy(true);
       setMissionQuoteFeedback("");
-      const response = await fetch("/api/quotes/from-mission", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mission_id: selectedMissionQuoteId }),
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(
-          typeof result?.error === "string"
-            ? result.error
-            : "Erreur creation devis depuis mission",
-        );
-      }
-
-      const quoteNumber =
-        typeof result?.quote_number === "string"
-          ? result.quote_number
-          : "devis cree";
-
+      const quoteNumber = await createQuoteFromMissionRequest(selectedMissionQuoteId);
       setMissionQuoteFeedback(`${quoteNumber} genere. Onglet Tarifs mis a jour.`);
       handleTabChange("tarifs");
     } catch (error) {
@@ -2925,197 +2901,135 @@ export default function ConciergeProfilePage() {
     }
   }, [handleTabChange, selectedMissionQuoteId]);
 
-  const renderTabContent = () => {
-    if (!profile || !editProfile) return null;
-
-    switch (activeTab) {
-      case "fiche":
-        return (
-          <ConciergeFicheTabContent
-            styles={styles}
-            profile={profile}
-            editProfile={editProfile}
-            editingSection={editingSection}
-            avatarFile={avatarFile}
-            defaultAvatar={DEFAULT_AVATAR}
-            sectionIds={{
-              INFO_PERSO: SECTION_IDS.INFO_PERSO,
-              PRESENTATION: SECTION_IDS.PRESENTATION,
-            }}
-            renderSection={renderSection}
-            renderField={renderField}
-            formatExperienceLabel={formatExperienceLabel}
-            setAvatarFile={setAvatarFile}
-            setEditProfile={setEditProfile}
-            handleSaveSection={handleSaveSection}
-            beginSectionEdit={beginSectionEdit}
-            handleSocialChange={handleSocialChange}
-            errors={errors}
-          />
-        );
-
-      case "missions":
-        return (
-          <ConciergeMissionsTabContent
-            styles={styles}
-            renderSection={renderSection}
-            renderField={renderField}
-            sectionIds={MISSION_SECTION_IDS}
-            editingSection={editingSection}
-            missionProgressPercent={missionProgressPercent}
-            missionProgressDoneCount={missionProgressDoneCount}
-            missionProgressSteps={missionProgressSteps}
-            showPendingMissionStepsOnly={showPendingMissionStepsOnly}
-            setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
-            activeMissionRawLabels={activeMissionRawLabels}
-            recognizedActiveMissionCount={recognizedActiveMissionCount}
-            unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
-            missionOpenDaysCount={missionOpenDaysCount}
-            missionRangesCount={missionRangesCount}
-            missionAvailability={missionAvailability}
-            openMissionSectionForEdit={openMissionSectionForEdit}
-            selectedMissionQuoteId={selectedMissionQuoteId}
-            setSelectedMissionQuoteId={setSelectedMissionQuoteId}
-            missionRows={missionRows}
-            missionQuoteBusy={missionQuoteBusy}
-            createQuoteFromMission={createQuoteFromMission}
-            missionQuoteFeedback={missionQuoteFeedback}
-            missionPayload={missionPayload}
-            removeUnrecognizedServices={removeUnrecognizedServices}
-            catalogSyncBusy={catalogSyncBusy}
-            setEditProfile={setEditProfile}
-            parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
-            parseMissionPayload={parseMissionPayload}
-            buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
-            toMissionTypeId={toMissionTypeId}
-            normalizeMissionSchedule={normalizeMissionSchedule}
-          />
-        );
-
-      case "packs":
-        return (
-          <ConciergePacksTabContent
-            styles={styles}
-            renderSection={renderSection}
-            activeMissionServiceIds={activeMissionServiceCatalogIds}
-            activeMissionServiceLabels={activeMissionServiceLabels}
-          />
-        );
-
-      case "tarifs":
-        return (
-          <ConciergeTariffsTabContent
-            styles={styles}
-            renderSection={renderSection}
-            sectionIds={TARIFF_SECTION_IDS}
-            pricingMeta={pricingMeta}
-            pricingV2={pricingV2}
-            configuredPricingCount={configuredPricingCount}
-            tariffReadinessPercent={tariffReadinessPercent}
-            pendingTariffReadinessChecks={pendingTariffReadinessChecks}
-            scrollToTariffSection={scrollToTariffSection}
-            handleTabChange={handleTabChange}
-            editProfile={editProfile}
-            tariffLocationLabel={tariffLocationLabel}
-            missionAvailability={missionAvailability}
-            missionPayload={missionPayload}
-            editingSection={editingSection}
-            applyPricingMeta={applyPricingMeta}
-            pricingCatalogRows={pricingCatalogRows}
-            activeMissionServiceLabels={activeMissionServiceLabels}
-            renderField={renderField}
-            applyPricingV2={applyPricingV2}
-            pricingSortMode={pricingSortMode}
-            setPricingSortMode={setPricingSortMode}
-            showAllPricingServices={showAllPricingServices}
-            setShowAllPricingServices={setShowAllPricingServices}
-            canEditTariffConfig={canEditTariffConfig}
-            servicePrices={servicePrices}
-            servicePricesBusyId={servicePricesBusyId}
-            servicePricesLoading={servicePricesLoading}
-            visiblePricingCatalogRows={visiblePricingCatalogRows}
-            groupedPricingCatalogRows={groupedPricingCatalogRows}
-            collapsedPricingCategories={collapsedPricingCategories}
-            togglePricingCategory={togglePricingCategory}
-            openCreatePricingModal={openCreatePricingModal}
-            openEditPricingModal={openEditPricingModal}
-            deleteServicePrice={deleteServicePrice}
-            resetAllServicePrices={resetAllServicePrices}
-            propertyTypeOptions={PROPERTY_TYPE_OPTIONS}
-            getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
-            updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
-            segmentDraft={segmentDraft}
-            setSegmentDraft={setSegmentDraft}
-            segmentsBusyId={segmentsBusyId}
-            createPricingSegment={createPricingSegment}
-            segmentsLoading={segmentsLoading}
-            pricingSegments={pricingSegments}
-            setPricingSegments={setPricingSegments}
-            updatePricingSegment={updatePricingSegment}
-            deletePricingSegment={deletePricingSegment}
-            propertyRuleDraft={propertyRuleDraft}
-            setPropertyRuleDraft={setPropertyRuleDraft}
-            propertyRulesBusyId={propertyRulesBusyId}
-            createPricingPropertyRule={createPricingPropertyRule}
-            propertyRulesLoading={propertyRulesLoading}
-            propertyRules={propertyRules}
-            setPropertyRules={setPropertyRules}
-            updatePricingPropertyRule={updatePricingPropertyRule}
-            deletePricingPropertyRule={deletePricingPropertyRule}
-            catalogServices={catalogServices}
-            strategySim={strategySim}
-            setStrategySim={setStrategySim}
-            applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
-            scenarioDraftName={scenarioDraftName}
-            setScenarioDraftName={setScenarioDraftName}
-            scenariosBusyId={scenariosBusyId}
-            createPricingScenario={createPricingScenario}
-            resetStrategySim={() => setStrategySim(DEFAULT_STRATEGY_SIM)}
-            scenariosLoading={scenariosLoading}
-            pricingScenarios={pricingScenarios}
-            loadPricingScenario={loadPricingScenario}
-            setDefaultPricingScenario={setDefaultPricingScenario}
-            deletePricingScenario={deletePricingScenario}
-            selectedPricingSegment={selectedPricingSegment}
-            strategyProjection={strategyProjection}
-            formatCurrency={formatCurrency}
-            pricingModalOpen={pricingModalOpen}
-            pricingModalState={pricingModalState}
-            pricingModalSaving={pricingModalSaving}
-            pricingModalError={pricingModalError}
-            pricingUnitOptions={PRICING_UNIT_OPTIONS}
-            closePricingModal={closePricingModal}
-            saveServicePrice={saveServicePrice}
-            resetPricingModalToDefaults={resetPricingModalToDefaults}
-            setPricingModalState={setPricingModalState}
-            missionRows={missionRows}
-            billingDeskProps={billingDeskProps}
-            formatExperienceLabel={formatExperienceLabel}
-          />
-        );
-
-      case "equipe":
-        return (
-          <ConciergeTeamTabContent
-            renderSection={renderSection}
-            renderField={renderField}
-          />
-        );
-
-      case "documents":
-        return (
-          <ConciergeDocumentsTabContent
-            renderSection={renderSection}
-            placeholderClassName={styles.placeholderContent}
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const activeTabContent = renderTabContent();
+  const activeTabContent = (
+    <ConciergeProfileActiveTabContent
+      activeTab={activeTab}
+      styles={styles}
+      profile={profile}
+      editProfile={editProfile}
+      editingSection={editingSection}
+      avatarFile={avatarFile}
+      defaultAvatar={DEFAULT_AVATAR}
+      sectionIds={{
+        INFO_PERSO: SECTION_IDS.INFO_PERSO,
+        PRESENTATION: SECTION_IDS.PRESENTATION,
+      }}
+      missionSectionIds={MISSION_SECTION_IDS}
+      tariffSectionIds={TARIFF_SECTION_IDS}
+      renderSection={renderSection}
+      renderField={renderField}
+      formatExperienceLabel={formatExperienceLabel}
+      setAvatarFile={setAvatarFile}
+      setEditProfile={setEditProfile}
+      handleSaveSection={handleSaveSection}
+      beginSectionEdit={beginSectionEdit}
+      handleSocialChange={handleSocialChange}
+      errors={errors}
+      missionProgressPercent={missionProgressPercent}
+      missionProgressDoneCount={missionProgressDoneCount}
+      missionProgressSteps={missionProgressSteps}
+      showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+      setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
+      activeMissionRawLabels={activeMissionRawLabels}
+      recognizedActiveMissionCount={recognizedActiveMissionCount}
+      unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
+      missionOpenDaysCount={missionOpenDaysCount}
+      missionRangesCount={missionRangesCount}
+      missionAvailability={missionAvailability}
+      openMissionSectionForEdit={openMissionSectionForEdit}
+      selectedMissionQuoteId={selectedMissionQuoteId}
+      setSelectedMissionQuoteId={setSelectedMissionQuoteId}
+      missionRows={missionRows}
+      missionQuoteBusy={missionQuoteBusy}
+      createQuoteFromMission={createQuoteFromMission}
+      missionQuoteFeedback={missionQuoteFeedback}
+      missionPayload={missionPayload}
+      removeUnrecognizedServices={removeUnrecognizedServices}
+      catalogSyncBusy={catalogSyncBusy}
+      parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
+      parseMissionPayload={parseMissionPayload}
+      buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
+      toMissionTypeId={toMissionTypeId}
+      normalizeMissionSchedule={normalizeMissionSchedule}
+      activeMissionServiceCatalogIds={activeMissionServiceCatalogIds}
+      activeMissionServiceLabels={activeMissionServiceLabels}
+      pricingMeta={pricingMeta}
+      pricingV2={pricingV2}
+      configuredPricingCount={configuredPricingCount}
+      tariffReadinessPercent={tariffReadinessPercent}
+      pendingTariffReadinessChecks={pendingTariffReadinessChecks}
+      scrollToTariffSection={scrollToTariffSection}
+      handleTabChange={handleTabChange}
+      tariffLocationLabel={tariffLocationLabel}
+      applyPricingMeta={applyPricingMeta}
+      pricingCatalogRows={pricingCatalogRows}
+      applyPricingV2={applyPricingV2}
+      pricingSortMode={pricingSortMode}
+      setPricingSortMode={setPricingSortMode}
+      showAllPricingServices={showAllPricingServices}
+      setShowAllPricingServices={setShowAllPricingServices}
+      canEditTariffConfig={canEditTariffConfig}
+      servicePrices={servicePrices}
+      servicePricesBusyId={servicePricesBusyId}
+      servicePricesLoading={servicePricesLoading}
+      visiblePricingCatalogRows={visiblePricingCatalogRows}
+      groupedPricingCatalogRows={groupedPricingCatalogRows}
+      collapsedPricingCategories={collapsedPricingCategories}
+      togglePricingCategory={togglePricingCategory}
+      openCreatePricingModal={openCreatePricingModal}
+      openEditPricingModal={openEditPricingModal}
+      deleteServicePrice={deleteServicePrice}
+      resetAllServicePrices={resetAllServicePrices}
+      propertyTypeOptions={PROPERTY_TYPE_OPTIONS}
+      getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
+      updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
+      segmentDraft={segmentDraft}
+      setSegmentDraft={setSegmentDraft}
+      segmentsBusyId={segmentsBusyId}
+      createPricingSegment={createPricingSegment}
+      segmentsLoading={segmentsLoading}
+      pricingSegments={pricingSegments}
+      setPricingSegments={setPricingSegments}
+      updatePricingSegment={updatePricingSegment}
+      deletePricingSegment={deletePricingSegment}
+      propertyRuleDraft={propertyRuleDraft}
+      setPropertyRuleDraft={setPropertyRuleDraft}
+      propertyRulesBusyId={propertyRulesBusyId}
+      createPricingPropertyRule={createPricingPropertyRule}
+      propertyRulesLoading={propertyRulesLoading}
+      propertyRules={propertyRules}
+      setPropertyRules={setPropertyRules}
+      updatePricingPropertyRule={updatePricingPropertyRule}
+      deletePricingPropertyRule={deletePricingPropertyRule}
+      catalogServices={catalogServices}
+      strategySim={strategySim}
+      setStrategySim={setStrategySim}
+      applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
+      scenarioDraftName={scenarioDraftName}
+      setScenarioDraftName={setScenarioDraftName}
+      scenariosBusyId={scenariosBusyId}
+      createPricingScenario={createPricingScenario}
+      resetStrategySim={() => setStrategySim(DEFAULT_STRATEGY_SIM)}
+      scenariosLoading={scenariosLoading}
+      pricingScenarios={pricingScenarios}
+      loadPricingScenario={loadPricingScenario}
+      setDefaultPricingScenario={setDefaultPricingScenario}
+      deletePricingScenario={deletePricingScenario}
+      selectedPricingSegment={selectedPricingSegment}
+      strategyProjection={strategyProjection}
+      formatCurrency={formatCurrency}
+      pricingModalOpen={pricingModalOpen}
+      pricingModalState={pricingModalState}
+      pricingModalSaving={pricingModalSaving}
+      pricingModalError={pricingModalError}
+      pricingUnitOptions={PRICING_UNIT_OPTIONS}
+      closePricingModal={closePricingModal}
+      saveServicePrice={saveServicePrice}
+      resetPricingModalToDefaults={resetPricingModalToDefaults}
+      setPricingModalState={setPricingModalState}
+      billingDeskProps={billingDeskProps}
+    />
+  );
 
   if (errorMsg && !profile) {
     return <div className={styles.errorMsg}>{errorMsg}</div>;
@@ -3126,30 +3040,16 @@ export default function ConciergeProfilePage() {
   }
 
   return (
-    <div className={styles.page}>
-      <ConciergePageHeader styles={styles} title="Espace Concierge" />
-
-      <main className={styles.main}>
-        <ConciergeNotifications
-          styles={styles}
-          successMsg={successMsg}
-          errorMsg={errorMsg}
-        />
-
-        <ConciergeTabNavigation
-          styles={styles}
-          tabs={CONCIERGE_TABS}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
-
-        <div className={styles.tabContent}>
-          <div key={activeTab} className={styles.tabPane} aria-live="polite">
-            {activeTabContent}
-          </div>
-        </div>
-      </main>
-    </div>
+    <ConciergeProfileShell
+      styles={styles}
+      title="Espace Concierge"
+      successMsg={successMsg}
+      errorMsg={errorMsg}
+      tabs={CONCIERGE_TABS}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      activeTabContent={activeTabContent}
+    />
   );
 }
 
