@@ -1,24 +1,28 @@
-// src/app/api/contracts/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
+import {
+  getServiceAuthContext,
+  isAllowedServiceRole,
+  serviceAuthError,
+} from "@/app/api/services/_shared";
 
 interface ContractBody {
   title: string;
-  start_date: string; // "YYYY-MM-DD"
+  start_date: string;
   end_date?: string | null;
   status?: string;
   notes?: string | null;
 }
 
-// --- GET /api/contracts -> Liste des contrats de l'utilisateur (avec filtres) ---
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
 
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const url = new URL(req.url);
@@ -27,53 +31,48 @@ export async function GET(req: NextRequest) {
     const from = searchParams.get("from");
     const to = searchParams.get("to");
 
-    let query = db
-      .from("services_contracts")
-      .select("*")
-      .eq("profile_id", userId)
-      .order("start_date", { ascending: false });
+    let query = db.from("services_contracts").select("*").order("start_date", { ascending: false });
 
+    if (!auth.isAdmin) {
+      query = query.eq("profile_id", auth.userId);
+    }
     if (status) query = query.eq("status", status);
     if (from) query = query.gte("start_date", from);
     if (to) query = query.lte("start_date", to);
 
     const { data, error } = await query;
-
     if (error) {
       console.error("[GET /api/contracts] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    return NextResponse.json(data ?? []);
   } catch (err) {
     console.error("[GET /api/contracts] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-// --- POST /api/contracts -> Créer un contrat ---
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
 
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const body: ContractBody = await req.json();
-
     if (!body.title || !body.start_date) {
-      return NextResponse.json(
-        { error: "title et start_date sont requis" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "title et start_date sont requis" }, { status: 400 });
     }
 
     const { data, error } = await db
       .from("services_contracts")
       .insert({
-        profile_id: userId,
+        profile_id: auth.userId,
         title: body.title,
         start_date: body.start_date,
         end_date: body.end_date ?? null,
@@ -85,10 +84,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("[POST /api/contracts] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la création" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la creation" }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
@@ -97,5 +93,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-

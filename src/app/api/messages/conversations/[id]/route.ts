@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 interface SendMessageBody {
   body?: string;
   metadata?: Json | null;
 }
-
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
 
 const conversationSelect = `
   id,
@@ -51,7 +43,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserId(req);
+    const { userId } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -128,7 +120,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserId(req);
+    const { userId } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }

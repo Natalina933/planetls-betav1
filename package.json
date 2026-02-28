@@ -2,11 +2,13 @@
   "name": "planetls-beta",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --experimental-strip-types --test src/tests/*.test.mts"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",

@@ -1,39 +1,13 @@
-// src/app/api/profiles/current/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
-
-// 1) Définir le type ici
-interface AuthToken {
-  id?: string;
-  email?: string;
-  username?: string;
-  name?: string;
-  avatar_url?: string | null;
-  role?: string;
-  status?: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string | null;
-  location?: string | null;
-  option?: string | null;
-  search_target?: string | null;
-  company_name?: string;
-}
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 export async function GET(req: NextRequest) {
-  const rawToken = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
+  const { userId } = await getApiAuthContext(req);
 
-  const token = rawToken as AuthToken | null;
-
-  if (!token?.id) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const userId = token.id;
 
   const { data: profile, error } = await db
     .from("profiles")
@@ -52,5 +26,3 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(profile, { status: 200 });
 }
-
-

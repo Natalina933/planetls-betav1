@@ -1,9 +1,10 @@
-// src/app/api/pricing/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
-
-type PricingType = "hourly" | "fixed" | "monthly" | "custom";
+import {
+  ALLOWED_PRICING_ROLES,
+  getAuthContext,
+  PricingType,
+} from "@/app/api/pricing/_shared";
 
 interface PricingUpdateBody {
   service_id?: number | null;
@@ -13,32 +14,28 @@ interface PricingUpdateBody {
   unit?: string;
 }
 
-async function getCurrentUserId(req: NextRequest): Promise<string | null> {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-  return typeof token?.sub === "string" ? token.sub : null;
-}
-
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getCurrentUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const { id } = await params;
     const { data, error } = await db
       .from("services_pricing")
-      .select(
-        `
+      .select(`
         *,
         service:services_catalog(id, category, service, description)
-      `
-      )
+      `)
       .eq("id", id)
-      .eq("profile_id", userId)
+      .eq("profile_id", auth.userId)
       .maybeSingle();
 
     if (error) {
@@ -59,13 +56,16 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
-    const userId = await getCurrentUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const { data: existing } = await db
@@ -74,8 +74,8 @@ export async function PATCH(
       .eq("id", id)
       .single();
 
-    if (!existing || existing.profile_id !== userId) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!existing || (!auth.isAdmin && existing.profile_id !== auth.userId)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const rawBody = await req.json();
@@ -86,8 +86,8 @@ export async function PATCH(
         rawBody.service_id !== ""
           ? Number(rawBody.service_id)
           : rawBody.service_id === null
-          ? null
-          : undefined,
+            ? null
+            : undefined,
       label: rawBody.label,
       type: rawBody.type,
       amount: rawBody.amount,
@@ -103,8 +103,8 @@ export async function PATCH(
 
     if (Object.keys(updateObj).length === 0) {
       return NextResponse.json(
-        { error: "Aucune donnée à mettre à jour" },
-        { status: 400 }
+        { error: "Aucune donnee a mettre a jour" },
+        { status: 400 },
       );
     }
 
@@ -112,12 +112,10 @@ export async function PATCH(
       .from("services_pricing")
       .update(updateObj)
       .eq("id", id)
-      .select(
-        `
+      .select(`
         *,
         service:services_catalog(id, category, service, description)
-      `
-      )
+      `)
       .single();
 
     if (error) {
@@ -134,13 +132,16 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
-    const userId = await getCurrentUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const { data: existing } = await db
@@ -149,8 +150,8 @@ export async function DELETE(
       .eq("id", id)
       .single();
 
-    if (!existing || existing.profile_id !== userId) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!existing || (!auth.isAdmin && existing.profile_id !== auth.userId)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const { error } = await db.from("services_pricing").delete().eq("id", id);
@@ -159,11 +160,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: "Tarif supprimé" });
+    return NextResponse.json({ success: true, message: "Tarif supprime" });
   } catch (err) {
     console.error("[DELETE /api/pricing/:id] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-

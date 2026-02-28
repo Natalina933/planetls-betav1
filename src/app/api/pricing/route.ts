@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
+import {
+  fetchPricingList,
+  getAuthContext,
+  isAllowedPricingRole,
+} from "@/app/api/pricing/_shared";
 
 type PricingType = "hourly" | "fixed" | "monthly" | "custom";
 
@@ -12,68 +16,53 @@ interface PricingInsertBody {
   unit?: string;
 }
 
-// GET /api/pricing -> Liste des tarifs (avec filtres optionnels)
 export async function GET(req: NextRequest) {
   try {
-    // Vérification auth
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!isAllowedPricingRole(auth.role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const url = new URL(req.url);
     const searchParams = url.searchParams;
-
-    // Filtres optionnels (en + du filtre userId automatique)
     const profileId = searchParams.get("profileId");
     const serviceId = searchParams.get("serviceId");
     const type = searchParams.get("type");
 
-    let query = db
-      .from("services_pricing")
-      .select(`
-        *,
-        service:services_catalog(id, category, service, description)
-      `)
-      .eq("profile_id", userId); // ✅ Toujours filtré par user connecté
-
-    // Filtres supplémentaires OPTIONNELS
-    if (profileId && profileId === userId) {
-      // OK si même user
-    }
-    if (serviceId) {
-      query = query.eq("service_id", Number(serviceId));
-    }
-    if (type) {
-      query = query.eq("type", type);
-    }
-
-    const { data, error } = await query.order("created_at", {
-      ascending: false,
+    const result = await fetchPricingList({
+      profileId,
+      serviceId,
+      type,
+      isAdmin: auth.isAdmin,
+      userId: auth.userId,
     });
 
-    if (error) {
-      console.error("[GET /api/pricing] DB error:", error);
+    if (typeof result.error === "string") {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+    if (result.error) {
+      console.error("[GET /api/pricing] DB error:", result.error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    return NextResponse.json(result.data);
   } catch (err) {
     console.error("[GET /api/pricing] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-// POST reste IDENTIQUE (parfait)
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const auth = await getAuthContext(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!isAllowedPricingRole(auth.role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const rawBody = await req.json();
@@ -94,19 +83,19 @@ export async function POST(req: NextRequest) {
     if (!body.label || body.amount === undefined) {
       return NextResponse.json(
         { error: "Label et montant requis" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const { data, error } = await db
       .from("services_pricing")
       .insert({
-        profile_id: userId,
+        profile_id: auth.userId,
         service_id: body.service_id ?? null,
         label: body.label,
         type: body.type ?? "custom",
         amount: body.amount,
-        unit: body.unit ?? "€",
+        unit: body.unit ?? "EUR",
       })
       .select(`
         *,
@@ -125,5 +114,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-

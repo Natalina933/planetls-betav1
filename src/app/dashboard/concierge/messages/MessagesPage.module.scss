@@ -38,6 +38,16 @@
   font-size: 0.82rem;
 }
 
+.successBox {
+  margin: 0;
+  border: 1px solid rgba(22, 163, 74, 0.28);
+  border-radius: 10px;
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.82rem;
+}
+
 .layout {
   display: grid;
   grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);

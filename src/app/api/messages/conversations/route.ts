@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
 
@@ -21,14 +21,12 @@ const VALID_SOURCES: ConversationSource[] = [
   "quote",
   "invoice",
 ];
-
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
+const ALLOWED_CONVERSATION_CREATOR_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const conversationSelect = `
   id,
@@ -47,7 +45,7 @@ const conversationSelect = `
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -143,9 +141,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_CONVERSATION_CREATOR_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const body: CreateConversationBody = await req.json();
@@ -159,6 +160,31 @@ export async function POST(req: NextRequest) {
         { error: "Impossible de creer une conversation avec vous-meme" },
         { status: 400 },
       );
+    }
+
+    const { data: ownerProfile, error: ownerProfileError } = await db
+      .from("profiles")
+      .select("id, role, category")
+      .eq("id", ownerProfileId)
+      .maybeSingle();
+
+    if (ownerProfileError) {
+      console.error("[POST /api/messages/conversations] owner profile error:", ownerProfileError);
+      return NextResponse.json({ error: "Erreur verification destinataire" }, { status: 500 });
+    }
+    if (!ownerProfile) {
+      return NextResponse.json({ error: "Destinataire introuvable" }, { status: 404 });
+    }
+
+    const roleValue = (ownerProfile.role ?? "").toLowerCase();
+    const categoryValue = (ownerProfile.category ?? "").toLowerCase();
+    const isOwnerTarget =
+      roleValue === "owner" ||
+      roleValue === "owner_pro" ||
+      categoryValue.startsWith("proprietaire");
+
+    if (!isOwnerTarget) {
+      return NextResponse.json({ error: "Destinataire invalide" }, { status: 400 });
     }
 
     const source: ConversationSource = VALID_SOURCES.includes(body.source as ConversationSource)

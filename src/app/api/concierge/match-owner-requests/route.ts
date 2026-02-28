@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
 import type { Database, Json } from "@/types/supabase";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 type MatchRow = Database["public"]["Tables"]["concierge_owner_matches"]["Row"];
 type MatchInsert = Database["public"]["Tables"]["concierge_owner_matches"]["Insert"];
@@ -55,13 +55,12 @@ const MATCH_SELECT = `
   updated_at
 `;
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
+const ALLOWED_MATCH_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const getErrorMessage = async (res: Response, fallback: string): Promise<string> => {
   try {
@@ -247,9 +246,12 @@ const formatMatchRows = (rows: MatchRow[]) =>
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_MATCH_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const url = new URL(req.url);
@@ -288,9 +290,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_MATCH_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const url = new URL(req.url);

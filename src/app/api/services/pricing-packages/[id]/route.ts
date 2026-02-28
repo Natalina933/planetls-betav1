@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
-
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
+import {
+  getServiceAuthContext,
+  isAllowedServiceRole,
+  serviceAuthError,
+} from "@/app/api/services/_shared";
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const { id } = await params;
@@ -33,7 +33,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
 
-    if (!existing || existing.profile_id !== userId) {
+    if (!existing) {
+      return NextResponse.json({ error: "Introuvable" }, { status: 404 });
+    }
+
+    if (!auth.isAdmin && existing.profile_id !== auth.userId) {
       return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 

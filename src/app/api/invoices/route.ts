@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 type InvoiceStatus =
   | "draft"
@@ -56,13 +56,16 @@ const VALID_INVOICE_STATUS: InvoiceStatus[] = [
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
+const ALLOWED_BILLING_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+  "owner",
+  "owner_pro",
+]);
+
+const OWNER_BILLING_ROLES = new Set(["owner", "owner_pro"]);
 
 const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string => {
   const code = error?.code ?? "";
@@ -174,9 +177,12 @@ const invoiceSelect = `
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_BILLING_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const url = new URL(req.url);
@@ -189,9 +195,14 @@ export async function GET(req: NextRequest) {
     let query = db
       .from("invoices")
       .select(invoiceSelect)
-      .eq("concierge_profile_id", userId)
       .order("created_at", { ascending: false })
       .limit(limit);
+
+    if (OWNER_BILLING_ROLES.has(role)) {
+      query = query.eq("owner_profile_id", userId);
+    } else {
+      query = query.eq("concierge_profile_id", userId);
+    }
 
     if (status && VALID_INVOICE_STATUS.includes(status as InvoiceStatus)) {
       query = query.eq("status", status);
@@ -199,7 +210,7 @@ export async function GET(req: NextRequest) {
     if (quoteId) {
       query = query.eq("quote_id", quoteId);
     }
-    if (ownerProfileId) {
+    if (ownerProfileId && !OWNER_BILLING_ROLES.has(role)) {
       query = query.eq("owner_profile_id", ownerProfileId);
     }
 
@@ -224,9 +235,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_BILLING_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const body: CreateInvoiceBody = await req.json();

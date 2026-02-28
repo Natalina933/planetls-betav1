@@ -1,8 +1,8 @@
 // src/app/api/housing/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
 import type { HousingUpdate } from "@/types/supabase";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 type HousingOwner = { id?: string; userId?: string; profile_id?: string } | null;
 
@@ -45,20 +45,12 @@ function extractOwnerId(proprietaire: unknown): string | null {
   return readOwnerId(proprietaire);
 }
 
-async function getAuthContext(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-  const userId = typeof token?.sub === "string" ? token.sub : undefined;
-  const role = typeof token?.role === "string" ? token.role : "";
-  const isAdmin = role === "admin" || role === "super_admin";
-  return { userId, isAdmin };
-}
-
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId, isAdmin } = await getAuthContext(req);
+    const { userId, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -87,8 +79,7 @@ export async function GET(
     }
 
     const ownerId = extractOwnerId(data?.proprietaire);
-    // Legacy rows can contain non-UUID owner payloads. Enforce only UUID ownership.
-    if (!isAdmin && ownerId && isUuidLike(ownerId) && ownerId !== userId) {
+    if (!isAdmin && (!ownerId || !isUuidLike(ownerId) || ownerId !== userId)) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -104,7 +95,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId, isAdmin } = await getAuthContext(req);
+    const { userId, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
@@ -198,7 +189,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId, isAdmin } = await getAuthContext(req);
+    const { userId, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }

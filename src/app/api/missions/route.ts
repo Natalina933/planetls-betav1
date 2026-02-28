@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { Json } from "@/types/supabase";
 
 type MissionStatus =
@@ -38,6 +38,12 @@ const VALID_STATUS: MissionStatus[] = [
 ];
 
 const VALID_PRIORITY: MissionPriority[] = ["low", "normal", "high", "urgent"];
+const CONCIERGE_MISSION_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const mapMissionInsertError = (error: {
   code?: string;
@@ -86,18 +92,10 @@ const mapMissionInsertError = (error: {
   };
 };
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
-
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const auth = await getApiAuthContext(req);
+    if (!auth.userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
@@ -114,11 +112,17 @@ export async function GET(req: NextRequest) {
       .limit(limit);
 
     if (scopeParam === "owner") {
-      query = query.eq("owner_profile_id", userId);
+      query = query.eq("owner_profile_id", auth.userId);
     } else if (scopeParam === "all") {
-      query = query.or(`concierge_profile_id.eq.${userId},owner_profile_id.eq.${userId}`);
+      if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
+        return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+      }
+      query = query.or(`concierge_profile_id.eq.${auth.userId},owner_profile_id.eq.${auth.userId}`);
     } else {
-      query = query.eq("concierge_profile_id", userId);
+      if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
+        return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+      }
+      query = query.eq("concierge_profile_id", auth.userId);
     }
 
     if (status && VALID_STATUS.includes(status as MissionStatus)) {
@@ -140,9 +144,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const auth = await getApiAuthContext(req);
+    if (!auth.userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const body: CreateMissionBody = await req.json();
@@ -161,7 +169,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await db
       .from("missions")
       .insert({
-        concierge_profile_id: userId,
+        concierge_profile_id: auth.userId,
         owner_profile_id: body.owner_profile_id ?? null,
         property_id: body.property_id ?? null,
         service_id: body.service_id ?? null,
@@ -188,7 +196,7 @@ export async function POST(req: NextRequest) {
 
     const { error: eventError } = await db.from("mission_events").insert({
       mission_id: data.id,
-      actor_profile_id: userId,
+      actor_profile_id: auth.userId,
       event_type: "created",
       payload: {
         status: data.status,

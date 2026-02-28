@@ -6,10 +6,10 @@ const ROLE_FOLDER_MAP: Record<string, string> = {
   super_admin: "admin",
   concierge: "concierge",
   concierge_pro: "concierge",
-  owner: "proprietaire",
-  owner_pro: "proprietaire",
-  provider: "artisan",
-  provider_pro: "artisan",
+  owner: "owner",
+  owner_pro: "owner",
+  provider: "provider",
+  provider_pro: "provider",
 };
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];

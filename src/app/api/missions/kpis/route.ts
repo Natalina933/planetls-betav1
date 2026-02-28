@@ -1,22 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
+const CONCIERGE_MISSION_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const auth = await getApiAuthContext(req);
+    if (!auth.userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const [{ data: missions, error: missionError }, { data: reviews, error: reviewsError }] =
@@ -24,8 +27,8 @@ export async function GET(req: NextRequest) {
         db
           .from("missions")
           .select("status, response_time_minutes")
-          .eq("concierge_profile_id", userId),
-        db.from("mission_reviews").select("rating").eq("reviewed_profile_id", userId),
+          .eq("concierge_profile_id", auth.userId),
+        db.from("mission_reviews").select("rating").eq("reviewed_profile_id", auth.userId),
       ]);
 
     if (missionError) {

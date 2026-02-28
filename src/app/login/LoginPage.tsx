@@ -62,12 +62,15 @@ export default function LoginPage() {
 
         switch (role) {
           case "concierge":
+          case "concierge_pro":
             router.push("/dashboard/concierge");
             break;
           case "owner":
+          case "owner_pro":
             router.push("/dashboard/owner");
             break;
           case "provider":
+          case "provider_pro":
             router.push("/dashboard/provider");
             break;
           default:

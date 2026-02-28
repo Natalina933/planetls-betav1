@@ -45,7 +45,6 @@ const nextConfig = {
     ];
   },
 
-  // ⬇⬇⬇ AJOUTER CETTE PARTIE ⬇⬇⬇
   async headers() {
     return [
       {
@@ -70,4 +69,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

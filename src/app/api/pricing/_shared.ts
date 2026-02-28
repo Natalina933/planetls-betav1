@@ -1,50 +1,69 @@
 import { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { db } from "@/app/lib/dbServer";
+import {
+  ALLOWED_PRICING_ROLES,
+  isAllowedPricingRole,
+  toOptionalNumber,
+} from "@/app/api/pricing/pure";
+
+export { ALLOWED_PRICING_ROLES, isAllowedPricingRole, toOptionalNumber };
 
 export type PricingType = "hourly" | "fixed" | "monthly" | "custom";
 
 export interface AuthContext {
   userId: string;
+  role: string;
   isAdmin: boolean;
 }
 
-const normalizeRole = (value: unknown): string => {
-  if (typeof value !== "string") return "";
-  return value.trim().toLowerCase();
-};
-
 export async function getAuthContext(req: NextRequest): Promise<AuthContext | null> {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  const userId = typeof token?.sub === "string" ? token.sub : "";
+  const auth = await getApiAuthContext(req);
+  const userId = auth.userId ?? "";
   if (!userId) return null;
-
-  const tokenRole = normalizeRole((token as Record<string, unknown> | null)?.role);
-  if (tokenRole === "admin") {
-    return { userId, isAdmin: true };
-  }
-
-  const { data: profile } = await db
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
-  const profileRole = normalizeRole(profile?.role);
 
   return {
     userId,
-    isAdmin: profileRole === "admin",
+    role: auth.role,
+    isAdmin: auth.isAdmin,
   };
 }
 
-export function toOptionalNumber(value: unknown): number | null | undefined {
-  if (value === undefined) return undefined;
-  if (value === null || value === "") return null;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return undefined;
-  return parsed;
+interface PricingListOptions {
+  profileId?: string | null;
+  serviceId?: string | null;
+  type?: string | null;
+  isAdmin: boolean;
+  userId: string;
+}
+
+export async function fetchPricingList(options: PricingListOptions) {
+  const { profileId, serviceId, type, isAdmin, userId } = options;
+
+  let query = db.from("services_pricing").select(`
+    *,
+    service:services_catalog(id, category, service, description)
+  `);
+
+  if (isAdmin && profileId) {
+    query = query.eq("profile_id", profileId);
+  } else {
+    query = query.eq("profile_id", userId);
+  }
+
+  if (serviceId) {
+    const parsedServiceId = Number(serviceId);
+    if (!Number.isFinite(parsedServiceId)) {
+      return { data: null, error: "serviceId invalide" as const, status: 400 as const };
+    }
+    query = query.eq("service_id", parsedServiceId);
+  }
+
+  if (type) {
+    query = query.eq("type", type);
+  }
+
+  const result = await query.order("created_at", { ascending: false });
+  return { data: result.data ?? [], error: result.error, status: 200 as const };
 }
 

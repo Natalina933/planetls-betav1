@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
 import type { Json, TablesInsert } from "@/types/supabase";
+import {
+  findOwnedServicePackage,
+  getServiceAuthContext,
+  isAllowedServiceRole,
+  serviceAuthError,
+} from "@/app/api/services/_shared";
 
 interface ContractTemplateBody {
   package_id: string;
@@ -10,19 +15,15 @@ interface ContractTemplateBody {
   variables?: Json;
 }
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
-
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const url = new URL(req.url);
@@ -31,10 +32,17 @@ export async function GET(req: NextRequest) {
     let query = db
       .from("contract_templates")
       .select("id, profile_id, package_id, title, content, variables, created_at")
-      .eq("profile_id", userId)
       .order("created_at", { ascending: false });
 
+    if (!auth.isAdmin) {
+      query = query.eq("profile_id", auth.userId);
+    }
+
     if (packageId) {
+      const ownedPackage = await findOwnedServicePackage(packageId, auth);
+      if (ownedPackage.error) {
+        return ownedPackage.error;
+      }
       query = query.eq("package_id", packageId);
     }
 
@@ -53,9 +61,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const body: ContractTemplateBody = await req.json();
@@ -66,8 +78,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const ownedPackage = await findOwnedServicePackage(body.package_id, auth);
+    if (ownedPackage.error) {
+      return ownedPackage.error;
+    }
+
     const insertPayload: TablesInsert<"contract_templates"> = {
-      profile_id: userId,
+      profile_id: auth.userId,
       package_id: body.package_id,
       title: body.title,
       content: body.content,

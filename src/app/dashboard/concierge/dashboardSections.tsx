@@ -1,0 +1,190 @@
+"use client";
+
+import Link from "next/link";
+import {
+  DollarSign,
+  LayoutDashboard,
+  MessageSquare,
+  Zap,
+} from "lucide-react";
+import DashboardCard from "@/app/components/dashboard/concierge/DashboardCard";
+import ProUpgradeCTA from "@/app/components/dashboard/concierge/ProUpgradeCTA";
+import BaseFeaturesList from "@/app/components/dashboard/concierge/BaseFeaturesList";
+import ProToolsSection from "@/app/components/dashboard/concierge/ProToolsSection";
+import DashboardCalendar, {
+  DashboardEvent,
+} from "@/app/components/dashboard/calendar/DashboardCalendar";
+import ProfileExperienceBadge from "@/app/components/ui/ProfileExperienceBadge/ProfileExperienceBadge";
+import type { ConciergeOwnerMatch } from "./dashboardClient";
+import styles from "./page.module.scss";
+
+type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
+
+interface DashboardHeaderProps {
+  displayName: string;
+  isPro: boolean;
+  experienceLevel: ExperienceLevel | null;
+  yearsExperience: number | null;
+}
+
+interface MatchesSectionProps {
+  matches: ConciergeOwnerMatch[];
+  matchesLoading: boolean;
+  matchesError: string | null;
+}
+
+interface DashboardMetricsGridProps {
+  isPro: boolean;
+}
+
+interface DashboardToolsSectionProps {
+  isPro: boolean;
+}
+
+interface DashboardPlanningSectionProps {
+  events: DashboardEvent[];
+}
+
+export function DashboardHeader({
+  displayName,
+  isPro,
+  experienceLevel,
+  yearsExperience,
+}: DashboardHeaderProps) {
+  return (
+    <header className={styles.dashboardHeader}>
+      <h1>
+        <LayoutDashboard className={styles.headerIcon} size={32} />
+        Tableau de Bord Conciergerie {isPro ? <Zap className="text-yellow-500" /> : null}
+      </h1>
+
+      <p className={styles.subtitle}>
+        Bienvenue, {displayName}. Gerez l&apos;ensemble de vos proprietes et services.
+      </p>
+
+      <div className={styles.profileExperienceBadgeWrapper}>
+        <ProfileExperienceBadge
+          experienceLevel={experienceLevel}
+          yearsExperience={yearsExperience}
+          missionsCount={undefined}
+          averageRating={undefined}
+        />
+      </div>
+    </header>
+  );
+}
+
+export function MatchesSection({
+  matches,
+  matchesLoading,
+  matchesError,
+}: MatchesSectionProps) {
+  return (
+    <section className={styles.matchesSection}>
+      <div className={styles.matchesHeader}>
+        <h2>Proprietaires compatibles</h2>
+        <Link href="/dashboard/concierge/recherche" className={styles.matchesHeaderAction}>
+          Ouvrir la recherche
+        </Link>
+      </div>
+
+      {matchesLoading ? (
+        <p className={styles.matchesInfo}>Recherche automatique en cours...</p>
+      ) : null}
+
+      {!matchesLoading && matchesError ? (
+        <p className={styles.matchesError}>{matchesError}</p>
+      ) : null}
+
+      {!matchesLoading && !matchesError && matches.length === 0 ? (
+        <p className={styles.matchesInfo}>
+          Aucun proprietaire compatible pour le moment. Affinez vos missions et votre zone.
+        </p>
+      ) : null}
+
+      {!matchesLoading && !matchesError && matches.length > 0 ? (
+        <>
+          <p className={styles.matchesInfo}>
+            Nous avons trouve {matches.length} profil(s) proche(s) de votre zone.
+          </p>
+          <div className={styles.matchesGrid}>
+            {matches.map((match) => (
+              <article key={match.id} className={styles.matchCard}>
+                <div className={styles.matchCardHead}>
+                  <h3>{match.title}</h3>
+                  <span className={styles.matchScore}>{match.compatibility_score}%</span>
+                </div>
+                <p className={styles.matchMeta}>
+                  {match.city ?? "Ville non renseignee"}
+                  {typeof match.distance_km === "number" ? ` - ${match.distance_km} km` : ""}
+                </p>
+                <p className={styles.matchMeta}>
+                  Compatibilite: {match.compatibility_ratio ?? "n/a"}
+                </p>
+                <p className={styles.matchServices}>
+                  Services:{" "}
+                  {match.services_wanted.length > 0
+                    ? match.services_wanted.slice(0, 3).join(", ")
+                    : "non renseignes"}
+                </p>
+              </article>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
+export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
+  return (
+    <div className={styles.dashboardGrid}>
+      <DashboardCard
+        title="Reservations Actives"
+        value="12"
+        icon={Zap}
+        description="Total des sejours en cours."
+      />
+
+      <DashboardCard
+        title="Demandes de Taches"
+        value="3"
+        icon={MessageSquare}
+        description="Nouvelles demandes en attente."
+      />
+
+      <DashboardCard
+        title="Revenu Potentiel"
+        value={isPro ? "EUR 14.5k" : "Acces PRO"}
+        icon={DollarSign}
+        isLocked={!isPro}
+        description={
+          isPro
+            ? "Mois en cours (estimation)."
+            : "Statistiques avancees reservees aux comptes PRO."
+        }
+      />
+    </div>
+  );
+}
+
+export function DashboardToolsSection({ isPro }: DashboardToolsSectionProps) {
+  return (
+    <section className={styles.dashboardSection}>
+      <h2>Fonctionnalites & Outils</h2>
+      <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
+        <BaseFeaturesList />
+        {isPro ? <ProToolsSection /> : <ProUpgradeCTA />}
+      </div>
+    </section>
+  );
+}
+
+export function DashboardPlanningSection({ events }: DashboardPlanningSectionProps) {
+  return (
+    <section className={styles.dashboardSection}>
+      <h2>Planification & Reservations</h2>
+      <DashboardCalendar events={events} title="" />
+    </section>
+  );
+}

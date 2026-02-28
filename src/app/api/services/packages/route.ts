@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
+import {
+  getServiceAuthContext,
+  isAllowedServiceRole,
+  serviceAuthError,
+} from "@/app/api/services/_shared";
 
 interface ServicePackageBody {
   name: string;
@@ -14,14 +18,6 @@ interface DbErrorLike {
   message?: string;
 }
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
-
 const getDbErrorMessage = (error: DbErrorLike): string => {
   if (error.code === "42P01" || error.code === "PGRST205" || error.code === "PGRST204") {
     return "Tables packs introuvables. Executez la migration SQL 20260220_services_packages_contract_templates.sql dans Supabase.";
@@ -34,16 +30,25 @@ const getDbErrorMessage = (error: DbErrorLike): string => {
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
     }
 
-    const { data, error } = await db
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
+    }
+
+    let query = db
       .from("services_packages")
       .select("id, profile_id, name, description, category, created_at, services_package_items(service_id)")
-      .eq("profile_id", userId)
       .order("created_at", { ascending: false });
+
+    if (!auth.isAdmin) {
+      query = query.eq("profile_id", auth.userId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("[GET /api/services/packages] DB error:", error);
@@ -59,9 +64,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const body: ServicePackageBody = await req.json();
@@ -75,7 +84,7 @@ export async function POST(req: NextRequest) {
     const { data: createdPackage, error: packageError } = await db
       .from("services_packages")
       .insert({
-        profile_id: userId,
+        profile_id: auth.userId,
         name: body.name,
         description: body.description ?? null,
         category: body.category,

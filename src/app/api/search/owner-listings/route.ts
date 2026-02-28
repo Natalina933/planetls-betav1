@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 interface DbErrorLike {
   code?: string;
@@ -79,13 +79,12 @@ const isUuidLike = (value: string): boolean =>
     value,
   );
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
+const ALLOWED_SEARCH_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string => {
   const code = error?.code ?? "";
@@ -416,9 +415,12 @@ const computeCompatibility = (
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!ALLOWED_SEARCH_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const url = new URL(req.url);

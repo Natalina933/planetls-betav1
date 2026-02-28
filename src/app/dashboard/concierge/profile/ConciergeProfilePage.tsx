@@ -11,22 +11,48 @@ import React, {
 } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 
 import styles from "./ConciergeProfilePage.module.scss";
-
-import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
+import {
+  buildProfileSavePayload,
+  buildProfileSuccessMessage,
+  buildSessionUserPayload,
+  hasSectionUnsavedChanges,
+  hasValidationErrors,
+  removeSectionSnapshot,
+  type SectionEditSnapshots,
+  shouldCompleteMissionOnboarding,
+  upsertSectionSnapshot,
+  uploadProfileAvatar,
+} from "./profileEditing";
+import {
+  FicheTabSection,
+  MissionProgressPanelSection,
+  MissionQuickQuoteSection,
+  MissionsTabLayout,
+  MissionsPrimarySections,
+  TariffBaseSection,
+  TariffBillingDeskSection,
+  TariffConfigShell,
+  TariffContextSection,
+  TariffModifiersSection,
+  TariffPillarsSection,
+  TariffPricingModal,
+  TariffPropertyRulesSection,
+  TariffSegmentsSection,
+  TariffStrategySection,
+  TariffServicesCatalogSection,
+  TariffWorkflowSection,
+  DocumentsTabSection,
+  EditableProfileField,
+  EditableProfileSection,
+  PacksTabSection,
+  TeamTabSection,
+} from "./profileTabSections";
 import {
   CONCIERGE_TABS,
   ConciergeTabId,
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
-import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
-import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
-import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
-import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
-import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
-import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
-import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import { parsePricingV2FromAvailabilityHours } from "@/app/components/tariffs/pricingEngine";
 import type {
   ConciergeMissionProfile,
@@ -36,30 +62,8 @@ import type {
   WeekDay,
 } from "@/app/components/missions/types";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
-import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
-
 import {
-  FiBarChart,
-  FiBriefcase,
-  FiMapPin as FiMapPinOutline,
-  FiShield as FiShieldOutline,
-  FiGlobe,
-  FiTarget,
-  FiClock as FiClockOutline,
-  FiDollarSign as FiDollarSignOutline,
-  FiUsers,
-  FiFile,
-  FiStar as FiStarOutline,
-  FiCheckCircle as FiCheckCircleOutline,
-} from "react-icons/fi";
-import {
-  User as LucideUser,
   Shield,
-  ChevronDown,
-  Save,
-  X as LucideX,
-  Edit2,
-  Star,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
@@ -943,9 +947,7 @@ export default function ConciergeProfilePage() {
   const [editProfile, setEditProfile] = useState<Profile | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
-  const [sectionEditSnapshots, setSectionEditSnapshots] = useState<
-    Record<string, string>
-  >({});
+  const [sectionEditSnapshots, setSectionEditSnapshots] = useState<SectionEditSnapshots>({});
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [successMsg, setSuccessMsg] = useState("");
@@ -1542,30 +1544,29 @@ export default function ConciergeProfilePage() {
   }, [refreshCatalogServices]);
 
 
-  const hasUnsavedChanges = (sectionId: string | null): boolean => {
-    if (!sectionId || !editProfile) return false;
-    const snapshot = sectionEditSnapshots[sectionId];
-    if (typeof snapshot !== "string") return false;
-    return snapshot !== JSON.stringify(editProfile);
-  };
+  const hasUnsavedChanges = useCallback(
+    (sectionId: string | null): boolean => {
+      return hasSectionUnsavedChanges(sectionEditSnapshots, sectionId, editProfile);
+    },
+    [editProfile, sectionEditSnapshots],
+  );
 
-  const confirmDiscardIfNeeded = (sectionId: string | null): boolean => {
-    if (!hasUnsavedChanges(sectionId)) return true;
-    return window.confirm(
-      "Vous avez des modifications non enregistrées. Voulez-vous quitter sans sauvegarder ?",
-    );
-  };
+  const confirmDiscardIfNeeded = useCallback(
+    (sectionId: string | null): boolean => {
+      if (!hasUnsavedChanges(sectionId)) return true;
+      return window.confirm(
+        "Vous avez des modifications non enregistrées. Voulez-vous quitter sans sauvegarder ?",
+      );
+    },
+    [hasUnsavedChanges],
+  );
 
-  const handleTabChange = (tabId: TabId) => {
+  const handleTabChange = useCallback((tabId: TabId) => {
     if (tabId === activeTab) return;
     if (!confirmDiscardIfNeeded(editingSection)) return;
 
     if (editingSection) {
-      setSectionEditSnapshots((prev) => {
-        const next = { ...prev };
-        delete next[editingSection];
-        return next;
-      });
+      setSectionEditSnapshots((prev) => removeSectionSnapshot(prev, editingSection));
       setEditingSection(null);
       setEditProfile(profile);
       setErrors({});
@@ -1574,7 +1575,7 @@ export default function ConciergeProfilePage() {
 
     setActiveTab(tabId);
     router.push(`?tab=${tabId}`, { scroll: false });
-  };
+  }, [activeTab, confirmDiscardIfNeeded, editingSection, profile, router]);
 
   const applyPricingV2 = useCallback((next: PricingV2Config) => {
     setEditProfile((prev) =>
@@ -1675,7 +1676,7 @@ export default function ConciergeProfilePage() {
   const fetchServicePrices = useCallback(async () => {
     setServicePricesLoading(true);
     try {
-      const res = await fetch("/api/pricing/get", { cache: "no-store" });
+        const res = await fetch("/api/pricing", { cache: "no-store" });
       const data: ConciergeServicePriceRow[] | { error: string } = await res.json();
       if (!res.ok || !Array.isArray(data)) {
         throw new Error(
@@ -2102,6 +2103,13 @@ export default function ConciergeProfilePage() {
     setPricingModalOpen(false);
     resetPricingModal();
   }, [resetPricingModal]);
+  const resetPricingModalToDefaults = useCallback(() => {
+    setPricingModalState((prev) => ({
+      ...prev,
+      amount: pricingV2.base.hourlyRate > 0 ? String(Math.round(pricingV2.base.hourlyRate)) : "",
+      unit: prev.type === "hourly" ? "par heure" : "par prestation",
+    }));
+  }, [pricingV2.base.hourlyRate]);
   const openCreatePricingModal = useCallback(
     (service?: CatalogServiceItem) => {
       const suggestedLabel = service?.service ?? "";
@@ -2277,15 +2285,15 @@ export default function ConciergeProfilePage() {
         type: pricingModalState.type,
         amount: parsedAmount,
         unit: pricingModalState.unit,
-      };
-      const isUpdate = Boolean(pricingModalState.id);
-      const endpoint = isUpdate
-        ? "/api/pricing/update"
-        : "/api/pricing/create";
-      const method = isUpdate ? "PATCH" : "POST";
-      const payloadWithId = isUpdate
-        ? { id: pricingModalState.id, ...payload }
-        : payload;
+        };
+        const isUpdate = Boolean(pricingModalState.id);
+        const endpoint = isUpdate
+          ? `/api/pricing/${encodeURIComponent(pricingModalState.id ?? "")}`
+          : "/api/pricing";
+        const method = isUpdate ? "PATCH" : "POST";
+        const payloadWithId = isUpdate
+          ? payload
+          : payload;
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -2328,9 +2336,9 @@ export default function ConciergeProfilePage() {
 
       setServicePricesBusyId(row.id);
       try {
-        const res = await fetch(`/api/pricing/delete?id=${encodeURIComponent(row.id)}`, {
-          method: "DELETE",
-        });
+          const res = await fetch(`/api/pricing/${encodeURIComponent(row.id)}`, {
+            method: "DELETE",
+          });
         const data = await res.json();
         if (!res.ok) {
           throw new Error(
@@ -2368,6 +2376,13 @@ export default function ConciergeProfilePage() {
   const pricingMeta = useMemo(
     () => parsePricingMeta(editProfile?.availability_hours),
     [editProfile?.availability_hours],
+  );
+  const tariffLocationLabel = useMemo(
+    () =>
+      editProfile?.location?.trim() ||
+      editProfile?.service_area?.trim() ||
+      "Non renseigne",
+    [editProfile?.location, editProfile?.service_area],
   );
   const selectedPricingSegment = useMemo(() => {
     if (pricingSegments.length === 0) return null;
@@ -2482,6 +2497,38 @@ export default function ConciergeProfilePage() {
     setBillingDeskPresetVersion((prev) => prev + 1);
     scrollToTariffSection("tariffs-billing-desk");
   }, [strategyProjection, scrollToTariffSection]);
+  const billingDeskProps = useMemo(
+    () => ({
+      hourlyRate: pricingV2.base.hourlyRate,
+      travelFee: pricingV2.base.travelFee,
+      minimumInvoice: pricingV2.base.minimumInvoice,
+      urgentPercent: pricingV2.globalModifiers.urgentPercent,
+      nightPercent: pricingV2.globalModifiers.nightPercent,
+      weekendPercent: pricingV2.globalModifiers.weekendPercent,
+      highSeasonPercent: pricingV2.globalModifiers.highSeasonPercent,
+      commissionRatePct: pricingMeta.commissionRatePct,
+      setupFee: pricingMeta.setupFee,
+      presetVersion: billingDeskPresetVersion,
+      presetMonthlyRevenueEstimate: billingDeskPreset.monthlyRevenueEstimate,
+      presetNewListingsEstimate: billingDeskPreset.newListingsEstimate,
+      presetActServicesEstimate: billingDeskPreset.actServicesEstimate,
+    }),
+    [
+      billingDeskPreset.actServicesEstimate,
+      billingDeskPreset.monthlyRevenueEstimate,
+      billingDeskPreset.newListingsEstimate,
+      billingDeskPresetVersion,
+      pricingMeta.commissionRatePct,
+      pricingMeta.setupFee,
+      pricingV2.base.hourlyRate,
+      pricingV2.base.minimumInvoice,
+      pricingV2.base.travelFee,
+      pricingV2.globalModifiers.highSeasonPercent,
+      pricingV2.globalModifiers.nightPercent,
+      pricingV2.globalModifiers.urgentPercent,
+      pricingV2.globalModifiers.weekendPercent,
+    ],
+  );
   const resetAllServicePrices = useCallback(async () => {
     if (!canEditTariffConfig || servicePrices.length === 0) return;
     if (!window.confirm("Reinitialiser la grille et supprimer tous les tarifs personnalises ?")) {
@@ -2499,7 +2546,7 @@ export default function ConciergeProfilePage() {
       );
       await Promise.all(
         servicePrices.map((row) =>
-          fetch(`/api/pricing/delete?id=${encodeURIComponent(row.id)}`, { method: "DELETE" }),
+          fetch(`/api/pricing/${encodeURIComponent(row.id)}`, { method: "DELETE" }),
         ),
       );
       await fetchServicePrices();
@@ -2670,68 +2717,37 @@ export default function ConciergeProfilePage() {
     setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
   };
 
-  const handleAvatarUpload = async (file: File): Promise<string | null> => {
-    if (!editProfile) return null;
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("userId", editProfile.id);
-
-      const response = await fetch("/api/profiles/avatar", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      return result.url as string;
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erreur d'upload";
-      console.error(
-        "[ConciergeProfilePage] Erreur upload avatar:",
-        errorMessage,
-      );
-      throw error;
-    }
-  };
-
   const handleSaveSection = async (sectionTitle: string) => {
     if (!editProfile) return;
 
-    const hasErrors = Object.values(errors).some((error) => error !== "");
-    if (hasErrors) {
+    if (hasValidationErrors(errors)) {
       alert("âš ï¸ Veuillez corriger les erreurs avant de sauvegarder.");
       return;
     }
 
     setLoading(true);
     let avatarUrl = editProfile.avatar_url;
-    const onboardingReady =
-      missionProgressSteps.length > 0 &&
-      missionProgressSteps.every((step) => step.done);
-    const shouldMarkOnboardingComplete =
-      activeTab === "missions" &&
-      onboardingReady &&
-      editProfile.onboarding_complete !== true;
+    const shouldMarkOnboardingComplete = shouldCompleteMissionOnboarding(
+      activeTab,
+      missionProgressSteps,
+      editProfile,
+    );
 
     try {
       if (avatarFile && sectionTitle === "Photo de profil") {
-        avatarUrl = await handleAvatarUpload(avatarFile);
+        avatarUrl = await uploadProfileAvatar(avatarFile, editProfile.id);
       }
 
       const response = await fetch("/api/profiles", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...editProfile,
-          avatar_url: avatarUrl,
-          ...(shouldMarkOnboardingComplete ? { onboarding_complete: true } : {}),
-        }),
+        body: JSON.stringify(
+          buildProfileSavePayload(
+            editProfile,
+            avatarUrl,
+            shouldMarkOnboardingComplete,
+          ),
+        ),
       });
 
       const result = await response.json();
@@ -2745,33 +2761,20 @@ export default function ConciergeProfilePage() {
       setProfile(updatedProfile);
       setEditProfile(updatedProfile);
       setEditingSection(null);
-      setSectionEditSnapshots((prev) => {
-        const next = { ...prev };
-        delete next[savedSectionId];
-        return next;
-      });
+      setSectionEditSnapshots((prev) => removeSectionSnapshot(prev, savedSectionId));
       setAvatarFile(null);
 
-      setSuccessMsg(`✅ ${sectionTitle} mis à jour avec succès`);
-
       await update({
-        user: {
-          image: avatarUrl,              // CHAMP CLE NEXTAUTH
-          avatar_url: avatarUrl,         // champ custom (OK)
-          name: `${editProfile.first_name} ${editProfile.last_name}`.trim(),
-          firstName: editProfile.first_name,
-          lastName: editProfile.last_name,
-        },
+        user: buildSessionUserPayload(editProfile, avatarUrl),
       });
       window.dispatchEvent(new Event("user-profile-updated"));
 
-      setTimeout(() => setSuccessMsg(""), 4000);
+      pushTransientMessage("success", buildProfileSuccessMessage(sectionTitle));
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Erreur inconnue";
       console.error("[ConciergeProfilePage] Erreur sauvegarde:", errorMessage);
-      setErrorMsg(errorMessage);
-      setTimeout(() => setErrorMsg(""), 5000);
+      pushTransientMessage("error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -2787,18 +2790,11 @@ export default function ConciergeProfilePage() {
   const beginSectionEdit = (sectionId: string) => {
     if (editingSection && editingSection !== sectionId) {
       if (!confirmDiscardIfNeeded(editingSection)) return;
-      setSectionEditSnapshots((prev) => {
-        const next = { ...prev };
-        delete next[editingSection];
-        return next;
-      });
+      setSectionEditSnapshots((prev) => removeSectionSnapshot(prev, editingSection));
     }
 
     if (editProfile) {
-      setSectionEditSnapshots((prev) => ({
-        ...prev,
-        [sectionId]: JSON.stringify(editProfile),
-      }));
+      setSectionEditSnapshots((prev) => upsertSectionSnapshot(prev, sectionId, editProfile));
     }
     setEditingSection(sectionId);
   };
@@ -2812,11 +2808,7 @@ export default function ConciergeProfilePage() {
     if (!confirmDiscardIfNeeded(editingSection)) return;
 
     if (editingSection) {
-      setSectionEditSnapshots((prev) => {
-        const next = { ...prev };
-        delete next[editingSection];
-        return next;
-      });
+      setSectionEditSnapshots((prev) => removeSectionSnapshot(prev, editingSection));
     }
     setEditingSection(null);
     setEditProfile(profile);
@@ -2843,66 +2835,27 @@ export default function ConciergeProfilePage() {
     placeholder: string = "",
     type: string = "text",
     inputProps?: Record<string, number | string>,
-  ) => {
-    const isThisSectionEditing = editingSection === sectionId;
-    const value = (editProfile?.[name as keyof Profile] ??
-      "") as string | number | null;
-    const error = errors[name as string];
-
-    if (type === "checkbox") {
-      return (
-        <div className={styles.fieldRow}>
-          <label className={styles.fieldLabel}>
-            <input
-              type="checkbox"
-              name={name.toString()}
-              checked={!!value}
-              onChange={handleChange}
-              disabled={!isThisSectionEditing}
-              className={styles.checkbox}
-            />
-            {label}
-          </label>
-        </div>
-      );
-    }
+    ) => {
+      const isThisSectionEditing = editingSection === sectionId;
+      const value = (editProfile?.[name as keyof Profile] ??
+        "") as string | number | null;
+      const error = errors[name as string];
 
     return (
-      <div className={styles.fieldRow}>
-        <label htmlFor={name.toString()} className={styles.fieldLabel}>
-          {label}
-          {required && <span className={styles.required}>*</span>}
-        </label>
-        {isThisSectionEditing ? (
-          isTextarea ? (
-            <textarea
-              id={name.toString()}
-              name={name.toString()}
-              value={(value ?? "") as string}
-              onChange={handleChange}
-              className={styles.fieldTextarea}
-              placeholder={placeholder || label}
-              rows={3}
-            />
-          ) : (
-            <InputWithValidation
-              id={name.toString()}
-              name={name.toString()}
-              type={type}
-              value={(value ?? "") as string}
-              onChange={handleChange}
-              placeholder={placeholder || label}
-              error={error || ""}
-              isValid={!error && !!value}
-              {...inputProps}
-            />
-          )
-        ) : (
-          <span className={styles.fieldValue}>
-            {value !== null && value !== "" ? value : "Non renseigné"}
-          </span>
-        )}
-      </div>
+      <EditableProfileField
+        styles={styles}
+        label={label}
+        name={name.toString()}
+        value={value}
+        error={error}
+        isEditing={isThisSectionEditing}
+        isTextarea={isTextarea}
+        required={required}
+        placeholder={placeholder}
+        type={type}
+        inputProps={inputProps}
+        onChange={handleChange}
+      />
     );
   };
 
@@ -2917,100 +2870,32 @@ export default function ConciergeProfilePage() {
     const sectionId = sectionIdOverride ?? normalizeSectionId(title);
     const isOpen = collapsible ? (openSections[sectionId] ?? false) : true;
     const isEditingThis = editingSection === sectionId;
-    const sectionSnapshot = sectionEditSnapshots[sectionId];
     const isSectionDirty =
       isEditingThis &&
-      typeof sectionSnapshot === "string" &&
-      Boolean(editProfile) &&
-      sectionSnapshot !== JSON.stringify(editProfile);
-    const renderEditActions = () => (
-      <>
-        <button
-          onClick={() => handleSaveSection(title)}
-          className={styles.saveBtn}
-          disabled={loading}
-          title="Sauvegarder"
-          aria-label="Sauvegarder"
-        >
-          {loading ? <div className={styles.spinnerMini} /> : <Save size={16} />}
-        </button>
-        <button
-          onClick={cancelSectionEdit}
-          className={styles.cancelBtn}
-          title="Annuler"
-          aria-label="Annuler"
-        >
-          <LucideX size={16} />
-        </button>
-      </>
-    );
+      hasSectionUnsavedChanges(sectionEditSnapshots, sectionId, editProfile);
 
     return (
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          {collapsible ? (
-            <div
-              className={styles.sectionTitleWrapper}
-              onClick={() => toggleSection(sectionId)}
-              onKeyDown={(e) => handleSectionHeaderKeyDown(e, sectionId)}
-              role="button"
-              tabIndex={0}
-            >
-              <div className={styles.sectionTitleLeft}>
-                <span className={styles.sectionIcon}>{icon}</span>
-                <h2 className={styles.sectionTitle}>{title}</h2>
-              </div>
-              <ChevronDown
-                size={16}
-                className={`${styles.toggleIcon} ${isOpen ? styles.toggleIconOpen : ""
-                  }`}
-              />
-            </div>
-          ) : (
-            <div className={styles.sectionTitleWrapper}>
-              <div className={styles.sectionTitleLeft}>
-                <span className={styles.sectionIcon}>{icon}</span>
-                <h2 className={styles.sectionTitle}>{title}</h2>
-              </div>
-            </div>
-          )}
-
-          {canEdit && (
-            <div className={styles.sectionActions}>
-              {isEditingThis ? (
-                renderEditActions()
-              ) : (
-                <button
-                  onClick={() => {
-                    beginSectionEdit(sectionId);
-                    if (collapsible && !isOpen) toggleSection(sectionId);
-                  }}
-                  className={styles.editBtn}
-                  title="Modifier"
-                  aria-label="Modifier"
-                >
-                  <Edit2 size={16} />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-        {canEdit && isEditingThis && isSectionDirty && (
-          <div className={styles.unsavedBadge} role="status">
-            Modifications non enregistrées
-          </div>
-        )}
-
-        <div
-          className={`${styles.sectionContent} ${isOpen ? styles.sectionContentOpen : ""
-            }`}
-        >
-          {children}
-          {canEdit && isEditingThis && isOpen && (
-            <div className={styles.sectionActionsBottom}>{renderEditActions()}</div>
-          )}
-        </div>
-      </div>
+      <EditableProfileSection
+        styles={styles}
+        title={title}
+        icon={icon}
+        canEdit={canEdit}
+        collapsible={collapsible}
+        isOpen={isOpen}
+        isEditing={isEditingThis}
+        isDirty={isSectionDirty}
+        isLoading={loading}
+        onToggle={() => toggleSection(sectionId)}
+        onHeaderKeyDown={(e) => handleSectionHeaderKeyDown(e, sectionId)}
+        onBeginEdit={() => {
+          beginSectionEdit(sectionId);
+          if (collapsible && !isOpen) toggleSection(sectionId);
+        }}
+        onSave={() => handleSaveSection(title)}
+        onCancel={cancelSectionEdit}
+      >
+        {children}
+      </EditableProfileSection>
     );
   };
 
@@ -3021,156 +2906,40 @@ export default function ConciergeProfilePage() {
     setEditProfile((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
-  const renderMissionProgressPanel = () => (
-    <div className={styles.missionProgressPanel}>
-      <div className={styles.missionProgressHeader}>
-        <h4>Parcours de configuration</h4>
-        <span>
-          {missionProgressDoneCount}/
-          {missionProgressSteps.length} completes
-        </span>
-      </div>
-      <div className={styles.missionProgressFilters}>
-        <button
-          type="button"
-          className={`${styles.missionProgressFilterBtn} ${
-            !showPendingMissionStepsOnly ? styles.missionProgressFilterBtnActive : ""
-          }`}
-          onClick={() => setShowPendingMissionStepsOnly(false)}
-        >
-          Tout
-        </button>
-        <button
-          type="button"
-          className={`${styles.missionProgressFilterBtn} ${
-            showPendingMissionStepsOnly ? styles.missionProgressFilterBtnActive : ""
-          }`}
-          onClick={() => setShowPendingMissionStepsOnly(true)}
-        >
-          A configurer
-        </button>
-      </div>
-      <div className={styles.missionProgressList}>
-        {(showPendingMissionStepsOnly
-          ? missionProgressSteps.filter((step) => !step.done)
-          : missionProgressSteps
-        ).map((step, index) => (
-          <div
-            key={step.key}
-            className={`${styles.missionProgressItem} ${
-              step.done ? styles.missionProgressItemDone : ""
-            }`}
-          >
-            <div className={styles.missionProgressIndex}>
-              {step.done ? <FiCheckCircleOutline /> : index + 1}
-            </div>
-            <div className={styles.missionProgressBody}>
-              <p className={styles.missionProgressLabel}>{step.label}</p>
-              <p className={styles.missionProgressHint}>{step.hint}</p>
-            </div>
-            {step.sectionId && (
-              <button
-                type="button"
-                className={styles.missionProgressAction}
-                onClick={() => openMissionSectionForEdit(step.sectionId)}
-              >
-                {step.done ? "Modifier" : "Configurer"}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-      {showPendingMissionStepsOnly &&
-        missionProgressSteps.every((step) => step.done) && (
-          <p className={styles.missionProgressEmpty}>
-            Tout est configure. Vous pouvez maintenant affiner les reglages.
-          </p>
-        )}
-    </div>
-  );
+  const createQuoteFromMission = useCallback(async () => {
+    if (!selectedMissionQuoteId) return;
+    try {
+      setMissionQuoteBusy(true);
+      setMissionQuoteFeedback("");
+      const response = await fetch("/api/quotes/from-mission", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mission_id: selectedMissionQuoteId }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          typeof result?.error === "string"
+            ? result.error
+            : "Erreur creation devis depuis mission",
+        );
+      }
 
-  const renderMissionsStaticSections = () => (
-    <>
+      const quoteNumber =
+        typeof result?.quote_number === "string"
+          ? result.quote_number
+          : "devis cree";
 
-      {renderSection(
-        "Devis rapides depuis mission",
-        <FiFile />,
-        <>
-          <div className={styles.missionToolbar}>
-            <div className={styles.missionToolbarItem}>
-              <span>Mission source</span>
-              <select
-                value={selectedMissionQuoteId}
-                onChange={(e) => setSelectedMissionQuoteId(e.target.value)}
-                disabled={missionRows.length === 0 || missionQuoteBusy}
-              >
-                {missionRows.length === 0 && <option value="">Aucune mission disponible</option>}
-                {missionRows.map((mission) => (
-                  <option key={mission.id} value={mission.id}>
-                    {mission.title} - {mission.status}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.missionToolbarItem}>
-              <span>Action</span>
-              <button
-                type="button"
-                className={styles.missionDetailButton}
-                disabled={!selectedMissionQuoteId || missionQuoteBusy}
-                onClick={async () => {
-                  if (!selectedMissionQuoteId) return;
-                  try {
-                    setMissionQuoteBusy(true);
-                    setMissionQuoteFeedback("");
-                    const response = await fetch("/api/quotes/from-mission", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ mission_id: selectedMissionQuoteId }),
-                    });
-                    const result = await response.json();
-                    if (!response.ok) {
-                      throw new Error(
-                        typeof result?.error === "string"
-                          ? result.error
-                          : "Erreur creation devis depuis mission",
-                      );
-                    }
-
-                    const quoteNumber =
-                      typeof result?.quote_number === "string"
-                        ? result.quote_number
-                        : "devis cree";
-
-                    setMissionQuoteFeedback(`${quoteNumber} genere. Onglet Tarifs mis a jour.`);
-                    handleTabChange("tarifs");
-                  } catch (error) {
-                    setMissionQuoteFeedback(
-                      error instanceof Error ? error.message : "Erreur creation devis",
-                    );
-                  } finally {
-                    setMissionQuoteBusy(false);
-                  }
-                }}
-              >
-                {missionQuoteBusy ? "Generation..." : "Creer devis"}
-              </button>
-            </div>
-          </div>
-          <p className={styles.missionProgressHint}>
-            Transformez une mission en devis brouillon sans ressaisie.
-          </p>
-          {missionQuoteFeedback && (
-            <p className={styles.missionProgressHint}>{missionQuoteFeedback}</p>
-          )}
-        </>,
-        false,
-        undefined,
-        false,
-      )}
-
-    </>
-  );
+      setMissionQuoteFeedback(`${quoteNumber} genere. Onglet Tarifs mis a jour.`);
+      handleTabChange("tarifs");
+    } catch (error) {
+      setMissionQuoteFeedback(
+        error instanceof Error ? error.message : "Erreur creation devis",
+      );
+    } finally {
+      setMissionQuoteBusy(false);
+    }
+  }, [handleTabChange, selectedMissionQuoteId]);
 
   const renderTabContent = () => {
     if (!profile || !editProfile) return null;
@@ -3178,712 +2947,100 @@ export default function ConciergeProfilePage() {
     switch (activeTab) {
       case "fiche":
         return (
-          <div className={styles.grid}>
-            <aside className={styles.leftColumn}>
-              <div className={styles.profileCard}>
-                <div className={styles.avatarWrapper} />
-
-                <div className={styles.profileIdentity}>
-                  <ProfileIdentity
-                    fullName={`${editProfile.first_name} ${editProfile.last_name}`}
-                    roleLabel="Concierge partenaire"
-                    email={editProfile.email}
-                    phone={editProfile.phone}
-                    location={editProfile.location ?? "Ville non renseignée, FR"}
-                    isEditing={editingSection === "Photo de profil"}
-                    avatarFile={avatarFile}
-                    existingAvatarUrl={
-                      editProfile.avatar_url ?? DEFAULT_AVATAR
-                    }
-                    existingScale={editProfile.avatar_scale ?? 1}
-                    existingOffsetX={editProfile.avatar_offset_x ?? 0}
-                    existingOffsetY={editProfile.avatar_offset_y ?? 0}
-                    existingRotation={editProfile.avatar_rotation ?? 0}
-                    onAvatarChange={setAvatarFile}
-                    onAvatarScaleChange={(scale) =>
-                      setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_scale: scale } : prev,
-                      )
-                    }
-                    onAvatarOffsetChange={(offsetX, offsetY) =>
-                      setEditProfile((prev) =>
-                        prev
-                          ? {
-                            ...prev,
-                            avatar_offset_x: offsetX,
-                            avatar_offset_y: offsetY,
-                          }
-                          : prev,
-                      )
-                    }
-                    onAvatarRotationChange={(rotation) =>
-                      setEditProfile((prev) =>
-                        prev ? { ...prev, avatar_rotation: rotation } : prev,
-                      )
-                    }
-                    onAvatarSave={() => handleSaveSection("Photo de profil")}
-                    onAvatarRemove={() => {
-                      setAvatarFile(null);
-                      setEditProfile((prev) =>
-                        prev
-                          ? {
-                            ...prev,
-                            avatar_url: null,
-                            avatar_scale: 1,
-                            avatar_offset_x: 0,
-                            avatar_offset_y: 0,
-                            avatar_rotation: 0,
-                          }
-                          : prev,
-                      );
-                    }}
-                    onEditAvatarClick={() =>
-                      beginSectionEdit("Photo de profil")
-                    }
-                  />
-
-                  <div className={styles.profileStats}>
-                    <div className={styles.profileStatItem}>
-                      <p className={styles.profileStatLabel}>Note</p>
-                      <p className={styles.profileStatValue}>
-                        4.9
-                        <Star
-                          size={14}
-                          className={styles.profileStatIconStar}
-                        />
-                      </p>
-                    </div>
-                    <div className={styles.profileStatItem}>
-                      <p className={styles.profileStatLabel}>Expérience</p>
-                      <p className={styles.profileStatValue}>
-                        {profile.years_experience != null
-                          ? `${profile.years_experience} ans`
-                          : "Non renseigné"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.presentationFeatured}>
-                {renderSection(
-                  "Présentation",
-                  <FiTarget />,
-                  <>
-                    <p className={styles.sectionIntroText}>
-                      Cette présentation est visible par les propriétaires sur
-                      votre profil et dans la recherche. Elle augmente vos
-                      chances d&apos;être contacté.
-                    </p>
-                    {editingSection === SECTION_IDS.PRESENTATION && (
-                      <div className={styles.presentationExample}>
-                        <strong>Exemple</strong>
-                        <p>
-                          Conciergerie locale à Paris, disponible 7j/7, spécialisée
-                          en accueil voyageurs, ménage et intendance.
-                        </p>
-                      </div>
-                    )}
-                    {renderField(
-                      "Ma présentation",
-                      "additional_info",
-                      SECTION_IDS.PRESENTATION,
-                      true,
-                      false,
-                      "Décrivez votre zone d’intervention, vos services clés et ce qui vous différencie.",
-                    )}
-                  </>,
-                  true,
-                  SECTION_IDS.PRESENTATION,
-                  false,
-                )}
-              </div>
-
-              <div className={styles.badgeCard}>
-                <h4 className={styles.badgeTitle}>
-                  <Shield size={16} />
-                  <span>Badge Vérifié</span>
-                </h4>
-                <p className={styles.badgeText}>
-                  Votre profil a été certifié par nos équipes. Vous profitez
-                  d&apos;une visibilité prioritaire sur les recherches de
-                  clients Premium.
-                </p>
-              </div>
-
-              {renderSection(
-                "Résumé du profil",
-                <FiBarChart />,
-                <ProfileSummary profile={profile} />,
-                false,
-              )}
-            </aside>
-
-            <section className={styles.rightColumn}>
-              {renderSection(
-                "Informations personnelles",
-                <LucideUser />,
-                <>
-                  <div className={styles.fieldsGrid}>
-                    {renderField(
-                      "Nom d'utilisateur",
-                      "username",
-                      SECTION_IDS.INFO_PERSO,
-                      false,
-                    )}
-                    {renderField(
-                      "Prénom",
-                      "first_name",
-                      SECTION_IDS.INFO_PERSO,
-                      false,
-                    )}
-                    {renderField(
-                      "Nom",
-                      "last_name",
-                      SECTION_IDS.INFO_PERSO,
-                      false,
-                    )}
-                    {renderField(
-                      "Email",
-                      "email",
-                      SECTION_IDS.INFO_PERSO,
-                      false,
-                      true,
-                      "email@exemple.com",
-                      "email",
-                    )}
-                    {renderField(
-                      "Téléphone",
-                      "phone",
-                      SECTION_IDS.INFO_PERSO,
-                      false,
-                      true,
-                      "+33 6 12 34 56 78",
-                      "tel",
-                    )}
-                  </div>
-
-                  <div className={styles.fieldRow}>
-                    <label
-                      htmlFor="experience_level"
-                      className={styles.fieldLabel}
-                    >
-                      Niveau d&apos;expérience
-                    </label>
-                    {editingSection === SECTION_IDS.INFO_PERSO ? (
-                      <select
-                        id="experience_level"
-                        name="experience_level"
-                        value={editProfile.experience_level ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value as
-                            | ""
-                            | "debutant"
-                            | "intermediaire"
-                            | "experimente";
-                          setEditProfile((prev) =>
-                            prev
-                              ? {
-                                ...prev,
-                                experience_level:
-                                  value === "" ? null : value,
-                              }
-                              : prev,
-                          );
-                        }}
-                        className={styles.fieldSelect}
-                      >
-                        <option value="">Sélectionner un niveau</option>
-                        <option value="debutant">
-                          Débutant (moins de 6 mois)
-                        </option>
-                        <option value="intermediaire">
-                          Intermédiaire (6 mois à 3 ans)
-                        </option>
-                        <option value="experimente">
-                          Expérimenté (plus de 3 ans)
-                        </option>
-                      </select>
-                    ) : (
-                      <span className={styles.fieldValue}>
-                        {formatExperienceLabel(editProfile.experience_level)}
-                      </span>
-                    )}
-                  </div>
-
-                  {renderField(
-                    "Années d'expérience",
-                    "years_experience",
-                    SECTION_IDS.INFO_PERSO,
-                    false,
-                    false,
-                    "Nombre d'années",
-                    "number",
-                    { min: "0", max: "50" },
-                  )}
-                </>,
-              )}
-
-              {renderSection(
-                "Informations entreprise",
-                <FiBriefcase />,
-                <>
-                  {renderField(
-                    "Forme juridique",
-                    "legal_form",
-                    "Informations_entreprise",
-                    false,
-                    false,
-                    "Auto-entrepreneur, SAS, SARL...",
-                  )}
-                  {renderField(
-                    "SIREN",
-                    "siren",
-                    "Informations_entreprise",
-                    false,
-                    true,
-                    "123 456 789 (9 chiffres)",
-                  )}
-                  {renderField(
-                    "SIRET",
-                    "siret",
-                    "Informations_entreprise",
-                    false,
-                    true,
-                    "123 456 789 00012 (14 chiffres)",
-                  )}
-                  {renderField(
-                    "N° TVA intracommunautaire",
-                    "vat_number",
-                    "Informations_entreprise",
-                    false,
-                    false,
-                    "FR 12 123456789",
-                  )}
-                </>,
-              )}
-
-              {renderSection(
-                "Adresse professionnelle",
-                <FiMapPinOutline />,
-                <>
-                  {renderField(
-                    "Adresse",
-                    "street_address",
-                    "Adresse_professionnelle",
-                    false,
-                    true,
-                    "12 Rue de la République",
-                  )}
-                  {renderField(
-                    "Code postal",
-                    "postal_code",
-                    "Adresse_professionnelle",
-                    false,
-                    true,
-                    "75001",
-                  )}
-                  {renderField(
-                    "Localisation",
-                    "location",
-                    "Adresse_professionnelle",
-                    false,
-                    true,
-                    "Paris",
-                  )}
-                  {renderField(
-                    "Pays",
-                    "country",
-                    "Adresse_professionnelle",
-                    false,
-                    false,
-                    "France",
-                  )}
-                </>,
-              )}
-
-              {renderSection(
-                "Assurance & Certifications",
-                <FiShieldOutline />,
-                <>
-                  {renderField(
-                    "Compagnie d'assurance",
-                    "insurance_company",
-                    "Assurance___Certifications",
-                    false,
-                    false,
-                    "AXA, Allianz...",
-                  )}
-                  {renderField(
-                    "N° contrat RC Pro",
-                    "insurance_number",
-                    "Assurance___Certifications",
-                    false,
-                    false,
-                    "RC123456789",
-                  )}
-                  {renderField(
-                    "Certifications",
-                    "certifications",
-                    "Assurance___Certifications",
-                    true,
-                    false,
-                    "Qualité, Labels...",
-                  )}
-                </>,
-              )}
-
-              {renderSection(
-                "Web & Réseaux sociaux",
-                <FiGlobe />,
-                <SocialLinksManager
-                  website={editProfile.website}
-                  linkedin={editProfile.linkedin}
-                  instagram={editProfile.instagram}
-                  facebook={editProfile.facebook}
-                  isEditing={
-                    editingSection === "Web___R_seaux_sociaux"
-                  }
-                  onEdit={() =>
-                    beginSectionEdit("Web___R_seaux_sociaux")
-                  }
-                  onChange={handleSocialChange}
-                  errors={{
-                    website: errors.website,
-                    linkedin: errors.linkedin,
-                    instagram: errors.instagram,
-                    facebook: errors.facebook,
-                  }}
-                />,
-              )}
-            </section>
-          </div>
+          <FicheTabSection
+            styles={styles}
+            profile={profile}
+            editProfile={editProfile}
+            editingSection={editingSection}
+            avatarFile={avatarFile}
+            defaultAvatar={DEFAULT_AVATAR}
+            sectionIds={{
+              INFO_PERSO: SECTION_IDS.INFO_PERSO,
+              PRESENTATION: SECTION_IDS.PRESENTATION,
+            }}
+            renderSection={renderSection}
+            renderField={renderField}
+            formatExperienceLabel={formatExperienceLabel}
+            setAvatarFile={setAvatarFile}
+            setEditProfile={setEditProfile}
+            handleSaveSection={handleSaveSection}
+            beginSectionEdit={beginSectionEdit}
+            handleSocialChange={handleSocialChange}
+            errors={errors}
+          />
         );
 
       case "missions":
         return (
-          <div className={styles.missionsLayout}>
-            <div className={styles.missionsHero}>
-              <div className={styles.missionsHeroTitle}>
-                <h3>Pilotage des missions</h3>
-                <p>Configurez vos services, zones et disponibilites, puis suivez vos indicateurs.</p>
-              </div>
-              <div className={styles.missionsHeroProgress}>
-                <div className={styles.missionsHeroProgressMeta}>
-                  <span>Progression de configuration</span>
-                  <strong>{missionProgressPercent}%</strong>
-                </div>
-                <button
-                  type="button"
-                  className={styles.missionProgressTrackButton}
-                  onClick={() =>
-                    setShowPendingMissionStepsOnly((prev) => !prev)
-                  }
-                  title="Filtrer les etapes a configurer"
-                >
-                  <div className={styles.missionProgressTrack} aria-hidden="true">
-                    <div
-                      className={styles.missionProgressFill}
-                      style={{ width: `${missionProgressPercent}%` }}
-                    />
-                  </div>
-                </button>
-                <p className={styles.missionsHeroProgressHint}>
-                  {missionProgressDoneCount}/{missionProgressSteps.length} etapes completees
-                </p>
-              </div>
-              <div className={styles.missionsHeroStats}>
-                <div className={styles.missionStat}>
-                  <span className={styles.missionStatLabel}>Services actifs</span>
-                  <strong>{activeMissionRawLabels.length}</strong>
-                  {unrecognizedActiveMissionLabels.length > 0 && (
-                    <small className={styles.missionStatSub}>
-                      {recognizedActiveMissionCount} reconnus,{" "}
-                      {unrecognizedActiveMissionLabels.length} non reconnus
-                    </small>
-                  )}
-                </div>
-                <div className={styles.missionStat}>
-                  <span className={styles.missionStatLabel}>Jours ouverts</span>
-                  <strong>{missionOpenDaysCount}/7</strong>
-                </div>
-                <div className={styles.missionStat}>
-                  <span className={styles.missionStatLabel}>Plages horaires</span>
-                  <strong>{missionRangesCount}</strong>
-                </div>
-                <div className={styles.missionStat}>
-                  <span className={styles.missionStatLabel}>Zones couvertes</span>
-                  <strong>{missionAvailability?.zones.length ?? 0}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.missionsColumns}>
-              <div className={styles.missionsPrimary}>
-            {renderSection(
-              "Services proposés",
-              <FiTarget />,
+          <MissionsTabLayout
+            styles={styles}
+            missionProgressPercent={missionProgressPercent}
+            missionProgressDoneCount={missionProgressDoneCount}
+            missionProgressTotal={missionProgressSteps.length}
+            showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+            onTogglePendingSteps={() =>
+              setShowPendingMissionStepsOnly((prev) => !prev)
+            }
+            activeMissionRawLabelsCount={activeMissionRawLabels.length}
+            recognizedActiveMissionCount={recognizedActiveMissionCount}
+            unrecognizedActiveMissionLabelsCount={unrecognizedActiveMissionLabels.length}
+            missionOpenDaysCount={missionOpenDaysCount}
+            missionRangesCount={missionRangesCount}
+            missionZonesCount={missionAvailability?.zones.length ?? 0}
+            secondaryContent={
               <>
-                <MissionDetails
-                  selectedServices={missionPayload.missionProfile.missions
-                    .filter((mission) => mission.isActive)
-                    .map((mission) => mission.label)}
-                  isEditing={editingSection === MISSION_SECTION_IDS.SERVICES}
-                  onChangeOption={(selected) =>
-                    setEditProfile((prev) =>
-                      prev
-                        ? (() => {
-                            const existingPayload = parseAvailabilityPayloadRaw(
-                              prev.availability_hours,
-                            );
-                            const parsed = parseMissionPayload(
-                              prev.availability_hours,
-                            );
-                            const normalizedSelected = selected.map((item) =>
-                              item.trim().toLowerCase(),
-                            );
-                            const selectedIdSet = new Set<string>();
-
-                            selected.forEach((item) => {
-                              const byCatalogLabel = parsed.missionCatalog.find(
-                                (catalogItem) =>
-                                  catalogItem.label.trim().toLowerCase() ===
-                                  item.trim().toLowerCase(),
-                              );
-                              const byCatalogId = parsed.missionCatalog.find(
-                                (catalogItem) => catalogItem.id === item,
-                              );
-                              selectedIdSet.add(
-                                byCatalogLabel?.id ??
-                                  byCatalogId?.id ??
-                                  toMissionTypeId(item),
-                              );
-                            });
-
-                            const hasMissionProfile =
-                              parsed.missionProfile.missions.length > 0;
-                            const baseMissions = hasMissionProfile
-                              ? parsed.missionProfile.missions
-                              : parsed.missionCatalog.map((catalogItem) => ({
-                                  id: catalogItem.id,
-                                  label: catalogItem.label,
-                                  isActive: false,
-                                  minNoticeHours: 24,
-                                  allowUrgent: false,
-                                  urgentMultiplier: 1.3,
-                                }));
-                            const existingMissionIds = new Set(
-                              baseMissions.map((mission) => mission.id),
-                            );
-                            const missingSelectedMissions = selected
-                              .map((item) => {
-                                const byCatalogLabel = parsed.missionCatalog.find(
-                                  (catalogItem) =>
-                                    catalogItem.label.trim().toLowerCase() ===
-                                    item.trim().toLowerCase(),
-                                );
-                                const byCatalogId = parsed.missionCatalog.find(
-                                  (catalogItem) => catalogItem.id === item,
-                                );
-                                const id =
-                                  byCatalogLabel?.id ??
-                                  byCatalogId?.id ??
-                                  toMissionTypeId(item);
-                                const label =
-                                  byCatalogLabel?.label ??
-                                  byCatalogId?.label ??
-                                  item;
-
-                                if (existingMissionIds.has(id)) return null;
-                                existingMissionIds.add(id);
-
-                                return {
-                                  id,
-                                  label,
-                                  isActive: true,
-                                  minNoticeHours: 24,
-                                  allowUrgent: false,
-                                  urgentMultiplier: 1.3,
-                                };
-                              })
-                              .filter(
-                                (
-                                  mission,
-                                ): mission is ConciergeMissionProfile["missions"][number] =>
-                                  Boolean(mission),
-                              );
-
-                            const nextMissions = [
-                              ...baseMissions,
-                              ...missingSelectedMissions,
-                            ].map((mission) => ({
-                              ...mission,
-                              isActive:
-                                selectedIdSet.has(mission.id) ||
-                                normalizedSelected.includes(
-                                  mission.label.trim().toLowerCase(),
-                                ),
-                            }));
-
-                            const nextMissionProfile: ConciergeMissionProfile = {
-                              ...parsed.missionProfile,
-                              missions: nextMissions,
-                            };
-                            const legacy =
-                              buildLegacyFromMissionProfile(nextMissionProfile);
-
-                            return {
-                              ...prev,
-                              availability_hours: JSON.stringify({
-                                ...existingPayload,
-                                missionProfile: nextMissionProfile,
-                                missionCatalog: legacy.missionCatalog,
-                                preferences: legacy.preferences,
-                              }),
-                            };
-                          })()
-                        : prev,
-                    )
-                  }
+                <MissionProgressPanelSection
+                  styles={styles}
+                  missionProgressDoneCount={missionProgressDoneCount}
+                  missionProgressTotal={missionProgressSteps.length}
+                  showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+                  setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
+                  missionProgressSteps={missionProgressSteps}
+                  openMissionSectionForEdit={openMissionSectionForEdit}
                 />
-                {unrecognizedActiveMissionLabels.length > 0 && (
-                  <div className={styles.missionUnknownPanel}>
-                    <p>
-                      Services actifs non reconnus dans le catalogue:{" "}
-                      {unrecognizedActiveMissionLabels.length}
-                    </p>
-                    <div className={styles.missionUnknownList}>
-                      {unrecognizedActiveMissionLabels.map((label) => (
-                        <span key={label} className={styles.missionUnknownItem}>
-                          {label}
-                        </span>
-                      ))}
-                    </div>
-                    <div className={styles.missionUnknownActions}>
-                      <button
-                        type="button"
-                        className={styles.missionUnknownActionBtn}
-                        onClick={removeUnrecognizedServices}
-                        disabled={catalogSyncBusy}
-                      >
-                        {catalogSyncBusy
-                          ? "Suppression en cours..."
-                          : "Supprimer tous les non reconnus"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>,
-              true,
-              MISSION_SECTION_IDS.SERVICES,
-              false,
-            )}
-
-            {renderSection(
-              "Zone d'intervention",
-              <FiMapPinOutline />,
-              <>
-                {renderField(
-                  "Zone de travail (location)",
-                  "location",
-                  MISSION_SECTION_IDS.ZONE_RULES,
-                  false,
-                  true,
-                  "Ex: Paris, Lyon, Bordeaux...",
-                )}
-                <MissionZoneAvailability
-                  value={missionAvailability}
-                  isEditing={editingSection === MISSION_SECTION_IDS.ZONE_RULES}
-                  lockZones
-                  showScheduleSection={false}
-                  showRulesSection={false}
-                  onChange={(data) =>
-                    setEditProfile((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            location:
-                              data.zones[0]?.label?.trim()
-                                ? data.zones[0].label.trim()
-                                : prev.location ?? prev.service_area ?? null,
-                            service_area:
-                              data.zones[0]?.label?.trim()
-                                ? data.zones[0].label.trim()
-                                : prev.location ?? prev.service_area ?? null,
-                            service_radius_km: data.radiusKm,
-                            availability_hours: JSON.stringify({
-                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                              rules: data.rules,
-                            }),
-                          }
-                        : prev,
-                    )
-                  }
+                <MissionQuickQuoteSection
+                  styles={styles}
+                  renderSection={renderSection}
+                  selectedMissionQuoteId={selectedMissionQuoteId}
+                  setSelectedMissionQuoteId={setSelectedMissionQuoteId}
+                  missionRows={missionRows}
+                  missionQuoteBusy={missionQuoteBusy}
+                  createQuoteFromMission={createQuoteFromMission}
+                  missionQuoteFeedback={missionQuoteFeedback}
                 />
-              </>,
-            )}
-
-            {renderSection(
-              "Disponibilités hebdomadaires",
-              <FiClockOutline />,
-              <>
-                <AvailabilityEditor
-                  value={missionAvailability?.schedule ?? []}
-                  emergency24h={missionAvailability?.emergency24h ?? false}
-                  isEditing={editingSection === MISSION_SECTION_IDS.WEEKLY_AVAILABILITY}
-                  onChange={(schedule, emergency24h) =>
-                    setEditProfile((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            availability_hours: JSON.stringify({
-                              ...parseAvailabilityPayloadRaw(prev.availability_hours),
-                              schedule: normalizeMissionSchedule(schedule),
-                            }),
-                            emergency_service: emergency24h,
-                          }
-                        : prev,
-                    )
-                  }
-                />
-              </>,
-              true,
-              MISSION_SECTION_IDS.WEEKLY_AVAILABILITY,
-            )}
-
-              </div>
-              <aside className={styles.missionsSecondary}>
-                {renderMissionProgressPanel()}
-                {renderMissionsStaticSections()}
-              </aside>
-            </div>
-          </div>
+              </>
+            }
+          >
+            <MissionsPrimarySections
+              styles={styles}
+              renderSection={renderSection}
+              renderField={renderField}
+              sectionIds={MISSION_SECTION_IDS}
+              editingSection={editingSection}
+              missionPayload={missionPayload}
+              missionAvailability={missionAvailability}
+              unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
+              removeUnrecognizedServices={removeUnrecognizedServices}
+              catalogSyncBusy={catalogSyncBusy}
+              setEditProfile={setEditProfile}
+              parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
+              parseMissionPayload={parseMissionPayload}
+              buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
+              toMissionTypeId={toMissionTypeId}
+              normalizeMissionSchedule={normalizeMissionSchedule}
+            />
+          </MissionsTabLayout>
         );
 
       case "packs":
         return (
           <div className={styles.financeGrid}>
             <div className={styles.financeCard}>
-              {renderSection(
-                "Mes packs de services",
-                <FiBriefcase />,
-                <>
-                  <p>
-                    Creez et gerez vos packs directement depuis votre profil concierge.
-                    Vous pourrez ensuite les relier a votre grille tarifaire et vos modeles de contrats.
-                  </p>
-                  <p>
-                    <Link href="/dashboard/concierge/services-packages/seed">
-                      Ouvrir la page seed test (2 packs + 2 modeles)
-                    </Link>
-                  </p>
-                  <ServicePackageManager
-                    activeMissionServiceIds={activeMissionServiceCatalogIds}
-                    activeMissionServiceLabels={activeMissionServiceLabels}
-                  />
-                </>,
-                false,
-              )}
+              <PacksTabSection
+                renderSection={renderSection}
+                activeMissionServiceIds={activeMissionServiceCatalogIds}
+                activeMissionServiceLabels={activeMissionServiceLabels}
+              />
             </div>
           </div>
         );
@@ -3891,1333 +3048,211 @@ export default function ConciergeProfilePage() {
       case "tarifs":
         return (
           <div className={styles.financeGrid}>
-            <div
-              className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard}`}
+            <TariffWorkflowSection
+              styles={styles}
+              renderSection={renderSection}
+              sectionId={TARIFF_SECTION_IDS.WORKFLOW}
+              commissionRatePct={pricingMeta.commissionRatePct}
+              hourlyRate={pricingV2.base.hourlyRate}
+              configuredPricingCount={configuredPricingCount}
+              tariffReadinessPercent={tariffReadinessPercent}
+              pendingChecksCount={pendingTariffReadinessChecks.length}
+              onScrollConfig={() => scrollToTariffSection("tariffs-config")}
+              onScrollBilling={() => scrollToTariffSection("tariffs-billing-desk")}
+              onGoToMissions={() => handleTabChange("missions")}
+            />
+
+            <TariffConfigShell
+              styles={styles}
+              renderSection={renderSection}
+              sectionId={TARIFF_SECTION_IDS.CONFIG}
             >
-              {renderSection(
-                "Parcours devis & facturation",
-                <FiTarget />,
-                <div className={styles.tariffWorkflow}>
-                  <div className={styles.tariffHero}>
-                    <div className={styles.tariffHeroIntro}>
-                      <span className={styles.tariffPill}>Pilotage global</span>
-                      <p className={styles.tariffWorkflowLead}>
-                        Ajustez vos prix rapidement, puis utilisez-les directement
-                        dans vos devis et factures.
-                      </p>
-                      <div className={styles.tariffExpertCard}>
-                        <h4>Conseil Expert</h4>
-                        <span
-                          className={`${styles.tariffMarketBadge} ${
-                            pricingMeta.commissionRatePct < 15
-                              ? styles.tariffMarketBadgeLow
-                              : pricingMeta.commissionRatePct <= 25
-                                ? styles.tariffMarketBadgeAvg
-                                : styles.tariffMarketBadgeHigh
-                          }`}
-                        >
-                          {pricingMeta.commissionRatePct < 15
-                            ? "Sous marché"
-                            : pricingMeta.commissionRatePct <= 25
-                              ? "Marché"
-                              : "Premium"}
-                        </span>
-                        <p className={styles.tariffExpertSummary}>
-                          {pricingV2.base.hourlyRate > 0
-                            ? `Base ${pricingV2.base.hourlyRate} EUR/h, ${configuredPricingCount} service(s) avec tarif.`
-                            : "Définissez d'abord votre tarif horaire puis ajoutez vos services à l'acte."}
-                        </p>
-                      </div>
-                    </div>
-                    <div className={styles.tariffHeroAside}>
-                      <div className={styles.tariffTopCards}>
-                        <article className={styles.tariffMetric}>
-                          <span>Commission</span>
-                          <strong>{pricingMeta.commissionRatePct}%</strong>
-                        </article>
-                        <article className={styles.tariffMetric}>
-                          <span>Tarif horaire</span>
-                          <strong>
-                            {pricingV2.base.hourlyRate > 0
-                              ? `${pricingV2.base.hourlyRate} EUR/h`
-                              : "A définir"}
-                          </strong>
-                        </article>
-                        <article className={styles.tariffMetric}>
-                          <span>Services avec tarif</span>
-                          <strong>{configuredPricingCount}</strong>
-                        </article>
-                      </div>
-                      <article className={styles.tariffReadyCard}>
-                        <span className={styles.tariffReadyLabel}>Prêt à chiffrer</span>
-                        <strong className={styles.tariffReadyScore}>
-                          {tariffReadinessPercent}%
-                        </strong>
-                        <p>
-                          {pendingTariffReadinessChecks.length > 0
-                            ? `${pendingTariffReadinessChecks.length} point(s) à compléter.`
-                            : "Configuration complète. Vous pouvez envoyer vos devis."}
-                        </p>
-                      </article>
-                    </div>
-                  </div>
-
-                  <div className={styles.tariffQuickActions}>
-                    <button
-                      type="button"
-                      className={`${styles.tariffNavBtn} ${styles.tariffNavBtnPrimary}`}
-                      onClick={() => scrollToTariffSection("tariffs-config")}
-                    >
-                      Configurer les tarifs
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffNavBtnLink}
-                      onClick={() => handleTabChange("missions")}
-                    >
-                      Gérer mes missions
-                    </button>
-                  </div>
-
-                  <div className={styles.tariffSectionNav}>
-                    <button
-                      type="button"
-                      className={styles.tariffSectionLink}
-                      onClick={() => scrollToTariffSection("tariffs-config")}
-                    >
-                      1. Configurer les tarifs
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.tariffSectionLink}
-                      onClick={() => scrollToTariffSection("tariffs-billing-desk")}
-                    >
-                      2. Générer devis/factures
-                    </button>
-                  </div>
-                </div>,
-                false,
-                TARIFF_SECTION_IDS.WORKFLOW,
-              )}
-            </div>
-
-            <div
-              id="tariffs-config"
-              className={`${styles.financeCard} ${styles.financeCardWide} ${styles.tariffPanelCard}`}
-            >
-              {renderSection(
-                "1. Configuration tarifaire",
-                <FiDollarSignOutline />,
-                <>
-                  <div className={styles.tariffPillarsGrid}>
-                    <article className={styles.tariffPillarCard}>
-                      <h3>Pilier 1 - Tarif de base</h3>
-                      <p>Socle commun appliqué à vos prestations.</p>
-                      <div className={styles.tariffPillarStats}>
-                        <span>
-                          Horaire:{" "}
-                          <strong>
-                            {pricingV2.base.hourlyRate > 0
-                              ? `${pricingV2.base.hourlyRate} EUR/h`
-                              : "A définir"}
-                          </strong>
-                        </span>
-                        <span>
-                          Déplacement: <strong>{pricingV2.base.travelFee} EUR</strong>
-                        </span>
-                        <span>
-                          Minimum: <strong>{pricingV2.base.minimumInvoice} EUR</strong>
-                        </span>
-                      </div>
-                    </article>
-
-                    <article className={styles.tariffPillarCard}>
-                      <h3>Pilier 2 - Commission & set-up</h3>
-                      <p>Revenus variables et ponctuels par logement.</p>
-                      <div className={styles.tariffPillarFields}>
-                        <label>
-                          <span>Commission sur revenus (%)</span>
-                          <input
-                            type="number"
-                            min={0}
-                            max={100}
-                            step="0.1"
-                            value={pricingMeta.commissionRatePct}
-                            disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
-                            onChange={(e) =>
-                              applyPricingMeta({
-                                ...pricingMeta,
-                                commissionRatePct: Number(e.target.value || 0),
-                              })
-                            }
-                          />
-                        </label>
-                        <label>
-                          <span>Frais de mise en place (EUR)</span>
-                          <input
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={pricingMeta.setupFee}
-                            disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
-                            onChange={(e) =>
-                              applyPricingMeta({
-                                ...pricingMeta,
-                                setupFee: Number(e.target.value || 0),
-                              })
-                            }
-                          />
-                        </label>
-                      </div>
-                    </article>
-
-                    <article className={styles.tariffPillarCard}>
-                      <h3>Pilier 3 - Catalogue à l&apos;acte</h3>
-                      <p>Services nommés librement pour plus de transparence.</p>
-                      <div className={styles.tariffPillarStats}>
-                        <span>
-                          Services configurés:{" "}
-                          <strong>
-                            {configuredPricingCount} / {pricingCatalogRows.length}
-                          </strong>
-                        </span>
-                        <span>
-                          Services actifs: <strong>{activeMissionServiceLabels.length}</strong>
-                        </span>
-                      </div>
-                    </article>
-                  </div>
+                  <TariffPillarsSection
+                    styles={styles}
+                    hourlyRate={pricingV2.base.hourlyRate}
+                    travelFee={pricingV2.base.travelFee}
+                    minimumInvoice={pricingV2.base.minimumInvoice}
+                    commissionRatePct={pricingMeta.commissionRatePct}
+                    setupFee={pricingMeta.setupFee}
+                    editingDisabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
+                    onCommissionRateChange={(value) =>
+                      applyPricingMeta({
+                        ...pricingMeta,
+                        commissionRatePct: value,
+                      })
+                    }
+                    onSetupFeeChange={(value) =>
+                      applyPricingMeta({
+                        ...pricingMeta,
+                        setupFee: value,
+                      })
+                    }
+                    configuredPricingCount={configuredPricingCount}
+                    pricingCatalogRowsCount={pricingCatalogRows.length}
+                    activeMissionServiceLabelsCount={activeMissionServiceLabels.length}
+                  />
 
                   <div className={styles.tariffSimpleGrid}>
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>A. Contexte automatique</h3>
-                      <div className={styles.tariffSimpleRows}>
-                        <p>
-                          <strong>Positionnement:</strong>{" "}
-                          {formatExperienceLabel(editProfile.experience_level)}
-                        </p>
-                        <p>
-                          <strong>Lieu:</strong>{" "}
-                          {editProfile.location?.trim() ||
-                            editProfile.service_area?.trim() ||
-                            "Non renseigne"}
-                        </p>
-                        <p>
-                          <strong>Rayon:</strong> {missionAvailability?.radiusKm ?? 0} km
-                        </p>
-                        <p>
-                          <strong>Urgences activees:</strong>{" "}
-                          {missionPayload.preferences.priorityFlags.urgent ? "Oui" : "Non"}{" "}
-                          (+
-                          {pricingV2.globalModifiers.urgentPercent}%)
-                        </p>
-                        <p>
-                          <strong>Haute saison:</strong>{" "}
-                          {missionPayload.missionProfile.specialConditions.acceptHighSeasonInterventions
-                            ? "Oui"
-                            : "Non"}{" "}
-                          (+{pricingV2.globalModifiers.highSeasonPercent}%)
-                        </p>
-                      </div>
-                    </section>
+                    <TariffContextSection
+                      styles={styles}
+                      experienceLabel={formatExperienceLabel(editProfile.experience_level)}
+                      locationLabel={tariffLocationLabel}
+                      radiusKm={missionAvailability?.radiusKm ?? 0}
+                      urgentEnabled={missionPayload.preferences.priorityFlags.urgent}
+                      urgentPercent={pricingV2.globalModifiers.urgentPercent}
+                      highSeasonEnabled={
+                        missionPayload.missionProfile.specialConditions
+                          .acceptHighSeasonInterventions
+                      }
+                      highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
+                    />
 
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>B. Tarif de base</h3>
-                      <p className={styles.tariffHint}>
-                        Definissez votre base de facturation commune a toutes les
-                        missions.
-                      </p>
-                      <div className={styles.tariffFieldPanel}>
-                        {renderField(
-                          "Tarif horaire (EUR/h)",
-                          "hourly_rate",
-                          TARIFF_SECTION_IDS.CONFIG,
-                          false,
-                          true,
-                          "45",
-                          "number",
-                        )}
-                        {renderField(
-                          "Frais de deplacement (EUR)",
-                          "travel_fee",
-                          TARIFF_SECTION_IDS.CONFIG,
-                          false,
-                          false,
-                          "15",
-                          "number",
-                        )}
-                        <div className={styles.fieldGroup}>
-                          <label className={styles.label}>Minimum de facture (EUR)</label>
-                          <input
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={Math.round(pricingV2.base.minimumInvoice)}
-                            disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
-                            onChange={(e) =>
-                              applyPricingV2({
-                                ...pricingV2,
-                                base: {
-                                  ...pricingV2.base,
-                                  minimumInvoice: Math.max(0, Number(e.target.value || 0)),
-                                },
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </section>
-
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>C. Catalogue de services</h3>
-                      <p className={styles.tariffHint}>
-                        Nommez vos prestations librement et fixez un tarif par
-                        service pour plus de transparence client.
-                      </p>
-                      <div className={styles.pricingToolbar}>
-                        <span className={styles.pricingSummary}>
-                          {configuredPricingCount} / {pricingCatalogRows.length} services configures
-                        </span>
-                        <div className={styles.pricingToolbarActions}>
-                          <label className={styles.pricingSelectRow}>
-                            <span>Trier</span>
-                            <select
-                              value={pricingSortMode}
-                              onChange={(e) =>
-                                setPricingSortMode(
-                                  e.target.value === "service" ? "service" : "category",
-                                )
-                              }
-                            >
-                              <option value="category">Par categorie</option>
-                              <option value="service">Par service</option>
-                            </select>
-                          </label>
-                          <label className={styles.pricingToggleRow}>
-                            <input
-                              type="checkbox"
-                              checked={showAllPricingServices}
-                              onChange={(e) => setShowAllPricingServices(e.target.checked)}
-                            />
-                            <span>Afficher tous les services catalogues</span>
-                          </label>
-                          <button
-                            type="button"
-                            className={styles.tariffNavBtn}
-                            disabled={!canEditTariffConfig}
-                            onClick={() => openCreatePricingModal()}
-                          >
-                            Ajouter un tarif
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.tariffNavBtn}
-                            disabled={
-                              !canEditTariffConfig ||
-                              servicePrices.length === 0 ||
-                              servicePricesBusyId === "all"
-                            }
-                            onClick={resetAllServicePrices}
-                          >
-                            Reinitialiser
-                          </button>
-                        </div>
-                      </div>
-                      {servicePricesLoading ? (
-                        <p className={styles.tariffHint}>Chargement de la grille tarifaire...</p>
-                      ) : visiblePricingCatalogRows.length === 0 ? (
-                        <p className={styles.tariffHint}>
-                          Aucun service mission actif. Activez vos services depuis l&apos;onglet
-                          Missions.
-                        </p>
-                      ) : (
-                        <div className={styles.pricingTableScroll}>
-                          <div className={styles.pricingTableHead}>
-                            <span>Service</span>
-                            <span>Tarif</span>
-                            <span>Unite</span>
-                            <span>Actions</span>
-                          </div>
-                          <div className={styles.pricingTable}>
-                            {groupedPricingCatalogRows.map((group) => (
-                              <section key={group.category} className={styles.pricingCategoryBlock}>
-                                <button
-                                  type="button"
-                                  className={styles.pricingCategoryTitle}
-                                  onClick={() => togglePricingCategory(group.category)}
-                                >
-                                  <span>{group.category}</span>
-                                  <small>{group.rows.length}</small>
-                                  <strong>
-                                    {collapsedPricingCategories[group.category] ? "+" : "-"}
-                                  </strong>
-                                </button>
-                                {!collapsedPricingCategories[group.category] &&
-                                  group.rows.map(({ service, pricing, isActiveMissionService }) => (
-                                  <div key={service.id} className={styles.pricingTableRow}>
-                                    <div className={styles.pricingServiceCell}>
-                                      <strong>{service.service}</strong>
-                                      <div className={styles.pricingBadgeRow}>
-                                        <span
-                                          className={`${styles.pricingStatusBadge} ${
-                                            pricing
-                                              ? styles.pricingStatusConfigured
-                                              : styles.pricingStatusMissing
-                                          }`}
-                                        >
-                                          {pricing ? "Actif" : "Non configure"}
-                                        </span>
-                                        {!isActiveMissionService && (
-                                          <span className={styles.pricingTagMuted}>Hors offre</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      {pricing ? (
-                                        <strong>{Math.round(pricing.amount)} EUR</strong>
-                                      ) : (
-                                        <span className={styles.pricingEmptyValue}>-</span>
-                                      )}
-                                    </div>
-                                    <div>
-                                      {pricing?.unit ? (
-                                        <span>{pricing.unit}</span>
-                                      ) : (
-                                        <span className={styles.pricingEmptyValue}>-</span>
-                                      )}
-                                    </div>
-                                    <div className={styles.pricingRowActions}>
-                                      {pricing ? (
-                                        <>
-                                          <button
-                                            type="button"
-                                            className={styles.pricingActionBtn}
-                                            disabled={!canEditTariffConfig || servicePricesBusyId != null}
-                                            onClick={() => openEditPricingModal(pricing)}
-                                          >
-                                            Modifier
-                                          </button>
-                                          <button
-                                            type="button"
-                                            className={styles.pricingActionBtnDanger}
-                                            disabled={!canEditTariffConfig || servicePricesBusyId != null}
-                                            onClick={() => deleteServicePrice(pricing)}
-                                          >
-                                            Supprimer
-                                          </button>
-                                        </>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          className={styles.pricingActionBtn}
-                                          disabled={!canEditTariffConfig || servicePricesBusyId != null}
-                                          onClick={() => openCreatePricingModal(service)}
-                                        >
-                                          Ajouter
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                  ))}
-                              </section>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </section>
-
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>D. Variables et majorations</h3>
-                      <p className={styles.tariffHint}>
-                        Adaptez vos prix selon le type de bien et les conditions
-                        d&apos;intervention.
-                      </p>
-                      <div className={styles.tariffPropertyMatrix}>
-                        {PROPERTY_TYPE_OPTIONS.map((option) => (
-                          <label key={option.key} className={styles.tariffPropertyRow}>
-                            <span>{option.label}</span>
-                            <input
-                              type="number"
-                              step="1"
-                              value={getPropertyTypeDeltaPercent(option.key)}
-                              disabled={editingSection !== TARIFF_SECTION_IDS.CONFIG}
-                              onChange={(e) =>
-                                updatePropertyTypeDeltaPercent(
-                                  option.key,
-                                  Number(e.target.value || 0),
-                                )
-                              }
-                            />
-                            <small>%</small>
-                          </label>
-                        ))}
-                      </div>
-                      <ul className={styles.tariffRuleList}>
-                        <li>Urgence (&lt;24h): +{pricingV2.globalModifiers.urgentPercent}%</li>
-                        <li>Nuit: +{pricingV2.globalModifiers.nightPercent}%</li>
-                        <li>Week-end: +{pricingV2.globalModifiers.weekendPercent}%</li>
-                        <li>Haute saison: +{pricingV2.globalModifiers.highSeasonPercent}%</li>
-                        <li>Minimum de facture: {pricingV2.base.minimumInvoice} EUR</li>
-                      </ul>
-                    </section>
-
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>E. Segments proprietaires</h3>
-                      <p className={styles.tariffHint}>
-                        Appliquez des variations de commission et de set-up selon
-                        votre typologie client.
-                      </p>
-                      <div className={styles.pricingSegmentsDraft}>
-                        <input
-                          type="text"
-                          placeholder="Nom du segment (ex: Grands comptes)"
-                          value={segmentDraft.name}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setSegmentDraft((prev) => ({ ...prev, name: e.target.value }))
-                          }
-                        />
-                        <input
-                          type="number"
-                          step="0.1"
-                          placeholder="Delta commission %"
-                          value={segmentDraft.commission_delta_pct}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setSegmentDraft((prev) => ({
-                              ...prev,
-                              commission_delta_pct: e.target.value,
-                            }))
-                          }
-                        />
-                        <input
-                          type="number"
-                          step="0.1"
-                          placeholder="Delta set-up %"
-                          value={segmentDraft.setup_fee_delta_pct}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setSegmentDraft((prev) => ({
-                              ...prev,
-                              setup_fee_delta_pct: e.target.value,
-                            }))
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.tariffNavBtn}
-                          disabled={!canEditTariffConfig || segmentsBusyId === "create"}
-                          onClick={createPricingSegment}
-                        >
-                          Ajouter segment
-                        </button>
-                      </div>
-                      {segmentsLoading ? (
-                        <p className={styles.tariffHint}>Chargement des segments...</p>
-                      ) : pricingSegments.length === 0 ? (
-                        <p className={styles.tariffHint}>Aucun segment configure.</p>
-                      ) : (
-                        <div className={styles.pricingSegmentsList}>
-                          {pricingSegments.map((segment) => (
-                            <article key={segment.id} className={styles.pricingSegmentRow}>
-                              <input
-                                type="text"
-                                value={segment.name}
-                                disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
-                                onChange={(e) =>
-                                  setPricingSegments((prev) =>
-                                    prev.map((item) =>
-                                      item.id === segment.id
-                                        ? { ...item, name: e.target.value }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <input
-                                type="number"
-                                step="0.1"
-                                value={segment.commission_delta_pct}
-                                disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
-                                onChange={(e) =>
-                                  setPricingSegments((prev) =>
-                                    prev.map((item) =>
-                                      item.id === segment.id
-                                        ? {
-                                            ...item,
-                                            commission_delta_pct: Number(e.target.value || 0),
-                                          }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <input
-                                type="number"
-                                step="0.1"
-                                value={segment.setup_fee_delta_pct}
-                                disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
-                                onChange={(e) =>
-                                  setPricingSegments((prev) =>
-                                    prev.map((item) =>
-                                      item.id === segment.id
-                                        ? {
-                                            ...item,
-                                            setup_fee_delta_pct: Number(e.target.value || 0),
-                                          }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <label className={styles.pricingSegmentDefault}>
-                                <input
-                                  type="checkbox"
-                                  checked={segment.is_default}
-                                  disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
-                                  onChange={(e) =>
-                                    setPricingSegments((prev) =>
-                                      prev.map((item) =>
-                                        item.id === segment.id
-                                          ? { ...item, is_default: e.target.checked }
-                                          : e.target.checked
-                                            ? { ...item, is_default: false }
-                                            : item,
-                                      ),
-                                    )
-                                  }
-                                />
-                                <span>Defaut</span>
-                              </label>
-                              <div className={styles.pricingRowActions}>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtn}
-                                  disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
-                                  onClick={() => updatePricingSegment(segment)}
-                                >
-                                  Sauver
-                                </button>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtnDanger}
-                                  disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
-                                  onClick={() => deletePricingSegment(segment.id)}
-                                >
-                                  Supprimer
-                                </button>
-                              </div>
-                            </article>
-                          ))}
-                        </div>
-                      )}
-                    </section>
-
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>F. Complexite mission</h3>
-                      <p className={styles.tariffHint}>
-                        Creez des modulateurs par type de bien et surface.
-                      </p>
-                      <div className={styles.pricingSegmentsDraft}>
-                        <select
-                          value={propertyRuleDraft.service_id}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setPropertyRuleDraft((prev) => ({
-                              ...prev,
-                              service_id: e.target.value,
-                            }))
-                          }
-                        >
-                          <option value="">Service (optionnel)</option>
-                          {catalogServices.map((service) => (
-                            <option key={service.id} value={String(service.id)}>
-                              {service.service}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="text"
-                          placeholder="Type de bien (ex: villa)"
-                          value={propertyRuleDraft.property_type}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setPropertyRuleDraft((prev) => ({
-                              ...prev,
-                              property_type: e.target.value,
-                            }))
-                          }
-                        />
-                        <input
-                          type="number"
-                          placeholder="Surface min m²"
-                          value={propertyRuleDraft.min_surface_m2}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setPropertyRuleDraft((prev) => ({
-                              ...prev,
-                              min_surface_m2: e.target.value,
-                            }))
-                          }
-                        />
-                        <input
-                          type="number"
-                          placeholder="Surface max m²"
-                          value={propertyRuleDraft.max_surface_m2}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setPropertyRuleDraft((prev) => ({
-                              ...prev,
-                              max_surface_m2: e.target.value,
-                            }))
-                          }
-                        />
-                        <input
-                          type="number"
-                          step="0.1"
-                          placeholder="Variation %"
-                          value={propertyRuleDraft.delta_pct}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) =>
-                            setPropertyRuleDraft((prev) => ({
-                              ...prev,
-                              delta_pct: e.target.value,
-                            }))
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.tariffNavBtn}
-                          disabled={!canEditTariffConfig || propertyRulesBusyId === "create"}
-                          onClick={createPricingPropertyRule}
-                        >
-                          Ajouter regle
-                        </button>
-                      </div>
-                      {propertyRulesLoading ? (
-                        <p className={styles.tariffHint}>Chargement des regles...</p>
-                      ) : propertyRules.length === 0 ? (
-                        <p className={styles.tariffHint}>Aucune regle definie.</p>
-                      ) : (
-                        <div className={styles.pricingSegmentsList}>
-                          {propertyRules.map((rule) => (
-                            <article key={rule.id} className={styles.pricingSegmentRow}>
-                              <input
-                                type="text"
-                                value={rule.property_type ?? ""}
-                                disabled={
-                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
-                                }
-                                onChange={(e) =>
-                                  setPropertyRules((prev) =>
-                                    prev.map((item) =>
-                                      item.id === rule.id
-                                        ? { ...item, property_type: e.target.value || null }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <input
-                                type="number"
-                                placeholder="min"
-                                value={rule.min_surface_m2 ?? ""}
-                                disabled={
-                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
-                                }
-                                onChange={(e) =>
-                                  setPropertyRules((prev) =>
-                                    prev.map((item) =>
-                                      item.id === rule.id
-                                        ? {
-                                            ...item,
-                                            min_surface_m2: e.target.value
-                                              ? Number(e.target.value)
-                                              : null,
-                                          }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <input
-                                type="number"
-                                placeholder="max"
-                                value={rule.max_surface_m2 ?? ""}
-                                disabled={
-                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
-                                }
-                                onChange={(e) =>
-                                  setPropertyRules((prev) =>
-                                    prev.map((item) =>
-                                      item.id === rule.id
-                                        ? {
-                                            ...item,
-                                            max_surface_m2: e.target.value
-                                              ? Number(e.target.value)
-                                              : null,
-                                          }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <input
-                                type="number"
-                                step="0.1"
-                                value={rule.delta_pct}
-                                disabled={
-                                  !canEditTariffConfig || propertyRulesBusyId === rule.id
-                                }
-                                onChange={(e) =>
-                                  setPropertyRules((prev) =>
-                                    prev.map((item) =>
-                                      item.id === rule.id
-                                        ? { ...item, delta_pct: Number(e.target.value || 0) }
-                                        : item,
-                                    ),
-                                  )
-                                }
-                              />
-                              <div className={styles.pricingRowActions}>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtn}
-                                  disabled={
-                                    !canEditTariffConfig || propertyRulesBusyId === rule.id
-                                  }
-                                  onClick={() => updatePricingPropertyRule(rule)}
-                                >
-                                  Sauver
-                                </button>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtnDanger}
-                                  disabled={
-                                    !canEditTariffConfig || propertyRulesBusyId === rule.id
-                                  }
-                                  onClick={() => deletePricingPropertyRule(rule.id)}
-                                >
-                                  Supprimer
-                                </button>
-                              </div>
-                            </article>
-                          ))}
-                        </div>
-                      )}
-                    </section>
-
-                    <section className={styles.tariffSimpleCard}>
-                      <h3 className={styles.tariffSimpleTitle}>G. Simulateur strategique</h3>
-                      <p className={styles.tariffHint}>
-                        Testez un scenario commercial puis injectez-le dans le parcours
-                        devis/facturation.
-                      </p>
-                      <div className={styles.pricingSegmentsDraft}>
-                        <select
-                          value={strategySim.segmentId}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({ ...prev, segmentId: e.target.value }))
-                          }
-                        >
-                          <option value="">Segment automatique (defaut)</option>
-                          {pricingSegments.map((segment) => (
-                            <option key={segment.id} value={segment.id}>
-                              {segment.name}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={strategySim.serviceId}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({ ...prev, serviceId: e.target.value }))
-                          }
-                        >
-                          <option value="">Service acte (optionnel)</option>
-                          {catalogServices.map((service) => (
-                            <option key={service.id} value={String(service.id)}>
-                              {service.service}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={strategySim.propertyType}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({ ...prev, propertyType: e.target.value }))
-                          }
-                        >
-                          {PROPERTY_TYPE_OPTIONS.map((option) => (
-                            <option key={option.key} value={option.key}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={strategySim.surfaceM2}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({ ...prev, surfaceM2: e.target.value }))
-                          }
-                          placeholder="Surface m2"
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          step={100}
-                          value={strategySim.revenueEstimate}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({
-                              ...prev,
-                              revenueEstimate: e.target.value,
-                            }))
-                          }
-                          placeholder="Revenus mensuels EUR"
-                        />
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={strategySim.newListingsCount}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({
-                              ...prev,
-                              newListingsCount: e.target.value,
-                            }))
-                          }
-                          placeholder="Nouveaux logements / mois"
-                        />
-                      </div>
-                      <div className={styles.pricingSegmentsDraft}>
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          value={strategySim.actServicesCount}
-                          onChange={(e) =>
-                            setStrategySim((prev) => ({
-                              ...prev,
-                              actServicesCount: e.target.value,
-                            }))
-                          }
-                          placeholder="Services a l'acte / mois"
-                        />
-                        <label className={styles.tariffQuoteToggle}>
-                          <input
-                            type="checkbox"
-                            checked={strategySim.isUrgent}
-                            onChange={(e) =>
-                              setStrategySim((prev) => ({
-                                ...prev,
-                                isUrgent: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span>Urgence</span>
-                        </label>
-                        <label className={styles.tariffQuoteToggle}>
-                          <input
-                            type="checkbox"
-                            checked={strategySim.isNight}
-                            onChange={(e) =>
-                              setStrategySim((prev) => ({
-                                ...prev,
-                                isNight: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span>Nuit</span>
-                        </label>
-                        <label className={styles.tariffQuoteToggle}>
-                          <input
-                            type="checkbox"
-                            checked={strategySim.isWeekend}
-                            onChange={(e) =>
-                              setStrategySim((prev) => ({
-                                ...prev,
-                                isWeekend: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span>Week-end</span>
-                        </label>
-                        <label className={styles.tariffQuoteToggle}>
-                          <input
-                            type="checkbox"
-                            checked={strategySim.isHighSeason}
-                            onChange={(e) =>
-                              setStrategySim((prev) => ({
-                                ...prev,
-                                isHighSeason: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span>Haute saison</span>
-                        </label>
-                        <button
-                          type="button"
-                          className={styles.tariffNavBtn}
-                          onClick={applyStrategyProjectionToBillingDesk}
-                        >
-                          Appliquer au devis/facturation
-                        </button>
-                      </div>
-                      <div className={styles.pricingSegmentsDraft}>
-                        <input
-                          type="text"
-                          placeholder="Nom du scenario (ex: Premium Paris)"
-                          value={scenarioDraftName}
-                          disabled={!canEditTariffConfig}
-                          onChange={(e) => setScenarioDraftName(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className={styles.tariffNavBtn}
-                          disabled={!canEditTariffConfig || scenariosBusyId === "create"}
-                          onClick={createPricingScenario}
-                        >
-                          {scenariosBusyId === "create" ? "Enregistrement..." : "Enregistrer scenario"}
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.pricingActionBtn}
-                          onClick={() => setStrategySim(DEFAULT_STRATEGY_SIM)}
-                        >
-                          Reinitialiser simulation
-                        </button>
-                      </div>
-                      {scenariosLoading ? (
-                        <p className={styles.tariffHint}>Chargement des scenarios...</p>
-                      ) : pricingScenarios.length === 0 ? (
-                        <p className={styles.tariffHint}>Aucun scenario enregistre.</p>
-                      ) : (
-                        <div className={styles.pricingSegmentsList}>
-                          {pricingScenarios.map((row) => (
-                            <article key={row.id} className={styles.pricingSegmentRow}>
-                              <strong>{row.name}</strong>
-                              <span>{row.is_default ? "Par defaut" : "Scenario"}</span>
-                              <div className={styles.pricingRowActions}>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtn}
-                                  disabled={scenariosBusyId === row.id}
-                                  onClick={() => loadPricingScenario(row)}
-                                >
-                                  Charger
-                                </button>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtn}
-                                  disabled={scenariosBusyId === row.id}
-                                  onClick={() => setDefaultPricingScenario(row)}
-                                >
-                                  Defaut
-                                </button>
-                                <button
-                                  type="button"
-                                  className={styles.pricingActionBtnDanger}
-                                  disabled={scenariosBusyId === row.id}
-                                  onClick={() => deletePricingScenario(row.id)}
-                                >
-                                  Supprimer
-                                </button>
-                              </div>
-                            </article>
-                          ))}
-                        </div>
-                      )}
-                      <div className={styles.tariffSimpleRows}>
-                        <p>
-                          Segment actif:{" "}
-                          <strong>{selectedPricingSegment?.name ?? "Standard"}</strong>
-                        </p>
-                        <p>
-                          Commission simulee:{" "}
-                          <strong>{strategyProjection.commissionEffectivePct.toFixed(1)}%</strong>
-                        </p>
-                        <p>
-                          Projection mensuelle:{" "}
-                          <strong>{formatCurrency(strategyProjection.total, "EUR")}</strong>
-                        </p>
-                      </div>
-                      <ul className={styles.tariffRuleList}>
-                        <li>
-                          Commission:{" "}
-                          {formatCurrency(strategyProjection.commissionAmount, "EUR")}
-                        </li>
-                        <li>
-                          Set-up: {formatCurrency(strategyProjection.setupAmount, "EUR")}
-                        </li>
-                        <li>Catalogue: {formatCurrency(strategyProjection.actAmount, "EUR")}</li>
-                        <li>{strategyProjection.narrative}</li>
-                      </ul>
-                    </section>
-                  </div>
-                  {pricingModalOpen && (
-                    <div className={styles.pricingModalOverlay} role="dialog" aria-modal="true">
-                      <div className={styles.pricingModal}>
-                        <div className={styles.pricingModalHeader}>
-                          <h4>{pricingModalState.id ? "Modifier le tarif" : "Ajouter un tarif"}</h4>
-                          <button
-                            type="button"
-                            className={styles.pricingModalClose}
-                            onClick={closePricingModal}
-                          >
-                            <LucideX size={16} />
-                          </button>
-                        </div>
-                        <div className={styles.pricingModalBody}>
-                          <label>
-                            <span>Service</span>
-                            <select
-                              value={pricingModalState.serviceId}
-                              onChange={(e) =>
-                                setPricingModalState((prev) => ({
-                                  ...prev,
-                                  serviceId: e.target.value,
-                                  label:
-                                    prev.label ||
-                                    catalogServices.find(
-                                      (item) => String(item.id) === e.target.value,
-                                    )?.service ||
-                                    "",
-                                }))
-                              }
-                              disabled={pricingModalSaving || !canEditTariffConfig}
-                            >
-                              <option value="">Selectionner un service</option>
-                              {catalogServices.map((service) => (
-                                <option key={service.id} value={String(service.id)}>
-                                  {service.service}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label>
-                            <span>Libelle (optionnel)</span>
-                            <input
-                              type="text"
-                              value={pricingModalState.label}
-                              onChange={(e) =>
-                                setPricingModalState((prev) => ({
-                                  ...prev,
-                                  label: e.target.value,
-                                }))
-                              }
-                              disabled={pricingModalSaving || !canEditTariffConfig}
-                              placeholder="Ex: Menage villa haute saison"
-                            />
-                          </label>
-                          <div className={styles.pricingModalGrid}>
-                            <label>
-                              <span>Tarif (EUR)</span>
-                              <input
-                                type="number"
-                                min={0}
-                                step="1"
-                                value={pricingModalState.amount}
-                                onChange={(e) =>
-                                  setPricingModalState((prev) => ({
-                                    ...prev,
-                                    amount: e.target.value,
-                                  }))
-                                }
-                                disabled={pricingModalSaving || !canEditTariffConfig}
-                              />
-                            </label>
-                            <label>
-                              <span>Unite</span>
-                              <select
-                                value={pricingModalState.unit}
-                                onChange={(e) =>
-                                  setPricingModalState((prev) => ({
-                                    ...prev,
-                                    unit: e.target.value,
-                                  }))
-                                }
-                                disabled={pricingModalSaving || !canEditTariffConfig}
-                              >
-                                {PRICING_UNIT_OPTIONS.map((unit) => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                          </div>
-                          <label>
-                            <span>Type de tarification</span>
-                            <select
-                              value={pricingModalState.type}
-                              onChange={(e) =>
-                                setPricingModalState((prev) => ({
-                                  ...prev,
-                                  type: e.target.value as PricingTypeValue,
-                                }))
-                              }
-                              disabled={pricingModalSaving || !canEditTariffConfig}
-                            >
-                              <option value="fixed">Forfait</option>
-                              <option value="hourly">Horaire</option>
-                              <option value="monthly">Mensuel</option>
-                              <option value="custom">Personnalise</option>
-                            </select>
-                          </label>
-                          {pricingModalError && (
-                            <p className={styles.pricingModalError}>{pricingModalError}</p>
-                          )}
-                        </div>
-                        <div className={styles.pricingModalActions}>
-                          <button
-                            type="button"
-                            className={styles.pricingActionBtn}
-                            onClick={() =>
-                              setPricingModalState((prev) => ({
-                                ...prev,
-                                amount:
-                                  pricingV2.base.hourlyRate > 0
-                                    ? String(Math.round(pricingV2.base.hourlyRate))
-                                    : "",
-                                unit: prev.type === "hourly" ? "par heure" : "par prestation",
-                              }))
-                            }
-                            disabled={pricingModalSaving || !canEditTariffConfig}
-                          >
-                            Reinitialiser
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.pricingActionBtn}
-                            onClick={closePricingModal}
-                            disabled={pricingModalSaving}
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            type="button"
-                            className={styles.tariffNavBtn}
-                            onClick={saveServicePrice}
-                            disabled={pricingModalSaving || !canEditTariffConfig}
-                          >
-                            {pricingModalSaving ? "Enregistrement..." : "Enregistrer"}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>,
-                true,
-                TARIFF_SECTION_IDS.CONFIG,
-              )}
-            </div>
-
-            <div
-              id="tariffs-billing-desk"
-              className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard} ${styles.tariffEmphasisCard}`}
-            >
-              {renderSection(
-                "2. Devis et factures operationnels",
-                <FiFile />,
-                <>
-                  <div className={styles.tariffCardIntro}>
-                    <div className={styles.tariffInlineHeader}>
-                      <h3 className={styles.tariffMiniTitle}>Production documentaire</h3>
-                      <span className={styles.tariffConfigChip}>
-                        {missionRows.length} mission(s) disponible(s)
-                      </span>
-                    </div>
-                    <p className={styles.tariffHint}>
-                      Creez, validez et suivez vos devis/factures depuis une
-                      interface unique.
-                    </p>
-                  </div>
-                  <div className={styles.tariffToolPanel}>
-                    <TariffBillingDesk
-                      hourlyRate={pricingV2.base.hourlyRate}
-                      travelFee={pricingV2.base.travelFee}
+                    <TariffBaseSection
+                      styles={styles}
+                      renderField={renderField}
+                      sectionId={TARIFF_SECTION_IDS.CONFIG}
+                      editingSection={editingSection}
                       minimumInvoice={pricingV2.base.minimumInvoice}
+                      onMinimumInvoiceChange={(value) =>
+                        applyPricingV2({
+                          ...pricingV2,
+                          base: {
+                            ...pricingV2.base,
+                            minimumInvoice: value,
+                          },
+                        })
+                      }
+                    />
+
+                    <TariffServicesCatalogSection
+                      styles={styles}
+                      configuredPricingCount={configuredPricingCount}
+                      pricingCatalogRowsCount={pricingCatalogRows.length}
+                      pricingSortMode={pricingSortMode}
+                      setPricingSortMode={setPricingSortMode}
+                      showAllPricingServices={showAllPricingServices}
+                      setShowAllPricingServices={setShowAllPricingServices}
+                      canEditTariffConfig={canEditTariffConfig}
+                      servicePricesCount={servicePrices.length}
+                      servicePricesBusyId={servicePricesBusyId}
+                      servicePricesLoading={servicePricesLoading}
+                      visiblePricingCatalogRowsCount={visiblePricingCatalogRows.length}
+                      groupedPricingCatalogRows={groupedPricingCatalogRows}
+                      collapsedPricingCategories={collapsedPricingCategories}
+                      togglePricingCategory={togglePricingCategory}
+                      openCreatePricingModal={openCreatePricingModal}
+                      openEditPricingModal={openEditPricingModal}
+                      deleteServicePrice={deleteServicePrice}
+                      resetAllServicePrices={resetAllServicePrices}
+                    />
+
+                    <TariffModifiersSection
+                      styles={styles}
+                      propertyTypeOptions={PROPERTY_TYPE_OPTIONS}
+                      getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
+                      updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
+                      editingSection={editingSection}
+                      sectionId={TARIFF_SECTION_IDS.CONFIG}
                       urgentPercent={pricingV2.globalModifiers.urgentPercent}
                       nightPercent={pricingV2.globalModifiers.nightPercent}
                       weekendPercent={pricingV2.globalModifiers.weekendPercent}
                       highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
-                      commissionRatePct={pricingMeta.commissionRatePct}
-                      setupFee={pricingMeta.setupFee}
-                      presetVersion={billingDeskPresetVersion}
-                      presetMonthlyRevenueEstimate={billingDeskPreset.monthlyRevenueEstimate}
-                      presetNewListingsEstimate={billingDeskPreset.newListingsEstimate}
-                      presetActServicesEstimate={billingDeskPreset.actServicesEstimate}
+                      minimumInvoice={pricingV2.base.minimumInvoice}
+                    />
+
+                    <TariffSegmentsSection
+                      styles={styles}
+                      canEditTariffConfig={canEditTariffConfig}
+                      segmentDraft={segmentDraft}
+                      setSegmentDraft={setSegmentDraft}
+                      segmentsBusyId={segmentsBusyId}
+                      createPricingSegment={createPricingSegment}
+                      segmentsLoading={segmentsLoading}
+                      pricingSegments={pricingSegments}
+                      setPricingSegments={setPricingSegments}
+                      updatePricingSegment={updatePricingSegment}
+                      deletePricingSegment={deletePricingSegment}
+                    />
+
+                    <TariffPropertyRulesSection
+                      styles={styles}
+                      canEditTariffConfig={canEditTariffConfig}
+                      propertyRuleDraft={propertyRuleDraft}
+                      setPropertyRuleDraft={setPropertyRuleDraft}
+                      propertyRulesBusyId={propertyRulesBusyId}
+                      createPricingPropertyRule={createPricingPropertyRule}
+                      propertyRulesLoading={propertyRulesLoading}
+                      propertyRules={propertyRules}
+                      setPropertyRules={setPropertyRules}
+                      updatePricingPropertyRule={updatePricingPropertyRule}
+                      deletePricingPropertyRule={deletePricingPropertyRule}
+                      catalogServices={catalogServices}
+                    />
+
+                    <TariffStrategySection
+                      styles={styles}
+                      strategySim={strategySim}
+                      setStrategySim={setStrategySim}
+                      pricingSegments={pricingSegments}
+                      catalogServices={catalogServices}
+                      propertyTypeOptions={PROPERTY_TYPE_OPTIONS}
+                      applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
+                      scenarioDraftName={scenarioDraftName}
+                      setScenarioDraftName={setScenarioDraftName}
+                      canEditTariffConfig={canEditTariffConfig}
+                      scenariosBusyId={scenariosBusyId}
+                      createPricingScenario={createPricingScenario}
+                      resetStrategySim={() => setStrategySim(DEFAULT_STRATEGY_SIM)}
+                      scenariosLoading={scenariosLoading}
+                      pricingScenarios={pricingScenarios}
+                      loadPricingScenario={loadPricingScenario}
+                      setDefaultPricingScenario={setDefaultPricingScenario}
+                      deletePricingScenario={deletePricingScenario}
+                      selectedPricingSegmentName={selectedPricingSegment?.name ?? "Standard"}
+                      strategyProjection={strategyProjection}
+                      formatCurrency={formatCurrency}
                     />
                   </div>
-                </>,
-                false,
-                TARIFF_SECTION_IDS.BILLING_DESK,
-              )}
-            </div>
+                  <TariffPricingModal
+                    styles={styles}
+                    isOpen={pricingModalOpen}
+                    state={pricingModalState}
+                    catalogServices={catalogServices}
+                    saving={pricingModalSaving}
+                    canEdit={canEditTariffConfig}
+                    error={pricingModalError}
+                    pricingUnitOptions={PRICING_UNIT_OPTIONS}
+                    closeModal={closePricingModal}
+                    saveServicePrice={saveServicePrice}
+                    resetState={resetPricingModalToDefaults}
+                    setState={setPricingModalState}
+                  />
+            </TariffConfigShell>
+
+            <TariffBillingDeskSection
+              styles={styles}
+              renderSection={renderSection}
+              sectionId={TARIFF_SECTION_IDS.BILLING_DESK}
+              missionRowsCount={missionRows.length}
+              deskProps={billingDeskProps}
+            />
           </div>
         );
 
       case "equipe":
         return (
-          <>
-            {renderSection(
-              "Mon équipe",
-              <FiUsers />,
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Gérez votre équipe et vos collaborateurs ici.</p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Zones d'intervention",
-              <FiMapPinOutline />,
-              <>
-                {renderField(
-                  "Zone d'intervention",
-                  "service_area",
-                  "Zones_d_intervention",
-                  false,
-                  false,
-                  "Paris et Île-de-France",
-                )}
-                {renderField(
-                  "Rayon d'intervention (km)",
-                  "service_radius_km",
-                  "Zones_d_intervention",
-                  false,
-                  false,
-                  "30",
-                  "number",
-                )}
-              </>,
-            )}
-          </>
+          <TeamTabSection
+            renderSection={renderSection}
+            renderField={renderField}
+          />
         );
 
       case "documents":
         return (
-          <>
-            {renderSection(
-              "Documents professionnels",
-              <FiFile />,
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>
-                  Gérez vos documents professionnels (kbis, assurances, etc.).
-                </p>
-              </div>,
-            )}
-
-            {renderSection(
-              "Avis clients",
-              <FiStarOutline />,
-              <div className={styles.placeholderContent}>
-                <p>Section en cours de développement</p>
-                <p>Consultez les avis de vos clients ici.</p>
-              </div>,
-            )}
-          </>
+          <DocumentsTabSection
+            renderSection={renderSection}
+            placeholderClassName={styles.placeholderContent}
+          />
         );
 
       default:

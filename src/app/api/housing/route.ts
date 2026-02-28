@@ -1,7 +1,50 @@
 // src/app/api/housing/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
+
+type HousingOwner = {
+  id?: string;
+  userId?: string;
+  profile_id?: string;
+  owner_id?: string;
+  proprietaire_id?: string;
+} | null;
+
+function normalizeOwnerPayload(proprietaire: unknown, userId: string) {
+  const owner =
+    proprietaire && typeof proprietaire === "object"
+      ? { ...(proprietaire as Record<string, unknown>) }
+      : {};
+
+  const normalizedOwnerId = extractOwnerId(owner);
+
+  return {
+    ...owner,
+    id: normalizedOwnerId ?? userId,
+  };
+}
+
+function isUuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+function extractOwnerId(proprietaire: unknown): string | null {
+  if (!proprietaire || typeof proprietaire !== "object") return null;
+
+  const owner = proprietaire as HousingOwner;
+  const ownerId =
+    owner?.id ||
+    owner?.userId ||
+    owner?.profile_id ||
+    owner?.owner_id ||
+    owner?.proprietaire_id ||
+    null;
+
+  return ownerId && isUuidLike(ownerId) ? ownerId : null;
+}
 
 // GET  /api/housing       -> list des logements (filtrage possible via query)
 // POST /api/housing       -> créer un logement (auth requis)
@@ -9,6 +52,11 @@ import { getToken } from "next-auth/jwt";
 
 export async function GET(req: NextRequest) {
   try {
+    const { userId, isAdmin } = await getApiAuthContext(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
     const url = new URL(req.url);
     const searchParams = url.searchParams;
 
@@ -37,8 +85,13 @@ export async function GET(req: NextRequest) {
     }
     const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
-    // 🔥 Ajout automatique de l'image par défaut
-    const safeData = data.map((item) => ({
+    const rows = data ?? [];
+    const visibleRows = isAdmin
+      ? rows
+      : rows.filter((item) => extractOwnerId(item.proprietaire) === userId);
+
+    // Ajout automatique de l'image par défaut
+    const safeData = visibleRows.map((item) => ({
       ...item,
       photo_principale:
         item.photo_principale && item.photo_principale.trim() !== ""
@@ -54,11 +107,9 @@ export async function GET(req: NextRequest) {
 }
 export async function POST(req: NextRequest) {
   try {
-    // Auth: token obligatoire
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
+    const { userId } = await getApiAuthContext(req);
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const body = await req.json();
@@ -70,9 +121,10 @@ export async function POST(req: NextRequest) {
         : typeof body?.proprietaire?.profile_id === "string"
         ? body.proprietaire.profile_id
         : null;
+    const normalizedOwner = normalizeOwnerPayload(body?.proprietaire, userId);
 
     // Ici tu peux effectuer des validations basiques
-    if (!body.infos?.nomLogement || !body.proprietaire) {
+    if (!body.infos?.nomLogement) {
       return NextResponse.json(
         { error: "Champs requis manquants" },
         { status: 400 }
@@ -101,7 +153,7 @@ export async function POST(req: NextRequest) {
           body.photo_principale ??
           null,
         infos: body.infos ?? null,
-        proprietaire: body.proprietaire ?? null,
+        proprietaire: normalizedOwner,
         location: body.location ?? null,
         menage: body.menage ?? null,
         planning: body.planning ?? null,

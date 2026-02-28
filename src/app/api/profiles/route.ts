@@ -1,76 +1,136 @@
-// src/app/api/profiles/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
+
+const VALID_PROFILE_ROLES = new Set([
+  "owner",
+  "owner_pro",
+  "concierge",
+  "concierge_pro",
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
+  "admin",
+  "super_admin",
+]);
+
+type ProfileUpdateValue = string | number | boolean | null;
+type ProfileUpdatePayload = Partial<Record<string, ProfileUpdateValue>>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const assignString = (
+  source: Record<string, unknown>,
+  target: ProfileUpdatePayload,
+  key: string,
+) => {
+  const value = source[key];
+  if (typeof value === "string" || value === null) {
+    target[key] = value;
+  }
+};
+
+const assignNumber = (
+  source: Record<string, unknown>,
+  target: ProfileUpdatePayload,
+  key: string,
+) => {
+  const value = source[key];
+  if ((typeof value === "number" && Number.isFinite(value)) || value === null) {
+    target[key] = value;
+  }
+};
+
+const assignBoolean = (
+  source: Record<string, unknown>,
+  target: ProfileUpdatePayload,
+  key: string,
+) => {
+  const value = source[key];
+  if (typeof value === "boolean" || value === null) {
+    target[key] = value;
+  }
+};
 
 export async function PATCH(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-    const role = typeof token?.role === "string" ? token.role : "";
-    const isAdmin = role === "admin" || role === "super_admin";
+    const { userId, isAdmin } = await getApiAuthContext(req);
 
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const body = await req.json();
-    const updateData: Partial<Record<string, string | number | boolean | null>> = {};
+    if (!isRecord(body)) {
+      return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
+    }
+
+    const updateData: ProfileUpdatePayload = {};
     let onboardingWasComplete = false;
     const onboardingCompleteInput =
       typeof body.onboarding_complete === "boolean" ? body.onboarding_complete : null;
 
-    if (body.username !== undefined) updateData.username = body.username;
-    if (body.first_name !== undefined) updateData.first_name = body.first_name;
-    if (body.last_name !== undefined) updateData.last_name = body.last_name;
-    if (body.email !== undefined) updateData.email = body.email;
-    if (body.phone !== undefined) updateData.phone = body.phone;
-    if (body.avatar_url !== undefined) updateData.avatar_url = body.avatar_url;
-    if (body.avatar_scale !== undefined) updateData.avatar_scale = body.avatar_scale;
-    if (body.additional_info !== undefined) updateData.additional_info = body.additional_info;
-    if (body.category !== undefined) updateData.category = body.category;
-    if (body.location !== undefined) updateData.location = body.location;
-    if (body.option !== undefined) updateData.option = body.option;
-    if (body.search_target !== undefined) updateData.search_target = body.search_target;
-    if (body.travel_fee !== undefined) updateData.travel_fee = body.travel_fee;
+    [
+      "username",
+      "first_name",
+      "last_name",
+      "phone",
+      "avatar_url",
+      "additional_info",
+      "category",
+      "location",
+      "option",
+      "search_target",
+      "company_name",
+      "legal_form",
+      "siret",
+      "siren",
+      "vat_number",
+      "street_address",
+      "postal_code",
+      "city",
+      "country",
+      "website",
+      "linkedin",
+      "instagram",
+      "facebook",
+      "insurance_number",
+      "insurance_company",
+      "certifications",
+      "service_area",
+      "availability_hours",
+      "iban",
+      "bic",
+    ].forEach((key) => assignString(body, updateData, key));
 
-    if (body.role !== undefined && isAdmin) {
+    [
+      "avatar_scale",
+      "travel_fee",
+      "service_radius_km",
+      "hourly_rate",
+      "monthly_rate",
+      "years_experience",
+    ].forEach((key) => assignNumber(body, updateData, key));
+
+    ["emergency_service"].forEach((key) => assignBoolean(body, updateData, key));
+
+    if (typeof body.role === "string" && isAdmin && VALID_PROFILE_ROLES.has(body.role)) {
       updateData.role = body.role;
     }
 
-    if (body.company_name !== undefined) updateData.company_name = body.company_name;
-    if (body.legal_form !== undefined) updateData.legal_form = body.legal_form;
-    if (body.siret !== undefined) updateData.siret = body.siret;
-    if (body.siren !== undefined) updateData.siren = body.siren;
-    if (body.vat_number !== undefined) updateData.vat_number = body.vat_number;
-    if (body.street_address !== undefined) updateData.street_address = body.street_address;
-    if (body.postal_code !== undefined) updateData.postal_code = body.postal_code;
-    if (body.city !== undefined) updateData.city = body.city;
-    if (body.country !== undefined) updateData.country = body.country;
-    if (body.website !== undefined) updateData.website = body.website;
-    if (body.linkedin !== undefined) updateData.linkedin = body.linkedin;
-    if (body.instagram !== undefined) updateData.instagram = body.instagram;
-    if (body.facebook !== undefined) updateData.facebook = body.facebook;
-    if (body.insurance_number !== undefined) updateData.insurance_number = body.insurance_number;
-    if (body.insurance_company !== undefined) updateData.insurance_company = body.insurance_company;
-    if (body.certifications !== undefined) updateData.certifications = body.certifications;
-    if (body.service_area !== undefined) updateData.service_area = body.service_area;
-    if (body.service_radius_km !== undefined) updateData.service_radius_km = body.service_radius_km;
-    if (body.hourly_rate !== undefined) updateData.hourly_rate = body.hourly_rate;
-    if (body.monthly_rate !== undefined) updateData.monthly_rate = body.monthly_rate;
-    if (body.availability_hours !== undefined) updateData.availability_hours = body.availability_hours;
-    if (body.emergency_service !== undefined) updateData.emergency_service = body.emergency_service;
-    if (body.years_experience !== undefined) updateData.years_experience = body.years_experience;
-
     if (body.experience_level !== undefined) {
       const validLevels = ["debutant", "intermediaire", "experimente"];
-      if (body.experience_level === null || validLevels.includes(body.experience_level)) {
+      if (
+        body.experience_level === null ||
+        (typeof body.experience_level === "string" &&
+          validLevels.includes(body.experience_level))
+      ) {
         updateData.experience_level = body.experience_level;
       }
     }
 
-    if (body.iban !== undefined) updateData.iban = body.iban;
-    if (body.bic !== undefined) updateData.bic = body.bic;
     if (onboardingCompleteInput !== null) {
       const { data: currentProfile, error: onboardingReadError } = await db
         .from("profiles")
@@ -90,6 +150,10 @@ export async function PATCH(req: NextRequest) {
         : null;
     }
 
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: "Aucune donnee valide a mettre a jour" }, { status: 400 });
+    }
+
     updateData.updated_at = new Date().toISOString();
 
     const { error } = await db.from("profiles").update(updateData).eq("id", userId);
@@ -106,7 +170,7 @@ export async function PATCH(req: NextRequest) {
 
     if (selectError) {
       console.error("[PATCH /api/profiles] select error:", selectError);
-      return NextResponse.json({ error: "Erreur récupération profil" }, { status: 500 });
+      return NextResponse.json({ error: "Erreur recuperation profil" }, { status: 500 });
     }
 
     const shouldRefreshMatches =
@@ -143,5 +207,3 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-

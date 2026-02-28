@@ -31,6 +31,34 @@
     margin-top: 0.3rem;
   }
 
+  .feedbackError,
+  .feedbackSuccess {
+    margin-top: 0.9rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .feedbackError {
+    background: rgba(220, 38, 38, 0.12);
+    color: #991b1b;
+    border: 1px solid rgba(220, 38, 38, 0.22);
+  }
+
+  .feedbackSuccess {
+    background: rgba(22, 163, 74, 0.12);
+    color: #166534;
+    border: 1px solid rgba(22, 163, 74, 0.22);
+  }
+
+  .headerActions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
   button {
     margin-top: 1rem;
     background: #d4af37;
@@ -50,11 +78,22 @@
   }
 
   .saveBtn {
+    margin-top: 0 !important;
     background: #2d8038 !important;
     box-shadow: 0 2px 6px rgba(45, 128, 56, 0.4);
 
     &:hover {
       background: #3ca148 !important;
+    }
+  }
+
+  .cancelBtn {
+    margin-top: 0 !important;
+    background: #64748b !important;
+    box-shadow: 0 2px 6px rgba(100, 116, 139, 0.35);
+
+    &:hover {
+      background: #475569 !important;
     }
   }
 }

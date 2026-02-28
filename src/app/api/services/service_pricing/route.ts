@@ -1,7 +1,10 @@
-// src/app/api/services/service_pricing/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
+import {
+  getServiceAuthContext,
+  isAllowedServiceRole,
+  serviceAuthError,
+} from "@/app/api/services/_shared";
 
 interface ServicePricingInsert {
   profile_id: string;
@@ -14,10 +17,13 @@ interface ServicePricingInsert {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-    if (!userId) {
-      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const { searchParams } = new URL(req.url);
@@ -25,32 +31,34 @@ export async function GET(req: NextRequest) {
     const serviceIdParam = searchParams.get("service_id");
     const type = searchParams.get("type");
 
-    if (profileId && profileId !== userId) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (profileId && !auth.isAdmin && profileId !== auth.userId) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
-    let query = db.from("services_pricing").select("*").eq("profile_id", userId);
+    let query = db.from("services_pricing").select("*");
+
+    if (!auth.isAdmin) {
+      query = query.eq("profile_id", auth.userId);
+    } else if (profileId) {
+      query = query.eq("profile_id", profileId);
+    }
 
     if (serviceIdParam) {
       const serviceId = Number(serviceIdParam);
-      if (isNaN(serviceId)) {
-        return NextResponse.json(
-          { error: "service_id doit être un nombre valide" },
-          { status: 400 }
-        );
+      if (Number.isNaN(serviceId)) {
+        return NextResponse.json({ error: "service_id doit etre un nombre valide" }, { status: 400 });
       }
       query = query.eq("service_id", serviceId);
     }
 
-    if (type) query = query.eq("type", type);
+    if (type) {
+      query = query.eq("type", type);
+    }
 
     const { data, error } = await query.order("created_at", { ascending: false });
     if (error) {
       console.error("[GET /api/services/service_pricing] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la récupération des tarifications" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la recuperation des tarifications" }, { status: 500 });
     }
 
     return NextResponse.json(data ?? []);
@@ -62,10 +70,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-    if (!userId) {
-      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const body = await req.json();
@@ -78,26 +89,20 @@ export async function POST(req: NextRequest) {
     }
 
     const amount = Number(body.amount);
-    if (isNaN(amount) || amount < 0) {
-      return NextResponse.json(
-        { error: "Le montant doit être un nombre positif" },
-        { status: 400 }
-      );
+    if (Number.isNaN(amount) || amount < 0) {
+      return NextResponse.json({ error: "Le montant doit etre un nombre positif" }, { status: 400 });
     }
 
     let serviceId: number | null = null;
     if (body.service_id !== undefined && body.service_id !== null) {
       serviceId = Number(body.service_id);
-      if (isNaN(serviceId)) {
-        return NextResponse.json(
-          { error: "service_id doit être un nombre valide" },
-          { status: 400 }
-        );
+      if (Number.isNaN(serviceId)) {
+        return NextResponse.json({ error: "service_id doit etre un nombre valide" }, { status: 400 });
       }
     }
 
     const insertData: ServicePricingInsert = {
-      profile_id: userId,
+      profile_id: auth.userId,
       service_id: serviceId,
       label: body.label,
       type: body.type ?? null,
@@ -105,24 +110,14 @@ export async function POST(req: NextRequest) {
       unit: body.unit ?? null,
     };
 
-    const { data, error } = await db
-      .from("services_pricing")
-      .insert(insertData)
-      .select()
-      .single();
+    const { data, error } = await db.from("services_pricing").insert(insertData).select().single();
 
     if (error) {
       console.error("[POST /api/services/service_pricing] DB error:", error);
       if (error.code === "23503") {
-        return NextResponse.json(
-          { error: "Le service_id spécifié n'existe pas" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Le service_id specifie n'existe pas" }, { status: 400 });
       }
-      return NextResponse.json(
-        { error: "Erreur lors de la création de la tarification" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la creation de la tarification" }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
@@ -134,10 +129,13 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-    const userId = typeof token?.sub === "string" ? token.sub : undefined;
-    if (!userId) {
-      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const { searchParams } = new URL(req.url);
@@ -157,14 +155,11 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ error: "Tarification introuvable" }, { status: 404 });
       }
       console.error("[DELETE /api/services/service_pricing] DB error:", fetchError);
-      return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
+      return NextResponse.json({ error: "Erreur lors de la verification" }, { status: 500 });
     }
 
-    if (existing.profile_id !== userId) {
-      return NextResponse.json(
-        { error: "Non autorisé à supprimer cette tarification" },
-        { status: 403 }
-      );
+    if (!auth.isAdmin && existing.profile_id !== auth.userId) {
+      return NextResponse.json({ error: "Non autorise a supprimer cette tarification" }, { status: 403 });
     }
 
     const { error } = await db.from("services_pricing").delete().eq("id", id);
@@ -173,11 +168,9 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: "Tarification supprimée" });
+    return NextResponse.json({ success: true, message: "Tarification supprimee" });
   } catch (err) {
     console.error("[DELETE /api/services/service_pricing] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
-
-

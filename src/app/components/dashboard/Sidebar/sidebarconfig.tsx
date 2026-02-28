@@ -13,6 +13,7 @@ import {
   FiTool,
   FiSearch,
   FiPackage,
+  FiCreditCard,
 } from "react-icons/fi";
 
 export interface SidebarItem {
@@ -28,6 +29,8 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   owner: [
     { label: "Mon tableau de bord", path: "/dashboard/owner", icon: FiHome },
     { label: "Mes Logements", path: "/dashboard/owner/logements", icon: FiClipboard },
+    { label: "Mes Devis", path: "/dashboard/owner/devis", icon: FiFileText },
+    { label: "Mes Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
     { label: "Ma Conciergerie", path: "/dashboard/owner/conciergerie", icon: FiUsers },
     { label: "Planning", path: "/dashboard/owner/planning", icon: FiCalendar },
     { label: "Messagerie", path: "/dashboard/owner/messages", icon: FiMessageSquare },

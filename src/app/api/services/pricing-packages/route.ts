@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getToken } from "next-auth/jwt";
+import {
+  findOwnedServicePackage,
+  getServiceAuthContext,
+  isAllowedServiceRole,
+  serviceAuthError,
+} from "@/app/api/services/_shared";
 
 type PricingType = "hourly" | "fixed" | "monthly" | "custom";
 
@@ -12,19 +17,15 @@ interface PricingPackageBody {
   property_type?: string | null;
 }
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
-
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const url = new URL(req.url);
@@ -33,10 +34,17 @@ export async function GET(req: NextRequest) {
     let query = db
       .from("pricing_packages")
       .select("id, profile_id, package_id, label, type, amount, property_type, created_at")
-      .eq("profile_id", userId)
       .order("created_at", { ascending: false });
 
+    if (!auth.isAdmin) {
+      query = query.eq("profile_id", auth.userId);
+    }
+
     if (packageId) {
+      const ownedPackage = await findOwnedServicePackage(packageId, auth);
+      if (ownedPackage.error) {
+        return ownedPackage.error;
+      }
       query = query.eq("package_id", packageId);
     }
 
@@ -55,9 +63,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const auth = await getServiceAuthContext(req);
+    if (!auth) {
+      return serviceAuthError(401);
+    }
+
+    if (!isAllowedServiceRole(auth.role)) {
+      return serviceAuthError(403);
     }
 
     const body: PricingPackageBody = await req.json();
@@ -68,10 +80,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const ownedPackage = await findOwnedServicePackage(body.package_id, auth);
+    if (ownedPackage.error) {
+      return ownedPackage.error;
+    }
+
     const { data, error } = await db
       .from("pricing_packages")
       .insert({
-        profile_id: userId,
+        profile_id: auth.userId,
         package_id: body.package_id,
         label: body.label,
         type: body.type ?? "custom",
