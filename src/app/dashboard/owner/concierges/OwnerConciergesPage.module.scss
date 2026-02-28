@@ -322,6 +322,30 @@
   gap: 0.75rem;
 }
 
+.reviewSnippet {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  background: rgba(184, 139, 74, 0.08);
+  border: 1px solid rgba(184, 139, 74, 0.16);
+}
+
+.reviewSnippet strong,
+.reviewSnippet p,
+.reviewSnippet small {
+  margin: 0;
+}
+
+.reviewSnippet p {
+  color: #5f5237;
+  line-height: 1.5;
+}
+
+.reviewSnippet small {
+  color: #7b5b23;
+}
+
 @media (max-width: 720px) {
   .actions,
   .cardActions {

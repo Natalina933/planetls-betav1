@@ -30,6 +30,13 @@ type ConciergeProfileRow = {
   role: string | null;
 };
 
+type ConciergeReviewRow = {
+  reviewed_profile_id: string | null;
+  rating: number | null;
+  comment: string | null;
+  created_at: string | null;
+};
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await getApiAuthContext(req);
@@ -60,7 +67,7 @@ export async function GET(req: NextRequest) {
 
     const { data: reviews, error: reviewsError } = await db
       .from("mission_reviews")
-      .select("reviewed_profile_id, rating")
+      .select("reviewed_profile_id, rating, comment, created_at")
       .in("reviewed_profile_id", profileIds.length > 0 ? profileIds : ["00000000-0000-0000-0000-000000000000"]);
 
     if (reviewsError) {
@@ -83,12 +90,23 @@ export async function GET(req: NextRequest) {
     }
 
     const ratingsByProfile = new Map<string, number[]>();
-    (reviews ?? []).forEach((review) => {
+    const latestReviewByProfile = new Map<string, { comment: string | null; created_at: string | null }>();
+    (reviews as ConciergeReviewRow[] | null ?? []).forEach((review) => {
       if (typeof review.reviewed_profile_id !== "string" || typeof review.rating !== "number") return;
       if (!ratingsByProfile.has(review.reviewed_profile_id)) {
         ratingsByProfile.set(review.reviewed_profile_id, []);
       }
       ratingsByProfile.get(review.reviewed_profile_id)?.push(review.rating);
+
+      const existing = latestReviewByProfile.get(review.reviewed_profile_id);
+      const currentTime = review.created_at ? new Date(review.created_at).getTime() : 0;
+      const existingTime = existing?.created_at ? new Date(existing.created_at).getTime() : 0;
+      if (!existing || currentTime >= existingTime) {
+        latestReviewByProfile.set(review.reviewed_profile_id, {
+          comment: review.comment ?? null,
+          created_at: review.created_at ?? null,
+        });
+      }
     });
 
     const propertyTypesByProfile = mapPropertyTypesByProfile(pricingPackages ?? []);
@@ -106,6 +124,7 @@ export async function GET(req: NextRequest) {
           ratings.length > 0
             ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 10) / 10
             : null;
+        const latestReview = latestReviewByProfile.get(profile.id);
 
         return {
           id: profile.id,
@@ -123,6 +142,8 @@ export async function GET(req: NextRequest) {
           is_pro: profile.role === "concierge_pro",
           average_rating: averageRating,
           reviews_count: ratings.length,
+          latest_review_comment: latestReview?.comment ?? null,
+          latest_review_at: latestReview?.created_at ?? null,
         };
       });
 

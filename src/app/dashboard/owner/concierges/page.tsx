@@ -26,6 +26,8 @@ type ConciergeSearchRow = {
   is_pro: boolean;
   average_rating: number | null;
   reviews_count: number;
+  latest_review_comment: string | null;
+  latest_review_at: string | null;
 };
 
 type ConciergeSearchPayload = {
@@ -48,6 +50,16 @@ const initialFilters: OwnerConciergeSearchFilters = {
 function formatAmount(value: number | null, suffix: string) {
   if (typeof value !== "number") return "Non renseigne";
   return `${value.toFixed(0)} EUR ${suffix}`;
+}
+
+function formatReviewDate(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("fr-FR", {
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 export default function OwnerConciergesPage() {
@@ -375,6 +387,16 @@ export default function OwnerConciergesPage() {
                   <span className={styles.tagMuted}>Services non renseignes</span>
                 )}
               </div>
+
+              {item.latest_review_comment ? (
+                <div className={styles.reviewSnippet}>
+                  <strong>Avis recent</strong>
+                  <p>{item.latest_review_comment}</p>
+                  {item.latest_review_at ? (
+                    <small>{formatReviewDate(item.latest_review_at)}</small>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className={styles.cardActions}>
                 <Link href={`/concierges/${item.id}`} className={styles.primaryBtn}>

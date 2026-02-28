@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 
 type BillingHistoryPayload = {
   subscription: {
@@ -31,6 +32,12 @@ function formatDate(value: string | null) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function getSourceLabel(source: string | null) {
+  if (source === "webhook") return "Webhook Stripe";
+  if (source === "return") return "Retour navigateur";
+  return "Source non renseignee";
 }
 
 export default function ConciergeBillingPage() {
@@ -75,65 +82,68 @@ export default function ConciergeBillingPage() {
     };
   }, []);
 
-  const subscriptionSourceLabel = useMemo(() => {
-    if (data?.subscription?.source === "webhook") return "Webhook Stripe";
-    if (data?.subscription?.source === "return") return "Retour navigateur";
-    return "Aucune source enregistree";
-  }, [data]);
+  const cards = useMemo(() => {
+    if (!data || data.events.length === 0) {
+      return [
+        {
+          title: "Aucun evenement pour le moment",
+          text: loading
+            ? "Chargement de l'historique en cours."
+            : error || "Les paiements et webhooks apparaitront ici des qu'un checkout sera traite.",
+          actions: [
+            {
+              label: "Voir l'abonnement PRO",
+              href: "/abonnement/concierge-pro",
+              variant: "primary" as const,
+            },
+          ],
+        },
+      ];
+    }
+
+    return data.events.slice(0, 6).map((event) => ({
+      title: event.stripe_event_type || "Evenement Stripe",
+      text: `${event.stripe_object_id || "Objet Stripe"} - ${getSourceLabel(event.source)} - ${formatDate(event.created_at)}`,
+    }));
+  }, [data, error, loading]);
 
   return (
-    <section className="dashboard-grid">
-      <header>
-        <h1>Historique Stripe</h1>
-        <p>Suivez l'etat de votre abonnement PRO et les derniers evenements Stripe lies a votre compte.</p>
-      </header>
-
-      {loading ? <p>Chargement de l'historique Stripe...</p> : null}
-      {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 700 }}>{error}</p> : null}
-
-      {!loading && !error && data ? (
-        <>
-          <div className="stats-row">
-            <div className="stat-card">
-              <h3>Statut abonnement</h3>
-              <p>{data.subscription?.is_pro ? "PRO actif" : "Standard"}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Source</h3>
-              <p>{subscriptionSourceLabel}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Reference</h3>
-              <p>{data.subscription?.reference || "Non renseignee"}</p>
-            </div>
-            <div className="stat-card">
-              <h3>Derniere synchro</h3>
-              <p>{formatDate(data.subscription?.updated_at ?? null)}</p>
-            </div>
-          </div>
-
-          <div className="main-section">
-            <h2>Evenements de facturation</h2>
-            {data.events.length === 0 ? (
-              <p>Aucun evenement Stripe ou facture enregistre pour le moment.</p>
-            ) : (
-              <ul>
-                {data.events.map((event) => (
-                  <li key={event.id} style={{ marginBottom: "1rem" }}>
-                    <strong>{event.stripe_object_id || "Evenement Stripe"}</strong>
-                    <br />
-                    Evenement : {event.stripe_event_type}
-                    <br />
-                    Date : {formatDate(event.created_at)}
-                    <br />
-                    Source : {event.source || "non renseignee"}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </>
-      ) : null}
-    </section>
+    <ConciergeWorkspacePage
+      eyebrow="Abonnement et paiements"
+      title="Historique Stripe concierge"
+      description={
+        loading
+          ? "Synchronisation de votre historique Stripe..."
+          : error ||
+            "Suivez l'etat de votre abonnement PRO, vos references Stripe et les derniers evenements synchronises sur votre compte."
+      }
+      chips={[
+        data?.subscription?.is_pro ? "PRO actif" : "Compte standard",
+        `${data?.events.length ?? 0} evenement(s)`,
+      ]}
+      actions={[
+        { label: "Voir mon abonnement PRO", href: "/abonnement/concierge-pro" },
+        { label: "Mettre a jour mes tarifs", href: "/dashboard/concierge/pricing" },
+      ]}
+      metrics={[
+        {
+          label: "Statut abonnement",
+          value: loading ? "..." : data?.subscription?.is_pro ? "PRO actif" : "Standard",
+        },
+        {
+          label: "Source",
+          value: loading ? "..." : getSourceLabel(data?.subscription?.source ?? null),
+        },
+        {
+          label: "Reference",
+          value: loading ? "..." : data?.subscription?.reference || "-",
+        },
+        {
+          label: "Derniere synchro",
+          value: loading ? "..." : formatDate(data?.subscription?.updated_at ?? null),
+        },
+      ]}
+      cards={cards}
+    />
   );
 }
