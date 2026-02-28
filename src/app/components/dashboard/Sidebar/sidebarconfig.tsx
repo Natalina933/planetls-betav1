@@ -32,6 +32,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Mes Devis", path: "/dashboard/owner/devis", icon: FiFileText },
     { label: "Mes Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
     { label: "Ma Conciergerie", path: "/dashboard/owner/conciergerie", icon: FiUsers },
+    { label: "Trouver un concierge", path: "/dashboard/owner/concierges", icon: FiSearch },
     { label: "Planning", path: "/dashboard/owner/planning", icon: FiCalendar },
     { label: "Messagerie", path: "/dashboard/owner/messages", icon: FiMessageSquare },
     { label: "Mes Contacts", path: "/dashboard/owner/contacts", icon: FiUsers },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { db } from "@/app/lib/dbServer";
+import { recordStripeEvent } from "@/app/lib/stripeHistory";
 
 const ALLOWED_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 
@@ -106,6 +107,14 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
+
+    await recordStripeEvent({
+      profileId: auth.userId,
+      stripeObjectId: sessionId,
+      stripeEventType: "checkout.session.completed",
+      source: "return",
+      payload: stripePayload,
+    });
 
     return NextResponse.json({
       success: true,

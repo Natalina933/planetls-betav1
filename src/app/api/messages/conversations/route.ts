@@ -7,6 +7,7 @@ type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
 
 interface CreateConversationBody {
   owner_profile_id?: string;
+  concierge_profile_id?: string;
   source?: ConversationSource;
   source_reference?: string | null;
   subject?: string | null;
@@ -26,6 +27,8 @@ const ALLOWED_CONVERSATION_CREATOR_ROLES = new Set([
   "super_admin",
   "concierge",
   "concierge_pro",
+  "owner",
+  "owner_pro",
 ]);
 
 const conversationSelect = `
@@ -150,12 +153,20 @@ export async function POST(req: NextRequest) {
     }
 
     const body: CreateConversationBody = await req.json();
-    const ownerProfileId = (body.owner_profile_id ?? "").trim();
-    if (!ownerProfileId) {
-      return NextResponse.json({ error: "owner_profile_id requis" }, { status: 400 });
+    const ownerProfileIdFromBody = (body.owner_profile_id ?? "").trim();
+    const conciergeProfileIdFromBody = (body.concierge_profile_id ?? "").trim();
+    const isOwnerCreator = role === "owner" || role === "owner_pro";
+    const ownerProfileId = isOwnerCreator ? userId : ownerProfileIdFromBody;
+    const conciergeProfileId = isOwnerCreator ? conciergeProfileIdFromBody : userId;
+
+    if (!ownerProfileId || !conciergeProfileId) {
+      return NextResponse.json(
+        { error: "owner_profile_id ou concierge_profile_id requis" },
+        { status: 400 },
+      );
     }
 
-    if (ownerProfileId === userId) {
+    if (ownerProfileId === conciergeProfileId) {
       return NextResponse.json(
         { error: "Impossible de creer une conversation avec vous-meme" },
         { status: 400 },
@@ -187,6 +198,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Destinataire invalide" }, { status: 400 });
     }
 
+    const { data: conciergeProfile, error: conciergeProfileError } = await db
+      .from("profiles")
+      .select("id, role, category")
+      .eq("id", conciergeProfileId)
+      .maybeSingle();
+
+    if (conciergeProfileError) {
+      console.error(
+        "[POST /api/messages/conversations] concierge profile error:",
+        conciergeProfileError,
+      );
+      return NextResponse.json({ error: "Erreur verification concierge" }, { status: 500 });
+    }
+    if (!conciergeProfile) {
+      return NextResponse.json({ error: "Concierge introuvable" }, { status: 404 });
+    }
+
+    const conciergeRoleValue = (conciergeProfile.role ?? "").toLowerCase();
+    const conciergeCategoryValue = (conciergeProfile.category ?? "").toLowerCase();
+    const isConciergeTarget =
+      conciergeRoleValue === "concierge" ||
+      conciergeRoleValue === "concierge_pro" ||
+      conciergeCategoryValue.startsWith("concierge");
+
+    if (!isConciergeTarget) {
+      return NextResponse.json({ error: "Concierge invalide" }, { status: 400 });
+    }
+
     const source: ConversationSource = VALID_SOURCES.includes(body.source as ConversationSource)
       ? (body.source as ConversationSource)
       : "manual";
@@ -196,7 +235,7 @@ export async function POST(req: NextRequest) {
     let existingQuery = db
       .from("contact_conversations")
       .select(conversationSelect)
-      .eq("concierge_profile_id", userId)
+      .eq("concierge_profile_id", conciergeProfileId)
       .eq("owner_profile_id", ownerProfileId)
       .eq("source", source);
 
@@ -225,7 +264,7 @@ export async function POST(req: NextRequest) {
     const { data: createdConversation, error: createError } = await db
       .from("contact_conversations")
       .insert({
-        concierge_profile_id: userId,
+        concierge_profile_id: conciergeProfileId,
         owner_profile_id: ownerProfileId,
         source,
         source_reference: sourceReference,

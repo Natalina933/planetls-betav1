@@ -1808,6 +1808,52 @@ export type Database = {
         ];
       };
 
+      stripe_events: {
+        Row: {
+          id: string;
+          profile_id: string | null;
+          stripe_object_id: string;
+          stripe_event_type: string;
+          source: string;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id?: string | null;
+          stripe_object_id: string;
+          stripe_event_type: string;
+          source?: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string | null;
+          stripe_object_id?: string;
+          stripe_event_type?: string;
+          source?: string;
+          payload?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stripe_events_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stripe_events_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "user_dashboard_view";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       services_catalog: {
         Row: {
           category: string;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { db } from "@/app/lib/dbServer";
+import { recordStripeEvent } from "@/app/lib/stripeHistory";
 
 const ALLOWED_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 
@@ -119,6 +120,14 @@ export async function POST(
     if (eventError) {
       console.error("[POST /api/billing/invoices/:id/sync] event error:", eventError);
     }
+
+    await recordStripeEvent({
+      profileId: auth.userId,
+      stripeObjectId: sessionId,
+      stripeEventType: "checkout.session.completed",
+      source: "return",
+      payload: stripePayload,
+    });
 
     return NextResponse.json({ success: true, invoice: updated });
   } catch (err) {

@@ -229,7 +229,7 @@ export default function OwnerDashboardPage() {
           <h2>Actions rapides</h2>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <Link href="/dashboard/concierge/logements/create">Ajouter un logement</Link>
-            <Link href="/dashboard/concierge/recherche">Trouver un concierge</Link>
+            <Link href="/dashboard/owner/concierges">Trouver un concierge</Link>
           </div>
         </div>
 

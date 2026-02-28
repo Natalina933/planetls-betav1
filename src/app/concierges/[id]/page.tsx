@@ -24,6 +24,7 @@ type PublicProfilePayload = {
     hourly_rate: number | null;
     monthly_rate: number | null;
     role: string | null;
+    services: string[];
   };
   reviews: PublicReview[];
   stats: {
@@ -46,6 +47,16 @@ function formatDate(value: string | null) {
     month: "long",
     year: "numeric",
   }).format(date);
+}
+
+function pillStyle() {
+  return {
+    padding: "0.42rem 0.75rem",
+    borderRadius: 999,
+    background: "rgba(184,139,74,0.12)",
+    color: "#7b5b23",
+    fontWeight: 600,
+  } as const;
 }
 
 export default function PublicConciergeProfilePage({
@@ -113,25 +124,90 @@ export default function PublicConciergeProfilePage({
             boxShadow: "0 18px 42px rgba(74, 53, 16, 0.08)",
           }}
         >
-          <span style={{ fontSize: "0.82rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a7a3b" }}>
+          <span
+            style={{
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "#9a7a3b",
+            }}
+          >
             Profil concierge
           </span>
-          <h1 style={{ margin: 0, fontSize: "clamp(2rem, 5vw, 3.2rem)", lineHeight: 1, color: "#3f2f14" }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "clamp(2rem, 5vw, 3.2rem)",
+              lineHeight: 1,
+              color: "#3f2f14",
+            }}
+          >
             {loading ? "Chargement..." : data?.profile.display_name || "Concierge"}
           </h1>
           <p style={{ margin: 0, color: "#5f5237", lineHeight: 1.6, maxWidth: "72ch" }}>
             {error
               ? error
-              : "Découvrez le positionnement, la zone d’intervention et les avis laissés après mission."}
+              : "Decouvrez le positionnement, la zone d'intervention, les services proposes et les avis laisses apres mission."}
           </p>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            <a
+              href="/dashboard/owner/concierges"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 42,
+                padding: "0.75rem 1rem",
+                borderRadius: 999,
+                background: "linear-gradient(135deg, #b88b4a, #d4af37)",
+                color: "#fff",
+                textDecoration: "none",
+                fontWeight: 700,
+              }}
+            >
+              Contacter ce concierge
+            </a>
+            <a
+              href="/dashboard/owner/messages"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 42,
+                padding: "0.75rem 1rem",
+                borderRadius: 999,
+                border: "1px solid rgba(184, 139, 74, 0.35)",
+                background: "rgba(255,255,255,0.78)",
+                color: "#7b5b23",
+                textDecoration: "none",
+                fontWeight: 700,
+              }}
+            >
+              Ouvrir ma messagerie
+            </a>
+          </div>
         </section>
 
         {loading ? <p>Chargement du profil...</p> : null}
 
         {!loading && !error && data ? (
           <>
-            <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
-              <article style={{ padding: "1.2rem", borderRadius: 20, background: "rgba(255,255,255,0.94)", border: "1px solid rgba(184,139,74,0.18)" }}>
+            <section
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: "1rem",
+              }}
+            >
+              <article
+                style={{
+                  padding: "1.2rem",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.94)",
+                  border: "1px solid rgba(184,139,74,0.18)",
+                }}
+              >
                 <strong>Note moyenne</strong>
                 <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: "#3f2f14" }}>
                   {typeof data.stats.average_rating === "number"
@@ -139,19 +215,40 @@ export default function PublicConciergeProfilePage({
                     : "Pas encore de note"}
                 </p>
               </article>
-              <article style={{ padding: "1.2rem", borderRadius: 20, background: "rgba(255,255,255,0.94)", border: "1px solid rgba(184,139,74,0.18)" }}>
+              <article
+                style={{
+                  padding: "1.2rem",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.94)",
+                  border: "1px solid rgba(184,139,74,0.18)",
+                }}
+              >
                 <strong>Avis clients</strong>
                 <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: "#3f2f14" }}>
                   {data.stats.reviews_count}
                 </p>
               </article>
-              <article style={{ padding: "1.2rem", borderRadius: 20, background: "rgba(255,255,255,0.94)", border: "1px solid rgba(184,139,74,0.18)" }}>
+              <article
+                style={{
+                  padding: "1.2rem",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.94)",
+                  border: "1px solid rgba(184,139,74,0.18)",
+                }}
+              >
                 <strong>Zone</strong>
                 <p style={{ margin: "0.55rem 0 0", color: "#3f2f14" }}>
                   {data.profile.service_area || data.profile.city || "Non renseignee"}
                 </p>
               </article>
-              <article style={{ padding: "1.2rem", borderRadius: 20, background: "rgba(255,255,255,0.94)", border: "1px solid rgba(184,139,74,0.18)" }}>
+              <article
+                style={{
+                  padding: "1.2rem",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.94)",
+                  border: "1px solid rgba(184,139,74,0.18)",
+                }}
+              >
                 <strong>Experience</strong>
                 <p style={{ margin: "0.55rem 0 0", color: "#3f2f14" }}>
                   {typeof data.profile.years_experience === "number"
@@ -161,28 +258,74 @@ export default function PublicConciergeProfilePage({
               </article>
             </section>
 
-            <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem" }}>
-              <article style={{ padding: "1.3rem", borderRadius: 22, background: "rgba(255,255,255,0.94)", border: "1px solid rgba(184,139,74,0.18)" }}>
+            <section
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                gap: "1rem",
+              }}
+            >
+              <article
+                style={{
+                  padding: "1.3rem",
+                  borderRadius: 22,
+                  background: "rgba(255,255,255,0.94)",
+                  border: "1px solid rgba(184,139,74,0.18)",
+                }}
+              >
                 <h2 style={{ marginTop: 0, color: "#3f2f14" }}>Positionnement</h2>
-                <p>Rôle : {data.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge"}</p>
+                <p>Role : {data.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge"}</p>
                 <p>Ville : {data.profile.city || "Non renseignee"}</p>
                 <p>Pays : {data.profile.country || "France"}</p>
-                <p>Rayon : {typeof data.profile.service_radius_km === "number" ? `${data.profile.service_radius_km} km` : "Non renseigne"}</p>
+                <p>
+                  Rayon :{" "}
+                  {typeof data.profile.service_radius_km === "number"
+                    ? `${data.profile.service_radius_km} km`
+                    : "Non renseigne"}
+                </p>
               </article>
-              <article style={{ padding: "1.3rem", borderRadius: 22, background: "rgba(255,255,255,0.94)", border: "1px solid rgba(184,139,74,0.18)" }}>
-                <h2 style={{ marginTop: 0, color: "#3f2f14" }}>Repères tarifaires</h2>
+              <article
+                style={{
+                  padding: "1.3rem",
+                  borderRadius: 22,
+                  background: "rgba(255,255,255,0.94)",
+                  border: "1px solid rgba(184,139,74,0.18)",
+                }}
+              >
+                <h2 style={{ marginTop: 0, color: "#3f2f14" }}>Reperes tarifaires</h2>
                 <p>Tarif horaire : {formatAmount(data.profile.hourly_rate, "/ h")}</p>
                 <p>Forfait mensuel : {formatAmount(data.profile.monthly_rate, "/ mois")}</p>
                 <p>Niveau : {data.profile.experience_level || "Non renseigne"}</p>
               </article>
             </section>
 
+            <section style={{ display: "grid", gap: "0.85rem" }}>
+              <h2 style={{ margin: 0, color: "#3f2f14" }}>Services proposes</h2>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}>
+                {data.profile.services.length > 0 ? (
+                  data.profile.services.map((service) => (
+                    <span key={service} style={pillStyle()}>
+                      {service}
+                    </span>
+                  ))
+                ) : (
+                  <span style={{ color: "#5f5237" }}>Services non renseignes pour le moment.</span>
+                )}
+              </div>
+            </section>
+
             <section style={{ display: "grid", gap: "1rem" }}>
-              <h2 style={{ margin: 0, color: "#3f2f14" }}>Avis récents</h2>
+              <h2 style={{ margin: 0, color: "#3f2f14" }}>Avis recents</h2>
               {data.reviews.length === 0 ? (
-                <p>Aucun avis publié pour le moment.</p>
+                <p>Aucun avis publie pour le moment.</p>
               ) : (
-                <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "1rem",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  }}
+                >
                   {data.reviews.map((review) => (
                     <article
                       key={review.id}
@@ -194,10 +337,12 @@ export default function PublicConciergeProfilePage({
                       }}
                     >
                       <strong style={{ color: "#3f2f14" }}>
-                        {typeof review.rating === "number" ? `${review.rating} / 5` : "Note non renseignee"}
+                        {typeof review.rating === "number"
+                          ? `${review.rating} / 5`
+                          : "Note non renseignee"}
                       </strong>
                       <p style={{ color: "#5f5237", lineHeight: 1.6 }}>
-                        {review.comment || "Avis publié sans commentaire."}
+                        {review.comment || "Avis publie sans commentaire."}
                       </p>
                       <small style={{ color: "#7b5b23" }}>{formatDate(review.created_at)}</small>
                     </article>

@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
+import { recordStripeEvent } from "@/app/lib/stripeHistory";
 
 function verifyStripeWebhookSignature(payload: string, signatureHeader: string, secret: string) {
   const parts = signatureHeader.split(",").map((part) => part.trim());
@@ -51,9 +52,20 @@ async function markConciergeProFromWebhook(session: Record<string, unknown>) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
+
+  await recordStripeEvent({
+    profileId: userId,
+    stripeObjectId: sessionId,
+    stripeEventType: "checkout.session.completed",
+    source: "webhook",
+    payload: session,
+  });
 }
 
-async function updateConciergeSubscriptionFromObject(subscription: Record<string, unknown>) {
+async function updateConciergeSubscriptionFromObject(
+  subscription: Record<string, unknown>,
+  eventType: string,
+) {
   const metadata = (subscription.metadata ?? {}) as Record<string, unknown>;
   const userId = typeof metadata.user_id === "string" ? metadata.user_id : null;
   const plan = typeof metadata.plan === "string" ? metadata.plan : null;
@@ -84,6 +96,14 @@ async function updateConciergeSubscriptionFromObject(subscription: Record<string
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
+
+  await recordStripeEvent({
+    profileId: userId,
+    stripeObjectId: subscriptionId,
+    stripeEventType: eventType,
+    source: "webhook",
+    payload: subscription,
+  });
 }
 
 async function markInvoicePaidFromWebhook(session: Record<string, unknown>) {
@@ -129,6 +149,32 @@ async function markInvoicePaidFromWebhook(session: Record<string, unknown>) {
       session_id: sessionId,
     },
   });
+
+  await recordStripeEvent({
+    profileId: userId,
+    stripeObjectId: sessionId,
+    stripeEventType: "checkout.session.completed",
+    source: "webhook",
+    payload: session,
+  });
+}
+
+async function recordInvoiceFailureFromWebhook(invoiceObject: Record<string, unknown>) {
+  const metadata = (invoiceObject.metadata ?? {}) as Record<string, unknown>;
+  const userId = typeof metadata.user_id === "string" ? metadata.user_id : null;
+  const invoiceId = typeof invoiceObject.id === "string" ? invoiceObject.id : null;
+
+  if (!invoiceId) {
+    return;
+  }
+
+  await recordStripeEvent({
+    profileId: userId,
+    stripeObjectId: invoiceId,
+    stripeEventType: "invoice.payment_failed",
+    source: "webhook",
+    payload: invoiceObject,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -161,10 +207,11 @@ export async function POST(req: NextRequest) {
       }
     } else if (
       eventType === "customer.subscription.updated" ||
-      eventType === "customer.subscription.deleted" ||
-      eventType === "invoice.payment_failed"
+      eventType === "customer.subscription.deleted"
     ) {
-      await updateConciergeSubscriptionFromObject(session);
+      await updateConciergeSubscriptionFromObject(session, eventType);
+    } else if (eventType === "invoice.payment_failed") {
+      await recordInvoiceFailureFromWebhook(session);
     }
 
     return NextResponse.json({ received: true });

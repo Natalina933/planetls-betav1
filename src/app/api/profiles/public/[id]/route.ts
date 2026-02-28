@@ -1,6 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 
+type PublicProfileRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  company_name: string | null;
+  city: string | null;
+  country: string | null;
+  service_area: string | null;
+  service_radius_km: number | null;
+  experience_level: string | null;
+  years_experience: number | null;
+  hourly_rate: number | null;
+  monthly_rate: number | null;
+  option: string | null;
+  availability_hours: string | null;
+  role: string | null;
+};
+
+const splitServices = (value: string): string[] =>
+  value
+    .split(/[;,|]/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const parseServices = (optionValue: string | null, availabilityHours: string | null): string[] => {
+  const values = new Set<string>();
+
+  if (optionValue) {
+    splitServices(optionValue).forEach((item) => values.add(item));
+  }
+
+  if (availabilityHours) {
+    try {
+      const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
+      const missionProfile = parsed?.missionProfile as
+        | { missions?: Array<Record<string, unknown>> }
+        | undefined;
+
+      missionProfile?.missions?.forEach((mission) => {
+        if (mission?.isActive === true && typeof mission.label === "string") {
+          values.add(mission.label);
+        }
+      });
+    } catch {
+      // Ignore malformed legacy payloads.
+    }
+  }
+
+  return Array.from(values);
+};
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -11,10 +64,10 @@ export async function GET(
     const { data: profile, error: profileError } = await db
       .from("profiles")
       .select(
-        "id, first_name, last_name, username, avatar_url, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, availability_hours, additional_info, role",
+        "id, first_name, last_name, username, avatar_url, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role",
       )
       .eq("id", id)
-      .maybeSingle();
+      .maybeSingle<PublicProfileRow>();
 
     if (profileError) {
       return NextResponse.json({ error: "Erreur lecture profil public." }, { status: 500 });
@@ -45,7 +98,9 @@ export async function GET(
 
     const averageRating =
       ratingValues.length > 0
-        ? Math.round((ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length) * 10) / 10
+        ? Math.round(
+            (ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length) * 10,
+          ) / 10
         : null;
 
     const displayName =
@@ -69,6 +124,7 @@ export async function GET(
         hourly_rate: profile.hourly_rate,
         monthly_rate: profile.monthly_rate,
         role: profile.role,
+        services: parseServices(profile.option, profile.availability_hours),
       },
       reviews: reviews ?? [],
       stats: {
