@@ -107,6 +107,19 @@ export default function OwnerQuotesPage() {
                   href={`/api/quotes/${quote.id}/document`}
                   target="_blank"
                   rel="noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0.45rem 0.85rem",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(184, 139, 74, 0.35)",
+                    background: "linear-gradient(135deg, #fff8ea, #f2e0c0)",
+                    color: "#7b5b23",
+                    textDecoration: "none",
+                    fontWeight: 700,
+                    marginTop: "0.4rem",
+                  }}
                 >
                   Apercu PDF
                 </a>

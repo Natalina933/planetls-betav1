@@ -53,14 +53,25 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   return (
     <header className={styles.dashboardHeader}>
-      <h1>
-        <LayoutDashboard className={styles.headerIcon} size={32} />
-        Tableau de Bord Conciergerie {isPro ? <Zap className="text-yellow-500" /> : null}
-      </h1>
+      <div className={styles.headerTopRow}>
+        <h1>
+          <LayoutDashboard className={styles.headerIcon} size={32} />
+          Tableau de Bord Conciergerie {isPro ? <Zap className="text-yellow-500" /> : null}
+        </h1>
+        <span className={isPro ? styles.proBadge : styles.standardBadge}>
+          {isPro ? "Statut PRO actif" : "Statut Standard"}
+        </span>
+      </div>
 
       <p className={styles.subtitle}>
         Bienvenue, {displayName}. Gerez l&apos;ensemble de vos proprietes et services.
       </p>
+
+      <div className={styles.headerActions}>
+        <Link href="/abonnement/concierge-pro" className={styles.subscriptionLink}>
+          {isPro ? "Voir mon abonnement PRO" : "Passer a Concierge PRO"}
+        </Link>
+      </div>
 
       <div className={styles.profileExperienceBadgeWrapper}>
         <ProfileExperienceBadge

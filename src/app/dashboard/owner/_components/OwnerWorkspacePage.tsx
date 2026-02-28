@@ -7,6 +7,7 @@ import styles from "./OwnerWorkspace.module.scss";
 interface InfoCard {
   title: string;
   text: string;
+  actions?: Array<{ label: string; href: string; variant?: "primary" | "secondary" }>;
 }
 
 interface OwnerWorkspacePageProps {
@@ -60,6 +61,23 @@ export default function OwnerWorkspacePage({
             <article key={card.title} className={styles.card}>
               <h2 className={styles.cardTitle}>{card.title}</h2>
               <p className={styles.cardText}>{card.text}</p>
+              {card.actions && card.actions.length > 0 ? (
+                <div className={styles.cardActions}>
+                  {card.actions.map((action) => (
+                    <Link
+                      key={`${card.title}-${action.href}-${action.label}`}
+                      href={action.href}
+                      className={
+                        action.variant === "primary"
+                          ? styles.cardActionPrimary
+                          : styles.cardActionSecondary
+                      }
+                    >
+                      {action.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </article>
           ))}
         </div>

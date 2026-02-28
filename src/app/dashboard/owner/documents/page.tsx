@@ -53,11 +53,35 @@ export default function OwnerDocumentsPage() {
   const cards = [
     ...quotes.slice(0, 4).map((quote) => ({
       title: quote.quote_number || "Devis",
-      text: `Statut : ${quote.status || "-"} • Apercu : /api/quotes/${quote.id}/document`,
+      text: `Statut : ${quote.status || "-"} - document pret a etre consulte ou telecharge.`,
+      actions: [
+        {
+          label: "Apercu PDF",
+          href: `/api/quotes/${quote.id}/document`,
+          variant: "primary" as const,
+        },
+        {
+          label: "Mes devis",
+          href: "/dashboard/owner/devis",
+          variant: "secondary" as const,
+        },
+      ],
     })),
     ...invoices.slice(0, 4).map((invoice) => ({
       title: invoice.invoice_number || "Facture",
-      text: `Statut : ${invoice.status || "-"} • Apercu : /api/invoices/${invoice.id}/document`,
+      text: `Statut : ${invoice.status || "-"} - facture disponible avec apercu et suivi de paiement.`,
+      actions: [
+        {
+          label: "Apercu PDF",
+          href: `/api/invoices/${invoice.id}/document`,
+          variant: "primary" as const,
+        },
+        {
+          label: "Mes factures",
+          href: "/dashboard/owner/factures",
+          variant: "secondary" as const,
+        },
+      ],
     })),
   ];
 
@@ -68,7 +92,7 @@ export default function OwnerDocumentsPage() {
       description={
         error
           ? error
-          : "Cette vue centralise deja vos devis et factures, avec les routes d'aperçu PDF prêtes a etre ouvertes."
+          : "Cette vue centralise vos devis et factures avec des actions directes vers l'aperçu PDF et les espaces de suivi."
       }
       chips={[`${quotes.length} devis`, `${invoices.length} factures`]}
       actions={[

@@ -62,7 +62,10 @@ export async function POST(
     const origin = req.nextUrl.origin;
     const form = new URLSearchParams();
     form.set("mode", "payment");
-    form.set("success_url", `${origin}/dashboard/owner/factures?payment=success&invoice=${invoice.id}`);
+    form.set(
+      "success_url",
+      `${origin}/dashboard/owner/factures?payment=success&invoice=${invoice.id}&session_id={CHECKOUT_SESSION_ID}`,
+    );
     form.set("cancel_url", `${origin}/dashboard/owner/factures?payment=cancel&invoice=${invoice.id}`);
     form.set("line_items[0][price_data][currency]", (invoice.currency || "EUR").toLowerCase());
     form.set("line_items[0][price_data][product_data][name]", `Facture ${invoice.invoice_number || invoice.id}`);

@@ -44,12 +44,60 @@ export default function OwnerInvoicesPage() {
 
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
-    if (paymentStatus === "success") {
-      setFeedback("Paiement confirme par Stripe. Le solde de la facture sera a synchroniser si necessaire.");
-      setError(null);
-    } else if (paymentStatus === "cancel") {
+    const invoiceId = searchParams.get("invoice");
+    const sessionId = searchParams.get("session_id");
+
+    if (paymentStatus === "cancel") {
       setFeedback("Paiement annule. Vous pouvez reprendre plus tard.");
+      return;
     }
+
+    if (paymentStatus !== "success" || !invoiceId || !sessionId) return;
+
+    let cancelled = false;
+
+    async function syncPaidInvoice() {
+      try {
+        const response = await fetch(`/api/billing/invoices/${invoiceId}/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload?.error || "Impossible de synchroniser la facture payee.");
+        }
+
+        if (!cancelled) {
+          setFeedback("Paiement confirme et facture synchronisee comme reglee.");
+          setError(null);
+          setInvoices((prev) =>
+            prev.map((invoice) =>
+              invoice.id === invoiceId
+                ? {
+                    ...invoice,
+                    status: "paid",
+                    balance_amount: 0,
+                    paid_amount: invoice.total_amount,
+                  }
+                : invoice,
+            ),
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Impossible de synchroniser la facture payee.",
+          );
+        }
+      }
+    }
+
+    syncPaidInvoice();
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams]);
 
   useEffect(() => {
@@ -152,6 +200,18 @@ export default function OwnerInvoicesPage() {
                     href={`/api/invoices/${invoice.id}/document`}
                     target="_blank"
                     rel="noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0.45rem 0.85rem",
+                      borderRadius: "999px",
+                      border: "1px solid rgba(184, 139, 74, 0.35)",
+                      background: "linear-gradient(135deg, #fff8ea, #f2e0c0)",
+                      color: "#7b5b23",
+                      textDecoration: "none",
+                      fontWeight: 700,
+                    }}
                   >
                     Apercu PDF
                   </a>
@@ -160,6 +220,15 @@ export default function OwnerInvoicesPage() {
                       type="button"
                       onClick={() => handlePayInvoice(invoice.id)}
                       disabled={payingInvoiceId === invoice.id}
+                      style={{
+                        padding: "0.45rem 0.85rem",
+                        borderRadius: "999px",
+                        border: "none",
+                        background: "linear-gradient(135deg, #b88b4a, #d4af37)",
+                        color: "#fff",
+                        fontWeight: 700,
+                        cursor: payingInvoiceId === invoice.id ? "not-allowed" : "pointer",
+                      }}
                     >
                       {payingInvoiceId === invoice.id ? "Redirection..." : "Regler"}
                     </button>

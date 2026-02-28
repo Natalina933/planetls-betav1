@@ -77,6 +77,66 @@
   }
 }
 
+.headerTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.proBadge,
+.standardBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.proBadge {
+  color: #5e4209;
+  background: linear-gradient(135deg, rgba($gold, 0.3), rgba(255, 240, 199, 0.9));
+  border: 1px solid rgba($gold, 0.4);
+}
+
+.standardBadge {
+  color: $color-text-neutral;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba($mucha-ink, 0.14);
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.subscriptionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.55rem 0.95rem;
+  border-radius: $radius-md;
+  border: 1px solid rgba($primary-dark-color-sass, 0.25);
+  background: rgba($gold, 0.08);
+  color: $primary-dark-color-sass;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba($primary-dark-color-sass, 0.45);
+    background: rgba($gold, 0.16);
+  }
+}
+
 .dashboardGrid {
   @include grid-template(repeat(auto-fit, minmax(280px, 1fr)), $spacing-lg);
 }
