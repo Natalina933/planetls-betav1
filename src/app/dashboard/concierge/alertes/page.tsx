@@ -50,22 +50,35 @@ export default function ConciergeAlertesPage() {
       try {
         setLoading(true);
         setError(null);
-        const [missionsResponse, conversationsResponse, housingResponse, profileResponse] = await Promise.all([
-          fetch("/api/missions?scope=all&limit=80", { cache: "no-store" }),
-          fetch("/api/messages/conversations?role=concierge&limit=80", { cache: "no-store" }),
-          fetch("/api/housing", { cache: "no-store" }),
-          fetch("/api/profiles/current", { cache: "no-store" }),
-        ]);
+        const [missionsResponse, conversationsResponse, housingResponse, profileResponse] =
+          await Promise.all([
+            fetch("/api/missions?scope=all&limit=80", { cache: "no-store" }),
+            fetch("/api/messages/conversations?role=concierge&limit=80", {
+              cache: "no-store",
+            }),
+            fetch("/api/housing", { cache: "no-store" }),
+            fetch("/api/profiles/current", { cache: "no-store" }),
+          ]);
 
         const missionsPayload = await missionsResponse.json();
         const conversationsPayload = await conversationsResponse.json();
         const housingPayload = await housingResponse.json();
         const profilePayload = await profileResponse.json();
 
-        if (!missionsResponse.ok) throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
-        if (!conversationsResponse.ok) throw new Error(conversationsPayload?.error || "Impossible de charger les conversations.");
-        if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
-        if (!profileResponse.ok) throw new Error(profilePayload?.error || "Impossible de charger le profil.");
+        if (!missionsResponse.ok) {
+          throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
+        }
+        if (!conversationsResponse.ok) {
+          throw new Error(
+            conversationsPayload?.error || "Impossible de charger les conversations.",
+          );
+        }
+        if (!housingResponse.ok) {
+          throw new Error(housingPayload?.error || "Impossible de charger les logements.");
+        }
+        if (!profileResponse.ok) {
+          throw new Error(profilePayload?.error || "Impossible de charger le profil.");
+        }
 
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
         setConversations(Array.isArray(conversationsPayload) ? conversationsPayload : []);
@@ -86,11 +99,15 @@ export default function ConciergeAlertesPage() {
     [missions],
   );
   const stalledConversations = useMemo(
-    () => conversations.filter((conversation) => olderThanThreeDays(conversation.last_message_at)),
+    () =>
+      conversations.filter((conversation) => olderThanThreeDays(conversation.last_message_at)),
     [conversations],
   );
   const draftHousings = useMemo(
-    () => housings.filter((housing) => housing.statut !== "active" && housing.statut !== "published"),
+    () =>
+      housings.filter(
+        (housing) => housing.statut !== "active" && housing.statut !== "published",
+      ),
     [housings],
   );
 
@@ -111,8 +128,11 @@ export default function ConciergeAlertesPage() {
     () =>
       stalledConversations.slice(0, 5).map((conversation) => ({
         title: conversation.counterpart_name || "Propriétaire",
-        meta: conversation.last_message_at ? "Plus de 3 jours sans réponse" : "Aucune date récente",
-        description: "Une relance rapide peut aider à garder la relation commerciale active.",
+        meta: conversation.last_message_at
+          ? "Plus de 3 jours sans réponse"
+          : "Aucune date récente",
+        description:
+          "Une relance rapide peut aider à garder la relation commerciale active.",
         href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
         actionLabel: "Relancer",
         tone: "warning" as const,
@@ -125,7 +145,8 @@ export default function ConciergeAlertesPage() {
       draftHousings.slice(0, 5).map((housing) => ({
         title: housing.nom || `Logement #${housing.id}`,
         meta: housing.statut || "brouillon",
-        description: "Compléter les informations ou activer ce bien pour ne pas freiner l'acquisition.",
+        description:
+          "Compléter les informations ou activer ce bien pour ne pas freiner l'acquisition.",
         href: `/dashboard/concierge/logements/${housing.id}`,
         actionLabel: "Finaliser la fiche",
       })),
@@ -174,7 +195,13 @@ export default function ConciergeAlertesPage() {
     }
 
     return items;
-  }, [profile?.city, profile?.hourly_rate, profile?.monthly_rate, profile?.role, profile?.service_area]);
+  }, [
+    profile?.city,
+    profile?.hourly_rate,
+    profile?.monthly_rate,
+    profile?.role,
+    profile?.service_area,
+  ]);
 
   return (
     <ConciergeWorkspacePage
@@ -183,7 +210,8 @@ export default function ConciergeAlertesPage() {
       description={
         loading
           ? "Analyse des points de vigilance..."
-          : error || "Centralisez les urgences terrain, les relances propriétaires et les logements à finaliser."
+          : error ||
+            "Centralisez les urgences terrain, les relances propriétaires et les logements à finaliser."
       }
       chips={[
         `${urgentMissions.length} urgence(s)`,
@@ -194,7 +222,7 @@ export default function ConciergeAlertesPage() {
         {
           label: "Urgences",
           value: loading ? "..." : String(urgentMissions.length),
-          hint: "Missions priorité urgente à absorber",
+          hint: "Missions à priorité urgente à absorber",
         },
         {
           label: "Relances",
@@ -286,7 +314,7 @@ export default function ConciergeAlertesPage() {
           items: urgentMissionItems,
         },
         {
-          title: "A suivre - relances propriétaires",
+          title: "À suivre - relances propriétaires",
           description:
             "Conversations à reprendre pour ne pas laisser refroidir une opportunité ou une demande active.",
           emptyText:
@@ -296,7 +324,7 @@ export default function ConciergeAlertesPage() {
           items: stalledConversationItems,
         },
         {
-          title: "A suivre - fiches logement à finaliser",
+          title: "À suivre - fiches logement à finaliser",
           description:
             "Biens encore inactifs ou incomplets qui méritent une vérification rapide avant mise en avant.",
           emptyText:
