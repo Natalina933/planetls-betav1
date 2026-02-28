@@ -172,6 +172,97 @@ interface FicheStaticSidebarSectionProps {
   renderSection: RenderSection;
 }
 
+interface ConciergePageHeaderProps {
+  styles: Record<string, string>;
+  title: string;
+}
+
+interface ConciergeTabNavigationProps {
+  styles: Record<string, string>;
+  tabs: Array<{
+    id: string;
+    label: string;
+    icon: React.ComponentType<any>;
+  }>;
+  activeTab: string;
+  onTabChange: (tabId: any) => void;
+}
+
+interface ConciergeNotificationsProps {
+  styles: Record<string, string>;
+  successMsg: string | null;
+  errorMsg: string | null;
+}
+
+export function ConciergePageHeader({
+  styles,
+  title,
+}: ConciergePageHeaderProps) {
+  return (
+    <header className={styles.pageHeader}>
+      <div className={styles.pageHeaderLeft}>
+        <div className={styles.logo}>
+          <Shield size={22} />
+        </div>
+        <h1 className={styles.pageTitle}>{title}</h1>
+      </div>
+    </header>
+  );
+}
+
+export function ConciergeNotifications({
+  styles,
+  successMsg,
+  errorMsg,
+}: ConciergeNotificationsProps) {
+  return (
+    <>
+      {successMsg ? (
+        <div className={`${styles.notification} ${styles.notificationSuccess}`}>
+          <FiCheckCircleOutline size={18} />
+          <span>{successMsg}</span>
+        </div>
+      ) : null}
+
+      {errorMsg ? (
+        <div className={`${styles.notification} ${styles.notificationError}`}>
+          <LucideX size={18} />
+          <span>{errorMsg}</span>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+export function ConciergeTabNavigation({
+  styles,
+  tabs,
+  activeTab,
+  onTabChange,
+}: ConciergeTabNavigationProps) {
+  return (
+    <div className={styles.tabs}>
+      {tabs.map((tab, index) => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
+            style={{ "--tab-index": index } as React.CSSProperties}
+          >
+            <span className={styles.tabIcon}>
+              <Icon />
+            </span>
+            <span className={styles.tabLabel}>{tab.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function EditableProfileField({
   styles,
   label,

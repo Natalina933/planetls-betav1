@@ -14,6 +14,7 @@ import PromotePlatformSection from '../components/layout/Home/PromotePlatformSec
 import { TrustSection } from '../components/layout/Home/TrustSection/TrustSection';
 import BlogNewsSection from '../components/layout/Home/BlogNewsSection/BlogNewsSection';
 import ServiceList from '../components/layout/Home/SectionBlock/services/ServiceList';
+import RecommendedConciergesSection from '../components/layout/Home/RecommendedConciergesSection/RecommendedConciergesSection';
 // import MapPopup from '../components/layout/MapPopup/MapPopup';
 
 // Chargement dynamique côté client uniquement
@@ -42,6 +43,7 @@ export default function HomePage() {
                     <VideoIntro />
                     <ForWhomSection />
                     <PromotePlatformSection />
+                    <RecommendedConciergesSection />
                     <TrustSection />
                     <BlogNewsSection />
                     <ShopSection />

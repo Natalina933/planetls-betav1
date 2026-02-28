@@ -26,6 +26,9 @@ import {
   uploadProfileAvatar,
 } from "./profileEditing";
 import {
+  ConciergeNotifications,
+  ConciergePageHeader,
+  ConciergeTabNavigation,
   FicheTabSection,
   MissionProgressPanelSection,
   MissionQuickQuoteSection,
@@ -62,11 +65,6 @@ import type {
   WeekDay,
 } from "@/app/components/missions/types";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
-import {
-  Shield,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
@@ -3270,54 +3268,21 @@ export default function ConciergeProfilePage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.pageHeader}>
-        <div className={styles.pageHeaderLeft}>
-          <div className={styles.logo}>
-            <Shield size={22} />
-          </div>
-          <h1 className={styles.pageTitle}>Espace Concierge</h1>
-        </div>
-      </header>
+      <ConciergePageHeader styles={styles} title="Espace Concierge" />
 
       <main className={styles.main}>
-        {successMsg && (
-          <div
-            className={`${styles.notification} ${styles.notificationSuccess}`}
-          >
-            <CheckCircle2 size={18} />
-            <span>{successMsg}</span>
-          </div>
-        )}
+        <ConciergeNotifications
+          styles={styles}
+          successMsg={successMsg}
+          errorMsg={errorMsg}
+        />
 
-        {errorMsg && (
-          <div
-            className={`${styles.notification} ${styles.notificationError}`}
-          >
-            <AlertCircle size={18} />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
-        <div className={styles.tabs}>
-          {CONCIERGE_TABS.map((tab, index) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`${styles.tab} ${isActive ? styles.tabActive : ""
-                  }`}
-                style={{ "--tab-index": index } as React.CSSProperties}
-              >
-                <span className={styles.tabIcon}>
-                  <Icon />
-                </span>
-                <span className={styles.tabLabel}>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <ConciergeTabNavigation
+          styles={styles}
+          tabs={CONCIERGE_TABS}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
 
         <div className={styles.tabContent}>
           <div key={activeTab} className={styles.tabPane} aria-live="polite">
