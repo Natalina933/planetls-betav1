@@ -17,7 +17,10 @@ function buildStripeCheckoutBody(params: {
 }) {
   const form = new URLSearchParams();
   form.set("mode", "subscription");
-  form.set("success_url", `${params.origin}/abonnement/concierge-pro?checkout=success`);
+  form.set(
+    "success_url",
+    `${params.origin}/abonnement/concierge-pro?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+  );
   form.set("cancel_url", `${params.origin}/abonnement/concierge-pro?checkout=cancel`);
   form.set("line_items[0][price]", params.priceId);
   form.set("line_items[0][quantity]", "1");

@@ -102,6 +102,14 @@ export default function OwnerQuotesPage() {
                 jusqu&apos;au {formatDate(quote.valid_until)}
                 <br />
                 Lignes : {quote.quote_items?.length ?? 0}
+                <br />
+                <a
+                  href={`/api/quotes/${quote.id}/document`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Apercu PDF
+                </a>
               </li>
             ))}
           </ul>

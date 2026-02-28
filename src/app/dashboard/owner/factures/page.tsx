@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type OwnerInvoiceRow = {
   id: string;
@@ -34,9 +35,22 @@ function formatAmount(value: number | null) {
 }
 
 export default function OwnerInvoicesPage() {
+  const searchParams = useSearchParams();
   const [invoices, setInvoices] = useState<OwnerInvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    if (paymentStatus === "success") {
+      setFeedback("Paiement confirme par Stripe. Le solde de la facture sera a synchroniser si necessaire.");
+      setError(null);
+    } else if (paymentStatus === "cancel") {
+      setFeedback("Paiement annule. Vous pouvez reprendre plus tard.");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadInvoices() {
@@ -67,6 +81,34 @@ export default function OwnerInvoicesPage() {
     [invoices],
   );
 
+  async function handlePayInvoice(invoiceId: string) {
+    try {
+      setPayingInvoiceId(invoiceId);
+      setError(null);
+      setFeedback(null);
+
+      const response = await fetch(`/api/billing/invoices/${invoiceId}/checkout`, {
+        method: "POST",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de lancer le paiement.");
+      }
+
+      if (payload?.url) {
+        window.location.href = payload.url;
+        return;
+      }
+
+      throw new Error("URL Stripe manquante.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de lancer le paiement.");
+    } finally {
+      setPayingInvoiceId(null);
+    }
+  }
+
   return (
     <section className="dashboard-grid">
       <header>
@@ -86,6 +128,7 @@ export default function OwnerInvoicesPage() {
       </div>
 
       <div className="main-section">
+        {feedback ? <p style={{ color: "#7b5b23", fontWeight: 600 }}>{feedback}</p> : null}
         {loading ? <p>Chargement des factures...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
@@ -103,6 +146,25 @@ export default function OwnerInvoicesPage() {
                 Solde : {formatAmount(invoice.balance_amount)}
                 <br />
                 Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
+                <br />
+                <span style={{ display: "inline-flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.55rem" }}>
+                  <a
+                    href={`/api/invoices/${invoice.id}/document`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Apercu PDF
+                  </a>
+                  {(invoice.status !== "paid" && invoice.status !== "canceled") ? (
+                    <button
+                      type="button"
+                      onClick={() => handlePayInvoice(invoice.id)}
+                      disabled={payingInvoiceId === invoice.id}
+                    >
+                      {payingInvoiceId === invoice.id ? "Redirection..." : "Regler"}
+                    </button>
+                  ) : null}
+                </span>
               </li>
             ))}
           </ul>

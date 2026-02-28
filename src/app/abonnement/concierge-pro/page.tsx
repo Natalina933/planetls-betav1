@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./ConciergeProPage.module.scss";
 
@@ -20,6 +21,7 @@ const summary = [
 export default function ConciergeProSubscriptionPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +30,53 @@ export default function ConciergeProSubscriptionPage() {
     if (status === "success") return "Paiement confirme. Le statut PRO peut maintenant etre synchronise.";
     if (status === "cancel") return "Paiement annule. Vous pouvez reprendre plus tard.";
     return null;
+  }, [searchParams]);
+
+  useEffect(() => {
+    const checkoutStatus = searchParams.get("checkout");
+    const sessionId = searchParams.get("session_id");
+
+    if (checkoutStatus !== "success" || !sessionId) return;
+
+    let cancelled = false;
+
+    async function syncSubscription() {
+      try {
+        setSyncing(true);
+        setError(null);
+
+        const response = await fetch("/api/billing/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload?.error || "Impossible de synchroniser le statut PRO.");
+        }
+
+        if (!cancelled) {
+          setFeedback("Abonnement Stripe valide. Le profil concierge est maintenant synchronise en PRO.");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Impossible de synchroniser l'abonnement.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setSyncing(false);
+        }
+      }
+    }
+
+    syncSubscription();
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams]);
 
   async function startCheckout() {
@@ -100,8 +149,12 @@ export default function ConciergeProSubscriptionPage() {
                 </div>
               ))}
             </div>
-            <button className={styles.cta} onClick={startCheckout} disabled={loading}>
-              {loading ? "Preparation du checkout..." : "Activer Concierge PRO"}
+            <button className={styles.cta} onClick={startCheckout} disabled={loading || syncing}>
+              {loading
+                ? "Preparation du checkout..."
+                : syncing
+                ? "Synchronisation du statut PRO..."
+                : "Activer Concierge PRO"}
             </button>
             {feedback ? <div className={styles.feedback}>{feedback}</div> : null}
             {error ? <div className={`${styles.feedback} ${styles.error}`}>{error}</div> : null}

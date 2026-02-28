@@ -57,11 +57,14 @@ export async function GET(
         "id, invoice_number, quote_id, concierge_profile_id, owner_profile_id, mission_id, status, issue_date, due_date, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, paid_amount, balance_amount, notes, created_at, invoice_items(id, label, description, quantity, unit_price, line_total, sort_order)",
       )
       .eq("id", id)
-      .eq("concierge_profile_id", userId)
       .single();
 
     if (invoiceError || !invoice) {
       return new Response("Facture introuvable", { status: 404 });
+    }
+
+    if (invoice.concierge_profile_id !== userId && invoice.owner_profile_id !== userId) {
+      return new Response("Acces refuse", { status: 403 });
     }
 
     const [{ data: concierge }, { data: owner }] = await Promise.all([

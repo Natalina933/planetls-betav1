@@ -57,11 +57,14 @@ export async function GET(
         "id, quote_number, concierge_profile_id, owner_profile_id, mission_id, status, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, notes, created_at, quote_items(id, label, description, quantity, unit_price, line_total, sort_order)",
       )
       .eq("id", id)
-      .eq("concierge_profile_id", userId)
       .single();
 
     if (quoteError || !quote) {
       return new Response("Devis introuvable", { status: 404 });
+    }
+
+    if (quote.concierge_profile_id !== userId && quote.owner_profile_id !== userId) {
+      return new Response("Acces refuse", { status: 403 });
     }
 
     const [{ data: concierge }, { data: owner }] = await Promise.all([
