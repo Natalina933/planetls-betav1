@@ -28,10 +28,23 @@ type ReviewRow = {
   reviewed_profile_id: string | null;
 };
 
+type SpotlightConciergeProfile = {
+  profile: {
+    id: string;
+    display_name: string;
+    role: string | null;
+  };
+  stats: {
+    average_rating: number | null;
+    reviews_count: number;
+  };
+};
+
 export default function OwnerConciergeriePage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [spotlightProfile, setSpotlightProfile] = useState<SpotlightConciergeProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
@@ -131,6 +144,36 @@ export default function OwnerConciergeriePage() {
     return withConcierge?.concierge_profile_id ?? null;
   }, [missions]);
 
+  useEffect(() => {
+    if (!spotlightConciergeProfileId) {
+      setSpotlightProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadSpotlightProfile() {
+      try {
+        const response = await fetch(`/api/profiles/public/${spotlightConciergeProfileId}`, {
+          cache: "no-store",
+        });
+        const payload = await response.json();
+        if (!response.ok || cancelled) return;
+        setSpotlightProfile(payload);
+      } catch {
+        if (!cancelled) {
+          setSpotlightProfile(null);
+        }
+      }
+    }
+
+    loadSpotlightProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spotlightConciergeProfileId]);
+
   async function handleSubmitReview(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -187,10 +230,12 @@ export default function OwnerConciergeriePage() {
           `${ongoingCount} en cours`,
           `${conversations.length} conversation(s)`,
           averageRating ? `${averageRating}/5 de satisfaction` : "Avis en cours de collecte",
+          spotlightProfile?.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard",
         ]}
         actions={[
           { label: "Voir mes messages", href: "/dashboard/owner/messages" },
           { label: "Voir mon planning", href: "/dashboard/owner/planning" },
+          { label: "Trouver un autre concierge", href: "/dashboard/owner/concierges" },
           ...(spotlightConciergeProfileId
             ? [{ label: "Voir le profil concierge", href: `/concierges/${spotlightConciergeProfileId}` }]
             : []),
@@ -229,6 +274,12 @@ export default function OwnerConciergeriePage() {
               reviews.length > 0
                 ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
                 : "Les avis laisses apres les missions terminees apparaitront ici.",
+          },
+          {
+            title: "Badge concierge",
+            text: spotlightProfile
+              ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` • ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
+              : "Le statut PRO et la note du concierge apparaitront ici des qu'un profil sera associe.",
           },
         ]}
       />

@@ -60,6 +60,12 @@
   background: rgba(255, 252, 245, 0.96);
 }
 
+.fieldGrid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 .field {
   display: grid;
   gap: 0.35rem;
@@ -79,6 +85,55 @@
   border: 1px solid rgba(184, 139, 74, 0.28);
   padding: 0.75rem 0.85rem;
   background: #fff;
+}
+
+.field select {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 139, 74, 0.28);
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+}
+
+.servicesBlock {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.blockLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #7b5b23;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.serviceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.serviceChip,
+.serviceChipActive {
+  min-height: 38px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.serviceChip {
+  border: 1px solid rgba(184, 139, 74, 0.25);
+  background: rgba(255, 255, 255, 0.8);
+  color: #7b5b23;
+}
+
+.serviceChipActive {
+  border: 1px solid rgba(184, 139, 74, 0.35);
+  background: linear-gradient(135deg, #fff0cf, #f2ddb5);
+  color: #5e4209;
 }
 
 .checkboxRow {
@@ -167,6 +222,12 @@
   gap: 0.8rem;
 }
 
+.badgesCol {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: end;
+}
+
 .cardHead h2 {
   margin: 0;
   color: #3f2f14;
@@ -184,6 +245,15 @@
   font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.ratingBadge {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #7b5b23;
+  background: rgba(184, 139, 74, 0.14);
 }
 
 .proBadge {
@@ -230,6 +300,15 @@
 .tag {
   background: rgba(184, 139, 74, 0.12);
   color: #7b5b23;
+}
+
+.propertyTag {
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(74, 53, 16, 0.08);
+  color: #4a3510;
 }
 
 .tagMuted {

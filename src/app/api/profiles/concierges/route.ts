@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import {
+  applyConciergeSearchFilters,
+  buildAvailableConciergeFilters,
+  buildConciergeSearchFilters,
+  mapPropertyTypesByProfile,
+  parseProfileServices,
+} from "./shared";
 
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 
@@ -23,43 +30,6 @@ type ConciergeProfileRow = {
   role: string | null;
 };
 
-const splitServices = (value: string): string[] =>
-  value
-    .split(/[;,|]/g)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-const normalize = (value: string): string =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-
-const parseServices = (optionValue: string | null, availabilityHours: string | null): string[] => {
-  const values = new Set<string>();
-
-  if (optionValue) {
-    splitServices(optionValue).forEach((item) => values.add(item));
-  }
-
-  if (availabilityHours) {
-    try {
-      const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
-      const missionProfile = parsed?.missionProfile as { missions?: Array<Record<string, unknown>> } | undefined;
-      missionProfile?.missions?.forEach((mission) => {
-        if (mission?.isActive === true && typeof mission.label === "string") {
-          values.add(mission.label);
-        }
-      });
-    } catch {
-      // Ignore malformed legacy payloads.
-    }
-  }
-
-  return Array.from(values);
-};
-
 export async function GET(req: NextRequest) {
   try {
     const auth = await getApiAuthContext(req);
@@ -71,20 +41,15 @@ export async function GET(req: NextRequest) {
     }
 
     const url = new URL(req.url);
-    const city = (url.searchParams.get("city") ?? "").trim();
-    const service = (url.searchParams.get("service") ?? "").trim();
-    const proOnly =
-      ["1", "true", "yes"].includes((url.searchParams.get("proOnly") ?? "").trim().toLowerCase());
-    const limitRaw = Number(url.searchParams.get("limit") ?? "48");
-    const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 120) : 48;
+    const filters = buildConciergeSearchFilters(url.searchParams);
 
     const { data: profiles, error: profilesError } = await db
       .from("profiles")
       .select(
         "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, role",
       )
-      .in("role", proOnly ? ["concierge_pro"] : ["concierge", "concierge_pro"])
-      .limit(limit * 2);
+      .in("role", filters.proOnly ? ["concierge_pro"] : ["concierge", "concierge_pro"])
+      .limit(filters.limit * 3);
 
     if (profilesError) {
       return NextResponse.json({ error: "Erreur chargement concierges." }, { status: 500 });
@@ -102,6 +67,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Erreur chargement avis concierges." }, { status: 500 });
     }
 
+    const { data: pricingPackages, error: pricingPackagesError } = await db
+      .from("pricing_packages")
+      .select("profile_id, property_type")
+      .in(
+        "profile_id",
+        profileIds.length > 0 ? profileIds : ["00000000-0000-0000-0000-000000000000"],
+      );
+
+    if (pricingPackagesError) {
+      return NextResponse.json(
+        { error: "Erreur chargement specialites logements." },
+        { status: 500 },
+      );
+    }
+
     const ratingsByProfile = new Map<string, number[]>();
     (reviews ?? []).forEach((review) => {
       if (typeof review.reviewed_profile_id !== "string" || typeof review.rating !== "number") return;
@@ -111,17 +91,16 @@ export async function GET(req: NextRequest) {
       ratingsByProfile.get(review.reviewed_profile_id)?.push(review.rating);
     });
 
-    const cityNormalized = normalize(city);
-    const serviceNormalized = normalize(service);
+    const propertyTypesByProfile = mapPropertyTypesByProfile(pricingPackages ?? []);
 
-    const results = conciergeRows
+    const enrichedResults = conciergeRows
       .map((profile) => {
         const displayName =
           `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
           profile.company_name ||
           profile.username ||
           "Concierge";
-        const services = parseServices(profile.option, profile.availability_hours);
+        const services = parseProfileServices(profile.option, profile.availability_hours);
         const ratings = ratingsByProfile.get(profile.id) ?? [];
         const averageRating =
           ratings.length > 0
@@ -140,46 +119,27 @@ export async function GET(req: NextRequest) {
           experience_level: profile.experience_level,
           years_experience: profile.years_experience,
           services,
+          property_types: propertyTypesByProfile.get(profile.id) ?? [],
           is_pro: profile.role === "concierge_pro",
           average_rating: averageRating,
           reviews_count: ratings.length,
         };
-      })
-      .filter((profile) => {
-        if (cityNormalized) {
-          const area = normalize(
-            [profile.city, profile.service_area, profile.country].filter(Boolean).join(" "),
-          );
-          if (!area.includes(cityNormalized)) {
-            return false;
-          }
-        }
+      });
 
-        if (serviceNormalized) {
-          const hasService = profile.services.some((item) => normalize(item).includes(serviceNormalized));
-          if (!hasService) {
-            return false;
-          }
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        const aRating = a.average_rating ?? -1;
-        const bRating = b.average_rating ?? -1;
-        if (bRating !== aRating) return bRating - aRating;
-        if (b.is_pro !== a.is_pro) return Number(b.is_pro) - Number(a.is_pro);
-        return a.display_name.localeCompare(b.display_name);
-      })
-      .slice(0, limit);
+    const results = applyConciergeSearchFilters(enrichedResults, filters);
+    const availableFilters = buildAvailableConciergeFilters(enrichedResults);
 
     return NextResponse.json({
       filters: {
-        city: city || null,
-        service: service || null,
-        pro_only: proOnly,
+        city: filters.city || null,
+        services: filters.services,
+        pro_only: filters.proOnly,
+        property_type: filters.propertyType || null,
+        budget_max: filters.budgetMax,
+        radius_km: filters.radiusKm,
       },
       total: results.length,
+      available_filters: availableFilters,
       items: results,
     });
   } catch (err) {

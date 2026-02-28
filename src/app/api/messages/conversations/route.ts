@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { resolveConversationParticipants } from "./shared";
 
 type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
 
@@ -153,11 +154,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body: CreateConversationBody = await req.json();
-    const ownerProfileIdFromBody = (body.owner_profile_id ?? "").trim();
-    const conciergeProfileIdFromBody = (body.concierge_profile_id ?? "").trim();
-    const isOwnerCreator = role === "owner" || role === "owner_pro";
-    const ownerProfileId = isOwnerCreator ? userId : ownerProfileIdFromBody;
-    const conciergeProfileId = isOwnerCreator ? conciergeProfileIdFromBody : userId;
+    const { ownerProfileId, conciergeProfileId } = resolveConversationParticipants({
+      role,
+      userId,
+      ownerProfileId: body.owner_profile_id,
+      conciergeProfileId: body.concierge_profile_id,
+    });
 
     if (!ownerProfileId || !conciergeProfileId) {
       return NextResponse.json(

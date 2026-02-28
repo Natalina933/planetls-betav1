@@ -3,6 +3,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./OwnerConciergesPage.module.scss";
+import {
+  buildOwnerConciergeFilterOptions,
+  buildOwnerConciergeSearchParams,
+  toggleOwnerConciergeService,
+  type OwnerConciergeSearchFilters,
+} from "./searchHelpers";
 
 type ConciergeSearchRow = {
   id: string;
@@ -16,9 +22,27 @@ type ConciergeSearchRow = {
   experience_level: string | null;
   years_experience: number | null;
   services: string[];
+  property_types?: string[];
   is_pro: boolean;
   average_rating: number | null;
   reviews_count: number;
+};
+
+type ConciergeSearchPayload = {
+  items: ConciergeSearchRow[];
+  available_filters?: {
+    services?: string[];
+    property_types?: string[];
+  };
+};
+
+const initialFilters: OwnerConciergeSearchFilters = {
+  city: "",
+  selectedServices: [],
+  propertyType: "",
+  budgetMax: "",
+  radiusKm: "",
+  proOnly: false,
 };
 
 function formatAmount(value: number | null, suffix: string) {
@@ -27,45 +51,55 @@ function formatAmount(value: number | null, suffix: string) {
 }
 
 export default function OwnerConciergesPage() {
-  const [city, setCity] = useState("");
-  const [service, setService] = useState("");
-  const [proOnly, setProOnly] = useState(false);
+  const [filters, setFilters] = useState<OwnerConciergeSearchFilters>(initialFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [contactingId, setContactingId] = useState<string | null>(null);
   const [items, setItems] = useState<ConciergeSearchRow[]>([]);
+  const [serverOptions, setServerOptions] = useState<{ services: string[]; propertyTypes: string[] }>({
+    services: [],
+    propertyTypes: [],
+  });
 
   const totalPro = useMemo(() => items.filter((item) => item.is_pro).length, [items]);
+  const clientOptions = useMemo(() => buildOwnerConciergeFilterOptions(items), [items]);
 
-  async function loadConcierges(options?: {
-    nextCity?: string;
-    nextService?: string;
-    nextProOnly?: boolean;
-  }) {
+  const serviceOptions = useMemo(() => {
+    const values = new Set([...serverOptions.services, ...clientOptions.services]);
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [clientOptions.services, serverOptions.services]);
+
+  const propertyTypeOptions = useMemo(() => {
+    const values = new Set([...serverOptions.propertyTypes, ...clientOptions.propertyTypes]);
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [clientOptions.propertyTypes, serverOptions.propertyTypes]);
+
+  async function loadConcierges(nextFilters?: OwnerConciergeSearchFilters) {
     try {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      const cityValue = options?.nextCity ?? city;
-      const serviceValue = options?.nextService ?? service;
-      const proValue = options?.nextProOnly ?? proOnly;
-
-      if (cityValue.trim()) params.set("city", cityValue.trim());
-      if (serviceValue.trim()) params.set("service", serviceValue.trim());
-      if (proValue) params.set("proOnly", "1");
-
+      const effectiveFilters = nextFilters ?? filters;
+      const params = buildOwnerConciergeSearchParams(effectiveFilters);
       const response = await fetch(`/api/profiles/concierges?${params.toString()}`, {
         cache: "no-store",
       });
-      const payload = await response.json();
+      const payload = (await response.json()) as ConciergeSearchPayload & { error?: string };
 
       if (!response.ok) {
         throw new Error(payload?.error || "Impossible de charger les concierges.");
       }
 
       setItems(Array.isArray(payload?.items) ? payload.items : []);
+      setServerOptions({
+        services: Array.isArray(payload?.available_filters?.services)
+          ? payload.available_filters.services
+          : [],
+        propertyTypes: Array.isArray(payload?.available_filters?.property_types)
+          ? payload.available_filters.property_types
+          : [],
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger les concierges.");
     } finally {
@@ -74,14 +108,14 @@ export default function OwnerConciergesPage() {
   }
 
   useEffect(() => {
-    loadConcierges({ nextCity: "", nextService: "", nextProOnly: false });
+    loadConcierges(initialFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
-    loadConcierges();
+    loadConcierges(filters);
   }
 
   async function handleContactConcierge(item: ConciergeSearchRow) {
@@ -130,40 +164,123 @@ export default function OwnerConciergesPage() {
           <span className={styles.eyebrow}>Mise en relation</span>
           <h1 className={styles.title}>Trouver un concierge</h1>
           <p className={styles.description}>
-            Explorez des profils de concierges avec leurs services, leur zone, leur note moyenne et
-            un acces direct a leur fiche publique ou a la prise de contact.
+            Filtrez par zone, services, type de bien, budget et rayon pour trouver le bon partenaire
+            concierge.
           </p>
           <div className={styles.chips}>
             <span className={styles.chip}>{items.length} concierge(s)</span>
             <span className={styles.chip}>{totalPro} profil(s) PRO</span>
+            <span className={styles.chip}>
+              {filters.selectedServices.length > 0
+                ? `${filters.selectedServices.length} service(s) filtres`
+                : "Tous services"}
+            </span>
           </div>
         </header>
 
         <form className={styles.filters} onSubmit={handleSubmit}>
-          <label className={styles.field}>
-            <span>Ville ou zone</span>
-            <input
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-              placeholder="Paris, Annecy, Bordeaux..."
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Service recherche</span>
-            <input
-              value={service}
-              onChange={(event) => setService(event.target.value)}
-              placeholder="Menage, check-in, maintenance..."
-            />
-          </label>
+          <div className={styles.fieldGrid}>
+            <label className={styles.field}>
+              <span>Ville ou zone</span>
+              <input
+                value={filters.city}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, city: event.target.value }))
+                }
+                placeholder="Paris, Annecy, Bordeaux..."
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Type de bien</span>
+              <select
+                value={filters.propertyType}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, propertyType: event.target.value }))
+                }
+              >
+                <option value="">Tous les biens</option>
+                {propertyTypeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>Budget max / heure</span>
+              <input
+                type="number"
+                min="0"
+                inputMode="numeric"
+                value={filters.budgetMax}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, budgetMax: event.target.value }))
+                }
+                placeholder="90"
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Rayon max</span>
+              <input
+                type="number"
+                min="0"
+                inputMode="numeric"
+                value={filters.radiusKm}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, radiusKm: event.target.value }))
+                }
+                placeholder="25"
+              />
+            </label>
+          </div>
+
+          <div className={styles.servicesBlock}>
+            <span className={styles.blockLabel}>Services recherches</span>
+            <div className={styles.serviceChips}>
+              {serviceOptions.length === 0 ? (
+                <span className={styles.tagMuted}>
+                  Les services apparaitront apres le premier chargement.
+                </span>
+              ) : (
+                serviceOptions.map((serviceLabel) => {
+                  const selected = filters.selectedServices.includes(serviceLabel);
+                  return (
+                    <button
+                      key={serviceLabel}
+                      type="button"
+                      className={selected ? styles.serviceChipActive : styles.serviceChip}
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          selectedServices: toggleOwnerConciergeService(
+                            prev.selectedServices,
+                            serviceLabel,
+                          ),
+                        }))
+                      }
+                    >
+                      {serviceLabel}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
           <label className={styles.checkboxRow}>
             <input
               type="checkbox"
-              checked={proOnly}
-              onChange={(event) => setProOnly(event.target.checked)}
+              checked={filters.proOnly}
+              onChange={(event) =>
+                setFilters((prev) => ({ ...prev, proOnly: event.target.checked }))
+              }
             />
             <span>Afficher uniquement les concierges PRO</span>
           </label>
+
           <div className={styles.actions}>
             <button type="submit" className={styles.primaryBtn} disabled={loading}>
               {loading ? "Recherche..." : "Rechercher"}
@@ -172,11 +289,9 @@ export default function OwnerConciergesPage() {
               type="button"
               className={styles.secondaryBtn}
               onClick={() => {
-                setCity("");
-                setService("");
-                setProOnly(false);
+                setFilters(initialFilters);
                 setFeedback(null);
-                loadConcierges({ nextCity: "", nextService: "", nextProOnly: false });
+                loadConcierges(initialFilters);
               }}
               disabled={loading}
             >
@@ -191,7 +306,7 @@ export default function OwnerConciergesPage() {
         {!loading && !error && items.length === 0 ? (
           <div className={styles.emptyState}>
             <h2>Aucun concierge ne correspond a vos criteres.</h2>
-            <p>Essayez d'elargir la zone ou de retirer le filtre service.</p>
+            <p>Essayez d'elargir la zone, de relever le budget ou de retirer un filtre service.</p>
           </div>
         ) : null}
 
@@ -203,18 +318,19 @@ export default function OwnerConciergesPage() {
                   <h2>{item.display_name}</h2>
                   <p>{item.city || item.service_area || "Zone non renseignee"}</p>
                 </div>
-                <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
-                  {item.is_pro ? "PRO" : "Standard"}
-                </span>
+                <div className={styles.badgesCol}>
+                  <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
+                    {item.is_pro ? "PRO" : "Standard"}
+                  </span>
+                  <span className={styles.ratingBadge}>
+                    {typeof item.average_rating === "number"
+                      ? `${item.average_rating.toFixed(1)} / 5`
+                      : "Sans avis"}
+                  </span>
+                </div>
               </div>
 
               <div className={styles.stats}>
-                <p>
-                  <strong>Note :</strong>{" "}
-                  {typeof item.average_rating === "number"
-                    ? `${item.average_rating.toFixed(1)} / 5`
-                    : "Pas encore d'avis"}
-                </p>
                 <p>
                   <strong>Avis :</strong> {item.reviews_count}
                 </p>
@@ -236,6 +352,16 @@ export default function OwnerConciergesPage() {
                 <span>{formatAmount(item.hourly_rate, "/ h")}</span>
                 <span>{formatAmount(item.monthly_rate, "/ mois")}</span>
               </div>
+
+              {item.property_types && item.property_types.length > 0 ? (
+                <div className={styles.tags}>
+                  {item.property_types.map((propertyType) => (
+                    <span key={`${item.id}-property-${propertyType}`} className={styles.propertyTag}>
+                      {propertyType}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
 
               <div className={styles.tags}>
                 {item.services.length > 0 ? (

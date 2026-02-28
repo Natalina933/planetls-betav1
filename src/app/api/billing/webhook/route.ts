@@ -2,6 +2,10 @@ import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { recordStripeEvent } from "@/app/lib/stripeHistory";
+import {
+  extractCheckoutSessionSyncData,
+  extractSubscriptionLifecycleData,
+} from "@/app/api/billing/shared";
 
 function verifyStripeWebhookSignature(payload: string, signatureHeader: string, secret: string) {
   const parts = signatureHeader.split(",").map((part) => part.trim());
@@ -28,11 +32,7 @@ function verifyStripeWebhookSignature(payload: string, signatureHeader: string, 
 }
 
 async function markConciergeProFromWebhook(session: Record<string, unknown>) {
-  const metadata = (session.metadata ?? {}) as Record<string, unknown>;
-  const userId = typeof metadata.user_id === "string" ? metadata.user_id : null;
-  const plan = typeof metadata.plan === "string" ? metadata.plan : null;
-  const sessionId = typeof session.id === "string" ? session.id : null;
-  const paymentStatus = typeof session.payment_status === "string" ? session.payment_status : null;
+  const { userId, plan, sessionId, paymentStatus } = extractCheckoutSessionSyncData(session);
 
   if (!userId || !sessionId || plan !== "concierge_pro_monthly" || paymentStatus !== "paid") {
     return;
@@ -66,11 +66,8 @@ async function updateConciergeSubscriptionFromObject(
   subscription: Record<string, unknown>,
   eventType: string,
 ) {
-  const metadata = (subscription.metadata ?? {}) as Record<string, unknown>;
-  const userId = typeof metadata.user_id === "string" ? metadata.user_id : null;
-  const plan = typeof metadata.plan === "string" ? metadata.plan : null;
-  const subscriptionId = typeof subscription.id === "string" ? subscription.id : null;
-  const status = typeof subscription.status === "string" ? subscription.status : null;
+  const { userId, plan, subscriptionId, status } =
+    extractSubscriptionLifecycleData(subscription);
 
   if (!userId || !subscriptionId || plan !== "concierge_pro_monthly") {
     return;
@@ -107,11 +104,7 @@ async function updateConciergeSubscriptionFromObject(
 }
 
 async function markInvoicePaidFromWebhook(session: Record<string, unknown>) {
-  const metadata = (session.metadata ?? {}) as Record<string, unknown>;
-  const invoiceId = typeof metadata.invoice_id === "string" ? metadata.invoice_id : null;
-  const userId = typeof metadata.user_id === "string" ? metadata.user_id : null;
-  const sessionId = typeof session.id === "string" ? session.id : null;
-  const paymentStatus = typeof session.payment_status === "string" ? session.payment_status : null;
+  const { invoiceId, userId, sessionId, paymentStatus } = extractCheckoutSessionSyncData(session);
 
   if (!invoiceId || !userId || !sessionId || paymentStatus !== "paid") {
     return;

@@ -229,7 +229,7 @@ export default function OwnerDashboardPage() {
           <h2>Actions rapides</h2>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
             <Link href="/dashboard/concierge/logements/create">Ajouter un logement</Link>
-            <Link href="/dashboard/owner/concierges">Trouver un concierge</Link>
+            <Link href="/dashboard/owner/concierges">Trouver un concierge PRO ou Standard</Link>
           </div>
         </div>
 
@@ -283,7 +283,7 @@ export default function OwnerDashboardPage() {
                       Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur {reviews.length} avis
                     </p>
                     <p>{reviews[0]?.comment || "Dernier retour enregistre sans commentaire."}</p>
-                    <Link href="/dashboard/owner/conciergerie">Voir les avis et noter</Link>
+                    <Link href="/dashboard/owner/conciergerie">Voir les avis, les badges PRO et noter</Link>
                   </div>
                 )}
               </div>

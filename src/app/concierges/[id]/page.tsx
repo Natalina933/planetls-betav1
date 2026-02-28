@@ -151,6 +151,39 @@ export default function PublicConciergeProfilePage({
               : "Decouvrez le positionnement, la zone d'intervention, les services proposes et les avis laisses apres mission."}
           </p>
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 42,
+                padding: "0.55rem 0.9rem",
+                borderRadius: 999,
+                background:
+                  data?.profile.role === "concierge_pro"
+                    ? "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(184,139,74,0.22))"
+                    : "rgba(74,53,16,0.08)",
+                color: "#5e4209",
+                fontWeight: 800,
+              }}
+            >
+              {data?.profile.role === "concierge_pro" ? "Badge PRO" : "Badge Standard"}
+            </span>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 42,
+                padding: "0.55rem 0.9rem",
+                borderRadius: 999,
+                background: "rgba(184,139,74,0.12)",
+                color: "#7b5b23",
+                fontWeight: 700,
+              }}
+            >
+              {typeof data?.stats.average_rating === "number"
+                ? `${data.stats.average_rating.toFixed(1)} / 5 sur ${data.stats.reviews_count} avis`
+                : "Avis en cours de collecte"}
+            </span>
             <a
               href="/dashboard/owner/concierges"
               style={{
