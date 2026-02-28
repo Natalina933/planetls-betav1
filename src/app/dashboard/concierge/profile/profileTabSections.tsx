@@ -172,6 +172,23 @@ interface FicheStaticSidebarSectionProps {
   renderSection: RenderSection;
 }
 
+interface MissionsSecondaryPanelsProps {
+  styles: Record<string, string>;
+  missionProgressDoneCount: number;
+  missionProgressTotal: number;
+  showPendingMissionStepsOnly: boolean;
+  setShowPendingMissionStepsOnly: React.Dispatch<React.SetStateAction<boolean>>;
+  missionProgressSteps: any[];
+  openMissionSectionForEdit: (sectionId: string) => void;
+  renderSection: RenderSection;
+  selectedMissionQuoteId: string;
+  setSelectedMissionQuoteId: React.Dispatch<React.SetStateAction<string>>;
+  missionRows: any[];
+  missionQuoteBusy: boolean;
+  createQuoteFromMission: () => void;
+  missionQuoteFeedback: string;
+}
+
 interface ConciergePageHeaderProps {
   styles: Record<string, string>;
   title: string;
@@ -1675,6 +1692,47 @@ export function MissionQuickQuoteSection({
     false,
     undefined,
     false,
+  );
+}
+
+export function MissionsSecondaryPanels({
+  styles,
+  missionProgressDoneCount,
+  missionProgressTotal,
+  showPendingMissionStepsOnly,
+  setShowPendingMissionStepsOnly,
+  missionProgressSteps,
+  openMissionSectionForEdit,
+  renderSection,
+  selectedMissionQuoteId,
+  setSelectedMissionQuoteId,
+  missionRows,
+  missionQuoteBusy,
+  createQuoteFromMission,
+  missionQuoteFeedback,
+}: MissionsSecondaryPanelsProps) {
+  return (
+    <>
+      <MissionProgressPanelSection
+        styles={styles}
+        missionProgressDoneCount={missionProgressDoneCount}
+        missionProgressTotal={missionProgressTotal}
+        showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+        setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
+        missionProgressSteps={missionProgressSteps}
+        openMissionSectionForEdit={openMissionSectionForEdit}
+      />
+      <MissionQuickQuoteSection
+        styles={styles}
+        renderSection={renderSection}
+        selectedMissionQuoteId={selectedMissionQuoteId}
+        setSelectedMissionQuoteId={setSelectedMissionQuoteId}
+        missionRows={missionRows}
+        missionQuoteBusy={missionQuoteBusy}
+        createQuoteFromMission={createQuoteFromMission}
+        missionQuoteFeedback={missionQuoteFeedback}
+      />
+    </>
   );
 }
 

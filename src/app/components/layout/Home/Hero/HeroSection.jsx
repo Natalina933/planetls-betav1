@@ -2,24 +2,32 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import styles from "./HeroSection.module.scss";
 import CategoryCarousel from "./CategoryCarousel";
 
 const HeroSection = () => {
-  const scrollToCommunity = () => {
+  const router = useRouter();
+
+  const scrollToHowItWorks = () => {
     try {
+      const target = document.getElementById("how-it-works");
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
       window.scrollTo({ top: 800, behavior: "smooth" });
     } catch (error) {
-      console.error("⛔ Échec du scroll :", error);
+      console.error("Echec du scroll :", error);
     }
   };
 
   return (
     <section className={styles.hero}>
-      {/* Background image */}
       <Image
         src="/images/hero-warmv2.jpg"
-        alt="Plateforme de location saisonnière"
+        alt="Plateforme de location saisonniere"
         fill
         priority
         style={{ objectFit: "cover" }}
@@ -28,50 +36,37 @@ const HeroSection = () => {
       <div className={styles.overlay} />
 
       <div className={styles.grid}>
-        {/* Carousel des catégories */}
         <div className={styles.carouselWrapper}>
           <CategoryCarousel />
         </div>
 
-        {/* Contenu Hero */}
         <div className={styles.content}>
           <h1>
-            Simplifiez la <span className={styles.highlight}>location saisonnière</span>
+            Simplifiez la <span className={styles.highlight}>location saisonniere</span>
           </h1>
           <p className={styles.subHeadline}>
-            PlanetLS connecte <strong>propriétaires</strong>, <strong>concierges</strong> et <strong>prestataires locaux</strong> de confiance.
+            PlanetLS connecte <strong>proprietaires</strong>, <strong>concierges</strong> et{" "}
+            <strong>prestataires locaux</strong> de confiance.
           </p>
 
           <p className={styles.valueProp}>
-            Gagnez du temps, augmentez vos revenus et trouvez les meilleurs services en un clic.
+            Centralisez la mise en relation, la gestion des biens et le pilotage terrain dans une
+            seule plateforme.
           </p>
 
-          {/* Preuve sociale */}
-          {/* <div className={styles.socialProof}>
-            <span>✅ Déjà <strong>+4500</strong> acteurs inscrits</span>
-            <span className={styles.badge}>100% gratuit</span>
-          </div> */}
-
-          {/* Boutons CTA */}
           <div className={styles.buttonsRow}>
             <button
               className={`${styles.CTAButton} ${styles.primary}`}
-              onClick={scrollToCommunity}
+              onClick={() => router.push("/login")}
             >
-              Inscription 100% gratuite
+              Creer mon compte
             </button>
 
             <button
               className={`${styles.CTAButton} ${styles.secondary}`}
-              onClick={() => {
-                try {
-                  console.log("Découvrir cliqué !");
-                } catch (error) {
-                  console.error("⛔ Action échouée :", error);
-                }
-              }}
+              onClick={scrollToHowItWorks}
             >
-              Découvrir comment ça marche
+              Decouvrir comment ca marche
             </button>
           </div>
         </div>

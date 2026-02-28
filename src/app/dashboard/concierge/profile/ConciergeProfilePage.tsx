@@ -30,8 +30,6 @@ import {
   ConciergePageHeader,
   ConciergeTabNavigation,
   FicheTabSection,
-  MissionProgressPanelSection,
-  MissionQuickQuoteSection,
   MissionsTabLayout,
   MissionsPrimarySections,
   TariffBaseSection,
@@ -49,6 +47,7 @@ import {
   DocumentsTabSection,
   EditableProfileField,
   EditableProfileSection,
+  MissionsSecondaryPanels,
   PacksTabSection,
   TeamTabSection,
 } from "./profileTabSections";
@@ -2986,27 +2985,22 @@ export default function ConciergeProfilePage() {
             missionRangesCount={missionRangesCount}
             missionZonesCount={missionAvailability?.zones.length ?? 0}
             secondaryContent={
-              <>
-                <MissionProgressPanelSection
-                  styles={styles}
-                  missionProgressDoneCount={missionProgressDoneCount}
-                  missionProgressTotal={missionProgressSteps.length}
-                  showPendingMissionStepsOnly={showPendingMissionStepsOnly}
-                  setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
-                  missionProgressSteps={missionProgressSteps}
-                  openMissionSectionForEdit={openMissionSectionForEdit}
-                />
-                <MissionQuickQuoteSection
-                  styles={styles}
-                  renderSection={renderSection}
-                  selectedMissionQuoteId={selectedMissionQuoteId}
-                  setSelectedMissionQuoteId={setSelectedMissionQuoteId}
-                  missionRows={missionRows}
-                  missionQuoteBusy={missionQuoteBusy}
-                  createQuoteFromMission={createQuoteFromMission}
-                  missionQuoteFeedback={missionQuoteFeedback}
-                />
-              </>
+              <MissionsSecondaryPanels
+                styles={styles}
+                missionProgressDoneCount={missionProgressDoneCount}
+                missionProgressTotal={missionProgressSteps.length}
+                showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+                setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
+                missionProgressSteps={missionProgressSteps}
+                openMissionSectionForEdit={openMissionSectionForEdit}
+                renderSection={renderSection}
+                selectedMissionQuoteId={selectedMissionQuoteId}
+                setSelectedMissionQuoteId={setSelectedMissionQuoteId}
+                missionRows={missionRows}
+                missionQuoteBusy={missionQuoteBusy}
+                createQuoteFromMission={createQuoteFromMission}
+                missionQuoteFeedback={missionQuoteFeedback}
+              />
             }
           >
             <MissionsPrimarySections

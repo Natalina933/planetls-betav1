@@ -1,184 +1,165 @@
 .hero {
   position: relative;
-  padding: var(--spacing-xl) var(--spacing-md);
-  min-height: 80vh;
+  min-height: 86vh;
   width: 100%;
-  font-family: var(--font-title);
-  color: white;
   overflow: hidden;
+  color: #fff;
+}
 
-  * {
-    color: inherit;
-  }
+.heroImage {
+  transform: scale(1.04);
+}
 
-  .overlay {
-    position: absolute;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.55);
-    z-index: 0;
-  }
+.overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(110deg, rgba(24, 19, 13, 0.84) 0%, rgba(24, 19, 13, 0.62) 40%, rgba(24, 19, 13, 0.45) 100%),
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.18), transparent 28%);
+  z-index: 0;
+}
 
+.grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 460px);
+  align-items: center;
+  gap: 2rem;
+  max-width: 1280px;
+  min-height: 86vh;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 4rem;
+}
+
+.content {
+  display: grid;
+  gap: 1rem;
+  max-width: 680px;
+}
+
+.content h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 5vw, 4.8rem);
+  line-height: 0.98;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.highlight {
+  color: #d4af37;
+}
+
+.subHeadline {
+  margin: 0;
+  font-size: 1.18rem;
+  line-height: 1.6;
+  color: rgba(255, 248, 235, 0.92);
+  max-width: 56ch;
+}
+
+.valueProp {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 244, 224, 0.84);
+  max-width: 54ch;
+}
+
+.buttonsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.CTAButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.85rem 1.3rem;
+  border-radius: 999px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.primary {
+  border: none;
+  background: linear-gradient(135deg, #b88b4a, #d4af37);
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(31, 20, 8, 0.28);
+}
+
+.secondary {
+  border: 1px solid rgba(255, 233, 193, 0.44);
+  background: rgba(255, 249, 238, 0.08);
+  backdrop-filter: blur(10px);
+  color: #f7e8c1;
+}
+
+.CTAButton:hover {
+  transform: translateY(-2px);
+}
+
+.carouselWrapper {
+  width: 100%;
+  max-width: 460px;
+  justify-self: end;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 235, 201, 0.22);
+  background: rgba(255, 250, 241, 0.08);
+  box-shadow: 0 18px 44px rgba(21, 14, 7, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 992px) {
   .grid {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-xl);
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: var(--spacing-lg) 0;
-
-    @media (max-width: 992px) {
-      flex-direction: column-reverse;
-      text-align: center;
-    }
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-top: 4rem;
+    padding-bottom: 3rem;
   }
 
   .content {
-    max-width: 600px;
-    width: 100%;
+    text-align: center;
+    justify-items: center;
+    margin: 0 auto;
+  }
 
-    h1 {
-      font-size: clamp(2rem, 4vw, 2.8rem);
-      font-weight: 700;
-      margin-bottom: var(--spacing-md);
-      line-height: 1.2;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-
-      .highlight {
-        color: #d4af37; // doré premium
-      }
-    }
-
-    .subHeadline {
-      font-size: 1.2rem;
-      color: #f0f0f0;
-      margin-bottom: 1rem;
-    }
-
-    .valueProp {
-      font-size: 1rem;
-      color: #e0e0e0;
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .socialProof {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      margin-bottom: 2rem;
-      font-size: 0.95rem;
-      color: #fff;
-
-      .badge {
-        background: #d4af37;
-        color: #111;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
-      }
-
-      @media (max-width: 576px) {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-    }
-
-    .buttonsRow {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-top: var(--spacing-md);
-      margin-bottom: var(--spacing-lg);
-      justify-content: flex-start;
-
-      @media (max-width: 992px) {
-        justify-content: center;
-      }
-
-      .CTAButton {
-        padding: 0.8rem 1.6rem;
-        border-radius: 50px;
-        font-weight: bold;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        min-width: 200px;
-
-        &.primary {
-          background: #d4af37;
-          color: #111;
-          border: none;
-
-          &:hover {
-            background: #c19b2c;
-            transform: translateY(-2px);
-          }
-        }
-
-        &.secondary {
-          background: transparent;
-          border: 2px solid #d4af37;
-          color: #d4af37;
-
-          &:hover {
-            background: rgba(212, 175, 55, 0.1);
-          }
-        }
-      }
-    }
+  .buttonsRow {
+    justify-content: center;
   }
 
   .carouselWrapper {
-    width: 100%;
-    max-width: 480px;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 2px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    background: var(--glass-bg);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-
-
-
-
-/* ---- Responsive XXL (≥1500px) ---- */
-@media (min-width: 1500px) {
-  .hero {
-    .grid {
-      max-width: 1600px;
-      gap: 4rem;
-    }
-
-    .content {
-      h1 {
-        font-size: clamp(2.8rem, 3vw, 3.5rem);
-      }
-
-      p {
-        font-size: 1.25rem;
-        line-height: 1.7;
-      }
-    }
-
-    .carouselWrapper {
-      max-width: 600px;
-    }
+    order: -1;
+    justify-self: center;
+    max-width: 560px;
   }
 }
 
-    
-    @media (max-width: 992px) {
-      max-width: 550px;
-    }
+@media (max-width: 640px) {
+  .hero {
+    min-height: auto;
+  }
 
-    @media (max-width: 576px) {
-      max-width: 100%;
-    }
+  .grid {
+    padding: 4rem 1rem 2.5rem;
+  }
+
+  .CTAButton {
+    width: 100%;
+  }
+
+  .carouselWrapper {
+    max-width: 100%;
   }
 }

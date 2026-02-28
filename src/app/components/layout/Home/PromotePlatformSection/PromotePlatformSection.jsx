@@ -1,57 +1,62 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import dynamic from "next/dynamic";
-import ServicesBlock from '../SectionBlock/ServicesBlock';
+import Link from "next/link";
+import ServicesBlock from "../SectionBlock/ServicesBlock";
 import styles from "./PromotePlatformSection.module.scss";
 
-// Import dynamique et lazy loading des icônes
 const Icons = {
-  TbPackages: dynamic(() => import("react-icons/tb").then(mod => mod.TbPackages), { ssr: false }),
-  ChevronRight: dynamic(() => import("lucide-react").then(mod => mod.ChevronRight), { ssr: false }),
-  AiOutlineWechat: dynamic(() => import("react-icons/ai").then(mod => mod.AiOutlineWechat), { ssr: false }),
-  MdAutoMode: dynamic(() => import("react-icons/md").then(mod => mod.MdAutoMode), { ssr: false }),
+  TbPackages: dynamic(() => import("react-icons/tb").then((mod) => mod.TbPackages), { ssr: false }),
+  ChevronRight: dynamic(() => import("lucide-react").then((mod) => mod.ChevronRight), { ssr: false }),
+  AiOutlineWechat: dynamic(() => import("react-icons/ai").then((mod) => mod.AiOutlineWechat), { ssr: false }),
+  MdAutoMode: dynamic(() => import("react-icons/md").then((mod) => mod.MdAutoMode), { ssr: false }),
 };
 
 export default function PromotePlatformSection() {
   return (
-    <ServicesBlock title="La Puissance de la Gestion en Ligne">
+    <ServicesBlock title="Professionnalisez votre activite">
       <div className={styles.platformSectionContent}>
-
-        {/* Bloc de mise en avant */}
         <div className={styles.heroBanner}>
-          <h2 className={styles.heroTitle}>JE VEUX OUVRIR MA CONCIERGERIE</h2>
-          <p className={styles.heroSubtitle}>Besoin d'accompagnement pour démarrer ?</p>
-          <a href="/concierge-guide" className={styles.heroButton}>
-            En savoir plus <Icons.ChevronRight size={18} />
-          </a>
+          <span className={styles.eyebrow}>Conciergerie premium</span>
+          <h2 className={styles.heroTitle}>Je veux ouvrir ma conciergerie</h2>
+          <p className={styles.heroSubtitle}>
+            Structurez votre offre, vos packs, vos tarifs et votre relation proprietaire avec un
+            outil pense pour la location saisonniere.
+          </p>
+          <div className={styles.heroActions}>
+            <Link href="/abonnement/concierge-pro" className={styles.heroButton}>
+              Voir l&apos;offre PRO <Icons.ChevronRight size={18} />
+            </Link>
+            <Link href="/dashboard/owner/concierges" className={styles.secondaryButton}>
+              Voir les profils visibles
+            </Link>
+          </div>
         </div>
 
-        {/* Introduction à la gestion */}
         <div className={styles.introBox}>
-          <h3>Découvrir la Gestion locative en ligne</h3>
+          <h3>Une base SaaS pour piloter votre conciergerie</h3>
           <p>
-            Notre plateforme vous accompagne, quel que soit le profil de vos clients.
-            Profitez d'outils innovants pour gérer, communiquer et automatiser votre activité.
+            Prospection proprietaires, packs de services, devis, factures, missions, planning et
+            messagerie: la plateforme centralise le cycle complet.
           </p>
         </div>
 
-        {/* Les 3 piliers sous forme de grille avec icônes */}
         <div className={styles.pillarsGrid}>
           <div className={styles.pillarItem}>
             <Icons.AiOutlineWechat size={24} />
-            <h4>COMMUNICATION</h4>
-            <p>Accélérez votre croissance grâce à des outils puissants et intuitifs.</p>
+            <h4>Relation client</h4>
+            <p>Suivez vos conversations, relances et recommandations sans sortir du dashboard.</p>
           </div>
           <div className={styles.pillarItem}>
             <Icons.TbPackages size={24} />
-            <h4>GESTION</h4>
-            <p>Des experts à vos côtés pour piloter votre projet de A à Z.</p>
+            <h4>Offres structurees</h4>
+            <p>Transformez vos prestations en packs clairs, tarifs lies et contrats reutilisables.</p>
           </div>
           <div className={styles.pillarItem}>
             <Icons.MdAutoMode size={24} />
-            <h4>AUTOMATISATION</h4>
-            <p>Libérez du temps en automatisant les tâches répétitives.</p>
+            <h4>Pilotage terrain</h4>
+            <p>Gardez la main sur missions, urgences, stocks et planning avec une vision centralisee.</p>
           </div>
         </div>
       </div>
