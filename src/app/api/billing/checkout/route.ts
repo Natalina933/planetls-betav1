@@ -26,6 +26,8 @@ function buildStripeCheckoutBody(params: {
   form.set("line_items[0][quantity]", "1");
   form.set("metadata[user_id]", params.userId);
   form.set("metadata[plan]", "concierge_pro_monthly");
+  form.set("subscription_data[metadata][user_id]", params.userId);
+  form.set("subscription_data[metadata][plan]", "concierge_pro_monthly");
 
   if (params.customerEmail) {
     form.set("customer_email", params.customerEmail);

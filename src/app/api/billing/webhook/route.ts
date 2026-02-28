@@ -53,6 +53,39 @@ async function markConciergeProFromWebhook(session: Record<string, unknown>) {
     .eq("id", userId);
 }
 
+async function updateConciergeSubscriptionFromObject(subscription: Record<string, unknown>) {
+  const metadata = (subscription.metadata ?? {}) as Record<string, unknown>;
+  const userId = typeof metadata.user_id === "string" ? metadata.user_id : null;
+  const plan = typeof metadata.plan === "string" ? metadata.plan : null;
+  const subscriptionId = typeof subscription.id === "string" ? subscription.id : null;
+  const status = typeof subscription.status === "string" ? subscription.status : null;
+
+  if (!userId || !subscriptionId || plan !== "concierge_pro_monthly") {
+    return;
+  }
+
+  const { data: profile } = await db.from("profiles").select("id, role").eq("id", userId).maybeSingle();
+  if (!profile) return;
+
+  const shouldStayPro =
+    status === "active" || status === "trialing" || status === "past_due";
+  const nextRole =
+    shouldStayPro && (profile.role === "concierge" || profile.role === "concierge_pro")
+      ? "concierge_pro"
+      : !shouldStayPro && profile.role === "concierge_pro"
+      ? "concierge"
+      : profile.role;
+
+  await db
+    .from("profiles")
+    .update({
+      role: nextRole,
+      additional_info: `stripe_subscription:webhook:${subscriptionId}:${status ?? "unknown"}`,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+}
+
 async function markInvoicePaidFromWebhook(session: Record<string, unknown>) {
   const metadata = (session.metadata ?? {}) as Record<string, unknown>;
   const invoiceId = typeof metadata.invoice_id === "string" ? metadata.invoice_id : null;
@@ -126,6 +159,12 @@ export async function POST(req: NextRequest) {
       } else if (mode === "payment") {
         await markInvoicePaidFromWebhook(session);
       }
+    } else if (
+      eventType === "customer.subscription.updated" ||
+      eventType === "customer.subscription.deleted" ||
+      eventType === "invoice.payment_failed"
+    ) {
+      await updateConciergeSubscriptionFromObject(session);
     }
 
     return NextResponse.json({ received: true });

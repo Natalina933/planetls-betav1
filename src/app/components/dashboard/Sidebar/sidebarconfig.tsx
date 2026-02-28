@@ -66,6 +66,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     { label: "Stocks", path: "/dashboard/concierge/stocks", icon: FiBox },
     { label: "Messagerie", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
     { label: "Abonnement PRO", path: "/abonnement/concierge-pro", icon: FiCreditCard },
+    { label: "Historique Stripe", path: "/dashboard/concierge/billing", icon: FiFileText },
     { label: "Alertes", path: "/dashboard/concierge/alertes", icon: FiBell },
     { label: "Parametres", path: "/dashboard/concierge/settings", icon: FiSettings },
   ],

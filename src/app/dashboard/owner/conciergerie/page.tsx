@@ -126,6 +126,11 @@ export default function OwnerConciergeriePage() {
     [reviewableMissions, selectedMissionId],
   );
 
+  const spotlightConciergeProfileId = useMemo(() => {
+    const withConcierge = missions.find((mission) => !!mission.concierge_profile_id);
+    return withConcierge?.concierge_profile_id ?? null;
+  }, [missions]);
+
   async function handleSubmitReview(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -186,6 +191,9 @@ export default function OwnerConciergeriePage() {
         actions={[
           { label: "Voir mes messages", href: "/dashboard/owner/messages" },
           { label: "Voir mon planning", href: "/dashboard/owner/planning" },
+          ...(spotlightConciergeProfileId
+            ? [{ label: "Voir le profil concierge", href: `/concierges/${spotlightConciergeProfileId}` }]
+            : []),
         ]}
         cards={[
           {
