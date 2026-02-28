@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 type OwnerConversationRow = {
   id: string;
@@ -27,6 +29,7 @@ function formatDate(value: string | null) {
 }
 
 export default function OwnerMessagesPage() {
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,15 +66,24 @@ export default function OwnerMessagesPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Messagerie</h1>
-        <p>Retrouvez vos échanges avec les concierges et gardez un suivi centralisé.</p>
+        <p>Retrouvez vos echanges avec les concierges et gardez un suivi centralise.</p>
       </header>
 
       <div className="main-section">
+        {searchParams.get("created") ? (
+          <p style={{ color: "#7b5b23", fontWeight: 700 }}>
+            La conversation a bien ete creee. Vous pouvez maintenant continuer ici.
+          </p>
+        ) : null}
+
         {loading ? <p>Chargement des conversations...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && conversations.length === 0 ? (
-          <p>Aucune conversation disponible pour le moment.</p>
+          <div>
+            <p>Aucune conversation disponible pour le moment.</p>
+            <Link href="/dashboard/owner/concierges">Trouver un concierge a contacter</Link>
+          </div>
         ) : null}
 
         {!loading && !error && conversations.length > 0 ? (

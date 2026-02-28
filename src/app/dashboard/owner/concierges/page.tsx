@@ -148,6 +148,7 @@ export default function OwnerConciergesPage() {
       setFeedback(
         `Conversation creee avec ${item.display_name}. Vous pouvez maintenant poursuivre dans la messagerie proprietaire.`,
       );
+      window.location.href = `/dashboard/owner/messages?created=${payload.id}`;
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Impossible de creer la conversation.",
