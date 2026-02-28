@@ -19,6 +19,15 @@ type ConversationRow = {
 type HousingRow = {
   id: number;
   statut: string | null;
+  nom?: string | null;
+};
+
+type CurrentProfile = {
+  city?: string | null;
+  service_area?: string | null;
+  hourly_rate?: number | null;
+  monthly_rate?: number | null;
+  role?: string | null;
 };
 
 function olderThanThreeDays(value: string | null) {
@@ -32,6 +41,7 @@ export default function ConciergeAlertesPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [housings, setHousings] = useState<HousingRow[]>([]);
+  const [profile, setProfile] = useState<CurrentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,15 +50,17 @@ export default function ConciergeAlertesPage() {
       try {
         setLoading(true);
         setError(null);
-        const [missionsResponse, conversationsResponse, housingResponse] = await Promise.all([
+        const [missionsResponse, conversationsResponse, housingResponse, profileResponse] = await Promise.all([
           fetch("/api/missions?scope=all&limit=80", { cache: "no-store" }),
           fetch("/api/messages/conversations?role=concierge&limit=80", { cache: "no-store" }),
           fetch("/api/housing", { cache: "no-store" }),
+          fetch("/api/profiles/current", { cache: "no-store" }),
         ]);
 
         const missionsPayload = await missionsResponse.json();
         const conversationsPayload = await conversationsResponse.json();
         const housingPayload = await housingResponse.json();
+        const profilePayload = await profileResponse.json();
 
         if (!missionsResponse.ok) {
           throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
@@ -59,10 +71,14 @@ export default function ConciergeAlertesPage() {
         if (!housingResponse.ok) {
           throw new Error(housingPayload?.error || "Impossible de charger les logements.");
         }
+        if (!profileResponse.ok) {
+          throw new Error(profilePayload?.error || "Impossible de charger le profil.");
+        }
 
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
         setConversations(Array.isArray(conversationsPayload) ? conversationsPayload : []);
         setHousings(Array.isArray(housingPayload) ? housingPayload : []);
+        setProfile(profilePayload);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger les alertes.");
       } finally {
@@ -85,6 +101,84 @@ export default function ConciergeAlertesPage() {
     () => housings.filter((housing) => housing.statut !== "active" && housing.statut !== "published"),
     [housings],
   );
+  const urgentMissionItems = useMemo(
+    () =>
+      urgentMissions.slice(0, 5).map((mission) => ({
+        title: mission.title || "Mission urgente",
+        meta: mission.status || "Statut non renseigne",
+        description: "Intervention prioritaire a confirmer ou traiter rapidement.",
+        href: "/dashboard/concierge/profile?tab=missions",
+        actionLabel: "Traiter la mission",
+        tone: "warning" as const,
+      })),
+    [urgentMissions],
+  );
+  const stalledConversationItems = useMemo(
+    () =>
+      stalledConversations.slice(0, 5).map((conversation) => ({
+        title: conversation.counterpart_name || "Proprietaire",
+        meta: conversation.last_message_at ? "Plus de 3 jours sans reponse" : "Aucune date recente",
+        description: "Une relance rapide peut aider a garder la relation commerciale active.",
+        href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
+        actionLabel: "Relancer",
+        tone: "warning" as const,
+      })),
+    [stalledConversations],
+  );
+  const draftHousingItems = useMemo(
+    () =>
+      draftHousings.slice(0, 5).map((housing) => ({
+        title: housing.nom || `Logement #${housing.id}`,
+        meta: housing.statut || "brouillon",
+        description: "Completer les informations ou activer ce bien pour ne pas freiner l'acquisition.",
+        href: `/dashboard/concierge/logements/${housing.id}`,
+        actionLabel: "Finaliser la fiche",
+      })),
+    [draftHousings],
+  );
+  const profileSetupAlerts = useMemo(() => {
+    const items = [];
+
+    if (!profile?.city && !profile?.service_area) {
+      items.push({
+        title: "Zone d'intervention incomplete",
+        meta: "Optimisation",
+        description:
+          "Sans zone claire, votre profil est moins rassurant et moins visible dans les parcours proprietaires.",
+        href: "/dashboard/concierge/profile?tab=fiche",
+        actionLabel: "Completer ma fiche",
+        tone: "warning" as const,
+      });
+    }
+
+    if (
+      typeof profile?.hourly_rate !== "number" &&
+      typeof profile?.monthly_rate !== "number"
+    ) {
+      items.push({
+        title: "Aucun repere tarifaire",
+        meta: "Optimisation",
+        description:
+          "Definir au moins un tarif de base aide a convertir plus vite les proprietaires et clarifie votre offre.",
+        href: "/dashboard/concierge/profile?tab=tarifs",
+        actionLabel: "Configurer mes tarifs",
+        tone: "warning" as const,
+      });
+    }
+
+    if (profile?.role !== "concierge_pro") {
+      items.push({
+        title: "Badge PRO non actif",
+        meta: "Levier premium",
+        description:
+          "Le statut PRO renforce la confiance et augmente votre valeur percue dans les recherches proprietaires.",
+        href: "/abonnement/concierge-pro",
+        actionLabel: "Voir l'offre PRO",
+      });
+    }
+
+    return items;
+  }, [profile?.city, profile?.hourly_rate, profile?.monthly_rate, profile?.role, profile?.service_area]);
 
   return (
     <ConciergeWorkspacePage
@@ -95,19 +189,31 @@ export default function ConciergeAlertesPage() {
           ? "Analyse des points de vigilance..."
           : error || "Centralisez les urgences terrain, les relances proprietaires et les logements a finaliser."
       }
-      chips={[`${urgentMissions.length} urgence(s)`, `${stalledConversations.length} relance(s) a faire`]}
+      chips={[
+        `${urgentMissions.length} urgence(s)`,
+        `${stalledConversations.length} relance(s) a faire`,
+        `${draftHousings.length} fiche(s) a fiabiliser`,
+      ]}
       metrics={[
         {
           label: "Urgences",
           value: loading ? "..." : String(urgentMissions.length),
+          hint: "Missions priorite urgente a absorber",
         },
         {
           label: "Relances",
           value: loading ? "..." : String(stalledConversations.length),
+          hint: "Conversations qui refroidissent",
         },
         {
           label: "Brouillons",
           value: loading ? "..." : String(draftHousings.length),
+          hint: "Biens ou profils a finaliser",
+        },
+        {
+          label: "Sans badge PRO",
+          value: loading ? "..." : profile?.role === "concierge_pro" ? "0" : "1",
+          hint: "Levier de visibilite encore disponible",
         },
       ]}
       actions={[
@@ -156,6 +262,62 @@ export default function ConciergeAlertesPage() {
               variant: "secondary",
             },
           ],
+        },
+        {
+          title: "Optimisation profil & offre",
+          text:
+            profileSetupAlerts.length > 0
+              ? `${profileSetupAlerts.length} optimisation(s) peuvent renforcer votre conversion et votre visibilite.`
+              : "Votre profil et votre offre sont deja bien structures.",
+          actions: [
+            {
+              label: "Ameliorer mon profil",
+              href: "/dashboard/concierge/profile?tab=fiche",
+              variant: "secondary",
+            },
+          ],
+        },
+      ]}
+      detailSections={[
+        {
+          title: "Urgences a traiter",
+          description:
+            "Les missions prioritaires doivent rester visibles pour limiter les oublis et tenir le niveau de service.",
+          emptyText:
+            loading
+              ? "Chargement des urgences."
+              : error || "Aucune urgence terrain detectee.",
+          items: urgentMissionItems,
+        },
+        {
+          title: "A suivre - relances proprietaires",
+          description:
+            "Conversations a reprendre pour ne pas laisser refroidir une opportunite ou une demande active.",
+          emptyText:
+            loading
+              ? "Analyse des conversations."
+              : error || "Aucune relance urgente a faire.",
+          items: stalledConversationItems,
+        },
+        {
+          title: "A suivre - fiches logement a finaliser",
+          description:
+            "Biens encore inactifs ou incomplets qui meritent une verification rapide avant mise en avant.",
+          emptyText:
+            loading
+              ? "Verification des logements en cours."
+              : error || "Tous vos logements sont deja actifs ou publies.",
+          items: draftHousingItems,
+        },
+        {
+          title: "Optimisation",
+          description:
+            "Actions moins urgentes, mais tres utiles pour renforcer votre conversion, votre visibilite et votre positionnement premium.",
+          emptyText:
+            loading
+              ? "Analyse des optimisations."
+              : error || "Aucune optimisation prioritaire detectee.",
+          items: profileSetupAlerts,
         },
       ]}
     />

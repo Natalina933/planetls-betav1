@@ -7,13 +7,13 @@ import styles from "./HowItWorksSection.module.scss";
 import type { LucideIcon } from "lucide-react";
 import { Lightbulb, Users, Handshake, User, Briefcase } from "lucide-react";
 
-// Typage des étapes
 interface Step {
   Icon: LucideIcon;
   title: string;
   description: string;
   link: string;
 }
+
 interface StepCategory {
   label: string;
   icon: LucideIcon;
@@ -24,87 +24,85 @@ interface StepCategory {
 
 const stepsByCategory: Record<string, StepCategory> = {
   proprietaires: {
-    label: "Propriétaires",
+    label: "Proprietaires",
     icon: Users,
-    ctaLabel: "Trouver une conciergerie ou un pro local",
-    ctaLink: "/homeowners",
+    ctaLabel: "Trouver une conciergerie",
+    ctaLink: "/dashboard/owner/concierges",
     steps: [
       {
         Icon: Lightbulb,
-        title: "Simplifiez votre gestion locative",
-        description: "Accédez à des conciergeries indépendantes pour gérer votre logement en toute sérénité.",
-        link: "/homeowners",
+        title: "Publiez votre besoin",
+        description: "Decrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
+        link: "/login",
       },
       {
         Icon: Briefcase,
-        title: "Trouvez des professionnels de confiance",
-        description: "Jardinier, décorateur, électricien… sélectionnez les bons prestataires près de chez vous.",
-        link: "/partners",
+        title: "Comparez les profils",
+        description: "Consultez les avis, les badges PRO, les tarifs et les services avant de contacter.",
+        link: "/dashboard/owner/concierges",
       },
       {
         Icon: Handshake,
-        title: "Offrez une expérience exceptionnelle à vos voyageurs",
-        description: "Valorisez votre bien, optimisez vos revenus et améliorez vos avis clients.",
-        link: "/a-propos",
+        title: "Centralisez vos echanges",
+        description: "Suivez devis, factures, missions et messages dans un espace unique.",
+        link: "/dashboard/owner",
       },
     ],
   },
   concierges: {
     label: "Concierges",
     icon: User,
-    ctaLabel: "Je m’inscris comme concierge",
-    ctaLink: "/connexion",
+    ctaLabel: "Demarrer ma conciergerie",
+    ctaLink: "/abonnement/concierge-pro",
     steps: [
       {
         Icon: Lightbulb,
-        title: "Trouvez des logements à gérer près de chez vous",
-        description: "Recevez des alertes dès qu’un propriétaire publie une demande correspondant à vos services.",
-        link: "/mapwithlist",
+        title: "Structurez votre offre",
+        description: "Creez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
+        link: "/dashboard/concierge/profile?tab=fiche",
       },
       {
         Icon: Users,
-        title: "Proposez vos services en quelques clics",
-        description: "Créez votre profil, détaillez vos prestations et commencez à recevoir des missions.",
-        link: "/connexion",
+        title: "Prospectez les proprietaires",
+        description: "Activez la recherche, ouvrez des conversations et transformez vos prises de contact.",
+        link: "/dashboard/concierge/recherche",
       },
       {
         Icon: Handshake,
-        title: "Collaborez en toute confiance",
-        description: "Paiements sécurisés, évaluations vérifiées et accompagnement local.",
-        link: "/a-propos",
+        title: "Pilotez l'operationnel",
+        description: "Gerez logements, missions, planning, documents et suivi Stripe depuis le dashboard.",
+        link: "/dashboard/concierge",
       },
     ],
   },
   professionnels: {
-    label: "Professionnels locaux",
+    label: "Prestataires",
     icon: Briefcase,
-    ctaLabel: "Proposer mon savoir-faire",
-    ctaLink: "/pros",
+    ctaLabel: "Explorer la plateforme",
+    ctaLink: "/home",
     steps: [
       {
         Icon: Users,
-        title: "Rejoignez une communauté active",
-        description: "Accédez à des demandes concrètes : jardinage, déco, électricité, entretien…",
-        link: "/pros",
+        title: "Accedez au reseau local",
+        description: "Positionnez votre savoir-faire aupres des concierges et proprietaires actifs.",
+        link: "/home",
       },
       {
         Icon: Lightbulb,
-        title: "Gérez vos missions facilement",
-        description: "Créez devis & factures, suivez vos paiements sans commission.",
-        link: "/pros",
+        title: "Recevez des missions ciblees",
+        description: "Travaillez avec des demandes plus lisibles et un cadre plus professionnel.",
+        link: "/home",
       },
       {
         Icon: Handshake,
-        title: "Valorisez votre savoir-faire",
-        description: "Collectez des avis clients, gagnez en visibilité locale et développez votre activité.",
-        link: "/pros",
+        title: "Renforcez votre visibilite",
+        description: "Capitalisez sur la recommandation, les avis et la qualite d'execution.",
+        link: "/home",
       },
     ],
   },
 };
 
-
-// Composant StepCard
 const StepCard = ({ step, index }: { step: Step; index: number }) => {
   const router = useRouter();
 
@@ -116,49 +114,31 @@ const StepCard = ({ step, index }: { step: Step; index: number }) => {
       className={styles.step}
       onClick={() => router.push(step.link)}
       onKeyDown={(e) => e.key === "Enter" && router.push(step.link)}
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: index * 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.45, delay: index * 0.1, ease: "easeOut" }}
     >
-      <motion.div
-        className={styles.icon}
-        initial={{ opacity: 0, scale: 0.8 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ delay: index * 0.3 + 0.1, duration: 0.5, ease: "easeOut" }}
-      >
-        <step.Icon size={32} strokeWidth={2} />
-      </motion.div>
-      <motion.h3
-        initial={{ opacity: 0, x: -30 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.3 + 0.2, duration: 0.5, ease: "easeOut" }}
-      >
-        {step.title}
-      </motion.h3>
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.3 + 0.3, duration: 0.5, ease: "easeOut" }}
-      >
-        {step.description}
-      </motion.p>
+      <div className={styles.icon}>
+        <step.Icon size={30} strokeWidth={2} />
+      </div>
+      <h3>{step.title}</h3>
+      <p>{step.description}</p>
     </motion.div>
   );
 };
 
-// Composant principal
 export function HowItWorksSection() {
   const router = useRouter();
 
   return (
-    <section className={styles.howItWorks}>
+    <section id="how-it-works" className={styles.howItWorks}>
       <motion.h2
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        Comment ça marche ?
+        Comment ca marche ?
       </motion.h2>
 
       <Tabs.Root defaultValue="concierges" className={styles.tabs}>
@@ -175,13 +155,13 @@ export function HowItWorksSection() {
           <Tabs.Content key={key} value={key} className={styles.tabContent}>
             <div className={styles.steps}>
               {category.steps.map((step, index) => (
-                <StepCard key={index} step={step} index={index} />
+                <StepCard key={`${key}-${index}`} step={step} index={index} />
               ))}
             </div>
             <motion.button
               className={styles.cta}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => router.push(category.ctaLink)}
             >
               {category.ctaLabel}
@@ -189,7 +169,6 @@ export function HowItWorksSection() {
           </Tabs.Content>
         ))}
       </Tabs.Root>
-
     </section>
   );
 }

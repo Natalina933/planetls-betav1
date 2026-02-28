@@ -23,6 +23,13 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
+function olderThanDays(value: string | null, days: number) {
+  if (!value) return true;
+  const time = new Date(value).getTime();
+  if (Number.isNaN(time)) return false;
+  return Date.now() - time > days * 24 * 60 * 60 * 1000;
+}
+
 export default function ConciergeContactsPage() {
   const [items, setItems] = useState<ContactConversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,8 +61,55 @@ export default function ConciergeContactsPage() {
   }, []);
 
   const recentContacts = useMemo(() => items.slice(0, 4), [items]);
+  const followUps = useMemo(
+    () =>
+      items
+        .filter((item) => item.status !== "closed")
+        .slice(0, 6)
+        .map((conversation) => ({
+          title: conversation.counterpart_name || "Proprietaire",
+          meta: formatDate(conversation.last_message_at),
+          description:
+            `${conversation.subject || "Conversation directe"} - ${conversation.last_message_preview || "Aucun apercu disponible."}`,
+          href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
+          actionLabel: "Reprendre l'echange",
+        })),
+    [items],
+  );
   const activeConversations = useMemo(
     () => items.filter((item) => item.status !== "closed").length,
+    [items],
+  );
+  const dormantConversations = useMemo(
+    () =>
+      items
+        .filter((item) => item.status !== "closed" && olderThanDays(item.last_message_at, 5))
+        .slice(0, 5)
+        .map((conversation) => ({
+          title: conversation.counterpart_name || "Proprietaire",
+          meta: "Relance a faire",
+          description:
+            `${conversation.subject || "Conversation directe"} - dernier message ${formatDate(conversation.last_message_at)}.`,
+          href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
+          actionLabel: "Relancer maintenant",
+          tone: "warning" as const,
+        })),
+    [items],
+  );
+  const freshOpportunities = useMemo(
+    () =>
+      items
+        .filter((item) => item.status !== "closed" && !olderThanDays(item.last_message_at, 2))
+        .slice(0, 5)
+        .map((conversation) => ({
+          title: conversation.counterpart_name || "Proprietaire",
+          meta: "Conversation chaude",
+          description:
+            `${conversation.subject || "Conversation directe"} - dernier echange ${formatDate(conversation.last_message_at)}.`,
+          href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
+          actionLabel: "Continuer l'echange",
+          tone: "success" as const,
+        })),
     [items],
   );
 
@@ -119,6 +173,38 @@ export default function ConciergeContactsPage() {
               },
             ]
       }
+      detailSections={[
+        {
+          title: "Contacts a suivre",
+          description:
+            "Retrouvez les conversations ouvertes qui meritent une relance ou une prochaine etape commerciale.",
+          emptyText:
+            loading
+              ? "Chargement des conversations en cours."
+              : error || "Aucun contact actif a relancer pour le moment.",
+          items: followUps,
+        },
+        {
+          title: "Relances commerciales",
+          description:
+            "Conversations qui refroidissent et qui meritent une reprise de contact proactive.",
+          emptyText:
+            loading
+              ? "Analyse des relances commerciales."
+              : error || "Aucune relance prioritaire detectee.",
+          items: dormantConversations,
+        },
+        {
+          title: "Opportunites recentes",
+          description:
+            "Conversations encore chaudes a traiter rapidement pour maximiser la conversion.",
+          emptyText:
+            loading
+              ? "Chargement des conversations recentes."
+              : error || "Aucune opportunite recente a traiter.",
+          items: freshOpportunities,
+        },
+      ]}
     />
   );
 }

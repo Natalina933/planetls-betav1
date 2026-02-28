@@ -96,6 +96,117 @@
   gap: 1rem;
 }
 
+.detailSections {
+  display: grid;
+  gap: 1rem;
+}
+
+.detailSection {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 139, 74, 0.18);
+  background: rgba(255, 252, 245, 0.92);
+  box-shadow: 0 12px 28px rgba(74, 53, 16, 0.05);
+}
+
+.detailHeader {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.detailTitle {
+  margin: 0;
+  color: #3f2f14;
+  font-size: 1.1rem;
+}
+
+.detailDescription,
+.detailEmpty,
+.detailItemDescription {
+  margin: 0;
+  color: #5f5237;
+  line-height: 1.55;
+}
+
+.detailList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.detailItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 139, 74, 0.15);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.detailItemMain {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.detailItemTopline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.detailItemTitle {
+  margin: 0;
+  color: #4a3510;
+  font-size: 0.98rem;
+}
+
+.detailBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.18rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(184, 139, 74, 0.12);
+  color: #7b5b23;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.warningBadge {
+  background: rgba(195, 74, 54, 0.12);
+  color: #9a3f2f;
+}
+
+.successBadge {
+  background: rgba(56, 135, 92, 0.12);
+  color: #2c6c47;
+}
+
+.detailItemAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  min-height: 40px;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 139, 74, 0.35);
+  background: linear-gradient(135deg, #fff8ea, #f2e0c0);
+  color: #7b5b23;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
 .cardTitle {
   margin: 0;
   font-size: 1rem;
@@ -136,4 +247,14 @@
 .cardActionSecondary:hover,
 .actionLink:hover {
   transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .detailItem {
+    flex-direction: column;
+  }
+
+  .detailItemAction {
+    width: 100%;
+  }
 }

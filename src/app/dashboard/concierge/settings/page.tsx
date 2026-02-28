@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 
 type CurrentProfile = {
@@ -14,8 +14,35 @@ type CurrentProfile = {
   email?: string | null;
 };
 
+type BillingHistoryResponse = {
+  subscription?: {
+    isPro?: boolean;
+    stripeCustomerId?: string | null;
+    syncedVia?: string | null;
+    updatedAt?: string | null;
+  } | null;
+  events?: Array<{
+    id: string;
+    stripe_event_type: string | null;
+    source: string | null;
+    created_at: string | null;
+  }>;
+};
+
+function formatDate(value?: string | null) {
+  if (!value) return "Date indisponible";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date invalide";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
 export default function ConciergeSettingsPage() {
   const [profile, setProfile] = useState<CurrentProfile | null>(null);
+  const [billing, setBilling] = useState<BillingHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,14 +51,23 @@ export default function ConciergeSettingsPage() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("/api/profiles/current", { cache: "no-store" });
-        const payload = await response.json();
+        const [profileResponse, billingResponse] = await Promise.all([
+          fetch("/api/profiles/current", { cache: "no-store" }),
+          fetch("/api/billing/history", { cache: "no-store" }),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger vos parametres.");
+        const profilePayload = await profileResponse.json();
+        const billingPayload = await billingResponse.json();
+
+        if (!profileResponse.ok) {
+          throw new Error(profilePayload?.error || "Impossible de charger vos parametres.");
+        }
+        if (!billingResponse.ok) {
+          throw new Error(billingPayload?.error || "Impossible de charger l'historique abonnement.");
         }
 
-        setProfile(payload);
+        setProfile(profilePayload);
+        setBilling(billingPayload);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger vos parametres.");
       } finally {
@@ -41,6 +77,52 @@ export default function ConciergeSettingsPage() {
 
     loadProfile();
   }, []);
+
+  const subscription = billing?.subscription ?? null;
+  const recentEvents = billing?.events ?? [];
+  const settingsChecklist = useMemo(
+    () => [
+      {
+        title: "Fiche concierge publique",
+        meta: profile?.service_area || profile?.city || "Zone non renseignee",
+        description:
+          "Verifiez votre zone d'intervention, vos services et vos tarifs afin de rester visible et coherent dans la recherche proprietaire.",
+        href: "/dashboard/concierge/profile?tab=fiche",
+        actionLabel: "Mettre a jour la fiche",
+      },
+      {
+        title: "Abonnement et facturation",
+        meta: subscription?.isPro ? "PRO actif" : "Standard",
+        description:
+          subscription?.isPro
+            ? `Derniere synchronisation ${formatDate(subscription.updatedAt)}.`
+            : "Passez a PRO pour renforcer votre visibilite et afficher votre badge premium.",
+        href: "/abonnement/concierge-pro",
+        actionLabel: "Gerer l'abonnement",
+        tone: subscription?.isPro ? ("success" as const) : ("warning" as const),
+      },
+      {
+        title: "Documents et conformite",
+        meta: profile?.email || "Email non renseigne",
+        description:
+          "Gardez vos documents, vos informations d'assurance et vos supports commerciaux a jour dans votre profil.",
+        href: "/dashboard/concierge/profile?tab=documents",
+        actionLabel: "Verifier mes documents",
+      },
+    ],
+    [profile?.city, profile?.email, profile?.service_area, subscription?.isPro, subscription?.updatedAt],
+  );
+  const recentBillingEvents = useMemo(
+    () =>
+      recentEvents.slice(0, 5).map((event) => ({
+        title: event.stripe_event_type || "Evenement Stripe",
+        meta: formatDate(event.created_at),
+        description: `Source: ${event.source || "indisponible"}. Suivez l'etat de votre abonnement et de vos synchronisations.`,
+        href: "/dashboard/concierge/billing",
+        actionLabel: "Voir l'historique",
+      })),
+    [recentEvents],
+  );
 
   return (
     <ConciergeWorkspacePage
@@ -70,6 +152,11 @@ export default function ConciergeSettingsPage() {
           label: "Forfait mensuel",
           value:
             typeof profile?.monthly_rate === "number" ? `${profile.monthly_rate.toFixed(0)} EUR` : "-",
+        },
+        {
+          label: "Events Stripe",
+          value: loading ? "..." : String(recentEvents.length),
+          hint: "Historique recent disponible",
         },
       ]}
       cards={[
@@ -109,6 +196,25 @@ export default function ConciergeSettingsPage() {
               variant: "secondary",
             },
           ],
+        },
+      ]}
+      detailSections={[
+        {
+          title: "Checklist de configuration",
+          description:
+            "Les principaux points de controle de votre compte concierge, pour garder votre profil, vos acces et votre offre alignes.",
+          emptyText: "Aucune configuration a afficher.",
+          items: settingsChecklist,
+        },
+        {
+          title: "Historique abonnement recent",
+          description:
+            "Derniers evenements connus lies a Stripe pour verifier rapidement l'etat de synchronisation de votre compte.",
+          emptyText:
+            loading
+              ? "Chargement de l'historique Stripe."
+              : error || "Aucun evenement Stripe recent disponible.",
+          items: recentBillingEvents,
         },
       ]}
     />

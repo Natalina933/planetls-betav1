@@ -72,6 +72,74 @@ export default function ConciergePlanningPage() {
     () => missions.filter((mission) => mission.priority === "urgent").length,
     [missions],
   );
+  const urgentTimeline = useMemo(
+    () =>
+      missions
+        .filter((mission) => mission.priority === "urgent")
+        .sort((a, b) => toTimestamp(a.scheduled_start) - toTimestamp(b.scheduled_start))
+        .slice(0, 5)
+        .map((mission) => ({
+          title: mission.title || "Mission urgente",
+          meta: formatDate(mission.scheduled_start),
+          description: `${mission.status || "Statut non renseigne"} - priorite urgente.`,
+          href: "/dashboard/concierge/profile?tab=missions",
+          actionLabel: "Traiter",
+          tone: "warning" as const,
+        })),
+    [missions],
+  );
+  const unscheduledMissions = useMemo(
+    () =>
+      missions
+        .filter((mission) => !mission.scheduled_start && mission.status !== "completed")
+        .slice(0, 5)
+        .map((mission) => ({
+          title: mission.title || "Mission sans date",
+          meta: mission.status || "Statut non renseigne",
+          description:
+            "Mission encore sans date planifiee. A cadrer pour fiabiliser le planning terrain.",
+          href: "/dashboard/concierge/profile?tab=missions",
+          actionLabel: "Planifier",
+          tone: "warning" as const,
+        })),
+    [missions],
+  );
+  const statusBreakdown = useMemo(() => {
+    const groups = new Map<string, number>();
+    missions.forEach((mission) => {
+      const key = mission.status || "non_renseigne";
+      groups.set(key, (groups.get(key) || 0) + 1);
+    });
+
+    return Array.from(groups.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([status, count]) => ({
+        title: status.replaceAll("_", " "),
+        meta: `${count} mission(s)`,
+        description: "Etat actuel de vos interventions dans le pipe operationnel.",
+        href: "/dashboard/concierge/profile?tab=missions",
+        actionLabel: "Voir les missions",
+        tone:
+          status === "completed"
+            ? ("success" as const)
+            : status === "urgent" || status === "canceled"
+              ? ("warning" as const)
+              : ("default" as const),
+      }));
+  }, [missions]);
+  const upcomingTimeline = useMemo(
+    () =>
+      upcoming.map((mission) => ({
+        title: mission.title || "Mission sans titre",
+        meta: formatDate(mission.scheduled_start),
+        description: `${mission.status || "Statut non renseigne"}${mission.priority ? ` - Priorite ${mission.priority}` : ""}`,
+        href: "/dashboard/concierge/profile?tab=missions",
+        actionLabel: "Mettre a jour",
+        tone: mission.priority === "urgent" ? ("warning" as const) : ("default" as const),
+      })),
+    [upcoming],
+  );
 
   return (
     <ConciergeWorkspacePage
@@ -97,6 +165,11 @@ export default function ConciergePlanningPage() {
           label: "Urgences",
           value: loading ? "..." : String(urgent),
           hint: "Missions marquees prioritaires",
+        },
+        {
+          label: "Sans date",
+          value: loading ? "..." : String(unscheduledMissions.length),
+          hint: "Missions encore a planifier",
         },
       ]}
       cards={
@@ -129,6 +202,48 @@ export default function ConciergePlanningPage() {
               },
             ]
       }
+      detailSections={[
+        {
+          title: "Prochaines interventions",
+          description:
+            "Votre file des prochaines missions planifiees, utile pour organiser les deplacements et les confirmations terrain.",
+          emptyText:
+            loading
+              ? "Chargement de vos prochaines interventions."
+              : error || "Aucune intervention a venir pour le moment.",
+          items: upcomingTimeline,
+        },
+        {
+          title: "Etat du pipe missions",
+          description:
+            "Repartition rapide des missions par statut pour voir ou se concentre votre charge operationnelle.",
+          emptyText:
+            loading
+              ? "Analyse des statuts en cours."
+              : error || "Aucune mission disponible pour etablir un etat des lieux.",
+          items: statusBreakdown,
+        },
+        {
+          title: "Urgences terrain",
+          description:
+            "Les interventions urgentes doivent rester visibles en permanence dans votre pilotage quotidien.",
+          emptyText:
+            loading
+              ? "Chargement des urgences."
+              : error || "Aucune urgence terrain n'est planifiee.",
+          items: urgentTimeline,
+        },
+        {
+          title: "Missions a planifier",
+          description:
+            "Liste des interventions sans date fixe pour eviter les angles morts dans le planning.",
+          emptyText:
+            loading
+              ? "Analyse des missions sans date."
+              : error || "Toutes les missions actives ont deja une date planifiee.",
+          items: unscheduledMissions,
+        },
+      ]}
     />
   );
 }

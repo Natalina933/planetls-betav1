@@ -5,6 +5,8 @@ import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 
 type HousingRow = {
   id: number;
+  nom?: string | null;
+  statut?: string | null;
 };
 
 type MissionRow = {
@@ -66,6 +68,42 @@ export default function ConciergeStocksPage() {
   const welcomeKits = housingCount * 2;
   const linenSets = Math.max(housingCount * 3, activeMissions * 2);
   const cleaningUnits = Math.max(housingCount, activeMissions);
+  const inactiveHousings = useMemo(
+    () => housings.filter((housing) => housing.statut !== "active" && housing.statut !== "published"),
+    [housings],
+  );
+  const urgentMissionItems = useMemo(
+    () =>
+      missions
+        .filter((mission) => mission.priority === "urgent")
+        .slice(0, 5)
+        .map((mission) => ({
+          title: `Mission ${mission.id.slice(0, 8)}`,
+          meta: mission.status || "Statut non renseigne",
+          description:
+            "Prevoir linge, consommables et capacite de reaction adaptes a cette intervention urgente.",
+          href: "/dashboard/concierge/profile?tab=missions",
+          actionLabel: "Verifier la mission",
+          tone: "warning" as const,
+        })),
+    [missions],
+  );
+  const housingStockChecks = useMemo(
+    () =>
+      housings.slice(0, 6).map((housing) => ({
+        title: housing.nom || `Logement #${housing.id}`,
+        meta: housing.statut === "active" || housing.statut === "published" ? "actif" : "a completer",
+        description:
+          "Controle rapide du linge, des kits d'accueil et des consommables menage pour ce bien.",
+        href: `/dashboard/concierge/logements/${housing.id}`,
+        actionLabel: "Ouvrir la fiche",
+        tone:
+          housing.statut === "active" || housing.statut === "published"
+            ? ("success" as const)
+            : ("warning" as const),
+      })),
+    [housings],
+  );
 
   return (
     <ConciergeWorkspacePage
@@ -98,6 +136,11 @@ export default function ConciergeStocksPage() {
           value: loading ? "..." : String(urgentMissions),
           hint: "Missions urgentes pouvant impacter le stock",
         },
+        {
+          label: "Biens a verifier",
+          value: loading ? "..." : String(inactiveHousings.length),
+          hint: "Logements encore inactifs ou incomplets",
+        },
       ]}
       cards={[
         {
@@ -114,6 +157,28 @@ export default function ConciergeStocksPage() {
             urgentMissions > 0
               ? `${urgentMissions} mission(s) urgente(s) sont en cours: verifiez gels douche, cafe, papier et consommables d'accueil.`
               : "Aucune urgence remontee: profitez-en pour standardiser vos kits voyageurs et vos procedures de reappro.",
+        },
+      ]}
+      detailSections={[
+        {
+          title: "Controle par logement",
+          description:
+            "Passez rapidement en revue les biens a reapprovisionner ou a fiabiliser avant les prochains sejours.",
+          emptyText:
+            loading
+              ? "Chargement des logements."
+              : error || "Aucun logement disponible pour votre checklist stock.",
+          items: housingStockChecks,
+        },
+        {
+          title: "Missions qui peuvent tendre vos stocks",
+          description:
+            "Priorisez ici les interventions qui risquent de consommer plus vite le linge, les produits ou les kits voyageurs.",
+          emptyText:
+            loading
+              ? "Analyse des urgences en cours."
+              : error || "Aucune mission urgente n'impacte vos stocks pour l'instant.",
+          items: urgentMissionItems,
         },
       ]}
     />

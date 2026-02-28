@@ -1,173 +1,230 @@
-
-@use "sass:math";
-@use "sass:color";
 @use "@/app/styles/abstracts/variables" as *;
-@use "@/app/styles/abstracts/functions" as *;
-@use "@/app/styles/base/animations" as anim;
-@use "@/app/styles/abstracts/mixins" as *;
+
 .forWhomSection {
-  background: $gold-soft;
-  padding: $spacing-xl $spacing-md;
-  border-top: 2px solid $gold-dark;
-  border-bottom: 2px solid $gold-dark;
   position: relative;
-  text-align: center;
-
-  // Ornement doré sur le haut et bas de la section
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(to right, transparent, $gold, transparent);
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  &::before {
-    top: 1rem;
-  }
-  &::after {
-    bottom: 1rem;
-  }
+  overflow: hidden;
+  padding: clamp(4.5rem, 8vw, 7rem) 1.5rem;
+  background:
+    radial-gradient(circle at top left, rgba(189, 155, 98, 0.18), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(131, 104, 72, 0.16), transparent 30%),
+    linear-gradient(180deg, #f7f0e8 0%, #efe4d6 100%);
 }
 
 .content {
-  max-width: $max-content-width;
+  width: min(1180px, 100%);
   margin: 0 auto;
 }
 
-.planetLSTitle {
-  font-family: $font-elegant;
-  font-size: 2.5rem;
-  color: $mucha-ink;
-  margin-bottom: $spacing-sm;
+.introBlock {
+  max-width: 760px;
+  margin: 0 auto 2.8rem;
+  text-align: center;
+}
 
-  &::after {
-    content: '';
-    display: block;
-    width: 100px;
-    height: 3px;
-    margin: $spacing-sm auto 0;
-    background: linear-gradient(to right, $gold-dark, $gold, $gold-dark);
-    border-radius: 2px;
-  }
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  color: #8a6c46;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.planetLSTitle {
+  margin: 0;
+  color: #31261d;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(2.5rem, 5vw, 4.2rem);
+  line-height: 0.96;
 }
 
 .planetLSIntro {
-  font-family: $font-text;
-  font-size: 1.1rem;
-  color: $text-light;
-  margin-bottom: $spacing-lg;
+  max-width: 680px;
+  margin: 1.2rem auto 0;
+  color: #655140;
+  font-size: 1.08rem;
+  line-height: 1.75;
 }
 
 .blocks {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: $spacing-lg;
-  margin-bottom: $spacing-lg;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.35rem;
 }
 
 .block {
-  background: $gold-soft;
-  border: 1px solid $gold-dark;
-  border-radius: $radius-lg;
-  padding: $spacing-lg $spacing-md;
-  box-shadow: $shadow;
-  text-align: center;
-  transition: $transition;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 100%;
+  padding: 1.8rem;
+  border: 1px solid rgba(163, 132, 89, 0.2);
+  border-radius: 1.8rem;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(248, 240, 230, 0.9)),
+    rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 20px 40px rgba(70, 49, 30, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74);
+  text-align: left;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 
   &:hover {
-    transform: translateY(-5px);
-    border-color: $gold;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    border-color: rgba(183, 146, 90, 0.4);
+    box-shadow:
+      0 28px 55px rgba(70, 49, 30, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.78);
   }
 
   h3 {
-    font-family: $font-title;
-    font-weight: $font-weight-bold;
-    font-size: 1.4rem;
-    color: $mucha-accent;
-    margin: $spacing-md 0 $spacing-sm;
+    margin: 0 0 0.8rem;
+    color: #3a2c22;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 2rem;
+    line-height: 1;
   }
 
   p {
-    font-family: $font-text;
+    margin: 0 0 1.4rem;
+    color: #665241;
     font-size: 1rem;
-    line-height: $line-height;
-    color: $text-dark;
-    margin-bottom: $spacing-md;
+    line-height: 1.75;
   }
 }
 
+.eyebrow {
+  margin-bottom: 1rem;
+  color: #8f6a33;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .icon {
-  margin: 0 auto $spacing-sm;
+  margin-bottom: 1rem;
+}
+
+.CTAButton,
+.CTAButtonSecondary,
+.ctaTertiary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .CTAButton {
-  display: inline-block;
-  font-family: $font-title;
-  font-weight: $font-weight-bold;
-  background: $gold;
-  color: white;
-  padding: $spacing-sm $spacing-lg;
-  border-radius: $radius-pill;
-  text-decoration: none;
-  transition: $transition;
+  margin-top: auto;
+  padding: 0.85rem 1.3rem;
+  background: linear-gradient(135deg, #b7925a, #8f6a33);
+  color: #fffaf1;
+  font-weight: 700;
+  box-shadow: 0 14px 28px rgba(143, 106, 51, 0.2);
 
   &:hover {
-    background: $gold-dark;
-    color: $gold-soft;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 34px rgba(143, 106, 51, 0.24);
   }
 }
 
 .CTAButtonSecondary {
-  @extend .CTAButton;
-  background: white;
-  color: $gold-dark;
-  border: 2px solid $gold;
+  padding: 0.85rem 1.3rem;
+  border: 1px solid rgba(163, 132, 89, 0.28);
+  background: rgba(255, 252, 247, 0.84);
+  color: #594632;
+  font-weight: 700;
 
   &:hover {
-    background: $gold-light;
-    color: $mucha-ink;
+    transform: translateY(-2px);
+    background: rgba(255, 249, 242, 1);
+    border-color: rgba(183, 146, 90, 0.5);
   }
 }
 
 .ctaTertiary {
-  display: inline-block;
-  margin-top: $spacing-sm;
-  font-size: 0.95rem;
-  font-family: $font-text;
-  color: $gold-dark;
-  text-decoration: underline;
-  transition: $transition;
+  color: #85663f;
+  font-weight: 700;
 
   &:hover {
-    color: $gold;
+    transform: translateY(-1px);
+    color: #6f532f;
   }
 }
 
 .sectionMission {
-  display: block;
-  font-family: $font-elegant;
-  font-size: 1.2rem;
-  font-style: italic;
-  color: $mucha-ink;
-  margin-bottom: $spacing-lg;
-  padding: $spacing-md;
-  border-left: 3px solid $gold;
-  border-right: 3px solid $gold;
-  background: $gold-soft;
+  margin: 2rem auto 0;
+  max-width: 900px;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid rgba(163, 132, 89, 0.18);
+  border-radius: 1.5rem;
+  background: rgba(255, 252, 247, 0.68);
+  color: #5e4a38;
+  font-size: 1.03rem;
+  line-height: 1.8;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .heroActions {
-  margin-top: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 .buttonsRow {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: $spacing-md;
-  margin-bottom: $spacing-sm;
+  gap: 0.9rem;
+}
+
+@media (max-width: 980px) {
+  .blocks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .forWhomSection {
+    padding-inline: 1rem;
+  }
+
+  .blocks {
+    grid-template-columns: 1fr;
+  }
+
+  .block {
+    padding: 1.5rem;
+    border-radius: 1.4rem;
+  }
+
+  .buttonsRow {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .CTAButton,
+  .CTAButtonSecondary,
+  .ctaTertiary {
+    width: 100%;
+  }
 }

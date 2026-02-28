@@ -22,6 +22,22 @@ interface ConciergeMetric {
   hint?: string;
 }
 
+interface ConciergeDetailItem {
+  title: string;
+  meta?: string;
+  description?: string;
+  href?: string;
+  actionLabel?: string;
+  tone?: "default" | "warning" | "success";
+}
+
+interface ConciergeDetailSection {
+  title: string;
+  description?: string;
+  emptyText?: string;
+  items: ConciergeDetailItem[];
+}
+
 interface ConciergeWorkspacePageProps {
   eyebrow: string;
   title: string;
@@ -30,6 +46,7 @@ interface ConciergeWorkspacePageProps {
   cards: ConciergeCard[];
   chips?: string[];
   actions?: Array<{ label: string; href: string }>;
+  detailSections?: ConciergeDetailSection[];
 }
 
 export default function ConciergeWorkspacePage({
@@ -40,6 +57,7 @@ export default function ConciergeWorkspacePage({
   cards,
   chips,
   actions,
+  detailSections,
 }: ConciergeWorkspacePageProps) {
   return (
     <section className="dashboard-grid">
@@ -107,6 +125,61 @@ export default function ConciergeWorkspacePage({
             </article>
           ))}
         </div>
+
+        {detailSections && detailSections.length > 0 ? (
+          <div className={styles.detailSections}>
+            {detailSections.map((section) => (
+              <section key={section.title} className={styles.detailSection}>
+                <div className={styles.detailHeader}>
+                  <h2 className={styles.detailTitle}>{section.title}</h2>
+                  {section.description ? (
+                    <p className={styles.detailDescription}>{section.description}</p>
+                  ) : null}
+                </div>
+
+                {section.items.length > 0 ? (
+                  <div className={styles.detailList}>
+                    {section.items.map((item) => (
+                      <article key={`${section.title}-${item.title}-${item.meta || ""}`} className={styles.detailItem}>
+                        <div className={styles.detailItemMain}>
+                          <div className={styles.detailItemTopline}>
+                            <h3 className={styles.detailItemTitle}>{item.title}</h3>
+                            {item.meta ? (
+                              <span
+                                className={`${styles.detailBadge} ${
+                                  item.tone === "warning"
+                                    ? styles.warningBadge
+                                    : item.tone === "success"
+                                      ? styles.successBadge
+                                      : ""
+                                }`}
+                              >
+                                {item.meta}
+                              </span>
+                            ) : null}
+                          </div>
+                          {item.description ? (
+                            <p className={styles.detailItemDescription}>{item.description}</p>
+                          ) : null}
+                        </div>
+
+                        {item.href && item.actionLabel ? (
+                          <Link href={item.href} className={styles.detailItemAction}>
+                            {item.actionLabel}
+                          </Link>
+                        ) : null}
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.detailEmpty}>
+                    {section.emptyText || "Aucun element a afficher pour le moment."}
+                  </p>
+                )}
+              </section>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

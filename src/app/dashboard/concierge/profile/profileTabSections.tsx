@@ -812,6 +812,10 @@ export function TeamTabSection({
   );
 }
 
+export function ConciergeTeamTabContent(props: TeamTabSectionProps) {
+  return <TeamTabSection {...props} />;
+}
+
 export function DocumentsTabSection({
   renderSection,
   placeholderClassName,
@@ -837,6 +841,10 @@ export function DocumentsTabSection({
       )}
     </>
   );
+}
+
+export function ConciergeDocumentsTabContent(props: DocumentsTabSectionProps) {
+  return <DocumentsTabSection {...props} />;
 }
 
 function FicheSidebarCard({
@@ -1265,6 +1273,10 @@ export function FicheTabSection({
   );
 }
 
+export function ConciergeFicheTabContent(props: FicheTabSectionProps) {
+  return <FicheTabSection {...props} />;
+}
+
 export function MissionsTabLayout({
   styles,
   missionProgressPercent,
@@ -1339,6 +1351,25 @@ export function MissionsTabLayout({
       <div className={styles.missionsColumns}>
         <div className={styles.missionsPrimary}>{children}</div>
         <aside className={styles.missionsSecondary}>{secondaryContent}</aside>
+      </div>
+    </div>
+  );
+}
+
+export function ConciergePacksTabContent({
+  styles,
+  renderSection,
+  activeMissionServiceIds,
+  activeMissionServiceLabels,
+}: PacksTabSectionProps & { styles: Record<string, string> }) {
+  return (
+    <div className={styles.financeGrid}>
+      <div className={styles.financeCard}>
+        <PacksTabSection
+          renderSection={renderSection}
+          activeMissionServiceIds={activeMissionServiceIds}
+          activeMissionServiceLabels={activeMissionServiceLabels}
+        />
       </div>
     </div>
   );
@@ -1733,6 +1764,95 @@ export function MissionsSecondaryPanels({
         missionQuoteFeedback={missionQuoteFeedback}
       />
     </>
+  );
+}
+
+export function ConciergeMissionsTabContent({
+  styles,
+  renderSection,
+  renderField,
+  sectionIds,
+  editingSection,
+  missionProgressPercent,
+  missionProgressDoneCount,
+  missionProgressSteps,
+  showPendingMissionStepsOnly,
+  setShowPendingMissionStepsOnly,
+  activeMissionRawLabels,
+  recognizedActiveMissionCount,
+  unrecognizedActiveMissionLabels,
+  missionOpenDaysCount,
+  missionRangesCount,
+  missionAvailability,
+  openMissionSectionForEdit,
+  selectedMissionQuoteId,
+  setSelectedMissionQuoteId,
+  missionRows,
+  missionQuoteBusy,
+  createQuoteFromMission,
+  missionQuoteFeedback,
+  missionPayload,
+  removeUnrecognizedServices,
+  catalogSyncBusy,
+  setEditProfile,
+  parseAvailabilityPayloadRaw,
+  parseMissionPayload,
+  buildLegacyFromMissionProfile,
+  toMissionTypeId,
+  normalizeMissionSchedule,
+}: any) {
+  return (
+    <MissionsTabLayout
+      styles={styles}
+      missionProgressPercent={missionProgressPercent}
+      missionProgressDoneCount={missionProgressDoneCount}
+      missionProgressTotal={missionProgressSteps.length}
+      showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+      onTogglePendingSteps={() => setShowPendingMissionStepsOnly((prev: boolean) => !prev)}
+      activeMissionRawLabelsCount={activeMissionRawLabels.length}
+      recognizedActiveMissionCount={recognizedActiveMissionCount}
+      unrecognizedActiveMissionLabelsCount={unrecognizedActiveMissionLabels.length}
+      missionOpenDaysCount={missionOpenDaysCount}
+      missionRangesCount={missionRangesCount}
+      missionZonesCount={missionAvailability?.zones.length ?? 0}
+      secondaryContent={
+        <MissionsSecondaryPanels
+          styles={styles}
+          missionProgressDoneCount={missionProgressDoneCount}
+          missionProgressTotal={missionProgressSteps.length}
+          showPendingMissionStepsOnly={showPendingMissionStepsOnly}
+          setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
+          missionProgressSteps={missionProgressSteps}
+          openMissionSectionForEdit={openMissionSectionForEdit}
+          renderSection={renderSection}
+          selectedMissionQuoteId={selectedMissionQuoteId}
+          setSelectedMissionQuoteId={setSelectedMissionQuoteId}
+          missionRows={missionRows}
+          missionQuoteBusy={missionQuoteBusy}
+          createQuoteFromMission={createQuoteFromMission}
+          missionQuoteFeedback={missionQuoteFeedback}
+        />
+      }
+    >
+      <MissionsPrimarySections
+        styles={styles}
+        renderSection={renderSection}
+        renderField={renderField}
+        sectionIds={sectionIds}
+        editingSection={editingSection}
+        missionPayload={missionPayload}
+        missionAvailability={missionAvailability}
+        unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
+        removeUnrecognizedServices={removeUnrecognizedServices}
+        catalogSyncBusy={catalogSyncBusy}
+        setEditProfile={setEditProfile}
+        parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
+        parseMissionPayload={parseMissionPayload}
+        buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
+        toMissionTypeId={toMissionTypeId}
+        normalizeMissionSchedule={normalizeMissionSchedule}
+      />
+    </MissionsTabLayout>
   );
 }
 
@@ -2994,6 +3114,289 @@ export function TariffStrategySection({
         <li>{strategyProjection.narrative}</li>
       </ul>
     </section>
+  );
+}
+
+export function ConciergeTariffsTabContent({
+  styles,
+  renderSection,
+  sectionIds,
+  pricingMeta,
+  pricingV2,
+  configuredPricingCount,
+  tariffReadinessPercent,
+  pendingTariffReadinessChecks,
+  scrollToTariffSection,
+  handleTabChange,
+  editProfile,
+  tariffLocationLabel,
+  missionAvailability,
+  missionPayload,
+  editingSection,
+  applyPricingMeta,
+  pricingCatalogRows,
+  activeMissionServiceLabels,
+  renderField,
+  applyPricingV2,
+  pricingSortMode,
+  setPricingSortMode,
+  showAllPricingServices,
+  setShowAllPricingServices,
+  canEditTariffConfig,
+  servicePrices,
+  servicePricesBusyId,
+  servicePricesLoading,
+  visiblePricingCatalogRows,
+  groupedPricingCatalogRows,
+  collapsedPricingCategories,
+  togglePricingCategory,
+  openCreatePricingModal,
+  openEditPricingModal,
+  deleteServicePrice,
+  resetAllServicePrices,
+  propertyTypeOptions,
+  getPropertyTypeDeltaPercent,
+  updatePropertyTypeDeltaPercent,
+  segmentDraft,
+  setSegmentDraft,
+  segmentsBusyId,
+  createPricingSegment,
+  segmentsLoading,
+  pricingSegments,
+  setPricingSegments,
+  updatePricingSegment,
+  deletePricingSegment,
+  propertyRuleDraft,
+  setPropertyRuleDraft,
+  propertyRulesBusyId,
+  createPricingPropertyRule,
+  propertyRulesLoading,
+  propertyRules,
+  setPropertyRules,
+  updatePricingPropertyRule,
+  deletePricingPropertyRule,
+  catalogServices,
+  strategySim,
+  setStrategySim,
+  applyStrategyProjectionToBillingDesk,
+  scenarioDraftName,
+  setScenarioDraftName,
+  scenariosBusyId,
+  createPricingScenario,
+  resetStrategySim,
+  scenariosLoading,
+  pricingScenarios,
+  loadPricingScenario,
+  setDefaultPricingScenario,
+  deletePricingScenario,
+  selectedPricingSegment,
+  strategyProjection,
+  formatCurrency,
+  pricingModalOpen,
+  pricingModalState,
+  pricingModalSaving,
+  pricingModalError,
+  pricingUnitOptions,
+  closePricingModal,
+  saveServicePrice,
+  resetPricingModalToDefaults,
+  setPricingModalState,
+  missionRows,
+  billingDeskProps,
+  formatExperienceLabel,
+}: any) {
+  return (
+    <div className={styles.financeGrid}>
+      <TariffWorkflowSection
+        styles={styles}
+        renderSection={renderSection}
+        sectionId={sectionIds.WORKFLOW}
+        commissionRatePct={pricingMeta.commissionRatePct}
+        hourlyRate={pricingV2.base.hourlyRate}
+        configuredPricingCount={configuredPricingCount}
+        tariffReadinessPercent={tariffReadinessPercent}
+        pendingChecksCount={pendingTariffReadinessChecks.length}
+        onScrollConfig={() => scrollToTariffSection("tariffs-config")}
+        onScrollBilling={() => scrollToTariffSection("tariffs-billing-desk")}
+        onGoToMissions={() => handleTabChange("missions")}
+      />
+
+      <TariffConfigShell
+        styles={styles}
+        renderSection={renderSection}
+        sectionId={sectionIds.CONFIG}
+      >
+        <TariffPillarsSection
+          styles={styles}
+          hourlyRate={pricingV2.base.hourlyRate}
+          travelFee={pricingV2.base.travelFee}
+          minimumInvoice={pricingV2.base.minimumInvoice}
+          commissionRatePct={pricingMeta.commissionRatePct}
+          setupFee={pricingMeta.setupFee}
+          editingDisabled={editingSection !== sectionIds.CONFIG}
+          onCommissionRateChange={(value) =>
+            applyPricingMeta({
+              ...pricingMeta,
+              commissionRatePct: value,
+            })
+          }
+          onSetupFeeChange={(value) =>
+            applyPricingMeta({
+              ...pricingMeta,
+              setupFee: value,
+            })
+          }
+          configuredPricingCount={configuredPricingCount}
+          pricingCatalogRowsCount={pricingCatalogRows.length}
+          activeMissionServiceLabelsCount={activeMissionServiceLabels.length}
+        />
+
+        <div className={styles.tariffSimpleGrid}>
+          <TariffContextSection
+            styles={styles}
+            experienceLabel={formatExperienceLabel(editProfile.experience_level)}
+            locationLabel={tariffLocationLabel}
+            radiusKm={missionAvailability?.radiusKm ?? 0}
+            urgentEnabled={missionPayload.preferences.priorityFlags.urgent}
+            urgentPercent={pricingV2.globalModifiers.urgentPercent}
+            highSeasonEnabled={
+              missionPayload.missionProfile.specialConditions
+                .acceptHighSeasonInterventions
+            }
+            highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
+          />
+
+          <TariffBaseSection
+            styles={styles}
+            renderField={renderField}
+            sectionId={sectionIds.CONFIG}
+            editingSection={editingSection}
+            minimumInvoice={pricingV2.base.minimumInvoice}
+            onMinimumInvoiceChange={(value) =>
+              applyPricingV2({
+                ...pricingV2,
+                base: {
+                  ...pricingV2.base,
+                  minimumInvoice: value,
+                },
+              })
+            }
+          />
+
+          <TariffServicesCatalogSection
+            styles={styles}
+            configuredPricingCount={configuredPricingCount}
+            pricingCatalogRowsCount={pricingCatalogRows.length}
+            pricingSortMode={pricingSortMode}
+            setPricingSortMode={setPricingSortMode}
+            showAllPricingServices={showAllPricingServices}
+            setShowAllPricingServices={setShowAllPricingServices}
+            canEditTariffConfig={canEditTariffConfig}
+            servicePricesCount={servicePrices.length}
+            servicePricesBusyId={servicePricesBusyId}
+            servicePricesLoading={servicePricesLoading}
+            visiblePricingCatalogRowsCount={visiblePricingCatalogRows.length}
+            groupedPricingCatalogRows={groupedPricingCatalogRows}
+            collapsedPricingCategories={collapsedPricingCategories}
+            togglePricingCategory={togglePricingCategory}
+            openCreatePricingModal={openCreatePricingModal}
+            openEditPricingModal={openEditPricingModal}
+            deleteServicePrice={deleteServicePrice}
+            resetAllServicePrices={resetAllServicePrices}
+          />
+
+          <TariffModifiersSection
+            styles={styles}
+            propertyTypeOptions={propertyTypeOptions}
+            getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
+            updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
+            editingSection={editingSection}
+            sectionId={sectionIds.CONFIG}
+            urgentPercent={pricingV2.globalModifiers.urgentPercent}
+            nightPercent={pricingV2.globalModifiers.nightPercent}
+            weekendPercent={pricingV2.globalModifiers.weekendPercent}
+            highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
+            minimumInvoice={pricingV2.base.minimumInvoice}
+          />
+
+          <TariffSegmentsSection
+            styles={styles}
+            canEditTariffConfig={canEditTariffConfig}
+            segmentDraft={segmentDraft}
+            setSegmentDraft={setSegmentDraft}
+            segmentsBusyId={segmentsBusyId}
+            createPricingSegment={createPricingSegment}
+            segmentsLoading={segmentsLoading}
+            pricingSegments={pricingSegments}
+            setPricingSegments={setPricingSegments}
+            updatePricingSegment={updatePricingSegment}
+            deletePricingSegment={deletePricingSegment}
+          />
+
+          <TariffPropertyRulesSection
+            styles={styles}
+            canEditTariffConfig={canEditTariffConfig}
+            propertyRuleDraft={propertyRuleDraft}
+            setPropertyRuleDraft={setPropertyRuleDraft}
+            propertyRulesBusyId={propertyRulesBusyId}
+            createPricingPropertyRule={createPricingPropertyRule}
+            propertyRulesLoading={propertyRulesLoading}
+            propertyRules={propertyRules}
+            setPropertyRules={setPropertyRules}
+            updatePricingPropertyRule={updatePricingPropertyRule}
+            deletePricingPropertyRule={deletePricingPropertyRule}
+            catalogServices={catalogServices}
+          />
+
+          <TariffStrategySection
+            styles={styles}
+            strategySim={strategySim}
+            setStrategySim={setStrategySim}
+            pricingSegments={pricingSegments}
+            catalogServices={catalogServices}
+            propertyTypeOptions={propertyTypeOptions}
+            applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
+            scenarioDraftName={scenarioDraftName}
+            setScenarioDraftName={setScenarioDraftName}
+            canEditTariffConfig={canEditTariffConfig}
+            scenariosBusyId={scenariosBusyId}
+            createPricingScenario={createPricingScenario}
+            resetStrategySim={resetStrategySim}
+            scenariosLoading={scenariosLoading}
+            pricingScenarios={pricingScenarios}
+            loadPricingScenario={loadPricingScenario}
+            setDefaultPricingScenario={setDefaultPricingScenario}
+            deletePricingScenario={deletePricingScenario}
+            selectedPricingSegmentName={selectedPricingSegment?.name ?? "Standard"}
+            strategyProjection={strategyProjection}
+            formatCurrency={formatCurrency}
+          />
+        </div>
+
+        <TariffPricingModal
+          styles={styles}
+          isOpen={pricingModalOpen}
+          state={pricingModalState}
+          catalogServices={catalogServices}
+          saving={pricingModalSaving}
+          canEdit={canEditTariffConfig}
+          error={pricingModalError}
+          pricingUnitOptions={pricingUnitOptions}
+          closeModal={closePricingModal}
+          saveServicePrice={saveServicePrice}
+          resetState={resetPricingModalToDefaults}
+          setState={setPricingModalState}
+        />
+      </TariffConfigShell>
+
+      <TariffBillingDeskSection
+        styles={styles}
+        renderSection={renderSection}
+        sectionId={sectionIds.BILLING_DESK}
+        missionRowsCount={missionRows.length}
+        deskProps={billingDeskProps}
+      />
+    </div>
   );
 }
 
