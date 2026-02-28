@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 
 export interface ApiAuthContext {
   userId?: string;
+  email?: string;
   role: string;
   isAdmin: boolean;
 }
@@ -14,8 +15,9 @@ export async function getApiAuthContext(req: NextRequest): Promise<ApiAuthContex
   });
 
   const userId = typeof token?.sub === "string" ? token.sub : undefined;
+  const email = typeof token?.email === "string" ? token.email : undefined;
   const role = typeof token?.role === "string" ? token.role : "";
   const isAdmin = role === "admin" || role === "super_admin";
 
-  return { userId, role, isAdmin };
+  return { userId, email, role, isAdmin };
 }

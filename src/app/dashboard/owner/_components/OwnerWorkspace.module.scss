@@ -1,0 +1,100 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(184, 139, 74, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 34%),
+    linear-gradient(145deg, #fffdf7 0%, #f4ead8 100%);
+  box-shadow: 0 16px 40px rgba(74, 53, 16, 0.08);
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a7a3b;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #3f2f14;
+}
+
+.description {
+  margin: 0;
+  color: #5f5237;
+  line-height: 1.55;
+  max-width: 68ch;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 139, 74, 0.22);
+  background: rgba(255, 252, 245, 0.96);
+  box-shadow: 0 10px 24px rgba(74, 53, 16, 0.06);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #4a3510;
+}
+
+.cardText {
+  margin: 0;
+  color: #5f5237;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(184, 139, 74, 0.12);
+  color: #7b5b23;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 139, 74, 0.35);
+  background: linear-gradient(135deg, #fff8ea, #f2e0c0);
+  color: #7b5b23;
+  text-decoration: none;
+  font-weight: 700;
+}

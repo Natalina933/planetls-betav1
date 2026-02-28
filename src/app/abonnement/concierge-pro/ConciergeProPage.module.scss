@@ -1,0 +1,130 @@
+.page {
+  min-height: 100vh;
+  padding: 3rem 1.25rem 4rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 28%),
+    linear-gradient(180deg, #f8f4eb 0%, #efe5d4 100%);
+}
+
+.shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  display: grid;
+  gap: 0.85rem;
+  padding: 2rem;
+  border-radius: 28px;
+  border: 1px solid rgba(184, 139, 74, 0.24);
+  background:
+    linear-gradient(145deg, rgba(255, 253, 246, 0.96), rgba(244, 233, 211, 0.92)),
+    #fff;
+  box-shadow: 0 18px 42px rgba(74, 53, 16, 0.08);
+}
+
+.eyebrow {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a7a3b;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 0.96;
+  color: #3f2f14;
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 72ch;
+  line-height: 1.6;
+  color: #5f5237;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 1.25rem;
+}
+
+.features,
+.offer {
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(184, 139, 74, 0.2);
+  background: rgba(255, 252, 245, 0.94);
+  box-shadow: 0 14px 32px rgba(74, 53, 16, 0.06);
+}
+
+.featureList,
+.summaryList {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.featureItem,
+.summaryItem {
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  background: rgba(184, 139, 74, 0.08);
+  color: #4a3510;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  margin: 1rem 0 1.2rem;
+  color: #3f2f14;
+}
+
+.amount {
+  font-size: 2.8rem;
+  font-weight: 800;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.95rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b88b4a 0%, #d4af37 100%);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(184, 139, 74, 0.28);
+}
+
+.cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feedback {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(184, 139, 74, 0.1);
+  color: #6f5422;
+}
+
+.error {
+  background: rgba(188, 74, 72, 0.1);
+  color: #8a2220;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
