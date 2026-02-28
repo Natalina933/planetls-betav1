@@ -40,6 +40,12 @@ type OwnerInvoiceRow = {
   created_at: string | null;
 };
 
+type OwnerReviewRow = {
+  id: string;
+  rating: number | null;
+  comment: string | null;
+};
+
 function getStatusLabel(status: string | null) {
   switch (status) {
     case "active":
@@ -82,6 +88,7 @@ export default function OwnerDashboardPage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
   const [invoices, setInvoices] = useState<OwnerInvoiceRow[]>([]);
+  const [reviews, setReviews] = useState<OwnerReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,17 +98,25 @@ export default function OwnerDashboardPage() {
         setLoading(true);
         setError(null);
 
-        const [housingResponse, missionsResponse, quotesResponse, invoicesResponse] = await Promise.all([
+        const [
+          housingResponse,
+          missionsResponse,
+          quotesResponse,
+          invoicesResponse,
+          reviewsResponse,
+        ] = await Promise.all([
           fetch("/api/housing", { cache: "no-store" }),
           fetch("/api/missions?scope=owner&limit=12", { cache: "no-store" }),
           fetch("/api/quotes?limit=8", { cache: "no-store" }),
           fetch("/api/invoices?limit=8", { cache: "no-store" }),
+          fetch("/api/reviews?limit=6", { cache: "no-store" }),
         ]);
 
         const housingPayload = await housingResponse.json();
         const missionsPayload = await missionsResponse.json();
         const quotesPayload = await quotesResponse.json();
         const invoicesPayload = await invoicesResponse.json();
+        const reviewsPayload = await reviewsResponse.json();
 
         if (!housingResponse.ok) {
           throw new Error(housingPayload?.error || "Impossible de charger vos logements.");
@@ -116,11 +131,15 @@ export default function OwnerDashboardPage() {
         if (!invoicesResponse.ok) {
           throw new Error(invoicesPayload?.error || "Impossible de charger vos factures.");
         }
+        if (!reviewsResponse.ok) {
+          throw new Error(reviewsPayload?.error || "Impossible de charger vos avis.");
+        }
 
         setProperties(Array.isArray(housingPayload) ? housingPayload : []);
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
         setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
         setInvoices(Array.isArray(invoicesPayload) ? invoicesPayload : []);
+        setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Impossible de charger votre espace proprietaire.",
@@ -166,6 +185,14 @@ export default function OwnerDashboardPage() {
   );
   const latestQuotes = useMemo(() => quotes.slice(0, 4), [quotes]);
   const latestInvoices = useMemo(() => invoices.slice(0, 4), [invoices]);
+  const averageRating = useMemo(() => {
+    const ratings = reviews
+      .map((review) => review.rating)
+      .filter((rating): rating is number => typeof rating === "number" && Number.isFinite(rating));
+
+    if (ratings.length === 0) return null;
+    return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+  }, [reviews]);
 
   return (
     <section className="dashboard-grid">
@@ -243,6 +270,21 @@ export default function OwnerDashboardPage() {
                       </li>
                     ))}
                   </ul>
+                )}
+              </div>
+
+              <div className="stat-card">
+                <h3>Satisfaction concierge</h3>
+                {reviews.length === 0 ? (
+                  <p>Aucun avis publie pour le moment.</p>
+                ) : (
+                  <div>
+                    <p>
+                      Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur {reviews.length} avis
+                    </p>
+                    <p>{reviews[0]?.comment || "Dernier retour enregistre sans commentaire."}</p>
+                    <Link href="/dashboard/owner/conciergerie">Voir les avis et noter</Link>
+                  </div>
                 )}
               </div>
             </div>

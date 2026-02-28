@@ -27,6 +27,11 @@ interface ConciergeUser {
   years_experience?: number | null;
 }
 
+interface ConciergeKpis {
+  avg_rating?: number | null;
+  ratings_count?: number | null;
+}
+
 const eventsDemo: DashboardEvent[] = [
   {
     title: "Reservation J-1",
@@ -61,6 +66,7 @@ export default function ConciergeDashboardPage() {
   const [matches, setMatches] = useState<ConciergeOwnerMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [matchesError, setMatchesError] = useState<string | null>(null);
+  const [kpis, setKpis] = useState<ConciergeKpis | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -90,6 +96,33 @@ export default function ConciergeDashboardPage() {
     };
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isMounted = true;
+
+    const fetchKpis = async () => {
+      try {
+        const response = await fetch("/api/missions/kpis", { cache: "no-store" });
+        const payload = await response.json();
+        if (!response.ok) return;
+        if (isMounted) {
+          setKpis(payload);
+        }
+      } catch {
+        if (isMounted) {
+          setKpis(null);
+        }
+      }
+    };
+
+    fetchKpis();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
+
   if (loading || !isAuthenticated) {
     return (
       <div className={styles.dashboardLoadingContainer}>
@@ -113,6 +146,8 @@ export default function ConciergeDashboardPage() {
         isPro={isPro}
         experienceLevel={experienceLevel}
         yearsExperience={yearsExperience}
+        averageRating={typeof kpis?.avg_rating === "number" ? kpis.avg_rating : null}
+        ratingsCount={typeof kpis?.ratings_count === "number" ? kpis.ratings_count : 0}
       />
       <MatchesSection
         matches={matches}

@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       .from("profiles")
       .update({
         role: nextRole,
-        additional_info: `stripe_subscription:${sessionId}`,
+        additional_info: `stripe_subscription:return:${sessionId}`,
         updated_at: new Date().toISOString(),
       })
       .eq("id", auth.userId);

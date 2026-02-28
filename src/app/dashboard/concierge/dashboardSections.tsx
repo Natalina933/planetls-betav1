@@ -25,6 +25,8 @@ interface DashboardHeaderProps {
   isPro: boolean;
   experienceLevel: ExperienceLevel | null;
   yearsExperience: number | null;
+  averageRating: number | null;
+  ratingsCount: number;
 }
 
 interface MatchesSectionProps {
@@ -50,6 +52,8 @@ export function DashboardHeader({
   isPro,
   experienceLevel,
   yearsExperience,
+  averageRating,
+  ratingsCount,
 }: DashboardHeaderProps) {
   return (
     <header className={styles.dashboardHeader}>
@@ -78,9 +82,20 @@ export function DashboardHeader({
           experienceLevel={experienceLevel}
           yearsExperience={yearsExperience}
           missionsCount={undefined}
-          averageRating={undefined}
+          averageRating={averageRating}
         />
       </div>
+
+      {typeof averageRating === "number" ? (
+        <p className={styles.ratingSummary}>
+          Satisfaction moyenne: {averageRating.toFixed(1)} / 5
+          {ratingsCount > 0 ? ` sur ${ratingsCount} avis` : ""}
+        </p>
+      ) : (
+        <p className={styles.ratingSummary}>
+          Aucun avis client consolide pour le moment.
+        </p>
+      )}
     </header>
   );
 }

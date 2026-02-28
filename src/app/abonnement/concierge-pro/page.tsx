@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./ConciergeProPage.module.scss";
+import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 
 const features = [
   "Tableau de bord pro plus lisible pour piloter logements, missions et revenus",
@@ -20,10 +21,16 @@ const summary = [
 
 export default function ConciergeProSubscriptionPage() {
   const searchParams = useSearchParams();
+  const { user } = useCurrentUser();
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [subscriptionRef, setSubscriptionRef] = useState<string | null>(null);
+  const [subscriptionSource, setSubscriptionSource] = useState<string | null>(null);
+  const [subscriptionUpdatedAt, setSubscriptionUpdatedAt] = useState<string | null>(null);
+
+  const isPro = user?.role === "concierge_pro";
 
   const banner = useMemo(() => {
     const status = searchParams.get("checkout");
@@ -79,6 +86,43 @@ export default function ConciergeProSubscriptionPage() {
     };
   }, [searchParams]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSubscriptionState() {
+      try {
+        const response = await fetch("/api/profiles/current", { cache: "no-store" });
+        const payload = await response.json();
+        if (!response.ok || cancelled) return;
+
+        const additionalInfo =
+          typeof payload?.additional_info === "string" ? payload.additional_info : "";
+        if (additionalInfo.startsWith("stripe_subscription:")) {
+          const raw = additionalInfo.replace("stripe_subscription:", "").trim();
+          const [source, ...rest] = raw.split(":");
+          setSubscriptionSource(source || null);
+          setSubscriptionRef(rest.join(":").trim() || null);
+        } else {
+          setSubscriptionSource(null);
+          setSubscriptionRef(null);
+        }
+        setSubscriptionUpdatedAt(typeof payload?.updated_at === "string" ? payload.updated_at : null);
+      } catch {
+        if (!cancelled) {
+          setSubscriptionSource(null);
+          setSubscriptionRef(null);
+          setSubscriptionUpdatedAt(null);
+        }
+      }
+    }
+
+    loadSubscriptionState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [feedback, searchParams]);
+
   async function startCheckout() {
     try {
       setLoading(true);
@@ -109,6 +153,26 @@ export default function ConciergeProSubscriptionPage() {
     }
   }
 
+  const subscriptionUpdatedLabel = useMemo(() => {
+    if (!subscriptionUpdatedAt) return null;
+    const date = new Date(subscriptionUpdatedAt);
+    if (Number.isNaN(date.getTime())) return subscriptionUpdatedAt;
+    return new Intl.DateTimeFormat("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }, [subscriptionUpdatedAt]);
+
+  const subscriptionSourceLabel =
+    subscriptionSource === "webhook"
+      ? "Webhook Stripe"
+      : subscriptionSource === "return"
+      ? "Retour navigateur"
+      : null;
+
   return (
     <div className={styles.page}>
       <div className={styles.shell}>
@@ -138,6 +202,23 @@ export default function ConciergeProSubscriptionPage() {
           <aside className={styles.offer}>
             <span className={styles.eyebrow}>Offre active</span>
             <h2>Concierge PRO</h2>
+            <div className={styles.statusCard}>
+              <strong>{isPro ? "Statut actuel : PRO actif" : "Statut actuel : Standard"}</strong>
+              <span>
+                {isPro
+                  ? "Votre compte a acces aux fonctions premium et aux workflows avances."
+                  : "Passez en PRO pour afficher vos outils premium et un pilotage avance."}
+              </span>
+              {subscriptionRef ? (
+                <span className={styles.reference}>Reference Stripe : {subscriptionRef}</span>
+              ) : null}
+              {subscriptionSourceLabel ? (
+                <span className={styles.reference}>Source de synchronisation : {subscriptionSourceLabel}</span>
+              ) : null}
+              {subscriptionUpdatedLabel ? (
+                <span className={styles.reference}>Derniere mise a jour : {subscriptionUpdatedLabel}</span>
+              ) : null}
+            </div>
             <div className={styles.price}>
               <span className={styles.amount}>29 EUR</span>
               <span>/ mois</span>
@@ -149,11 +230,13 @@ export default function ConciergeProSubscriptionPage() {
                 </div>
               ))}
             </div>
-            <button className={styles.cta} onClick={startCheckout} disabled={loading || syncing}>
+            <button className={styles.cta} onClick={startCheckout} disabled={loading || syncing || isPro}>
               {loading
                 ? "Preparation du checkout..."
                 : syncing
                 ? "Synchronisation du statut PRO..."
+                : isPro
+                ? "Abonnement deja actif"
                 : "Activer Concierge PRO"}
             </button>
             {feedback ? <div className={styles.feedback}>{feedback}</div> : null}
