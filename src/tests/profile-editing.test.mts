@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildProfileSuccessMessageSafe,
+  buildProfileValidationAlertMessageSafe,
   buildProfileSavePayload,
   buildProfileSuccessMessage,
   buildSessionUserPayload,
@@ -12,10 +14,41 @@ import {
   resolveSavedSectionId,
   shouldCompleteMissionOnboarding,
   toggleOpenSection,
+  updateProfileFieldErrorsSafe,
   updateProfileFieldValue,
   updateSocialFieldValue,
+  validateProfileField,
   upsertSectionSnapshot,
 } from "../app/dashboard/concierge/profile/profileEditing.ts";
+
+const seasonalPricingFixture = {
+  checkInFee: 0,
+  checkOutFee: 0,
+  cleaningStudioFee: 0,
+  cleaningTwoRoomsFee: 0,
+  linenKitFee: 0,
+  welcomePackFee: 0,
+  urgentPercent: 0,
+  nightPercent: 0,
+  weekendPercent: 0,
+  highSeasonPercent: 0,
+  extraKmFee: 0,
+  minimumInvoice: 35,
+};
+
+const pricingV2Fixture = {
+  version: 2 as const,
+  currency: "EUR",
+  base: { hourlyRate: 40, travelFee: 10, minimumInvoice: 35 },
+  globalModifiers: {
+    urgentPercent: 0,
+    nightPercent: 0,
+    weekendPercent: 0,
+    highSeasonPercent: 0,
+  },
+  serviceOverrides: {},
+  contextRules: [],
+};
 
 test("snapshot helpers track dirty section state correctly", () => {
   const profile = { id: "1", first_name: "Nathalie", last_name: "C", avatar_url: null };
@@ -60,6 +93,23 @@ test("profile save helpers build expected payloads", () => {
     firstName: "Nathalie",
     lastName: "Charbonnel",
   });
+});
+
+test("safe profile UI messages avoid corrupted dashboard labels", () => {
+  assert.equal(
+    buildProfileSuccessMessageSafe("Photo de profil"),
+    "Photo de profil mis a jour avec succes",
+  );
+
+  assert.equal(
+    buildProfileValidationAlertMessageSafe(),
+    "Veuillez corriger les erreurs avant de sauvegarder.",
+  );
+
+  assert.deepEqual(
+    updateProfileFieldErrorsSafe({ email: "" }, "email", "bad-email"),
+    { email: "Email invalide" },
+  );
 });
 
 test("validation and onboarding helpers enforce expected rules", () => {
@@ -132,25 +182,54 @@ test("updateProfileFieldValue handles plain and tariff fields", () => {
   };
 
   const plain = updateProfileFieldValue(profile, "city", "Lyon", {
-    parseSeasonalPricing: () => ({ minimumInvoice: 35 }),
-    parsePricingV2FromAvailabilityHours: () => ({
-      base: { hourlyRate: 40, travelFee: 10 },
-    }),
-    syncSeasonalPricingFromPricingV2: () => ({ minimumInvoice: 35 }),
+    parseSeasonalPricing: () => seasonalPricingFixture,
+    parsePricingV2FromAvailabilityHours: () => pricingV2Fixture,
+    syncSeasonalPricingFromPricingV2: () => seasonalPricingFixture,
     parseAvailabilityPayloadRaw: () => ({ existing: true }),
   });
 
   assert.equal(plain?.city, "Lyon");
 
   const tariff = updateProfileFieldValue(profile, "hourly_rate", "55", {
-    parseSeasonalPricing: () => ({ minimumInvoice: 35 }),
-    parsePricingV2FromAvailabilityHours: () => ({
-      base: { hourlyRate: 40, travelFee: 10 },
-    }),
-    syncSeasonalPricingFromPricingV2: () => ({ minimumInvoice: 35 }),
+    parseSeasonalPricing: () => seasonalPricingFixture,
+    parsePricingV2FromAvailabilityHours: () => pricingV2Fixture,
+    syncSeasonalPricingFromPricingV2: () => seasonalPricingFixture,
     parseAvailabilityPayloadRaw: () => ({ existing: true }),
   });
 
   assert.equal(tariff?.hourly_rate, 55);
   assert.match(String(tariff?.availability_hours), /pricing_v2/);
+});
+
+test("validateProfileField enforces common profile formats", () => {
+  assert.equal(validateProfileField("email", "contact@example.com"), "");
+  assert.equal(validateProfileField("email", "bad-email"), "Email invalide");
+
+  assert.equal(validateProfileField("phone", "+33612345678"), "");
+  assert.equal(validateProfileField("phone", "abc"), "Telephone invalide");
+
+  assert.equal(validateProfileField("siret", "12345678901234"), "");
+  assert.equal(
+    validateProfileField("siret", "123"),
+    "SIRET invalide (14 chiffres)",
+  );
+
+  assert.equal(validateProfileField("siren", "123456789"), "");
+  assert.equal(
+    validateProfileField("siren", "1234"),
+    "SIREN invalide (9 chiffres)",
+  );
+
+  assert.equal(validateProfileField("postal_code", "75001"), "");
+  assert.equal(
+    validateProfileField("postal_code", "7500"),
+    "Code postal invalide (5 chiffres)",
+  );
+
+  assert.equal(validateProfileField("website", "https://planetls.fr"), "");
+  assert.equal(validateProfileField("website", "bad url"), "URL invalide");
+
+  assert.equal(validateProfileField("iban", "FR7630006000011234567890189"), "");
+  assert.equal(validateProfileField("iban", "FR12"), "IBAN invalide");
+  assert.equal(validateProfileField("custom_field", "anything"), "");
 });

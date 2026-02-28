@@ -1,3 +1,6 @@
+import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
+import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+
 export type SectionEditSnapshots = Record<string, string>;
 export type OpenSectionsState = Record<string, boolean>;
 
@@ -131,22 +134,21 @@ export function updateSocialFieldValue<
 }
 
 export function updateProfileFieldValue<
-  T extends ProfileIdentityLike & Record<string, unknown>,
+  T extends ProfileIdentityLike,
 >(
   profile: T | null,
   name: string,
   value: string,
   options: {
-    parseSeasonalPricing: (value?: string | null) => unknown;
+    parseSeasonalPricing: (value?: string | null) => SeasonalPricingConfig;
     parsePricingV2FromAvailabilityHours: (
       value: string | null | undefined,
-      context: {
-        hourlyRate: number;
-        travelFee: number;
-        seasonalPricing: unknown;
-      },
-    ) => any;
-    syncSeasonalPricingFromPricingV2: (seasonal: unknown, pricingV2: any) => unknown;
+      context: PricingFallbackInput,
+    ) => PricingV2Config;
+    syncSeasonalPricingFromPricingV2: (
+      seasonal: SeasonalPricingConfig,
+      pricingV2: PricingV2Config,
+    ) => SeasonalPricingConfig;
     parseAvailabilityPayloadRaw: (value?: string | null) => Record<string, unknown>;
   },
 ): T | null {
@@ -159,7 +161,7 @@ export function updateProfileFieldValue<
     return {
       ...profile,
       [name]: value,
-    };
+    } as T;
   }
 
   const parsedValue =
@@ -193,7 +195,57 @@ export function updateProfileFieldValue<
       pricing: syncedLegacy,
       pricing_v2: pricingV2Next,
     }),
-  };
+  } as T;
+}
+
+export function validateProfileField(name: string, value: string): string {
+  if (!value) {
+    return "";
+  }
+
+  if (name === "email") {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value) ? "" : "Email invalide";
+  }
+
+  if (name === "phone") {
+    const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
+    return phoneRegex.test(value) ? "" : "Telephone invalide";
+  }
+
+  if (name === "siret") {
+    const siretRegex = /^[0-9]{14}$/;
+    return siretRegex.test(value.replace(/\s/g, ""))
+      ? ""
+      : "SIRET invalide (14 chiffres)";
+  }
+
+  if (name === "siren") {
+    const sirenRegex = /^[0-9]{9}$/;
+    return sirenRegex.test(value.replace(/\s/g, ""))
+      ? ""
+      : "SIREN invalide (9 chiffres)";
+  }
+
+  if (name === "postal_code") {
+    const postalRegex = /^[0-9]{5}$/;
+    return postalRegex.test(value) ? "" : "Code postal invalide (5 chiffres)";
+  }
+
+  if (name === "website") {
+    const urlRegex =
+      /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
+    return urlRegex.test(value) ? "" : "URL invalide";
+  }
+
+  if (name === "iban") {
+    const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
+    return ibanRegex.test(value.replace(/\s/g, ""))
+      ? ""
+      : "IBAN invalide";
+  }
+
+  return "";
 }
 
 export function buildProfileSuccessMessage(sectionTitle: string): string {
@@ -281,4 +333,23 @@ export async function uploadProfileAvatar(
   }
 
   return result.url as string;
+}
+
+export function updateProfileFieldErrorsSafe(
+  errors: Record<string, string>,
+  name: string,
+  value: string,
+): Record<string, string> {
+  return {
+    ...errors,
+    [name]: validateProfileField(name, value),
+  };
+}
+
+export function buildProfileValidationAlertMessageSafe(): string {
+  return "Veuillez corriger les erreurs avant de sauvegarder.";
+}
+
+export function buildProfileSuccessMessageSafe(sectionTitle: string): string {
+  return `${sectionTitle} mis a jour avec succes`;
 }

@@ -16,7 +16,7 @@ export default function ServiceList() {
 
   const handleKeyPointClick = (point: string) => {
     setFlippedCards((prev) =>
-      prev.includes(point) ? prev.filter((p) => p !== point) : [...prev, point]
+      prev.includes(point) ? prev.filter((p) => p !== point) : [...prev, point],
     );
   };
 
@@ -27,47 +27,49 @@ export default function ServiceList() {
     return "card-size--small";
   };
 
-
   return (
     <>
       <Head>
-        <title>Découvrez Notre Plateforme de Gestion Intuitive et Complète</title>
+        <title>Decouvrez Notre Plateforme de Gestion Intuitive et Complete</title>
         <meta
           name="description"
-          content="Plateforme centralisée, sécurisée et intelligente pour propriétaires, concierges et artisans."
+          content="Plateforme centralisee, securisee et intelligente pour proprietaires, concierges et artisans."
         />
       </Head>
 
       <ServicesBlock
         title={
           <>
-            Découvrer notre Plateforme <br />
+            Decouvrir notre Plateforme <br />
             de gestion tout-en-un
           </>
         }
-        subtitle="La solution en ligne pour l’ensemble des acteurs de la location saisonnière"
-        description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
+        subtitle="La solution en ligne pour l'ensemble des acteurs de la location saisonniere"
+        description="Une application et une plateforme entierement securisees, pensees pour automatiser la gestion, fluidifier la communication, et vous assister a chaque etape, que vous soyez proprietaire, professionnel, ou en quete de solutions fiables."
       >
-
         <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
-            Conçue pour{" "}
+            Concue pour{" "}
             <span className={styles.highlightText}>
-              simplifier la vie de toutes les catégories professionnelles
+              simplifier la vie de toutes les categories professionnelles
             </span>
-            , notre plateforme centralise vos outils, automatise vos tâches et sécurise vos données. Que vous soyez{" "}
+            , notre plateforme centralise vos outils, automatise vos taches et securise
+            vos donnees. Que vous soyez{" "}
             <strong className={styles.userCategory}>
-              propriétaire, concierge ou artisan
+              proprietaire, concierge ou artisan
             </strong>
-            , gagnez en efficacité et en sérénité.
+            , gagnez en efficacite et en serenite.
           </p>
 
           <a href="#contact" className={styles.CTAButton}>
-            Découvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
+            Decouvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
           </a>
         </header>
 
-        <ul className={clsx(styles.keyPoints, styles["keyPoints--chips"])} aria-label="Points clés de la plateforme">
+        <ul
+          className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
+          aria-label="Points cles de la plateforme"
+        >
           {keyPoints.map((point) => (
             <li key={point} className={styles.keyPointChipWrapper}>
               <button
@@ -105,12 +107,14 @@ export default function ServiceList() {
       </ServicesBlock>
 
       <div className={styles.ctaZone}>
-        <a className={styles.CTAButton} href="/complete-registration" aria-label="Essayer la plateforme gratuitement">
+        <a
+          className={styles.CTAButton}
+          href="/complete-registration"
+          aria-label="Essayer la plateforme gratuitement"
+        >
           Essayer gratuitement
         </a>
-        <span className={styles.ctaSub}>
-          Assistance personnalisée & offres sans commission.
-        </span>
+        <span className={styles.ctaSub}>Assistance personnalisee et offres sans commission.</span>
       </div>
     </>
   );

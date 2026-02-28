@@ -14,7 +14,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 import styles from "./ConciergeProfilePage.module.scss";
 import {
-  buildProfileSuccessMessage,
+  buildProfileSuccessMessageSafe,
+  buildProfileValidationAlertMessageSafe,
   buildSessionUserPayload,
   createQuoteFromMissionRequest,
   ensureOpenSection,
@@ -28,6 +29,7 @@ import {
   toggleOpenSection,
   upsertSectionSnapshot,
   uploadProfileAvatar,
+  updateProfileFieldErrorsSafe,
   updateProfileFieldValue,
   updateSocialFieldValue,
 } from "./profileEditing";
@@ -2595,54 +2597,6 @@ export default function ConciergeProfilePage() {
   );
 
 
-  const validateField = (name: string, value: string): string => {
-    if (!value) return "";
-
-    if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(value) ? "" : "Email invalide";
-    }
-
-    if (name === "phone") {
-      const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/;
-      return phoneRegex.test(value) ? "" : "Téléphone invalide";
-    }
-
-    if (name === "siret") {
-      const siretRegex = /^[0-9]{14}$/;
-      return siretRegex.test(value.replace(/\s/g, ""))
-        ? ""
-        : "SIRET invalide (14 chiffres)";
-    }
-
-    if (name === "siren") {
-      const sirenRegex = /^[0-9]{9}$/;
-      return sirenRegex.test(value.replace(/\s/g, ""))
-        ? ""
-        : "SIREN invalide (9 chiffres)";
-    }
-
-    if (name === "postal_code") {
-      const postalRegex = /^[0-9]{5}$/;
-      return postalRegex.test(value) ? "" : "Code postal invalide (5 chiffres)";
-    }
-
-    if (name === "website") {
-      const urlRegex =
-        /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
-      return urlRegex.test(value) ? "" : "URL invalide";
-    }
-
-    if (name === "iban") {
-      const ibanRegex = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/;
-      return ibanRegex.test(value.replace(/\s/g, ""))
-        ? ""
-        : "IBAN invalide";
-    }
-
-    return "";
-  };
-
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -2665,15 +2619,14 @@ export default function ConciergeProfilePage() {
       }),
     );
 
-    const errorMessage = validateField(name, value);
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
+    setErrors((prevErrors) => updateProfileFieldErrorsSafe(prevErrors, name, value));
   };
 
   const handleSaveSection = async (sectionTitle: string) => {
     if (!editProfile) return;
 
     if (hasValidationErrors(errors)) {
-      alert("âš ï¸ Veuillez corriger les erreurs avant de sauvegarder.");
+      alert(buildProfileValidationAlertMessageSafe());
       return;
     }
 
@@ -2711,7 +2664,7 @@ export default function ConciergeProfilePage() {
       });
       window.dispatchEvent(new Event("user-profile-updated"));
 
-      pushTransientMessage("success", buildProfileSuccessMessage(sectionTitle));
+      pushTransientMessage("success", buildProfileSuccessMessageSafe(sectionTitle));
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Erreur inconnue";
