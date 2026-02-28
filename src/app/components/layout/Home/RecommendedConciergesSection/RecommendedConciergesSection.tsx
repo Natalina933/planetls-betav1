@@ -40,7 +40,7 @@ export default function RecommendedConciergesSection() {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger les concierges recommandes.");
+          throw new Error(payload?.error || "Impossible de charger les concierges recommandés.");
         }
 
         if (!cancelled) {
@@ -68,7 +68,7 @@ export default function RecommendedConciergesSection() {
     <section className={styles.section}>
       <div className={styles.header}>
         <span className={styles.eyebrow}>Selection premium</span>
-        <h2>Concierges recommandes</h2>
+        <h2>Concierges recommandés</h2>
         <p>
           Une premiere vitrine de profils visibles publiquement, notes par leurs clients et prepares
           pour la mise en relation.
@@ -79,7 +79,7 @@ export default function RecommendedConciergesSection() {
 
       {!loading && items.length === 0 ? (
         <p className={styles.info}>
-          Les recommandations apparaitront ici des que davantage de profils concierges publics
+          Les recommandations apparaîtront ici dès que davantage de profils concierges publics
           seront completes.
         </p>
       ) : null}

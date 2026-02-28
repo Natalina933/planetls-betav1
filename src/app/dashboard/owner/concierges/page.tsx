@@ -143,8 +143,8 @@ export default function OwnerConciergesPage() {
           concierge_profile_id: item.id,
           source: "search",
           source_reference: item.id,
-          subject: `Prise de contact proprietaire - ${item.display_name}`,
-          prefill_message: `Bonjour ${item.display_name}, je souhaite echanger avec vous sur la gestion de mes logements en ${item.city || item.service_area || "France"}.`,
+          subject: `Prise de contact propriétaire - ${item.display_name}`,
+          prefill_message: `Bonjour ${item.display_name}, je souhaite échanger avec vous sur la gestion de mes logements en ${item.city || item.service_area || "France"}.`,
           metadata: {
             origin: "owner_concierge_search",
             concierge_profile_id: item.id,
@@ -154,16 +154,16 @@ export default function OwnerConciergesPage() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de creer la conversation.");
+        throw new Error(payload?.error || "Impossible de créer la conversation.");
       }
 
       setFeedback(
-        `Conversation creee avec ${item.display_name}. Vous pouvez maintenant poursuivre dans la messagerie proprietaire.`,
+        `Conversation créée avec ${item.display_name}. Vous pouvez maintenant poursuivre dans la messagerie propriétaire.`,
       );
       window.location.href = `/dashboard/owner/messages?created=${payload.id}`;
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de creer la conversation.",
+        err instanceof Error ? err.message : "Impossible de créer la conversation.",
       );
     } finally {
       setContactingId(null);
@@ -251,11 +251,11 @@ export default function OwnerConciergesPage() {
           </div>
 
           <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Services recherches</span>
+            <span className={styles.blockLabel}>Services recherchés</span>
             <div className={styles.serviceChips}>
               {serviceOptions.length === 0 ? (
                 <span className={styles.tagMuted}>
-                  Les services apparaitront apres le premier chargement.
+                  Les services apparaîtront après le premier chargement.
                 </span>
               ) : (
                 serviceOptions.map((serviceLabel) => {
@@ -308,7 +308,7 @@ export default function OwnerConciergesPage() {
               }}
               disabled={loading}
             >
-              Reinitialiser
+              Réinitialiser
             </button>
           </div>
         </form>

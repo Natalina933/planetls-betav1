@@ -48,7 +48,7 @@ const formatDateTime = (value?: string | null): string => {
 };
 
 function getConversationTitle(subject?: string | null) {
-  return subject || "Conversation proprietaire";
+  return subject || "Conversation propriétaire";
 }
 
 function MessagesHeader({ listLoading }: MessagesHeaderProps) {
@@ -58,7 +58,7 @@ function MessagesHeader({ listLoading }: MessagesHeaderProps) {
         <FiMessageCircle size={18} />
         Messagerie concierge
       </h1>
-      <p>Conversations proprietaires et suivi commercial.</p>
+      <p>Conversations propriétaires et suivi commercial.</p>
       {listLoading && <span>Synchronisation en cours...</span>}
     </header>
   );

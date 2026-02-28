@@ -351,5 +351,5 @@ export function buildProfileValidationAlertMessageSafe(): string {
 }
 
 export function buildProfileSuccessMessageSafe(sectionTitle: string): string {
-  return `${sectionTitle} mis a jour avec succes`;
+  return `${sectionTitle} mis à jour avec succès`;
 }

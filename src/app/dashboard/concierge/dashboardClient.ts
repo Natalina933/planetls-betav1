@@ -25,7 +25,7 @@ export function getMatchesErrorMessage(body: { error?: string } | null) {
     return body.error;
   }
 
-  return "Impossible de charger les proprietaires compatibles";
+  return "Impossible de charger les propriétaires compatibles";
 }
 
 export async function fetchConciergeMatches(limit = 6) {

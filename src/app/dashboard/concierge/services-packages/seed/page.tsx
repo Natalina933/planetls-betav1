@@ -79,12 +79,12 @@ export default function ServicesPackagesSeedPage() {
           pushLog(`Pack deja present: ${seed.name}`);
         }
 
-        pushLog(`Verification des modeles pour ${seed.name}...`);
+        pushLog(`Vérification des modèles pour ${seed.name}...`);
         const templatesRes = await fetch(
           `/api/services/contract-templates?packageId=${encodeURIComponent(currentPack.id)}`,
         );
         if (!templatesRes.ok) {
-          throw new Error("Impossible de lire les modeles de contrats.");
+          throw new Error("Impossible de lire les modèles de contrats.");
         }
         const templates = (await templatesRes.json()) as ApiTemplate[];
         const exists = templates.some((t) => t.title === seed.templateTitle);
@@ -110,12 +110,12 @@ export default function ServicesPackagesSeedPage() {
             throw new Error(`Echec creation modele: ${seed.templateTitle}`);
           }
         } else {
-          pushLog(`Modele deja present: ${seed.templateTitle}`);
+          pushLog(`Modèle déjà présent : ${seed.templateTitle}`);
         }
       }
 
       setStatus("success");
-      pushLog("Seed termine avec succes.");
+      pushLog("Seed terminé avec succès.");
     } catch (err) {
       setStatus("error");
       pushLog(err instanceof Error ? err.message : "Erreur inconnue.");
@@ -128,7 +128,7 @@ export default function ServicesPackagesSeedPage() {
         <div>
           <h1 style={{ margin: 0 }}>Seed Test Packs & Modeles</h1>
           <p style={{ margin: "0.35rem 0 0", color: "#666" }}>
-            Cree 2 packs et 2 modeles de contrats de demonstration via l&apos;API.
+            Crée 2 packs et 2 modèles de contrats de démonstration via l&apos;API.
           </p>
         </div>
         <Link href="/dashboard/concierge/services-packages">Retour aux packs</Link>
@@ -155,7 +155,7 @@ export default function ServicesPackagesSeedPage() {
           <strong>Etat:</strong>{" "}
           {status === "idle" && "En attente"}
           {status === "running" && "Execution"}
-          {status === "success" && "Succes"}
+          {status === "success" && "Succès"}
           {status === "error" && "Erreur"}
         </div>
 

@@ -19,23 +19,23 @@ const CARDS: CardData[] = [
     key: "proprietaire",
     title: "Proprietaires",
     img: "/icons/proprio_belle_epoque.png",
-    alt: "Illustration proprietaire location saisonniere",
+    alt: "Illustration propriétaire location saisonnière",
     cta: "Trouver une conciergerie",
     href: "/dashboard/owner/concierges",
     eyebrow: "Mise en relation rapide",
     description:
-      "Trouvez une conciergerie adaptee a votre ville, a votre type de bien et a votre niveau d'accompagnement, puis suivez missions, documents et paiements depuis un meme espace.",
+      "Trouvez une conciergerie adaptée à votre ville, à votre type de bien et à votre niveau d'accompagnement, puis suivez missions, documents et paiements depuis un même espace.",
   },
   {
     key: "concierge",
     title: "Concierges",
     img: "/icons/concierges_belle_epoque.png",
     alt: "Illustration conciergerie premium",
-    cta: "Developper mon activite",
+    cta: "Développer mon activité",
     href: "/abonnement/concierge-pro",
     eyebrow: "Pilotage tout-en-un",
     description:
-      "Structurez vos services, vos tarifs, vos packs, vos logements et vos missions. PlanetLS vous aide a gagner du temps et a rendre votre activite plus premium.",
+      "Structurez vos services, vos tarifs, vos packs, vos logements et vos missions. PlanetLS vous aide à gagner du temps et à rendre votre activité plus premium.",
   },
   {
     key: "artisan",
@@ -46,7 +46,7 @@ const CARDS: CardData[] = [
     href: "/login",
     eyebrow: "Reseau local qualifie",
     description:
-      "Rejoignez un ecosystème de proprietaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
+      "Rejoignez un écosystème de propriétaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
   },
 ];
 
@@ -105,7 +105,7 @@ const ForWhomSection: React.FC = () => (
           Une plateforme concue pour faire grandir tout l&apos;ecosysteme locatif
         </h2>
         <p className={styles.planetLSIntro}>
-          PlanetLS relie proprietaires, concierges et partenaires terrain dans
+          PlanetLS relie propriétaires, concierges et partenaires terrain dans
           une experience plus fluide, plus rassurante et beaucoup plus simple a
           piloter au quotidien.
         </p>

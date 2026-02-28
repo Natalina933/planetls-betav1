@@ -32,7 +32,7 @@ const DEMO_LOGEMENTS: Logement[] = [
       categorie: "Appartement",
       capacite: 4,
       equipements: ["Wifi", "Balcon"],
-      description: "Adresse centrale, ideal pour les sejours urbains.",
+      description: "Adresse centrale, idéale pour les séjours urbains.",
     },
     statut: "pret",
     isDemo: true,
@@ -60,7 +60,7 @@ const DEMO_LOGEMENTS: Logement[] = [
       categorie: "Maison",
       capacite: 6,
       equipements: ["Jardin", "Parking", "Wifi"],
-      description: "Maison familiale pour sejours longs ou courts.",
+      description: "Maison familiale pour séjours longs ou courts.",
     },
     statut: "arrivee",
     isDemo: true,
@@ -72,10 +72,10 @@ function getSafePhoto(photo?: string) {
 }
 
 function renderStatusLabel(statut: Logement["statut"]) {
-  if (statut === "pret") return "Pret";
-  if (statut === "menage") return "Menage en cours";
-  if (statut === "arrivee") return "Arrivee du jour";
-  return "Depart du jour";
+  if (statut === "pret") return "Prêt";
+  if (statut === "menage") return "Ménage en cours";
+  if (statut === "arrivee") return "Arrivée du jour";
+  return "Départ du jour";
 }
 
 export default function LogementsPage() {
@@ -172,8 +172,8 @@ export default function LogementsPage() {
       {isUsingDemoData && (
         <div className={styles.demoNotice}>
           <p>
-            Exemples de demonstration affiches. Tes vrais logements sont masques si les
-            donnees de test ne sont pas rattachees a ton compte connecte.
+            Exemples de démonstration affichés. Tes vrais logements sont masqués si les
+            données de test ne sont pas rattachées à ton compte connecté.
           </p>
           <button
             type="button"
@@ -181,7 +181,7 @@ export default function LogementsPage() {
             onClick={claimDemoLogements}
             disabled={isClaimingDemoData}
           >
-            {isClaimingDemoData ? "Creation..." : "Recreer ces exemples dans mon compte"}
+            {isClaimingDemoData ? "Création..." : "Recréer ces exemples dans mon compte"}
           </button>
         </div>
       )}
@@ -209,10 +209,10 @@ export default function LogementsPage() {
                   </span>
                   <span className={styles.metaItem}>Ville : {logement.ville}</span>
                   <span className={styles.metaItem}>
-                    Capacite : {logement.infos?.capacite ?? "-"} voyageur(s)
+                    Capacité : {logement.infos?.capacite ?? "-"} voyageur(s)
                   </span>
                   <span className={styles.metaItem}>
-                    Equipements :{" "}
+                    Équipements :{" "}
                     {Array.isArray(logement.infos?.equipements) && logement.infos.equipements.length > 0
                       ? logement.infos.equipements.slice(0, 3).join(", ")
                       : "-"}

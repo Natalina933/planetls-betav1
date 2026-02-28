@@ -31,7 +31,7 @@ import {
 
 const tabs: Array<{ id: ActiveTab; label: string; icon: React.ComponentType }> = [
   { id: "infos", label: "Infos generales", icon: FiHome },
-  { id: "menage", label: "Menage & preparation", icon: FiClipboard },
+  { id: "menage", label: "Ménage & préparation", icon: FiClipboard },
   { id: "planning", label: "Planning", icon: FiCalendar },
   { id: "docs", label: "Documents", icon: FiFileText },
   { id: "notes", label: "Notes internes", icon: FiMessageSquare },
@@ -141,7 +141,7 @@ export default function FicheLogementPage() {
       if (editableLogement) {
         setLogement(editableLogement);
       }
-      setSaveSuccess("Modifications enregistrees.");
+      setSaveSuccess("Modifications enregistrées.");
       setEditMode(false);
       setEditedData({});
     } catch (err) {

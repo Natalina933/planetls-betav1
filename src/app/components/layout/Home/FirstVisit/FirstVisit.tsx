@@ -38,7 +38,7 @@ const FirstVisit = () => {
         </button>
         <h1>Bienvenue sur PlanetLS</h1>
         <p>
-          Parcourez les services, explorez les concierges recommandes et lancez votre mise en
+          Parcourez les services, explorez les concierges recommandés et lancez votre mise en
           relation en quelques clics.
         </p>
         <div className={styles.actions}>

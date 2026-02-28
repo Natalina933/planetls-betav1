@@ -27,7 +27,7 @@ test("validateCreateLogementForm enforces required session and fields", () => {
       { ...baseForm, name: "" },
       undefined,
     ),
-    "Session introuvable. Reconnecte-toi pour creer un logement.",
+    "Session introuvable. Reconnecte-toi pour créer un logement.",
   );
 
   assert.equal(
@@ -51,7 +51,7 @@ test("validateCreateLogementForm enforces required session and fields", () => {
       { ...baseForm, name: "Ap" },
       "user-1",
     ),
-    "Le nom du logement doit contenir au moins 3 caracteres.",
+    "Le nom du logement doit contenir au moins 3 caractères.",
   );
 
   assert.equal(
@@ -67,7 +67,7 @@ test("validateCreateLogementForm enforces required session and fields", () => {
       { ...baseForm, photo: "ftp://img.png" },
       "user-1",
     ),
-    "La photo doit etre une URL valide ou un chemin commencant par '/'.",
+    "La photo doit être une URL valide ou un chemin commençant par '/'.",
   );
 });
 
@@ -129,9 +129,9 @@ test("buildCreateLogementSummary exposes a readable preview", () => {
       { label: "Adresse", value: "12 rue Victor Hugo" },
       { label: "Ville", value: "Paris" },
       { label: "Plateforme", value: "Airbnb" },
-      { label: "Capacite", value: "8" },
+      { label: "Capacité", value: "8" },
       { label: "Chambres", value: "4" },
-      { label: "Equipements", value: "Piscine, Parking" },
+      { label: "Équipements", value: "Piscine, Parking" },
       { label: "Statut", value: "pret" },
       { label: "Photo", value: "Aucune" },
     ],

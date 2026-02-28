@@ -79,14 +79,14 @@ export async function fetchOwnerListings(options?: SearchFetchOptions) {
   });
 
   if (!res.ok) {
-    throw new Error(await getResponseError(res, "Impossible de charger les annonces proprietaires"));
+    throw new Error(await getResponseError(res, "Impossible de charger les annonces propriétaires"));
   }
 
   return (await res.json()) as SearchResponse;
 }
 
 export async function createSearchConversation(listing: OwnerListing) {
-  const prefillMessage = `Bonjour ${listing.owner_name}, je vous contacte suite a votre annonce "${listing.title}" (${listing.city}). Je peux vous proposer une gestion adaptee a vos besoins.`;
+  const prefillMessage = `Bonjour ${listing.owner_name}, je vous contacte suite à votre annonce "${listing.title}" (${listing.city}). Je peux vous proposer une gestion adaptée à vos besoins.`;
 
   const res = await fetch("/api/messages/conversations", {
     method: "POST",
@@ -106,7 +106,7 @@ export async function createSearchConversation(listing: OwnerListing) {
   });
 
   if (!res.ok) {
-    throw new Error(await getResponseError(res, "Impossible de creer la conversation"));
+    throw new Error(await getResponseError(res, "Impossible de créer la conversation"));
   }
 
   return (await res.json()) as { id: string };

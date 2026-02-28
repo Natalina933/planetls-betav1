@@ -195,7 +195,7 @@ test("validateLogementChanges rejects invalid capacity values", () => {
   assert.equal(validateLogementChanges(logement).isValid, false);
   assert.equal(
     validateLogementChanges(logement).message,
-    "La capacite du logement doit etre un nombre positif.",
+    "La capacité du logement doit être un nombre positif.",
   );
 });
 

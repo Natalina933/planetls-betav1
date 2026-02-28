@@ -18,7 +18,7 @@ function isMediaUrl(value: string) {
 
 export function validateCreateLogementForm(form: FormState, userId?: string) {
   if (!userId) {
-    return "Session introuvable. Reconnecte-toi pour creer un logement.";
+    return "Session introuvable. Reconnecte-toi pour créer un logement.";
   }
 
   if (!form.name.trim()) {
@@ -26,7 +26,7 @@ export function validateCreateLogementForm(form: FormState, userId?: string) {
   }
 
   if (form.name.trim().length < 3) {
-    return "Le nom du logement doit contenir au moins 3 caracteres.";
+    return "Le nom du logement doit contenir au moins 3 caractères.";
   }
 
   if (!form.address.trim()) {
@@ -38,25 +38,25 @@ export function validateCreateLogementForm(form: FormState, userId?: string) {
   }
 
   if (form.city.trim().length < 2) {
-    return "La ville doit contenir au moins 2 caracteres.";
+    return "La ville doit contenir au moins 2 caractères.";
   }
 
   if (form.capacity.trim()) {
     const capacity = Number(form.capacity.trim());
     if (!Number.isFinite(capacity) || capacity <= 0) {
-      return "La capacite doit etre un nombre positif.";
+      return "La capacité doit être un nombre positif.";
     }
   }
 
   if (form.bedrooms.trim()) {
     const bedrooms = Number(form.bedrooms.trim());
     if (!Number.isFinite(bedrooms) || bedrooms < 0) {
-      return "Le nombre de chambres doit etre un nombre valide.";
+      return "Le nombre de chambres doit être un nombre valide.";
     }
   }
 
   if (form.photo?.trim() && !isMediaUrl(form.photo.trim())) {
-    return "La photo doit etre une URL valide ou un chemin commencant par '/'.";
+    return "La photo doit être une URL valide ou un chemin commençant par '/'.";
   }
 
   return null;
@@ -91,18 +91,18 @@ export function buildCreateLogementPayload(form: FormState, userId: string) {
 
 export function buildCreateLogementSummary(form: FormState) {
   return [
-    { label: "Nom", value: form.name.trim() || "A renseigner" },
-    { label: "Type", value: form.propertyType.trim() || "A renseigner" },
-    { label: "Adresse", value: form.address.trim() || "A renseigner" },
-    { label: "Ville", value: form.city.trim() || "A renseigner" },
-    { label: "Plateforme", value: form.platform.trim() || "A renseigner" },
-    { label: "Capacite", value: form.capacity.trim() || "A renseigner" },
-    { label: "Chambres", value: form.bedrooms.trim() || "A renseigner" },
+    { label: "Nom", value: form.name.trim() || "À renseigner" },
+    { label: "Type", value: form.propertyType.trim() || "À renseigner" },
+    { label: "Adresse", value: form.address.trim() || "À renseigner" },
+    { label: "Ville", value: form.city.trim() || "À renseigner" },
+    { label: "Plateforme", value: form.platform.trim() || "À renseigner" },
+    { label: "Capacité", value: form.capacity.trim() || "À renseigner" },
+    { label: "Chambres", value: form.bedrooms.trim() || "À renseigner" },
     {
-      label: "Equipements",
-      value: form.equipments.trim() || "A renseigner",
+      label: "Équipements",
+      value: form.equipments.trim() || "À renseigner",
     },
     { label: "Statut", value: form.status },
-    { label: "Photo", value: form.photo?.trim() ? "Ajoutee" : "Aucune" },
+    { label: "Photo", value: form.photo?.trim() ? "Ajoutée" : "Aucune" },
   ];
 }

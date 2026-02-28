@@ -189,7 +189,7 @@ export function validateLogementChanges(logement: LogementTyped | null): Logemen
   ) {
     return {
       isValid: false,
-      message: "La capacite du logement doit etre un nombre positif.",
+      message: "La capacité du logement doit être un nombre positif.",
     };
   }
 

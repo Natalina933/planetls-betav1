@@ -159,7 +159,7 @@ export default function ConciergeRecherchePage() {
   const contactOwner = async (listing: OwnerListing) => {
     if (!listing.owner_profile_id) {
       setErrorMsg(
-        "Ce proprietaire ne possede pas encore d'identifiant de contact. Ouvrez le detail pour completer la fiche.",
+        "Ce propriétaire ne possède pas encore d'identifiant de contact. Ouvrez le détail pour compléter la fiche.",
       );
       return;
     }
@@ -169,12 +169,12 @@ export default function ConciergeRecherchePage() {
       setErrorMsg(null);
       const conversation = await createSearchConversation(listing);
       if (!conversation?.id) {
-        throw new Error("Conversation creee mais identifiant manquant");
+        throw new Error("Conversation créée mais identifiant manquant");
       }
 
       router.push(`/dashboard/concierge/messages?conversation=${conversation.id}`);
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur creation conversation");
+      setErrorMsg(err instanceof Error ? err.message : "Erreur création conversation");
     } finally {
       setContactingListingId(null);
     }
@@ -183,7 +183,7 @@ export default function ConciergeRecherchePage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.loadingBox}>Chargement de la recherche proprietaires...</div>
+        <div className={styles.loadingBox}>Chargement de la recherche propriétaires...</div>
       </div>
     );
   }

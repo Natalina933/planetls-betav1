@@ -142,7 +142,7 @@ export default function OwnerDashboardPage() {
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Impossible de charger votre espace proprietaire.",
+          err instanceof Error ? err.message : "Impossible de charger votre espace propriétaire.",
         );
       } finally {
         setLoading(false);
@@ -197,7 +197,7 @@ export default function OwnerDashboardPage() {
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Tableau de bord proprietaire</h1>
+        <h1>Tableau de bord propriétaire</h1>
         <p>Suivez vos logements, vos interventions et vos prochaines actions en un seul endroit.</p>
       </header>
 
@@ -219,7 +219,7 @@ export default function OwnerDashboardPage() {
           <p>{loading ? "..." : completedMissions.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Factures a regler</h3>
+          <h3>Factures à régler</h3>
           <p>{loading ? "..." : pendingInvoices.length}</p>
         </div>
       </div>
@@ -233,7 +233,7 @@ export default function OwnerDashboardPage() {
           </div>
         </div>
 
-        {loading ? <p>Chargement de votre espace proprietaire...</p> : null}
+          {loading ? <p>Chargement de votre espace propriétaire...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error ? (
@@ -257,7 +257,7 @@ export default function OwnerDashboardPage() {
               </div>
 
               <div className="stat-card">
-                <h3>Historique recent</h3>
+                <h3>Historique récent</h3>
                 {recentMissions.length === 0 ? (
                   <p>Aucune mission historique disponible.</p>
                 ) : (
@@ -322,7 +322,7 @@ export default function OwnerDashboardPage() {
                     <ul>
                       {latestQuotes.map((quote) => (
                         <li key={quote.id}>
-                          <strong>{quote.quote_number || "Devis sans numero"}</strong>
+                          <strong>{quote.quote_number || "Devis sans numéro"}</strong>
                           <br />
                           {quote.status || "Statut non defini"} - {formatAmount(quote.total_amount)}
                         </li>
@@ -351,7 +351,7 @@ export default function OwnerDashboardPage() {
             </div>
 
             <div style={{ marginTop: "2rem" }}>
-              <h2>Suivi de votre activite</h2>
+              <h2>Suivi de votre activité</h2>
               <ul>
                 <li>{ongoingMissions.length} mission(s) demandent actuellement un suivi.</li>
                 <li>{completedMissions.length} intervention(s) sont deja terminees.</li>

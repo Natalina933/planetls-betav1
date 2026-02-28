@@ -339,7 +339,7 @@ const DEFAULT_MISSION_CATALOG: MissionCatalogItem[] = [
     basePrice: null,
     customizable: false,
   },
-  { id: "menage", label: "Menage", basePrice: null, customizable: false },
+  { id: "menage", label: "Ménage", basePrice: null, customizable: false },
   {
     id: "maintenance",
     label: "Maintenance",
@@ -1688,7 +1688,7 @@ export default function ConciergeProfilePage() {
         throw new Error(
           !res.ok && data && typeof data === "object" && "error" in data
             ? data.error
-            : "Impossible de charger les segments proprietaires.",
+            : "Impossible de charger les segments propriétaires.",
         );
       }
       setPricingSegments(data);
@@ -1709,13 +1709,13 @@ export default function ConciergeProfilePage() {
         throw new Error(
           !res.ok && data && typeof data === "object" && "error" in data
             ? data.error
-            : "Impossible de charger les regles de complexite.",
+            : "Impossible de charger les règles de complexité.",
         );
       }
       setPropertyRules(data);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur chargement regles.";
+        error instanceof Error ? error.message : "Erreur chargement règles.";
       pushTransientMessage("error", message);
     } finally {
       setPropertyRulesLoading(false);
@@ -1730,13 +1730,13 @@ export default function ConciergeProfilePage() {
         throw new Error(
           !res.ok && data && typeof data === "object" && "error" in data
             ? data.error
-            : "Impossible de charger les scenarios.",
+            : "Impossible de charger les scénarios.",
         );
       }
       setPricingScenarios(data);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur chargement scenarios.";
+        error instanceof Error ? error.message : "Erreur chargement scénarios.";
       pushTransientMessage("error", message);
     } finally {
       setScenariosLoading(false);
@@ -1746,7 +1746,7 @@ export default function ConciergeProfilePage() {
     if (!canEditTariffConfig) return;
     const name = scenarioDraftName.trim();
     if (!name) {
-      pushTransientMessage("error", "Nom du scenario obligatoire.");
+      pushTransientMessage("error", "Nom du scénario obligatoire.");
       return;
     }
     setScenariosBusyId("create");
@@ -1764,15 +1764,15 @@ export default function ConciergeProfilePage() {
         throw new Error(
           data && typeof data === "object" && "error" in data
             ? String(data.error)
-            : "Impossible de creer le scenario.",
+            : "Impossible de créer le scénario.",
         );
       }
       await fetchPricingScenarios();
       setScenarioDraftName("");
-      pushTransientMessage("success", "Scenario enregistre.");
+      pushTransientMessage("success", "Scénario enregistré.");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur creation scenario.";
+        error instanceof Error ? error.message : "Erreur création scénario.";
       pushTransientMessage("error", message);
     } finally {
       setScenariosBusyId(null);
@@ -1802,14 +1802,14 @@ export default function ConciergeProfilePage() {
           throw new Error(
             data && typeof data === "object" && "error" in data
               ? String(data.error)
-              : "Impossible de definir le scenario par defaut.",
+              : "Impossible de définir le scénario par défaut.",
           );
         }
         await fetchPricingScenarios();
-        pushTransientMessage("success", "Scenario defini par defaut.");
+        pushTransientMessage("success", "Scénario défini par défaut.");
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Erreur mise a jour scenario.";
+          error instanceof Error ? error.message : "Erreur mise à jour scénario.";
         pushTransientMessage("error", message);
       } finally {
         setScenariosBusyId(null);
@@ -1820,7 +1820,7 @@ export default function ConciergeProfilePage() {
   const deletePricingScenario = useCallback(
     async (id: string) => {
       if (!canEditTariffConfig) return;
-      if (!window.confirm("Supprimer ce scenario ?")) return;
+      if (!window.confirm("Supprimer ce scénario ?")) return;
       setScenariosBusyId(id);
       try {
         const res = await fetch(
@@ -1832,14 +1832,14 @@ export default function ConciergeProfilePage() {
           throw new Error(
             data && typeof data === "object" && "error" in data
               ? String(data.error)
-              : "Impossible de supprimer le scenario.",
+              : "Impossible de supprimer le scénario.",
           );
         }
         await fetchPricingScenarios();
-        pushTransientMessage("success", "Scenario supprime.");
+        pushTransientMessage("success", "Scénario supprimé.");
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Erreur suppression scenario.";
+          error instanceof Error ? error.message : "Erreur suppression scénario.";
         pushTransientMessage("error", message);
       } finally {
         setScenariosBusyId(null);
@@ -1851,7 +1851,7 @@ export default function ConciergeProfilePage() {
     (row: PricingStrategyScenarioRow) => {
       const nextSim = normalizeStrategySim(row.simulation);
       setStrategySim(nextSim);
-      pushTransientMessage("success", `Scenario charge: ${row.name}.`);
+      pushTransientMessage("success", `Scénario chargé : ${row.name}.`);
     },
     [pushTransientMessage],
   );
@@ -1879,12 +1879,12 @@ export default function ConciergeProfilePage() {
         throw new Error(
           data && typeof data === "object" && "error" in data
             ? String(data.error)
-            : "Impossible de creer le segment.",
+            : "Impossible de créer le segment.",
         );
       }
       await fetchPricingSegments();
       setSegmentDraft({ name: "", commission_delta_pct: "0", setup_fee_delta_pct: "0" });
-      pushTransientMessage("success", "Segment ajoute.");
+      pushTransientMessage("success", "Segment ajouté.");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erreur creation segment.";
@@ -1922,7 +1922,7 @@ export default function ConciergeProfilePage() {
           );
         }
         await fetchPricingSegments();
-        pushTransientMessage("success", "Segment mis a jour.");
+        pushTransientMessage("success", "Segment mis à jour.");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Erreur mise a jour segment.";
@@ -1951,7 +1951,7 @@ export default function ConciergeProfilePage() {
           );
         }
         await fetchPricingSegments();
-        pushTransientMessage("success", "Segment supprime.");
+        pushTransientMessage("success", "Segment supprimé.");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Erreur suppression segment.";
@@ -1987,7 +1987,7 @@ export default function ConciergeProfilePage() {
         throw new Error(
           data && typeof data === "object" && "error" in data
             ? String(data.error)
-            : "Impossible de creer la regle.",
+            : "Impossible de créer la règle.",
         );
       }
       await fetchPricingPropertyRules();
@@ -1998,7 +1998,7 @@ export default function ConciergeProfilePage() {
         max_surface_m2: "",
         delta_pct: "0",
       });
-      pushTransientMessage("success", "Regle ajoutee.");
+      pushTransientMessage("success", "Règle ajoutée.");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erreur creation regle.";
@@ -2040,7 +2040,7 @@ export default function ConciergeProfilePage() {
           );
         }
         await fetchPricingPropertyRules();
-        pushTransientMessage("success", "Regle mise a jour.");
+        pushTransientMessage("success", "Règle mise à jour.");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Erreur mise a jour regle.";
@@ -2069,7 +2069,7 @@ export default function ConciergeProfilePage() {
           );
         }
         await fetchPricingPropertyRules();
-        pushTransientMessage("success", "Regle supprimee.");
+        pushTransientMessage("success", "Règle supprimée.");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Erreur suppression regle.";
@@ -2297,7 +2297,7 @@ export default function ConciergeProfilePage() {
       await fetchServicePrices();
       ensureMissionServiceActiveFromPricing(serviceIdNumber, payload.label);
       closePricingModal();
-      pushTransientMessage("success", "Tarif enregistre avec succes.");
+      pushTransientMessage("success", "Tarif enregistré avec succès.");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Impossible d'enregistrer ce tarif.";
@@ -2341,7 +2341,7 @@ export default function ConciergeProfilePage() {
         if (shouldDisableInMissions && typeof row.service_id === "number") {
           disableMissionServiceFromPricing(row.service_id, row.label);
         }
-        pushTransientMessage("success", "Tarif supprime.");
+        pushTransientMessage("success", "Tarif supprimé.");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Impossible de supprimer ce tarif.";
@@ -2516,7 +2516,7 @@ export default function ConciergeProfilePage() {
   );
   const resetAllServicePrices = useCallback(async () => {
     if (!canEditTariffConfig || servicePrices.length === 0) return;
-    if (!window.confirm("Reinitialiser la grille et supprimer tous les tarifs personnalises ?")) {
+    if (!window.confirm("Réinitialiser la grille et supprimer tous les tarifs personnalisés ?")) {
       return;
     }
 
@@ -2536,9 +2536,9 @@ export default function ConciergeProfilePage() {
       );
       await fetchServicePrices();
       serviceIdsToDisable.forEach((serviceId) => disableMissionServiceFromPricing(serviceId));
-      pushTransientMessage("success", "Grille tarifaire reinitialisee.");
+      pushTransientMessage("success", "Grille tarifaire réinitialisée.");
     } catch {
-      pushTransientMessage("error", "Erreur pendant la reinitialisation des tarifs.");
+      pushTransientMessage("error", "Erreur pendant la réinitialisation des tarifs.");
     } finally {
       setServicePricesBusyId(null);
     }

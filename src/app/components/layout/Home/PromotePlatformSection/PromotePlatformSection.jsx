@@ -21,7 +21,7 @@ export default function PromotePlatformSection() {
           <span className={styles.eyebrow}>Conciergerie premium</span>
           <h2 className={styles.heroTitle}>Je veux ouvrir ma conciergerie</h2>
           <p className={styles.heroSubtitle}>
-            Structurez votre offre, vos packs, vos tarifs et votre relation proprietaire avec un
+            Structurez votre offre, vos packs, vos tarifs et votre relation propriétaire avec un
             outil pense pour la location saisonniere.
           </p>
           <div className={styles.heroActions}>
@@ -37,7 +37,7 @@ export default function PromotePlatformSection() {
         <div className={styles.introBox}>
           <h3>Une base SaaS pour piloter votre conciergerie</h3>
           <p>
-            Prospection proprietaires, packs de services, devis, factures, missions, planning et
+            Prospection propriétaires, packs de services, devis, factures, missions, planning et
             messagerie: la plateforme centralise le cycle complet.
           </p>
         </div>

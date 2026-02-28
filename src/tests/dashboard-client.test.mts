@@ -52,10 +52,10 @@ test("getMatchesErrorMessage prefers API message and falls back otherwise", () =
   );
   assert.equal(
     getMatchesErrorMessage({ error: "" }),
-    "Impossible de charger les proprietaires compatibles",
+    "Impossible de charger les propriétaires compatibles",
   );
   assert.equal(
     getMatchesErrorMessage(null),
-    "Impossible de charger les proprietaires compatibles",
+    "Impossible de charger les propriétaires compatibles",
   );
 });

@@ -804,12 +804,12 @@ export function PacksTabSection({
         <FiBriefcase />,
         <>
           <p>
-            Creez et gerez vos packs directement depuis votre profil concierge.
-            Vous pourrez ensuite les relier a votre grille tarifaire et vos modeles de contrats.
+            Créez et gérez vos packs directement depuis votre profil concierge.
+            Vous pourrez ensuite les relier à votre grille tarifaire et vos modèles de contrats.
           </p>
           <p>
             <Link href="/dashboard/concierge/services-packages/seed">
-              Ouvrir la page seed test (2 packs + 2 modeles)
+              Ouvrir la page seed test (2 packs + 2 modèles)
             </Link>
           </p>
           <ServicePackageManager
@@ -1284,7 +1284,7 @@ function FicheSidebarCard({
             </p>
           </div>
           <div className={styles.profileStatItem}>
-            <p className={styles.profileStatLabel}>Experience</p>
+            <p className={styles.profileStatLabel}>Expérience</p>
             <p className={styles.profileStatValue}>
               {profile.years_experience != null
                 ? `${profile.years_experience} ans`
@@ -1543,8 +1543,8 @@ function FicheBadgeSection({ styles }: Pick<FicheStaticSidebarSectionProps, "sty
         <span>Badge Verifie</span>
       </h4>
       <p className={styles.badgeText}>
-        Votre profil a ete certifie par nos equipes. Vous profitez d&apos;une
-        visibilite prioritaire sur les recherches de clients Premium.
+        Votre profil a été certifié par nos équipes. Vous profitez d&apos;une
+        visibilité prioritaire sur les recherches de clients Premium.
       </p>
     </div>
   );
@@ -1666,7 +1666,7 @@ export function MissionsTabLayout({
             type="button"
             className={styles.missionProgressTrackButton}
             onClick={onTogglePendingSteps}
-            title="Filtrer les etapes a configurer"
+            title="Filtrer les étapes à configurer"
             aria-pressed={showPendingMissionStepsOnly}
           >
             <div className={styles.missionProgressTrack} aria-hidden="true">
@@ -1848,7 +1848,7 @@ export function MissionServicesSection({
       {unrecognizedActiveMissionLabels.length > 0 && (
         <div className={styles.missionUnknownPanel}>
           <p>
-            Services actifs non reconnus dans le catalogue: {unrecognizedActiveMissionLabels.length}
+            Services actifs non reconnus dans le catalogue : {unrecognizedActiveMissionLabels.length}
           </p>
           <div className={styles.missionUnknownList}>
             {unrecognizedActiveMissionLabels.map((label) => (
@@ -1987,7 +1987,7 @@ export function MissionProgressPanelSection({
           }`}
           onClick={() => setShowPendingMissionStepsOnly(true)}
         >
-          A configurer
+          À configurer
         </button>
       </div>
       <div className={styles.missionProgressList}>
@@ -2019,7 +2019,7 @@ export function MissionProgressPanelSection({
       </div>
       {showPendingMissionStepsOnly && missionProgressSteps.every((step) => step.done) && (
         <p className={styles.missionProgressEmpty}>
-          Tout est configure. Vous pouvez maintenant affiner les reglages.
+          Tout est configuré. Vous pouvez maintenant affiner les réglages.
         </p>
       )}
     </div>
@@ -2382,7 +2382,7 @@ export function TariffPillarsSection({
         <p>Services nommes librement pour plus de transparence.</p>
         <div className={styles.tariffPillarStats}>
           <span>
-            Services configures: <strong>{configuredPricingCount} / {pricingCatalogRowsCount}</strong>
+            Services configurés : <strong>{configuredPricingCount} / {pricingCatalogRowsCount}</strong>
           </span>
           <span>
             Services actifs: <strong>{activeMissionServiceLabelsCount}</strong>
@@ -2461,7 +2461,7 @@ export function TariffBaseSection({
     <section className={styles.tariffSimpleCard}>
       <h3 className={styles.tariffSimpleTitle}>B. Tarif de base</h3>
       <p className={styles.tariffHint}>
-        Definissez votre base de facturation commune a toutes les missions.
+        Définissez votre base de facturation commune à toutes les missions.
       </p>
       <div className={styles.tariffFieldPanel}>
         {renderField("Tarif horaire (EUR/h)", "hourly_rate", sectionId, false, true, "45", "number")}
@@ -2561,7 +2561,7 @@ export function TariffBillingDeskSection({
               <span className={styles.tariffConfigChip}>{missionRowsCount} mission(s) disponible(s)</span>
             </div>
             <p className={styles.tariffHint}>
-              Creez, validez et suivez vos devis/factures depuis une interface unique.
+              Créez, validez et suivez vos devis/factures depuis une interface unique.
             </p>
           </div>
           <div className={styles.tariffToolPanel}>
@@ -2648,7 +2648,7 @@ export function TariffPricingModal({
                 }))
               }
               disabled={saving || !canEdit}
-              placeholder="Ex: Menage villa haute saison"
+              placeholder="Ex : Ménage villa haute saison"
             />
           </label>
           <div className={styles.pricingModalGrid}>
@@ -2715,7 +2715,7 @@ export function TariffPricingModal({
         </div>
         <div className={styles.pricingModalActions}>
           <button type="button" className={styles.pricingActionBtn} onClick={resetState} disabled={saving || !canEdit}>
-            Reinitialiser
+            Réinitialiser
           </button>
           <button type="button" className={styles.pricingActionBtn} onClick={closeModal} disabled={saving}>
             Annuler
@@ -2758,7 +2758,7 @@ export function TariffServicesCatalogSection({
       </p>
       <div className={styles.pricingToolbar}>
         <span className={styles.pricingSummary}>
-          {configuredPricingCount} / {pricingCatalogRowsCount} services configures
+          {configuredPricingCount} / {pricingCatalogRowsCount} services configurés
         </span>
         <div className={styles.pricingToolbarActions}>
           <label className={styles.pricingSelectRow}>
@@ -2777,7 +2777,7 @@ export function TariffServicesCatalogSection({
               checked={showAllPricingServices}
               onChange={(e) => setShowAllPricingServices(e.target.checked)}
             />
-            <span>Afficher tous les services catalogues</span>
+            <span>Afficher tous les services catalogués</span>
           </label>
           <button
             type="button"
@@ -2793,7 +2793,7 @@ export function TariffServicesCatalogSection({
             disabled={!canEditTariffConfig || servicePricesCount === 0 || servicePricesBusyId === "all"}
             onClick={resetAllServicePrices}
           >
-            Reinitialiser
+            Réinitialiser
           </button>
         </div>
       </div>
@@ -2834,7 +2834,7 @@ export function TariffServicesCatalogSection({
                               pricing ? styles.pricingStatusConfigured : styles.pricingStatusMissing
                             }`}
                           >
-                            {pricing ? "Actif" : "Non configure"}
+                            {pricing ? "Actif" : "Non configuré"}
                           </span>
                           {!isActiveMissionService && (
                             <span className={styles.pricingTagMuted}>Hors offre</span>
@@ -2912,7 +2912,7 @@ export function TariffSegmentsSection({
 }: TariffSegmentsSectionProps) {
   return (
     <section className={styles.tariffSimpleCard}>
-      <h3 className={styles.tariffSimpleTitle}>E. Segments proprietaires</h3>
+      <h3 className={styles.tariffSimpleTitle}>E. Segments propriétaires</h3>
       <p className={styles.tariffHint}>
         Appliquez des variations de commission et de set-up selon votre typologie client.
       </p>
@@ -2962,7 +2962,7 @@ export function TariffSegmentsSection({
       {segmentsLoading ? (
         <p className={styles.tariffHint}>Chargement des segments...</p>
       ) : pricingSegments.length === 0 ? (
-        <p className={styles.tariffHint}>Aucun segment configure.</p>
+        <p className={styles.tariffHint}>Aucun segment configuré.</p>
       ) : (
         <div className={styles.pricingSegmentsList}>
           {pricingSegments.map((segment) => (
@@ -3074,7 +3074,7 @@ export function TariffPropertyRulesSection({
   return (
     <section className={styles.tariffSimpleCard}>
       <h3 className={styles.tariffSimpleTitle}>F. Complexite mission</h3>
-      <p className={styles.tariffHint}>Creez des modulateurs par type de bien et surface.</p>
+      <p className={styles.tariffHint}>Créez des modulateurs par type de bien et surface.</p>
       <div className={styles.pricingSegmentsDraft}>
         <select
           aria-label="Service optionnel pour la regle de bien"
@@ -3158,7 +3158,7 @@ export function TariffPropertyRulesSection({
         </button>
       </div>
       {propertyRulesLoading ? (
-        <p className={styles.tariffHint}>Chargement des regles...</p>
+        <p className={styles.tariffHint}>Chargement des règles...</p>
       ) : propertyRules.length === 0 ? (
         <p className={styles.tariffHint}>Aucune regle definie.</p>
       ) : (
@@ -3277,7 +3277,7 @@ export function TariffStrategySection({
     <section className={styles.tariffSimpleCard}>
       <h3 className={styles.tariffSimpleTitle}>G. Simulateur strategique</h3>
       <p className={styles.tariffHint}>
-        Testez un scenario commercial puis injectez-le dans le parcours devis/facturation.
+        Testez un scénario commercial puis injectez-le dans le parcours devis/facturation.
       </p>
       <div className={styles.pricingSegmentsDraft}>
         <select
@@ -3286,7 +3286,7 @@ export function TariffStrategySection({
           value={strategySim.segmentId}
           onChange={(e) => setStrategySim((prev: any) => ({ ...prev, segmentId: e.target.value }))}
         >
-          <option value="">Segment automatique (defaut)</option>
+          <option value="">Segment automatique (défaut)</option>
           {pricingSegments.map((segment) => (
             <option key={segment.id} value={segment.id}>
               {segment.name}
@@ -3394,9 +3394,9 @@ export function TariffStrategySection({
       </div>
       <div className={styles.pricingSegmentsDraft}>
         <input
-          aria-label="Nom du scenario strategique"
+          aria-label="Nom du scénario stratégique"
           type="text"
-          placeholder="Nom du scenario (ex: Premium Paris)"
+          placeholder="Nom du scénario (ex : Premium Paris)"
           value={scenarioDraftName}
           disabled={!canEditTariffConfig}
           onChange={(e) => setScenarioDraftName(e.target.value)}
@@ -3407,22 +3407,22 @@ export function TariffStrategySection({
           disabled={!canEditTariffConfig || scenariosBusyId === "create"}
           onClick={createPricingScenario}
         >
-          {scenariosBusyId === "create" ? "Enregistrement..." : "Enregistrer scenario"}
+          {scenariosBusyId === "create" ? "Enregistrement..." : "Enregistrer scénario"}
         </button>
         <button type="button" className={styles.pricingActionBtn} onClick={resetStrategySim}>
-          Reinitialiser simulation
+          Réinitialiser simulation
         </button>
       </div>
       {scenariosLoading ? (
-        <p className={styles.tariffHint}>Chargement des scenarios...</p>
+        <p className={styles.tariffHint}>Chargement des scénarios...</p>
       ) : pricingScenarios.length === 0 ? (
-        <p className={styles.tariffHint}>Aucun scenario enregistre.</p>
+        <p className={styles.tariffHint}>Aucun scénario enregistré.</p>
       ) : (
         <div className={styles.pricingSegmentsList}>
           {pricingScenarios.map((row) => (
             <article key={row.id} className={styles.pricingSegmentRow}>
               <strong>{row.name}</strong>
-              <span>{row.is_default ? "Par defaut" : "Scenario"}</span>
+              <span>{row.is_default ? "Par défaut" : "Scénario"}</span>
               <div className={styles.pricingRowActions}>
                 <button
                   type="button"

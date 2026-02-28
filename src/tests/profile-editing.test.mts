@@ -98,7 +98,7 @@ test("profile save helpers build expected payloads", () => {
 test("safe profile UI messages avoid corrupted dashboard labels", () => {
   assert.equal(
     buildProfileSuccessMessageSafe("Photo de profil"),
-    "Photo de profil mis a jour avec succes",
+    "Photo de profil mis à jour avec succès",
   );
 
   assert.equal(

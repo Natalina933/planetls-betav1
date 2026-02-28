@@ -18,7 +18,7 @@ function toTimestamp(value: string | null) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "A planifier";
+  if (!value) return "À planifier";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -81,7 +81,7 @@ export default function ConciergePlanningPage() {
         .map((mission) => ({
           title: mission.title || "Mission urgente",
           meta: formatDate(mission.scheduled_start),
-          description: `${mission.status || "Statut non renseigne"} - priorite urgente.`,
+          description: `${mission.status || "Statut non renseigne"} - priorité urgente.`,
           href: "/dashboard/concierge/profile?tab=missions",
           actionLabel: "Traiter",
           tone: "warning" as const,
@@ -97,7 +97,7 @@ export default function ConciergePlanningPage() {
           title: mission.title || "Mission sans date",
           meta: mission.status || "Statut non renseigne",
           description:
-            "Mission encore sans date planifiee. A cadrer pour fiabiliser le planning terrain.",
+            "Mission encore sans date planifiée. À cadrer pour fiabiliser le planning terrain.",
           href: "/dashboard/concierge/profile?tab=missions",
           actionLabel: "Planifier",
           tone: "warning" as const,
@@ -117,7 +117,7 @@ export default function ConciergePlanningPage() {
       .map(([status, count]) => ({
         title: status.replaceAll("_", " "),
         meta: `${count} mission(s)`,
-        description: "Etat actuel de vos interventions dans le pipe operationnel.",
+        description: "État actuel de vos interventions dans le pipe opérationnel.",
         href: "/dashboard/concierge/profile?tab=missions",
         actionLabel: "Voir les missions",
         tone:
@@ -133,9 +133,9 @@ export default function ConciergePlanningPage() {
       upcoming.map((mission) => ({
         title: mission.title || "Mission sans titre",
         meta: formatDate(mission.scheduled_start),
-        description: `${mission.status || "Statut non renseigne"}${mission.priority ? ` - Priorite ${mission.priority}` : ""}`,
+        description: `${mission.status || "Statut non renseigne"}${mission.priority ? ` - Priorité ${mission.priority}` : ""}`,
         href: "/dashboard/concierge/profile?tab=missions",
-        actionLabel: "Mettre a jour",
+        actionLabel: "Mettre à jour",
         tone: mission.priority === "urgent" ? ("warning" as const) : ("default" as const),
       })),
     [upcoming],
@@ -147,10 +147,10 @@ export default function ConciergePlanningPage() {
       title="Planning des interventions"
       description={
         loading
-          ? "Preparation de votre planning..."
-          : error || "Visualisez vos prochaines interventions et reperez vite les urgences a traiter."
+          ? "Préparation de votre planning..."
+          : error || "Visualisez vos prochaines interventions et repérez vite les urgences à traiter."
       }
-      chips={[`${missions.length} mission(s) chargee(s)`, `${urgent} urgence(s)`]}
+      chips={[`${missions.length} mission(s) chargée(s)`, `${urgent} urgence(s)`]}
       actions={[
         { label: "Voir le calendrier dashboard", href: "/dashboard/concierge" },
         { label: "Ouvrir les missions", href: "/dashboard/concierge/profile?tab=missions" },
@@ -159,7 +159,7 @@ export default function ConciergePlanningPage() {
         {
           label: "A venir",
           value: loading ? "..." : String(upcoming.length),
-          hint: "Interventions planifiees prochainement",
+          hint: "Interventions planifiées prochainement",
         },
         {
           label: "Urgences",
@@ -169,7 +169,7 @@ export default function ConciergePlanningPage() {
         {
           label: "Sans date",
           value: loading ? "..." : String(unscheduledMissions.length),
-          hint: "Missions encore a planifier",
+          hint: "Missions encore à planifier",
         },
       ]}
       cards={
@@ -194,7 +194,7 @@ export default function ConciergePlanningPage() {
                     "Ajoutez ou confirmez une mission pour voir vos prochaines interventions ici.",
                 actions: [
                   {
-                    label: "Creer une mission",
+                    label: "Créer une mission",
                     href: "/dashboard/concierge/profile?tab=missions",
                     variant: "primary",
                   },
@@ -216,11 +216,11 @@ export default function ConciergePlanningPage() {
         {
           title: "Etat du pipe missions",
           description:
-            "Repartition rapide des missions par statut pour voir ou se concentre votre charge operationnelle.",
+            "Répartition rapide des missions par statut pour voir où se concentre votre charge opérationnelle.",
           emptyText:
             loading
               ? "Analyse des statuts en cours."
-              : error || "Aucune mission disponible pour etablir un etat des lieux.",
+              : error || "Aucune mission disponible pour établir un état des lieux.",
           items: statusBreakdown,
         },
         {
@@ -236,11 +236,11 @@ export default function ConciergePlanningPage() {
         {
           title: "Missions a planifier",
           description:
-            "Liste des interventions sans date fixe pour eviter les angles morts dans le planning.",
+            "Liste des interventions sans date fixe pour éviter les angles morts dans le planning.",
           emptyText:
             loading
               ? "Analyse des missions sans date."
-              : error || "Toutes les missions actives ont deja une date planifiee.",
+              : error || "Toutes les missions actives ont déjà une date planifiée.",
           items: unscheduledMissions,
         },
       ]}

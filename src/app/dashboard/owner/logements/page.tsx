@@ -82,7 +82,7 @@ export default function OwnerLogementsPage() {
             <div>
               <p>Vous n'avez pas encore de logement visible sur votre compte.</p>
               <p>
-                Commencez par creer un logement pour centraliser vos biens, vos missions et vos
+                Commencez par créer un logement pour centraliser vos biens, vos missions et vos
                 futurs devis.
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function OwnerLogementsPage() {
                     <span>{property.ville || "Ville non renseignee"}</span>
                     <span>{property.adresse || "Adresse non renseignee"}</span>
                     <span>Plateforme : {property.plateforme || "Non renseignee"}</span>
-                    <span>Capacite : {property.infos?.capacite ?? "-"}</span>
+                    <span>Capacité : {property.infos?.capacite ?? "-"}</span>
                     <span>Chambres : {property.infos?.nb_chambres ?? "-"}</span>
                   </div>
 
@@ -121,7 +121,7 @@ export default function OwnerLogementsPage() {
                         </span>
                       ))
                     ) : (
-                      <span className={styles.chip}>Equipements non renseignes</span>
+                      <span className={styles.chip}>Équipements non renseignés</span>
                     )}
                   </div>
                 </article>

@@ -13,7 +13,7 @@ type ContactConversation = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Aucun message recent";
+  if (!value) return "Aucun message récent";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -67,12 +67,12 @@ export default function ConciergeContactsPage() {
         .filter((item) => item.status !== "closed")
         .slice(0, 6)
         .map((conversation) => ({
-          title: conversation.counterpart_name || "Proprietaire",
+          title: conversation.counterpart_name || "Propriétaire",
           meta: formatDate(conversation.last_message_at),
           description:
-            `${conversation.subject || "Conversation directe"} - ${conversation.last_message_preview || "Aucun apercu disponible."}`,
+            `${conversation.subject || "Conversation directe"} - ${conversation.last_message_preview || "Aucun aperçu disponible."}`,
           href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
-          actionLabel: "Reprendre l'echange",
+          actionLabel: "Reprendre l'échange",
         })),
     [items],
   );
@@ -86,8 +86,8 @@ export default function ConciergeContactsPage() {
         .filter((item) => item.status !== "closed" && olderThanDays(item.last_message_at, 5))
         .slice(0, 5)
         .map((conversation) => ({
-          title: conversation.counterpart_name || "Proprietaire",
-          meta: "Relance a faire",
+          title: conversation.counterpart_name || "Propriétaire",
+          meta: "Relance à faire",
           description:
             `${conversation.subject || "Conversation directe"} - dernier message ${formatDate(conversation.last_message_at)}.`,
           href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
@@ -102,12 +102,12 @@ export default function ConciergeContactsPage() {
         .filter((item) => item.status !== "closed" && !olderThanDays(item.last_message_at, 2))
         .slice(0, 5)
         .map((conversation) => ({
-          title: conversation.counterpart_name || "Proprietaire",
+          title: conversation.counterpart_name || "Propriétaire",
           meta: "Conversation chaude",
           description:
-            `${conversation.subject || "Conversation directe"} - dernier echange ${formatDate(conversation.last_message_at)}.`,
+            `${conversation.subject || "Conversation directe"} - dernier échange ${formatDate(conversation.last_message_at)}.`,
           href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
-          actionLabel: "Continuer l'echange",
+          actionLabel: "Continuer l'échange",
           tone: "success" as const,
         })),
     [items],
@@ -115,13 +115,13 @@ export default function ConciergeContactsPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Relation proprietaires"
+      eyebrow="Relation propriétaires"
       title="Contacts concierge"
       description={
         loading
-          ? "Chargement de vos proprietaires et opportunites en cours..."
+          ? "Chargement de vos propriétaires et opportunités en cours..."
           : error ||
-            "Retrouvez les proprietaires deja engages, les reprises de contact et vos echanges les plus recents."
+            "Retrouvez les propriétaires déjà engagés, les reprises de contact et vos échanges les plus récents."
       }
       chips={[
         `${items.length} contact(s)`,
@@ -129,13 +129,13 @@ export default function ConciergeContactsPage() {
       ]}
       actions={[
         { label: "Ouvrir la messagerie", href: "/dashboard/concierge/messages" },
-        { label: "Trouver de nouveaux proprietaires", href: "/dashboard/concierge/recherche" },
+        { label: "Trouver de nouveaux propriétaires", href: "/dashboard/concierge/recherche" },
       ]}
       metrics={[
         {
           label: "Contacts suivis",
           value: loading ? "..." : String(items.length),
-          hint: "Base relationnelle concierge / proprietaires",
+          hint: "Base relationnelle concierge / propriétaires",
         },
         {
           label: "Conversations actives",
@@ -146,8 +146,8 @@ export default function ConciergeContactsPage() {
       cards={
         recentContacts.length > 0
           ? recentContacts.map((conversation) => ({
-              title: conversation.counterpart_name || "Proprietaire",
-              text: `${conversation.subject || "Conversation directe"} - ${conversation.last_message_preview || "Aucun apercu"} (${formatDate(conversation.last_message_at)})`,
+              title: conversation.counterpart_name || "Propriétaire",
+              text: `${conversation.subject || "Conversation directe"} - ${conversation.last_message_preview || "Aucun aperçu"} (${formatDate(conversation.last_message_at)})`,
               actions: [
                 {
                   label: "Voir la conversation",
@@ -162,7 +162,7 @@ export default function ConciergeContactsPage() {
                 text: loading
                   ? "Synchronisation des contacts en cours."
                   : error ||
-                    "Lancez une prise de contact depuis la recherche proprietaires pour alimenter cette vue.",
+                    "Lancez une prise de contact depuis la recherche propriétaires pour alimenter cette vue.",
                 actions: [
                   {
                     label: "Explorer les annonces",
@@ -175,33 +175,33 @@ export default function ConciergeContactsPage() {
       }
       detailSections={[
         {
-          title: "Contacts a suivre",
+          title: "Contacts à suivre",
           description:
-            "Retrouvez les conversations ouvertes qui meritent une relance ou une prochaine etape commerciale.",
+            "Retrouvez les conversations ouvertes qui méritent une relance ou une prochaine étape commerciale.",
           emptyText:
             loading
               ? "Chargement des conversations en cours."
-              : error || "Aucun contact actif a relancer pour le moment.",
+              : error || "Aucun contact actif à relancer pour le moment.",
           items: followUps,
         },
         {
           title: "Relances commerciales",
           description:
-            "Conversations qui refroidissent et qui meritent une reprise de contact proactive.",
+            "Conversations qui refroidissent et qui méritent une reprise de contact proactive.",
           emptyText:
             loading
               ? "Analyse des relances commerciales."
-              : error || "Aucune relance prioritaire detectee.",
+              : error || "Aucune relance prioritaire détectée.",
           items: dormantConversations,
         },
         {
-          title: "Opportunites recentes",
+          title: "Opportunités récentes",
           description:
-            "Conversations encore chaudes a traiter rapidement pour maximiser la conversion.",
+            "Conversations encore chaudes à traiter rapidement pour maximiser la conversion.",
           emptyText:
             loading
-              ? "Chargement des conversations recentes."
-              : error || "Aucune opportunite recente a traiter.",
+              ? "Chargement des conversations récentes."
+              : error || "Aucune opportunité récente à traiter.",
           items: freshOpportunities,
         },
       ]}

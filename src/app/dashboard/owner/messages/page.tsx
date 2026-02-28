@@ -38,7 +38,7 @@ type ConversationDetailPayload = {
 };
 
 function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activite";
+  if (!value) return "Aucune activité";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
 
@@ -156,7 +156,7 @@ function OwnerMessagesContent() {
 
   useEffect(() => {
     if (!createdConversationId) return;
-    setSuccess("La conversation a bien ete creee. Vous pouvez maintenant poursuivre ici.");
+    setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
   }, [createdConversationId]);
 
   useEffect(() => {
@@ -192,7 +192,7 @@ function OwnerMessagesContent() {
       setDraftMessage("");
       await loadConversationDetail(activeConversationId);
       await loadConversations(activeConversationId);
-      setSuccess("Message envoye.");
+      setSuccess("Message envoyé.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
     } finally {
@@ -204,7 +204,7 @@ function OwnerMessagesContent() {
     <section className="dashboard-grid">
       <div className={styles.page}>
         <header className={styles.header}>
-          <h1>Messagerie proprietaire</h1>
+          <h1>Messagerie propriétaire</h1>
           <p>
             Retrouvez vos echanges avec les concierges et poursuivez vos conversations sans quitter
             le dashboard.
@@ -267,7 +267,7 @@ function OwnerMessagesContent() {
             ) : (
               <>
                 <div className={styles.threadHeader}>
-                  <h2>{detail.conversation.subject || "Conversation proprietaire"}</h2>
+                  <h2>{detail.conversation.subject || "Conversation propriétaire"}</h2>
                   <span>{detail.conversation.status || detail.conversation.source}</span>
                 </div>
 

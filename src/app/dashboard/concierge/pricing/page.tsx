@@ -48,13 +48,21 @@ export default async function ConciergePricingPage({ searchParams }: PageProps) 
         >
           Tarification concierge
         </span>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "1rem",
+            flexWrap: "wrap",
+          }}
+        >
           <div style={{ display: "grid", gap: "0.45rem" }}>
             <h1 style={{ margin: 0, color: "#3f2f14" }}>Grille tarifaire</h1>
             <p style={{ margin: 0, color: "#5f5237", maxWidth: "72ch", lineHeight: 1.55 }}>
               {packageId
-                ? `Creation ou ajustement d'un tarif lie au pack ${packageName ?? packageId}.`
-                : "Structurez vos prestations, commissions et forfaits pour transformer votre activite de conciergerie en offre claire et vendable."}
+                ? `Création ou ajustement d'un tarif lié au pack ${packageName ?? packageId}.`
+                : "Structurez vos prestations, commissions et forfaits pour transformer votre activité de conciergerie en offre claire et vendable."}
             </p>
           </div>
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -62,7 +70,7 @@ export default async function ConciergePricingPage({ searchParams }: PageProps) 
               Voir mes packs
             </Link>
             <Link href="/dashboard/concierge/profile?tab=tarifs" style={{ color: "#7b5b23", fontWeight: 700 }}>
-              Retour a ma conciergerie
+              Retour à ma conciergerie
             </Link>
           </div>
         </div>

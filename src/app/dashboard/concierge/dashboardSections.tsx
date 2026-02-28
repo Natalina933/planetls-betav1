@@ -68,12 +68,12 @@ export function DashboardHeader({
       </div>
 
       <p className={styles.subtitle}>
-        Bienvenue, {displayName}. Gerez l&apos;ensemble de vos proprietes et services.
+        Bienvenue, {displayName}. Gérez l&apos;ensemble de vos propriétés et services.
       </p>
 
       <div className={styles.headerActions}>
         <Link href="/abonnement/concierge-pro" className={styles.subscriptionLink}>
-          {isPro ? "Voir mon abonnement PRO" : "Passer a Concierge PRO"}
+          {isPro ? "Voir mon abonnement PRO" : "Passer à Concierge PRO"}
         </Link>
       </div>
 
@@ -88,12 +88,12 @@ export function DashboardHeader({
 
       {typeof averageRating === "number" ? (
         <p className={styles.ratingSummary}>
-          Satisfaction moyenne: {averageRating.toFixed(1)} / 5
+          Satisfaction moyenne : {averageRating.toFixed(1)} / 5
           {ratingsCount > 0 ? ` sur ${ratingsCount} avis` : ""}
         </p>
       ) : (
         <p className={styles.ratingSummary}>
-          Aucun avis client consolide pour le moment.
+          Aucun avis client consolidé pour le moment.
         </p>
       )}
     </header>
@@ -108,7 +108,7 @@ export function MatchesSection({
   return (
     <section className={styles.matchesSection}>
       <div className={styles.matchesHeader}>
-        <h2>Proprietaires compatibles</h2>
+        <h2>Propriétaires compatibles</h2>
         <Link href="/dashboard/concierge/recherche" className={styles.matchesHeaderAction}>
           Ouvrir la recherche
         </Link>
@@ -124,14 +124,14 @@ export function MatchesSection({
 
       {!matchesLoading && !matchesError && matches.length === 0 ? (
         <p className={styles.matchesInfo}>
-          Aucun proprietaire compatible pour le moment. Affinez vos missions et votre zone.
+          Aucun propriétaire compatible pour le moment. Affinez vos missions et votre zone.
         </p>
       ) : null}
 
       {!matchesLoading && !matchesError && matches.length > 0 ? (
         <>
           <p className={styles.matchesInfo}>
-            Nous avons trouve {matches.length} profil(s) proche(s) de votre zone.
+            Nous avons trouvé {matches.length} profil(s) proche(s) de votre zone.
           </p>
           <div className={styles.matchesGrid}>
             {matches.map((match) => (
@@ -141,17 +141,17 @@ export function MatchesSection({
                   <span className={styles.matchScore}>{match.compatibility_score}%</span>
                 </div>
                 <p className={styles.matchMeta}>
-                  {match.city ?? "Ville non renseignee"}
+                  {match.city ?? "Ville non renseignée"}
                   {typeof match.distance_km === "number" ? ` - ${match.distance_km} km` : ""}
                 </p>
                 <p className={styles.matchMeta}>
-                  Compatibilite: {match.compatibility_ratio ?? "n/a"}
+                  Compatibilité : {match.compatibility_ratio ?? "n/a"}
                 </p>
                 <p className={styles.matchServices}>
-                  Services:{" "}
+                  Services :{" "}
                   {match.services_wanted.length > 0
                     ? match.services_wanted.slice(0, 3).join(", ")
-                    : "non renseignes"}
+                    : "non renseignés"}
                 </p>
               </article>
             ))}
@@ -166,14 +166,14 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
   return (
     <div className={styles.dashboardGrid}>
       <DashboardCard
-        title="Reservations Actives"
+        title="Réservations Actives"
         value="12"
         icon={Zap}
-        description="Total des sejours en cours."
+        description="Total des séjours en cours."
       />
 
       <DashboardCard
-        title="Demandes de Taches"
+        title="Demandes de Tâches"
         value="3"
         icon={MessageSquare}
         description="Nouvelles demandes en attente."
@@ -181,13 +181,13 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
 
       <DashboardCard
         title="Revenu Potentiel"
-        value={isPro ? "EUR 14.5k" : "Acces PRO"}
+        value={isPro ? "EUR 14.5k" : "Accès PRO"}
         icon={DollarSign}
         isLocked={!isPro}
         description={
           isPro
             ? "Mois en cours (estimation)."
-            : "Statistiques avancees reservees aux comptes PRO."
+            : "Statistiques avancées réservées aux comptes PRO."
         }
       />
     </div>
@@ -197,7 +197,7 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
 export function DashboardToolsSection({ isPro }: DashboardToolsSectionProps) {
   return (
     <section className={styles.dashboardSection}>
-      <h2>Fonctionnalites & Outils</h2>
+      <h2>Fonctionnalités & Outils</h2>
       <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
         <BaseFeaturesList />
         {isPro ? <ProToolsSection /> : <ProUpgradeCTA />}
@@ -209,7 +209,7 @@ export function DashboardToolsSection({ isPro }: DashboardToolsSectionProps) {
 export function DashboardPlanningSection({ events }: DashboardPlanningSectionProps) {
   return (
     <section className={styles.dashboardSection}>
-      <h2>Planification & Reservations</h2>
+      <h2>Planification & Réservations</h2>
       <DashboardCalendar events={events} title="" />
     </section>
   );

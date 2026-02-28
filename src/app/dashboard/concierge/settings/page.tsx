@@ -60,7 +60,7 @@ export default function ConciergeSettingsPage() {
         const billingPayload = await billingResponse.json();
 
         if (!profileResponse.ok) {
-          throw new Error(profilePayload?.error || "Impossible de charger vos parametres.");
+          throw new Error(profilePayload?.error || "Impossible de charger vos paramètres.");
         }
         if (!billingResponse.ok) {
           throw new Error(billingPayload?.error || "Impossible de charger l'historique abonnement.");
@@ -69,7 +69,7 @@ export default function ConciergeSettingsPage() {
         setProfile(profilePayload);
         setBilling(billingPayload);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos parametres.");
+        setError(err instanceof Error ? err.message : "Impossible de charger vos paramètres.");
       } finally {
         setLoading(false);
       }
@@ -84,28 +84,28 @@ export default function ConciergeSettingsPage() {
     () => [
       {
         title: "Fiche concierge publique",
-        meta: profile?.service_area || profile?.city || "Zone non renseignee",
+        meta: profile?.service_area || profile?.city || "Zone non renseignée",
         description:
-          "Verifiez votre zone d'intervention, vos services et vos tarifs afin de rester visible et coherent dans la recherche proprietaire.",
+          "Vérifiez votre zone d'intervention, vos services et vos tarifs afin de rester visible et cohérent dans la recherche propriétaire.",
         href: "/dashboard/concierge/profile?tab=fiche",
-        actionLabel: "Mettre a jour la fiche",
+        actionLabel: "Mettre à jour la fiche",
       },
       {
         title: "Abonnement et facturation",
         meta: subscription?.isPro ? "PRO actif" : "Standard",
         description:
           subscription?.isPro
-            ? `Derniere synchronisation ${formatDate(subscription.updatedAt)}.`
-            : "Passez a PRO pour renforcer votre visibilite et afficher votre badge premium.",
+            ? `Dernière synchronisation ${formatDate(subscription.updatedAt)}.`
+            : "Passez à PRO pour renforcer votre visibilité et afficher votre badge premium.",
         href: "/abonnement/concierge-pro",
-        actionLabel: "Gerer l'abonnement",
+        actionLabel: "Gérer l'abonnement",
         tone: subscription?.isPro ? ("success" as const) : ("warning" as const),
       },
       {
         title: "Documents et conformite",
-        meta: profile?.email || "Email non renseigne",
+        meta: profile?.email || "Email non renseigné",
         description:
-          "Gardez vos documents, vos informations d'assurance et vos supports commerciaux a jour dans votre profil.",
+          "Gardez vos documents, vos informations d'assurance et vos supports commerciaux à jour dans votre profil.",
         href: "/dashboard/concierge/profile?tab=documents",
         actionLabel: "Verifier mes documents",
       },
@@ -115,9 +115,9 @@ export default function ConciergeSettingsPage() {
   const recentBillingEvents = useMemo(
     () =>
       recentEvents.slice(0, 5).map((event) => ({
-        title: event.stripe_event_type || "Evenement Stripe",
+        title: event.stripe_event_type || "Événement Stripe",
         meta: formatDate(event.created_at),
-        description: `Source: ${event.source || "indisponible"}. Suivez l'etat de votre abonnement et de vos synchronisations.`,
+        description: `Source: ${event.source || "indisponible"}. Suivez l'état de votre abonnement et de vos synchronisations.`,
         href: "/dashboard/concierge/billing",
         actionLabel: "Voir l'historique",
       })),
@@ -127,16 +127,16 @@ export default function ConciergeSettingsPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Compte"
-      title="Parametres concierge"
+      title="Paramètres concierge"
       description={
         loading
           ? "Chargement de votre configuration..."
           : error ||
-            "Retrouvez les reperes de votre compte, vos acces sensibles et les raccourcis pour maintenir votre fiche concierge a jour."
+            "Retrouvez les repères de votre compte, vos accès sensibles et les raccourcis pour maintenir votre fiche concierge à jour."
       }
       chips={[
         profile?.role === "concierge_pro" ? "Compte PRO" : "Compte Standard",
-        profile?.service_area || profile?.city || "Zone non renseignee",
+        profile?.service_area || profile?.city || "Zone non renseignée",
       ]}
       actions={[
         { label: "Modifier ma fiche", href: "/dashboard/concierge/profile?tab=fiche" },
@@ -156,16 +156,16 @@ export default function ConciergeSettingsPage() {
         {
           label: "Events Stripe",
           value: loading ? "..." : String(recentEvents.length),
-          hint: "Historique recent disponible",
+          hint: "Historique récent disponible",
         },
       ]}
       cards={[
         {
-          title: "Identite de compte",
+          title: "Identité de compte",
           text: `${profile?.first_name || profile?.company_name || "Compte concierge"} - ${profile?.email || "email non disponible"}`,
           actions: [
             {
-              label: "Mettre a jour mon profil",
+              label: "Mettre à jour mon profil",
               href: "/dashboard/concierge/profile?tab=fiche",
               variant: "primary",
             },
@@ -175,8 +175,8 @@ export default function ConciergeSettingsPage() {
           title: "Abonnement et facturation",
           text:
             profile?.role === "concierge_pro"
-              ? "Votre compte PRO est actif. Verifiez vos references Stripe et votre historique de paiement."
-              : "Passez a PRO pour booster votre visibilite et debloquer les outils premium.",
+              ? "Votre compte PRO est actif. Vérifiez vos références Stripe et votre historique de paiement."
+              : "Passez à PRO pour booster votre visibilité et débloquer les outils premium.",
           actions: [
             {
               label: "Historique Stripe",
@@ -186,9 +186,9 @@ export default function ConciergeSettingsPage() {
           ],
         },
         {
-          title: "Configuration operationnelle",
+          title: "Configuration opérationnelle",
           text:
-            "Vos zones, vos missions et vos documents restent accessibles depuis la fiche concierge. Utilisez cet espace comme point de controle global.",
+            "Vos zones, vos missions et vos documents restent accessibles depuis la fiche concierge. Utilisez cet espace comme point de contrôle global.",
           actions: [
             {
               label: "Ouvrir documents et avis",
@@ -202,18 +202,18 @@ export default function ConciergeSettingsPage() {
         {
           title: "Checklist de configuration",
           description:
-            "Les principaux points de controle de votre compte concierge, pour garder votre profil, vos acces et votre offre alignes.",
-          emptyText: "Aucune configuration a afficher.",
+            "Les principaux points de contrôle de votre compte concierge, pour garder votre profil, vos accès et votre offre alignés.",
+          emptyText: "Aucune configuration à afficher.",
           items: settingsChecklist,
         },
         {
-          title: "Historique abonnement recent",
+          title: "Historique abonnement récent",
           description:
-            "Derniers evenements connus lies a Stripe pour verifier rapidement l'etat de synchronisation de votre compte.",
+            "Derniers événements connus liés à Stripe pour vérifier rapidement l'état de synchronisation de votre compte.",
           emptyText:
             loading
               ? "Chargement de l'historique Stripe."
-              : error || "Aucun evenement Stripe recent disponible.",
+              : error || "Aucun événement Stripe récent disponible.",
           items: recentBillingEvents,
         },
       ]}

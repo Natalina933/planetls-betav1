@@ -81,7 +81,7 @@ export default function ConciergeStocksPage() {
           title: `Mission ${mission.id.slice(0, 8)}`,
           meta: mission.status || "Statut non renseigne",
           description:
-            "Prevoir linge, consommables et capacite de reaction adaptes a cette intervention urgente.",
+            "Prévoir linge, consommables et capacité de réaction adaptés à cette intervention urgente.",
           href: "/dashboard/concierge/profile?tab=missions",
           actionLabel: "Verifier la mission",
           tone: "warning" as const,
@@ -163,7 +163,7 @@ export default function ConciergeStocksPage() {
         {
           title: "Controle par logement",
           description:
-            "Passez rapidement en revue les biens a reapprovisionner ou a fiabiliser avant les prochains sejours.",
+            "Passez rapidement en revue les biens à réapprovisionner ou à fiabiliser avant les prochains séjours.",
           emptyText:
             loading
               ? "Chargement des logements."

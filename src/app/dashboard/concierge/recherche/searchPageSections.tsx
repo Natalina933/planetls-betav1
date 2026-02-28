@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { FiMapPin, FiRefreshCw, FiSearch, FiSliders, FiTarget, FiUsers } from "react-icons/fi";
 import styles from "./RecherchePage.module.scss";
@@ -82,10 +84,10 @@ export function SearchHeader({ searching, onRefresh }: SearchHeaderProps) {
     <header className={styles.header}>
       <div className={styles.headerMain}>
         <p className={styles.kicker}>Prospection Concierge</p>
-        <h1>Recherche de proprietaires compatibles</h1>
+        <h1>Recherche de propriétaires compatibles</h1>
         <p>
           Filtrez par zone et services pour identifier rapidement les demandes qui
-          correspondent a votre profil missions.
+          correspondent à votre profil missions.
         </p>
       </div>
       <button type="button" className={styles.refreshBtn} onClick={onRefresh} disabled={searching}>
@@ -108,7 +110,7 @@ export function SearchStatsStrip({
         <strong>{listingsCount}</strong>
       </article>
       <article className={styles.statCard}>
-        <span>Compatibilite forte (60%+)</span>
+        <span>Compatibilité forte (60%+)</span>
         <strong>{totalMatched}</strong>
       </article>
       <article className={styles.statCard}>
@@ -158,7 +160,7 @@ export function SearchFiltersCard({
         </label>
         {allFranceMode && (
           <p className={styles.toggleHint}>
-            Recherche nationale active: ville, code postal et rayon sont ignores.
+            Recherche nationale active : ville, code postal et rayon sont ignorés.
           </p>
         )}
       </div>
@@ -212,7 +214,7 @@ export function SearchFiltersCard({
           {searching ? "Recherche..." : "Rechercher"}
         </button>
         <button type="button" className={styles.ghostBtn} onClick={onResetFilters} disabled={searching}>
-          Reinitialiser services
+          Réinitialiser services
         </button>
       </div>
     </section>
@@ -226,11 +228,11 @@ function SearchServiceFilter({
 }: SearchServiceFilterProps) {
   return (
     <div className={styles.servicesFilter}>
-      <p>Services a matcher</p>
+      <p>Services à matcher</p>
       <div className={styles.servicePills}>
         {availableServiceOptions.length === 0 && (
           <span className={styles.emptyHint}>
-            Aucun service detecte. Activez des services dans l&apos;onglet Missions.
+            Aucun service détecté. Activez des services dans l&apos;onglet Missions.
           </span>
         )}
         {availableServiceOptions.map((service) => {
@@ -261,17 +263,17 @@ export function SearchResultsSection({
       <div className={styles.resultsHeader}>
         <h2>
           <FiTarget size={15} />
-          Resultats
+          Résultats
         </h2>
-        <span>{listings.length} opportunites</span>
+        <span>{listings.length} opportunités</span>
       </div>
 
       {listings.length === 0 && (
         <div className={styles.emptyState}>
           <h3>Aucune annonce compatible pour ces filtres.</h3>
           <p>
-            Elargissez la zone ou retirez quelques filtres services pour afficher plus de
-            profils proprietaires.
+            Élargissez la zone ou retirez quelques filtres services pour afficher plus de
+            profils propriétaires.
           </p>
         </div>
       )}
@@ -310,7 +312,7 @@ function SearchResultCard({
           </p>
         </div>
         <span className={styles.sourceBadge}>
-          {listing.source === "housing" ? "Logement" : "Propriete"}
+          {listing.source === "housing" ? "Logement" : "Propriété"}
         </span>
       </header>
 
@@ -321,26 +323,24 @@ function SearchResultCard({
 
       <div className={styles.metaGrid}>
         <p>
-          <strong>Type:</strong> {listing.property_type ?? "Non renseigne"}
+          <strong>Type :</strong> {listing.property_type ?? "Non renseigné"}
         </p>
         <p>
-          <strong>Surface:</strong>{" "}
-          {typeof listing.surface_m2 === "number"
-            ? `${listing.surface_m2} m2`
-            : "Non renseignee"}
+          <strong>Surface :</strong>{" "}
+          {typeof listing.surface_m2 === "number" ? `${listing.surface_m2} m2` : "Non renseignée"}
         </p>
         <p>
-          <strong>Statut:</strong> {listing.status ?? "Non renseigne"}
+          <strong>Statut :</strong> {listing.status ?? "Non renseigné"}
         </p>
       </div>
 
       {typeof listing.distance_km === "number" && (
-        <p className={styles.distanceLine}>Distance estimee: {listing.distance_km.toFixed(1)} km</p>
+        <p className={styles.distanceLine}>Distance estimée : {listing.distance_km.toFixed(1)} km</p>
       )}
 
       <div className={styles.compatibilityBox}>
         <div className={styles.compatibilityHead}>
-          <strong>Compatibilite</strong>
+          <strong>Compatibilité</strong>
           <span>
             {listing.compatibility_score}% ({listing.compatibility_ratio})
           </span>
@@ -354,10 +354,10 @@ function SearchResultCard({
       </div>
 
       <div className={styles.tagsBlock}>
-        <p>Services recherches</p>
+        <p>Services recherchés</p>
         <div className={styles.tags}>
           {listing.services_wanted.length === 0 && (
-            <span className={styles.tagMuted}>Non renseignes</span>
+            <span className={styles.tagMuted}>Non renseignés</span>
           )}
           {listing.services_wanted.slice(0, 6).map((service) => (
             <span key={`${listing.id}-${service}`} className={styles.tag}>
@@ -372,11 +372,11 @@ function SearchResultCard({
       <footer className={styles.cardFooter}>
         {detailHref ? (
           <Link href={detailHref} className={styles.cardBtn}>
-            Voir le detail
+            Voir le détail
           </Link>
         ) : (
           <button type="button" className={styles.cardBtnGhost}>
-            Detail a brancher
+            Détail à brancher
           </button>
         )}
 

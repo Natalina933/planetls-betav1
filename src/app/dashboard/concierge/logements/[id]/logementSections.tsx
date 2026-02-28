@@ -28,7 +28,7 @@ export function InfosTabSection({
 }: TabSectionProps) {
   return (
     <div>
-      <h2>Informations generales</h2>
+      <h2>Informations générales</h2>
 
       {!editMode ? (
         <ul>
@@ -36,13 +36,13 @@ export function InfosTabSection({
           <li>Adresse : {logement.adresse}</li>
           <li>Ville : {logement.ville}</li>
           <li>Type : {logement.infos?.categorie || "-"}</li>
-          <li>Capacite : {logement.infos?.capacite ?? "-"}</li>
+          <li>Capacité : {logement.infos?.capacite ?? "-"}</li>
           <li>Chambres : {logement.infos?.nb_chambres ?? "-"}</li>
           <li>Plateforme : {logement.plateforme || "-"}</li>
           <li>Statut : {logement.statut}</li>
           <li>Description : {logement.infos?.description || "-"}</li>
           <li>
-            Equipements :{" "}
+            Équipements :{" "}
             {Array.isArray(logement.infos?.equipements) && logement.infos.equipements.length > 0
               ? logement.infos.equipements.join(", ")
               : "-"}
@@ -86,7 +86,7 @@ export function InfosTabSection({
                 infos: { ...prev.infos, capacite: toOptionalNumber(e.target.value) },
               }))
             }
-            placeholder="Capacite"
+            placeholder="Capacité"
           />
           <input
             type="number"
@@ -161,11 +161,11 @@ export function MenageTabSection({
 }: TabSectionProps) {
   return (
     <div>
-      <h2>Menage</h2>
+      <h2>Ménage</h2>
 
       {!editMode ? (
         <ul>
-          <li>Temps : {logement.menage?.temps || "Non defini"}</li>
+          <li>Temps : {logement.menage?.temps || "Non défini"}</li>
           <li>Checklist : {logement.menage?.checklist || "-"}</li>
           <li>Instructions : {logement.menage?.instructions || "-"}</li>
         </ul>
@@ -220,10 +220,10 @@ export function PlanningTabSection({
           </div>
         ))
       ) : (
-        <p>Aucun evenement</p>
+          <p>Aucun événement</p>
       )}
 
-      {editMode && <p>L'edition du planning necessite un module dedie.</p>}
+      {editMode && <p>L'édition du planning nécessite un module dédié.</p>}
     </div>
   );
 }
@@ -254,7 +254,7 @@ export function DocumentsTabSection({
         </ul>
       )}
 
-      {editMode && <p>L'upload de documents necessite un module dedie.</p>}
+      {editMode && <p>L'upload de documents nécessite un module dédié.</p>}
     </div>
   );
 }
@@ -365,7 +365,7 @@ export function TarifsTabSection({
           {logement.contrat?.fichier_pdf && (
             <li>
               <a href={logement.contrat.fichier_pdf} target="_blank" rel="noreferrer">
-                Telecharger le contrat
+                Télécharger le contrat
               </a>
             </li>
           )}

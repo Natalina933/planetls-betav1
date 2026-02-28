@@ -45,7 +45,7 @@ const HeroSection = () => {
             Simplifiez la <span className={styles.highlight}>location saisonniere</span>
           </h1>
           <p className={styles.subHeadline}>
-            PlanetLS connecte <strong>proprietaires</strong>, <strong>concierges</strong> et{" "}
+            PlanetLS connecte <strong>propriétaires</strong>, <strong>concierges</strong> et{" "}
             <strong>prestataires locaux</strong> de confiance.
           </p>
 

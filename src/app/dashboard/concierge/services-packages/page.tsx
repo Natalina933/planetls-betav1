@@ -74,7 +74,7 @@ export default function ServicesPackagesPage() {
           throw new Error(pricingPayload?.error || "Impossible de charger vos tarifs lies.");
         }
         if (!templatesResponse.ok) {
-          throw new Error(templatesPayload?.error || "Impossible de charger vos modeles de contrat.");
+          throw new Error(templatesPayload?.error || "Impossible de charger vos modèles de contrat.");
         }
 
         setCatalog(Array.isArray(catalogPayload) ? catalogPayload : []);
@@ -101,11 +101,11 @@ export default function ServicesPackagesPage() {
     if (packages.length === 0) {
       return [
         {
-          title: "Aucun pack cree pour le moment",
+          title: "Aucun pack créé pour le moment",
           text: loading
             ? "Chargement de vos packs en cours."
             : error ||
-              "Vos packs de services, tarifs lies et modeles de contrat seront centralises ici.",
+              "Vos packs de services, tarifs liés et modèles de contrat seront centralisés ici.",
           actions: [
             {
               label: "Configurer mes packs dans la fiche concierge",
@@ -168,12 +168,12 @@ export default function ServicesPackagesPage() {
         loading
           ? "Chargement de vos packs de services..."
           : error ||
-            "Centralisez vos offres commercialisables, les tarifs associes et les modeles de contrat pour standardiser vos signatures proprietaires."
+            "Centralisez vos offres commercialisables, les tarifs associés et les modèles de contrat pour standardiser vos signatures propriétaires."
       }
       chips={[
         `${packages.length} pack(s)`,
-        `${pricingPackages.length} tarif(s) lie(s)`,
-        `${templates.length} modele(s)`,
+        `${pricingPackages.length} tarif(s) lié(s)`,
+        `${templates.length} modèle(s)`,
       ]}
       actions={[
         { label: "Ouvrir ma fiche concierge", href: "/dashboard/concierge/profile?tab=packs" },
@@ -188,12 +188,12 @@ export default function ServicesPackagesPage() {
         {
           label: "Packs actifs",
           value: loading ? "..." : String(packages.length),
-          hint: "Offres structurees",
+          hint: "Offres structurées",
         },
         {
-          label: "Modeles contrat",
+          label: "Modèles contrat",
           value: loading ? "..." : String(templates.length),
-          hint: "Trames pretes a signer",
+          hint: "Trames prêtes à signer",
         },
       ]}
       cards={cards}

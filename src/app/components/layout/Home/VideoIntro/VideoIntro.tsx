@@ -60,7 +60,7 @@ export default function VideoIntro() {
         </h2>
 
         <p id="video-intro-description" className={styles.videoDescription}>
-          Une plateforme simple, intuitive et professionnelle pour gerer votre activite locative
+          Une plateforme simple, intuitive et professionnelle pour gérer votre activité locative
           saisonniere.
         </p>
 
@@ -73,7 +73,7 @@ export default function VideoIntro() {
         </a>
 
         <p className={styles.joinMessage}>
-          Rejoignez PlanetLS pour structurer votre activite et trouver les bons partenaires.
+          Rejoignez PlanetLS pour structurer votre activité et trouver les bons partenaires.
         </p>
       </div>
     </section>

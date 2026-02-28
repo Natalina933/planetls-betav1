@@ -64,12 +64,12 @@ export default function AddLogementPage() {
         throw new Error(
           typeof result?.error === "string"
             ? result.error
-            : "Impossible de creer le logement",
+            : "Impossible de créer le logement",
         );
       }
 
       setSubmitted(true);
-      setSuccess("Logement enregistre avec succes. Redirection en cours...");
+      setSuccess("Logement enregistré avec succès. Redirection en cours...");
       router.push("/dashboard/concierge/logements");
       router.refresh();
     } catch (err) {
@@ -144,7 +144,7 @@ export default function AddLogementPage() {
         </div>
 
         <div className={styles.formGroup}>
-          <label htmlFor="capacity">Capacite</label>
+          <label htmlFor="capacity">Capacité</label>
           <input
             type="number"
             id="capacity"
@@ -209,7 +209,7 @@ export default function AddLogementPage() {
         </div>
 
         <div className={styles.formGroup}>
-          <label htmlFor="equipments">Equipements</label>
+          <label htmlFor="equipments">Équipements</label>
           <input
             type="text"
             id="equipments"
@@ -223,15 +223,15 @@ export default function AddLogementPage() {
         <div className={styles.formGroup}>
           <label htmlFor="status">Statut</label>
           <select name="status" id="status" value={form.status} onChange={handleChange}>
-            <option value="pret">Pret</option>
-            <option value="menage">Menage en cours</option>
-            <option value="arrivee">Arrivee du jour</option>
-            <option value="depart">Depart du jour</option>
+            <option value="pret">Prêt</option>
+            <option value="menage">Ménage en cours</option>
+            <option value="arrivee">Arrivée du jour</option>
+            <option value="depart">Départ du jour</option>
           </select>
         </div>
 
         <div className={styles.demoNotice}>
-          <p>Resume avant creation</p>
+          <p>Résumé avant création</p>
           <div className={styles.cardMeta}>
             {summary.map((item) => (
               <span key={item.label} className={styles.metaItem}>
@@ -246,7 +246,7 @@ export default function AddLogementPage() {
         </button>
 
         {submitted && (
-          <p className={styles.successMessage}>Logement enregistre avec succes.</p>
+          <p className={styles.successMessage}>Logement enregistré avec succès.</p>
         )}
         {success && <p className={styles.successMessage}>{success}</p>}
         {error && <p className={styles.errorMessage}>{error}</p>}
