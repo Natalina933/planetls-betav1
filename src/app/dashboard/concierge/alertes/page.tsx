@@ -119,10 +119,7 @@ export default function ConciergeAlertesPage() {
     () => buildDraftHousingAlerts(draftHousings),
     [draftHousings],
   );
-  const profileSetupAlerts = useMemo(
-    () => buildProfileSetupAlerts(profile),
-    [profile],
-  );
+  const profileSetupAlerts = useMemo(() => buildProfileSetupAlerts(profile), [profile]);
 
   return (
     <ConciergeWorkspacePage
