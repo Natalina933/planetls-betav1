@@ -94,27 +94,29 @@ interface DocumentsTabSectionProps {
 
 interface FicheTabSectionProps {
   styles: Record<string, string>;
-  profile: any;
+  ficheControls: {
+    profile: any;
+    avatarFile: File | null;
+    defaultAvatar: string;
+    sectionIds: {
+      INFO_PERSO: string;
+      PRESENTATION: string;
+    };
+    setAvatarFile: (file: File | null) => void;
+    handleSocialChange: (
+      field: "website" | "linkedin" | "instagram" | "facebook",
+      value: string,
+    ) => void;
+    errors: Record<string, string>;
+  };
   editProfile: any;
   editingSection: string | null;
-  avatarFile: File | null;
-  defaultAvatar: string;
-  sectionIds: {
-    INFO_PERSO: string;
-    PRESENTATION: string;
-  };
   renderSection: RenderSection;
   renderField: RenderField;
   formatExperienceLabel: (level: "debutant" | "intermediaire" | "experimente" | null) => string;
-  setAvatarFile: (file: File | null) => void;
   setEditProfile: React.Dispatch<React.SetStateAction<any>>;
   handleSaveSection: (sectionTitle: string) => void;
   beginSectionEdit: (sectionId: string) => void;
-  handleSocialChange: (
-    field: "website" | "linkedin" | "instagram" | "facebook",
-    value: string,
-  ) => void;
-  errors: Record<string, string>;
 }
 
 interface FicheSidebarCardProps {
@@ -907,23 +909,10 @@ export function ConciergeDocumentsTabContent(props: DocumentsTabSectionProps) {
 export function ConciergeProfileActiveTabContent({
   activeTab,
   styles,
-  profile,
-  editProfile,
-  editingSection,
-  avatarFile,
-  defaultAvatar,
-  sectionIds,
+  ficheControls,
+  profileEditorControls,
   missionSectionIds,
   tariffSectionIds,
-  renderSection,
-  renderField,
-  formatExperienceLabel,
-  setAvatarFile,
-  setEditProfile,
-  handleSaveSection,
-  beginSectionEdit,
-  handleSocialChange,
-  errors,
   missionProgressControls,
   missionOverviewStats,
   missionQuoteControls,
@@ -941,38 +930,32 @@ export function ConciergeProfileActiveTabContent({
   pricingModalControls,
   billingDeskSectionProps,
 }: any) {
-  if (!profile || !editProfile) return null;
+  if (!ficheControls?.profile || !profileEditorControls?.editProfile) return null;
 
   switch (activeTab) {
     case "fiche":
       return (
         <ConciergeFicheTabContent
           styles={styles}
-          profile={profile}
-          editProfile={editProfile}
-          editingSection={editingSection}
-          avatarFile={avatarFile}
-          defaultAvatar={defaultAvatar}
-          sectionIds={sectionIds}
-          renderSection={renderSection}
-          renderField={renderField}
-          formatExperienceLabel={formatExperienceLabel}
-          setAvatarFile={setAvatarFile}
-          setEditProfile={setEditProfile}
-          handleSaveSection={handleSaveSection}
-          beginSectionEdit={beginSectionEdit}
-          handleSocialChange={handleSocialChange}
-          errors={errors}
+          ficheControls={ficheControls}
+          editProfile={profileEditorControls.editProfile}
+          editingSection={profileEditorControls.editingSection}
+          renderSection={profileEditorControls.renderSection}
+          renderField={profileEditorControls.renderField}
+          formatExperienceLabel={profileEditorControls.formatExperienceLabel}
+          setEditProfile={profileEditorControls.setEditProfile}
+          handleSaveSection={profileEditorControls.handleSaveSection}
+          beginSectionEdit={profileEditorControls.beginSectionEdit}
         />
       );
     case "missions":
       return (
         <ConciergeMissionsTabContent
           styles={styles}
-          renderSection={renderSection}
-          renderField={renderField}
+          renderSection={profileEditorControls.renderSection}
+          renderField={profileEditorControls.renderField}
           sectionIds={missionSectionIds}
-          editingSection={editingSection}
+          editingSection={profileEditorControls.editingSection}
           missionProgressControls={missionProgressControls}
           missionOverviewStats={missionOverviewStats}
           missionQuoteControls={missionQuoteControls}
@@ -983,7 +966,7 @@ export function ConciergeProfileActiveTabContent({
       return (
         <ConciergePacksTabContent
           styles={styles}
-          renderSection={renderSection}
+          renderSection={profileEditorControls.renderSection}
           activeMissionServiceIds={activeMissionServiceCatalogIds}
           activeMissionServiceLabels={activeMissionServiceLabels}
         />
@@ -992,35 +975,35 @@ export function ConciergeProfileActiveTabContent({
       return (
         <ConciergeTariffsTabContent
           styles={styles}
-          renderSection={renderSection}
+          renderSection={profileEditorControls.renderSection}
           sectionIds={tariffSectionIds}
           tariffOverviewControls={tariffOverviewControls}
           tariffFoundationControls={tariffFoundationControls}
           tariffConfigControls={tariffConfigControls}
-          editingSection={editingSection}
+          editingSection={profileEditorControls.editingSection}
           pricingCatalogRows={pricingCatalogRows}
           activeMissionServiceLabels={activeMissionServiceLabels}
-          renderField={renderField}
+          renderField={profileEditorControls.renderField}
           tariffCatalogControls={tariffCatalogControls}
           pricingSegmentsControls={pricingSegmentsControls}
           pricingRulesControls={pricingRulesControls}
           pricingScenarioControls={pricingScenarioControls}
           pricingModalControls={pricingModalControls}
           billingDeskSectionProps={billingDeskSectionProps}
-          formatExperienceLabel={formatExperienceLabel}
+          formatExperienceLabel={profileEditorControls.formatExperienceLabel}
         />
       );
     case "equipe":
       return (
         <ConciergeTeamTabContent
-          renderSection={renderSection}
-          renderField={renderField}
+          renderSection={profileEditorControls.renderSection}
+          renderField={profileEditorControls.renderField}
         />
       );
     case "documents":
       return (
         <ConciergeDocumentsTabContent
-          renderSection={renderSection}
+          renderSection={profileEditorControls.renderSection}
           placeholderClassName={styles.placeholderContent}
         />
       );
@@ -1384,33 +1367,27 @@ function FicheSummarySection({
 
 export function FicheTabSection({
   styles,
-  profile,
+  ficheControls,
   editProfile,
   editingSection,
-  avatarFile,
-  defaultAvatar,
-  sectionIds,
   renderSection,
   renderField,
   formatExperienceLabel,
-  setAvatarFile,
   setEditProfile,
   handleSaveSection,
   beginSectionEdit,
-  handleSocialChange,
-  errors,
 }: FicheTabSectionProps) {
   return (
     <div className={styles.grid}>
       <aside className={styles.leftColumn}>
         <FicheSidebarCard
           styles={styles}
-          profile={profile}
+          profile={ficheControls.profile}
           editProfile={editProfile}
           editingSection={editingSection}
-          avatarFile={avatarFile}
-          defaultAvatar={defaultAvatar}
-          setAvatarFile={setAvatarFile}
+          avatarFile={ficheControls.avatarFile}
+          defaultAvatar={ficheControls.defaultAvatar}
+          setAvatarFile={ficheControls.setAvatarFile}
           setEditProfile={setEditProfile}
           handleSaveSection={handleSaveSection}
           beginSectionEdit={beginSectionEdit}
@@ -1421,11 +1398,11 @@ export function FicheTabSection({
           renderSection={renderSection}
           renderField={renderField}
           editingSection={editingSection}
-          sectionId={sectionIds.PRESENTATION}
+          sectionId={ficheControls.sectionIds.PRESENTATION}
         />
 
         <FicheBadgeSection styles={styles} />
-        <FicheSummarySection profile={profile} renderSection={renderSection} />
+        <FicheSummarySection profile={ficheControls.profile} renderSection={renderSection} />
       </aside>
 
       <section className={styles.rightColumn}>
@@ -1435,7 +1412,7 @@ export function FicheTabSection({
           renderField={renderField}
           editProfile={editProfile}
           editingSection={editingSection}
-          sectionId={sectionIds.INFO_PERSO}
+          sectionId={ficheControls.sectionIds.INFO_PERSO}
           setEditProfile={setEditProfile}
           formatExperienceLabel={formatExperienceLabel}
         />
@@ -1447,8 +1424,8 @@ export function FicheTabSection({
           editProfile={editProfile}
           editingSection={editingSection}
           beginSectionEdit={beginSectionEdit}
-          handleSocialChange={handleSocialChange}
-          errors={errors}
+          handleSocialChange={ficheControls.handleSocialChange}
+          errors={ficheControls.errors}
         />
       </section>
     </div>
