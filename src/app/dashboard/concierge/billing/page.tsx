@@ -22,7 +22,7 @@ type BillingHistoryPayload = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Non renseignée";
+  if (!value) return "Non renseignee";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("fr-FR", {
@@ -37,7 +37,7 @@ function formatDate(value: string | null) {
 function getSourceLabel(source: string | null) {
   if (source === "webhook") return "Webhook Stripe";
   if (source === "return") return "Retour navigateur";
-  return "Source non renseignée";
+  return "Source non renseignee";
 }
 
 export default function ConciergeBillingPage() {
@@ -86,10 +86,10 @@ export default function ConciergeBillingPage() {
     if (!data || data.events.length === 0) {
       return [
         {
-          title: "Aucun événement pour le moment",
+          title: "Aucun evenement pour le moment",
           text: loading
             ? "Chargement de l'historique en cours."
-            : error || "Les paiements et webhooks apparaîtront ici dès qu'un checkout sera traité.",
+            : error || "Les paiements et webhooks apparaitront ici des qu'un checkout sera traite.",
           actions: [
             {
               label: "Voir l'abonnement PRO",
@@ -110,20 +110,20 @@ export default function ConciergeBillingPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Abonnement et paiements"
-      title="Historique Stripe concierge"
+      title="Facturation Stripe"
       description={
         loading
           ? "Synchronisation de votre historique Stripe..."
           : error ||
-            "Suivez l'état de votre abonnement PRO, vos références Stripe et les derniers événements synchronisés sur votre compte."
+            "Suivez l'etat de votre abonnement PRO, vos references Stripe et les derniers evenements synchronises sur votre compte."
       }
       chips={[
         data?.subscription?.is_pro ? "PRO actif" : "Compte standard",
-        `${data?.events.length ?? 0} événement(s)`,
+        `${data?.events.length ?? 0} evenement(s)`,
       ]}
       actions={[
         { label: "Voir mon abonnement PRO", href: "/abonnement/concierge-pro" },
-        { label: "Mettre à jour mes tarifs", href: "/dashboard/concierge/pricing" },
+        { label: "Mettre a jour mes tarifs", href: "/dashboard/concierge/pricing" },
       ]}
       metrics={[
         {
@@ -135,11 +135,11 @@ export default function ConciergeBillingPage() {
           value: loading ? "..." : getSourceLabel(data?.subscription?.source ?? null),
         },
         {
-          label: "Référence",
+          label: "Reference",
           value: loading ? "..." : data?.subscription?.reference || "-",
         },
         {
-          label: "Dernière synchro",
+          label: "Derniere synchro",
           value: loading ? "..." : formatDate(data?.subscription?.updated_at ?? null),
         },
       ]}

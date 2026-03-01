@@ -1,4 +1,3 @@
-// src/app/login/LoginPage.tsx
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
@@ -20,13 +19,13 @@ export default function LoginPage() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === "email") {
-      setErrors(prev => ({ ...prev, email: validateEmail(value) ? "" : "Email invalide" }));
+      setErrors((prev) => ({ ...prev, email: validateEmail(value) ? "" : "Email invalide" }));
     }
     if (name === "password") {
-      setErrors(prev => ({ ...prev, password: value.length >= 8 ? "" : "Minimum 8 caractères" }));
+      setErrors((prev) => ({ ...prev, password: value.length >= 8 ? "" : "Minimum 8 caracteres" }));
     }
   };
 
@@ -36,7 +35,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!canSubmit()) {
-      setErrors(prev => ({ ...prev, auth: "Veuillez corriger les erreurs" }));
+      setErrors((prev) => ({ ...prev, auth: "Veuillez corriger les erreurs" }));
       return;
     }
 
@@ -52,9 +51,8 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result?.error) {
-      setErrors(prev => ({ ...prev, auth: "Email ou mot de passe incorrect" }));
+      setErrors((prev) => ({ ...prev, auth: "Email ou mot de passe incorrect" }));
     } else {
-      // 🔁 Redirection personnalisée selon le rôle
       try {
         const res = await fetch("/api/auth/session");
         const session = await res.json();
@@ -71,13 +69,15 @@ export default function LoginPage() {
             break;
           case "provider":
           case "provider_pro":
+          case "artisan":
+          case "artisan_pro":
             router.push("/dashboard/provider");
             break;
           default:
             router.push("/dashboard");
         }
       } catch (err) {
-        console.error("Erreur lors de la récupération du rôle :", err);
+        console.error("Erreur lors de la recuperation du role :", err);
         router.push("/dashboard");
       }
     }
@@ -87,11 +87,10 @@ export default function LoginPage() {
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>Connexion</h1>
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        {/* Email */}
         <label htmlFor="email">Email</label>
         <div className={styles.inputWrapper}>
           <input
-          suppressHydrationWarning
+            suppressHydrationWarning
             id="email"
             name="email"
             type="email"
@@ -115,7 +114,6 @@ export default function LoginPage() {
           )}
         </div>
 
-        {/* Password */}
         <label htmlFor="password">Mot de passe</label>
         <div className={styles.passwordInputWrapper}>
           <input
@@ -133,7 +131,7 @@ export default function LoginPage() {
           />
           <button
             type="button"
-            onClick={() => setShowPassword(v => !v)}
+            onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
             className={styles.passwordToggle}
           >
@@ -146,7 +144,6 @@ export default function LoginPage() {
           </small>
         )}
 
-        {/* Auth errors */}
         {errors.auth && (
           <div role="alert" className={styles.errorMsg} style={{ marginTop: "1rem" }}>
             {errors.auth}
@@ -159,7 +156,7 @@ export default function LoginPage() {
           className={styles.submitButton}
           aria-busy={loading}
         >
-          {loading ? "⏳ Connexion en cours..." : "Se connecter"}
+          {loading ? "Connexion en cours..." : "Se connecter"}
         </button>
       </form>
     </div>

@@ -7,57 +7,94 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
-// Types autorisés pour la sidebar
-export type UserType = "admin" | "concierge" | "owner" | "providence";
+export type UserType = "admin" | "concierge" | "owner" | "provider";
 
-// Structure du contexte
 interface UserTypeContextType {
   userType: UserType | null;
   changeUserType: (type: UserType) => void;
 }
 
-// Création du contexte
 const UserTypeContext = createContext<UserTypeContextType | undefined>(undefined);
 
-// Mapping centralisé entre Supabase et sidebarConfig
-const mapCategoryToSidebarKey: Record<string, UserType> = {
-  proprietaire: "owner",
-  concierge: "concierge",
-  artisan: "providence",
-  admin: "admin",
-};
+function normalizeSidebarUserType(value: string | null | undefined): UserType | null {
+  const normalized = (value ?? "").trim().toLowerCase();
+
+  if (
+    normalized === "owner" ||
+    normalized === "owner_pro" ||
+    normalized === "proprietaire" ||
+    normalized === "proprietaire_pro"
+  ) {
+    return "owner";
+  }
+
+  if (normalized === "concierge" || normalized === "concierge_pro") {
+    return "concierge";
+  }
+
+  if (
+    normalized === "artisan" ||
+    normalized === "artisan_pro" ||
+    normalized === "provider" ||
+    normalized === "provider_pro"
+  ) {
+    return "provider";
+  }
+
+  if (normalized === "admin" || normalized === "super_admin") {
+    return "admin";
+  }
+
+  return null;
+}
+
+function inferSidebarUserTypeFromPath(pathname: string | null | undefined): UserType | null {
+  if (!pathname?.startsWith("/dashboard/")) return null;
+  if (pathname.startsWith("/dashboard/owner")) return "owner";
+  if (pathname.startsWith("/dashboard/concierge")) return "concierge";
+  if (pathname.startsWith("/dashboard/provider")) return "provider";
+  if (pathname.startsWith("/dashboard/admin")) return "admin";
+  return null;
+}
 
 export function UserTypeProvider({ children }: { children: ReactNode }) {
   const [userType, setUserType] = useState<UserType | null>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const routeUserType = inferSidebarUserTypeFromPath(pathname);
+    if (!routeUserType) return;
+
+    setUserType(routeUserType);
+    localStorage.setItem("userType", routeUserType);
+  }, [pathname]);
 
   useEffect(() => {
     async function fetchUserType() {
       try {
         const res = await fetch("/api/profiles/current");
         if (!res.ok) throw new Error("API error");
+
         const data = await res.json();
-
-        const groupKey: string | null =
-          data?.categories?.group_key || data?.category || null;
-
-        const mappedType: UserType =
-          mapCategoryToSidebarKey[groupKey ?? ""] ?? "owner";
+        const mappedType =
+          inferSidebarUserTypeFromPath(pathname) ??
+          normalizeSidebarUserType(data?.role) ??
+          normalizeSidebarUserType(data?.categories?.group_key) ??
+          normalizeSidebarUserType(data?.category) ??
+          "owner";
 
         setUserType(mappedType);
         localStorage.setItem("userType", mappedType);
       } catch {
-        const storedType = localStorage.getItem("userType") as UserType | null;
-        if (storedType && Object.values(mapCategoryToSidebarKey).includes(storedType)) {
-          setUserType(storedType);
-        } else {
-          setUserType("owner"); // fallback par défaut
-        }
+        const storedType = normalizeSidebarUserType(localStorage.getItem("userType"));
+        setUserType(storedType ?? "owner");
       }
     }
 
     fetchUserType();
-  }, []);
+  }, [pathname]);
 
   const changeUserType = (type: UserType) => {
     setUserType(type);

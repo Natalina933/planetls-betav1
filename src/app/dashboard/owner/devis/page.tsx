@@ -69,8 +69,8 @@ export default function OwnerQuotesPage() {
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Mes devis</h1>
-        <p>Retrouvez les propositions envoyées pour vos logements et leur statut actuel.</p>
+        <h1>Devis</h1>
+        <p>Retrouvez les propositions envoyees pour vos biens et leur statut actuel.</p>
       </header>
 
       <div className="stats-row">
@@ -96,7 +96,7 @@ export default function OwnerQuotesPage() {
           <ul>
             {quotes.map((quote) => (
               <li key={quote.id} style={{ marginBottom: "1rem" }}>
-                <strong>{quote.quote_number || "Devis sans numéro"}</strong>
+                <strong>{quote.quote_number || "Devis sans numero"}</strong>
                 <br />
                 Statut : {quote.status || "-"} | Total : {formatAmount(quote.total_amount)} | Valide
                 jusqu&apos;au {formatDate(quote.valid_until)}

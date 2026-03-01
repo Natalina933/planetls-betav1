@@ -14,10 +14,9 @@ interface SidebarProps {
 }
 
 const roleLabels: Record<string, string> = {
-  owner: "Propriétaire",
+  owner: "Proprietaire",
   concierge: "Conciergerie",
-  artisan: "Artisan",
-  providence: "Providence",
+  provider: "Artisan",
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
@@ -28,34 +27,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       ? sidebarConfig[userType as keyof typeof sidebarConfig]
       : [];
 
-  // Bloquer le scroll du body quand la sidebar est ouverte
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
-  // Fermer avec la touche Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         toggleSidebar();
       }
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, toggleSidebar]);
 
   return (
     <>
       {isOpen && (
-        <div 
-          className={styles.overlay} 
+        <div
+          className={styles.overlay}
           onClick={toggleSidebar}
           role="button"
           tabIndex={-1}
@@ -102,10 +99,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           <button
             onClick={() => signOut({ callbackUrl: "/auth/login" })}
             className={styles.logout}
-            aria-label="Se déconnecter"
+            aria-label="Se deconnecter"
           >
             <FiLogOut className={styles.icon} />
-            <span>Se déconnecter</span>
+            <span>Se deconnecter</span>
           </button>
         </div>
       </aside>

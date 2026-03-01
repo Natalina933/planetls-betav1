@@ -160,8 +160,8 @@ export default function OwnerInvoicesPage() {
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Mes factures</h1>
-        <p>Suivez les montants émis, les échéances et le solde restant à régler.</p>
+        <h1>Factures</h1>
+        <p>Suivez les montants emis, les echeances et le solde restant a regler.</p>
       </header>
 
       <div className="stats-row">
@@ -188,14 +188,16 @@ export default function OwnerInvoicesPage() {
           <ul>
             {invoices.map((invoice) => (
               <li key={invoice.id} style={{ marginBottom: "1rem" }}>
-                <strong>{invoice.invoice_number || "Facture sans numéro"}</strong>
+                <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
                 <br />
                 Statut : {invoice.status || "-"} | Total : {formatAmount(invoice.total_amount)} |
                 Solde : {formatAmount(invoice.balance_amount)}
                 <br />
                 Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
                 <br />
-                <span style={{ display: "inline-flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.55rem" }}>
+                <span
+                  style={{ display: "inline-flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.55rem" }}
+                >
                   <a
                     href={`/api/invoices/${invoice.id}/document`}
                     target="_blank"
@@ -215,7 +217,7 @@ export default function OwnerInvoicesPage() {
                   >
                     Apercu PDF
                   </a>
-                  {(invoice.status !== "paid" && invoice.status !== "canceled") ? (
+                  {invoice.status !== "paid" && invoice.status !== "canceled" ? (
                     <button
                       type="button"
                       onClick={() => handlePayInvoice(invoice.id)}

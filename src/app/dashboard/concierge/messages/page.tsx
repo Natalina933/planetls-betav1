@@ -48,7 +48,7 @@ const formatDateTime = (value?: string | null): string => {
 };
 
 function getConversationTitle(subject?: string | null) {
-  return subject || "Conversation propriétaire";
+  return subject || "Conversation";
 }
 
 function MessagesHeader({ listLoading }: MessagesHeaderProps) {
@@ -56,9 +56,9 @@ function MessagesHeader({ listLoading }: MessagesHeaderProps) {
     <header className={styles.header}>
       <h1>
         <FiMessageCircle size={18} />
-        Messagerie concierge
+        Messages
       </h1>
-      <p>Conversations propriétaires et suivi commercial.</p>
+      <p>Suivez vos conversations proprietaires et vos echanges commerciaux.</p>
       {listLoading && <span>Synchronisation en cours...</span>}
     </header>
   );
@@ -218,7 +218,7 @@ function ConciergeMessagesContent() {
   });
 
   if (loading) {
-    return <div className={styles.page}>Chargement de la messagerie...</div>;
+    return <div className={styles.page}>Chargement des messages...</div>;
   }
 
   return (
@@ -253,7 +253,7 @@ function ConciergeMessagesContent() {
 
 export default function ConciergeMessagesPage() {
   return (
-    <Suspense fallback={<div className={styles.page}>Chargement de la messagerie...</div>}>
+    <Suspense fallback={<div className={styles.page}>Chargement des messages...</div>}>
       <ConciergeMessagesContent />
     </Suspense>
   );

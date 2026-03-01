@@ -219,7 +219,7 @@ export default function OwnerConciergeriePage() {
     <div className="dashboard-grid">
       <OwnerWorkspacePage
         eyebrow="Relation concierge"
-        title="Ma conciergerie"
+        title="Conciergerie"
         description={
           error
             ? error
@@ -233,8 +233,8 @@ export default function OwnerConciergeriePage() {
           spotlightProfile?.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard",
         ]}
         actions={[
-          { label: "Voir mes messages", href: "/dashboard/owner/messages" },
-          { label: "Voir mon planning", href: "/dashboard/owner/planning" },
+          { label: "Voir les messages", href: "/dashboard/owner/messages" },
+          { label: "Voir le planning", href: "/dashboard/owner/planning" },
           { label: "Trouver un autre concierge", href: "/dashboard/owner/concierges" },
           ...(spotlightConciergeProfileId
             ? [{ label: "Voir le profil concierge", href: `/concierges/${spotlightConciergeProfileId}` }]

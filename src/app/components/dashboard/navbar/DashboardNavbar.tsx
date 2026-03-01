@@ -1,4 +1,3 @@
-//src/app/components/dashboard/navbar/DashboardNavbar.tsx
 "use client";
 
 import { useCallback, useMemo } from "react";
@@ -14,19 +13,21 @@ interface DashboardNavbarProps {
 }
 
 const ROLE_LABELS = {
-  owner: "Propriétaire",
-  owner_pro: "Propriétaire PRO",
+  owner: "Proprietaire",
+  owner_pro: "Proprietaire PRO",
   concierge: "Conciergerie",
   concierge_pro: "Conciergerie PRO",
-  providence: "Providence",
-  providence_pro: "Providence PRO",
+  provider: "Artisan",
+  provider_pro: "Artisan PRO",
+  artisan: "Artisan",
+  artisan_pro: "Artisan PRO",
 } as const;
 
-const DEFAULT_COMPANY_NAME = "Ma conciergerie";
+const DEFAULT_COMPANY_NAME = "Mon espace";
 const AVATAR_FALLBACK = "/icons/account-svgrepo-com.svg";
 
 const getRoleLabel = (role?: string | null): string => {
-  if (!role) return "Invité";
+  if (!role) return "Invite";
   if (role in ROLE_LABELS) {
     return ROLE_LABELS[role as keyof typeof ROLE_LABELS];
   }
@@ -36,29 +37,26 @@ const getRoleLabel = (role?: string | null): string => {
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon après-midi";
+  if (hour < 18) return "Bon apres-midi";
   return "Bonsoir";
 };
 
-export default function DashboardNavbar({ 
-  toggleSidebar, 
-  notificationCount = 0 
+export default function DashboardNavbar({
+  toggleSidebar,
+  notificationCount = 0,
 }: DashboardNavbarProps) {
   const router = useRouter();
   const { user, isAuthenticated, loading } = useCurrentUser();
 
-  // Memoized values
   const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
   const roleLabel = useMemo(() => getRoleLabel(user?.role), [user?.role]);
-  
-  // User display values
+
   const avatarSrc = user?.avatar_url || AVATAR_FALLBACK;
-  const userName = user?.username || user?.email?.split('@')[0] || "Utilisateur";
+  const userName = user?.username || user?.email?.split("@")[0] || "Utilisateur";
   const companyName = user?.company_name || DEFAULT_COMPANY_NAME;
   const greetingName = user?.firstName || user?.username || "vous";
   const timeBasedGreeting = getTimeBasedGreeting();
 
-  // Navigation handlers
   const handleProfileClick = useCallback(() => {
     router.push("/dashboard/profile");
   }, [router]);
@@ -71,37 +69,33 @@ export default function DashboardNavbar({
     toggleSidebar();
   }, [toggleSidebar]);
 
-  // Notification badge display
   const notificationBadge = notificationCount > 9 ? "9+" : notificationCount.toString();
   const hasNotifications = notificationCount > 0;
 
   return (
     <header className={styles.dashNavbar} role="banner">
-      {/* LEFT SECTION */}
       <div className={styles.leftSection}>
         <button
           type="button"
           onClick={handleMenuClick}
           className={styles.menuButton}
-          aria-label="Ouvrir/Fermer le menu"
+          aria-label="Ouvrir ou fermer le menu"
           aria-expanded="false"
         >
           <Menu size={24} aria-hidden="true" />
         </button>
 
         <div className={styles.titleBlock}>
-          {/* <span className={styles.logoText}>Tableau de bord</span> */}
           <span className={styles.userNameInline}> {userName}</span>
         </div>
 
         {roleLabel && (
-          <div className={styles.userRole} aria-label={`Rôle: ${roleLabel}`}>
+          <div className={styles.userRole} aria-label={`Role: ${roleLabel}`}>
             <span>{roleLabel}</span>
           </div>
         )}
       </div>
 
-      {/* RIGHT SECTION */}
       <div className={styles.rightSection}>
         {isAuthenticated && (
           <div className={styles.rightInfoBlock}>
@@ -126,7 +120,7 @@ export default function DashboardNavbar({
             type="button"
             className={styles.iconButton}
             onClick={handleNotificationClick}
-            aria-label={`Notifications${hasNotifications ? `, ${notificationCount} non lues` : ''}`}
+            aria-label={`Notifications${hasNotifications ? `, ${notificationCount} non lues` : ""}`}
             title="Voir les notifications"
           >
             <Bell size={20} aria-hidden="true" />
@@ -146,11 +140,7 @@ export default function DashboardNavbar({
           title={`Profil de ${userName}`}
         >
           {loading ? (
-            <div 
-              className={styles.avatarSkeleton} 
-              role="status" 
-              aria-label="Chargement du profil"
-            />
+            <div className={styles.avatarSkeleton} role="status" aria-label="Chargement du profil" />
           ) : isAuthenticated && user ? (
             <div className={styles.avatarWrapperOuter}>
               <Image
@@ -161,11 +151,9 @@ export default function DashboardNavbar({
                 className={styles.avatar}
                 priority
               />
-              {/* Uncomment when implementing online status */}
-              {/* <span className={styles.avatarStatus} aria-label="En ligne" /> */}
             </div>
           ) : (
-            <div className={styles.avatarPlaceholder} aria-label="Non connecté">
+            <div className={styles.avatarPlaceholder} aria-label="Non connecte">
               <User size={22} aria-hidden="true" />
             </div>
           )}

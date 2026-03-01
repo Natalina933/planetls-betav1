@@ -9,15 +9,14 @@ import { useSession, signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
 
 const Icons = {
-  FaUser: dynamic(() => import("react-icons/fa").then(mod => mod.FaUser), { ssr: false }),
-  FaSearch: dynamic(() => import("react-icons/fa").then(mod => mod.FaSearch), { ssr: false }),
-  FaTachometerAlt: dynamic(() => import("react-icons/fa").then(mod => mod.FaTachometerAlt), { ssr: false }),
-  FaPalette: dynamic(() => import("react-icons/fa").then(mod => mod.FaPalette), { ssr: false }),
+  FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), { ssr: false }),
+  FaSearch: dynamic(() => import("react-icons/fa").then((mod) => mod.FaSearch), { ssr: false }),
+  FaTachometerAlt: dynamic(() => import("react-icons/fa").then((mod) => mod.FaTachometerAlt), { ssr: false }),
+  FaPalette: dynamic(() => import("react-icons/fa").then((mod) => mod.FaPalette), { ssr: false }),
 };
 
-// ⏱️ Configuration du timeout d'inactivité (en millisecondes)
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000; // Avertir 2 minutes avant
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
+const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000;
 
 export default function Navbar() {
   const router = useRouter();
@@ -43,28 +42,39 @@ export default function Navbar() {
 
   const isAuthenticated = status === "authenticated";
   const isDashboardRoute = pathname?.startsWith("/dashboard");
-  // const isHomePage = pathname === "/" || pathname === "/home";
 
-  // 🎯 Fonction pour obtenir le chemin du dashboard selon le rôle
   const getDashboardPath = () => {
     if (!userType) {
-      // Fallback si le contexte n'est pas encore chargé
       const role = session?.user?.role;
-      if (role === "concierge") return "/dashboard/concierge";
-      if (role === "owner") return "/dashboard/owner";
-      if (role === "provider") return "/dashboard/provider";
+      if (role === "concierge" || role === "concierge_pro") return "/dashboard/concierge";
+      if (role === "owner" || role === "owner_pro") return "/dashboard/owner";
+      if (
+        role === "provider" ||
+        role === "provider_pro" ||
+        role === "artisan" ||
+        role === "artisan_pro"
+      ) {
+        return "/dashboard/provider";
+      }
       return "/dashboard";
     }
+
     return `/dashboard/${userType}`;
   };
 
-  // 🔄 Réinitialiser le timer d'inactivité
   const clearInactivityTimers = useCallback(() => {
     if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
     if (warningTimeoutIdRef.current) clearTimeout(warningTimeoutIdRef.current);
     timeoutIdRef.current = null;
     warningTimeoutIdRef.current = null;
   }, []);
+
+  const handleAutoLogout = async () => {
+    await signOut({
+      callbackUrl: "/",
+      redirect: true,
+    });
+  };
 
   const resetInactivityTimer = useCallback(() => {
     clearInactivityTimers();
@@ -90,16 +100,6 @@ export default function Navbar() {
     }
   }, [clearInactivityTimers, isAuthenticated, isDashboardRoute]);
 
-
-  // 🚪 Déconnexion automatique
-  const handleAutoLogout = async () => {
-    await signOut({
-      callbackUrl: "/",
-      redirect: true
-    });
-  };
-
-  // 🔄 Prolonger la session
   const extendSession = useCallback(() => {
     showWarningRef.current = false;
     setShowWarning(false);
@@ -107,8 +107,6 @@ export default function Navbar() {
     resetInactivityTimer();
   }, [resetInactivityTimer]);
 
-
-  // Focus clavier, gestion Escape et blocage du scroll quand la modale est ouverte
   useEffect(() => {
     if (!showWarning) return;
 
@@ -142,8 +140,6 @@ export default function Navbar() {
     };
   }, [showWarning, extendSession]);
 
-
-  // 👂 Écouter les événements d'activité utilisateur
   useEffect(() => {
     if (!isAuthenticated || !isDashboardRoute) return;
 
@@ -154,24 +150,20 @@ export default function Navbar() {
       resetInactivityTimer();
     };
 
-    // Ajouter les écouteurs
-    events.forEach(event => {
+    events.forEach((event) => {
       window.addEventListener(event, handleActivity);
     });
 
-    // Timer initial
     resetInactivityTimer();
 
-    // Nettoyage
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         window.removeEventListener(event, handleActivity);
       });
       clearInactivityTimers();
     };
   }, [isAuthenticated, isDashboardRoute, pathname, clearInactivityTimers, resetInactivityTimer]);
 
-  // 🚪 Arrêter les timers lors de la sortie du dashboard
   useEffect(() => {
     if (isAuthenticated && !isDashboardRoute) {
       clearInactivityTimers();
@@ -189,10 +181,7 @@ export default function Navbar() {
     if (!showWarning || !warningDeadline) return;
 
     const tick = () => {
-      const seconds = Math.max(
-        0,
-        Math.ceil((warningDeadline - Date.now()) / 1000),
-      );
+      const seconds = Math.max(0, Math.ceil((warningDeadline - Date.now()) / 1000));
       setWarningSecondsLeft(seconds);
     };
 
@@ -212,7 +201,6 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false);
 
-  // 🎨 Fermer le menu thème quand on clique en dehors
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
@@ -244,13 +232,12 @@ export default function Navbar() {
   return (
     <>
       <nav className={styles.navbar}>
-        {/* 🎨 Sélecteur de Thèmes */}
         <div className={styles.themeSwitcher} ref={themeMenuRef}>
           <button
             className={styles.themeTrigger}
             onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-            title="Changer de thème"
-            aria-label="Changer de thème"
+            title="Changer de theme"
+            aria-label="Changer de theme"
           >
             <Icons.FaPalette size={18} />
             <span className={styles.themeLabel}>{getCurrentLabel()}</span>
@@ -266,7 +253,7 @@ export default function Navbar() {
                     changeTheme(value as string);
                     setThemeMenuOpen(false);
                   }}
-                  aria-label={`Sélectionner thème ${labels[value as string]}`}
+                  aria-label={`Selectionner theme ${labels[value as string]}`}
                 >
                   {labels[value as string]}
                 </button>
@@ -275,7 +262,6 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Burger Menu */}
         <button
           className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
           onClick={() => setMenuOpen(!menuOpen)}
@@ -286,7 +272,6 @@ export default function Navbar() {
           <span></span>
         </button>
 
-        {/* Menu Items */}
         <ul className={`${styles.menu} ${menuOpen ? styles.open : ""}`}>
           <li className={styles["nav-search"]}>
             <button
@@ -316,34 +301,21 @@ export default function Navbar() {
             </li>
           )}
 
-          {/* 🎯 Bouton Dashboard (uniquement si connecté ET pas déjà sur dashboard) */}
           {isAuthenticated && !isDashboardRoute && (
             <li className={styles["auth-dashboard"]}>
-              <button
-                type="button"
-                onClick={handleGoToDashboard}
-                className={styles.dashboardButton}
-              >
-                <Icons.FaTachometerAlt size={18} /> Mon Dashboard
+              <button type="button" onClick={handleGoToDashboard} className={styles.dashboardButton}>
+                <Icons.FaTachometerAlt size={18} /> Mon dashboard
               </button>
             </li>
           )}
 
           <li className={styles["auth-connexion"]}>
             {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className={styles.logoutButton}
-              >
-                <Icons.FaUser size={18} /> Se déconnecter
+              <button type="button" onClick={handleLogout} className={styles.logoutButton}>
+                <Icons.FaUser size={18} /> Se deconnecter
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleLogin}
-                className={styles.loginButton}
-              >
+              <button type="button" onClick={handleLogin} className={styles.loginButton}>
                 <Icons.FaUser size={18} /> Se connecter
               </button>
             )}
@@ -351,17 +323,14 @@ export default function Navbar() {
         </ul>
       </nav>
 
-      {/* ⚠️ Modal d'avertissement d'inactivité */}
       {showWarning && (
         <div className={styles.warningOverlay}>
           <div className={styles.warningModal} ref={warningModalRef}>
-            <h3>⏱️ Session bientôt expirée</h3>
-            <p>
-              Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.
-            </p>
+            <h3>Session bientot expiree</h3>
+            <p>Vous serez deconnecte dans 2 minutes en raison d&apos;inactivite.</p>
             <p className={styles.warningSubtext}>
               Temps restant: <strong>{warningTimeLabel}</strong>. Cliquez sur
-              &quot;Rester connecté&quot; pour continuer votre session.
+              &quot;Rester connecte&quot; pour continuer votre session.
             </p>
             <div className={styles.warningActions}>
               <button
@@ -369,13 +338,10 @@ export default function Navbar() {
                 onClick={extendSession}
                 className={styles.extendButton}
               >
-                ✓ Rester connecté
+                Rester connecte
               </button>
-              <button
-                onClick={handleAutoLogout}
-                className={styles.logoutNowButton}
-              >
-                Se déconnecter
+              <button onClick={handleAutoLogout} className={styles.logoutNowButton}>
+                Se deconnecter
               </button>
             </div>
           </div>

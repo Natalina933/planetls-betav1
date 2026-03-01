@@ -10,6 +10,8 @@ const ROLE_FOLDER_MAP: Record<string, string> = {
   owner_pro: "owner",
   provider: "provider",
   provider_pro: "provider",
+  artisan: "provider",
+  artisan_pro: "provider",
 };
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
@@ -17,24 +19,15 @@ const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  /* --------------------------------------------------
-   * 1. 🔓 Routes publiques
-   * -------------------------------------------------- */
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  /* --------------------------------------------------
-   * 2. 🔑 Token
-   * -------------------------------------------------- */
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
   });
 
-  /* --------------------------------------------------
-   * 3. 🚫 Pas connecté → login
-   * -------------------------------------------------- */
   if (!token) {
     if (pathname.startsWith("/dashboard")) {
       return NextResponse.redirect(new URL("/login", req.url));
@@ -42,26 +35,17 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  /* --------------------------------------------------
-   * 4. 🎭 Rôle utilisateur
-   * -------------------------------------------------- */
   const role = (token.role as string | undefined)?.toLowerCase();
   const targetFolder = role ? ROLE_FOLDER_MAP[role] : null;
 
   if (!targetFolder) {
-    console.error("[PROXY] Rôle inconnu :", role);
+    console.error("[PROXY] Role inconnu:", role);
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  /* --------------------------------------------------
-   * 5. 🚦 Protection dashboard
-   * -------------------------------------------------- */
   const dashboardPrefix = `/dashboard/${targetFolder}`;
 
-  if (
-    pathname.startsWith("/dashboard") &&
-    !pathname.startsWith(dashboardPrefix)
-  ) {
+  if (pathname.startsWith("/dashboard") && !pathname.startsWith(dashboardPrefix)) {
     return NextResponse.redirect(new URL(dashboardPrefix, req.url));
   }
 
@@ -71,5 +55,3 @@ export async function proxy(req: NextRequest) {
 export const config = {
   matcher: ["/dashboard/:path*"],
 };
-
-
