@@ -1,4 +1,7 @@
 .page {
+  --owner-accent: #b85c48;
+  --owner-accent-text: #793528;
+  --owner-accent-soft: #f3ddd4;
   display: grid;
   gap: 1.25rem;
 }
@@ -16,7 +19,7 @@
 
 .header p {
   margin: 0;
-  color: #5f5237;
+  color: #69443a;
 }
 
 .layout {
@@ -31,9 +34,9 @@
   gap: 1rem;
   padding: 1rem;
   border-radius: 20px;
-  border: 1px solid rgba(184, 139, 74, 0.2);
-  background: rgba(255, 252, 245, 0.96);
-  box-shadow: 0 10px 24px rgba(74, 53, 16, 0.06);
+  border: 1px solid rgba(184, 92, 72, 0.2);
+  background: rgba(255, 249, 246, 0.96);
+  box-shadow: 0 10px 24px rgba(109, 53, 41, 0.06);
 }
 
 .sidebarHeader,
@@ -57,13 +60,13 @@
   padding: 0.9rem;
   text-align: left;
   border-radius: 16px;
-  border: 1px solid rgba(184, 139, 74, 0.18);
-  background: #fffdf8;
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  background: #fffdfa;
 }
 
 .conversationItemActive {
-  border-color: rgba(184, 139, 74, 0.45);
-  box-shadow: 0 10px 24px rgba(74, 53, 16, 0.08);
+  border-color: rgba(184, 92, 72, 0.45);
+  box-shadow: 0 10px 24px rgba(109, 53, 41, 0.08);
 }
 
 .conversationHead {
@@ -83,13 +86,13 @@
 
 .messageMine {
   justify-self: end;
-  background: linear-gradient(135deg, #b88b4a, #d4af37);
-  color: #111111;
+  background: linear-gradient(135deg, #b85c48, #d08a78);
+  color: #2e120d;
 }
 
 .messageOther {
   background: #fff;
-  border: 1px solid rgba(184, 139, 74, 0.2);
+  border: 1px solid rgba(184, 92, 72, 0.2);
 }
 
 .message p,
@@ -108,7 +111,7 @@
   min-height: 120px;
   resize: vertical;
   border-radius: 16px;
-  border: 1px solid rgba(184, 139, 74, 0.24);
+  border: 1px solid rgba(184, 92, 72, 0.24);
   padding: 0.85rem 1rem;
   background: #fff;
 }
@@ -121,9 +124,9 @@
   min-height: 42px;
   padding: 0.7rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(184, 139, 74, 0.35);
-  background: linear-gradient(135deg, #b88b4a, #d4af37);
-  color: #111111;
+  border: 1px solid rgba(184, 92, 72, 0.35);
+  background: linear-gradient(135deg, #b85c48, #d08a78);
+  color: #2e120d;
   text-decoration: none;
   font-weight: 700;
 }

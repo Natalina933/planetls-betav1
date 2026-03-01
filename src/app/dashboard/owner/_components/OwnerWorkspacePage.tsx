@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useUserType } from "@/app/context/UserTypeContext";
-import styles from "./OwnerWorkspace.module.scss";
+import styles from "../../_components/DashboardWorkspace.module.scss";
 
 interface InfoCard {
   title: string;
@@ -11,13 +11,37 @@ interface InfoCard {
   actions?: Array<{ label: string; href: string; variant?: "primary" | "secondary" }>;
 }
 
+interface WorkspaceMetric {
+  label: string;
+  value: string;
+  hint?: string;
+}
+
+interface WorkspaceDetailItem {
+  title: string;
+  meta?: string;
+  description?: string;
+  href?: string;
+  actionLabel?: string;
+  tone?: "default" | "warning" | "success";
+}
+
+interface WorkspaceDetailSection {
+  title: string;
+  description?: string;
+  emptyText?: string;
+  items: WorkspaceDetailItem[];
+}
+
 interface OwnerWorkspacePageProps {
   eyebrow: string;
   title: string;
   description: string;
   cards: InfoCard[];
+  metrics?: WorkspaceMetric[];
   chips?: string[];
   actions?: Array<{ label: string; href: string }>;
+  detailSections?: WorkspaceDetailSection[];
 }
 
 export default function OwnerWorkspacePage({
@@ -25,8 +49,10 @@ export default function OwnerWorkspacePage({
   title,
   description,
   cards,
+  metrics,
   chips,
   actions,
+  detailSections,
 }: OwnerWorkspacePageProps) {
   const { userType } = useUserType();
   const themeClass =
@@ -65,6 +91,18 @@ export default function OwnerWorkspacePage({
           ) : null}
         </div>
 
+        {metrics && metrics.length > 0 ? (
+          <div className={styles.metrics}>
+            {metrics.map((metric) => (
+              <article key={metric.label} className={styles.metricCard}>
+                <span className={styles.metricLabel}>{metric.label}</span>
+                <strong className={styles.metricValue}>{metric.value}</strong>
+                {metric.hint ? <p className={styles.metricHint}>{metric.hint}</p> : null}
+              </article>
+            ))}
+          </div>
+        ) : null}
+
         <div className={styles.grid}>
           {cards.map((card) => (
             <article key={card.title} className={styles.card}>
@@ -90,6 +128,61 @@ export default function OwnerWorkspacePage({
             </article>
           ))}
         </div>
+
+        {detailSections && detailSections.length > 0 ? (
+          <div className={styles.detailSections}>
+            {detailSections.map((section) => (
+              <section key={section.title} className={styles.detailSection}>
+                <div className={styles.detailHeader}>
+                  <h2 className={styles.detailTitle}>{section.title}</h2>
+                  {section.description ? (
+                    <p className={styles.detailDescription}>{section.description}</p>
+                  ) : null}
+                </div>
+
+                {section.items.length > 0 ? (
+                  <div className={styles.detailList}>
+                    {section.items.map((item) => (
+                      <article key={`${section.title}-${item.title}-${item.meta || ""}`} className={styles.detailItem}>
+                        <div className={styles.detailItemMain}>
+                          <div className={styles.detailItemTopline}>
+                            <h3 className={styles.detailItemTitle}>{item.title}</h3>
+                            {item.meta ? (
+                              <span
+                                className={`${styles.detailBadge} ${
+                                  item.tone === "warning"
+                                    ? styles.warningBadge
+                                    : item.tone === "success"
+                                      ? styles.successBadge
+                                      : ""
+                                }`}
+                              >
+                                {item.meta}
+                              </span>
+                            ) : null}
+                          </div>
+                          {item.description ? (
+                            <p className={styles.detailItemDescription}>{item.description}</p>
+                          ) : null}
+                        </div>
+
+                        {item.href && item.actionLabel ? (
+                          <Link href={item.href} className={styles.detailItemAction}>
+                            {item.actionLabel}
+                          </Link>
+                        ) : null}
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.detailEmpty}>
+                    {section.emptyText || "Aucun element a afficher pour le moment."}
+                  </p>
+                )}
+              </section>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

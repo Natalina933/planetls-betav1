@@ -45,9 +45,8 @@
 }
 
 .titleBlock {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
+  display: grid;
+  gap: 0.1rem;
 }
 
 .logoText {
@@ -62,6 +61,14 @@
   font-family: var.$font-elegant;
   font-size: 1rem;
   color: var.$text-light;
+}
+
+.sectionLabel {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var.$gold-dark;
+  opacity: 0.85;
 }
 
 .userRole {

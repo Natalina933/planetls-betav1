@@ -1,24 +1,22 @@
 "use client";
 
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { FiMessageCircle, FiSend } from "react-icons/fi";
-import {
-  ConversationDetailResponse,
-  ConversationItem,
-} from "./messagesClient";
+import { FiSend } from "react-icons/fi";
+import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import { ConversationDetailResponse, ConversationItem } from "./messagesClient";
 import { useConciergeMessages } from "./useConciergeMessages";
 import styles from "./MessagesPage.module.scss";
-
-interface MessagesHeaderProps {
-  listLoading: boolean;
-}
 
 interface ConversationListSidebarProps {
   conversations: ConversationItem[];
   activeConversationId: string;
   listLoading: boolean;
+  searchTerm: string;
+  statusFilter: string;
+  onSearchChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
   onSelect: (conversationId: string) => void;
 }
 
@@ -51,23 +49,14 @@ function getConversationTitle(subject?: string | null) {
   return subject || "Conversation";
 }
 
-function MessagesHeader({ listLoading }: MessagesHeaderProps) {
-  return (
-    <header className={styles.header}>
-      <h1>
-        <FiMessageCircle size={18} />
-        Messages
-      </h1>
-      <p>Suivez vos conversations proprietaires et vos echanges commerciaux.</p>
-      {listLoading && <span>Synchronisation en cours...</span>}
-    </header>
-  );
-}
-
 function ConversationListSidebar({
   conversations,
   activeConversationId,
   listLoading,
+  searchTerm,
+  statusFilter,
+  onSearchChange,
+  onStatusChange,
   onSelect,
 }: ConversationListSidebarProps) {
   return (
@@ -75,6 +64,24 @@ function ConversationListSidebar({
       <div className={styles.sidebarHeader}>
         <h2>Conversations</h2>
         {listLoading && <span>MAJ...</span>}
+      </div>
+
+      <div className={styles.toolbar}>
+        <input
+          value={searchTerm}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Rechercher un proprietaire"
+          className={styles.searchField}
+        />
+        <select
+          value={statusFilter}
+          onChange={(event) => onStatusChange(event.target.value)}
+          className={styles.filterSelect}
+        >
+          <option value="all">Tous statuts</option>
+          <option value="open">Ouverts</option>
+          <option value="closed">Fermes</option>
+        </select>
       </div>
 
       {conversations.length === 0 ? (
@@ -187,6 +194,8 @@ function ConciergeMessagesContent() {
   const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const queryConversationId = searchParams.get("conversation") ?? "";
 
@@ -217,22 +226,96 @@ function ConciergeMessagesContent() {
     queryConversationId,
   });
 
+  const filteredConversations = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return conversations.filter((conversation) => {
+      const matchesStatus = statusFilter === "all" || conversation.status === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+
+      const haystack = [
+        conversation.counterpart_name,
+        conversation.subject,
+        conversation.last_message_preview,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearch);
+    });
+  }, [conversations, searchTerm, statusFilter]);
+
+  const openCount = useMemo(
+    () => conversations.filter((conversation) => conversation.status === "open").length,
+    [conversations],
+  );
+
   if (loading) {
     return <div className={styles.page}>Chargement des messages...</div>;
   }
 
   return (
-    <div className={styles.page}>
-      <MessagesHeader listLoading={listLoading} />
-
-      {errorMsg && <p className={styles.errorBox}>{errorMsg}</p>}
-      {successMsg && <p className={styles.successBox}>{successMsg}</p>}
+    <ConciergeWorkspacePage
+      eyebrow="Relation proprietaires"
+      title="Messages"
+      description="Suivez vos conversations proprietaires et vos echanges commerciaux depuis une seule vue."
+      chips={[
+        `${conversations.length} conversation(s)`,
+        `${openCount} ouverte(s)`,
+        activeConversation
+          ? getConversationTitle(activeConversation.conversation.subject)
+          : "Aucune conversation active",
+      ]}
+      metrics={[
+        {
+          label: "Conversations",
+          value: `${conversations.length}`,
+          hint: `${filteredConversations.length} visible(s) avec vos filtres`,
+        },
+        {
+          label: "Ouvertes",
+          value: `${openCount}`,
+          hint: "Fils qui demandent encore un suivi",
+        },
+        {
+          label: "Messages",
+          value: `${activeConversation?.messages.length ?? 0}`,
+          hint: "Dans la conversation active",
+        },
+      ]}
+      actions={[
+        { label: "Voir le planning", href: "/dashboard/concierge/planning" },
+        { label: "Voir les objectifs", href: "/dashboard/concierge/objectifs" },
+      ]}
+      cards={[
+        {
+          title: "Suivi relationnel",
+          text:
+            openCount > 0
+              ? `${openCount} conversation(s) restent ouvertes avec vos proprietaires.`
+              : "Aucune conversation ouverte pour le moment.",
+        },
+        {
+          title: "Conversation active",
+          text: activeConversation
+            ? `${getConversationTitle(activeConversation.conversation.subject)} - ${activeConversation.messages.length} message(s)`
+            : "Selectionnez un fil pour voir le detail des echanges.",
+        },
+      ]}
+    >
+      {errorMsg ? <p className={styles.errorBox}>{errorMsg}</p> : null}
+      {successMsg ? <p className={styles.successBox}>{successMsg}</p> : null}
 
       <div className={styles.layout}>
         <ConversationListSidebar
-          conversations={conversations}
+          conversations={filteredConversations}
           activeConversationId={activeConversationId}
           listLoading={listLoading}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          onSearchChange={setSearchTerm}
+          onStatusChange={setStatusFilter}
           onSelect={setActiveConversationId}
         />
         <ConversationThread
@@ -247,7 +330,7 @@ function ConciergeMessagesContent() {
           onSend={sendMessage}
         />
       </div>
-    </div>
+    </ConciergeWorkspacePage>
   );
 }
 

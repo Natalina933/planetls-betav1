@@ -38,6 +38,7 @@ export default function ProviderDashboardPage() {
         const interventions = await interventionsRes.json();
         const alerts = await alertsRes.json();
         const messages = await messagesRes.json();
+
         if (!cancelled) {
           setWorkspace(nextWorkspace);
           setStats({
@@ -66,32 +67,10 @@ export default function ProviderDashboardPage() {
 
   const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
-  const locationLabel = useMemo(() => {
-    return workspace?.summary.location || "Localisation a completer";
-  }, [workspace]);
-  const chartMetrics = useMemo(() => {
-    const totalClients = Math.max(stats?.clients ?? 0, 1);
-    const totalInterventions = Math.max(stats?.interventions ?? 0, 1);
-    const totalAlerts = Math.max(stats?.alerts ?? 0, 1);
-
-    return [
-      {
-        label: "Clients actifs",
-        value: `${stats?.activeClients ?? 0}/${stats?.clients ?? 0}`,
-        width: `${((stats?.activeClients ?? 0) / totalClients) * 100}%`,
-      },
-      {
-        label: "Interventions en cours",
-        value: `${stats?.inProgress ?? 0}/${stats?.interventions ?? 0}`,
-        width: `${((stats?.inProgress ?? 0) / totalInterventions) * 100}%`,
-      },
-      {
-        label: "Alertes urgentes",
-        value: `${stats?.urgentAlerts ?? 0}/${stats?.alerts ?? 0}`,
-        width: `${((stats?.urgentAlerts ?? 0) / totalAlerts) * 100}%`,
-      },
-    ];
-  }, [stats]);
+  const locationLabel = useMemo(
+    () => workspace?.summary.location || "Localisation a completer",
+    [workspace],
+  );
 
   return (
     <ProviderWorkspacePage
@@ -111,6 +90,28 @@ export default function ProviderDashboardPage() {
         { label: "Voir les interventions", href: "/dashboard/provider/interventions" },
         { label: "Voir les devis et factures", href: "/dashboard/provider/devis" },
         { label: "Voir les clients", href: "/dashboard/provider/clients" },
+      ]}
+      metrics={[
+        {
+          label: "Clients actifs",
+          value: `${stats?.activeClients ?? 0}/${stats?.clients ?? 0}`,
+          hint: `${stats?.clients ?? 0} clients au total`,
+        },
+        {
+          label: "Interventions en cours",
+          value: `${stats?.inProgress ?? 0}/${stats?.interventions ?? 0}`,
+          hint: "Charge active du jour",
+        },
+        {
+          label: "Alertes urgentes",
+          value: `${stats?.urgentAlerts ?? 0}/${stats?.alerts ?? 0}`,
+          hint: "Points a traiter en priorite",
+        },
+        {
+          label: "Conversations",
+          value: `${stats?.conversations ?? 0}`,
+          hint: "Echanges ouverts",
+        },
       ]}
       cards={[
         {
@@ -160,50 +161,36 @@ export default function ProviderDashboardPage() {
           ],
         },
       ]}
-    >
-      <section
-        style={{
-          display: "grid",
-          gap: "1rem",
-          padding: "1rem",
-          borderRadius: "20px",
-          border: "1px solid rgba(76, 97, 69, 0.18)",
-          background: "rgba(249, 251, 247, 0.96)",
-          boxShadow: "0 10px 24px rgba(30, 41, 25, 0.06)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
-          <h2 style={{ margin: 0 }}>Indicateurs</h2>
-          <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
-            <span style={{ padding: "0.35rem 0.7rem", borderRadius: 999, background: "rgba(76,97,69,0.08)", fontWeight: 700 }}>
-              {stats?.conversations ?? 0} conversations
-            </span>
-            <span style={{ padding: "0.35rem 0.7rem", borderRadius: 999, background: "rgba(76,97,69,0.08)", fontWeight: 700 }}>
-              {stats?.clients ?? 0} clients
-            </span>
-          </div>
-        </div>
-        <div style={{ display: "grid", gap: "0.8rem" }}>
-          {chartMetrics.map((metric) => (
-            <div key={metric.label} style={{ display: "grid", gap: "0.35rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", fontWeight: 700, color: "#355236" }}>
-                <span>{metric.label}</span>
-                <span>{metric.value}</span>
-              </div>
-              <div style={{ height: 10, borderRadius: 999, background: "rgba(76,97,69,0.12)", overflow: "hidden" }}>
-                <div
-                  style={{
-                    width: metric.width,
-                    height: "100%",
-                    borderRadius: 999,
-                    background: "linear-gradient(135deg, #8aa16d, #c4d7a4)",
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </ProviderWorkspacePage>
+      detailSections={[
+        {
+          title: "Synthese operationnelle",
+          description: "Vue rapide pour equilibrer relation client, execution et priorites terrain.",
+          items: [
+            {
+              title: "Base clients",
+              meta: `${stats?.clients ?? 0} comptes`,
+              description: `${stats?.activeClients ?? 0} clients actifs a entretenir.`,
+              href: "/dashboard/provider/clients",
+              actionLabel: "Ouvrir",
+            },
+            {
+              title: "Flux interventions",
+              meta: `${stats?.interventions ?? 0} missions`,
+              description: `${stats?.inProgress ?? 0} interventions sont en cours de traitement.`,
+              href: "/dashboard/provider/interventions",
+              actionLabel: "Suivre",
+            },
+            {
+              title: "Alertes",
+              meta: `${stats?.urgentAlerts ?? 0} urgentes`,
+              description: `${stats?.alerts ?? 0} alertes au total sur l'espace artisan.`,
+              href: "/dashboard/provider/alertes",
+              actionLabel: "Traiter",
+              tone: (stats?.urgentAlerts ?? 0) > 0 ? "warning" : "default",
+            },
+          ],
+        },
+      ]}
+    />
   );
 }

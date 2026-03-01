@@ -104,7 +104,7 @@ export function useConciergeMessages({
       setDraftMessage("");
       await loadConversationDetail(activeConversationId);
       loadConversations(false);
-      setSuccessMsg("Message envoyé.");
+      setSuccessMsg("Message envoye.");
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Erreur envoi message");
     } finally {

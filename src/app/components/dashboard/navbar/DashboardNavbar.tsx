@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Bell, User, CheckCircle } from "lucide-react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import styles from "./DashboardNavbar.module.scss";
@@ -15,13 +15,40 @@ interface DashboardNavbarProps {
 const ROLE_LABELS = {
   owner: "Proprietaire",
   owner_pro: "Proprietaire PRO",
-  concierge: "Conciergerie",
-  concierge_pro: "Conciergerie PRO",
+  concierge: "Concierge",
+  concierge_pro: "Concierge PRO",
   provider: "Artisan",
   provider_pro: "Artisan PRO",
   artisan: "Artisan",
   artisan_pro: "Artisan PRO",
 } as const;
+
+const SECTION_LABELS: Array<{ pattern: RegExp; label: string }> = [
+  { pattern: /^\/dashboard\/owner\/messages/, label: "Messages" },
+  { pattern: /^\/dashboard\/owner\/objectifs/, label: "Objectifs" },
+  { pattern: /^\/dashboard\/owner\/planning/, label: "Planning" },
+  { pattern: /^\/dashboard\/owner\/factures/, label: "Factures" },
+  { pattern: /^\/dashboard\/owner\/devis/, label: "Devis" },
+  { pattern: /^\/dashboard\/owner\/documents/, label: "Documents" },
+  { pattern: /^\/dashboard\/owner\/logements/, label: "Logements" },
+  { pattern: /^\/dashboard\/owner\/conciergerie/, label: "Conciergerie" },
+  { pattern: /^\/dashboard\/owner\/contacts/, label: "Contacts" },
+  { pattern: /^\/dashboard\/owner\/alertes/, label: "Alertes" },
+  { pattern: /^\/dashboard\/owner\/settings/, label: "Parametres" },
+  { pattern: /^\/dashboard\/owner$/, label: "Vue d'ensemble" },
+  { pattern: /^\/dashboard\/concierge\/messages/, label: "Messages" },
+  { pattern: /^\/dashboard\/concierge\/objectifs/, label: "Objectifs" },
+  { pattern: /^\/dashboard\/concierge\/planning/, label: "Planning" },
+  { pattern: /^\/dashboard\/concierge\/billing/, label: "Facturation Stripe" },
+  { pattern: /^\/dashboard\/concierge$/, label: "Vue d'ensemble" },
+  { pattern: /^\/dashboard\/provider\/messages/, label: "Messages" },
+  { pattern: /^\/dashboard\/provider\/planning/, label: "Planning" },
+  { pattern: /^\/dashboard\/provider\/clients/, label: "Clients" },
+  { pattern: /^\/dashboard\/provider\/interventions/, label: "Interventions" },
+  { pattern: /^\/dashboard\/provider\/alertes/, label: "Alertes" },
+  { pattern: /^\/dashboard\/provider\/settings/, label: "Parametres" },
+  { pattern: /^\/dashboard\/provider$/, label: "Vue d'ensemble" },
+];
 
 const DEFAULT_COMPANY_NAME = "Mon espace";
 const AVATAR_FALLBACK = "/icons/account-svgrepo-com.svg";
@@ -46,10 +73,15 @@ export default function DashboardNavbar({
   notificationCount = 0,
 }: DashboardNavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, loading } = useCurrentUser();
 
   const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
   const roleLabel = useMemo(() => getRoleLabel(user?.role), [user?.role]);
+  const sectionLabel = useMemo(() => {
+    const match = SECTION_LABELS.find((item) => item.pattern.test(pathname || ""));
+    return match?.label || "Dashboard";
+  }, [pathname]);
 
   const avatarSrc = user?.avatar_url || AVATAR_FALLBACK;
   const userName = user?.username || user?.email?.split("@")[0] || "Utilisateur";
@@ -86,7 +118,8 @@ export default function DashboardNavbar({
         </button>
 
         <div className={styles.titleBlock}>
-          <span className={styles.userNameInline}> {userName}</span>
+          <span className={styles.userNameInline}>{userName}</span>
+          <span className={styles.sectionLabel}>{sectionLabel}</span>
         </div>
 
         {roleLabel && (

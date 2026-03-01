@@ -158,8 +158,8 @@ function OwnerMessagesContent() {
   }, [activeConversationId]);
 
   useEffect(() => {
-    if (!createdConversationId) return;
-    setSuccess("La conversation a bien ete creee. Vous pouvez maintenant poursuivre ici.");
+  if (!createdConversationId) return;
+    setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
   }, [createdConversationId]);
 
   useEffect(() => {
@@ -213,7 +213,7 @@ function OwnerMessagesContent() {
       setDraftMessage("");
       await loadConversationDetail(activeConversationId);
       await loadConversations(activeConversationId);
-      setSuccess("Message envoye.");
+      setSuccess("Message envoyé.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
     } finally {
@@ -227,8 +227,8 @@ function OwnerMessagesContent() {
         <header className={styles.header}>
           <h1>Messages</h1>
           <p>
-            Retrouvez vos echanges avec vos concierges et poursuivez vos conversations depuis votre
-            espace proprietaire.
+            Retrouvez vos échanges avec vos concierges et poursuivez vos conversations depuis votre
+            espace propriétaire.
           </p>
         </header>
 
@@ -267,7 +267,7 @@ function OwnerMessagesContent() {
               >
                 <option value="all">Tous statuts</option>
                 <option value="open">Ouverts</option>
-                <option value="closed">Fermes</option>
+                <option value="closed">Fermés</option>
               </select>
             </div>
 
@@ -298,7 +298,7 @@ function OwnerMessagesContent() {
                       <span>{formatDate(conversation.last_message_at)}</span>
                     </div>
                     <p>{conversation.subject || "Conversation directe"}</p>
-                    <small>{conversation.last_message_preview || "Aucun apercu"}</small>
+                    <small>{conversation.last_message_preview || "Aucun aperçu"}</small>
                   </button>
                 ))}
               </div>
@@ -308,7 +308,7 @@ function OwnerMessagesContent() {
           <section className={styles.thread}>
             {!activeConversationId ? (
               <p className={styles.emptyState}>
-                Selectionnez une conversation pour lire et repondre.
+                Sélectionnez une conversation pour lire et répondre.
               </p>
             ) : detailLoading ? (
               <p className={styles.emptyState}>Chargement de la conversation...</p>
@@ -351,8 +351,8 @@ function OwnerMessagesContent() {
                   <textarea
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
-                    placeholder="Ecrivez votre message au concierge..."
-                    aria-label="Ecrivez votre message au concierge"
+                    placeholder="Écrivez votre message au concierge..."
+                    aria-label="Écrivez votre message au concierge"
                   />
                   <button type="button" onClick={handleSendMessage} disabled={sending || !canSend}>
                     {sending ? "Envoi..." : "Envoyer"}

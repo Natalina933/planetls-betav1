@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { useUserType } from "@/app/context/UserTypeContext";
-import styles from "./ConciergeWorkspace.module.scss";
+import styles from "../../_components/DashboardWorkspace.module.scss";
 
 interface ConciergeCardAction {
   label: string;
@@ -48,6 +48,7 @@ interface ConciergeWorkspacePageProps {
   chips?: string[];
   actions?: Array<{ label: string; href: string }>;
   detailSections?: ConciergeDetailSection[];
+  children?: React.ReactNode;
 }
 
 export default function ConciergeWorkspacePage({
@@ -59,6 +60,7 @@ export default function ConciergeWorkspacePage({
   chips,
   actions,
   detailSections,
+  children,
 }: ConciergeWorkspacePageProps) {
   const { userType } = useUserType();
   const themeClass =
@@ -189,6 +191,8 @@ export default function ConciergeWorkspacePage({
             ))}
           </div>
         ) : null}
+
+        {children}
       </div>
     </section>
   );

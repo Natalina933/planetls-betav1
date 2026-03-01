@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import styles from "./OwnerLogementsPage.module.scss";
+import React, { useEffect, useMemo, useState } from "react";
+import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 
 type OwnerHousingRow = {
   id: number;
@@ -61,75 +60,85 @@ export default function OwnerLogementsPage() {
     fetchOwnerHousing();
   }, []);
 
+  const activeProperties = useMemo(
+    () =>
+      properties.filter(
+        (property) => property.statut === "active" || property.statut === "published",
+      ).length,
+    [properties],
+  );
+  const equippedProperties = useMemo(
+    () =>
+      properties.filter(
+        (property) =>
+          Array.isArray(property.infos?.equipements) && property.infos.equipements.length > 0,
+      ).length,
+    [properties],
+  );
+
   return (
-    <section className="dashboard-grid">
-      <header>
-        <h1>Mes logements</h1>
-        <p>Consultez les informations essentielles de vos biens et leur niveau de preparation.</p>
-      </header>
-
-      <div className="main-section">
-        <div className={styles.page}>
-          <div className={styles.actions}>
-            <h2>Portefeuille immobilier</h2>
-            <Link href="/dashboard/concierge/logements/create">Ajouter un logement</Link>
-          </div>
-
-          {loading ? <p>Chargement de vos logements...</p> : null}
-          {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
-
-          {!loading && !error && properties.length === 0 ? (
-            <div>
-              <p>Vous n'avez pas encore de logement visible sur votre compte.</p>
-              <p>
-                Commencez par créer un logement pour centraliser vos biens, vos missions et vos
-                futurs devis.
-              </p>
-            </div>
-          ) : null}
-
-          {!loading && !error && properties.length > 0 ? (
-            <div className={styles.grid}>
-              {properties.map((property) => (
-                <article key={property.id} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <strong className={styles.cardTitle}>
-                      {property.nom_logement || "Logement sans nom"}
-                    </strong>
-                    <span className={styles.badge}>{getStatusLabel(property.statut)}</span>
-                  </div>
-
-                  <div className={styles.meta}>
-                    <span>{property.infos?.categorie || "Type non renseigne"}</span>
-                    <span>{property.ville || "Ville non renseignee"}</span>
-                    <span>{property.adresse || "Adresse non renseignee"}</span>
-                    <span>Plateforme : {property.plateforme || "Non renseignee"}</span>
-                    <span>Capacité : {property.infos?.capacite ?? "-"}</span>
-                    <span>Chambres : {property.infos?.nb_chambres ?? "-"}</span>
-                  </div>
-
-                  {property.infos?.description ? (
-                    <p className={styles.description}>{property.infos.description}</p>
-                  ) : null}
-
-                  <div className={styles.equipments}>
-                    {Array.isArray(property.infos?.equipements) &&
-                    property.infos.equipements.length > 0 ? (
-                      property.infos.equipements.map((equipment) => (
-                        <span key={equipment} className={styles.chip}>
-                          {equipment}
-                        </span>
-                      ))
-                    ) : (
-                      <span className={styles.chip}>Équipements non renseignés</span>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </section>
+    <OwnerWorkspacePage
+      eyebrow="Biens"
+      title="Logements"
+      description={
+        error
+          ? error
+          : "Consultez les informations essentielles de vos biens et leur niveau de preparation."
+      }
+      chips={[
+        `${properties.length} logement(s)`,
+        `${activeProperties} actif(s)`,
+        `${equippedProperties} avec equipements`,
+      ]}
+      metrics={[
+        { label: "Biens", value: `${properties.length}`, hint: `${activeProperties} actif(s)` },
+        {
+          label: "Preparation",
+          value: `${equippedProperties}`,
+          hint: "logement(s) avec equipements renseignes",
+        },
+      ]}
+      actions={[
+        { label: "Ajouter un logement", href: "/dashboard/concierge/logements/create" },
+        { label: "Voir le planning", href: "/dashboard/owner/planning" },
+      ]}
+      cards={[
+        {
+          title: "Portefeuille immobilier",
+          text: loading
+            ? "Chargement de vos logements..."
+            : properties.length > 0
+              ? `${properties.length} bien(s) sont actuellement rattaches a votre compte.`
+              : "Vous n'avez pas encore de logement visible sur votre compte.",
+        },
+        {
+          title: "Etat de publication",
+          text: `${activeProperties} logement(s) sont actifs ou publies. Les autres restent en brouillon ou archives.`,
+        },
+      ]}
+      detailSections={[
+        {
+          title: "Liste des logements",
+          description: "Vue synthetique de vos biens et de leur niveau de preparation.",
+          emptyText:
+            "Commencez par creer un logement pour centraliser vos biens, vos missions et vos futurs devis.",
+          items: properties.map((property) => ({
+            title: property.nom_logement || "Logement sans nom",
+            meta: getStatusLabel(property.statut),
+            description: [
+              property.infos?.categorie || "Type non renseigne",
+              property.ville || "Ville non renseignee",
+              property.adresse || "Adresse non renseignee",
+              `Plateforme ${property.plateforme || "non renseignee"}`,
+              `Capacite ${property.infos?.capacite ?? "-"}`,
+              `Chambres ${property.infos?.nb_chambres ?? "-"}`,
+              Array.isArray(property.infos?.equipements) && property.infos.equipements.length > 0
+                ? `Equipements: ${property.infos.equipements.join(", ")}`
+                : "Equipements non renseignes",
+            ].join(" | "),
+          })),
+        },
+      ]}
+    />
   );
 }
