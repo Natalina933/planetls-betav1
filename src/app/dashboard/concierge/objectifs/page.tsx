@@ -2,6 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import {
+  buildCompletedMissionHighlights,
+  buildObjectiveChecklist,
+  computeAverageRevenue,
+  computeCompletionRate,
+  countActiveHousing,
+  sumTrackedRevenue,
+} from "./objectifsHelpers";
 
 type MissionRow = {
   id: string;
@@ -58,143 +66,75 @@ export default function ConciergeObjectifsPage() {
     [missions],
   );
   const activeMissions = useMemo(
-    () =>
-      missions.filter((mission) =>
-        ["assigned", "accepted", "in_progress"].includes(mission.status || ""),
-      ),
+    () => missions.filter((mission) => ["assigned", "accepted", "in_progress"].includes(mission.status || "")),
     [missions],
   );
-  const trackedRevenue = useMemo(
-    () =>
-      missions.reduce(
-        (sum, mission) => sum + (typeof mission.amount === "number" ? mission.amount : 0),
-        0,
-      ),
-    [missions],
-  );
-  const activeHousing = useMemo(
-    () =>
-      housings.filter((housing) => housing.statut === "active" || housing.statut === "published")
-        .length,
-    [housings],
-  );
+  const trackedRevenue = useMemo(() => sumTrackedRevenue(missions), [missions]);
+  const activeHousing = useMemo(() => countActiveHousing(housings), [housings]);
   const averageRevenue = useMemo(
-    () => (completedMissions.length > 0 ? trackedRevenue / completedMissions.length : 0),
+    () => computeAverageRevenue(trackedRevenue, completedMissions.length),
     [completedMissions.length, trackedRevenue],
   );
-  const completionRate = useMemo(() => {
-    if (missions.length === 0) return 0;
-    return Math.round((completedMissions.length / missions.length) * 100);
-  }, [completedMissions.length, missions.length]);
+  const completionRate = useMemo(
+    () => computeCompletionRate(missions.length, completedMissions.length),
+    [completedMissions.length, missions.length],
+  );
 
   const objectiveChecklist = useMemo(
-    () => [
-      {
-        title: "Developper le portefeuille actif",
-        meta: `${activeHousing} logement(s) actif(s)`,
-        description:
-          activeHousing >= 5
-            ? "Votre base active commence a etre solide. Continuez a qualifier les nouveaux biens."
-            : "Captez ou activez davantage de logements pour lisser votre charge et vos revenus.",
-        href: "/dashboard/concierge/recherche",
-        actionLabel: "Voir la recherche",
-        tone: activeHousing >= 5 ? ("success" as const) : ("warning" as const),
-      },
-      {
-        title: "Maintenir le pipe missions",
-        meta: `${activeMissions.length} mission(s) en cours`,
-        description:
-          activeMissions.length > 0
-            ? "Votre pipe est actif. Gardez du rythme dans les confirmations et les clotures."
-            : "Aucune mission active. Relancez vos contacts et reveillez le pipe commercial.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        actionLabel: "Voir les missions",
-        tone: activeMissions.length > 0 ? ("success" as const) : ("warning" as const),
-      },
-      {
-        title: "Valoriser votre revenu moyen",
-        meta: averageRevenue > 0 ? `${averageRevenue.toFixed(0)} EUR / mission` : "Aucun historique",
-        description:
-          averageRevenue > 0
-            ? "Analysez vos prix et vos forfaits pour proteger la marge sur chaque intervention."
-            : "Commencez a tracer les montants de mission pour piloter vos objectifs financiers.",
-        href: "/dashboard/concierge/profile?tab=tarifs",
-        actionLabel: "Revoir mes tarifs",
-      },
-      {
-        title: "Ameliorer le taux de cloture",
-        meta: `${completionRate} % de missions cloturees`,
-        description:
-          completionRate >= 60
-            ? "Votre cadence de livraison est saine. Continuez a fermer rapidement les dossiers termines."
-            : "Travaillez le suivi des missions ouvertes pour eviter l'accumulation de taches non cloturees.",
-        href: "/dashboard/concierge/planning",
-        actionLabel: "Voir le planning",
-        tone: completionRate >= 60 ? ("success" as const) : ("warning" as const),
-      },
-    ],
+    () =>
+      buildObjectiveChecklist({
+        activeHousing,
+        activeMissionCount: activeMissions.length,
+        averageRevenue,
+        completionRate,
+      }),
     [activeHousing, activeMissions.length, averageRevenue, completionRate],
   );
 
   const completedMissionHighlights = useMemo(
-    () =>
-      completedMissions.slice(0, 6).map((mission) => ({
-        title: mission.title || `Mission ${mission.id.slice(0, 8)}`,
-        meta:
-          typeof mission.amount === "number"
-            ? `${mission.amount.toFixed(0)} EUR`
-            : "Montant non renseigne",
-        description:
-          "Mission cloturee. Utilisez ces donnees pour evaluer votre rythme de livraison et votre rentabilite.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        actionLabel: "Analyser",
-        tone: "success" as const,
-      })),
+    () => buildCompletedMissionHighlights(completedMissions),
     [completedMissions],
   );
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Pilotage activite"
+      eyebrow="Pilotage activité"
       title="Objectifs"
       description={
         loading
-          ? "Calcul de vos objectifs d'activite..."
+          ? "Calcul de vos objectifs d'activité..."
           : error ||
-            "Suivez votre traction commerciale, votre volume d'execution et vos reperes de rentabilite depuis un seul ecran."
+            "Suivez votre traction commerciale, votre volume d'exécution et vos repères de rentabilité depuis un seul écran."
       }
       chips={[
         `${activeHousing} logement(s) actifs`,
-        `${completedMissions.length} mission(s) terminee(s)`,
-        `${completionRate} % de cloture`,
+        `${completedMissions.length} mission(s) terminée(s)`,
+        `${completionRate} % de clôture`,
       ]}
       actions={[
-        {
-          label: "Mettre a jour mes tarifs",
-          href: "/dashboard/concierge/profile?tab=tarifs",
-        },
+        { label: "Mettre à jour mes tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
         { label: "Voir la recherche", href: "/dashboard/concierge/recherche" },
       ]}
       metrics={[
         {
           label: "Missions actives",
           value: loading ? "..." : String(activeMissions.length),
-          hint: "Interventions a suivre maintenant",
+          hint: "Interventions à suivre maintenant",
         },
         {
-          label: "Missions terminees",
+          label: "Missions terminées",
           value: loading ? "..." : String(completedMissions.length),
-          hint: "Livrables deja executes",
+          hint: "Livrables déjà exécutés",
         },
         {
-          label: "Revenus traces",
+          label: "Revenus tracés",
           value: loading ? "..." : `${trackedRevenue.toFixed(0)} EUR`,
-          hint: "Montants consolides",
+          hint: "Montants consolidés",
         },
         {
           label: "Panier moyen",
           value: loading ? "..." : averageRevenue > 0 ? `${averageRevenue.toFixed(0)} EUR` : "-",
-          hint: "Revenu moyen par mission terminee",
+          hint: "Revenu moyen par mission terminée",
         },
       ]}
       cards={[
@@ -202,22 +142,22 @@ export default function ConciergeObjectifsPage() {
           title: "Cap sur la conversion",
           text:
             activeHousing === 0
-              ? "Aucun logement actif n'est encore rattache a votre compte. Commencez par publier votre premier bien ou relancer un proprietaire."
-              : `Votre portefeuille compte ${activeHousing} logement(s) actif(s). Conservez un taux de reponse rapide pour accelerer la signature des prochains proprietaires.`,
+              ? "Aucun logement actif n'est encore rattaché à votre compte. Commencez par publier votre premier bien ou relancer un propriétaire."
+              : `Votre portefeuille compte ${activeHousing} logement(s) actif(s). Conservez un taux de réponse rapide pour accélérer la signature des prochains propriétaires.`,
           actions: [
             {
-              label: "Gerer mes logements",
+              label: "Gérer mes logements",
               href: "/dashboard/concierge/logements",
               variant: "primary",
             },
           ],
         },
         {
-          title: "Missions a prioriser",
+          title: "Missions à prioriser",
           text:
             activeMissions.length > 0
-              ? `${activeMissions.length} mission(s) necessitent encore un suivi. Appuyez-vous sur le planning et les messages pour garder le rythme.`
-              : "Aucune mission en cours. Profitez-en pour mettre a jour votre profil public et capter de nouvelles demandes.",
+              ? `${activeMissions.length} mission(s) nécessitent encore un suivi. Appuyez-vous sur le planning et les messages pour garder le rythme.`
+              : "Aucune mission en cours. Profitez-en pour mettre à jour votre profil public et capter de nouvelles demandes.",
           actions: [
             {
               label: "Voir mes missions",
@@ -229,7 +169,7 @@ export default function ConciergeObjectifsPage() {
         {
           title: "Levier premium",
           text:
-            "Activez ou consolidez votre offre PRO pour valoriser votre note, votre historique Stripe et votre niveau de service dans les parcours proprietaires.",
+            "Activez ou consolidez votre offre PRO pour valoriser votre note, votre historique Stripe et votre niveau de service dans les parcours propriétaires.",
           actions: [
             {
               label: "Voir mon abonnement",
@@ -243,18 +183,18 @@ export default function ConciergeObjectifsPage() {
         {
           title: "Checklist objectifs",
           description:
-            "Quatre leviers simples pour garder un pilotage clair : acquisition, execution, marge et cloture.",
+            "Quatre leviers simples pour garder un pilotage clair : acquisition, exécution, marge et clôture.",
           emptyText: "Aucun objectif disponible.",
           items: objectiveChecklist,
         },
         {
-          title: "Dernieres missions terminees",
+          title: "Dernières missions terminées",
           description:
-            "Appuyez-vous sur vos interventions deja livrees pour ajuster vos prix, votre charge et vos objectifs mensuels.",
+            "Appuyez-vous sur vos interventions déjà livrées pour ajuster vos prix, votre charge et vos objectifs mensuels.",
           emptyText:
             loading
-              ? "Chargement des missions terminees."
-              : error || "Aucune mission terminee n'est encore disponible.",
+              ? "Chargement des missions terminées."
+              : error || "Aucune mission terminée n'est encore disponible.",
           items: completedMissionHighlights,
         },
       ]}

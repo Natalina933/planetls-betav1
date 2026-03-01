@@ -2,6 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import {
+  buildBillingCards,
+  formatBillingDate,
+  getBillingSourceLabel,
+} from "./billingHelpers";
 
 type BillingHistoryPayload = {
   subscription: {
@@ -20,25 +25,6 @@ type BillingHistoryPayload = {
     created_at: string | null;
   }>;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "Non renseignee";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function getSourceLabel(source: string | null) {
-  if (source === "webhook") return "Webhook Stripe";
-  if (source === "return") return "Retour navigateur";
-  return "Source non renseignee";
-}
 
 export default function ConciergeBillingPage() {
   const [data, setData] = useState<BillingHistoryPayload | null>(null);
@@ -82,30 +68,7 @@ export default function ConciergeBillingPage() {
     };
   }, []);
 
-  const cards = useMemo(() => {
-    if (!data || data.events.length === 0) {
-      return [
-        {
-          title: "Aucun evenement pour le moment",
-          text: loading
-            ? "Chargement de l'historique en cours."
-            : error || "Les paiements et webhooks apparaitront ici des qu'un checkout sera traite.",
-          actions: [
-            {
-              label: "Voir l'abonnement PRO",
-              href: "/abonnement/concierge-pro",
-              variant: "primary" as const,
-            },
-          ],
-        },
-      ];
-    }
-
-    return data.events.slice(0, 6).map((event) => ({
-      title: event.stripe_event_type || "Evenement Stripe",
-      text: `${event.stripe_object_id || "Objet Stripe"} - ${getSourceLabel(event.source)} - ${formatDate(event.created_at)}`,
-    }));
-  }, [data, error, loading]);
+  const cards = useMemo(() => buildBillingCards(data, loading, error), [data, error, loading]);
 
   return (
     <ConciergeWorkspacePage
@@ -115,15 +78,15 @@ export default function ConciergeBillingPage() {
         loading
           ? "Synchronisation de votre historique Stripe..."
           : error ||
-            "Suivez l'etat de votre abonnement PRO, vos references Stripe et les derniers evenements synchronises sur votre compte."
+            "Suivez l'état de votre abonnement PRO, vos références Stripe et les derniers événements synchronisés sur votre compte."
       }
       chips={[
         data?.subscription?.is_pro ? "PRO actif" : "Compte standard",
-        `${data?.events.length ?? 0} evenement(s)`,
+        `${data?.events.length ?? 0} événement(s)`,
       ]}
       actions={[
         { label: "Voir mon abonnement PRO", href: "/abonnement/concierge-pro" },
-        { label: "Mettre a jour mes tarifs", href: "/dashboard/concierge/pricing" },
+        { label: "Mettre à jour mes tarifs", href: "/dashboard/concierge/pricing" },
       ]}
       metrics={[
         {
@@ -132,15 +95,15 @@ export default function ConciergeBillingPage() {
         },
         {
           label: "Source",
-          value: loading ? "..." : getSourceLabel(data?.subscription?.source ?? null),
+          value: loading ? "..." : getBillingSourceLabel(data?.subscription?.source ?? null),
         },
         {
-          label: "Reference",
+          label: "Référence",
           value: loading ? "..." : data?.subscription?.reference || "-",
         },
         {
-          label: "Derniere synchro",
-          value: loading ? "..." : formatDate(data?.subscription?.updated_at ?? null),
+          label: "Dernière synchro",
+          value: loading ? "..." : formatBillingDate(data?.subscription?.updated_at ?? null),
         },
       ]}
       cards={cards}
