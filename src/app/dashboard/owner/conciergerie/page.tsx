@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
+import pageStyles from "../OwnerDashboardPages.module.scss";
 
 type OwnerMissionRow = {
   id: string;
@@ -72,9 +73,7 @@ export default function OwnerConciergeriePage() {
           throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
         }
         if (!conversationsRes.ok) {
-          throw new Error(
-            conversationsPayload?.error || "Impossible de charger les conversations.",
-          );
+          throw new Error(conversationsPayload?.error || "Impossible de charger les conversations.");
         }
         if (!reviewsRes.ok) {
           throw new Error(reviewsPayload?.error || "Impossible de charger les avis.");
@@ -98,25 +97,15 @@ export default function OwnerConciergeriePage() {
       ).length,
     [missions],
   );
-
   const averageRating = useMemo(() => {
     const validRatings = reviews
       .map((review) => review.rating)
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
 
-    if (validRatings.length === 0) {
-      return null;
-    }
-
-    const total = validRatings.reduce((sum, value) => sum + value, 0);
-    return (total / validRatings.length).toFixed(1);
+    if (validRatings.length === 0) return null;
+    return (validRatings.reduce((sum, value) => sum + value, 0) / validRatings.length).toFixed(1);
   }, [reviews]);
-
-  const reviewedMissionIds = useMemo(
-    () => new Set(reviews.map((review) => review.mission_id)),
-    [reviews],
-  );
-
+  const reviewedMissionIds = useMemo(() => new Set(reviews.map((review) => review.mission_id)), [reviews]);
   const reviewableMissions = useMemo(
     () =>
       missions.filter(
@@ -178,7 +167,7 @@ export default function OwnerConciergeriePage() {
     event.preventDefault();
 
     if (!selectedMission?.concierge_profile_id) {
-      setReviewError("Impossible d'identifier le concierge à évaluer.");
+      setReviewError("Impossible d'identifier le concierge a evaluer.");
       return;
     }
 
@@ -204,7 +193,7 @@ export default function OwnerConciergeriePage() {
       }
 
       setReviews((prev) => [payload, ...prev]);
-      setReviewSuccess("Votre avis a bien été enregistré.");
+      setReviewSuccess("Votre avis a bien ete enregistre.");
       setComment("");
       setRating("5");
       setSelectedMissionId("");
@@ -223,7 +212,7 @@ export default function OwnerConciergeriePage() {
         description={
           error
             ? error
-            : "Retrouvez vos échanges récents, le niveau d'activité de votre concierge et les premiers retours collectés après mission."
+            : "Retrouvez vos echanges recents, le niveau d'activite de votre concierge et les retours collectes apres mission."
         }
         chips={[
           `${missions.length} mission(s)`,
@@ -248,8 +237,8 @@ export default function OwnerConciergeriePage() {
                 ? missions
                     .slice(0, 3)
                     .map((mission) => `${mission.title || "Mission"} (${mission.status || "-"})`)
-                    .join(" • ")
-                : "Aucune mission chargée pour le moment.",
+                    .join(" | ")
+                : "Aucune mission chargee pour le moment.",
           },
           {
             title: "Contacts actifs",
@@ -258,28 +247,28 @@ export default function OwnerConciergeriePage() {
                 ? conversations
                     .slice(0, 3)
                     .map((conversation) => conversation.counterpart_name || "Contact")
-                    .join(" • ")
+                    .join(" | ")
                 : "Aucun contact actif pour le moment.",
           },
           {
             title: "Pilotage",
             text:
               ongoingCount > 0
-                ? `${ongoingCount} intervention(s) demandent actuellement un suivi propriétaire.`
-                : "Aucune intervention en cours à suivre actuellement.",
+                ? `${ongoingCount} intervention(s) demandent actuellement un suivi proprietaire.`
+                : "Aucune intervention en cours a suivre actuellement.",
           },
           {
             title: "Avis et notation",
             text:
               reviews.length > 0
                 ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
-                : "Les avis laissés après les missions terminées apparaîtront ici.",
+                : "Les avis laisses apres les missions terminees apparaitront ici.",
           },
           {
             title: "Badge concierge",
             text: spotlightProfile
-              ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` • ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
-              : "Le statut PRO et la note du concierge apparaîtront ici dès qu'un profil sera associé.",
+              ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` | ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
+              : "Le statut PRO et la note du concierge apparaitront ici des qu'un profil sera associe.",
           },
         ]}
       />
@@ -292,43 +281,39 @@ export default function OwnerConciergeriePage() {
         </p>
 
         {reviewSuccess ? (
-          <p className={workspaceStyles.cardText} style={{ color: "#7b5b23", fontWeight: 700 }}>
-            {reviewSuccess}
-          </p>
+          <p className={`${pageStyles.message} ${pageStyles.messageSuccess}`}>{reviewSuccess}</p>
         ) : null}
         {reviewError ? (
-          <p className={workspaceStyles.cardText} style={{ color: "#991b1b", fontWeight: 700 }}>
-            {reviewError}
-          </p>
+          <p className={`${pageStyles.message} ${pageStyles.messageError}`}>{reviewError}</p>
         ) : null}
 
         {reviewableMissions.length === 0 ? (
           <p className={workspaceStyles.cardText}>
-            Aucun avis en attente. Les missions terminées non encore notées apparaîtront ici.
+            Aucun avis en attente. Les missions terminees non encore notees apparaitront ici.
           </p>
         ) : (
-          <form onSubmit={handleSubmitReview} style={{ display: "grid", gap: "0.85rem" }}>
-            <label style={{ display: "grid", gap: "0.35rem" }}>
+          <form onSubmit={handleSubmitReview} className={pageStyles.formGrid}>
+            <label className={pageStyles.label}>
               <span className={workspaceStyles.cardText}>Mission terminee</span>
               <select
                 value={selectedMissionId}
                 onChange={(event) => setSelectedMissionId(event.target.value)}
-                style={{ minHeight: 42, borderRadius: 12, padding: "0.65rem 0.8rem" }}
+                className={pageStyles.select}
               >
                 {reviewableMissions.map((mission) => (
                   <option key={mission.id} value={mission.id}>
-                    {mission.title || "Mission"} ({mission.priority || "normal"})
+                    {mission.title || "Mission"} ({mission.priority || "normale"})
                   </option>
                 ))}
               </select>
             </label>
 
-            <label style={{ display: "grid", gap: "0.35rem" }}>
+            <label className={pageStyles.label}>
               <span className={workspaceStyles.cardText}>Note</span>
               <select
                 value={rating}
                 onChange={(event) => setRating(event.target.value)}
-                style={{ minHeight: 42, borderRadius: 12, padding: "0.65rem 0.8rem" }}
+                className={pageStyles.select}
               >
                 <option value="5">5 / 5</option>
                 <option value="4">4 / 5</option>
@@ -338,14 +323,14 @@ export default function OwnerConciergeriePage() {
               </select>
             </label>
 
-            <label style={{ display: "grid", gap: "0.35rem" }}>
+            <label className={pageStyles.label}>
               <span className={workspaceStyles.cardText}>Commentaire</span>
               <textarea
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
                 rows={4}
-                placeholder="Votre retour sur la réactivité, la qualité d'exécution ou la communication."
-                style={{ borderRadius: 12, padding: "0.75rem 0.8rem", resize: "vertical" }}
+                placeholder="Votre retour sur la reactivite, la qualite d'execution ou la communication."
+                className={pageStyles.textarea}
               />
             </label>
 
@@ -353,8 +338,7 @@ export default function OwnerConciergeriePage() {
               <button
                 type="submit"
                 disabled={submittingReview || !selectedMission}
-                className={workspaceStyles.cardActionPrimary}
-                style={{ cursor: submittingReview ? "not-allowed" : "pointer" }}
+                className={pageStyles.buttonPrimary}
               >
                 {submittingReview ? "Enregistrement..." : "Publier mon avis"}
               </button>
