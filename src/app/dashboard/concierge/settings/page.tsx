@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import { buildRecentBillingEvents, buildSettingsChecklist } from "./settingsHelpers";
 
 type CurrentProfile = {
   first_name?: string | null;
@@ -29,17 +30,6 @@ type BillingHistoryResponse = {
   }>;
 };
 
-function formatDate(value?: string | null) {
-  if (!value) return "Date indisponible";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
 export default function ConciergeSettingsPage() {
   const [profile, setProfile] = useState<CurrentProfile | null>(null);
   const [billing, setBilling] = useState<BillingHistoryResponse | null>(null);
@@ -51,6 +41,7 @@ export default function ConciergeSettingsPage() {
       try {
         setLoading(true);
         setError(null);
+
         const [profileResponse, billingResponse] = await Promise.all([
           fetch("/api/profiles/current", { cache: "no-store" }),
           fetch("/api/billing/history", { cache: "no-store" }),
@@ -63,7 +54,9 @@ export default function ConciergeSettingsPage() {
           throw new Error(profilePayload?.error || "Impossible de charger vos paramètres.");
         }
         if (!billingResponse.ok) {
-          throw new Error(billingPayload?.error || "Impossible de charger l'historique abonnement.");
+          throw new Error(
+            billingPayload?.error || "Impossible de charger l'historique abonnement.",
+          );
         }
 
         setProfile(profilePayload);
@@ -80,47 +73,14 @@ export default function ConciergeSettingsPage() {
 
   const subscription = billing?.subscription ?? null;
   const recentEvents = billing?.events ?? [];
+
   const settingsChecklist = useMemo(
-    () => [
-      {
-        title: "Fiche concierge publique",
-        meta: profile?.service_area || profile?.city || "Zone non renseignée",
-        description:
-          "Vérifiez votre zone d'intervention, vos services et vos tarifs afin de rester visible et cohérent dans la recherche propriétaire.",
-        href: "/dashboard/concierge/profile?tab=fiche",
-        actionLabel: "Mettre à jour la fiche",
-      },
-      {
-        title: "Abonnement et facturation",
-        meta: subscription?.isPro ? "PRO actif" : "Standard",
-        description:
-          subscription?.isPro
-            ? `Dernière synchronisation ${formatDate(subscription.updatedAt)}.`
-            : "Passez à PRO pour renforcer votre visibilité et afficher votre badge premium.",
-        href: "/abonnement/concierge-pro",
-        actionLabel: "Gérer l'abonnement",
-        tone: subscription?.isPro ? ("success" as const) : ("warning" as const),
-      },
-      {
-        title: "Documents et conformite",
-        meta: profile?.email || "Email non renseigné",
-        description:
-          "Gardez vos documents, vos informations d'assurance et vos supports commerciaux à jour dans votre profil.",
-        href: "/dashboard/concierge/profile?tab=documents",
-        actionLabel: "Verifier mes documents",
-      },
-    ],
-    [profile?.city, profile?.email, profile?.service_area, subscription?.isPro, subscription?.updatedAt],
+    () => buildSettingsChecklist(profile, subscription),
+    [profile, subscription],
   );
+
   const recentBillingEvents = useMemo(
-    () =>
-      recentEvents.slice(0, 5).map((event) => ({
-        title: event.stripe_event_type || "Événement Stripe",
-        meta: formatDate(event.created_at),
-        description: `Source: ${event.source || "indisponible"}. Suivez l'état de votre abonnement et de vos synchronisations.`,
-        href: "/dashboard/concierge/billing",
-        actionLabel: "Voir l'historique",
-      })),
+    () => buildRecentBillingEvents(recentEvents),
     [recentEvents],
   );
 
@@ -132,7 +92,7 @@ export default function ConciergeSettingsPage() {
         loading
           ? "Chargement de votre configuration..."
           : error ||
-            "Retrouvez les repères de votre compte, vos accès sensibles et les raccourcis pour maintenir votre fiche concierge à jour."
+            "Retrouvez les repères de votre compte, votre niveau d'abonnement et les raccourcis pour maintenir votre offre à jour."
       }
       chips={[
         profile?.role === "concierge_pro" ? "Compte PRO" : "Compte Standard",
@@ -146,17 +106,26 @@ export default function ConciergeSettingsPage() {
         {
           label: "Tarif horaire",
           value:
-            typeof profile?.hourly_rate === "number" ? `${profile.hourly_rate.toFixed(0)} EUR` : "-",
+            typeof profile?.hourly_rate === "number"
+              ? `${profile.hourly_rate.toFixed(0)} EUR`
+              : "-",
         },
         {
           label: "Forfait mensuel",
           value:
-            typeof profile?.monthly_rate === "number" ? `${profile.monthly_rate.toFixed(0)} EUR` : "-",
+            typeof profile?.monthly_rate === "number"
+              ? `${profile.monthly_rate.toFixed(0)} EUR`
+              : "-",
         },
         {
-          label: "Events Stripe",
+          label: "Événements Stripe",
           value: loading ? "..." : String(recentEvents.length),
           hint: "Historique récent disponible",
+        },
+        {
+          label: "Sync abonnement",
+          value: loading ? "..." : subscription?.syncedVia || "-",
+          hint: "Source de synchronisation",
         },
       ]}
       cards={[
@@ -188,7 +157,7 @@ export default function ConciergeSettingsPage() {
         {
           title: "Configuration opérationnelle",
           text:
-            "Vos zones, vos missions et vos documents restent accessibles depuis la fiche concierge. Utilisez cet espace comme point de contrôle global.",
+            "Vos zones, vos missions, vos documents et vos tarifs restent accessibles depuis la fiche concierge. Utilisez cet espace comme point de contrôle global.",
           actions: [
             {
               label: "Ouvrir documents et avis",

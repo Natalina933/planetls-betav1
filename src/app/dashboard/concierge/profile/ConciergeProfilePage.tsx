@@ -2826,7 +2826,6 @@ export default function ConciergeProfilePage() {
       editProfile,
       missionOverviewStats.missionAvailability,
       missionPayload,
-      formatExperienceLabel,
     ],
   );
   const missionFoundationControls = useMemo(
@@ -2850,11 +2849,6 @@ export default function ConciergeProfilePage() {
       removeUnrecognizedServices,
       catalogSyncBusy,
       setEditProfile,
-      parseAvailabilityPayloadRaw,
-      parseMissionPayload,
-      buildLegacyFromMissionProfile,
-      toMissionTypeId,
-      normalizeMissionSchedule,
     ],
   );
   const ficheControls = useMemo(
@@ -2888,10 +2882,24 @@ export default function ConciergeProfilePage() {
       editingSection,
       renderSection,
       renderField,
-      formatExperienceLabel,
       setEditProfile,
       handleSaveSection,
       beginSectionEdit,
+    ],
+  );
+  const simpleTabControls = useMemo(
+    () => ({
+      renderSection,
+      renderField,
+      activeMissionServiceCatalogIds,
+      activeMissionServiceLabels,
+      placeholderClassName: styles.placeholderContent,
+    }),
+    [
+      renderSection,
+      renderField,
+      activeMissionServiceCatalogIds,
+      activeMissionServiceLabels,
     ],
   );
 
@@ -2907,8 +2915,7 @@ export default function ConciergeProfilePage() {
       missionOverviewStats,
       missionQuoteControls,
       missionFoundationControls,
-      activeMissionServiceCatalogIds,
-      activeMissionServiceLabels,
+      simpleTabControls,
       tariffOverviewControls,
       tariffFoundationControls,
       tariffConfigControls,
@@ -2921,8 +2928,6 @@ export default function ConciergeProfilePage() {
       billingDeskSectionProps,
     }),
     [
-      activeMissionServiceCatalogIds,
-      activeMissionServiceLabels,
       activeTab,
       billingDeskSectionProps,
       pricingSegmentsControls,
@@ -2935,6 +2940,7 @@ export default function ConciergeProfilePage() {
       pricingScenarioControls,
       pricingCatalogRows,
       profileEditorControls,
+      simpleTabControls,
       tariffFoundationControls,
       pricingModalControls,
       tariffCatalogControls,

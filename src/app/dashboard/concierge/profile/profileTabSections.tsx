@@ -917,8 +917,7 @@ export function ConciergeProfileActiveTabContent({
   missionOverviewStats,
   missionQuoteControls,
   missionFoundationControls,
-  activeMissionServiceCatalogIds,
-  activeMissionServiceLabels,
+  simpleTabControls,
   tariffOverviewControls,
   tariffFoundationControls,
   tariffConfigControls,
@@ -966,9 +965,9 @@ export function ConciergeProfileActiveTabContent({
       return (
         <ConciergePacksTabContent
           styles={styles}
-          renderSection={profileEditorControls.renderSection}
-          activeMissionServiceIds={activeMissionServiceCatalogIds}
-          activeMissionServiceLabels={activeMissionServiceLabels}
+          renderSection={simpleTabControls.renderSection}
+          activeMissionServiceIds={simpleTabControls.activeMissionServiceCatalogIds}
+          activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
         />
       );
     case "tarifs":
@@ -982,7 +981,7 @@ export function ConciergeProfileActiveTabContent({
           tariffConfigControls={tariffConfigControls}
           editingSection={profileEditorControls.editingSection}
           pricingCatalogRows={pricingCatalogRows}
-          activeMissionServiceLabels={activeMissionServiceLabels}
+          activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
           renderField={profileEditorControls.renderField}
           tariffCatalogControls={tariffCatalogControls}
           pricingSegmentsControls={pricingSegmentsControls}
@@ -1003,8 +1002,8 @@ export function ConciergeProfileActiveTabContent({
     case "documents":
       return (
         <ConciergeDocumentsTabContent
-          renderSection={profileEditorControls.renderSection}
-          placeholderClassName={styles.placeholderContent}
+          renderSection={simpleTabControls.renderSection}
+          placeholderClassName={simpleTabControls.placeholderClassName}
         />
       );
     default:
