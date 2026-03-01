@@ -80,6 +80,9 @@ export default function ProviderClientsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
 
   async function loadClients() {
     try {
@@ -110,6 +113,34 @@ export default function ProviderClientsPage() {
 
   const clients = data?.items ?? [];
   const canSubmit = useMemo(() => form.client_name.trim().length > 0, [form.client_name]);
+  const filteredClients = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const next = clients.filter((client) => {
+      const matchesStatus = statusFilter === "all" || (client.status ?? "active") === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+      const haystack = [
+        client.client_name,
+        client.company_name,
+        client.email,
+        client.phone,
+        client.city,
+        client.notes,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+
+    next.sort((a, b) => {
+      if (sortBy === "name") return a.client_name.localeCompare(b.client_name, "fr");
+      if (sortBy === "city") return (a.city ?? "").localeCompare(b.city ?? "", "fr");
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return next;
+  }, [clients, searchTerm, statusFilter, sortBy]);
 
   function resetForm() {
     setForm(defaultForm);
@@ -270,15 +301,38 @@ export default function ProviderClientsPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Portefeuille client</h2>
-              <span>{loading ? "..." : `${clients.length} fiche(s)`}</span>
+              <span>{loading ? "..." : `${filteredClients.length} fiche(s)`}</span>
+            </div>
+
+            <div className={styles.toolbar}>
+              <div className={styles.toolbarGroup}>
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Rechercher un client"
+                />
+              </div>
+              <div className={styles.toolbarGroup}>
+                <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                  <option value="all">Tous statuts</option>
+                  <option value="active">Actifs</option>
+                  <option value="inactive">Inactifs</option>
+                  <option value="archived">Archives</option>
+                </select>
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                  <option value="recent">Plus recents</option>
+                  <option value="name">Nom</option>
+                  <option value="city">Ville</option>
+                </select>
+              </div>
             </div>
 
             {loading ? <p className={styles.emptyState}>Chargement des clients...</p> : null}
-            {!loading && clients.length === 0 ? <p className={styles.emptyState}>Aucun client artisan pour le moment.</p> : null}
+            {!loading && filteredClients.length === 0 ? <p className={styles.emptyState}>Aucun client ne correspond au filtre actuel.</p> : null}
 
-            {!loading && clients.length > 0 ? (
+            {!loading && filteredClients.length > 0 ? (
               <div className={styles.cardList}>
-                {clients.map((client) => (
+                {filteredClients.map((client) => (
                   <article key={client.id} className={styles.itemCard}>
                     <div className={styles.itemHead}>
                       <div>

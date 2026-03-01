@@ -117,6 +117,9 @@ export default function ProviderInterventionsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
 
   async function loadInterventions() {
     try {
@@ -166,6 +169,39 @@ export default function ProviderInterventionsPage() {
   const items = data?.items ?? [];
   const clientsById = useMemo(() => new Map(clients.map((client) => [client.id, client])), [clients]);
   const canSubmit = useMemo(() => form.title.trim().length > 0, [form.title]);
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const next = items.filter((item) => {
+      const matchesStatus = statusFilter === "all" || (item.status ?? "pending") === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+      const client = item.client_id ? clientsById.get(item.client_id) : null;
+      const haystack = [
+        item.title,
+        item.description,
+        item.service_label,
+        item.location_label,
+        client?.client_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+
+    next.sort((a, b) => {
+      if (sortBy === "priority") {
+        const order = { urgent: 0, high: 1, normal: 2, low: 3 } as const;
+        return (order[a.priority as keyof typeof order] ?? 9) - (order[b.priority as keyof typeof order] ?? 9);
+      }
+      if (sortBy === "schedule") {
+        return new Date(a.scheduled_start ?? a.created_at).getTime() - new Date(b.scheduled_start ?? b.created_at).getTime();
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return next;
+  }, [items, searchTerm, statusFilter, sortBy, clientsById]);
 
   function resetForm() {
     setEditingId(null);
@@ -348,15 +384,40 @@ export default function ProviderInterventionsPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Planning d&apos;interventions</h2>
-              <span>{loading ? "..." : `${items.length} mission(s)`}</span>
+              <span>{loading ? "..." : `${filteredItems.length} mission(s)`}</span>
+            </div>
+
+            <div className={styles.toolbar}>
+              <div className={styles.toolbarGroup}>
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Rechercher une intervention"
+                />
+              </div>
+              <div className={styles.toolbarGroup}>
+                <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                  <option value="all">Tous statuts</option>
+                  <option value="pending">En attente</option>
+                  <option value="accepted">Acceptees</option>
+                  <option value="in_progress">En cours</option>
+                  <option value="completed">Terminees</option>
+                  <option value="cancelled">Annulees</option>
+                </select>
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                  <option value="recent">Plus recentes</option>
+                  <option value="schedule">Planning</option>
+                  <option value="priority">Priorite</option>
+                </select>
+              </div>
             </div>
 
             {loading ? <p className={styles.emptyState}>Chargement des interventions...</p> : null}
-            {!loading && items.length === 0 ? <p className={styles.emptyState}>Aucune intervention artisan pour le moment.</p> : null}
+            {!loading && filteredItems.length === 0 ? <p className={styles.emptyState}>Aucune intervention ne correspond au filtre actuel.</p> : null}
 
-            {!loading && items.length > 0 ? (
+            {!loading && filteredItems.length > 0 ? (
               <div className={styles.cardList}>
-                {items.map((item) => {
+                {filteredItems.map((item) => {
                   const client = item.client_id ? clientsById.get(item.client_id) : null;
                   return (
                     <article key={item.id} className={styles.itemCard}>

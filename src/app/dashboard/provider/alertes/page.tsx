@@ -85,6 +85,9 @@ export default function ProviderAlertesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [severityFilter, setSeverityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
 
   async function loadAlerts() {
     try {
@@ -132,6 +135,30 @@ export default function ProviderAlertesPage() {
   const items = data?.items ?? [];
   const interventionsById = useMemo(() => new Map(interventions.map((item) => [item.id, item])), [interventions]);
   const canSubmit = useMemo(() => form.title.trim().length > 0, [form.title]);
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const next = items.filter((item) => {
+      const matchesSeverity = severityFilter === "all" || (item.severity ?? "normal") === severityFilter;
+      if (!matchesSeverity) return false;
+      if (!normalizedSearch) return true;
+      const intervention = item.intervention_id ? interventionsById.get(item.intervention_id) : null;
+      const haystack = [item.title, item.body, item.alert_type, item.status, intervention?.title]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+
+    next.sort((a, b) => {
+      if (sortBy === "severity") {
+        const order = { urgent: 0, high: 1, normal: 2, low: 3 } as const;
+        return (order[a.severity as keyof typeof order] ?? 9) - (order[b.severity as keyof typeof order] ?? 9);
+      }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return next;
+  }, [items, searchTerm, severityFilter, sortBy, interventionsById]);
 
   function resetForm() {
     setEditingId(null);
@@ -292,15 +319,38 @@ export default function ProviderAlertesPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Flux d&apos;alertes</h2>
-              <span>{loading ? "..." : `${items.length} alerte(s)`}</span>
+              <span>{loading ? "..." : `${filteredItems.length} alerte(s)`}</span>
+            </div>
+
+            <div className={styles.toolbar}>
+              <div className={styles.toolbarGroup}>
+                <input
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Rechercher une alerte"
+                />
+              </div>
+              <div className={styles.toolbarGroup}>
+                <select value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value)}>
+                  <option value="all">Toutes severites</option>
+                  <option value="urgent">Urgentes</option>
+                  <option value="high">Hautes</option>
+                  <option value="normal">Normales</option>
+                  <option value="low">Basses</option>
+                </select>
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                  <option value="recent">Plus recentes</option>
+                  <option value="severity">Severite</option>
+                </select>
+              </div>
             </div>
 
             {loading ? <p className={styles.emptyState}>Chargement des alertes...</p> : null}
-            {!loading && items.length === 0 ? <p className={styles.emptyState}>Aucune alerte artisan pour le moment.</p> : null}
+            {!loading && filteredItems.length === 0 ? <p className={styles.emptyState}>Aucune alerte ne correspond au filtre actuel.</p> : null}
 
-            {!loading && items.length > 0 ? (
+            {!loading && filteredItems.length > 0 ? (
               <div className={styles.cardList}>
-                {items.map((item) => {
+                {filteredItems.map((item) => {
                   const linkedIntervention = item.intervention_id ? interventionsById.get(item.intervention_id) : null;
                   return (
                     <article key={item.id} className={styles.itemCard}>
