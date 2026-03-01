@@ -927,23 +927,11 @@ export function ConciergeProfileActiveTabContent({
   missionProgressControls,
   missionOverviewStats,
   missionQuoteControls,
-  missionPayload,
-  removeUnrecognizedServices,
-  catalogSyncBusy,
-  parseAvailabilityPayloadRaw,
-  parseMissionPayload,
-  buildLegacyFromMissionProfile,
-  toMissionTypeId,
-  normalizeMissionSchedule,
+  missionFoundationControls,
   activeMissionServiceCatalogIds,
   activeMissionServiceLabels,
-  pricingMeta,
-  pricingV2,
-  configuredPricingCount,
-  tariffReadinessPercent,
-  pendingTariffReadinessChecks,
-  scrollToTariffSection,
-  handleTabChange,
+  tariffOverviewControls,
+  tariffFoundationControls,
   tariffConfigControls,
   pricingCatalogRows,
   tariffCatalogControls,
@@ -988,15 +976,7 @@ export function ConciergeProfileActiveTabContent({
           missionProgressControls={missionProgressControls}
           missionOverviewStats={missionOverviewStats}
           missionQuoteControls={missionQuoteControls}
-          missionPayload={missionPayload}
-          removeUnrecognizedServices={removeUnrecognizedServices}
-          catalogSyncBusy={catalogSyncBusy}
-          setEditProfile={setEditProfile}
-          parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
-          parseMissionPayload={parseMissionPayload}
-          buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
-          toMissionTypeId={toMissionTypeId}
-          normalizeMissionSchedule={normalizeMissionSchedule}
+          missionFoundationControls={missionFoundationControls}
         />
       );
     case "packs":
@@ -1014,17 +994,9 @@ export function ConciergeProfileActiveTabContent({
           styles={styles}
           renderSection={renderSection}
           sectionIds={tariffSectionIds}
-          pricingMeta={pricingMeta}
-          pricingV2={pricingV2}
-          configuredPricingCount={configuredPricingCount}
-          tariffReadinessPercent={tariffReadinessPercent}
-          pendingTariffReadinessChecks={pendingTariffReadinessChecks}
-          scrollToTariffSection={scrollToTariffSection}
-          handleTabChange={handleTabChange}
-          editProfile={editProfile}
+          tariffOverviewControls={tariffOverviewControls}
+          tariffFoundationControls={tariffFoundationControls}
           tariffConfigControls={tariffConfigControls}
-          missionAvailability={missionOverviewStats.missionAvailability}
-          missionPayload={missionPayload}
           editingSection={editingSection}
           pricingCatalogRows={pricingCatalogRows}
           activeMissionServiceLabels={activeMissionServiceLabels}
@@ -1981,15 +1953,7 @@ export function ConciergeMissionsTabContent({
   missionProgressControls,
   missionOverviewStats,
   missionQuoteControls,
-  missionPayload,
-  removeUnrecognizedServices,
-  catalogSyncBusy,
-  setEditProfile,
-  parseAvailabilityPayloadRaw,
-  parseMissionPayload,
-  buildLegacyFromMissionProfile,
-  toMissionTypeId,
-  normalizeMissionSchedule,
+  missionFoundationControls,
 }: any) {
   return (
     <MissionsTabLayout
@@ -2027,17 +1991,17 @@ export function ConciergeMissionsTabContent({
         renderField={renderField}
         sectionIds={sectionIds}
         editingSection={editingSection}
-        missionPayload={missionPayload}
-        missionAvailability={missionOverviewStats.missionAvailability}
-        unrecognizedActiveMissionLabels={missionOverviewStats.unrecognizedActiveMissionLabels}
-        removeUnrecognizedServices={removeUnrecognizedServices}
-        catalogSyncBusy={catalogSyncBusy}
-        setEditProfile={setEditProfile}
-        parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
-        parseMissionPayload={parseMissionPayload}
-        buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
-        toMissionTypeId={toMissionTypeId}
-        normalizeMissionSchedule={normalizeMissionSchedule}
+        missionPayload={missionFoundationControls.missionPayload}
+        missionAvailability={missionFoundationControls.missionAvailability}
+        unrecognizedActiveMissionLabels={missionFoundationControls.unrecognizedActiveMissionLabels}
+        removeUnrecognizedServices={missionFoundationControls.removeUnrecognizedServices}
+        catalogSyncBusy={missionFoundationControls.catalogSyncBusy}
+        setEditProfile={missionFoundationControls.setEditProfile}
+        parseAvailabilityPayloadRaw={missionFoundationControls.parseAvailabilityPayloadRaw}
+        parseMissionPayload={missionFoundationControls.parseMissionPayload}
+        buildLegacyFromMissionProfile={missionFoundationControls.buildLegacyFromMissionProfile}
+        toMissionTypeId={missionFoundationControls.toMissionTypeId}
+        normalizeMissionSchedule={missionFoundationControls.normalizeMissionSchedule}
       />
     </MissionsTabLayout>
   );
@@ -3305,17 +3269,9 @@ export function ConciergeTariffsTabContent({
   styles,
   renderSection,
   sectionIds,
-  pricingMeta,
-  pricingV2,
-  configuredPricingCount,
-  tariffReadinessPercent,
-  pendingTariffReadinessChecks,
-  scrollToTariffSection,
-  handleTabChange,
-  editProfile,
+  tariffOverviewControls,
+  tariffFoundationControls,
   tariffConfigControls,
-  missionAvailability,
-  missionPayload,
   editingSection,
   pricingCatalogRows,
   activeMissionServiceLabels,
@@ -3334,14 +3290,14 @@ export function ConciergeTariffsTabContent({
         styles={styles}
         renderSection={renderSection}
         sectionId={sectionIds.WORKFLOW}
-        commissionRatePct={pricingMeta.commissionRatePct}
-        hourlyRate={pricingV2.base.hourlyRate}
-        configuredPricingCount={configuredPricingCount}
-        tariffReadinessPercent={tariffReadinessPercent}
-        pendingChecksCount={pendingTariffReadinessChecks.length}
-        onScrollConfig={() => scrollToTariffSection("tariffs-config")}
-        onScrollBilling={() => scrollToTariffSection("tariffs-billing-desk")}
-        onGoToMissions={() => handleTabChange("missions")}
+        commissionRatePct={tariffFoundationControls.pricingMeta.commissionRatePct}
+        hourlyRate={tariffFoundationControls.pricingV2.base.hourlyRate}
+        configuredPricingCount={tariffOverviewControls.configuredPricingCount}
+        tariffReadinessPercent={tariffOverviewControls.tariffReadinessPercent}
+        pendingChecksCount={tariffOverviewControls.pendingTariffReadinessChecks.length}
+        onScrollConfig={() => tariffOverviewControls.scrollToTariffSection("tariffs-config")}
+        onScrollBilling={() => tariffOverviewControls.scrollToTariffSection("tariffs-billing-desk")}
+        onGoToMissions={() => tariffOverviewControls.handleTabChange("missions")}
       />
 
       <TariffConfigShell
@@ -3351,25 +3307,25 @@ export function ConciergeTariffsTabContent({
       >
         <TariffPillarsSection
           styles={styles}
-          hourlyRate={pricingV2.base.hourlyRate}
-          travelFee={pricingV2.base.travelFee}
-          minimumInvoice={pricingV2.base.minimumInvoice}
-          commissionRatePct={pricingMeta.commissionRatePct}
-          setupFee={pricingMeta.setupFee}
+          hourlyRate={tariffFoundationControls.pricingV2.base.hourlyRate}
+          travelFee={tariffFoundationControls.pricingV2.base.travelFee}
+          minimumInvoice={tariffFoundationControls.pricingV2.base.minimumInvoice}
+          commissionRatePct={tariffFoundationControls.pricingMeta.commissionRatePct}
+          setupFee={tariffFoundationControls.pricingMeta.setupFee}
           editingDisabled={editingSection !== sectionIds.CONFIG}
           onCommissionRateChange={(value) =>
             tariffConfigControls.applyPricingMeta({
-              ...pricingMeta,
+              ...tariffFoundationControls.pricingMeta,
               commissionRatePct: value,
             })
           }
           onSetupFeeChange={(value) =>
             tariffConfigControls.applyPricingMeta({
-              ...pricingMeta,
+              ...tariffFoundationControls.pricingMeta,
               setupFee: value,
             })
           }
-          configuredPricingCount={configuredPricingCount}
+          configuredPricingCount={tariffOverviewControls.configuredPricingCount}
           pricingCatalogRowsCount={pricingCatalogRows.length}
           activeMissionServiceLabelsCount={activeMissionServiceLabels.length}
         />
@@ -3377,16 +3333,16 @@ export function ConciergeTariffsTabContent({
         <div className={styles.tariffSimpleGrid}>
           <TariffContextSection
             styles={styles}
-            experienceLabel={formatExperienceLabel(editProfile.experience_level)}
+            experienceLabel={tariffFoundationControls.formatExperienceLabel(tariffFoundationControls.editProfile.experience_level)}
             locationLabel={tariffConfigControls.tariffLocationLabel}
-            radiusKm={missionAvailability?.radiusKm ?? 0}
-            urgentEnabled={missionPayload.preferences.priorityFlags.urgent}
-            urgentPercent={pricingV2.globalModifiers.urgentPercent}
+            radiusKm={tariffFoundationControls.missionAvailability?.radiusKm ?? 0}
+            urgentEnabled={tariffFoundationControls.missionPayload.preferences.priorityFlags.urgent}
+            urgentPercent={tariffFoundationControls.pricingV2.globalModifiers.urgentPercent}
             highSeasonEnabled={
-              missionPayload.missionProfile.specialConditions
+              tariffFoundationControls.missionPayload.missionProfile.specialConditions
                 .acceptHighSeasonInterventions
             }
-            highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
+            highSeasonPercent={tariffFoundationControls.pricingV2.globalModifiers.highSeasonPercent}
           />
 
           <TariffBaseSection
@@ -3394,12 +3350,12 @@ export function ConciergeTariffsTabContent({
             renderField={renderField}
             sectionId={sectionIds.CONFIG}
             editingSection={editingSection}
-            minimumInvoice={pricingV2.base.minimumInvoice}
+            minimumInvoice={tariffFoundationControls.pricingV2.base.minimumInvoice}
             onMinimumInvoiceChange={(value) =>
               tariffConfigControls.applyPricingV2({
-                ...pricingV2,
+                ...tariffFoundationControls.pricingV2,
                 base: {
-                  ...pricingV2.base,
+                  ...tariffFoundationControls.pricingV2.base,
                   minimumInvoice: value,
                 },
               })
@@ -3408,7 +3364,7 @@ export function ConciergeTariffsTabContent({
 
           <TariffServicesCatalogSection
             styles={styles}
-            configuredPricingCount={configuredPricingCount}
+            configuredPricingCount={tariffOverviewControls.configuredPricingCount}
             pricingCatalogRowsCount={pricingCatalogRows.length}
             pricingSortMode={tariffCatalogControls.pricingSortMode}
             setPricingSortMode={tariffCatalogControls.setPricingSortMode}
@@ -3432,11 +3388,11 @@ export function ConciergeTariffsTabContent({
             updatePropertyTypeDeltaPercent={tariffConfigControls.updatePropertyTypeDeltaPercent}
             editingSection={editingSection}
             sectionId={sectionIds.CONFIG}
-            urgentPercent={pricingV2.globalModifiers.urgentPercent}
-            nightPercent={pricingV2.globalModifiers.nightPercent}
-            weekendPercent={pricingV2.globalModifiers.weekendPercent}
-            highSeasonPercent={pricingV2.globalModifiers.highSeasonPercent}
-            minimumInvoice={pricingV2.base.minimumInvoice}
+            urgentPercent={tariffFoundationControls.pricingV2.globalModifiers.urgentPercent}
+            nightPercent={tariffFoundationControls.pricingV2.globalModifiers.nightPercent}
+            weekendPercent={tariffFoundationControls.pricingV2.globalModifiers.weekendPercent}
+            highSeasonPercent={tariffFoundationControls.pricingV2.globalModifiers.highSeasonPercent}
+            minimumInvoice={tariffFoundationControls.pricingV2.base.minimumInvoice}
           />
 
           <TariffSegmentsSection
