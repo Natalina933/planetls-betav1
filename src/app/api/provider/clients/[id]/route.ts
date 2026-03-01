@@ -5,6 +5,9 @@ import {
   providerSchemaMissingResponse,
   requireProviderAuth,
 } from "../../shared";
+import type { ProviderRow, ProviderUpdate } from "@/types/supabase-provider";
+
+type ProviderClientRow = ProviderRow<"provider_clients">;
 
 export async function PATCH(
   req: NextRequest,
@@ -14,10 +17,14 @@ export async function PATCH(
   if (!authResult.ok) return authResult.response;
 
   const { auth } = authResult;
+  const providerProfileId = auth.userId;
+  if (!providerProfileId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { id } = await context.params;
   const body = await req.json();
 
-  const updatePayload = {
+  const updatePayload: ProviderUpdate<"provider_clients"> = {
     client_name: typeof body?.client_name === "string" ? body.client_name : undefined,
     company_name: typeof body?.company_name === "string" ? body.company_name : undefined,
     email: typeof body?.email === "string" ? body.email : undefined,
@@ -36,7 +43,7 @@ export async function PATCH(
     .from("provider_clients")
     .update(updatePayload)
     .eq("id", id)
-    .eq("provider_profile_id", auth.userId)
+    .eq("provider_profile_id", providerProfileId)
     .select("*")
     .maybeSingle();
 
@@ -50,7 +57,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Client introuvable" }, { status: 404 });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json(data as ProviderClientRow);
 }
 
 export async function DELETE(
@@ -61,13 +68,17 @@ export async function DELETE(
   if (!authResult.ok) return authResult.response;
 
   const { auth } = authResult;
+  const providerProfileId = auth.userId;
+  if (!providerProfileId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { id } = await context.params;
 
   const { error } = await (db as any)
     .from("provider_clients")
     .delete()
     .eq("id", id)
-    .eq("provider_profile_id", auth.userId);
+    .eq("provider_profile_id", providerProfileId);
 
   if (error) {
     if (isProviderSchemaMissing(error)) {

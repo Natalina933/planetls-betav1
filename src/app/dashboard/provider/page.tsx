@@ -11,6 +11,15 @@ import {
 
 export default function ProviderDashboardPage() {
   const [workspace, setWorkspace] = useState<ProviderWorkspacePayload | null>(null);
+  const [stats, setStats] = useState<{
+    clients: number;
+    activeClients: number;
+    interventions: number;
+    inProgress: number;
+    alerts: number;
+    urgentAlerts: number;
+    conversations: number;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,9 +27,28 @@ export default function ProviderDashboardPage() {
 
     async function loadProfile() {
       try {
-        const nextWorkspace = await fetchCurrentProviderProfile();
+        const [nextWorkspace, clientsRes, interventionsRes, alertsRes, messagesRes] = await Promise.all([
+          fetchCurrentProviderProfile(),
+          fetch("/api/provider/clients", { cache: "no-store" }),
+          fetch("/api/provider/interventions", { cache: "no-store" }),
+          fetch("/api/provider/alerts", { cache: "no-store" }),
+          fetch("/api/provider/messages", { cache: "no-store" }),
+        ]);
+        const clients = await clientsRes.json();
+        const interventions = await interventionsRes.json();
+        const alerts = await alertsRes.json();
+        const messages = await messagesRes.json();
         if (!cancelled) {
           setWorkspace(nextWorkspace);
+          setStats({
+            clients: clients?.summary?.total ?? 0,
+            activeClients: clients?.summary?.active ?? 0,
+            interventions: interventions?.summary?.total ?? 0,
+            inProgress: interventions?.summary?.in_progress ?? 0,
+            alerts: alerts?.summary?.total ?? 0,
+            urgentAlerts: alerts?.summary?.urgent ?? 0,
+            conversations: messages?.summary?.total ?? 0,
+          });
           setError(null);
         }
       } catch (err) {
@@ -55,6 +83,7 @@ export default function ProviderDashboardPage() {
         profile?.company_name || "Activite artisanale",
         locationLabel,
         workspace?.summary.is_pro ? "Artisan PRO" : "Artisan standard",
+        `${stats?.interventions ?? 0} interventions`,
       ]}
       actions={[
         { label: "Voir les interventions", href: "/dashboard/provider/interventions" },
@@ -77,7 +106,7 @@ export default function ProviderDashboardPage() {
         },
         {
           title: "Interventions a suivre",
-          text: "Retrouvez vos chantiers en attente, en cours et termines pour garder une execution claire.",
+          text: `${stats?.interventions ?? 0} interventions, dont ${stats?.inProgress ?? 0} en cours pour garder une execution claire.`,
           actions: [
             {
               label: "Ouvrir les interventions",
@@ -88,22 +117,22 @@ export default function ProviderDashboardPage() {
         },
         {
           title: "Pilotage commercial",
-          text: "Gardez une vue rapide sur vos devis emis, vos validations et les paiements a suivre.",
+          text: `${stats?.clients ?? 0} clients, dont ${stats?.activeClients ?? 0} actifs, pour suivre votre activite commerciale.`,
           actions: [
             {
-              label: "Voir les devis et factures",
-              href: "/dashboard/provider/devis",
+              label: "Voir les clients",
+              href: "/dashboard/provider/clients",
               variant: "secondary",
             },
           ],
         },
         {
           title: "Organisation quotidienne",
-          text: "Utilisez le planning, les messages et les alertes pour garder le bon rythme d'execution.",
+          text: `${stats?.alerts ?? 0} alertes dont ${stats?.urgentAlerts ?? 0} urgentes, et ${stats?.conversations ?? 0} conversations ouvertes.`,
           actions: [
             {
-              label: "Voir le planning",
-              href: "/dashboard/provider/planning",
+              label: "Voir messages et alertes",
+              href: "/dashboard/provider/messages",
               variant: "secondary",
             },
           ],

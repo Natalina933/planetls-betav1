@@ -115,6 +115,7 @@ export default function ProviderInterventionsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -295,6 +296,31 @@ export default function ProviderInterventionsPage() {
     }
   }
 
+  async function handleQuickStatusUpdate(id: string, status: string) {
+    try {
+      setQuickUpdatingId(id);
+      setError(null);
+      setSuccess(null);
+
+      const response = await fetch(`/api/provider/interventions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error || "Impossible de mettre a jour le statut.");
+      }
+
+      await loadInterventions();
+      setSuccess("Statut intervention mis a jour.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le statut.");
+    } finally {
+      setQuickUpdatingId(null);
+    }
+  }
+
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
@@ -461,6 +487,17 @@ export default function ProviderInterventionsPage() {
                       </div>
                       {item.description ? <p className={styles.itemBody}>{item.description}</p> : null}
                       <div className={styles.cardActions}>
+                        <select
+                          value={item.status ?? "pending"}
+                          disabled={quickUpdatingId === item.id}
+                          onChange={(event) => void handleQuickStatusUpdate(item.id, event.target.value)}
+                        >
+                          <option value="pending">En attente</option>
+                          <option value="accepted">Acceptee</option>
+                          <option value="in_progress">En cours</option>
+                          <option value="completed">Terminee</option>
+                          <option value="cancelled">Annulee</option>
+                        </select>
                         <button type="button" className={styles.secondaryButton} onClick={() => {
                           setEditingId(item.id);
                           setForm(toFormState(item));

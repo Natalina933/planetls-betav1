@@ -83,6 +83,7 @@ export default function ProviderAlertesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -247,6 +248,31 @@ export default function ProviderAlertesPage() {
     }
   }
 
+  async function handleQuickStatusUpdate(id: string, status: string) {
+    try {
+      setQuickUpdatingId(id);
+      setError(null);
+      setSuccess(null);
+
+      const response = await fetch(`/api/provider/alerts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error || "Impossible de mettre a jour le statut.");
+      }
+
+      await loadAlerts();
+      setSuccess("Statut alerte mis a jour.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le statut.");
+    } finally {
+      setQuickUpdatingId(null);
+    }
+  }
+
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
@@ -393,6 +419,15 @@ export default function ProviderAlertesPage() {
                       </div>
                       {item.body ? <p className={styles.itemBody}>{item.body}</p> : null}
                       <div className={styles.cardActions}>
+                        <select
+                          value={item.status ?? "open"}
+                          disabled={quickUpdatingId === item.id}
+                          onChange={(event) => void handleQuickStatusUpdate(item.id, event.target.value)}
+                        >
+                          <option value="open">Ouverte</option>
+                          <option value="read">Lue</option>
+                          <option value="resolved">Resolue</option>
+                        </select>
                         <button type="button" className={styles.secondaryButton} onClick={() => {
                           setEditingId(item.id);
                           setForm(toFormState(item));
