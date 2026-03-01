@@ -21,6 +21,9 @@
     --color-text-secondary: #555555;
     --color-text-muted: rgba(0, 0, 0, 0.6);
     --color-text-light: rgba(0, 0, 0, 0.5);
+    --color-text-on-light: #111111;
+    --color-text-on-dark: #f8f5ef;
+    --color-text-gold: #d4af37;
 
     // --- BORDURES ---
     --color-border: #e0e6ed;
@@ -42,7 +45,7 @@
 
     // --- BOUTONS ---
     --button-primary-bg: #d4af37;
-    --button-primary-text: #1a1a1a;
+    --button-primary-text: #111111;
     --button-primary-hover: #b99b2e;
     --button-secondary-bg: transparent;
     --button-secondary-border: #d4af37;
@@ -76,6 +79,9 @@ html:not([data-theme]) body {
     --color-text-secondary: #555555;
     --color-text-muted: rgba(0, 0, 0, 0.6);
     --color-text-light: rgba(0, 0, 0, 0.5);
+    --color-text-on-light: #111111;
+    --color-text-on-dark: #f8f5ef;
+    --color-text-gold: #d4af37;
     --color-border: #e0e6ed;
     --color-border-light: #ececec;
     --color-border-dark: #d0d0d0;
@@ -89,7 +95,7 @@ html:not([data-theme]) body {
     --color-shadow: rgba(0, 0, 0, 0.1);
     --color-focus-ring: #ffe09b;
     --button-primary-bg: #d4af37;
-    --button-primary-text: #1a1a1a;
+    --button-primary-text: #111111;
     --button-primary-hover: #b99b2e;
     --button-secondary-bg: transparent;
     --button-secondary-border: #d4af37;

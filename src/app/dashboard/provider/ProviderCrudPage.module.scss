@@ -1,0 +1,222 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.header h1,
+.panelHeader h2,
+.itemHead h3 {
+  margin: 0;
+}
+
+.header p,
+.itemHead p,
+.itemBody,
+.emptyState,
+.successBox,
+.errorBox,
+.infoBox {
+  margin: 0;
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5f7055;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.metrics span,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(138, 161, 109, 0.14);
+  color: #294027;
+  font-weight: 700;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(76, 97, 69, 0.18);
+  background: rgba(249, 251, 247, 0.96);
+  box-shadow: 0 10px 24px rgba(30, 41, 25, 0.06);
+}
+
+.panelHeader,
+.formActions,
+.cardActions,
+.itemHead,
+.itemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.panelHeader {
+  justify-content: space-between;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.formGrid label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: #294027;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.formGrid input,
+.formGrid select,
+.formGrid textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.8rem 0.95rem;
+  background: #ffffff;
+  color: #172012;
+}
+
+.formGrid textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.formActions {
+  grid-column: 1 / -1;
+}
+
+.cardList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.itemCard {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(76, 97, 69, 0.14);
+  background: #ffffff;
+}
+
+.itemMeta {
+  color: #556452;
+  font-size: 0.92rem;
+}
+
+.itemBody {
+  color: #23311f;
+}
+
+.successBox,
+.errorBox,
+.infoBox {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.successBox {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.errorBox {
+  background: rgba(185, 28, 28, 0.1);
+  color: #991b1b;
+}
+
+.infoBox {
+  background: rgba(76, 97, 69, 0.1);
+  color: #355236;
+}
+
+.emptyState {
+  color: #556452;
+}
+
+.secondaryButton,
+.dangerButton,
+.linkButton,
+.formActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.formActions button,
+.linkButton {
+  border: 1px solid rgba(76, 97, 69, 0.28);
+  background: linear-gradient(135deg, #8aa16d, #c4d7a4);
+  color: #172012;
+}
+
+.secondaryButton {
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  background: #ffffff;
+  color: #294027;
+}
+
+.dangerButton {
+  border: 1px solid rgba(185, 28, 28, 0.2);
+  background: rgba(185, 28, 28, 0.08);
+  color: #991b1b;
+}
+
+.formActions button:disabled,
+.dangerButton:disabled {
+  opacity: 0.6;
+}
+
+@media (max-width: 960px) {
+  .header,
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

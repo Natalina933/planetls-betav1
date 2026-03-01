@@ -84,12 +84,12 @@
     padding-left: 0.8rem;
     padding-right: 0.8rem;
     background: linear-gradient(to right, $gold, $gold-alt);
-    color: #fff;
+    color: #111111;
     box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
     z-index: 2;
 
     .tabIcon {
-      color: #fff;
+      color: #111111;
       transform: scale(1.1);
     }
   }
@@ -210,7 +210,7 @@
 
   .cta {
     background-color: $gold;
-    color: #fff;
+    color: #111111;
 
     &:hover,
     &:focus-visible {

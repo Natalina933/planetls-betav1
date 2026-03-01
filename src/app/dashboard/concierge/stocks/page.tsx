@@ -2,6 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import {
+  buildHousingStockChecks,
+  buildInactiveHousingItems,
+  buildStockForecast,
+  buildUrgentMissionItems,
+} from "./stocksHelpers";
 
 type HousingRow = {
   id: number;
@@ -14,10 +20,6 @@ type MissionRow = {
   priority: string | null;
   status: string | null;
 };
-
-function normalizeStatus(value: string | null) {
-  return value ? value.replaceAll("_", " ") : "non renseigné";
-}
 
 export default function ConciergeStocksPage() {
   const [housings, setHousings] = useState<HousingRow[]>([]);
@@ -58,10 +60,7 @@ export default function ConciergeStocksPage() {
   }, []);
 
   const activeMissions = useMemo(
-    () =>
-      missions.filter((mission) =>
-        ["assigned", "accepted", "in_progress"].includes(mission.status || ""),
-      ),
+    () => missions.filter((mission) => ["assigned", "accepted", "in_progress"].includes(mission.status || "")),
     [missions],
   );
   const urgentMissions = useMemo(
@@ -69,64 +68,20 @@ export default function ConciergeStocksPage() {
     [missions],
   );
   const inactiveHousings = useMemo(
-    () =>
-      housings.filter(
-        (housing) => housing.statut !== "active" && housing.statut !== "published",
-      ),
+    () => housings.filter((housing) => housing.statut !== "active" && housing.statut !== "published"),
     [housings],
   );
 
   const housingCount = housings.length;
-  const welcomeKits = housingCount * 2;
-  const linenSets = Math.max(housingCount * 3, activeMissions.length * 2);
-  const cleaningUnits = Math.max(housingCount, activeMissions.length);
-  const backupSets = Math.max(2, urgentMissions.length);
-
-  const housingStockChecks = useMemo(
-    () =>
-      housings.slice(0, 8).map((housing) => ({
-        title: housing.nom || `Logement #${housing.id}`,
-        meta:
-          housing.statut === "active" || housing.statut === "published"
-            ? "Actif"
-            : "À compléter",
-        description:
-          "Contrôle rapide du linge, des kits d'accueil et des consommables ménage pour ce bien.",
-        href: `/dashboard/concierge/logements/${housing.id}`,
-        actionLabel: "Ouvrir la fiche",
-        tone:
-          housing.statut === "active" || housing.statut === "published"
-            ? ("success" as const)
-            : ("warning" as const),
-      })),
-    [housings],
+  const stockForecast = useMemo(
+    () => buildStockForecast(housingCount, activeMissions.length, urgentMissions.length),
+    [activeMissions.length, housingCount, urgentMissions.length],
   );
 
-  const urgentMissionItems = useMemo(
-    () =>
-      urgentMissions.slice(0, 6).map((mission) => ({
-        title: `Mission ${mission.id.slice(0, 8)}`,
-        meta: normalizeStatus(mission.status),
-        description:
-          "Prévoir linge, consommables et capacité de réaction adaptés à cette intervention urgente.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        actionLabel: "Vérifier la mission",
-        tone: "warning" as const,
-      })),
-    [urgentMissions],
-  );
-
+  const housingStockChecks = useMemo(() => buildHousingStockChecks(housings), [housings]);
+  const urgentMissionItems = useMemo(() => buildUrgentMissionItems(urgentMissions), [urgentMissions]);
   const inactiveHousingItems = useMemo(
-    () =>
-      inactiveHousings.slice(0, 6).map((housing) => ({
-        title: housing.nom || `Logement #${housing.id}`,
-        meta: housing.statut || "Brouillon",
-        description:
-          "Ce bien doit être finalisé pour fiabiliser le stock à prévoir et la rotation des consommables.",
-        href: `/dashboard/concierge/logements/${housing.id}`,
-        actionLabel: "Compléter",
-        tone: "warning" as const,
-      })),
+    () => buildInactiveHousingItems(inactiveHousings),
     [inactiveHousings],
   );
 
@@ -152,29 +107,29 @@ export default function ConciergeStocksPage() {
       metrics={[
         {
           label: "Kits accueil",
-          value: loading ? "..." : String(welcomeKits),
+          value: loading ? "..." : String(stockForecast.welcomeKits),
           hint: "Base minimale recommandée",
         },
         {
           label: "Jeux de linge",
-          value: loading ? "..." : String(linenSets),
+          value: loading ? "..." : String(stockForecast.linenSets),
           hint: "Rotation estimée",
         },
         {
           label: "Réassort ménage",
-          value: loading ? "..." : String(cleaningUnits),
+          value: loading ? "..." : String(stockForecast.cleaningUnits),
           hint: "Unités à garder en réserve",
         },
         {
           label: "Tampon urgence",
-          value: loading ? "..." : String(backupSets),
+          value: loading ? "..." : String(stockForecast.backupSets),
           hint: "Réserve minimum pour imprévus",
         },
       ]}
       cards={[
         {
           title: "Rotation linge",
-          text: `Avec ${housingCount} logement(s), gardez au moins ${linenSets} jeux de linge disponibles pour absorber les check-in et ménages consécutifs.`,
+          text: `Avec ${housingCount} logement(s), gardez au moins ${stockForecast.linenSets} jeux de linge disponibles pour absorber les check-in et ménages consécutifs.`,
         },
         {
           title: "Kits voyageurs",

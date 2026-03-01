@@ -2,6 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import {
+  buildDraftHousingAlerts,
+  buildProfileSetupAlerts,
+  buildStalledConversationAlerts,
+  buildUrgentMissionAlerts,
+  olderThanThreeDays,
+} from "./alertesHelpers";
 
 type MissionRow = {
   id: string;
@@ -29,13 +36,6 @@ type CurrentProfile = {
   monthly_rate?: number | null;
   role?: string | null;
 };
-
-function olderThanThreeDays(value: string | null) {
-  if (!value) return true;
-  const time = new Date(value).getTime();
-  if (Number.isNaN(time)) return false;
-  return Date.now() - time > 3 * 24 * 60 * 60 * 1000;
-}
 
 export default function ConciergeAlertesPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
@@ -99,109 +99,30 @@ export default function ConciergeAlertesPage() {
     [missions],
   );
   const stalledConversations = useMemo(
-    () =>
-      conversations.filter((conversation) => olderThanThreeDays(conversation.last_message_at)),
+    () => conversations.filter((conversation) => olderThanThreeDays(conversation.last_message_at)),
     [conversations],
   );
   const draftHousings = useMemo(
-    () =>
-      housings.filter(
-        (housing) => housing.statut !== "active" && housing.statut !== "published",
-      ),
+    () => housings.filter((housing) => housing.statut !== "active" && housing.statut !== "published"),
     [housings],
   );
 
   const urgentMissionItems = useMemo(
-    () =>
-      urgentMissions.slice(0, 5).map((mission) => ({
-        title: mission.title || "Mission urgente",
-        meta: mission.status || "Statut non renseigné",
-        description: "Intervention prioritaire à confirmer ou traiter rapidement.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        actionLabel: "Traiter la mission",
-        tone: "warning" as const,
-      })),
+    () => buildUrgentMissionAlerts(urgentMissions),
     [urgentMissions],
   );
-
   const stalledConversationItems = useMemo(
-    () =>
-      stalledConversations.slice(0, 5).map((conversation) => ({
-        title: conversation.counterpart_name || "Propriétaire",
-        meta: conversation.last_message_at
-          ? "Plus de 3 jours sans réponse"
-          : "Aucune date récente",
-        description:
-          "Une relance rapide peut aider à garder la relation commerciale active.",
-        href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
-        actionLabel: "Relancer",
-        tone: "warning" as const,
-      })),
+    () => buildStalledConversationAlerts(stalledConversations),
     [stalledConversations],
   );
-
   const draftHousingItems = useMemo(
-    () =>
-      draftHousings.slice(0, 5).map((housing) => ({
-        title: housing.nom || `Logement #${housing.id}`,
-        meta: housing.statut || "brouillon",
-        description:
-          "Compléter les informations ou activer ce bien pour ne pas freiner l'acquisition.",
-        href: `/dashboard/concierge/logements/${housing.id}`,
-        actionLabel: "Finaliser la fiche",
-      })),
+    () => buildDraftHousingAlerts(draftHousings),
     [draftHousings],
   );
-
-  const profileSetupAlerts = useMemo(() => {
-    const items = [];
-
-    if (!profile?.city && !profile?.service_area) {
-      items.push({
-        title: "Zone d'intervention incomplète",
-        meta: "Optimisation",
-        description:
-          "Sans zone claire, votre profil est moins rassurant et moins visible dans les parcours propriétaires.",
-        href: "/dashboard/concierge/profile?tab=fiche",
-        actionLabel: "Compléter ma fiche",
-        tone: "warning" as const,
-      });
-    }
-
-    if (
-      typeof profile?.hourly_rate !== "number" &&
-      typeof profile?.monthly_rate !== "number"
-    ) {
-      items.push({
-        title: "Aucun repère tarifaire",
-        meta: "Optimisation",
-        description:
-          "Définir au moins un tarif de base aide à convertir plus vite les propriétaires et clarifie votre offre.",
-        href: "/dashboard/concierge/profile?tab=tarifs",
-        actionLabel: "Configurer mes tarifs",
-        tone: "warning" as const,
-      });
-    }
-
-    if (profile?.role !== "concierge_pro") {
-      items.push({
-        title: "Badge PRO non actif",
-        meta: "Levier premium",
-        description:
-          "Le statut PRO renforce la confiance et augmente votre valeur perçue dans les recherches propriétaires.",
-        href: "/abonnement/concierge-pro",
-        actionLabel: "Voir l'offre PRO",
-      });
-    }
-
-    return items;
-  }, [
-    profile?.city,
-    profile?.hourly_rate,
-    profile?.monthly_rate,
-    profile?.role,
-    profile?.service_area,
-  ]);
+  const profileSetupAlerts = useMemo(
+    () => buildProfileSetupAlerts(profile),
+    [profile],
+  );
 
   return (
     <ConciergeWorkspacePage
