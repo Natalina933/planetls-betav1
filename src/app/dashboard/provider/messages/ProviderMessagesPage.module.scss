@@ -1,0 +1,201 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.header h1,
+.threadHeader h2,
+.sidebarHeader h2 {
+  margin: 0;
+}
+
+.header p,
+.threadHeaderText p {
+  margin: 0;
+  color: #4c4f46;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.sidebar,
+.thread {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(76, 97, 69, 0.18);
+  background: rgba(249, 251, 247, 0.96);
+  box-shadow: 0 10px 24px rgba(30, 41, 25, 0.06);
+}
+
+.createBox {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(76, 97, 69, 0.16);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.createBox h2 {
+  margin: 0;
+}
+
+.sidebarHeader,
+.threadHeader,
+.messageMeta,
+.conversationHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.threadHeaderText {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.conversationList,
+.messageList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.conversationItem {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.9rem;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid rgba(76, 97, 69, 0.16);
+  background: #ffffff;
+}
+
+.conversationItemActive {
+  border-color: rgba(76, 97, 69, 0.38);
+  box-shadow: 0 10px 24px rgba(30, 41, 25, 0.08);
+}
+
+.conversationHead {
+  font-size: 0.9rem;
+}
+
+.message {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  max-width: 90%;
+}
+
+.messageMine {
+  justify-self: end;
+  background: linear-gradient(135deg, #8aa16d, #c4d7a4);
+  color: #172012;
+}
+
+.messageOther {
+  background: #ffffff;
+  border: 1px solid rgba(76, 97, 69, 0.16);
+}
+
+.message p,
+.emptyState,
+.successBox,
+.errorBox,
+.infoBox {
+  margin: 0;
+}
+
+.composer {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.composer textarea {
+  min-height: 120px;
+  resize: vertical;
+  border-radius: 16px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+}
+
+.createBox select,
+.createBox input,
+.createBox textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.8rem 0.95rem;
+  background: #ffffff;
+  color: #172012;
+}
+
+.createBox textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.composer button,
+.cta,
+.createBox button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(76, 97, 69, 0.28);
+  background: linear-gradient(135deg, #8aa16d, #c4d7a4);
+  color: #172012;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.composer button:disabled {
+  opacity: 0.55;
+}
+
+.createBox button:disabled {
+  opacity: 0.55;
+}
+
+.successBox,
+.errorBox,
+.infoBox {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.successBox {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.errorBox {
+  background: rgba(185, 28, 28, 0.1);
+  color: #991b1b;
+}
+
+.infoBox {
+  background: rgba(76, 97, 69, 0.1);
+  color: #355236;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
