@@ -105,6 +105,8 @@ export default function ProviderMessagesPage() {
   const [selectedClientId, setSelectedClientId] = useState("");
   const [newSubject, setNewSubject] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   async function loadConversations(preferredId?: string) {
     try {
@@ -212,6 +214,25 @@ export default function ProviderMessagesPage() {
     () => activeConversationId.trim().length > 0 && draftMessage.trim().length > 0,
     [activeConversationId, draftMessage],
   );
+  const conversations = list?.items ?? [];
+  const filteredConversations = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return conversations.filter((conversation) => {
+      const matchesStatus =
+        statusFilter === "all" || (conversation.status ?? "open") === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+      const haystack = [
+        conversation.counterpart_name,
+        conversation.subject,
+        conversation.last_message_preview,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [conversations, searchTerm, statusFilter]);
 
   const canCreateConversation = useMemo(
     () => selectedClientId.trim().length > 0 && newMessage.trim().length > 0,
@@ -288,8 +309,6 @@ export default function ProviderMessagesPage() {
     }
   }
 
-  const conversations = list?.items ?? [];
-
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
@@ -350,12 +369,29 @@ export default function ProviderMessagesPage() {
 
             <div className={styles.sidebarHeader}>
               <h2>Conversations</h2>
-              <span>{loading ? "..." : `${list?.summary.total ?? 0} fil(s)`}</span>
+              <span>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
+            </div>
+
+            <div className={styles.toolbar}>
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Rechercher un fil"
+              />
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <option value="all">Tous statuts</option>
+                <option value="open">Ouverts</option>
+                <option value="archived">Archives</option>
+                <option value="closed">Fermes</option>
+              </select>
+              <span className={styles.counter}>
+                {filteredConversations.filter((item) => (item.status ?? "open") === "open").length} ouverts
+              </span>
             </div>
 
             {loading ? <p>Chargement des conversations...</p> : null}
 
-            {!loading && conversations.length === 0 ? (
+            {!loading && filteredConversations.length === 0 ? (
               <div className={styles.messageList}>
                 <p className={styles.emptyState}>Aucune conversation disponible pour le moment.</p>
                 <Link href="/dashboard/provider/clients" className={styles.cta}>
@@ -364,9 +400,9 @@ export default function ProviderMessagesPage() {
               </div>
             ) : null}
 
-            {!loading && conversations.length > 0 ? (
+            {!loading && filteredConversations.length > 0 ? (
               <div className={styles.conversationList}>
-                {conversations.map((conversation) => (
+                {filteredConversations.map((conversation) => (
                   <button
                     key={conversation.id}
                     type="button"

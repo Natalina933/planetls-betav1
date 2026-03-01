@@ -88,6 +88,7 @@ export default function ProviderAlertesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [page, setPage] = useState(1);
 
   async function loadAlerts() {
     try {
@@ -159,6 +160,20 @@ export default function ProviderAlertesPage() {
 
     return next;
   }, [items, searchTerm, severityFilter, sortBy, interventionsById]);
+  const pageSize = 6;
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const paginatedItems = useMemo(
+    () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
+    [filteredItems, page],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, severityFilter, sortBy]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   function resetForm() {
     setEditingId(null);
@@ -345,12 +360,22 @@ export default function ProviderAlertesPage() {
               </div>
             </div>
 
+            <div className={styles.counterRow}>
+              <span className={styles.counter}>{filteredItems.length} resultats</span>
+              <span className={styles.counter}>
+                {filteredItems.filter((item) => item.severity === "urgent").length} urgentes
+              </span>
+              <span className={styles.counter}>
+                {filteredItems.filter((item) => (item.status ?? "open") === "open").length} ouvertes
+              </span>
+            </div>
+
             {loading ? <p className={styles.emptyState}>Chargement des alertes...</p> : null}
             {!loading && filteredItems.length === 0 ? <p className={styles.emptyState}>Aucune alerte ne correspond au filtre actuel.</p> : null}
 
             {!loading && filteredItems.length > 0 ? (
               <div className={styles.cardList}>
-                {filteredItems.map((item) => {
+                {paginatedItems.map((item) => {
                   const linkedIntervention = item.intervention_id ? interventionsById.get(item.intervention_id) : null;
                   return (
                     <article key={item.id} className={styles.itemCard}>
@@ -384,6 +409,24 @@ export default function ProviderAlertesPage() {
                     </article>
                   );
                 })}
+              </div>
+            ) : null}
+
+            {!loading && filteredItems.length > pageSize ? (
+              <div className={styles.pagination}>
+                <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+                  Precedent
+                </button>
+                <span className={styles.counter}>
+                  Page {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  Suivant
+                </button>
               </div>
             ) : null}
           </section>

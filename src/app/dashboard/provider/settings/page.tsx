@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ProviderWorkspacePage from "../_components/ProviderWorkspacePage";
+import Link from "next/link";
+import styles from "../ProviderCrudPage.module.scss";
 import {
   buildProviderDisplayName,
   fetchCurrentProviderProfile,
@@ -36,6 +37,7 @@ function buildFormState(profile: ProviderCurrentProfile | null): ProviderSetting
 export default function ProviderSettingsPage() {
   const [workspace, setWorkspace] = useState<ProviderWorkspacePayload | null>(null);
   const [form, setForm] = useState<ProviderSettingsForm>(buildFormState(null));
+  const [baseline, setBaseline] = useState<ProviderSettingsForm>(buildFormState(null));
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -47,8 +49,10 @@ export default function ProviderSettingsPage() {
       try {
         const nextWorkspace = await fetchCurrentProviderProfile();
         if (!cancelled) {
+          const nextForm = buildFormState(nextWorkspace.profile);
           setWorkspace(nextWorkspace);
-          setForm(buildFormState(nextWorkspace.profile));
+          setForm(nextForm);
+          setBaseline(nextForm);
           setError(null);
         }
       } catch (err) {
@@ -58,18 +62,22 @@ export default function ProviderSettingsPage() {
       }
     }
 
-    loadProfile();
-
+    void loadProfile();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
+  const profile = workspace?.profile ?? null;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
-  const locationLabel = useMemo(() => {
-    return workspace?.summary.location || "Localisation a completer";
-  }, [workspace]);
+  const locationLabel = useMemo(
+    () => workspace?.summary.location || "Localisation a completer",
+    [workspace],
+  );
+  const isDirty = useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(baseline),
+    [form, baseline],
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,8 +99,10 @@ export default function ProviderSettingsPage() {
       }
 
       const refreshedWorkspace = await fetchCurrentProviderProfile();
+      const refreshedForm = buildFormState(refreshedWorkspace.profile);
       setWorkspace(refreshedWorkspace);
-      setForm(buildFormState(refreshedWorkspace.profile));
+      setForm(refreshedForm);
+      setBaseline(refreshedForm);
       setSuccess("Les parametres artisan ont ete enregistres.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de mettre a jour le profil.");
@@ -102,116 +112,130 @@ export default function ProviderSettingsPage() {
   }
 
   return (
-    <ProviderWorkspacePage
-      eyebrow="Compte"
-      title="Parametres"
-      description={
-        error ||
-        "Retrouvez ici vos informations de compte artisan et mettez a jour les reglages principaux relies a votre profil."
-      }
-      chips={[
-        displayName,
-        locationLabel,
-        workspace?.summary.is_pro ? "Artisan PRO" : "Artisan standard",
-      ]}
-      actions={[
-        { label: "Voir les outils", href: "/dashboard/provider/outils" },
-        { label: "Voir la vue d'ensemble", href: "/dashboard/provider" },
-      ]}
-      cards={[
-        {
-          title: "Identite du compte",
-          text: profile
-            ? `${displayName}${profile.company_name ? ` - ${profile.company_name}` : ""}`
-            : "Chargement des informations de compte.",
-        },
-        {
-          title: "Coordonnees",
-          text: profile
-            ? [profile.email, profile.phone, locationLabel].filter(Boolean).join(" - ")
-            : "Les coordonnees reliees au profil apparaitront ici.",
-        },
-        {
-          title: "Statut du profil",
-          text: profile
-            ? `Role: ${profile.role || "non renseigne"} - Categorie: ${profile.category || "non renseignee"}`
-            : "Le statut du compte apparaitra ici une fois le profil charge.",
-        },
-      ]}
-    >
-      <section
-        style={{
-          display: "grid",
-          gap: "1rem",
-          padding: "1.1rem",
-          borderRadius: "18px",
-          border: "1px solid rgba(184, 139, 74, 0.22)",
-          background: "rgba(255, 252, 245, 0.96)",
-          boxShadow: "0 10px 24px rgba(74, 53, 16, 0.06)",
-        }}
-      >
-        <h2 style={{ margin: 0, color: "#4a3510" }}>Modifier mon profil</h2>
-
-        {success ? <p style={{ margin: 0, color: "#166534", fontWeight: 700 }}>{success}</p> : null}
-        {error ? <p style={{ margin: 0, color: "#991b1b", fontWeight: 700 }}>{error}</p> : null}
-
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "grid", gap: "0.85rem", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
-        >
-          {(
-            [
-              ["username", "Nom d'utilisateur"],
-              ["first_name", "Prenom"],
-              ["last_name", "Nom"],
-              ["company_name", "Entreprise"],
-              ["phone", "Telephone"],
-              ["city", "Ville"],
-              ["postal_code", "Code postal"],
-              ["website", "Site web"],
-            ] as Array<[keyof ProviderSettingsForm, string]>
-          ).map(([field, label]) => (
-            <label key={field} style={{ display: "grid", gap: "0.35rem" }}>
-              <span style={{ color: "#5f5237", fontWeight: 600 }}>{label}</span>
-              <input
-                value={form[field]}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    [field]: event.target.value,
-                  }))
-                }
-                style={{
-                  minHeight: 42,
-                  borderRadius: 12,
-                  border: "1px solid rgba(184, 139, 74, 0.24)",
-                  padding: "0.65rem 0.8rem",
-                  background: "#fff",
-                }}
-              />
-            </label>
-          ))}
-
-          <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end" }}>
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                minHeight: 42,
-                padding: "0.7rem 1rem",
-                borderRadius: 999,
-                border: "1px solid rgba(184, 139, 74, 0.35)",
-                background: "linear-gradient(135deg, #b88b4a, #d4af37)",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: saving ? "not-allowed" : "pointer",
-              }}
-            >
-              {saving ? "Enregistrement..." : "Enregistrer"}
-            </button>
+    <section className="dashboard-grid">
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div>
+            <p className={styles.eyebrow}>Compte</p>
+            <h1>Parametres</h1>
+            <p>
+              {error ||
+                "Mettez a jour vos informations de compte, vos coordonnees et vos donnees de vitrine Artisan."}
+            </p>
           </div>
-        </form>
-      </section>
-    </ProviderWorkspacePage>
+          <div className={styles.metrics}>
+            <span>{displayName}</span>
+            <span>{workspace?.summary.is_pro ? "Artisan PRO" : "Artisan standard"}</span>
+            <span>{locationLabel}</span>
+          </div>
+        </header>
+
+        {success ? <p className={styles.successBox}>{success}</p> : null}
+        {error ? <p className={styles.errorBox}>{error}</p> : null}
+
+        <div className={styles.layout}>
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <h2>Modifier mon profil</h2>
+              <span className={styles.counter}>{isDirty ? "Modifications en cours" : "A jour"}</span>
+            </div>
+
+            <form className={styles.formGrid} onSubmit={handleSubmit}>
+              {(
+                [
+                  ["username", "Nom d'utilisateur"],
+                  ["first_name", "Prenom"],
+                  ["last_name", "Nom"],
+                  ["company_name", "Entreprise"],
+                  ["phone", "Telephone"],
+                  ["city", "Ville"],
+                  ["postal_code", "Code postal"],
+                  ["website", "Site web"],
+                ] as Array<[keyof ProviderSettingsForm, string]>
+              ).map(([field, label]) => (
+                <label key={field}>
+                  <span>{label}</span>
+                  <input
+                    value={form[field]}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [field]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              ))}
+
+              <div className={styles.formActions}>
+                <button type="submit" disabled={saving || !isDirty}>
+                  {saving ? "Enregistrement..." : "Enregistrer"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  disabled={!isDirty}
+                  onClick={() => setForm(baseline)}
+                >
+                  Reinitialiser
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <h2>Resume du compte</h2>
+            </div>
+            <div className={styles.cardList}>
+              <article className={styles.itemCard}>
+                <div className={styles.itemHead}>
+                  <div>
+                    <h3>Identite</h3>
+                    <p>{displayName}</p>
+                  </div>
+                  <span className={styles.badge}>{profile?.role || "provider"}</span>
+                </div>
+                <p className={styles.itemBody}>
+                  {profile?.company_name || "Entreprise non renseignee"}
+                </p>
+              </article>
+              <article className={styles.itemCard}>
+                <div className={styles.itemHead}>
+                  <div>
+                    <h3>Coordonnees</h3>
+                    <p>{locationLabel}</p>
+                  </div>
+                </div>
+                <div className={styles.itemMeta}>
+                  <span>{profile?.email || "Email non renseigne"}</span>
+                  <span>{profile?.phone || "Telephone non renseigne"}</span>
+                  <span>{profile?.website || "Site non renseigne"}</span>
+                </div>
+              </article>
+              <article className={styles.itemCard}>
+                <div className={styles.itemHead}>
+                  <div>
+                    <h3>Navigation</h3>
+                    <p>Acces rapide aux espaces relies</p>
+                  </div>
+                </div>
+                <div className={styles.cardActions}>
+                  <Link href="/dashboard/provider" className={styles.linkButton}>
+                    Vue d&apos;ensemble
+                  </Link>
+                  <Link href="/dashboard/provider/messages" className={styles.linkButton}>
+                    Messages
+                  </Link>
+                  <Link href="/dashboard/provider/outils" className={styles.linkButton}>
+                    Outils
+                  </Link>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
   );
 }

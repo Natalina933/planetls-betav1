@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { requireProviderAuth } from "../shared";
+import type { ProviderInsert, ProviderRow } from "@/types/supabase-provider";
 
-type ProviderAlertRow = {
-  id: string;
-  severity: string | null;
-};
+type ProviderAlertRow = ProviderRow<"provider_alerts">;
 
 export async function GET(req: NextRequest) {
   const authResult = await requireProviderAuth(req);
   if (!authResult.ok) return authResult.response;
 
   const { auth } = authResult;
+  const providerProfileId = auth.userId;
+  if (!providerProfileId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { data, error } = await (db as any)
     .from("provider_alerts")
     .select("*")
-    .eq("provider_profile_id", auth.userId)
+    .eq("provider_profile_id", providerProfileId)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -46,6 +48,10 @@ export async function POST(req: NextRequest) {
   if (!authResult.ok) return authResult.response;
 
   const { auth } = authResult;
+  const providerProfileId = auth.userId;
+  if (!providerProfileId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const body = await req.json();
   const title = String(body?.title ?? "").trim();
 
@@ -53,8 +59,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "title requis" }, { status: 400 });
   }
 
-  const insertPayload = {
-    provider_profile_id: auth.userId,
+  const insertPayload: ProviderInsert<"provider_alerts"> = {
+    provider_profile_id: providerProfileId,
     intervention_id: typeof body?.intervention_id === "string" ? body.intervention_id : null,
     alert_type: typeof body?.alert_type === "string" ? body.alert_type : "general",
     severity: typeof body?.severity === "string" ? body.severity : "normal",

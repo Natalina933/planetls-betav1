@@ -6,22 +6,10 @@ import {
   requireProviderAuth,
   toProviderJsonRecord,
 } from "../shared";
+import type { ProviderInsert, ProviderRow } from "@/types/supabase-provider";
 
-type ProviderConversationRow = {
-  id: string;
-  client_id: string | null;
-  subject: string | null;
-  status: string | null;
-  last_message_preview: string | null;
-  last_message_at: string | null;
-  created_at: string;
-};
-
-type ProviderClientLookupRow = {
-  id: string;
-  client_name: string;
-  company_name: string | null;
-};
+type ProviderConversationRow = ProviderRow<"provider_conversations">;
+type ProviderClientLookupRow = Pick<ProviderRow<"provider_clients">, "id" | "client_name" | "company_name">;
 
 export async function GET(req: NextRequest) {
   const authResult = await requireProviderAuth(req);
@@ -30,10 +18,14 @@ export async function GET(req: NextRequest) {
   }
 
   const { auth } = authResult;
+  const providerProfileId = auth.userId;
+  if (!providerProfileId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const { data, error } = await (db as any)
     .from("provider_conversations")
     .select("id, client_id, subject, status, last_message_preview, last_message_at, created_at")
-    .eq("provider_profile_id", auth.userId)
+    .eq("provider_profile_id", providerProfileId)
     .order("last_message_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(60);
@@ -54,7 +46,9 @@ export async function GET(req: NextRequest) {
   }
 
   const rows = (data ?? []) as ProviderConversationRow[];
-  const clientIds = Array.from(new Set(rows.map((item) => item.client_id).filter(Boolean)));
+  const clientIds = Array.from(
+    new Set(rows.map((item) => item.client_id).filter((value): value is string => Boolean(value))),
+  );
   const clientsById = new Map<string, ProviderClientLookupRow>();
 
   if (clientIds.length > 0) {
@@ -98,6 +92,10 @@ export async function POST(req: NextRequest) {
   }
 
   const { auth } = authResult;
+  const providerProfileId = auth.userId;
+  if (!providerProfileId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const body = await req.json();
   const clientId = typeof body?.client_id === "string" ? body.client_id : null;
   const subject = typeof body?.subject === "string" ? body.subject.trim() : "";
@@ -111,7 +109,7 @@ export async function POST(req: NextRequest) {
     .from("provider_clients")
     .select("id")
     .eq("id", clientId)
-    .eq("provider_profile_id", auth.userId)
+    .eq("provider_profile_id", providerProfileId)
     .maybeSingle();
 
   if (clientError) {
@@ -127,12 +125,12 @@ export async function POST(req: NextRequest) {
   const { data: conversation, error: conversationError } = await (db as any)
     .from("provider_conversations")
     .insert({
-      provider_profile_id: auth.userId,
+      provider_profile_id: providerProfileId,
       client_id: clientId,
       subject: subject || null,
       status: "open",
       metadata: toProviderJsonRecord(body?.metadata),
-    })
+    } satisfies ProviderInsert<"provider_conversations">)
     .select("id, client_id, subject, status, last_message_preview, last_message_at, created_at")
     .single();
 
@@ -149,10 +147,10 @@ export async function POST(req: NextRequest) {
       .from("provider_messages")
       .insert({
         conversation_id: conversation.id,
-        sender_profile_id: auth.userId,
+        sender_profile_id: providerProfileId,
         body: content,
         metadata: toProviderJsonRecord(body?.message_metadata),
-      })
+      } satisfies ProviderInsert<"provider_messages">)
       .select("id, conversation_id, sender_profile_id, body, metadata, created_at")
       .single();
 

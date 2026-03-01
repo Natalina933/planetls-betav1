@@ -96,6 +96,27 @@
   align-items: center;
 }
 
+.counterRow,
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(76, 97, 69, 0.08);
+  color: #355236;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -188,7 +209,8 @@
 .secondaryButton,
 .dangerButton,
 .linkButton,
-.formActions button {
+.formActions button,
+.pagination button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -207,6 +229,12 @@
 }
 
 .secondaryButton {
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  background: #ffffff;
+  color: #294027;
+}
+
+.pagination button {
   border: 1px solid rgba(76, 97, 69, 0.2);
   background: #ffffff;
   color: #294027;

@@ -83,6 +83,7 @@ export default function ProviderClientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [page, setPage] = useState(1);
 
   async function loadClients() {
     try {
@@ -141,6 +142,20 @@ export default function ProviderClientsPage() {
 
     return next;
   }, [clients, searchTerm, statusFilter, sortBy]);
+  const pageSize = 6;
+  const totalPages = Math.max(1, Math.ceil(filteredClients.length / pageSize));
+  const paginatedClients = useMemo(
+    () => filteredClients.slice((page - 1) * pageSize, page * pageSize),
+    [filteredClients, page],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, statusFilter, sortBy]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   function resetForm() {
     setForm(defaultForm);
@@ -327,12 +342,22 @@ export default function ProviderClientsPage() {
               </div>
             </div>
 
+            <div className={styles.counterRow}>
+              <span className={styles.counter}>{filteredClients.length} resultats</span>
+              <span className={styles.counter}>
+                {filteredClients.filter((client) => (client.status ?? "active") === "active").length} actifs
+              </span>
+              <span className={styles.counter}>
+                {filteredClients.filter((client) => client.city).length} avec ville
+              </span>
+            </div>
+
             {loading ? <p className={styles.emptyState}>Chargement des clients...</p> : null}
             {!loading && filteredClients.length === 0 ? <p className={styles.emptyState}>Aucun client ne correspond au filtre actuel.</p> : null}
 
             {!loading && filteredClients.length > 0 ? (
               <div className={styles.cardList}>
-                {filteredClients.map((client) => (
+                {paginatedClients.map((client) => (
                   <article key={client.id} className={styles.itemCard}>
                     <div className={styles.itemHead}>
                       <div>
@@ -363,6 +388,24 @@ export default function ProviderClientsPage() {
                     </div>
                   </article>
                 ))}
+              </div>
+            ) : null}
+
+            {!loading && filteredClients.length > pageSize ? (
+              <div className={styles.pagination}>
+                <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+                  Precedent
+                </button>
+                <span className={styles.counter}>
+                  Page {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  Suivant
+                </button>
               </div>
             ) : null}
           </section>

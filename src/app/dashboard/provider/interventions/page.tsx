@@ -120,6 +120,7 @@ export default function ProviderInterventionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [page, setPage] = useState(1);
 
   async function loadInterventions() {
     try {
@@ -202,6 +203,20 @@ export default function ProviderInterventionsPage() {
 
     return next;
   }, [items, searchTerm, statusFilter, sortBy, clientsById]);
+  const pageSize = 6;
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const paginatedItems = useMemo(
+    () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
+    [filteredItems, page],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, statusFilter, sortBy]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   function resetForm() {
     setEditingId(null);
@@ -412,12 +427,22 @@ export default function ProviderInterventionsPage() {
               </div>
             </div>
 
+            <div className={styles.counterRow}>
+              <span className={styles.counter}>{filteredItems.length} resultats</span>
+              <span className={styles.counter}>
+                {filteredItems.filter((item) => (item.status ?? "pending") === "in_progress").length} en cours
+              </span>
+              <span className={styles.counter}>
+                {filteredItems.filter((item) => item.priority === "urgent" || item.priority === "high").length} prioritaires
+              </span>
+            </div>
+
             {loading ? <p className={styles.emptyState}>Chargement des interventions...</p> : null}
             {!loading && filteredItems.length === 0 ? <p className={styles.emptyState}>Aucune intervention ne correspond au filtre actuel.</p> : null}
 
             {!loading && filteredItems.length > 0 ? (
               <div className={styles.cardList}>
-                {filteredItems.map((item) => {
+                {paginatedItems.map((item) => {
                   const client = item.client_id ? clientsById.get(item.client_id) : null;
                   return (
                     <article key={item.id} className={styles.itemCard}>
@@ -452,6 +477,24 @@ export default function ProviderInterventionsPage() {
                     </article>
                   );
                 })}
+              </div>
+            ) : null}
+
+            {!loading && filteredItems.length > pageSize ? (
+              <div className={styles.pagination}>
+                <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+                  Precedent
+                </button>
+                <span className={styles.counter}>
+                  Page {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  Suivant
+                </button>
               </div>
             ) : null}
           </section>
