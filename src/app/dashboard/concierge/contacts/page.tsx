@@ -2,6 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import {
+  formatContactDate,
+  isOlderThanDays,
+  normalizeContactStatus,
+  toConversationItem,
+} from "./contactsHelpers";
 
 type ContactConversation = {
   id: string;
@@ -11,28 +17,6 @@ type ContactConversation = {
   subject: string | null;
   status: string | null;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "Aucun message récent";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
-}
-
-function olderThanDays(value: string | null, days: number) {
-  if (!value) return true;
-  const time = new Date(value).getTime();
-  if (Number.isNaN(time)) return false;
-  return Date.now() - time > days * 24 * 60 * 60 * 1000;
-}
-
-function normalizeStatus(value: string | null) {
-  return value ? value.replaceAll("_", " ") : "non renseigné";
-}
 
 export default function ConciergeContactsPage() {
   const [items, setItems] = useState<ContactConversation[]>([]);
@@ -44,12 +28,9 @@ export default function ConciergeContactsPage() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(
-          "/api/messages/conversations?role=concierge&limit=60",
-          {
-            cache: "no-store",
-          },
-        );
+        const response = await fetch("/api/messages/conversations?role=concierge&limit=60", {
+          cache: "no-store",
+        });
         const payload = await response.json();
 
         if (!response.ok) {
@@ -73,35 +54,17 @@ export default function ConciergeContactsPage() {
   );
   const recentContacts = useMemo(() => activeConversations.slice(0, 4), [activeConversations]);
   const dormantConversations = useMemo(
-    () =>
-      activeConversations.filter((item) => olderThanDays(item.last_message_at, 5)).slice(0, 6),
+    () => activeConversations.filter((item) => isOlderThanDays(item.last_message_at, 5)).slice(0, 6),
     [activeConversations],
   );
   const freshOpportunities = useMemo(
-    () =>
-      activeConversations.filter((item) => !olderThanDays(item.last_message_at, 2)).slice(0, 6),
+    () => activeConversations.filter((item) => !isOlderThanDays(item.last_message_at, 2)).slice(0, 6),
     [activeConversations],
   );
   const closedConversations = useMemo(
     () => items.filter((item) => item.status === "closed").length,
     [items],
   );
-
-  const toConversationItem = (
-    conversation: ContactConversation,
-    meta: string,
-    actionLabel: string,
-    tone?: "default" | "warning" | "success",
-  ) => ({
-    title: conversation.counterpart_name || "Propriétaire",
-    meta,
-    description: `${conversation.subject || "Conversation directe"} - ${
-      conversation.last_message_preview || "Aucun aperçu disponible."
-    }`,
-    href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
-    actionLabel,
-    tone,
-  });
 
   return (
     <ConciergeWorkspacePage
@@ -150,7 +113,7 @@ export default function ConciergeContactsPage() {
               title: conversation.counterpart_name || "Propriétaire",
               text: `${conversation.subject || "Conversation directe"} - ${
                 conversation.last_message_preview || "Aucun aperçu"
-              } (${formatDate(conversation.last_message_at)})`,
+              } (${formatContactDate(conversation.last_message_at)})`,
               actions: [
                 {
                   label: "Voir la conversation",
@@ -188,7 +151,7 @@ export default function ConciergeContactsPage() {
           items: activeConversations.slice(0, 8).map((conversation) =>
             toConversationItem(
               conversation,
-              normalizeStatus(conversation.status),
+              normalizeContactStatus(conversation.status),
               "Reprendre l'échange",
             ),
           ),
@@ -204,7 +167,7 @@ export default function ConciergeContactsPage() {
           items: dormantConversations.map((conversation) =>
             toConversationItem(
               conversation,
-              `Dernier message ${formatDate(conversation.last_message_at)}`,
+              `Dernier message ${formatContactDate(conversation.last_message_at)}`,
               "Relancer maintenant",
               "warning",
             ),
@@ -221,7 +184,7 @@ export default function ConciergeContactsPage() {
           items: freshOpportunities.map((conversation) =>
             toConversationItem(
               conversation,
-              `Actif au ${formatDate(conversation.last_message_at)}`,
+              `Actif au ${formatContactDate(conversation.last_message_at)}`,
               "Continuer l'échange",
               "success",
             ),

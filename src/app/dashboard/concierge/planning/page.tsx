@@ -2,6 +2,16 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import {
+  buildPlanningStatusBreakdown,
+  formatPlanningDate,
+  getEndOfToday,
+  getStartOfToday,
+  isPlanningDone,
+  normalizePlanningStatus,
+  toPlanningItem,
+  toTimestamp,
+} from "./planningHelpers";
 
 type MissionRow = {
   id: string;
@@ -10,44 +20,6 @@ type MissionRow = {
   priority: string | null;
   scheduled_start: string | null;
 };
-
-function toTimestamp(value: string | null) {
-  if (!value) return 0;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "À planifier";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function normalizeStatus(value: string | null) {
-  return value ? value.replaceAll("_", " ") : "non renseigné";
-}
-
-function isDone(status: string | null) {
-  return status === "completed" || status === "canceled";
-}
-
-function startOfToday() {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return now.getTime();
-}
-
-function endOfToday() {
-  const now = new Date();
-  now.setHours(23, 59, 59, 999);
-  return now.getTime();
-}
 
 export default function ConciergePlanningPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
@@ -80,14 +52,14 @@ export default function ConciergePlanningPage() {
   }, []);
 
   const now = Date.now();
-  const todayStart = startOfToday();
-  const todayEnd = endOfToday();
+  const todayStart = getStartOfToday();
+  const todayEnd = getEndOfToday();
   const next48h = now + 48 * 60 * 60 * 1000;
 
   const plannedActiveMissions = useMemo(
     () =>
       missions
-        .filter((mission) => !isDone(mission.status) && toTimestamp(mission.scheduled_start) > 0)
+        .filter((mission) => !isPlanningDone(mission.status) && toTimestamp(mission.scheduled_start) > 0)
         .sort((a, b) => toTimestamp(a.scheduled_start) - toTimestamp(b.scheduled_start)),
     [missions],
   );
@@ -115,10 +87,7 @@ export default function ConciergePlanningPage() {
   );
 
   const overdueMissions = useMemo(
-    () =>
-      plannedActiveMissions
-        .filter((mission) => toTimestamp(mission.scheduled_start) < now)
-        .slice(0, 6),
+    () => plannedActiveMissions.filter((mission) => toTimestamp(mission.scheduled_start) < now).slice(0, 6),
     [now, plannedActiveMissions],
   );
 
@@ -128,46 +97,11 @@ export default function ConciergePlanningPage() {
   );
 
   const unscheduledMissions = useMemo(
-    () =>
-      missions.filter(
-        (mission) => !mission.scheduled_start && !isDone(mission.status),
-      ),
+    () => missions.filter((mission) => !mission.scheduled_start && !isPlanningDone(mission.status)),
     [missions],
   );
 
-  const statusBreakdown = useMemo(() => {
-    const groups = new Map<string, number>();
-    missions.forEach((mission) => {
-      const key = mission.status || "non_renseigne";
-      groups.set(key, (groups.get(key) || 0) + 1);
-    });
-
-    return Array.from(groups.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([status, count]) => ({
-        title: normalizeStatus(status),
-        meta: `${count} mission(s)`,
-        description: "Répartition actuelle de votre pipe opérationnel.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        actionLabel: "Voir les missions",
-        tone:
-          status === "completed"
-            ? ("success" as const)
-            : status === "canceled"
-              ? ("warning" as const)
-              : ("default" as const),
-      }));
-  }, [missions]);
-
-  const toPlanningItem = (mission: MissionRow, actionLabel: string, tone?: "default" | "warning" | "success") => ({
-    title: mission.title || "Mission sans titre",
-    meta: formatDate(mission.scheduled_start),
-    description: `${normalizeStatus(mission.status)}${mission.priority ? ` - priorité ${mission.priority}` : ""}`,
-    href: "/dashboard/concierge/profile?tab=missions",
-    actionLabel,
-    tone: tone || (mission.priority === "urgent" ? ("warning" as const) : ("default" as const)),
-  });
+  const statusBreakdown = useMemo(() => buildPlanningStatusBreakdown(missions), [missions]);
 
   return (
     <ConciergeWorkspacePage
@@ -285,9 +219,7 @@ export default function ConciergePlanningPage() {
             loading
               ? "Analyse des missions en retard."
               : error || "Aucune mission en retard détectée.",
-          items: overdueMissions.map((mission) =>
-            toPlanningItem(mission, "Replanifier", "warning"),
-          ),
+          items: overdueMissions.map((mission) => toPlanningItem(mission, "Replanifier", "warning")),
         },
         {
           title: "Missions sans date",
@@ -299,7 +231,7 @@ export default function ConciergePlanningPage() {
               : error || "Toutes les missions actives ont déjà une date planifiée.",
           items: unscheduledMissions.slice(0, 6).map((mission) => ({
             title: mission.title || "Mission sans date",
-            meta: normalizeStatus(mission.status),
+            meta: normalizePlanningStatus(mission.status),
             description:
               "Cette intervention doit être cadrée avec un créneau précis pour fiabiliser votre planning terrain.",
             href: "/dashboard/concierge/profile?tab=missions",
