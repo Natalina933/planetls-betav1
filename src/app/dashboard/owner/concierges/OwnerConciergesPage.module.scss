@@ -1,4 +1,7 @@
 .page {
+  --owner-accent: #b85c48;
+  --owner-accent-text: #793528;
+  --owner-accent-soft: #f3ddd4;
   display: grid;
   gap: 1.25rem;
 }
@@ -8,11 +11,11 @@
   gap: 0.7rem;
   padding: 1.6rem;
   border-radius: 24px;
-  border: 1px solid rgba(184, 139, 74, 0.24);
+  border: 1px solid rgba(184, 92, 72, 0.24);
   background:
-    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 34%),
-    linear-gradient(145deg, #fffdf7 0%, #f4ead8 100%);
-  box-shadow: 0 16px 40px rgba(74, 53, 16, 0.08);
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.14), transparent 34%),
+    linear-gradient(145deg, #fffdfa 0%, #f3ddd4 100%);
+  box-shadow: 0 16px 40px rgba(109, 53, 41, 0.08);
 }
 
 .eyebrow {
@@ -20,18 +23,18 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #9a7a3b;
+  color: var(--owner-accent-text);
 }
 
 .title {
   margin: 0;
   font-size: 1.95rem;
-  color: #3f2f14;
+  color: #4a231b;
 }
 
 .description {
   margin: 0;
-  color: #5f5237;
+  color: #69443a;
   line-height: 1.55;
   max-width: 72ch;
 }
@@ -45,8 +48,8 @@
 .chip {
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: rgba(184, 139, 74, 0.12);
-  color: #7b5b23;
+  background: rgba(184, 92, 72, 0.12);
+  color: var(--owner-accent-text);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -56,7 +59,7 @@
   gap: 0.9rem;
   padding: 1.2rem;
   border-radius: 20px;
-  border: 1px solid rgba(184, 139, 74, 0.18);
+  border: 1px solid rgba(184, 92, 72, 0.18);
   background: rgba(255, 252, 245, 0.96);
 }
 
@@ -74,7 +77,7 @@
 .field span {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #7b5b23;
+  color: var(--owner-accent-text);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -82,7 +85,7 @@
 .field input {
   min-height: 44px;
   border-radius: 12px;
-  border: 1px solid rgba(184, 139, 74, 0.28);
+  border: 1px solid rgba(184, 92, 72, 0.28);
   padding: 0.75rem 0.85rem;
   background: #fff;
 }
@@ -90,7 +93,7 @@
 .field select {
   min-height: 44px;
   border-radius: 12px;
-  border: 1px solid rgba(184, 139, 74, 0.28);
+  border: 1px solid rgba(184, 92, 72, 0.28);
   padding: 0.75rem 0.85rem;
   background: #fff;
 }
@@ -103,7 +106,7 @@
 .blockLabel {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #7b5b23;
+  color: var(--owner-accent-text);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -125,15 +128,15 @@
 }
 
 .serviceChip {
-  border: 1px solid rgba(184, 139, 74, 0.25);
+  border: 1px solid rgba(184, 92, 72, 0.25);
   background: rgba(255, 255, 255, 0.8);
-  color: #7b5b23;
+  color: var(--owner-accent-text);
 }
 
 .serviceChipActive {
-  border: 1px solid rgba(184, 139, 74, 0.35);
-  background: linear-gradient(135deg, #fff0cf, #f2ddb5);
-  color: #5e4209;
+  border: 1px solid rgba(184, 92, 72, 0.35);
+  background: linear-gradient(135deg, #f8e2da, #efc9bd);
+  color: #6c3125;
 }
 
 .checkboxRow {
@@ -141,7 +144,7 @@
   align-items: center;
   gap: 0.55rem;
   font-weight: 600;
-  color: #4a3510;
+  color: #4a231b;
 }
 
 .actions {
@@ -165,14 +168,14 @@
 
 .primaryBtn {
   border: none;
-  background: linear-gradient(135deg, #b88b4a, #d4af37);
+  background: linear-gradient(135deg, #b85c48, #9f4838);
   color: #fff;
 }
 
 .secondaryBtn {
-  border: 1px solid rgba(184, 139, 74, 0.35);
-  background: linear-gradient(135deg, #fff8ea, #f2e0c0);
-  color: #7b5b23;
+  border: 1px solid rgba(184, 92, 72, 0.35);
+  background: linear-gradient(135deg, #fff7f3, #f3ddd4);
+  color: var(--owner-accent-text);
 }
 
 .errorBox {
@@ -187,15 +190,15 @@
   margin: 0;
   padding: 0.9rem 1rem;
   border-radius: 14px;
-  background: rgba(123, 91, 35, 0.12);
-  color: #7b5b23;
+  background: rgba(184, 92, 72, 0.12);
+  color: var(--owner-accent-text);
   font-weight: 700;
 }
 
 .emptyState {
   padding: 1.35rem;
   border-radius: 20px;
-  border: 1px dashed rgba(184, 139, 74, 0.35);
+  border: 1px dashed rgba(184, 92, 72, 0.35);
   background: rgba(255, 252, 245, 0.96);
 }
 
@@ -210,9 +213,9 @@
   gap: 0.9rem;
   padding: 1.2rem;
   border-radius: 22px;
-  border: 1px solid rgba(184, 139, 74, 0.18);
+  border: 1px solid rgba(184, 92, 72, 0.18);
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(74, 53, 16, 0.06);
+  box-shadow: 0 12px 28px rgba(109, 53, 41, 0.06);
 }
 
 .cardHead {
@@ -230,12 +233,12 @@
 
 .cardHead h2 {
   margin: 0;
-  color: #3f2f14;
+  color: #4a231b;
 }
 
 .cardHead p {
   margin: 0.3rem 0 0;
-  color: #6a5841;
+  color: #7a4e42;
 }
 
 .proBadge,
@@ -252,13 +255,13 @@
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 800;
-  color: #7b5b23;
-  background: rgba(184, 139, 74, 0.14);
+  color: var(--owner-accent-text);
+  background: rgba(184, 92, 72, 0.14);
 }
 
 .proBadge {
-  color: #5e4209;
-  background: rgba(212, 175, 55, 0.22);
+  color: #6c3125;
+  background: rgba(184, 92, 72, 0.18);
 }
 
 .standardBadge {
@@ -274,7 +277,7 @@
 .stats p,
 .pricing span {
   margin: 0;
-  color: #4a3510;
+  color: #4a231b;
 }
 
 .pricing {
@@ -298,8 +301,8 @@
 }
 
 .tag {
-  background: rgba(184, 139, 74, 0.12);
-  color: #7b5b23;
+  background: rgba(184, 92, 72, 0.12);
+  color: var(--owner-accent-text);
 }
 
 .propertyTag {
@@ -308,7 +311,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   background: rgba(74, 53, 16, 0.08);
-  color: #4a3510;
+  color: #4a231b;
 }
 
 .tagMuted {
@@ -327,8 +330,8 @@
   gap: 0.35rem;
   padding: 0.85rem 0.95rem;
   border-radius: 16px;
-  background: rgba(184, 139, 74, 0.08);
-  border: 1px solid rgba(184, 139, 74, 0.16);
+  background: rgba(184, 92, 72, 0.08);
+  border: 1px solid rgba(184, 92, 72, 0.16);
 }
 
 .reviewSnippet strong,
@@ -338,12 +341,12 @@
 }
 
 .reviewSnippet p {
-  color: #5f5237;
+  color: #69443a;
   line-height: 1.5;
 }
 
 .reviewSnippet small {
-  color: #7b5b23;
+  color: var(--owner-accent-text);
 }
 
 @media (max-width: 720px) {

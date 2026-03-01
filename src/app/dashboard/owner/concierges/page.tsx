@@ -48,7 +48,7 @@ const initialFilters: OwnerConciergeSearchFilters = {
 };
 
 function formatAmount(value: number | null, suffix: string) {
-  if (typeof value !== "number") return "Non renseigne";
+  if (typeof value !== "number") return "Non renseigné";
   return `${value.toFixed(0)} EUR ${suffix}`;
 }
 
@@ -177,15 +177,14 @@ export default function OwnerConciergesPage() {
           <span className={styles.eyebrow}>Mise en relation</span>
           <h1 className={styles.title}>Trouver un concierge</h1>
           <p className={styles.description}>
-            Filtrez par zone, services, type de bien, budget et rayon pour trouver le bon partenaire
-            concierge.
+            Filtrez par zone, services, type de bien, budget et rayon pour trouver le bon partenaire concierge.
           </p>
           <div className={styles.chips}>
             <span className={styles.chip}>{items.length} concierge(s)</span>
             <span className={styles.chip}>{totalPro} profil(s) PRO</span>
             <span className={styles.chip}>
               {filters.selectedServices.length > 0
-                ? `${filters.selectedServices.length} service(s) filtres`
+                ? `${filters.selectedServices.length} service(s) filtrés`
                 : "Tous services"}
             </span>
           </div>
@@ -318,8 +317,8 @@ export default function OwnerConciergesPage() {
 
         {!loading && !error && items.length === 0 ? (
           <div className={styles.emptyState}>
-            <h2>Aucun concierge ne correspond a vos criteres.</h2>
-            <p>Essayez d'elargir la zone, de relever le budget ou de retirer un filtre service.</p>
+            <h2>Aucun concierge ne correspond à vos critères.</h2>
+            <p>Essayez d&apos;élargir la zone, de relever le budget ou de retirer un filtre service.</p>
           </div>
         ) : null}
 
@@ -329,7 +328,7 @@ export default function OwnerConciergesPage() {
               <div className={styles.cardHead}>
                 <div>
                   <h2>{item.display_name}</h2>
-                  <p>{item.city || item.service_area || "Zone non renseignee"}</p>
+                  <p>{item.city || item.service_area || "Zone non renseignée"}</p>
                 </div>
                 <div className={styles.badgesCol}>
                   <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
@@ -348,16 +347,16 @@ export default function OwnerConciergesPage() {
                   <strong>Avis :</strong> {item.reviews_count}
                 </p>
                 <p>
-                  <strong>Experience :</strong>{" "}
+                  <strong>Expérience :</strong>{" "}
                   {typeof item.years_experience === "number"
                     ? `${item.years_experience} an(s)`
-                    : item.experience_level || "Non renseignee"}
+                    : item.experience_level || "Non renseignée"}
                 </p>
                 <p>
                   <strong>Rayon :</strong>{" "}
                   {typeof item.service_radius_km === "number"
                     ? `${item.service_radius_km} km`
-                    : "Non renseigne"}
+                    : "Non renseigné"}
                 </p>
               </div>
 
@@ -384,13 +383,13 @@ export default function OwnerConciergesPage() {
                     </span>
                   ))
                 ) : (
-                  <span className={styles.tagMuted}>Services non renseignes</span>
+                  <span className={styles.tagMuted}>Services non renseignés</span>
                 )}
               </div>
 
               {item.latest_review_comment ? (
                 <div className={styles.reviewSnippet}>
-                  <strong>Avis recent</strong>
+                  <strong>Avis récent</strong>
                   <p>{item.latest_review_comment}</p>
                   {item.latest_review_at ? (
                     <small>{formatReviewDate(item.latest_review_at)}</small>
