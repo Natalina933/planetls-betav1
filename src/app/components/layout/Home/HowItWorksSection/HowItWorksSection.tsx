@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import * as Tabs from "@radix-ui/react-tabs";
-import styles from "./HowItWorksSection.module.scss";
 import type { LucideIcon } from "lucide-react";
-import { Lightbulb, Users, Handshake, User, Briefcase } from "lucide-react";
+import { Briefcase, Handshake, Lightbulb, User, Users } from "lucide-react";
+import styles from "./HowItWorksSection.module.scss";
 
 interface Step {
   Icon: LucideIcon;
@@ -43,7 +43,7 @@ const stepsByCategory: Record<string, StepCategory> = {
       },
       {
         Icon: Handshake,
-        title: "Centralisez vos echanges",
+        title: "Centralisez vos échanges",
         description: "Suivez devis, factures, missions et messages dans un espace unique.",
         link: "/dashboard/owner",
       },
@@ -69,7 +69,7 @@ const stepsByCategory: Record<string, StepCategory> = {
       },
       {
         Icon: Handshake,
-        title: "Pilotez l'operationnel",
+        title: "Pilotez l'opérationnel",
         description: "Gérez logements, missions, planning, documents et suivi Stripe depuis le dashboard.",
         link: "/dashboard/concierge",
       },
@@ -113,7 +113,11 @@ const StepCard = ({ step, index }: { step: Step; index: number }) => {
       aria-label={step.title}
       className={styles.step}
       onClick={() => router.push(step.link)}
-      onKeyDown={(e) => e.key === "Enter" && router.push(step.link)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          router.push(step.link);
+        }
+      }}
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}

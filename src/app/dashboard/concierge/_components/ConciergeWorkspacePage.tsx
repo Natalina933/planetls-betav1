@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { useUserType } from "@/app/context/UserTypeContext";
 import styles from "./ConciergeWorkspace.module.scss";
 
 interface ConciergeCardAction {
@@ -59,9 +60,17 @@ export default function ConciergeWorkspacePage({
   actions,
   detailSections,
 }: ConciergeWorkspacePageProps) {
+  const { userType } = useUserType();
+  const themeClass =
+    userType === "owner"
+      ? styles.ownerTheme
+      : userType === "provider"
+        ? styles.providerTheme
+        : styles.conciergeTheme;
+
   return (
     <section className="dashboard-grid">
-      <div className={styles.page}>
+      <div className={`${styles.page} ${themeClass}`}>
         <div className={styles.hero}>
           <span className={styles.eyebrow}>{eyebrow}</span>
           <h1 className={styles.title}>{title}</h1>

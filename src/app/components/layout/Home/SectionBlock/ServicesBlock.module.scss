@@ -1,72 +1,90 @@
-@use "sass:math";
 @use "sass:color";
 @use "app/styles/abstracts/_mixins" as *;
 @use "app/styles/abstracts/_functions" as *;
 @use "app/styles/abstracts/_variables" as *;
+
 .section {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: $spacing-xl $spacing-md;
-  background: $gold-soft; // fond légèrement crème
-  border: 1px solid $gold-dark;
-  border-radius: $radius-2xl;
-  box-shadow: $shadow;
+  width: min(1240px, calc(100% - 2rem));
+  margin: 0 auto 3rem;
+  padding: clamp(3rem, 6vw, 4.5rem) clamp(1.2rem, 3vw, 2.4rem);
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(245, 237, 224, 0.96));
+  border: 1px solid rgba(184, 139, 74, 0.24);
+  border-radius: 32px;
+  box-shadow:
+    0 24px 54px rgba(53, 38, 18, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
   text-align: center;
   position: relative;
+  color: #2f2418;
 
-  // Petit ornement au style "1900"
   &::before,
   &::after {
-    content: '';
+    content: "";
     position: absolute;
-    width: 60px;
+    width: 72px;
     height: 2px;
     background: linear-gradient(to right, transparent, $gold, transparent);
-    top: 20px;
+    top: 24px;
   }
 
   &::before {
-    left: 20px;
+    left: 24px;
   }
+
   &::after {
-    right: 20px;
+    right: 24px;
   }
 }
 
 .sectionTitle {
+  margin: 0 0 1rem;
   font-family: $font-elegant;
-  font-size: 2.5rem;
-  color: $mucha-ink;
-  margin-bottom: $spacing-md;
-  letter-spacing: 0.05em;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  color: #312419;
+  letter-spacing: 0.03em;
   position: relative;
 
-  // Filet doré décoratif en dessous du titre
   &::after {
-    content: '';
+    content: "";
     display: block;
-    margin: $spacing-sm auto 0;
+    margin: 0.9rem auto 0;
     width: 120px;
     height: 3px;
-    border-radius: 2px;
+    border-radius: 999px;
     background: linear-gradient(to right, $gold-dark, $gold, $gold-dark);
   }
 }
 
 .sectionSubtitle {
+  margin: 0 0 0.8rem;
   font-family: $font-title;
   font-weight: $font-weight-bold;
-  font-size: 1.3rem;
-  color: $gold-dark;
-  margin-bottom: $spacing-sm;
-  letter-spacing: 0.03em;
+  font-size: 1.15rem;
+  color: #7a5a28;
+  letter-spacing: 0.02em;
 }
 
 .sectionDescription {
+  max-width: 760px;
+  margin: 0 auto 2rem;
   font-family: $font-text;
-  font-size: 1rem;
-  line-height: $line-height;
-  color: $text-light;
-  max-width: $max-content-width-sm;
-  margin: 0 auto $spacing-lg;
+  font-size: 1.03rem;
+  line-height: 1.75;
+  color: #4a3a2a;
+}
+
+@media (max-width: 768px) {
+  .section {
+    width: min(100%, calc(100% - 1rem));
+    padding: 2.5rem 1rem;
+    border-radius: 24px;
+  }
+
+  .section::before,
+  .section::after {
+    width: 44px;
+    top: 18px;
+  }
 }

@@ -6,6 +6,9 @@
 @use "app/styles/abstracts/_functions" as *;
 @use "app/styles/base/_animations" as *;
 
+$concierge-accent: #c6a66b;
+$concierge-accent-deep: #7b5b23;
+$concierge-accent-soft: #f3ead8;
 
 /* ==========================================================================
    CONCIERGE DASHBOARD - CHARTE 1900
@@ -22,7 +25,7 @@
   margin: $spacing-md auto;
   border-radius: $radius-lg;
   box-shadow: $shadow;
-  border: 2px solid $gold-border-soft;
+  border: 2px solid rgba($concierge-accent, 0.28);
   position: relative;
 
   // Texture 1900 subtile
@@ -32,7 +35,7 @@
     inset: 0;
     background:
       radial-gradient(circle at 25% 25%, rgba($gold, 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba($gold, 0.02) 0%, transparent 50%);
+      radial-gradient(circle at 75% 75%, rgba($concierge-accent, 0.08) 0%, transparent 50%);
     border-radius: inherit;
     pointer-events: none;
     z-index: 0;
@@ -56,12 +59,12 @@
     font-size: clamp(1.5rem, 4vw, 2rem);
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: $color-title;
+    color: $concierge-accent-deep;
     margin: 0;
 
     .headerIcon {
       font-size: 2.2rem;
-      color: $primary-dark-color-sass;
+      color: $concierge-accent-deep;
     }
   }
 
@@ -107,15 +110,15 @@
 }
 
 .proBadge {
-  color: #5e4209;
-  background: linear-gradient(135deg, rgba($gold, 0.3), rgba(255, 240, 199, 0.9));
-  border: 1px solid rgba($gold, 0.4);
+  color: $concierge-accent-deep;
+  background: linear-gradient(135deg, rgba($concierge-accent, 0.34), rgba(255, 244, 220, 0.96));
+  border: 1px solid rgba($concierge-accent, 0.42);
 }
 
 .standardBadge {
-  color: $color-text-neutral;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba($mucha-ink, 0.14);
+  color: $concierge-accent-deep;
+  background: rgba(255, 250, 242, 0.92);
+  border: 1px solid rgba($concierge-accent, 0.22);
 }
 
 .headerActions {
@@ -131,16 +134,16 @@
   min-height: 42px;
   padding: 0.55rem 0.95rem;
   border-radius: $radius-md;
-  border: 1px solid rgba($primary-dark-color-sass, 0.25);
-  background: rgba($gold, 0.08);
-  color: $primary-dark-color-sass;
+  border: 1px solid rgba($concierge-accent, 0.35);
+  background: rgba($concierge-accent, 0.12);
+  color: $concierge-accent-deep;
   text-decoration: none;
   font-weight: 700;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: rgba($primary-dark-color-sass, 0.45);
-    background: rgba($gold, 0.16);
+    border-color: rgba($concierge-accent, 0.48);
+    background: rgba($concierge-accent, 0.18);
   }
 }
 
@@ -151,8 +154,8 @@
 .matchesSection {
   padding: $spacing-lg;
   border-radius: $radius-lg;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.86));
-  border: 1px solid $gold-border-soft;
+  background: linear-gradient(145deg, rgba(255, 252, 245, 0.96), rgba($concierge-accent-soft, 0.72));
+  border: 1px solid rgba($concierge-accent, 0.2);
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.06);
 }
 
@@ -168,7 +171,7 @@
     font-size: 1.2rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: $color-title;
+    color: $concierge-accent-deep;
   }
 }
 
@@ -178,15 +181,15 @@
   justify-content: center;
   padding: 0.45rem 0.85rem;
   border-radius: $radius-md;
-  border: 1px solid rgba($primary-dark-color-sass, 0.25);
-  color: $primary-dark-color-sass;
+  border: 1px solid rgba($concierge-accent, 0.35);
+  color: $concierge-accent-deep;
   text-decoration: none;
   font-weight: 600;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: rgba($primary-dark-color-sass, 0.45);
-    background: rgba($primary-dark-color-sass, 0.08);
+    border-color: rgba($concierge-accent, 0.45);
+    background: rgba($concierge-accent, 0.12);
   }
 }
 
@@ -209,8 +212,8 @@
 .matchCard {
   padding: $spacing-md;
   border-radius: $radius-md;
-  border: 1px solid rgba($gold, 0.2);
-  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba($concierge-accent, 0.2);
+  background: rgba(255, 250, 244, 0.82);
 }
 
 .matchCardHead {
@@ -232,8 +235,8 @@
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
-  color: $primary-dark-color-sass;
-  background: rgba($gold, 0.18);
+  color: $concierge-accent-deep;
+  background: rgba($concierge-accent, 0.18);
 }
 
 .matchMeta {
@@ -252,15 +255,15 @@
   padding: $spacing-lg;
   border-radius: $radius-lg;
   @include backdrop-blur(8px, rgba(255, 255, 255, 0.92));
-  border: 1px solid $gold-border-soft;
+  border: 1px solid rgba($concierge-accent, 0.18);
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.06);
 
   h2 {
     font-size: 1.4rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: $color-title;
-    border-bottom: 2px solid $primary-dark-color-sass;
+    color: $concierge-accent-deep;
+    border-bottom: 2px solid rgba($concierge-accent, 0.68);
     padding-bottom: $spacing-xs;
     margin-bottom: $spacing-md;
   }

@@ -19,6 +19,12 @@ const roleLabels: Record<string, string> = {
   provider: "Artisan",
 };
 
+const roleThemeClasses: Record<string, string> = {
+  owner: styles.ownerTheme,
+  concierge: styles.conciergeTheme,
+  provider: styles.providerTheme,
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { userType } = useUserType();
 
@@ -60,7 +66,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         />
       )}
       <aside
-        className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed}`}
+        className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed} ${
+          userType ? roleThemeClasses[userType] || "" : ""
+        }`}
         aria-label="Sidebar"
       >
         <div className={styles.header}>

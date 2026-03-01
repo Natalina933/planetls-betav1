@@ -13,6 +13,7 @@
   margin: 3rem auto 4rem;
   // font-family: $font-elegant;
   text-align: center;
+  color: #2b241b;
 
   // Heading
   .videoHeading {
@@ -27,7 +28,7 @@
   // Description
   .videoDescription {
     font-size: 1.14rem;
-    color: #786e5e;
+    color: #4b3f31;
     margin-bottom: 1.25rem;
     line-height: 1.6;
   }
@@ -111,7 +112,7 @@
     gap: 0.6rem;
     font-size: 1.05rem;
     font-weight: 500;
-    color: #786e5e;
+    color: #403427;
     background: linear-gradient(90deg, #fff, #fffbe7);
     padding: 0.6rem 1rem;
     border-radius: var(--radius-pill);
@@ -159,9 +160,10 @@
 
   .joinMessage {
     font-size: 1.02rem;
-    color: $gold;
+    color: #5a4731;
     margin-top: 0.45rem;
     font-style: italic;
+    font-weight: 600;
   }
 
   // Responsive

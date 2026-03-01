@@ -84,6 +84,8 @@ export default function ProviderClientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
 
   async function loadClients() {
@@ -120,6 +122,15 @@ export default function ProviderClientsPage() {
     const next = clients.filter((client) => {
       const matchesStatus = statusFilter === "all" || (client.status ?? "active") === statusFilter;
       if (!matchesStatus) return false;
+      const createdAt = new Date(client.created_at);
+      if (dateFrom) {
+        const minDate = new Date(`${dateFrom}T00:00:00`);
+        if (createdAt < minDate) return false;
+      }
+      if (dateTo) {
+        const maxDate = new Date(`${dateTo}T23:59:59`);
+        if (createdAt > maxDate) return false;
+      }
       if (!normalizedSearch) return true;
       const haystack = [
         client.client_name,
@@ -142,7 +153,7 @@ export default function ProviderClientsPage() {
     });
 
     return next;
-  }, [clients, searchTerm, statusFilter, sortBy]);
+  }, [clients, searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredClients.length / pageSize));
   const paginatedClients = useMemo(
@@ -152,7 +163,33 @@ export default function ProviderClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, statusFilter, sortBy]);
+  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
+
+  function handleExportCsv() {
+    const rows = [
+      ["Nom", "Societe", "Email", "Telephone", "Ville", "Type", "Statut", "Creation"],
+      ...filteredClients.map((client) => [
+        client.client_name ?? "",
+        client.company_name ?? "",
+        client.email ?? "",
+        client.phone ?? "",
+        client.city ?? "",
+        client.client_type ?? "",
+        client.status ?? "",
+        client.created_at ?? "",
+      ]),
+    ];
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "provider-clients.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -365,6 +402,11 @@ export default function ProviderClientsPage() {
                   <option value="name">Nom</option>
                   <option value="city">Ville</option>
                 </select>
+                <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+                <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+                <button type="button" className={styles.secondaryButton} onClick={handleExportCsv}>
+                  Export CSV
+                </button>
               </div>
             </div>
 

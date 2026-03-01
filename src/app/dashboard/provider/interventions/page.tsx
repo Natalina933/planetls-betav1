@@ -121,6 +121,8 @@ export default function ProviderInterventionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
 
   async function loadInterventions() {
@@ -176,6 +178,15 @@ export default function ProviderInterventionsPage() {
     const next = items.filter((item) => {
       const matchesStatus = statusFilter === "all" || (item.status ?? "pending") === statusFilter;
       if (!matchesStatus) return false;
+      const referenceDate = new Date(item.scheduled_start ?? item.created_at);
+      if (dateFrom) {
+        const minDate = new Date(`${dateFrom}T00:00:00`);
+        if (referenceDate < minDate) return false;
+      }
+      if (dateTo) {
+        const maxDate = new Date(`${dateTo}T23:59:59`);
+        if (referenceDate > maxDate) return false;
+      }
       if (!normalizedSearch) return true;
       const client = item.client_id ? clientsById.get(item.client_id) : null;
       const haystack = [
@@ -203,7 +214,7 @@ export default function ProviderInterventionsPage() {
     });
 
     return next;
-  }, [items, searchTerm, statusFilter, sortBy, clientsById]);
+  }, [items, searchTerm, statusFilter, sortBy, clientsById, dateFrom, dateTo]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = useMemo(
@@ -213,7 +224,33 @@ export default function ProviderInterventionsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, statusFilter, sortBy]);
+  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
+
+  function handleExportCsv() {
+    const rows = [
+      ["Titre", "Client", "Statut", "Priorite", "Debut", "Fin", "Budget", "Lieu"],
+      ...filteredItems.map((item) => [
+        item.title ?? "",
+        (item.client_id ? clientsById.get(item.client_id)?.client_name : "") ?? "",
+        item.status ?? "",
+        item.priority ?? "",
+        item.scheduled_start ?? "",
+        item.scheduled_end ?? "",
+        item.budget_amount != null ? String(item.budget_amount) : "",
+        item.location_label ?? "",
+      ]),
+    ];
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "provider-interventions.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -450,6 +487,11 @@ export default function ProviderInterventionsPage() {
                   <option value="schedule">Planning</option>
                   <option value="priority">Priorite</option>
                 </select>
+                <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+                <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+                <button type="button" className={styles.secondaryButton} onClick={handleExportCsv}>
+                  Export CSV
+                </button>
               </div>
             </div>
 

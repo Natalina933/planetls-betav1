@@ -33,6 +33,14 @@ type PublicProfilePayload = {
   };
 };
 
+const conciergeTheme = {
+  accent: "#c6a66b",
+  accentText: "#7b5b23",
+  accentSoft: "#f3ead8",
+  title: "#3f2f14",
+  body: "#5f5237",
+};
+
 function formatAmount(value: number | null, suffix: string) {
   if (typeof value !== "number") return "Non renseigne";
   return `${value.toFixed(0)} EUR ${suffix}`;
@@ -53,8 +61,8 @@ function pillStyle() {
   return {
     padding: "0.42rem 0.75rem",
     borderRadius: 999,
-    background: "rgba(184,139,74,0.12)",
-    color: "#7b5b23",
+    background: "rgba(198,166,107,0.14)",
+    color: conciergeTheme.accentText,
     fontWeight: 600,
   } as const;
 }
@@ -118,9 +126,9 @@ export default function PublicConciergeProfilePage({
             gap: "0.85rem",
             padding: "2rem",
             borderRadius: 28,
-            border: "1px solid rgba(184, 139, 74, 0.24)",
+            border: "1px solid rgba(198, 166, 107, 0.26)",
             background:
-              "linear-gradient(145deg, rgba(255, 253, 246, 0.96), rgba(244, 233, 211, 0.92))",
+              "linear-gradient(145deg, rgba(255, 253, 246, 0.96), rgba(243, 234, 216, 0.94))",
             boxShadow: "0 18px 42px rgba(74, 53, 16, 0.08)",
           }}
         >
@@ -130,7 +138,7 @@ export default function PublicConciergeProfilePage({
               fontWeight: 700,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: "#9a7a3b",
+              color: conciergeTheme.accentText,
             }}
           >
             Profil concierge
@@ -140,12 +148,12 @@ export default function PublicConciergeProfilePage({
               margin: 0,
               fontSize: "clamp(2rem, 5vw, 3.2rem)",
               lineHeight: 1,
-              color: "#3f2f14",
+              color: conciergeTheme.title,
             }}
           >
             {loading ? "Chargement..." : data?.profile.display_name || "Concierge"}
           </h1>
-          <p style={{ margin: 0, color: "#5f5237", lineHeight: 1.6, maxWidth: "72ch" }}>
+          <p style={{ margin: 0, color: conciergeTheme.body, lineHeight: 1.6, maxWidth: "72ch" }}>
             {error
               ? error
               : "Decouvrez le positionnement, la zone d'intervention, les services proposes et les avis laisses apres mission."}
@@ -160,9 +168,9 @@ export default function PublicConciergeProfilePage({
                 borderRadius: 999,
                 background:
                   data?.profile.role === "concierge_pro"
-                    ? "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(184,139,74,0.22))"
+                    ? "linear-gradient(135deg, rgba(198,166,107,0.24), rgba(243,234,216,0.92))"
                     : "rgba(74,53,16,0.08)",
-                color: "#5e4209",
+                color: conciergeTheme.accentText,
                 fontWeight: 800,
               }}
             >
@@ -175,8 +183,8 @@ export default function PublicConciergeProfilePage({
                 minHeight: 42,
                 padding: "0.55rem 0.9rem",
                 borderRadius: 999,
-                background: "rgba(184,139,74,0.12)",
-                color: "#7b5b23",
+                background: "rgba(198,166,107,0.14)",
+                color: conciergeTheme.accentText,
                 fontWeight: 700,
               }}
             >
@@ -193,7 +201,7 @@ export default function PublicConciergeProfilePage({
                 minHeight: 42,
                 padding: "0.75rem 1rem",
                 borderRadius: 999,
-                background: "linear-gradient(135deg, #b88b4a, #d4af37)",
+                background: "linear-gradient(135deg, #c6a66b, #a98a56)",
                 color: "#fff",
                 textDecoration: "none",
                 fontWeight: 700,
@@ -210,9 +218,9 @@ export default function PublicConciergeProfilePage({
                 minHeight: 42,
                 padding: "0.75rem 1rem",
                 borderRadius: 999,
-                border: "1px solid rgba(184, 139, 74, 0.35)",
+                border: "1px solid rgba(198, 166, 107, 0.35)",
                 background: "rgba(255,255,255,0.78)",
-                color: "#7b5b23",
+                color: conciergeTheme.accentText,
                 textDecoration: "none",
                 fontWeight: 700,
               }}
@@ -238,11 +246,11 @@ export default function PublicConciergeProfilePage({
                   padding: "1.2rem",
                   borderRadius: 20,
                   background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(184,139,74,0.18)",
+                  border: "1px solid rgba(198,166,107,0.18)",
                 }}
               >
                 <strong>Note moyenne</strong>
-                <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: "#3f2f14" }}>
+                <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: conciergeTheme.title }}>
                   {typeof data.stats.average_rating === "number"
                     ? `${data.stats.average_rating.toFixed(1)} / 5`
                     : "Pas encore de note"}
@@ -253,11 +261,11 @@ export default function PublicConciergeProfilePage({
                   padding: "1.2rem",
                   borderRadius: 20,
                   background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(184,139,74,0.18)",
+                  border: "1px solid rgba(198,166,107,0.18)",
                 }}
               >
                 <strong>Avis clients</strong>
-                <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: "#3f2f14" }}>
+                <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: conciergeTheme.title }}>
                   {data.stats.reviews_count}
                 </p>
               </article>
@@ -266,11 +274,11 @@ export default function PublicConciergeProfilePage({
                   padding: "1.2rem",
                   borderRadius: 20,
                   background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(184,139,74,0.18)",
+                  border: "1px solid rgba(198,166,107,0.18)",
                 }}
               >
                 <strong>Zone</strong>
-                <p style={{ margin: "0.55rem 0 0", color: "#3f2f14" }}>
+                <p style={{ margin: "0.55rem 0 0", color: conciergeTheme.title }}>
                   {data.profile.service_area || data.profile.city || "Non renseignee"}
                 </p>
               </article>
@@ -279,11 +287,11 @@ export default function PublicConciergeProfilePage({
                   padding: "1.2rem",
                   borderRadius: 20,
                   background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(184,139,74,0.18)",
+                  border: "1px solid rgba(198,166,107,0.18)",
                 }}
               >
                 <strong>Experience</strong>
-                <p style={{ margin: "0.55rem 0 0", color: "#3f2f14" }}>
+                <p style={{ margin: "0.55rem 0 0", color: conciergeTheme.title }}>
                   {typeof data.profile.years_experience === "number"
                     ? `${data.profile.years_experience} an(s)`
                     : "Non renseignee"}
@@ -303,10 +311,10 @@ export default function PublicConciergeProfilePage({
                   padding: "1.3rem",
                   borderRadius: 22,
                   background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(184,139,74,0.18)",
+                  border: "1px solid rgba(198,166,107,0.18)",
                 }}
               >
-                <h2 style={{ marginTop: 0, color: "#3f2f14" }}>Positionnement</h2>
+                <h2 style={{ marginTop: 0, color: conciergeTheme.title }}>Positionnement</h2>
                 <p>Role : {data.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge"}</p>
                 <p>Ville : {data.profile.city || "Non renseignee"}</p>
                 <p>Pays : {data.profile.country || "France"}</p>
@@ -322,10 +330,10 @@ export default function PublicConciergeProfilePage({
                   padding: "1.3rem",
                   borderRadius: 22,
                   background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(184,139,74,0.18)",
+                  border: "1px solid rgba(198,166,107,0.18)",
                 }}
               >
-                <h2 style={{ marginTop: 0, color: "#3f2f14" }}>Reperes tarifaires</h2>
+                <h2 style={{ marginTop: 0, color: conciergeTheme.title }}>Repères tarifaires</h2>
                 <p>Tarif horaire : {formatAmount(data.profile.hourly_rate, "/ h")}</p>
                 <p>Forfait mensuel : {formatAmount(data.profile.monthly_rate, "/ mois")}</p>
                 <p>Niveau : {data.profile.experience_level || "Non renseigne"}</p>
@@ -333,7 +341,7 @@ export default function PublicConciergeProfilePage({
             </section>
 
             <section style={{ display: "grid", gap: "0.85rem" }}>
-              <h2 style={{ margin: 0, color: "#3f2f14" }}>Services proposes</h2>
+              <h2 style={{ margin: 0, color: conciergeTheme.title }}>Services proposés</h2>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}>
                 {data.profile.services.length > 0 ? (
                   data.profile.services.map((service) => (
@@ -342,13 +350,13 @@ export default function PublicConciergeProfilePage({
                     </span>
                   ))
                 ) : (
-                  <span style={{ color: "#5f5237" }}>Services non renseignes pour le moment.</span>
+                  <span style={{ color: conciergeTheme.body }}>Services non renseignés pour le moment.</span>
                 )}
               </div>
             </section>
 
             <section style={{ display: "grid", gap: "1rem" }}>
-              <h2 style={{ margin: 0, color: "#3f2f14" }}>Avis recents</h2>
+              <h2 style={{ margin: 0, color: conciergeTheme.title }}>Avis récents</h2>
               {data.reviews.length === 0 ? (
                 <p>Aucun avis publie pour le moment.</p>
               ) : (
@@ -366,18 +374,18 @@ export default function PublicConciergeProfilePage({
                         padding: "1.1rem",
                         borderRadius: 20,
                         background: "rgba(255,255,255,0.94)",
-                        border: "1px solid rgba(184,139,74,0.18)",
+                        border: "1px solid rgba(198,166,107,0.18)",
                       }}
                     >
-                      <strong style={{ color: "#3f2f14" }}>
+                      <strong style={{ color: conciergeTheme.title }}>
                         {typeof review.rating === "number"
                           ? `${review.rating} / 5`
                           : "Note non renseignee"}
                       </strong>
-                      <p style={{ color: "#5f5237", lineHeight: 1.6 }}>
+                      <p style={{ color: conciergeTheme.body, lineHeight: 1.6 }}>
                         {review.comment || "Avis publie sans commentaire."}
                       </p>
-                      <small style={{ color: "#7b5b23" }}>{formatDate(review.created_at)}</small>
+                      <small style={{ color: conciergeTheme.accentText }}>{formatDate(review.created_at)}</small>
                     </article>
                   ))}
                 </div>

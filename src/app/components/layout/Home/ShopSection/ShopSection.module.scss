@@ -1,100 +1,66 @@
-// @use "src/app/styles/abstracts/_mixins" as *;
-// @use "src/app/styles/abstracts/_functions" as *;
-// @use "src/app/styles/abstracts/_variables" as *;
-// @use "sass:color";
+.shop {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto 4rem;
+  padding: clamp(3rem, 6vw, 4.5rem) 1.25rem;
+  text-align: center;
+  position: relative;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.1), transparent 28%),
+    linear-gradient(180deg, #fffaf2 0%, #f2e7d6 100%);
+  border: 1px solid rgba(184, 139, 74, 0.2);
+  box-shadow: 0 22px 48px rgba(57, 41, 21, 0.08);
+  color: #2f2418;
+}
 
-// .shop {
-//     background-color: #fdf8ee;
-//     padding: rem(72) rem(24);
-//     text-align: center;
-//     position: relative;
-//     overflow: hidden;
+.shop h2 {
+  margin: 0 0 2rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-family: "Cormorant Garamond", serif;
+  color: #38291d;
+}
 
-//     h2 {
-//         font-size: rem(36);
-//         font-family: $font-elegant;
-//         color: $gold;
-//         margin-bottom: rem(32);
+.shopContent {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(184, 139, 74, 0.18);
+  box-shadow:
+    0 16px 32px rgba(57, 41, 21, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
 
-//         &::after {
-//             content: '';
-//             display: block;
-//             margin: rem(8) auto 0;
-//             width: rem(60);
-//             height: rem(4);
-//             background: $gold;
-//         }
-//     }
+.shopContent svg {
+  margin-bottom: 1rem;
+  color: #9a7a3b;
+}
 
-//     .shopContent {
-//         max-width: rem(640);
-//         margin: 0 auto;
-//         background: #fffaf4;
-//         border: 2px solid $gold;
-//         border-radius: rem(12);
-//         padding: rem(40) rem(28);
-//         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-//         animation: fadeIn 0.6s ease both;
+.shopContent p {
+  margin: 0 0 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: #4a3a2a;
+}
 
-//         svg {
-//             margin-bottom: rem(20);
-//             color: $gold;
-//         }
+.shopButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.85rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b88b4a, #d4af37);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(117, 86, 36, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-//         p {
-//             font-size: rem(18);
-//             line-height: 1.6;
-//             color: var(--color-text);
-//             opacity: 0.85;
-//             font-family: $font-text;
-//             margin-bottom: rem(28);
-//         }
-//     }
-
-//     .shopButton {
-//         background-color: $gold;
-//         color: #fff;
-//         font-family: $font-title;
-//         font-size: rem(16);
-//         padding: rem(12) rem(24);
-//         border: none;
-//         border-radius: rem(32);
-//         cursor: pointer;
-//         transition: all 0.3s ease;
-//         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-//         // &:hover {
-//         //     background-color: color.scale($gold, $lightness: -15.28%);
-//         //     transform: translateY(-2px);
-//         // }
-
-//         &:focus {
-//             outline: none;
-//             box-shadow: 0 0 0 3px rgba($gold, 0.4);
-//         }
-//     }
-// }
-
-// // 🎬 Animation d’apparition
-// @keyframes fadeIn {
-//     0% {
-//         transform: translateY(rem(24));
-//         opacity: 0;
-//     }
-
-//     100% {
-//         transform: translateY(0);
-//         opacity: 1;
-//     }
-// }
-
-// // ✨ Effet de vague
-// @keyframes wave {
-//     0% {
-//         transform: translateX(-100%);
-//     }
-
-//     100% {
-//         transform: translateX(100%);
-//     }
-// }
+.shopButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(117, 86, 36, 0.24);
+}

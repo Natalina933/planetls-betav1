@@ -1,7 +1,6 @@
 @use "sass:color";
 @use "sass:math";
 
-// Variables
 $gold: #d4af37;
 $bg-light: #f7f6f3;
 $bg-dark: #1a1a1a;
@@ -10,7 +9,6 @@ $text-light: #fff;
 $transition-speed: 0.6s;
 $radius: 1.2rem;
 
-// Mixins
 @mixin card-shadow {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
@@ -19,12 +17,12 @@ $radius: 1.2rem;
   background: linear-gradient(135deg, $gold, color.scale($gold, $lightness: 20%));
 }
 
-// Section Header
 .platformHeader {
   text-align: center;
   margin-bottom: 3rem;
   max-width: 800px;
   margin-inline: auto;
+  color: $text-dark;
 
   .sectionIntro {
     font-size: 1.2rem;
@@ -41,11 +39,11 @@ $radius: 1.2rem;
 
   .userCategory {
     font-style: italic;
-    color: $gold;
+    color: #6f532f;
+    font-weight: 700;
   }
 }
 
-// Chips
 .keyPoints {
   display: flex;
   flex-wrap: wrap;
@@ -74,24 +72,34 @@ $radius: 1.2rem;
   }
 }
 
-// Grid
 .serviceGrid {
   display: grid;
-  gap: 2rem;
+  gap: 1.35rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   perspective: 1500px;
-  /* Ajout d'une couleur claire semi-transparente pour adoucir la texture */
-  background-color: rgba(255, 255, 255, 0.8); // blanc avec 80% d'opacité
-  background-image: url('/textures/mucha-background-pattern.png');
-  background-blend-mode: lighten; // ou "overlay", "soft-light" selon l'effet
+  background-color: rgba(255, 255, 255, 0.88);
+  background-image: url("/textures/mucha-background-pattern.png");
+  background-blend-mode: lighten;
   background-attachment: local;
-  padding: 0.5rem;
+  padding: 1.5rem;
   border: 2.5px solid #b88b4a;
+  border-radius: 28px;
+  box-shadow:
+    0 24px 48px rgba(61, 43, 20, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45);
   justify-content: center;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 16px;
+    border: 1px solid rgba(184, 139, 74, 0.2);
+    border-radius: 18px;
+    pointer-events: none;
+  }
 }
 
-
-// Flippable Cards
 .flippable {
   @include card-shadow;
   border-radius: $radius;
@@ -109,22 +117,20 @@ $radius: 1.2rem;
   }
 
   &.card-size--small {
-    min-height: 200px;
+    min-height: 320px;
   }
 
   &.card-size--medium {
-    min-height: 250px;
+    min-height: 380px;
   }
 
   &.card-size--large {
-    min-height: 300px;
+    min-height: 400px;
   }
 
   &.card-size--tall {
-    min-height: 420px;
+    min-height: 520px;
   }
-
-
 }
 
 .cardInner {
@@ -146,6 +152,7 @@ $radius: 1.2rem;
 .cardFront {
   background-color: $bg-light;
   text-align: center;
+  color: $text-dark;
 
   .serviceCardIconWrap {
     display: inline-flex;
@@ -168,7 +175,7 @@ $radius: 1.2rem;
 
   .serviceCardDesc {
     font-size: 0.95rem;
-    color: color.scale($text-dark, $lightness: 20%);
+    color: #4a4037;
     line-height: 1.5;
   }
 }
@@ -197,7 +204,21 @@ $radius: 1.2rem;
   padding: 2rem;
 }
 
-// CTA Zone
+@media (max-width: 900px) {
+  .serviceGrid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .serviceGrid::before {
+    inset: 10px;
+  }
+
+  .flippable {
+    min-height: 320px;
+  }
+}
+
 .ctaZone {
   text-align: center;
   margin-top: 3rem;
@@ -220,6 +241,6 @@ $radius: 1.2rem;
     display: block;
     margin-top: 0.5rem;
     font-size: 0.9rem;
-    color: $text-dark;
+    color: #3e342b;
   }
 }

@@ -1,88 +1,207 @@
 $golden-color: #d4af37;
-$border-radius: 12px;
-$box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+$gold-deep: #8f6a33;
+$ink-dark: #2f2418;
+$ink-soft: #4b3c2c;
+$panel-cream: #fffaf1;
+$panel-sand: #f4e6d2;
+$border-radius: 20px;
 
 .card {
-    perspective: 1000px;
-    cursor: pointer;
-    transition: transform 0.6s ease;
-    transform-style: preserve-3d;
-    position: relative;
+  perspective: 1200px;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.35s ease;
 
-    &.flipped .inner {
-        transform: rotateY(180deg);
-    }
+  &:hover {
+    transform: translateY(-4px);
+  }
 
-    .inner {
-        width: 100%;
-        height: 100%;
-        transition: transform 0.6s ease;
-        transform-style: preserve-3d;
-        position: relative;
-    }
+  &:focus-visible {
+    outline: 3px solid rgba(212, 175, 55, 0.45);
+    outline-offset: 6px;
+  }
 
-    .front,
-    .back {
-        position: absolute;
-        inset: 0;
-        backface-visibility: hidden;
-        border-radius: 12px;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .front {
-        background-color: #fff;
-        border: 2px solid $golden-color;
-    }
-
-    .back {
-        transform: rotateY(180deg);
-        background-color: #f7f7f7;
-        border: 2px solid $golden-color;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        .quote {
-            font-style: italic;
-            font-size: 1rem;
-            color: #444;
-            text-align: center;
-            padding: 0 1rem;
-            line-height: 1.5;
-        }
-    }
+  &.flipped .inner {
+    transform: rotateY(180deg);
+  }
 }
 
-// Taille des cartes
+.inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.7s ease;
+}
 
+.front,
+.back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: $border-radius;
+  overflow: hidden;
+  padding: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100%;
+  box-shadow:
+    0 18px 36px rgba(43, 29, 12, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.front {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(249, 240, 226, 0.94)),
+    linear-gradient(135deg, rgba(212, 175, 55, 0.08), transparent 46%);
+  border: 1px solid rgba(184, 139, 74, 0.28);
+  color: $ink-dark;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(184, 139, 74, 0.22);
+    pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.4), transparent 40%),
+      radial-gradient(circle at top right, rgba(212, 175, 55, 0.18), transparent 30%);
+    pointer-events: none;
+  }
+
+  h3,
+  p {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+  }
+
+  h3 {
+    margin-bottom: 0.9rem;
+    color: $ink-dark;
+    font-size: 1.55rem;
+    line-height: 1.12;
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  p {
+    color: $ink-soft;
+    font-size: 1.02rem;
+    line-height: 1.72;
+  }
+}
+
+.icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.9), rgba(247, 233, 209, 0.92)),
+    linear-gradient(135deg, rgba(212, 175, 55, 0.15), transparent 60%);
+  border: 1px solid rgba(184, 139, 74, 0.35);
+  box-shadow:
+    0 10px 18px rgba(92, 69, 33, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.goldenIcon {
+  width: 34px;
+  height: 34px;
+  color: $gold-deep;
+}
+
+.back {
+  transform: rotateY(180deg);
+  background:
+    linear-gradient(160deg, rgba(83, 58, 24, 0.96), rgba(34, 24, 13, 0.98)),
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.24), transparent 32%);
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  align-items: center;
+  text-align: center;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    pointer-events: none;
+  }
+}
+
+.quote {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0 1rem;
+  color: #f8edd8;
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.7;
+}
 
 .card-size--small {
-    grid-row: span 1;
-    grid-column: span 1;
-    aspect-ratio: 3 / 2;
+  grid-row: span 1;
+  grid-column: span 1;
+  aspect-ratio: 3 / 2;
+  min-height: 260px;
 }
 
 .card-size--medium {
-    grid-row: span 2;
-    grid-column: span 1;
-    aspect-ratio: 4 / 3;
+  grid-row: span 2;
+  grid-column: span 1;
+  aspect-ratio: 4 / 3;
+  min-height: 320px;
 }
 
 .card-size--large {
-    grid-row: span 2;
-    grid-column: span 2;
-    aspect-ratio: 5 / 3;
+  grid-row: span 2;
+  grid-column: span 2;
+  aspect-ratio: 5 / 3;
+  min-height: 340px;
 }
 
 .card-size--tall {
-    grid-row: span 3;
+  grid-row: span 3;
+  grid-column: span 1;
+  aspect-ratio: 2 / 3;
+  min-height: 460px;
+  align-self: start;
+  margin-top: -9.5rem;
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .card-size--large,
+  .card-size--medium,
+  .card-size--small,
+  .card-size--tall {
     grid-column: span 1;
-    aspect-ratio: 2 / 3;
-    align-self: start;
-    margin-top: -9.5rem; // ajuste selon l’effet souhaité
-    z-index: 2; // pour qu’elle passe devant si besoin
+    grid-row: span 1;
+    aspect-ratio: auto;
+    min-height: 280px;
+    margin-top: 0;
+  }
+
+  .front,
+  .back {
+    min-height: 320px;
+  }
 }

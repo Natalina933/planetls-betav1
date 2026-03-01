@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useUserType } from "@/app/context/UserTypeContext";
 import styles from "./OwnerWorkspace.module.scss";
 
 interface InfoCard {
@@ -27,9 +28,17 @@ export default function OwnerWorkspacePage({
   chips,
   actions,
 }: OwnerWorkspacePageProps) {
+  const { userType } = useUserType();
+  const themeClass =
+    userType === "provider"
+      ? styles.providerTheme
+      : userType === "concierge"
+        ? styles.conciergeTheme
+        : styles.ownerTheme;
+
   return (
     <section className="dashboard-grid">
-      <div className={styles.page}>
+      <div className={`${styles.page} ${themeClass}`}>
         <div className={styles.hero}>
           <span className={styles.eyebrow}>{eyebrow}</span>
           <h1 className={styles.title}>{title}</h1>

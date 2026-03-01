@@ -15,12 +15,13 @@
   position: relative;
   border-bottom: 2.5px solid #b88b4a;
   max-width: 100%;
+  color: #2f2418;
 
   h2 {
     font-size: 2.25rem;
     margin-bottom: 3rem;
     display: inline-block;
-    background-color: white;
+    background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(244, 233, 211, 0.96));
     border: 5px solid $gold;
     border-radius: 2.2rem;
     padding: 0.5rem 1.5rem;
@@ -28,7 +29,10 @@
     font-weight: 700;
     width: 740px;
     max-width: 100%;
-    color: var(--color-text);
+    color: #2f2418;
+    box-shadow:
+      0 12px 28px rgba(57, 41, 21, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.72);
 
     @include no-select;
   }
@@ -56,13 +60,13 @@
   }
 }
 
-.tabTrigger {
+  .tabTrigger {
   flex: 1;
   width: 200px;
   padding: 0.6rem 1.2rem;
   font-family: var(--font-title);
   font-size: 1rem;
-  color: #6b5210;
+  color: #46361e;
   background: #fff8e1;
   border: none;
   border-radius: var(--radius-pill);
@@ -178,7 +182,7 @@
 
     h3 {
       font-size: 1.25rem;
-      color: var(--color-text);
+      color: #2f2418;
       font-family: $font-elegant;
       margin-bottom: 0.75rem;
     }
@@ -186,8 +190,8 @@
     p {
       font-size: 1rem;
       line-height: 1.6;
-      color: var(--color-text);
-      opacity: 0.85;
+      color: #4a3a2a;
+      opacity: 1;
       margin: 0;
     }
   }

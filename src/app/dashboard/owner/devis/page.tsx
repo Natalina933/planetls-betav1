@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerQuoteRow = {
   id: string;
@@ -36,6 +37,8 @@ export default function OwnerQuotesPage() {
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     async function loadQuotes() {
@@ -65,6 +68,47 @@ export default function OwnerQuotesPage() {
     () => quotes.filter((quote) => quote.status === "draft" || quote.status === "sent"),
     [quotes],
   );
+  const filteredQuotes = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return quotes.filter((quote) => {
+      const matchesStatus = statusFilter === "all" || (quote.status ?? "draft") === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+
+      const haystack = [quote.quote_number, quote.status].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [quotes, searchTerm, statusFilter]);
+  const totalAmount = useMemo(
+    () => filteredQuotes.reduce((sum, quote) => sum + (quote.total_amount ?? 0), 0),
+    [filteredQuotes],
+  );
+
+  function exportQuotesCsv() {
+    const rows = [
+      ["Numero", "Statut", "Total", "Valide jusqu'au", "Cree le"],
+      ...filteredQuotes.map((quote) => [
+        quote.quote_number ?? "",
+        quote.status ?? "",
+        quote.total_amount?.toString() ?? "",
+        quote.valid_until ?? "",
+        quote.created_at ?? "",
+      ]),
+    ];
+
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "owner-devis.csv";
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
 
   return (
     <section className="dashboard-grid">
@@ -82,20 +126,52 @@ export default function OwnerQuotesPage() {
           <h3>En attente</h3>
           <p>{loading ? "..." : pendingQuotes.length}</p>
         </div>
+        <div className="stat-card">
+          <h3>Montant filtre</h3>
+          <p>{loading ? "..." : formatAmount(totalAmount)}</p>
+        </div>
       </div>
 
       <div className="main-section">
+        <div className={styles.toolbar}>
+          <input
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Rechercher un devis"
+            className={styles.field}
+          />
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className={styles.select}
+          >
+            <option value="all">Tous statuts</option>
+            <option value="draft">Brouillons</option>
+            <option value="sent">Envoyes</option>
+            <option value="accepted">Acceptes</option>
+            <option value="rejected">Refuses</option>
+          </select>
+          <button
+            type="button"
+            onClick={exportQuotesCsv}
+            disabled={filteredQuotes.length === 0}
+            className={styles.buttonSecondary}
+          >
+            Export CSV
+          </button>
+        </div>
+
         {loading ? <p>Chargement des devis...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
-        {!loading && !error && quotes.length === 0 ? (
+        {!loading && !error && filteredQuotes.length === 0 ? (
           <p>Aucun devis disponible pour le moment.</p>
         ) : null}
 
-        {!loading && !error && quotes.length > 0 ? (
+        {!loading && !error && filteredQuotes.length > 0 ? (
           <ul>
-            {quotes.map((quote) => (
-              <li key={quote.id} style={{ marginBottom: "1rem" }}>
+            {filteredQuotes.map((quote) => (
+              <li key={quote.id} className={styles.listItem}>
                 <strong>{quote.quote_number || "Devis sans numero"}</strong>
                 <br />
                 Statut : {quote.status || "-"} | Total : {formatAmount(quote.total_amount)} | Valide
@@ -107,19 +183,7 @@ export default function OwnerQuotesPage() {
                   href={`/api/quotes/${quote.id}/document`}
                   target="_blank"
                   rel="noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "0.45rem 0.85rem",
-                    borderRadius: "999px",
-                    border: "1px solid rgba(184, 139, 74, 0.35)",
-                    background: "linear-gradient(135deg, #fff8ea, #f2e0c0)",
-                    color: "#7b5b23",
-                    textDecoration: "none",
-                    fontWeight: 700,
-                    marginTop: "0.4rem",
-                  }}
+                  className={styles.linkButton}
                 >
                   Apercu PDF
                 </a>

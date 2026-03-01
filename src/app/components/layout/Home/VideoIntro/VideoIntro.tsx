@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./VideoIntro.module.scss";
 import Image from "next/image";
 import { PlayCircle } from "lucide-react";
+import styles from "./VideoIntro.module.scss";
 
 export default function VideoIntro() {
   const [showVideo, setShowVideo] = useState(false);
@@ -48,7 +48,11 @@ export default function VideoIntro() {
               tabIndex={0}
               aria-label="Lire la vidéo de présentation"
               onClick={handlePlayClick}
-              onKeyDown={(e) => e.key === "Enter" && handlePlayClick()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handlePlayClick();
+                }
+              }}
             />
           </div>
         )}

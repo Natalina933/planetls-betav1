@@ -1,6 +1,90 @@
 @use "sass:color";
 @use "@/app/styles/abstracts/variables" as *;
 
+$owner-accent: #b85c48;
+$owner-accent-soft: #f3ddd4;
+$concierge-accent: #c6a66b;
+$concierge-accent-soft: #f3ead8;
+$provider-accent: #72825b;
+$provider-accent-soft: #e3e8d8;
+
+@mixin sidebar-theme($accent, $soft) {
+    border-right-color: rgba($accent, 0.32);
+
+    .header {
+        border-bottom-color: rgba($accent, 0.22);
+        background:
+            radial-gradient(circle at top right, rgba($accent, 0.12), transparent 38%),
+            linear-gradient(145deg, color.adjust($soft, $lightness: 8%), $soft);
+    }
+
+    .title {
+        color: color.adjust($accent, $lightness: -18%);
+    }
+
+    .link,
+    .sublink {
+        .icon {
+            color: color.adjust($accent, $lightness: -12%);
+        }
+
+        &:hover,
+        &:focus-visible {
+            background: rgba($accent, 0.14);
+            color: color.adjust($accent, $lightness: -18%);
+            border-left-color: $accent;
+
+            .icon {
+                color: color.adjust($accent, $lightness: -18%);
+            }
+        }
+
+        &.active {
+            background: linear-gradient(135deg, $accent, color.adjust($accent, $lightness: -10%));
+            border-left-color: color.adjust($accent, $lightness: -14%);
+            box-shadow: 0 2px 8px rgba($accent, 0.22);
+        }
+    }
+
+    .submenu {
+        border-left-color: rgba($accent, 0.24);
+        background: color.adjust($soft, $lightness: 4%);
+
+        .sublink {
+            &:hover,
+            &:focus-visible {
+                background: rgba($accent, 0.12);
+            }
+
+            &.active {
+                background: linear-gradient(135deg, $accent, color.adjust($accent, $lightness: -10%));
+            }
+        }
+    }
+
+    .footer {
+        border-top-color: rgba($accent, 0.22);
+        background: color.adjust($soft, $lightness: 5%);
+    }
+
+    .logout {
+        color: color.adjust($accent, $lightness: -16%);
+
+        .icon {
+            color: color.adjust($accent, $lightness: -16%);
+        }
+
+        &:hover,
+        &:focus-visible {
+            color: color.adjust($accent, $lightness: -24%);
+
+            .icon {
+                color: color.adjust($accent, $lightness: -24%);
+            }
+        }
+    }
+}
+
 /* =====================
    SIDEBAR WRAPPER
    ===================== */
@@ -288,4 +372,16 @@
     .logout {
         transition: none !important;
     }
+}
+
+.ownerTheme {
+    @include sidebar-theme($owner-accent, $owner-accent-soft);
+}
+
+.conciergeTheme {
+    @include sidebar-theme($concierge-accent, $concierge-accent-soft);
+}
+
+.providerTheme {
+    @include sidebar-theme($provider-accent, $provider-accent-soft);
 }

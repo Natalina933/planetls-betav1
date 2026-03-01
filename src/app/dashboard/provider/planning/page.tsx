@@ -201,7 +201,9 @@ export default function ProviderPlanningPage() {
                   <article key={item.id} className={styles.itemCard}>
                     <div className={styles.itemHead}>
                       <div>
-                        <h3>{item.title}</h3>
+                        <h3>
+                          <Link href="/dashboard/provider/interventions">{item.title}</Link>
+                        </h3>
                         <p>{item.location_label || "Lieu a confirmer"}</p>
                       </div>
                       <span className={styles.badge}>{item.status || "pending"}</span>
@@ -225,9 +227,13 @@ export default function ProviderPlanningPage() {
                       <span className={styles.emptyState}>Libre</span>
                     ) : (
                       bucket.events.map((item) => (
-                        <div key={item.id} className={styles.calendarEvent}>
+                        <Link
+                          key={item.id}
+                          href="/dashboard/provider/interventions"
+                          className={styles.calendarEvent}
+                        >
                           {item.title}
-                        </div>
+                        </Link>
                       ))
                     )}
                   </article>
@@ -249,9 +255,13 @@ export default function ProviderPlanningPage() {
                   >
                     <div className={styles.calendarDay}>{cell.day}</div>
                     {cell.events.slice(0, 2).map((item) => (
-                      <div key={item.id} className={styles.calendarEvent}>
+                      <Link
+                        key={item.id}
+                        href="/dashboard/provider/interventions"
+                        className={styles.calendarEvent}
+                      >
                         {item.title}
-                      </div>
+                      </Link>
                     ))}
                   </article>
                 ))}

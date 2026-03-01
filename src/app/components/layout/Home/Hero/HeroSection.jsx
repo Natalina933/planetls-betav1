@@ -3,8 +3,8 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import styles from "./HeroSection.module.scss";
 import CategoryCarousel from "./CategoryCarousel";
+import styles from "./HeroSection.module.scss";
 
 const HeroSection = () => {
   const router = useRouter();
@@ -19,7 +19,7 @@ const HeroSection = () => {
 
       window.scrollTo({ top: 800, behavior: "smooth" });
     } catch (error) {
-      console.error("Echec du scroll :", error);
+      console.error("Échec du scroll :", error);
     }
   };
 

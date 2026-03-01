@@ -79,6 +79,8 @@ function OwnerMessagesContent() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   async function loadConversations(preferredId?: string) {
     try {
@@ -170,6 +172,24 @@ function OwnerMessagesContent() {
     () => activeConversationId.trim().length > 0 && draftMessage.trim().length > 0,
     [activeConversationId, draftMessage],
   );
+  const filteredConversations = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return conversations.filter((conversation) => {
+      const matchesStatus =
+        statusFilter === "all" || (conversation.status ?? "open") === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+      const haystack = [
+        conversation.counterpart_name,
+        conversation.subject,
+        conversation.last_message_preview,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [conversations, searchTerm, statusFilter]);
 
   async function handleSendMessage() {
     if (!canSend) return;
@@ -219,12 +239,41 @@ function OwnerMessagesContent() {
           <aside className={styles.sidebar}>
             <div className={styles.sidebarHeader}>
               <h2>Conversations</h2>
-              <span>{loading ? "..." : `${conversations.length} fil(s)`}</span>
+              <span>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Rechercher un fil"
+                style={{
+                  flex: "1 1 220px",
+                  borderRadius: 14,
+                  border: "1px solid rgba(184, 139, 74, 0.24)",
+                  padding: "0.75rem 0.9rem",
+                  background: "#fff",
+                }}
+              />
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                style={{
+                  borderRadius: 14,
+                  border: "1px solid rgba(184, 139, 74, 0.24)",
+                  padding: "0.75rem 0.9rem",
+                  background: "#fff",
+                }}
+              >
+                <option value="all">Tous statuts</option>
+                <option value="open">Ouverts</option>
+                <option value="closed">Fermes</option>
+              </select>
             </div>
 
             {loading ? <p>Chargement des conversations...</p> : null}
 
-            {!loading && conversations.length === 0 ? (
+            {!loading && filteredConversations.length === 0 ? (
               <div className={styles.messageList}>
                 <p className={styles.emptyState}>Aucune conversation disponible pour le moment.</p>
                 <Link href="/dashboard/owner/concierges" className={styles.cta}>
@@ -233,9 +282,9 @@ function OwnerMessagesContent() {
               </div>
             ) : null}
 
-            {!loading && conversations.length > 0 ? (
+            {!loading && filteredConversations.length > 0 ? (
               <div className={styles.conversationList}>
-                {conversations.map((conversation) => (
+                {filteredConversations.map((conversation) => (
                   <button
                     key={conversation.id}
                     type="button"

@@ -38,7 +38,7 @@ export default function PromotePlatformSection() {
           <h3>Une base SaaS pour piloter votre conciergerie</h3>
           <p>
             Prospection propriétaires, packs de services, devis, factures, missions, planning et
-            messagerie: la plateforme centralise le cycle complet.
+            messagerie : la plateforme centralise le cycle complet.
           </p>
         </div>
 

@@ -59,14 +59,7 @@ const CustomImage: React.FC<CustomImageProps> = ({ src, alt, ...props }) => {
   const [imgSrc, setImgSrc] = useState(src);
   const fallbackSrc = "/icons/placeholder.png";
 
-  return (
-    <Image
-      src={imgSrc}
-      alt={alt}
-      onError={() => setImgSrc(fallbackSrc)}
-      {...props}
-    />
-  );
+  return <Image src={imgSrc} alt={alt} onError={() => setImgSrc(fallbackSrc)} {...props} />;
 };
 
 const ActionCard: React.FC<{ data: CardData }> = ({ data }) => {
@@ -75,14 +68,7 @@ const ActionCard: React.FC<{ data: CardData }> = ({ data }) => {
   return (
     <article className={`${styles.block} ${styles[key] || ""}`}>
       <span className={styles.eyebrow}>{eyebrow}</span>
-      <CustomImage
-        src={img}
-        alt={alt}
-        width={72}
-        height={72}
-        className={styles.icon}
-        priority
-      />
+      <CustomImage src={img} alt={alt} width={72} height={72} className={styles.icon} priority />
       <h3>{title}</h3>
       <p>{description}</p>
       <Link href={href} className={styles.CTAButton}>
@@ -93,11 +79,7 @@ const ActionCard: React.FC<{ data: CardData }> = ({ data }) => {
 };
 
 const ForWhomSection: React.FC = () => (
-  <section
-    id="pour-qui"
-    className={styles.forWhomSection}
-    aria-labelledby="for-whom-title"
-  >
+  <section id="pour-qui" className={styles.forWhomSection} aria-labelledby="for-whom-title">
     <div className={styles.content}>
       <div className={styles.introBlock}>
         <span className={styles.kicker}>Pour qui ?</span>
@@ -105,9 +87,8 @@ const ForWhomSection: React.FC = () => (
           Une plateforme conçue pour faire grandir tout l&apos;écosystème locatif
         </h2>
         <p className={styles.planetLSIntro}>
-          PlanetLS relie propriétaires, concierges et partenaires terrain dans
-          une expérience plus fluide, plus rassurante et beaucoup plus simple à
-          piloter au quotidien.
+          PlanetLS relie propriétaires, concierges et partenaires terrain dans une expérience plus
+          fluide, plus rassurante et beaucoup plus simple à piloter au quotidien.
         </p>
       </div>
 
@@ -118,9 +99,9 @@ const ForWhomSection: React.FC = () => (
       </div>
 
       <div className={styles.sectionMission}>
-        <strong>Notre mission :</strong> centraliser la mise en relation, la
-        gestion des biens et la coordination terrain pour professionnaliser la
-        location saisonnière, sans complexifier le quotidien.
+        <strong>Notre mission :</strong> centraliser la mise en relation, la gestion des biens et
+        la coordination terrain pour professionnaliser la location saisonnière, sans complexifier
+        le quotidien.
       </div>
 
       <div className={styles.heroActions}>

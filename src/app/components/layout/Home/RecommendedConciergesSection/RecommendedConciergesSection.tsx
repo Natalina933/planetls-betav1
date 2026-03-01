@@ -67,10 +67,10 @@ export default function RecommendedConciergesSection() {
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <span className={styles.eyebrow}>Selection premium</span>
+        <span className={styles.eyebrow}>Sélection premium</span>
         <h2>Concierges recommandés</h2>
         <p>
-          Une premiere vitrine de profils visibles publiquement, notes par leurs clients et prepares
+          Une première vitrine de profils visibles publiquement, notés par leurs clients et prêts
           pour la mise en relation.
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function RecommendedConciergesSection() {
       {!loading && items.length === 0 ? (
         <p className={styles.info}>
           Les recommandations apparaîtront ici dès que davantage de profils concierges publics
-          seront completes.
+          seront complétés.
         </p>
       ) : null}
 
@@ -107,7 +107,7 @@ export default function RecommendedConciergesSection() {
               <span>
                 {typeof item.years_experience === "number"
                   ? `${item.years_experience} an(s)`
-                  : "Experience non renseignee"}
+                  : "Expérience non renseignée"}
               </span>
             </div>
 
@@ -124,7 +124,7 @@ export default function RecommendedConciergesSection() {
                   </span>
                 ))
               ) : (
-                <span className={styles.tagMuted}>Services non renseignes</span>
+                <span className={styles.tagMuted}>Services non renseignés</span>
               )}
             </div>
 

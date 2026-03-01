@@ -100,6 +100,54 @@
   }
 }
 
+.block.proprietaire {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 244, 0.98), rgba(246, 227, 220, 0.92)),
+    rgba(255, 255, 255, 0.72);
+  border-color: rgba(184, 92, 72, 0.26);
+
+  .eyebrow {
+    color: #a14d3b;
+  }
+
+  .CTAButton {
+    background: linear-gradient(135deg, #b85c48, #965042);
+    box-shadow: 0 14px 28px rgba(150, 80, 66, 0.2);
+  }
+}
+
+.block.concierge {
+  background:
+    linear-gradient(180deg, rgba(255, 250, 241, 0.98), rgba(241, 229, 205, 0.94)),
+    rgba(255, 255, 255, 0.72);
+  border-color: rgba(198, 166, 107, 0.3);
+
+  .eyebrow {
+    color: #9f7c3f;
+  }
+
+  .CTAButton {
+    background: linear-gradient(135deg, #c6a66b, #a78854);
+    box-shadow: 0 14px 28px rgba(167, 136, 84, 0.2);
+  }
+}
+
+.block.artisan {
+  background:
+    linear-gradient(180deg, rgba(248, 250, 243, 0.98), rgba(227, 234, 214, 0.94)),
+    rgba(255, 255, 255, 0.72);
+  border-color: rgba(114, 130, 91, 0.28);
+
+  .eyebrow {
+    color: #607046;
+  }
+
+  .CTAButton {
+    background: linear-gradient(135deg, #72825b, #5f6d49);
+    box-shadow: 0 14px 28px rgba(95, 109, 73, 0.2);
+  }
+}
+
 .eyebrow {
   margin-bottom: 1rem;
   color: #8f6a33;

@@ -89,6 +89,8 @@ export default function ProviderAlertesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
 
   async function loadAlerts() {
@@ -142,6 +144,15 @@ export default function ProviderAlertesPage() {
     const next = items.filter((item) => {
       const matchesSeverity = severityFilter === "all" || (item.severity ?? "normal") === severityFilter;
       if (!matchesSeverity) return false;
+      const createdAt = new Date(item.created_at);
+      if (dateFrom) {
+        const minDate = new Date(`${dateFrom}T00:00:00`);
+        if (createdAt < minDate) return false;
+      }
+      if (dateTo) {
+        const maxDate = new Date(`${dateTo}T23:59:59`);
+        if (createdAt > maxDate) return false;
+      }
       if (!normalizedSearch) return true;
       const intervention = item.intervention_id ? interventionsById.get(item.intervention_id) : null;
       const haystack = [item.title, item.body, item.alert_type, item.status, intervention?.title]
@@ -160,7 +171,7 @@ export default function ProviderAlertesPage() {
     });
 
     return next;
-  }, [items, searchTerm, severityFilter, sortBy, interventionsById]);
+  }, [items, searchTerm, severityFilter, sortBy, interventionsById, dateFrom, dateTo]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = useMemo(
@@ -170,7 +181,31 @@ export default function ProviderAlertesPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, severityFilter, sortBy]);
+  }, [searchTerm, severityFilter, sortBy, dateFrom, dateTo]);
+
+  function handleExportCsv() {
+    const rows = [
+      ["Titre", "Intervention", "Type", "Severite", "Statut", "Creation"],
+      ...filteredItems.map((item) => [
+        item.title ?? "",
+        (item.intervention_id ? interventionsById.get(item.intervention_id)?.title : "") ?? "",
+        item.alert_type ?? "",
+        item.severity ?? "",
+        item.status ?? "",
+        item.created_at ?? "",
+      ]),
+    ];
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "provider-alerts.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -383,6 +418,11 @@ export default function ProviderAlertesPage() {
                   <option value="recent">Plus recentes</option>
                   <option value="severity">Severite</option>
                 </select>
+                <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+                <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+                <button type="button" className={styles.secondaryButton} onClick={handleExportCsv}>
+                  Export CSV
+                </button>
               </div>
             </div>
 

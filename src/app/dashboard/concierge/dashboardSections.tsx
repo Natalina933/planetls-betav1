@@ -60,7 +60,7 @@ export function DashboardHeader({
       <div className={styles.headerTopRow}>
         <h1>
           <LayoutDashboard className={styles.headerIcon} size={32} />
-          Tableau de Bord Conciergerie {isPro ? <Zap className="text-yellow-500" /> : null}
+          Tableau de bord conciergerie {isPro ? <Zap className="text-yellow-500" /> : null}
         </h1>
         <span className={isPro ? styles.proBadge : styles.standardBadge}>
           {isPro ? "Statut PRO actif" : "Statut Standard"}
@@ -166,21 +166,21 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
   return (
     <div className={styles.dashboardGrid}>
       <DashboardCard
-        title="Réservations Actives"
+        title="Réservations actives"
         value="12"
         icon={Zap}
         description="Total des séjours en cours."
       />
 
       <DashboardCard
-        title="Demandes de Tâches"
+        title="Demandes de tâches"
         value="3"
         icon={MessageSquare}
         description="Nouvelles demandes en attente."
       />
 
       <DashboardCard
-        title="Revenu Potentiel"
+        title="Revenu potentiel"
         value={isPro ? "EUR 14.5k" : "Accès PRO"}
         icon={DollarSign}
         isLocked={!isPro}
@@ -197,7 +197,7 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
 export function DashboardToolsSection({ isPro }: DashboardToolsSectionProps) {
   return (
     <section className={styles.dashboardSection}>
-      <h2>Fonctionnalités & Outils</h2>
+      <h2>Fonctionnalités & outils</h2>
       <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
         <BaseFeaturesList />
         {isPro ? <ProToolsSection /> : <ProUpgradeCTA />}
@@ -209,7 +209,7 @@ export function DashboardToolsSection({ isPro }: DashboardToolsSectionProps) {
 export function DashboardPlanningSection({ events }: DashboardPlanningSectionProps) {
   return (
     <section className={styles.dashboardSection}>
-      <h2>Planification & Réservations</h2>
+      <h2>Planification & réservations</h2>
       <DashboardCalendar events={events} title="" />
     </section>
   );

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import styles from "./OwnerDashboardPages.module.scss";
 
 type OwnerHousingRow = {
   id: number;
@@ -52,7 +53,7 @@ function getStatusLabel(status: string | null) {
     case "published":
       return "Actif";
     case "deleted":
-      return "Archivé";
+      return "Archive";
     default:
       return "Brouillon";
   }
@@ -67,7 +68,7 @@ function isOngoingMission(status: string | null) {
 }
 
 function formatMissionDate(value: string | null) {
-  if (!value) return "À planifier";
+  if (!value) return "A planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -80,7 +81,7 @@ function formatMissionDate(value: string | null) {
 }
 
 function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non défini";
+  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non defini";
 }
 
 export default function OwnerDashboardPage() {
@@ -141,7 +142,7 @@ export default function OwnerDashboardPage() {
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Impossible de charger votre espace propriétaire.",
+          err instanceof Error ? err.message : "Impossible de charger votre espace proprietaire.",
         );
       } finally {
         setLoading(false);
@@ -189,17 +190,46 @@ export default function OwnerDashboardPage() {
     if (ratings.length === 0) return null;
     return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
   }, [reviews]);
+  const ownerMetrics = useMemo(() => {
+    const totalProperties = Math.max(properties.length, 1);
+    const totalMissions = Math.max(missions.length, 1);
+    const totalInvoices = Math.max(invoices.length, 1);
+    return [
+      {
+        label: "Biens actifs",
+        value: `${activeCount}/${properties.length}`,
+        width: `${(activeCount / totalProperties) * 100}%`,
+      },
+      {
+        label: "Missions en cours",
+        value: `${ongoingMissions.length}/${missions.length}`,
+        width: `${(ongoingMissions.length / totalMissions) * 100}%`,
+      },
+      {
+        label: "Factures a regler",
+        value: `${pendingInvoices.length}/${invoices.length}`,
+        width: `${(pendingInvoices.length / totalInvoices) * 100}%`,
+      },
+    ];
+  }, [
+    activeCount,
+    ongoingMissions.length,
+    pendingInvoices.length,
+    properties.length,
+    missions.length,
+    invoices.length,
+  ]);
 
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Tableau de bord propriétaire</h1>
+        <h1>Tableau de bord proprietaire</h1>
         <p>Suivez vos logements, vos interventions et vos prochaines actions en un seul endroit.</p>
       </header>
 
       <div className="stats-row">
         <div className="stat-card">
-          <h3>Biens gérés</h3>
+          <h3>Biens geres</h3>
           <p>{loading ? "..." : properties.length}</p>
         </div>
         <div className="stat-card">
@@ -211,31 +241,35 @@ export default function OwnerDashboardPage() {
           <p>{loading ? "..." : ongoingMissions.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Interventions terminées</h3>
+          <h3>Interventions terminees</h3>
           <p>{loading ? "..." : completedMissions.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Factures à régler</h3>
+          <h3>Factures a regler</h3>
           <p>{loading ? "..." : pendingInvoices.length}</p>
         </div>
       </div>
 
       <div className="main-section">
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div className={styles.inlineActions}>
           <h2>Actions rapides</h2>
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-            <Link href="/dashboard/concierge/logements/create">Ajouter un logement</Link>
-            <Link href="/dashboard/owner/concierges">Trouver un concierge PRO ou Standard</Link>
+          <div className={styles.inlineActions}>
+            <Link href="/dashboard/concierge/logements/create" className={styles.linkButton}>
+              Ajouter un logement
+            </Link>
+            <Link href="/dashboard/owner/concierges" className={styles.linkButton}>
+              Trouver un concierge PRO ou Standard
+            </Link>
           </div>
         </div>
 
-        {loading ? <p>Chargement de votre espace propriétaire...</p> : null}
+        {loading ? <p>Chargement de votre espace proprietaire...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error ? (
           <>
-            <div style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-              <div className="stat-card">
+            <div className={styles.sectionGrid}>
+              <div className={styles.panel}>
                 <h3>Interventions en cours</h3>
                 {ongoingMissions.length === 0 ? (
                   <p>Aucune intervention en cours pour le moment.</p>
@@ -245,15 +279,15 @@ export default function OwnerDashboardPage() {
                       <li key={mission.id}>
                         <strong>{mission.title || "Mission sans titre"}</strong>
                         <br />
-                        {mission.status || "Statut non défini"} - {formatMissionDate(mission.scheduled_start)}
+                        {mission.status || "Statut non defini"} - {formatMissionDate(mission.scheduled_start)}
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
 
-              <div className="stat-card">
-                <h3>Historique récent</h3>
+              <div className={styles.panel}>
+                <h3>Historique recent</h3>
                 {recentMissions.length === 0 ? (
                   <p>Aucune mission historique disponible.</p>
                 ) : (
@@ -269,16 +303,16 @@ export default function OwnerDashboardPage() {
                 )}
               </div>
 
-              <div className="stat-card">
+              <div className={styles.panel}>
                 <h3>Satisfaction concierge</h3>
                 {reviews.length === 0 ? (
-                  <p>Aucun avis publié pour le moment.</p>
+                  <p>Aucun avis publie pour le moment.</p>
                 ) : (
                   <div>
                     <p>
                       Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur {reviews.length} avis
                     </p>
-                    <p>{reviews[0]?.comment || "Dernier retour enregistré sans commentaire."}</p>
+                    <p>{reviews[0]?.comment || "Dernier retour enregistre sans commentaire."}</p>
                     <Link href="/dashboard/owner/conciergerie">Voir les avis, les badges PRO et noter</Link>
                   </div>
                 )}
@@ -291,8 +325,8 @@ export default function OwnerDashboardPage() {
                 <div>
                   <p>Vous n'avez pas encore de logement visible sur votre compte.</p>
                   <p>
-                    Si vous aviez des exemples de test avant la sécurisation, ils peuvent être liés à
-                    un autre identifiant. Créez-en un nouveau pour repartir sur des données propres.
+                    Si vous aviez des exemples de test avant la securisation, ils peuvent etre lies a
+                    un autre identifiant. Creez-en un nouveau pour repartir sur des donnees propres.
                   </p>
                 </div>
               ) : (
@@ -300,7 +334,7 @@ export default function OwnerDashboardPage() {
                   {properties.map((property) => (
                     <li key={property.id}>
                       <strong>{property.nom_logement || "Logement sans nom"}</strong> -{" "}
-                      {property.ville || "Ville non renseignée"} ({getStatusLabel(property.statut)})
+                      {property.ville || "Ville non renseignee"} ({getStatusLabel(property.statut)})
                     </li>
                   ))}
                 </ul>
@@ -309,8 +343,8 @@ export default function OwnerDashboardPage() {
 
             <div style={{ marginTop: "2rem" }}>
               <h2>Devis et factures</h2>
-              <div style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
-                <div className="stat-card">
+              <div className={styles.sectionGrid}>
+                <div className={styles.panel}>
                   <h3>Derniers devis</h3>
                   {latestQuotes.length === 0 ? (
                     <p>Aucun devis disponible pour le moment.</p>
@@ -318,26 +352,26 @@ export default function OwnerDashboardPage() {
                     <ul>
                       {latestQuotes.map((quote) => (
                         <li key={quote.id}>
-                          <strong>{quote.quote_number || "Devis sans numéro"}</strong>
+                          <strong>{quote.quote_number || "Devis sans numero"}</strong>
                           <br />
-                          {quote.status || "Statut non défini"} - {formatAmount(quote.total_amount)}
+                          {quote.status || "Statut non defini"} - {formatAmount(quote.total_amount)}
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
 
-                <div className="stat-card">
-                  <h3>Dernières factures</h3>
+                <div className={styles.panel}>
+                  <h3>Dernieres factures</h3>
                   {latestInvoices.length === 0 ? (
                     <p>Aucune facture disponible pour le moment.</p>
                   ) : (
                     <ul>
                       {latestInvoices.map((invoice) => (
                         <li key={invoice.id}>
-                          <strong>{invoice.invoice_number || "Facture sans numéro"}</strong>
+                          <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
                           <br />
-                          {invoice.status || "Statut non défini"} - Solde {formatAmount(invoice.balance_amount)}
+                          {invoice.status || "Statut non defini"} - Solde {formatAmount(invoice.balance_amount)}
                         </li>
                       ))}
                     </ul>
@@ -347,13 +381,28 @@ export default function OwnerDashboardPage() {
             </div>
 
             <div style={{ marginTop: "2rem" }}>
-              <h2>Suivi de votre activité</h2>
+              <h2>Suivi de votre activite</h2>
               <ul>
                 <li>{ongoingMissions.length} mission(s) demandent actuellement un suivi.</li>
-                <li>{completedMissions.length} intervention(s) sont déjà terminées.</li>
-                <li>{draftCount} logement(s) restent à finaliser ou publier.</li>
-                <li>{pendingInvoices.length} facture(s) restent à suivre ou régler.</li>
+                <li>{completedMissions.length} intervention(s) sont deja terminees.</li>
+                <li>{draftCount} logement(s) restent a finaliser ou publier.</li>
+                <li>{pendingInvoices.length} facture(s) restent a suivre ou regler.</li>
               </ul>
+            </div>
+
+            <div className={styles.statsList} style={{ marginTop: "2rem" }}>
+              <h2>Indicateurs cles</h2>
+              {ownerMetrics.map((metric) => (
+                <div key={metric.label} className={styles.metricRow}>
+                  <div className={styles.metricLabel}>
+                    <span>{metric.label}</span>
+                    <span>{metric.value}</span>
+                  </div>
+                  <div className={styles.metricTrack}>
+                    <div className={styles.metricBar} style={{ width: metric.width }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </>
         ) : null}

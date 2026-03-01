@@ -1,7 +1,6 @@
-import styles from "./GestionPlatformSection.module.scss";
 import React from "react";
+import styles from "./GestionPlatformSection.module.scss";
 
-// Extraction d'un composant OfferCard pour la réutilisabilité, la performance et la clarté
 function OfferCard({
   id,
   name,
@@ -29,29 +28,23 @@ function OfferCard({
       </header>
       <p className={styles.offerDesc}>{desc}</p>
       <div className={styles.offerTarif}>
-        <span className={price === "Sur demande" ? styles.onDemand : styles.percent}>
-          {price}
-        </span>
+        <span className={price === "Sur demande" ? styles.onDemand : styles.percent}>{price}</span>
         <br />
         <span className={styles.suffix}>{priceLabel}</span>
       </div>
       {highlights && (
         <div className={styles.includedBox} id={`${id}-details`}>
-          {highlights.map((highlight, idx) => (
-            <div key={idx}>{highlight}</div>
+          {highlights.map((highlight, index) => (
+            <div key={index}>{highlight}</div>
           ))}
         </div>
       )}
       <ul className={styles.offerList}>
-        {details.map((detail, idx) => (
-          <li key={idx}>{detail}</li>
+        {details.map((detail, index) => (
+          <li key={index}>{detail}</li>
         ))}
       </ul>
-      <a
-        href={ctaHref}
-        className={styles.offerBtn}
-        aria-label={`${ctaLabel} pour l'offre ${name}`}
-      >
+      <a href={ctaHref} className={styles.offerBtn} aria-label={`${ctaLabel} pour l'offre ${name}`}>
         {ctaLabel}
       </a>
     </article>
@@ -76,7 +69,7 @@ const OFFERS = [
       </>
     ),
     details: [
-      "Accès direct à la communauté PlanetLs",
+      "Accès direct à la communauté PlanetLS",
       "Contractualisation et paiement en ligne",
       "Missions et profils protégés",
     ],
@@ -105,7 +98,7 @@ const OFFERS = [
       "Assurance remplacement en 48h",
     ],
     details: [
-      "Accès direct à la communauté PlanetLs",
+      "Accès direct à la communauté PlanetLS",
       "Contractualisation et paiement en ligne",
       "Missions et profils protégés",
     ],
@@ -117,15 +110,12 @@ const OFFERS = [
     name: "Corporate",
     desc: (
       <>
-        Bénéficiez de facilités de gestion et de sécurisation adaptées à votre
-        entreprise.
+        Bénéficiez de facilités de gestion et de sécurisation adaptées à votre entreprise.
       </>
     ),
     price: "Sur demande",
     priceLabel: (
-      <abbr title="Contactez notre équipe pour un devis personnalisé">
-        Offre sur mesure
-      </abbr>
+      <abbr title="Contactez notre équipe pour un devis personnalisé">Offre sur mesure</abbr>
     ),
     highlights: [
       "Paiement sur facture",
@@ -156,16 +146,14 @@ export default function GestionPlatformSection() {
           </p>
           <aside className={styles.inscriptionBlock} aria-labelledby="free-inscription-title">
             <h3 id="free-inscription-title" className={styles.freeTitle}>
-              Inscription Gratuite
+              Inscription gratuite
             </h3>
             <p className={styles.freeDesc}>
               <span className={styles.freeHighlight}>
-                Grâce à la carte, mise en relation facile avec tous les
-                intervenants acteurs de la location courte durée.
+                Grâce à la carte, mise en relation facile avec tous les intervenants de la location courte durée.
               </span>
               <br />
-              Vous pouvez utiliser le site gratuitement mais avec certaines
-              fonctionnalités réduites.
+              Vous pouvez utiliser le site gratuitement mais avec certaines fonctionnalités réduites.
             </p>
           </aside>
         </header>
@@ -176,8 +164,7 @@ export default function GestionPlatformSection() {
         </div>
         <div className={styles.mention} id="gestion-note">
           <span>
-            <abbr title="Tarifs hors frais éventuels de transaction.">*Tarifs</abbr>{" "}
-            selon conditions.
+            <abbr title="Tarifs hors frais éventuels de transaction.">*Tarifs</abbr> selon conditions.
           </span>
         </div>
       </div>

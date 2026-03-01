@@ -1,6 +1,7 @@
 .platformSectionContent {
   display: grid;
   gap: 1.25rem;
+  color: #2f2418;
 }
 
 .heroBanner {
@@ -31,7 +32,7 @@
 
 .heroSubtitle {
   margin: 0;
-  color: #5f5237;
+  color: #433526;
   line-height: 1.6;
   max-width: 70ch;
 }
@@ -63,7 +64,8 @@
 .secondaryButton {
   border: 1px solid rgba(184, 139, 74, 0.34);
   background: rgba(255, 255, 255, 0.78);
-  color: #7b5b23;
+  color: #4a3820;
+  font-weight: 700;
 }
 
 .introBox {
@@ -84,7 +86,7 @@
 }
 
 .introBox p {
-  color: #5f5237;
+  color: #473829;
   line-height: 1.6;
 }
 
@@ -118,6 +120,6 @@
 }
 
 .pillarItem p {
-  color: #5f5237;
+  color: #473829;
   line-height: 1.55;
 }
