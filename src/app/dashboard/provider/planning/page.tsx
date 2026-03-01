@@ -41,6 +41,7 @@ function formatDateTime(value: string | null) {
 export default function ProviderPlanningPage() {
   const [data, setData] = useState<ProviderInterventionsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "week" | "month">("list");
 
   useEffect(() => {
     let cancelled = false;
@@ -86,6 +87,52 @@ export default function ProviderPlanningPage() {
     ).length;
   }, [data]);
 
+  const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const weekBuckets = useMemo(() => {
+    const now = new Date();
+    const monday = new Date(now);
+    const day = (now.getDay() + 6) % 7;
+    monday.setDate(now.getDate() - day);
+    monday.setHours(0, 0, 0, 0);
+
+    return weekDays.map((label, index) => {
+      const start = new Date(monday);
+      start.setDate(monday.getDate() + index);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 1);
+      const events = (data?.items ?? []).filter((item) => {
+        if (!item.scheduled_start) return false;
+        const date = new Date(item.scheduled_start);
+        return date >= start && date < end;
+      });
+      return { label, events };
+    });
+  }, [data]);
+
+  const monthCells = useMemo(() => {
+    const base = new Date();
+    const first = new Date(base.getFullYear(), base.getMonth(), 1);
+    const startOffset = (first.getDay() + 6) % 7;
+    const start = new Date(first);
+    start.setDate(first.getDate() - startOffset);
+
+    return Array.from({ length: 35 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const events = (data?.items ?? []).filter((item) => {
+        if (!item.scheduled_start) return false;
+        const eventDate = new Date(item.scheduled_start);
+        return eventDate.toDateString() === date.toDateString();
+      });
+      return {
+        key: date.toISOString(),
+        day: date.getDate(),
+        inMonth: date.getMonth() === base.getMonth(),
+        events,
+      };
+    });
+  }, [data]);
+
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
@@ -109,8 +156,12 @@ export default function ProviderPlanningPage() {
             </div>
             <div className={styles.counterRow}>
               <span className={styles.counter}>{upcoming.length} a venir</span>
-              <span className={styles.counter}>{(data?.items ?? []).filter((item) => item.priority === "urgent").length} urgentes</span>
-              <span className={styles.counter}>{(data?.items ?? []).filter((item) => !item.scheduled_start).length} sans date</span>
+              <span className={styles.counter}>
+                {(data?.items ?? []).filter((item) => item.priority === "urgent").length} urgentes
+              </span>
+              <span className={styles.counter}>
+                {(data?.items ?? []).filter((item) => !item.scheduled_start).length} sans date
+              </span>
             </div>
             <div className={styles.formActions}>
               <Link href="/dashboard/provider/interventions" className={styles.linkButton}>
@@ -127,9 +178,24 @@ export default function ProviderPlanningPage() {
               <h2>Prochaines echeances</h2>
               <span>{upcoming.length} ligne(s)</span>
             </div>
-            {upcoming.length === 0 ? (
+
+            <div className={styles.viewTabs}>
+              <button type="button" onClick={() => setViewMode("list")}>
+                Liste
+              </button>
+              <button type="button" onClick={() => setViewMode("week")}>
+                Semaine
+              </button>
+              <button type="button" onClick={() => setViewMode("month")}>
+                Mois
+              </button>
+            </div>
+
+            {viewMode === "list" && upcoming.length === 0 ? (
               <p className={styles.emptyState}>Aucune intervention planifiee pour le moment.</p>
-            ) : (
+            ) : null}
+
+            {viewMode === "list" && upcoming.length > 0 ? (
               <div className={styles.cardList}>
                 {upcoming.map((item) => (
                   <article key={item.id} className={styles.itemCard}>
@@ -148,7 +214,49 @@ export default function ProviderPlanningPage() {
                   </article>
                 ))}
               </div>
-            )}
+            ) : null}
+
+            {viewMode === "week" ? (
+              <div className={styles.calendarGrid}>
+                {weekBuckets.map((bucket) => (
+                  <article key={bucket.label} className={styles.calendarCell}>
+                    <div className={styles.calendarDay}>{bucket.label}</div>
+                    {bucket.events.length === 0 ? (
+                      <span className={styles.emptyState}>Libre</span>
+                    ) : (
+                      bucket.events.map((item) => (
+                        <div key={item.id} className={styles.calendarEvent}>
+                          {item.title}
+                        </div>
+                      ))
+                    )}
+                  </article>
+                ))}
+              </div>
+            ) : null}
+
+            {viewMode === "month" ? (
+              <div className={styles.calendarGrid}>
+                {weekDays.map((day) => (
+                  <div key={day} className={styles.calendarHeader}>
+                    {day}
+                  </div>
+                ))}
+                {monthCells.map((cell) => (
+                  <article
+                    key={cell.key}
+                    className={`${styles.calendarCell} ${!cell.inMonth ? styles.calendarCellMuted : ""}`}
+                  >
+                    <div className={styles.calendarDay}>{cell.day}</div>
+                    {cell.events.slice(0, 2).map((item) => (
+                      <div key={item.id} className={styles.calendarEvent}>
+                        {item.title}
+                      </div>
+                    ))}
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </section>
         </div>
       </div>

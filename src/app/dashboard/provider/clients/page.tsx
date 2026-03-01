@@ -78,6 +78,7 @@ export default function ProviderClientsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [quickUpdatingId, setQuickUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -231,6 +232,31 @@ export default function ProviderClientsPage() {
     }
   }
 
+  async function handleQuickStatusUpdate(id: string, status: string) {
+    try {
+      setQuickUpdatingId(id);
+      setError(null);
+      setSuccess(null);
+
+      const response = await fetch(`/api/provider/clients/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error || "Impossible de mettre a jour le statut.");
+      }
+
+      await loadClients();
+      setSuccess("Statut client mis a jour.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le statut.");
+    } finally {
+      setQuickUpdatingId(null);
+    }
+  }
+
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
@@ -373,6 +399,15 @@ export default function ProviderClientsPage() {
                     </div>
                     {client.notes ? <p className={styles.itemBody}>{client.notes}</p> : null}
                     <div className={styles.cardActions}>
+                      <select
+                        value={client.status ?? "active"}
+                        disabled={quickUpdatingId === client.id}
+                        onChange={(event) => void handleQuickStatusUpdate(client.id, event.target.value)}
+                      >
+                        <option value="active">Actif</option>
+                        <option value="inactive">Inactif</option>
+                        <option value="archived">Archive</option>
+                      </select>
                       <button type="button" className={styles.secondaryButton} onClick={() => {
                         setEditingId(client.id);
                         setForm(toFormState(client));
