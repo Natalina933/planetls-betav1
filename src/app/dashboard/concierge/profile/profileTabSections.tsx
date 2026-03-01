@@ -181,12 +181,14 @@ interface MissionsSecondaryPanelsProps {
   missionProgressSteps: any[];
   openMissionSectionForEdit: (sectionId: string) => void;
   renderSection: RenderSection;
-  selectedMissionQuoteId: string;
-  setSelectedMissionQuoteId: React.Dispatch<React.SetStateAction<string>>;
-  missionRows: any[];
-  missionQuoteBusy: boolean;
-  createQuoteFromMission: () => void;
-  missionQuoteFeedback: string;
+  missionQuoteControls: {
+    selectedMissionQuoteId: string;
+    setSelectedMissionQuoteId: React.Dispatch<React.SetStateAction<string>>;
+    missionRows: any[];
+    missionQuoteBusy: boolean;
+    createQuoteFromMission: () => void;
+    missionQuoteFeedback: string;
+  };
 }
 
 interface ConciergePageHeaderProps {
@@ -726,10 +728,12 @@ interface TariffServicesCatalogSectionProps {
   }>;
   collapsedPricingCategories: Record<string, boolean>;
   togglePricingCategory: (category: string) => void;
-  openCreatePricingModal: (service?: any) => void;
-  openEditPricingModal: (pricing: any) => void;
-  deleteServicePrice: (pricing: any) => void;
-  resetAllServicePrices: () => void;
+  pricingServiceActions: {
+    openCreatePricingModal: (service?: any) => void;
+    openEditPricingModal: (pricing: any) => void;
+    deleteServicePrice: (pricing: any) => void;
+    resetAllServicePrices: () => void;
+  };
 }
 
 interface TariffSegmentsSectionProps {
@@ -920,24 +924,9 @@ export function ConciergeProfileActiveTabContent({
   beginSectionEdit,
   handleSocialChange,
   errors,
-  missionProgressPercent,
-  missionProgressDoneCount,
-  missionProgressSteps,
-  showPendingMissionStepsOnly,
-  setShowPendingMissionStepsOnly,
-  activeMissionRawLabels,
-  recognizedActiveMissionCount,
-  unrecognizedActiveMissionLabels,
-  missionOpenDaysCount,
-  missionRangesCount,
-  missionAvailability,
-  openMissionSectionForEdit,
-  selectedMissionQuoteId,
-  setSelectedMissionQuoteId,
-  missionRows,
-  missionQuoteBusy,
-  createQuoteFromMission,
-  missionQuoteFeedback,
+  missionProgressControls,
+  missionOverviewStats,
+  missionQuoteControls,
   missionPayload,
   removeUnrecognizedServices,
   catalogSyncBusy,
@@ -955,74 +944,14 @@ export function ConciergeProfileActiveTabContent({
   pendingTariffReadinessChecks,
   scrollToTariffSection,
   handleTabChange,
-  tariffLocationLabel,
-  applyPricingMeta,
+  tariffConfigControls,
   pricingCatalogRows,
-  applyPricingV2,
-  pricingSortMode,
-  setPricingSortMode,
-  showAllPricingServices,
-  setShowAllPricingServices,
-  canEditTariffConfig,
-  servicePrices,
-  servicePricesBusyId,
-  servicePricesLoading,
-  visiblePricingCatalogRows,
-  groupedPricingCatalogRows,
-  collapsedPricingCategories,
-  togglePricingCategory,
-  openCreatePricingModal,
-  openEditPricingModal,
-  deleteServicePrice,
-  resetAllServicePrices,
-  propertyTypeOptions,
-  getPropertyTypeDeltaPercent,
-  updatePropertyTypeDeltaPercent,
-  segmentDraft,
-  setSegmentDraft,
-  segmentsBusyId,
-  createPricingSegment,
-  segmentsLoading,
-  pricingSegments,
-  setPricingSegments,
-  updatePricingSegment,
-  deletePricingSegment,
-  propertyRuleDraft,
-  setPropertyRuleDraft,
-  propertyRulesBusyId,
-  createPricingPropertyRule,
-  propertyRulesLoading,
-  propertyRules,
-  setPropertyRules,
-  updatePricingPropertyRule,
-  deletePricingPropertyRule,
-  catalogServices,
-  strategySim,
-  setStrategySim,
-  applyStrategyProjectionToBillingDesk,
-  scenarioDraftName,
-  setScenarioDraftName,
-  scenariosBusyId,
-  createPricingScenario,
-  resetStrategySim,
-  scenariosLoading,
-  pricingScenarios,
-  loadPricingScenario,
-  setDefaultPricingScenario,
-  deletePricingScenario,
-  selectedPricingSegment,
-  strategyProjection,
-  formatCurrency,
-  pricingModalOpen,
-  pricingModalState,
-  pricingModalSaving,
-  pricingModalError,
-  pricingUnitOptions,
-  closePricingModal,
-  saveServicePrice,
-  resetPricingModalToDefaults,
-  setPricingModalState,
-  billingDeskProps,
+  tariffCatalogControls,
+  pricingSegmentsControls,
+  pricingRulesControls,
+  pricingScenarioControls,
+  pricingModalControls,
+  billingDeskSectionProps,
 }: any) {
   if (!profile || !editProfile) return null;
 
@@ -1056,24 +985,9 @@ export function ConciergeProfileActiveTabContent({
           renderField={renderField}
           sectionIds={missionSectionIds}
           editingSection={editingSection}
-          missionProgressPercent={missionProgressPercent}
-          missionProgressDoneCount={missionProgressDoneCount}
-          missionProgressSteps={missionProgressSteps}
-          showPendingMissionStepsOnly={showPendingMissionStepsOnly}
-          setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
-          activeMissionRawLabels={activeMissionRawLabels}
-          recognizedActiveMissionCount={recognizedActiveMissionCount}
-          unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
-          missionOpenDaysCount={missionOpenDaysCount}
-          missionRangesCount={missionRangesCount}
-          missionAvailability={missionAvailability}
-          openMissionSectionForEdit={openMissionSectionForEdit}
-          selectedMissionQuoteId={selectedMissionQuoteId}
-          setSelectedMissionQuoteId={setSelectedMissionQuoteId}
-          missionRows={missionRows}
-          missionQuoteBusy={missionQuoteBusy}
-          createQuoteFromMission={createQuoteFromMission}
-          missionQuoteFeedback={missionQuoteFeedback}
+          missionProgressControls={missionProgressControls}
+          missionOverviewStats={missionOverviewStats}
+          missionQuoteControls={missionQuoteControls}
           missionPayload={missionPayload}
           removeUnrecognizedServices={removeUnrecognizedServices}
           catalogSyncBusy={catalogSyncBusy}
@@ -1108,80 +1022,19 @@ export function ConciergeProfileActiveTabContent({
           scrollToTariffSection={scrollToTariffSection}
           handleTabChange={handleTabChange}
           editProfile={editProfile}
-          tariffLocationLabel={tariffLocationLabel}
-          missionAvailability={missionAvailability}
+          tariffConfigControls={tariffConfigControls}
+          missionAvailability={missionOverviewStats.missionAvailability}
           missionPayload={missionPayload}
           editingSection={editingSection}
-          applyPricingMeta={applyPricingMeta}
           pricingCatalogRows={pricingCatalogRows}
           activeMissionServiceLabels={activeMissionServiceLabels}
           renderField={renderField}
-          applyPricingV2={applyPricingV2}
-          pricingSortMode={pricingSortMode}
-          setPricingSortMode={setPricingSortMode}
-          showAllPricingServices={showAllPricingServices}
-          setShowAllPricingServices={setShowAllPricingServices}
-          canEditTariffConfig={canEditTariffConfig}
-          servicePrices={servicePrices}
-          servicePricesBusyId={servicePricesBusyId}
-          servicePricesLoading={servicePricesLoading}
-          visiblePricingCatalogRows={visiblePricingCatalogRows}
-          groupedPricingCatalogRows={groupedPricingCatalogRows}
-          collapsedPricingCategories={collapsedPricingCategories}
-          togglePricingCategory={togglePricingCategory}
-          openCreatePricingModal={openCreatePricingModal}
-          openEditPricingModal={openEditPricingModal}
-          deleteServicePrice={deleteServicePrice}
-          resetAllServicePrices={resetAllServicePrices}
-          propertyTypeOptions={propertyTypeOptions}
-          getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
-          updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
-          segmentDraft={segmentDraft}
-          setSegmentDraft={setSegmentDraft}
-          segmentsBusyId={segmentsBusyId}
-          createPricingSegment={createPricingSegment}
-          segmentsLoading={segmentsLoading}
-          pricingSegments={pricingSegments}
-          setPricingSegments={setPricingSegments}
-          updatePricingSegment={updatePricingSegment}
-          deletePricingSegment={deletePricingSegment}
-          propertyRuleDraft={propertyRuleDraft}
-          setPropertyRuleDraft={setPropertyRuleDraft}
-          propertyRulesBusyId={propertyRulesBusyId}
-          createPricingPropertyRule={createPricingPropertyRule}
-          propertyRulesLoading={propertyRulesLoading}
-          propertyRules={propertyRules}
-          setPropertyRules={setPropertyRules}
-          updatePricingPropertyRule={updatePricingPropertyRule}
-          deletePricingPropertyRule={deletePricingPropertyRule}
-          catalogServices={catalogServices}
-          strategySim={strategySim}
-          setStrategySim={setStrategySim}
-          applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
-          scenarioDraftName={scenarioDraftName}
-          setScenarioDraftName={setScenarioDraftName}
-          scenariosBusyId={scenariosBusyId}
-          createPricingScenario={createPricingScenario}
-          resetStrategySim={resetStrategySim}
-          scenariosLoading={scenariosLoading}
-          pricingScenarios={pricingScenarios}
-          loadPricingScenario={loadPricingScenario}
-          setDefaultPricingScenario={setDefaultPricingScenario}
-          deletePricingScenario={deletePricingScenario}
-          selectedPricingSegment={selectedPricingSegment}
-          strategyProjection={strategyProjection}
-          formatCurrency={formatCurrency}
-          pricingModalOpen={pricingModalOpen}
-          pricingModalState={pricingModalState}
-          pricingModalSaving={pricingModalSaving}
-          pricingModalError={pricingModalError}
-          pricingUnitOptions={pricingUnitOptions}
-          closePricingModal={closePricingModal}
-          saveServicePrice={saveServicePrice}
-          resetPricingModalToDefaults={resetPricingModalToDefaults}
-          setPricingModalState={setPricingModalState}
-          missionRows={missionRows}
-          billingDeskProps={billingDeskProps}
+          tariffCatalogControls={tariffCatalogControls}
+          pricingSegmentsControls={pricingSegmentsControls}
+          pricingRulesControls={pricingRulesControls}
+          pricingScenarioControls={pricingScenarioControls}
+          pricingModalControls={pricingModalControls}
+          billingDeskSectionProps={billingDeskSectionProps}
           formatExperienceLabel={formatExperienceLabel}
         />
       );
@@ -2092,12 +1945,7 @@ export function MissionsSecondaryPanels({
   missionProgressSteps,
   openMissionSectionForEdit,
   renderSection,
-  selectedMissionQuoteId,
-  setSelectedMissionQuoteId,
-  missionRows,
-  missionQuoteBusy,
-  createQuoteFromMission,
-  missionQuoteFeedback,
+  missionQuoteControls,
 }: MissionsSecondaryPanelsProps) {
   return (
     <>
@@ -2113,12 +1961,12 @@ export function MissionsSecondaryPanels({
       <MissionQuickQuoteSection
         styles={styles}
         renderSection={renderSection}
-        selectedMissionQuoteId={selectedMissionQuoteId}
-        setSelectedMissionQuoteId={setSelectedMissionQuoteId}
-        missionRows={missionRows}
-        missionQuoteBusy={missionQuoteBusy}
-        createQuoteFromMission={createQuoteFromMission}
-        missionQuoteFeedback={missionQuoteFeedback}
+        selectedMissionQuoteId={missionQuoteControls.selectedMissionQuoteId}
+        setSelectedMissionQuoteId={missionQuoteControls.setSelectedMissionQuoteId}
+        missionRows={missionQuoteControls.missionRows}
+        missionQuoteBusy={missionQuoteControls.missionQuoteBusy}
+        createQuoteFromMission={missionQuoteControls.createQuoteFromMission}
+        missionQuoteFeedback={missionQuoteControls.missionQuoteFeedback}
       />
     </>
   );
@@ -2130,24 +1978,9 @@ export function ConciergeMissionsTabContent({
   renderField,
   sectionIds,
   editingSection,
-  missionProgressPercent,
-  missionProgressDoneCount,
-  missionProgressSteps,
-  showPendingMissionStepsOnly,
-  setShowPendingMissionStepsOnly,
-  activeMissionRawLabels,
-  recognizedActiveMissionCount,
-  unrecognizedActiveMissionLabels,
-  missionOpenDaysCount,
-  missionRangesCount,
-  missionAvailability,
-  openMissionSectionForEdit,
-  selectedMissionQuoteId,
-  setSelectedMissionQuoteId,
-  missionRows,
-  missionQuoteBusy,
-  createQuoteFromMission,
-  missionQuoteFeedback,
+  missionProgressControls,
+  missionOverviewStats,
+  missionQuoteControls,
   missionPayload,
   removeUnrecognizedServices,
   catalogSyncBusy,
@@ -2161,33 +1994,30 @@ export function ConciergeMissionsTabContent({
   return (
     <MissionsTabLayout
       styles={styles}
-      missionProgressPercent={missionProgressPercent}
-      missionProgressDoneCount={missionProgressDoneCount}
-      missionProgressTotal={missionProgressSteps.length}
-      showPendingMissionStepsOnly={showPendingMissionStepsOnly}
-      onTogglePendingSteps={() => setShowPendingMissionStepsOnly((prev: boolean) => !prev)}
-      activeMissionRawLabelsCount={activeMissionRawLabels.length}
-      recognizedActiveMissionCount={recognizedActiveMissionCount}
-      unrecognizedActiveMissionLabelsCount={unrecognizedActiveMissionLabels.length}
-      missionOpenDaysCount={missionOpenDaysCount}
-      missionRangesCount={missionRangesCount}
-      missionZonesCount={missionAvailability?.zones.length ?? 0}
+      missionProgressPercent={missionProgressControls.missionProgressPercent}
+      missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
+      missionProgressTotal={missionProgressControls.missionProgressSteps.length}
+      showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
+      onTogglePendingSteps={() =>
+        missionProgressControls.setShowPendingMissionStepsOnly((prev: boolean) => !prev)
+      }
+      activeMissionRawLabelsCount={missionOverviewStats.activeMissionRawLabels.length}
+      recognizedActiveMissionCount={missionOverviewStats.recognizedActiveMissionCount}
+      unrecognizedActiveMissionLabelsCount={missionOverviewStats.unrecognizedActiveMissionLabels.length}
+      missionOpenDaysCount={missionOverviewStats.missionOpenDaysCount}
+      missionRangesCount={missionOverviewStats.missionRangesCount}
+      missionZonesCount={missionOverviewStats.missionAvailability?.zones.length ?? 0}
       secondaryContent={
         <MissionsSecondaryPanels
           styles={styles}
-          missionProgressDoneCount={missionProgressDoneCount}
-          missionProgressTotal={missionProgressSteps.length}
-          showPendingMissionStepsOnly={showPendingMissionStepsOnly}
-          setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
-          missionProgressSteps={missionProgressSteps}
-          openMissionSectionForEdit={openMissionSectionForEdit}
+          missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
+          missionProgressTotal={missionProgressControls.missionProgressSteps.length}
+          showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
+          setShowPendingMissionStepsOnly={missionProgressControls.setShowPendingMissionStepsOnly}
+          missionProgressSteps={missionProgressControls.missionProgressSteps}
+          openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
           renderSection={renderSection}
-          selectedMissionQuoteId={selectedMissionQuoteId}
-          setSelectedMissionQuoteId={setSelectedMissionQuoteId}
-          missionRows={missionRows}
-          missionQuoteBusy={missionQuoteBusy}
-          createQuoteFromMission={createQuoteFromMission}
-          missionQuoteFeedback={missionQuoteFeedback}
+          missionQuoteControls={missionQuoteControls}
         />
       }
     >
@@ -2198,8 +2028,8 @@ export function ConciergeMissionsTabContent({
         sectionIds={sectionIds}
         editingSection={editingSection}
         missionPayload={missionPayload}
-        missionAvailability={missionAvailability}
-        unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
+        missionAvailability={missionOverviewStats.missionAvailability}
+        unrecognizedActiveMissionLabels={missionOverviewStats.unrecognizedActiveMissionLabels}
         removeUnrecognizedServices={removeUnrecognizedServices}
         catalogSyncBusy={catalogSyncBusy}
         setEditProfile={setEditProfile}
@@ -2745,10 +2575,7 @@ export function TariffServicesCatalogSection({
   groupedPricingCatalogRows,
   collapsedPricingCategories,
   togglePricingCategory,
-  openCreatePricingModal,
-  openEditPricingModal,
-  deleteServicePrice,
-  resetAllServicePrices,
+  pricingServiceActions,
 }: TariffServicesCatalogSectionProps) {
   return (
     <section className={styles.tariffSimpleCard}>
@@ -2783,7 +2610,7 @@ export function TariffServicesCatalogSection({
             type="button"
             className={styles.tariffNavBtn}
             disabled={!canEditTariffConfig}
-            onClick={() => openCreatePricingModal()}
+            onClick={() => pricingServiceActions.openCreatePricingModal()}
           >
             Ajouter un tarif
           </button>
@@ -2791,7 +2618,7 @@ export function TariffServicesCatalogSection({
             type="button"
             className={styles.tariffNavBtn}
             disabled={!canEditTariffConfig || servicePricesCount === 0 || servicePricesBusyId === "all"}
-            onClick={resetAllServicePrices}
+            onClick={pricingServiceActions.resetAllServicePrices}
           >
             Réinitialiser
           </button>
@@ -2862,7 +2689,7 @@ export function TariffServicesCatalogSection({
                               type="button"
                               className={styles.pricingActionBtn}
                               disabled={!canEditTariffConfig || servicePricesBusyId != null}
-                              onClick={() => openEditPricingModal(pricing)}
+                              onClick={() => pricingServiceActions.openEditPricingModal(pricing)}
                             >
                               Modifier
                             </button>
@@ -2870,7 +2697,7 @@ export function TariffServicesCatalogSection({
                               type="button"
                               className={styles.pricingActionBtnDanger}
                               disabled={!canEditTariffConfig || servicePricesBusyId != null}
-                              onClick={() => deleteServicePrice(pricing)}
+                              onClick={() => pricingServiceActions.deleteServicePrice(pricing)}
                             >
                               Supprimer
                             </button>
@@ -2880,7 +2707,7 @@ export function TariffServicesCatalogSection({
                             type="button"
                             className={styles.pricingActionBtn}
                             disabled={!canEditTariffConfig || servicePricesBusyId != null}
-                            onClick={() => openCreatePricingModal(service)}
+                            onClick={() => pricingServiceActions.openCreatePricingModal(service)}
                           >
                             Ajouter
                           </button>
@@ -3486,80 +3313,19 @@ export function ConciergeTariffsTabContent({
   scrollToTariffSection,
   handleTabChange,
   editProfile,
-  tariffLocationLabel,
+  tariffConfigControls,
   missionAvailability,
   missionPayload,
   editingSection,
-  applyPricingMeta,
   pricingCatalogRows,
   activeMissionServiceLabels,
   renderField,
-  applyPricingV2,
-  pricingSortMode,
-  setPricingSortMode,
-  showAllPricingServices,
-  setShowAllPricingServices,
-  canEditTariffConfig,
-  servicePrices,
-  servicePricesBusyId,
-  servicePricesLoading,
-  visiblePricingCatalogRows,
-  groupedPricingCatalogRows,
-  collapsedPricingCategories,
-  togglePricingCategory,
-  openCreatePricingModal,
-  openEditPricingModal,
-  deleteServicePrice,
-  resetAllServicePrices,
-  propertyTypeOptions,
-  getPropertyTypeDeltaPercent,
-  updatePropertyTypeDeltaPercent,
-  segmentDraft,
-  setSegmentDraft,
-  segmentsBusyId,
-  createPricingSegment,
-  segmentsLoading,
-  pricingSegments,
-  setPricingSegments,
-  updatePricingSegment,
-  deletePricingSegment,
-  propertyRuleDraft,
-  setPropertyRuleDraft,
-  propertyRulesBusyId,
-  createPricingPropertyRule,
-  propertyRulesLoading,
-  propertyRules,
-  setPropertyRules,
-  updatePricingPropertyRule,
-  deletePricingPropertyRule,
-  catalogServices,
-  strategySim,
-  setStrategySim,
-  applyStrategyProjectionToBillingDesk,
-  scenarioDraftName,
-  setScenarioDraftName,
-  scenariosBusyId,
-  createPricingScenario,
-  resetStrategySim,
-  scenariosLoading,
-  pricingScenarios,
-  loadPricingScenario,
-  setDefaultPricingScenario,
-  deletePricingScenario,
-  selectedPricingSegment,
-  strategyProjection,
-  formatCurrency,
-  pricingModalOpen,
-  pricingModalState,
-  pricingModalSaving,
-  pricingModalError,
-  pricingUnitOptions,
-  closePricingModal,
-  saveServicePrice,
-  resetPricingModalToDefaults,
-  setPricingModalState,
-  missionRows,
-  billingDeskProps,
+  tariffCatalogControls,
+  pricingSegmentsControls,
+  pricingRulesControls,
+  pricingScenarioControls,
+  pricingModalControls,
+  billingDeskSectionProps,
   formatExperienceLabel,
 }: any) {
   return (
@@ -3592,13 +3358,13 @@ export function ConciergeTariffsTabContent({
           setupFee={pricingMeta.setupFee}
           editingDisabled={editingSection !== sectionIds.CONFIG}
           onCommissionRateChange={(value) =>
-            applyPricingMeta({
+            tariffConfigControls.applyPricingMeta({
               ...pricingMeta,
               commissionRatePct: value,
             })
           }
           onSetupFeeChange={(value) =>
-            applyPricingMeta({
+            tariffConfigControls.applyPricingMeta({
               ...pricingMeta,
               setupFee: value,
             })
@@ -3612,7 +3378,7 @@ export function ConciergeTariffsTabContent({
           <TariffContextSection
             styles={styles}
             experienceLabel={formatExperienceLabel(editProfile.experience_level)}
-            locationLabel={tariffLocationLabel}
+            locationLabel={tariffConfigControls.tariffLocationLabel}
             radiusKm={missionAvailability?.radiusKm ?? 0}
             urgentEnabled={missionPayload.preferences.priorityFlags.urgent}
             urgentPercent={pricingV2.globalModifiers.urgentPercent}
@@ -3630,7 +3396,7 @@ export function ConciergeTariffsTabContent({
             editingSection={editingSection}
             minimumInvoice={pricingV2.base.minimumInvoice}
             onMinimumInvoiceChange={(value) =>
-              applyPricingV2({
+              tariffConfigControls.applyPricingV2({
                 ...pricingV2,
                 base: {
                   ...pricingV2.base,
@@ -3644,29 +3410,26 @@ export function ConciergeTariffsTabContent({
             styles={styles}
             configuredPricingCount={configuredPricingCount}
             pricingCatalogRowsCount={pricingCatalogRows.length}
-            pricingSortMode={pricingSortMode}
-            setPricingSortMode={setPricingSortMode}
-            showAllPricingServices={showAllPricingServices}
-            setShowAllPricingServices={setShowAllPricingServices}
-            canEditTariffConfig={canEditTariffConfig}
-            servicePricesCount={servicePrices.length}
-            servicePricesBusyId={servicePricesBusyId}
-            servicePricesLoading={servicePricesLoading}
-            visiblePricingCatalogRowsCount={visiblePricingCatalogRows.length}
-            groupedPricingCatalogRows={groupedPricingCatalogRows}
-            collapsedPricingCategories={collapsedPricingCategories}
-            togglePricingCategory={togglePricingCategory}
-            openCreatePricingModal={openCreatePricingModal}
-            openEditPricingModal={openEditPricingModal}
-            deleteServicePrice={deleteServicePrice}
-            resetAllServicePrices={resetAllServicePrices}
+            pricingSortMode={tariffCatalogControls.pricingSortMode}
+            setPricingSortMode={tariffCatalogControls.setPricingSortMode}
+            showAllPricingServices={tariffCatalogControls.showAllPricingServices}
+            setShowAllPricingServices={tariffCatalogControls.setShowAllPricingServices}
+            canEditTariffConfig={tariffCatalogControls.canEditTariffConfig}
+            servicePricesCount={tariffCatalogControls.servicePrices.length}
+            servicePricesBusyId={tariffCatalogControls.servicePricesBusyId}
+            servicePricesLoading={tariffCatalogControls.servicePricesLoading}
+            visiblePricingCatalogRowsCount={tariffCatalogControls.visiblePricingCatalogRows.length}
+            groupedPricingCatalogRows={tariffCatalogControls.groupedPricingCatalogRows}
+            collapsedPricingCategories={tariffCatalogControls.collapsedPricingCategories}
+            togglePricingCategory={tariffCatalogControls.togglePricingCategory}
+            pricingServiceActions={tariffCatalogControls.pricingServiceActions}
           />
 
           <TariffModifiersSection
             styles={styles}
-            propertyTypeOptions={propertyTypeOptions}
-            getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
-            updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
+            propertyTypeOptions={tariffConfigControls.propertyTypeOptions}
+            getPropertyTypeDeltaPercent={tariffConfigControls.getPropertyTypeDeltaPercent}
+            updatePropertyTypeDeltaPercent={tariffConfigControls.updatePropertyTypeDeltaPercent}
             editingSection={editingSection}
             sectionId={sectionIds.CONFIG}
             urgentPercent={pricingV2.globalModifiers.urgentPercent}
@@ -3678,71 +3441,71 @@ export function ConciergeTariffsTabContent({
 
           <TariffSegmentsSection
             styles={styles}
-            canEditTariffConfig={canEditTariffConfig}
-            segmentDraft={segmentDraft}
-            setSegmentDraft={setSegmentDraft}
-            segmentsBusyId={segmentsBusyId}
-            createPricingSegment={createPricingSegment}
-            segmentsLoading={segmentsLoading}
-            pricingSegments={pricingSegments}
-            setPricingSegments={setPricingSegments}
-            updatePricingSegment={updatePricingSegment}
-            deletePricingSegment={deletePricingSegment}
+            canEditTariffConfig={pricingSegmentsControls.canEditTariffConfig}
+            segmentDraft={pricingSegmentsControls.segmentDraft}
+            setSegmentDraft={pricingSegmentsControls.setSegmentDraft}
+            segmentsBusyId={pricingSegmentsControls.segmentsBusyId}
+            createPricingSegment={pricingSegmentsControls.pricingSegmentActions.createPricingSegment}
+            segmentsLoading={pricingSegmentsControls.segmentsLoading}
+            pricingSegments={pricingSegmentsControls.pricingSegments}
+            setPricingSegments={pricingSegmentsControls.setPricingSegments}
+            updatePricingSegment={pricingSegmentsControls.pricingSegmentActions.updatePricingSegment}
+            deletePricingSegment={pricingSegmentsControls.pricingSegmentActions.deletePricingSegment}
           />
 
           <TariffPropertyRulesSection
             styles={styles}
-            canEditTariffConfig={canEditTariffConfig}
-            propertyRuleDraft={propertyRuleDraft}
-            setPropertyRuleDraft={setPropertyRuleDraft}
-            propertyRulesBusyId={propertyRulesBusyId}
-            createPricingPropertyRule={createPricingPropertyRule}
-            propertyRulesLoading={propertyRulesLoading}
-            propertyRules={propertyRules}
-            setPropertyRules={setPropertyRules}
-            updatePricingPropertyRule={updatePricingPropertyRule}
-            deletePricingPropertyRule={deletePricingPropertyRule}
-            catalogServices={catalogServices}
+            canEditTariffConfig={pricingRulesControls.canEditTariffConfig}
+            propertyRuleDraft={pricingRulesControls.propertyRuleDraft}
+            setPropertyRuleDraft={pricingRulesControls.setPropertyRuleDraft}
+            propertyRulesBusyId={pricingRulesControls.propertyRulesBusyId}
+            createPricingPropertyRule={pricingRulesControls.pricingPropertyRuleActions.createPricingPropertyRule}
+            propertyRulesLoading={pricingRulesControls.propertyRulesLoading}
+            propertyRules={pricingRulesControls.propertyRules}
+            setPropertyRules={pricingRulesControls.setPropertyRules}
+            updatePricingPropertyRule={pricingRulesControls.pricingPropertyRuleActions.updatePricingPropertyRule}
+            deletePricingPropertyRule={pricingRulesControls.pricingPropertyRuleActions.deletePricingPropertyRule}
+            catalogServices={pricingRulesControls.catalogServices}
           />
 
           <TariffStrategySection
             styles={styles}
-            strategySim={strategySim}
-            setStrategySim={setStrategySim}
-            pricingSegments={pricingSegments}
-            catalogServices={catalogServices}
-            propertyTypeOptions={propertyTypeOptions}
-            applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
-            scenarioDraftName={scenarioDraftName}
-            setScenarioDraftName={setScenarioDraftName}
-            canEditTariffConfig={canEditTariffConfig}
-            scenariosBusyId={scenariosBusyId}
-            createPricingScenario={createPricingScenario}
-            resetStrategySim={resetStrategySim}
-            scenariosLoading={scenariosLoading}
-            pricingScenarios={pricingScenarios}
-            loadPricingScenario={loadPricingScenario}
-            setDefaultPricingScenario={setDefaultPricingScenario}
-            deletePricingScenario={deletePricingScenario}
-            selectedPricingSegmentName={selectedPricingSegment?.name ?? "Standard"}
-            strategyProjection={strategyProjection}
-            formatCurrency={formatCurrency}
+            strategySim={pricingScenarioControls.strategySim}
+            setStrategySim={pricingScenarioControls.setStrategySim}
+            pricingSegments={pricingScenarioControls.pricingSegments}
+            catalogServices={pricingScenarioControls.catalogServices}
+            propertyTypeOptions={pricingScenarioControls.propertyTypeOptions}
+            applyStrategyProjectionToBillingDesk={pricingScenarioControls.applyStrategyProjectionToBillingDesk}
+            scenarioDraftName={pricingScenarioControls.scenarioDraftName}
+            setScenarioDraftName={pricingScenarioControls.setScenarioDraftName}
+            canEditTariffConfig={pricingScenarioControls.canEditTariffConfig}
+            scenariosBusyId={pricingScenarioControls.scenariosBusyId}
+            createPricingScenario={pricingScenarioControls.pricingScenarioActions.createPricingScenario}
+            resetStrategySim={pricingScenarioControls.pricingScenarioActions.resetStrategySim}
+            scenariosLoading={pricingScenarioControls.scenariosLoading}
+            pricingScenarios={pricingScenarioControls.pricingScenarios}
+            loadPricingScenario={pricingScenarioControls.pricingScenarioActions.loadPricingScenario}
+            setDefaultPricingScenario={pricingScenarioControls.pricingScenarioActions.setDefaultPricingScenario}
+            deletePricingScenario={pricingScenarioControls.pricingScenarioActions.deletePricingScenario}
+            selectedPricingSegmentName={pricingScenarioControls.selectedPricingSegment?.name ?? "Standard"}
+            strategyProjection={pricingScenarioControls.strategyProjection}
+            formatCurrency={pricingScenarioControls.formatCurrency}
           />
         </div>
 
         <TariffPricingModal
           styles={styles}
-          isOpen={pricingModalOpen}
-          state={pricingModalState}
-          catalogServices={catalogServices}
-          saving={pricingModalSaving}
-          canEdit={canEditTariffConfig}
-          error={pricingModalError}
-          pricingUnitOptions={pricingUnitOptions}
-          closeModal={closePricingModal}
-          saveServicePrice={saveServicePrice}
-          resetState={resetPricingModalToDefaults}
-          setState={setPricingModalState}
+          isOpen={pricingModalControls.pricingModalOpen}
+          state={pricingModalControls.pricingModalState}
+          catalogServices={pricingRulesControls.catalogServices}
+          saving={pricingModalControls.pricingModalSaving}
+          canEdit={tariffCatalogControls.canEditTariffConfig}
+          error={pricingModalControls.pricingModalError}
+          pricingUnitOptions={pricingModalControls.pricingUnitOptions}
+          closeModal={pricingModalControls.closePricingModal}
+          saveServicePrice={pricingModalControls.saveServicePrice}
+          resetState={pricingModalControls.resetPricingModalToDefaults}
+          setState={pricingModalControls.setPricingModalState}
         />
       </TariffConfigShell>
 
@@ -3750,8 +3513,8 @@ export function ConciergeTariffsTabContent({
         styles={styles}
         renderSection={renderSection}
         sectionId={sectionIds.BILLING_DESK}
-        missionRowsCount={missionRows.length}
-        deskProps={billingDeskProps}
+        missionRowsCount={billingDeskSectionProps.missionRowsCount}
+        deskProps={billingDeskSectionProps.deskProps}
       />
     </div>
   );

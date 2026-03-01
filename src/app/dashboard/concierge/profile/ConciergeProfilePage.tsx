@@ -16,17 +16,55 @@ import styles from "./ConciergeProfilePage.module.scss";
 import {
   buildProfileSuccessMessageSafe,
   buildProfileValidationAlertMessageSafe,
+  buildMissionProgressSteps,
+  buildEmptyPricingPropertyRuleDraft,
+  buildEmptyPricingSegmentDraft,
+  buildPricingCatalogRows,
+  buildCreatePricingModalState,
+  buildEditPricingModalState,
+  buildPricingScenarioDefaultPayload,
+  buildPricingPropertyRulePayload,
+  buildPricingScenarioLoadedMessage,
+  buildPricingScenarioPayload,
+  buildPricingPropertyRuleUpdatePayload,
+  buildPricingSegmentPayload,
+  buildPricingSegmentUpdatePayload,
+  buildResetPricingModalState,
+  buildServicePricePayload,
+  buildServicePriceRequest,
   buildSessionUserPayload,
+  buildServicePriceMap,
+  buildTariffReadinessChecks,
+  computeProgressPercent,
+  collectServiceIdsToDisable,
+  countConfiguredPricingRows,
+  countCompletedProgressSteps,
+  countReadyChecks,
   createQuoteFromMissionRequest,
+  deletePricingResource,
   ensureOpenSection,
+  fetchPricingCollection,
+  filterPricingCatalogRows,
+  findMatchingPropertyRule,
+  findPendingReadinessChecks,
+  groupPricingCatalogRows,
   hasSectionUnsavedChanges,
   hasValidationErrors,
   patchProfileRequest,
   removeSectionSnapshot,
   resolveSavedSectionId,
+  scrollToPageSection,
+  selectPricingSegment,
+  sortPricingCatalogRows,
+  syncMissionServiceFromPricing,
   type SectionEditSnapshots,
   shouldCompleteMissionOnboarding,
+  shouldDisableMissionServiceAfterDelete,
+  toggleCollapsedCategory,
   toggleOpenSection,
+  validatePricingModalState,
+  updatePricingResource,
+  savePricingResource,
   upsertSectionSnapshot,
   uploadProfileAvatar,
   updateProfileFieldErrorsSafe,
@@ -1105,70 +1143,38 @@ export default function ConciergeProfilePage() {
     [missionAvailability],
   );
   const missionProgressSteps = useMemo(
-    () => [
-      {
-        key: "services",
-        label: "Services proposes",
-        hint: "Definissez les prestations que vous acceptez.",
-        done: activeMissionServiceLabels.length > 0,
-        sectionId: MISSION_SECTION_IDS.SERVICES,
-      },
-      {
-        key: "zone",
-        label: "Zone d'intervention",
-        hint: "Ajoutez des zones et un rayon de couverture.",
-        done: (missionAvailability?.zones.length ?? 0) > 0,
-        sectionId: MISSION_SECTION_IDS.ZONE_RULES,
-      },
-      {
-        key: "availability",
-        label: "Disponibilites hebdomadaires",
-        hint: "Renseignez vos jours et plages horaires.",
-        done: missionOpenDaysCount > 0 && missionRangesCount > 0,
-        sectionId: MISSION_SECTION_IDS.WEEKLY_AVAILABILITY,
-      },
-    ],
+    () =>
+      buildMissionProgressSteps(
+        activeMissionServiceLabels.length,
+        missionAvailability?.zones.length ?? 0,
+        missionOpenDaysCount,
+        missionRangesCount,
+        MISSION_SECTION_IDS,
+      ),
     [
       activeMissionServiceLabels.length,
-      missionAvailability,
+      missionAvailability?.zones.length,
       missionOpenDaysCount,
       missionRangesCount,
     ],
   );
   const missionProgressDoneCount = useMemo(
-    () => missionProgressSteps.filter((step) => step.done).length,
+    () => countCompletedProgressSteps(missionProgressSteps),
     [missionProgressSteps],
   );
   const missionProgressPercent = useMemo(
-    () =>
-      missionProgressSteps.length > 0
-        ? Math.round((missionProgressDoneCount / missionProgressSteps.length) * 100)
-        : 0,
+    () => computeProgressPercent(missionProgressDoneCount, missionProgressSteps.length),
     [missionProgressDoneCount, missionProgressSteps.length],
   );
   const tariffReadinessChecks = useMemo(
-    () => [
-      {
-        id: "services",
-        label: "Services actifs",
-        ready: activeMissionServiceLabels.length > 0,
-      },
-      {
-        id: "rate",
-        label: "Tarif horaire defini",
-        ready: Number(editProfile?.hourly_rate ?? 0) > 0,
-      },
-      {
-        id: "zone",
-        label: "Zone d'intervention",
-        ready: Boolean((editProfile?.location ?? editProfile?.service_area ?? "").trim()),
-      },
-      {
-        id: "missions",
-        label: "Missions disponibles",
-        ready: missionRows.length > 0,
-      },
-    ],
+    () =>
+      buildTariffReadinessChecks({
+        activeMissionServiceCount: activeMissionServiceLabels.length,
+        hourlyRate: editProfile?.hourly_rate,
+        location: editProfile?.location,
+        serviceArea: editProfile?.service_area,
+        missionRowsCount: missionRows.length,
+      }),
     [
       activeMissionServiceLabels.length,
       editProfile?.hourly_rate,
@@ -1178,18 +1184,15 @@ export default function ConciergeProfilePage() {
     ],
   );
   const tariffReadinessDoneCount = useMemo(
-    () => tariffReadinessChecks.filter((check) => check.ready).length,
+    () => countReadyChecks(tariffReadinessChecks),
     [tariffReadinessChecks],
   );
   const tariffReadinessPercent = useMemo(
-    () =>
-      tariffReadinessChecks.length > 0
-        ? Math.round((tariffReadinessDoneCount / tariffReadinessChecks.length) * 100)
-        : 0,
+    () => computeProgressPercent(tariffReadinessDoneCount, tariffReadinessChecks.length),
     [tariffReadinessDoneCount, tariffReadinessChecks.length],
   );
   const pendingTariffReadinessChecks = useMemo(
-    () => tariffReadinessChecks.filter((check) => !check.ready),
+    () => findPendingReadinessChecks(tariffReadinessChecks),
     [tariffReadinessChecks],
   );
   const activeTariffServiceRows = useMemo<ActiveTariffServiceRow[]>(() => {
@@ -1224,87 +1227,38 @@ export default function ConciergeProfilePage() {
     [activeTariffServiceRows],
   );
   const servicePriceByServiceId = useMemo(() => {
-    const byService = new Map<number, ConciergeServicePriceRow>();
-    for (const row of servicePrices) {
-      if (typeof row.service_id !== "number") continue;
-      if (!byService.has(row.service_id)) byService.set(row.service_id, row);
-    }
-    return byService;
+    return buildServicePriceMap(servicePrices);
   }, [servicePrices]);
   const pricingCatalogRows = useMemo(() => {
-    const rows = catalogServices.map((service) => {
-      const pricing = servicePriceByServiceId.get(service.id) ?? null;
-      return {
-        service,
-        pricing,
-        isActiveMissionService: activeServiceCatalogIdSet.has(service.id),
-      };
-    });
-
-    rows.sort((a, b) => {
-      if (a.isActiveMissionService !== b.isActiveMissionService) {
-        return a.isActiveMissionService ? -1 : 1;
-      }
-      return a.service.service.localeCompare(b.service.service, "fr");
-    });
-
-    return rows;
+    return buildPricingCatalogRows(
+      catalogServices,
+      servicePriceByServiceId,
+      activeServiceCatalogIdSet,
+    );
   }, [catalogServices, servicePriceByServiceId, activeServiceCatalogIdSet]);
   const visiblePricingCatalogRows = useMemo(
-    () =>
-      showAllPricingServices
-        ? pricingCatalogRows
-        : pricingCatalogRows.filter((row) => row.isActiveMissionService),
+    () => filterPricingCatalogRows(pricingCatalogRows, showAllPricingServices),
     [pricingCatalogRows, showAllPricingServices],
   );
   const sortedVisiblePricingRows = useMemo(() => {
-    const rows = [...visiblePricingCatalogRows];
-    if (pricingSortMode === "category") {
-      rows.sort((a, b) => {
-        const byCategory = a.service.category.localeCompare(b.service.category, "fr");
-        if (byCategory !== 0) return byCategory;
-        return a.service.service.localeCompare(b.service.service, "fr");
-      });
-      return rows;
-    }
-    rows.sort((a, b) => a.service.service.localeCompare(b.service.service, "fr"));
-    return rows;
+    return sortPricingCatalogRows(visiblePricingCatalogRows, pricingSortMode);
   }, [visiblePricingCatalogRows, pricingSortMode]);
   const groupedPricingCatalogRows = useMemo(() => {
-    const map = new Map<
-      string,
-      Array<{
-        service: CatalogServiceItem;
-        pricing: ConciergeServicePriceRow | null;
-        isActiveMissionService: boolean;
-      }>
-    >();
-    for (const row of sortedVisiblePricingRows) {
-      const key = row.service.category || "Autres";
-      const bucket = map.get(key);
-      if (bucket) {
-        bucket.push(row);
-      } else {
-        map.set(key, [row]);
-      }
-    }
-    return Array.from(map.entries()).map(([category, rows]) => ({ category, rows }));
+    return groupPricingCatalogRows(sortedVisiblePricingRows);
   }, [sortedVisiblePricingRows]);
   const togglePricingCategory = useCallback((category: string) => {
-    setCollapsedPricingCategories((prev) => ({
-      ...prev,
-      [category]: !prev[category],
-    }));
+    setCollapsedPricingCategories((prev) =>
+      toggleCollapsedCategory(prev, category),
+    );
   }, []);
   const configuredPricingCount = useMemo(
-    () => pricingCatalogRows.filter((row) => Boolean(row.pricing)).length,
+    () => countConfiguredPricingRows(pricingCatalogRows),
     [pricingCatalogRows],
   );
   const canEditTariffConfig = editingSection === TARIFF_SECTION_IDS.CONFIG;
 
   const scrollToTariffSection = useCallback((sectionId: string) => {
-    const target = document.getElementById(sectionId);
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToPageSection(sectionId);
   }, []);
   const refreshCatalogServices = useCallback(async () => {
     const response = await fetch("/api/services/services-catalog");
@@ -1682,15 +1636,10 @@ export default function ConciergeProfilePage() {
   const fetchPricingSegments = useCallback(async () => {
     setSegmentsLoading(true);
     try {
-      const res = await fetch("/api/pricing/segments", { cache: "no-store" });
-      const data: PricingSegmentRow[] | { error: string } = await res.json();
-      if (!res.ok || !Array.isArray(data)) {
-        throw new Error(
-          !res.ok && data && typeof data === "object" && "error" in data
-            ? data.error
-            : "Impossible de charger les segments propriétaires.",
-        );
-      }
+      const data = await fetchPricingCollection<PricingSegmentRow>(
+        "/api/pricing/segments",
+        "Impossible de charger les segments propriétaires.",
+      );
       setPricingSegments(data);
     } catch (error) {
       const message =
@@ -1703,15 +1652,10 @@ export default function ConciergeProfilePage() {
   const fetchPricingPropertyRules = useCallback(async () => {
     setPropertyRulesLoading(true);
     try {
-      const res = await fetch("/api/pricing/property-rules", { cache: "no-store" });
-      const data: PricingPropertyRuleRow[] | { error: string } = await res.json();
-      if (!res.ok || !Array.isArray(data)) {
-        throw new Error(
-          !res.ok && data && typeof data === "object" && "error" in data
-            ? data.error
-            : "Impossible de charger les règles de complexité.",
-        );
-      }
+      const data = await fetchPricingCollection<PricingPropertyRuleRow>(
+        "/api/pricing/property-rules",
+        "Impossible de charger les règles de complexité.",
+      );
       setPropertyRules(data);
     } catch (error) {
       const message =
@@ -1724,15 +1668,10 @@ export default function ConciergeProfilePage() {
   const fetchPricingScenarios = useCallback(async () => {
     setScenariosLoading(true);
     try {
-      const res = await fetch("/api/pricing/strategy-scenarios", { cache: "no-store" });
-      const data: PricingStrategyScenarioRow[] | { error: string } = await res.json();
-      if (!res.ok || !Array.isArray(data)) {
-        throw new Error(
-          !res.ok && data && typeof data === "object" && "error" in data
-            ? data.error
-            : "Impossible de charger les scénarios.",
-        );
-      }
+      const data = await fetchPricingCollection<PricingStrategyScenarioRow>(
+        "/api/pricing/strategy-scenarios",
+        "Impossible de charger les scénarios.",
+      );
       setPricingScenarios(data);
     } catch (error) {
       const message =
@@ -1744,8 +1683,8 @@ export default function ConciergeProfilePage() {
   }, [pushTransientMessage]);
   const createPricingScenario = useCallback(async () => {
     if (!canEditTariffConfig) return;
-    const name = scenarioDraftName.trim();
-    if (!name) {
+    const payload = buildPricingScenarioPayload(scenarioDraftName, strategySim);
+    if (!payload.name) {
       pushTransientMessage("error", "Nom du scénario obligatoire.");
       return;
     }
@@ -1754,10 +1693,7 @@ export default function ConciergeProfilePage() {
       const res = await fetch("/api/pricing/strategy-scenarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          simulation: strategySim,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -1794,7 +1730,7 @@ export default function ConciergeProfilePage() {
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ is_default: true }),
+            body: JSON.stringify(buildPricingScenarioDefaultPayload()),
           },
         );
         const data = await res.json();
@@ -1823,18 +1759,10 @@ export default function ConciergeProfilePage() {
       if (!window.confirm("Supprimer ce scénario ?")) return;
       setScenariosBusyId(id);
       try {
-        const res = await fetch(
+        await deletePricingResource(
           `/api/pricing/strategy-scenarios/${encodeURIComponent(id)}`,
-          { method: "DELETE" },
+          "Impossible de supprimer le scénario.",
         );
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            data && typeof data === "object" && "error" in data
-              ? String(data.error)
-              : "Impossible de supprimer le scénario.",
-          );
-        }
         await fetchPricingScenarios();
         pushTransientMessage("success", "Scénario supprimé.");
       } catch (error) {
@@ -1851,24 +1779,19 @@ export default function ConciergeProfilePage() {
     (row: PricingStrategyScenarioRow) => {
       const nextSim = normalizeStrategySim(row.simulation);
       setStrategySim(nextSim);
-      pushTransientMessage("success", `Scénario chargé : ${row.name}.`);
+      pushTransientMessage("success", buildPricingScenarioLoadedMessage(row.name));
     },
     [pushTransientMessage],
   );
   const createPricingSegment = useCallback(async () => {
     if (!canEditTariffConfig) return;
-    const name = segmentDraft.name.trim();
-    if (!name) {
+    const payload = buildPricingSegmentPayload(segmentDraft);
+    if (!payload.name) {
       pushTransientMessage("error", "Le nom du segment est obligatoire.");
       return;
     }
     setSegmentsBusyId("create");
     try {
-      const payload = {
-        name,
-        commission_delta_pct: Number(segmentDraft.commission_delta_pct || 0),
-        setup_fee_delta_pct: Number(segmentDraft.setup_fee_delta_pct || 0),
-      };
       const res = await fetch("/api/pricing/segments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1883,7 +1806,7 @@ export default function ConciergeProfilePage() {
         );
       }
       await fetchPricingSegments();
-      setSegmentDraft({ name: "", commission_delta_pct: "0", setup_fee_delta_pct: "0" });
+      setSegmentDraft(buildEmptyPricingSegmentDraft());
       pushTransientMessage("success", "Segment ajouté.");
     } catch (error) {
       const message =
@@ -1903,24 +1826,11 @@ export default function ConciergeProfilePage() {
       if (!canEditTariffConfig) return;
       setSegmentsBusyId(row.id);
       try {
-        const res = await fetch(`/api/pricing/segments/${encodeURIComponent(row.id)}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: row.name,
-            commission_delta_pct: row.commission_delta_pct,
-            setup_fee_delta_pct: row.setup_fee_delta_pct,
-            is_default: row.is_default,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            data && typeof data === "object" && "error" in data
-              ? String(data.error)
-              : "Impossible de mettre a jour le segment.",
-          );
-        }
+        await updatePricingResource(
+          `/api/pricing/segments/${encodeURIComponent(row.id)}`,
+          buildPricingSegmentUpdatePayload(row),
+          "Impossible de mettre a jour le segment.",
+        );
         await fetchPricingSegments();
         pushTransientMessage("success", "Segment mis à jour.");
       } catch (error) {
@@ -1939,17 +1849,10 @@ export default function ConciergeProfilePage() {
       if (!window.confirm("Supprimer ce segment ?")) return;
       setSegmentsBusyId(id);
       try {
-        const res = await fetch(`/api/pricing/segments/${encodeURIComponent(id)}`, {
-          method: "DELETE",
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            data && typeof data === "object" && "error" in data
-              ? String(data.error)
-              : "Impossible de supprimer ce segment.",
-          );
-        }
+        await deletePricingResource(
+          `/api/pricing/segments/${encodeURIComponent(id)}`,
+          "Impossible de supprimer ce segment.",
+        );
         await fetchPricingSegments();
         pushTransientMessage("success", "Segment supprimé.");
       } catch (error) {
@@ -1966,17 +1869,7 @@ export default function ConciergeProfilePage() {
     if (!canEditTariffConfig) return;
     setPropertyRulesBusyId("create");
     try {
-      const payload = {
-        service_id: propertyRuleDraft.service_id ? Number(propertyRuleDraft.service_id) : null,
-        property_type: propertyRuleDraft.property_type.trim() || null,
-        min_surface_m2: propertyRuleDraft.min_surface_m2
-          ? Number(propertyRuleDraft.min_surface_m2)
-          : null,
-        max_surface_m2: propertyRuleDraft.max_surface_m2
-          ? Number(propertyRuleDraft.max_surface_m2)
-          : null,
-        delta_pct: Number(propertyRuleDraft.delta_pct || 0),
-      };
+      const payload = buildPricingPropertyRulePayload(propertyRuleDraft);
       const res = await fetch("/api/pricing/property-rules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1991,13 +1884,7 @@ export default function ConciergeProfilePage() {
         );
       }
       await fetchPricingPropertyRules();
-      setPropertyRuleDraft({
-        service_id: "",
-        property_type: "",
-        min_surface_m2: "",
-        max_surface_m2: "",
-        delta_pct: "0",
-      });
+      setPropertyRuleDraft(buildEmptyPricingPropertyRuleDraft());
       pushTransientMessage("success", "Règle ajoutée.");
     } catch (error) {
       const message =
@@ -2017,28 +1904,11 @@ export default function ConciergeProfilePage() {
       if (!canEditTariffConfig) return;
       setPropertyRulesBusyId(row.id);
       try {
-        const res = await fetch(
+        await updatePricingResource(
           `/api/pricing/property-rules/${encodeURIComponent(row.id)}`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              service_id: row.service_id,
-              property_type: row.property_type,
-              min_surface_m2: row.min_surface_m2,
-              max_surface_m2: row.max_surface_m2,
-              delta_pct: row.delta_pct,
-            }),
-          },
+          buildPricingPropertyRuleUpdatePayload(row),
+          "Impossible de mettre a jour la regle.",
         );
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            data && typeof data === "object" && "error" in data
-              ? String(data.error)
-              : "Impossible de mettre a jour la regle.",
-          );
-        }
         await fetchPricingPropertyRules();
         pushTransientMessage("success", "Règle mise à jour.");
       } catch (error) {
@@ -2057,17 +1927,10 @@ export default function ConciergeProfilePage() {
       if (!window.confirm("Supprimer cette regle ?")) return;
       setPropertyRulesBusyId(id);
       try {
-        const res = await fetch(`/api/pricing/property-rules/${encodeURIComponent(id)}`, {
-          method: "DELETE",
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            data && typeof data === "object" && "error" in data
-              ? String(data.error)
-              : "Impossible de supprimer cette regle.",
-          );
-        }
+        await deletePricingResource(
+          `/api/pricing/property-rules/${encodeURIComponent(id)}`,
+          "Impossible de supprimer cette regle.",
+        );
         await fetchPricingPropertyRules();
         pushTransientMessage("success", "Règle supprimée.");
       } catch (error) {
@@ -2091,211 +1954,86 @@ export default function ConciergeProfilePage() {
   const resetPricingModalToDefaults = useCallback(() => {
     setPricingModalState((prev) => ({
       ...prev,
-      amount: pricingV2.base.hourlyRate > 0 ? String(Math.round(pricingV2.base.hourlyRate)) : "",
-      unit: prev.type === "hourly" ? "par heure" : "par prestation",
+      ...buildResetPricingModalState(pricingV2.base.hourlyRate, prev.type),
     }));
   }, [pricingV2.base.hourlyRate]);
   const openCreatePricingModal = useCallback(
     (service?: CatalogServiceItem) => {
-      const suggestedLabel = service?.service ?? "";
-      const suggestedType: PricingTypeValue = pricingV2.base.hourlyRate > 0 ? "hourly" : "fixed";
-      const suggestedUnit =
-        suggestedType === "hourly" ? "par heure" : DEFAULT_PRICING_MODAL.unit;
-
-      setPricingModalState({
-        id: undefined,
-        serviceId: service ? String(service.id) : "",
-        label: suggestedLabel,
-        type: suggestedType,
-        amount:
-          suggestedType === "hourly" && pricingV2.base.hourlyRate > 0
-            ? String(Math.round(pricingV2.base.hourlyRate))
-            : "",
-        unit: suggestedUnit,
-      });
+      setPricingModalState(buildCreatePricingModalState(service, pricingV2.base.hourlyRate));
       setPricingModalError("");
       setPricingModalOpen(true);
     },
     [pricingV2.base.hourlyRate],
   );
   const openEditPricingModal = useCallback((row: ConciergeServicePriceRow) => {
-    setPricingModalState({
-      id: row.id,
-      serviceId: row.service_id != null ? String(row.service_id) : "",
-      label: row.label ?? "",
-      type: (row.type as PricingTypeValue | null) ?? "fixed",
-      amount: String(row.amount ?? ""),
-      unit: row.unit ?? "par prestation",
-    });
+    setPricingModalState(buildEditPricingModalState(row));
     setPricingModalError("");
     setPricingModalOpen(true);
   }, []);
   const ensureMissionServiceActiveFromPricing = useCallback(
     (serviceIdNumber: number, fallbackLabel?: string) => {
-      setEditProfile((prev) => {
-        if (!prev) return prev;
-
-        const payload = parseMissionPayload(prev.availability_hours);
-        const catalogService = catalogServices.find((item) => item.id === serviceIdNumber);
-        const targetLabel = (catalogService?.service ?? fallbackLabel ?? "").trim();
-        if (!targetLabel) return prev;
-
-        const normalizedTargetLabel = normalizeServiceLabel(targetLabel);
-        const targetMissionId = toMissionTypeId(targetLabel);
-        const baseMissions =
-          payload.missionProfile.missions.length > 0
-            ? payload.missionProfile.missions
-            : payload.missionCatalog.map((catalogItem) => ({
-                id: catalogItem.id,
-                label: catalogItem.label,
-                isActive: false,
-                minNoticeHours: 24,
-                allowUrgent: false,
-                urgentMultiplier: 1.3,
-              }));
-
-        let didChange = false;
-        const nextMissions = baseMissions.map((mission) => {
-          if (normalizeServiceLabel(mission.label) !== normalizedTargetLabel) return mission;
-          if (mission.isActive) return mission;
-          didChange = true;
-          return { ...mission, isActive: true };
-        });
-
-        const hasMissionInProfile = nextMissions.some(
-          (mission) => normalizeServiceLabel(mission.label) === normalizedTargetLabel,
-        );
-        if (!hasMissionInProfile) {
-          didChange = true;
-          nextMissions.push({
-            id: targetMissionId,
-            label: targetLabel,
-            isActive: true,
-            minNoticeHours: 24,
-            allowUrgent: false,
-            urgentMultiplier: 1.3,
-          });
-        }
-
-        if (!didChange) return prev;
-
-        const nextMissionProfile: ConciergeMissionProfile = {
-          ...payload.missionProfile,
-          missions: nextMissions,
-        };
-        const legacy = buildLegacyFromMissionProfile(nextMissionProfile);
-
-        return {
-          ...prev,
-          availability_hours: JSON.stringify({
-            ...parseAvailabilityPayloadRaw(prev.availability_hours),
-            missionProfile: nextMissionProfile,
-            missionCatalog: legacy.missionCatalog,
-            preferences: legacy.preferences,
-          }),
-        };
-      });
+      setEditProfile((prev) =>
+        syncMissionServiceFromPricing(prev, {
+          serviceIdNumber,
+          fallbackLabel,
+          mode: "enable",
+          catalogServices,
+          parseMissionPayload,
+          parseAvailabilityPayloadRaw,
+          buildLegacyFromMissionProfile,
+          normalizeServiceLabel,
+          toMissionTypeId,
+        }),
+      );
     },
     [catalogServices],
   );
   const disableMissionServiceFromPricing = useCallback(
     (serviceIdNumber: number, fallbackLabel?: string) => {
-      setEditProfile((prev) => {
-        if (!prev) return prev;
-
-        const payload = parseMissionPayload(prev.availability_hours);
-        const catalogService = catalogServices.find((item) => item.id === serviceIdNumber);
-        const targetLabel = (catalogService?.service ?? fallbackLabel ?? "").trim();
-        if (!targetLabel) return prev;
-
-        const normalizedTargetLabel = normalizeServiceLabel(targetLabel);
-        const nextMissions = payload.missionProfile.missions.map((mission) => {
-          if (normalizeServiceLabel(mission.label) !== normalizedTargetLabel) return mission;
-          if (!mission.isActive) return mission;
-          return { ...mission, isActive: false };
-        });
-
-        const didChange = nextMissions.some((mission, idx) => {
-          const prevMission = payload.missionProfile.missions[idx];
-          return prevMission && prevMission.isActive !== mission.isActive;
-        });
-        if (!didChange) return prev;
-
-        const nextMissionProfile: ConciergeMissionProfile = {
-          ...payload.missionProfile,
-          missions: nextMissions,
-        };
-        const legacy = buildLegacyFromMissionProfile(nextMissionProfile);
-
-        return {
-          ...prev,
-          availability_hours: JSON.stringify({
-            ...parseAvailabilityPayloadRaw(prev.availability_hours),
-            missionProfile: nextMissionProfile,
-            missionCatalog: legacy.missionCatalog,
-            preferences: legacy.preferences,
-          }),
-        };
-      });
+      setEditProfile((prev) =>
+        syncMissionServiceFromPricing(prev, {
+          serviceIdNumber,
+          fallbackLabel,
+          mode: "disable",
+          catalogServices,
+          parseMissionPayload,
+          parseAvailabilityPayloadRaw,
+          buildLegacyFromMissionProfile,
+          normalizeServiceLabel,
+          toMissionTypeId,
+        }),
+      );
     },
     [catalogServices],
   );
   const saveServicePrice = useCallback(async () => {
     if (!canEditTariffConfig) return;
 
-    const serviceIdNumber = Number(pricingModalState.serviceId);
-    if (!Number.isFinite(serviceIdNumber) || serviceIdNumber <= 0) {
-      setPricingModalError("Selectionnez un service.");
-      return;
-    }
-
-    const parsedAmount = Number(pricingModalState.amount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      setPricingModalError("Le tarif doit etre superieur a 0.");
-      return;
-    }
-
-    if (!pricingModalState.unit.trim()) {
-      setPricingModalError("L'unite est obligatoire.");
+    const validation = validatePricingModalState(pricingModalState);
+    if (validation.error || validation.serviceIdNumber == null || validation.parsedAmount == null) {
+      setPricingModalError(validation.error ?? "Formulaire invalide.");
       return;
     }
 
     setPricingModalSaving(true);
     setPricingModalError("");
     try {
-      const serviceRef = catalogServices.find((item) => item.id === serviceIdNumber);
-      const payload = {
-        service_id: serviceIdNumber,
-        label: pricingModalState.label.trim() || serviceRef?.service || "Service",
-        type: pricingModalState.type,
-        amount: parsedAmount,
-        unit: pricingModalState.unit,
-        };
-        const isUpdate = Boolean(pricingModalState.id);
-        const endpoint = isUpdate
-          ? `/api/pricing/${encodeURIComponent(pricingModalState.id ?? "")}`
-          : "/api/pricing";
-        const method = isUpdate ? "PATCH" : "POST";
-        const payloadWithId = isUpdate
-          ? payload
-          : payload;
-      const res = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadWithId),
+      const payload = buildServicePricePayload(
+        pricingModalState,
+        validation.serviceIdNumber,
+        validation.parsedAmount,
+        catalogServices,
+      );
+      const request = buildServicePriceRequest(pricingModalState, payload);
+      await savePricingResource({
+        endpoint: request.endpoint,
+        method: request.method,
+        payload: request.payload,
+        fallbackErrorMessage: "Erreur lors de l'enregistrement du tarif.",
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(
-          data && typeof data === "object" && "error" in data
-            ? String(data.error)
-            : "Erreur lors de l'enregistrement du tarif.",
-        );
-      }
-
       await fetchServicePrices();
-      ensureMissionServiceActiveFromPricing(serviceIdNumber, payload.label);
+      ensureMissionServiceActiveFromPricing(validation.serviceIdNumber, payload.label);
       closePricingModal();
       pushTransientMessage("success", "Tarif enregistré avec succès.");
     } catch (error) {
@@ -2321,22 +2059,14 @@ export default function ConciergeProfilePage() {
 
       setServicePricesBusyId(row.id);
       try {
-          const res = await fetch(`/api/pricing/${encodeURIComponent(row.id)}`, {
-            method: "DELETE",
-          });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(
-            data && typeof data === "object" && "error" in data
-              ? String(data.error)
-            : "Erreur lors de la suppression.",
-          );
-        }
-        const shouldDisableInMissions =
-          typeof row.service_id === "number" &&
-          !servicePrices.some(
-            (item) => item.id !== row.id && item.service_id === row.service_id,
-          );
+        await deletePricingResource(
+          `/api/pricing/${encodeURIComponent(row.id)}`,
+          "Erreur lors de la suppression.",
+        );
+        const shouldDisableInMissions = shouldDisableMissionServiceAfterDelete(
+          row,
+          servicePrices,
+        );
         await fetchServicePrices();
         if (shouldDisableInMissions && typeof row.service_id === "number") {
           disableMissionServiceFromPricing(row.service_id, row.label);
@@ -2370,10 +2100,7 @@ export default function ConciergeProfilePage() {
     [editProfile?.location, editProfile?.service_area],
   );
   const selectedPricingSegment = useMemo(() => {
-    if (pricingSegments.length === 0) return null;
-    const byId = pricingSegments.find((segment) => segment.id === strategySim.segmentId);
-    if (byId) return byId;
-    return pricingSegments.find((segment) => segment.is_default) ?? pricingSegments[0];
+    return selectPricingSegment(pricingSegments, strategySim.segmentId);
   }, [pricingSegments, strategySim.segmentId]);
   const strategyProjection = useMemo(() => {
     const revenueEstimate = Math.max(0, Number(strategySim.revenueEstimate || 0));
@@ -2400,34 +2127,11 @@ export default function ConciergeProfilePage() {
       (strategySim.isWeekend ? pricingV2.globalModifiers.weekendPercent : 0) +
       (strategySim.isHighSeason ? pricingV2.globalModifiers.highSeasonPercent : 0);
 
-    const propertyRulesSorted = [...propertyRules].sort((a, b) => {
-      const scoreA =
-        (a.service_id != null ? 2 : 0) +
-        (a.property_type ? 1 : 0) +
-        (a.min_surface_m2 != null || a.max_surface_m2 != null ? 1 : 0);
-      const scoreB =
-        (b.service_id != null ? 2 : 0) +
-        (b.property_type ? 1 : 0) +
-        (b.min_surface_m2 != null || b.max_surface_m2 != null ? 1 : 0);
-      return scoreB - scoreA;
+    const matchedRule = findMatchingPropertyRule(propertyRules, {
+      selectedServiceId,
+      propertyType: strategySim.propertyType,
+      surfaceM2,
     });
-
-    const matchedRule =
-      propertyRulesSorted.find((rule) => {
-        if (rule.service_id != null && selectedServiceId != null && rule.service_id !== selectedServiceId) {
-          return false;
-        }
-        if (rule.service_id != null && selectedServiceId == null) return false;
-        if (
-          rule.property_type &&
-          rule.property_type.trim().toLowerCase() !== strategySim.propertyType.trim().toLowerCase()
-        ) {
-          return false;
-        }
-        if (rule.min_surface_m2 != null && surfaceM2 < rule.min_surface_m2) return false;
-        if (rule.max_surface_m2 != null && surfaceM2 > rule.max_surface_m2) return false;
-        return true;
-      }) ?? null;
 
     const propertyDeltaPct = matchedRule?.delta_pct ?? 0;
     const actBase = Math.max(pricingV2.base.minimumInvoice, pricingV2.base.hourlyRate * 2 + pricingV2.base.travelFee);
@@ -2514,6 +2218,13 @@ export default function ConciergeProfilePage() {
       pricingV2.globalModifiers.weekendPercent,
     ],
   );
+  const billingDeskSectionProps = useMemo(
+    () => ({
+      missionRowsCount: missionRows.length,
+      deskProps: billingDeskProps,
+    }),
+    [missionRows.length, billingDeskProps],
+  );
   const resetAllServicePrices = useCallback(async () => {
     if (!canEditTariffConfig || servicePrices.length === 0) return;
     if (!window.confirm("Réinitialiser la grille et supprimer tous les tarifs personnalisés ?")) {
@@ -2522,16 +2233,13 @@ export default function ConciergeProfilePage() {
 
     setServicePricesBusyId("all");
     try {
-      const serviceIdsToDisable = Array.from(
-        new Set(
-          servicePrices
-            .map((row) => row.service_id)
-            .filter((value): value is number => typeof value === "number"),
-        ),
-      );
+      const serviceIdsToDisable = collectServiceIdsToDisable(servicePrices);
       await Promise.all(
         servicePrices.map((row) =>
-          fetch(`/api/pricing/${encodeURIComponent(row.id)}`, { method: "DELETE" }),
+          deletePricingResource(
+            `/api/pricing/${encodeURIComponent(row.id)}`,
+            "Erreur pendant la réinitialisation des tarifs.",
+          ),
         ),
       );
       await fetchServicePrices();
@@ -2549,6 +2257,75 @@ export default function ConciergeProfilePage() {
     disableMissionServiceFromPricing,
     pushTransientMessage,
   ]);
+  const pricingServiceActions = useMemo(
+    () => ({
+      openCreatePricingModal,
+      openEditPricingModal,
+      deleteServicePrice,
+      resetAllServicePrices,
+    }),
+    [
+      openCreatePricingModal,
+      openEditPricingModal,
+      deleteServicePrice,
+      resetAllServicePrices,
+    ],
+  );
+  const pricingModalControls = useMemo(
+    () => ({
+      pricingModalOpen,
+      pricingModalState,
+      pricingModalSaving,
+      pricingModalError,
+      pricingUnitOptions: PRICING_UNIT_OPTIONS,
+      closePricingModal,
+      saveServicePrice,
+      resetPricingModalToDefaults,
+      setPricingModalState,
+    }),
+    [
+      pricingModalOpen,
+      pricingModalState,
+      pricingModalSaving,
+      pricingModalError,
+      closePricingModal,
+      saveServicePrice,
+      resetPricingModalToDefaults,
+      setPricingModalState,
+    ],
+  );
+  const pricingSegmentActions = useMemo(
+    () => ({
+      createPricingSegment,
+      updatePricingSegment,
+      deletePricingSegment,
+    }),
+    [createPricingSegment, updatePricingSegment, deletePricingSegment],
+  );
+  const pricingPropertyRuleActions = useMemo(
+    () => ({
+      createPricingPropertyRule,
+      updatePricingPropertyRule,
+      deletePricingPropertyRule,
+    }),
+    [createPricingPropertyRule, updatePricingPropertyRule, deletePricingPropertyRule],
+  );
+  const pricingScenarioActions = useMemo(
+    () => ({
+      createPricingScenario,
+      resetStrategySim: () => setStrategySim(DEFAULT_STRATEGY_SIM),
+      loadPricingScenario,
+      setDefaultPricingScenario,
+      deletePricingScenario,
+    }),
+    [
+      createPricingScenario,
+      loadPricingScenario,
+      setDefaultPricingScenario,
+      deletePricingScenario,
+      setStrategySim,
+    ],
+  );
 
   useEffect(() => {
     if (activeTab !== "tarifs") return;
@@ -2596,8 +2373,7 @@ export default function ConciergeProfilePage() {
     [applyPricingV2, pricingV2],
   );
 
-
-  const handleChange = (
+  const handleChange = useCallback((
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     if (!editProfile) return;
@@ -2620,9 +2396,9 @@ export default function ConciergeProfilePage() {
     );
 
     setErrors((prevErrors) => updateProfileFieldErrorsSafe(prevErrors, name, value));
-  };
+  }, [editProfile]);
 
-  const handleSaveSection = async (sectionTitle: string) => {
+  const handleSaveSection = useCallback(async (sectionTitle: string) => {
     if (!editProfile) return;
 
     if (hasValidationErrors(errors)) {
@@ -2673,13 +2449,22 @@ export default function ConciergeProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    editProfile,
+    errors,
+    activeTab,
+    missionProgressSteps,
+    avatarFile,
+    editingSection,
+    update,
+    pushTransientMessage,
+  ]);
 
-  const toggleSection = (sectionId: string) => {
+  const toggleSection = useCallback((sectionId: string) => {
     setOpenSections((prev) => toggleOpenSection(prev, sectionId));
-  };
+  }, []);
 
-  const beginSectionEdit = (sectionId: string) => {
+  const beginSectionEdit = useCallback((sectionId: string) => {
     if (editingSection && editingSection !== sectionId) {
       if (!confirmDiscardIfNeeded(editingSection)) return;
       setSectionEditSnapshots((prev) => removeSectionSnapshot(prev, editingSection));
@@ -2689,14 +2474,14 @@ export default function ConciergeProfilePage() {
       setSectionEditSnapshots((prev) => upsertSectionSnapshot(prev, sectionId, editProfile));
     }
     setEditingSection(sectionId);
-  };
+  }, [confirmDiscardIfNeeded, editProfile, editingSection]);
 
-  const openMissionSectionForEdit = (sectionId: string) => {
+  const openMissionSectionForEdit = useCallback((sectionId: string) => {
     beginSectionEdit(sectionId);
     setOpenSections((prev) => ensureOpenSection(prev, sectionId));
-  };
+  }, [beginSectionEdit]);
 
-  const cancelSectionEdit = () => {
+  const cancelSectionEdit = useCallback(() => {
     if (!confirmDiscardIfNeeded(editingSection)) return;
 
     if (editingSection) {
@@ -2706,9 +2491,9 @@ export default function ConciergeProfilePage() {
     setEditProfile(profile);
     setErrors({});
     setAvatarFile(null);
-  };
+  }, [confirmDiscardIfNeeded, editingSection, profile]);
 
-  const handleSectionHeaderKeyDown = (
+  const handleSectionHeaderKeyDown = useCallback((
     e: KeyboardEvent<HTMLDivElement>,
     sectionId: string,
   ) => {
@@ -2716,9 +2501,9 @@ export default function ConciergeProfilePage() {
       e.preventDefault();
       toggleSection(sectionId);
     }
-  };
+  }, [toggleSection]);
 
-  const renderField = (
+  const renderField = useCallback((
     label: string,
     name: ExtendedFieldName,
     sectionId: string,
@@ -2749,9 +2534,9 @@ export default function ConciergeProfilePage() {
         onChange={handleChange}
       />
     );
-  };
+  }, [editProfile, editingSection, errors, handleChange]);
 
-  const renderSection = (
+  const renderSection = useCallback((
     title: string,
     icon: React.ReactNode,
     children: React.ReactNode,
@@ -2789,14 +2574,25 @@ export default function ConciergeProfilePage() {
         {children}
       </EditableProfileSection>
     );
-  };
+  }, [
+    cancelSectionEdit,
+    editProfile,
+    editingSection,
+    handleSaveSection,
+    handleSectionHeaderKeyDown,
+    loading,
+    openSections,
+    sectionEditSnapshots,
+    beginSectionEdit,
+    toggleSection,
+  ]);
 
-  const handleSocialChange = (
+  const handleSocialChange = useCallback((
     field: "website" | "linkedin" | "instagram" | "facebook",
     value: string,
   ) => {
     setEditProfile((prev) => updateSocialFieldValue(prev, field, value));
-  };
+  }, []);
 
   const createQuoteFromMission = useCallback(async () => {
     if (!selectedMissionQuoteId) return;
@@ -2814,135 +2610,294 @@ export default function ConciergeProfilePage() {
       setMissionQuoteBusy(false);
     }
   }, [handleTabChange, selectedMissionQuoteId]);
+  const missionQuoteControls = useMemo(
+    () => ({
+      selectedMissionQuoteId,
+      setSelectedMissionQuoteId,
+      missionRows,
+      missionQuoteBusy,
+      createQuoteFromMission,
+      missionQuoteFeedback,
+    }),
+    [
+      selectedMissionQuoteId,
+      setSelectedMissionQuoteId,
+      missionRows,
+      missionQuoteBusy,
+      createQuoteFromMission,
+      missionQuoteFeedback,
+    ],
+  );
+  const missionProgressControls = useMemo(
+    () => ({
+      missionProgressPercent,
+      missionProgressDoneCount,
+      missionProgressSteps,
+      showPendingMissionStepsOnly,
+      setShowPendingMissionStepsOnly,
+      openMissionSectionForEdit,
+    }),
+    [
+      missionProgressPercent,
+      missionProgressDoneCount,
+      missionProgressSteps,
+      showPendingMissionStepsOnly,
+      setShowPendingMissionStepsOnly,
+      openMissionSectionForEdit,
+    ],
+  );
+  const missionOverviewStats = useMemo(
+    () => ({
+      activeMissionRawLabels,
+      recognizedActiveMissionCount,
+      unrecognizedActiveMissionLabels,
+      missionOpenDaysCount,
+      missionRangesCount,
+      missionAvailability,
+    }),
+    [
+      activeMissionRawLabels,
+      recognizedActiveMissionCount,
+      unrecognizedActiveMissionLabels,
+      missionOpenDaysCount,
+      missionRangesCount,
+      missionAvailability,
+    ],
+  );
+  const tariffCatalogControls = useMemo(
+    () => ({
+      pricingSortMode,
+      setPricingSortMode,
+      showAllPricingServices,
+      setShowAllPricingServices,
+      canEditTariffConfig,
+      servicePrices,
+      servicePricesBusyId,
+      servicePricesLoading,
+      visiblePricingCatalogRows,
+      groupedPricingCatalogRows,
+      collapsedPricingCategories,
+      togglePricingCategory,
+      pricingServiceActions,
+    }),
+    [
+      pricingSortMode,
+      setPricingSortMode,
+      showAllPricingServices,
+      setShowAllPricingServices,
+      canEditTariffConfig,
+      servicePrices,
+      servicePricesBusyId,
+      servicePricesLoading,
+      visiblePricingCatalogRows,
+      groupedPricingCatalogRows,
+      collapsedPricingCategories,
+      togglePricingCategory,
+      pricingServiceActions,
+    ],
+  );
+  const pricingSegmentsControls = useMemo(
+    () => ({
+      canEditTariffConfig: tariffCatalogControls.canEditTariffConfig,
+      segmentDraft,
+      setSegmentDraft,
+      segmentsBusyId,
+      pricingSegmentActions,
+      segmentsLoading,
+      pricingSegments,
+      setPricingSegments,
+    }),
+    [
+      tariffCatalogControls.canEditTariffConfig,
+      segmentDraft,
+      setSegmentDraft,
+      segmentsBusyId,
+      pricingSegmentActions,
+      segmentsLoading,
+      pricingSegments,
+      setPricingSegments,
+    ],
+  );
+  const pricingRulesControls = useMemo(
+    () => ({
+      canEditTariffConfig: tariffCatalogControls.canEditTariffConfig,
+      propertyRuleDraft,
+      setPropertyRuleDraft,
+      propertyRulesBusyId,
+      pricingPropertyRuleActions,
+      propertyRulesLoading,
+      propertyRules,
+      setPropertyRules,
+      catalogServices,
+    }),
+    [
+      tariffCatalogControls.canEditTariffConfig,
+      propertyRuleDraft,
+      setPropertyRuleDraft,
+      propertyRulesBusyId,
+      pricingPropertyRuleActions,
+      propertyRulesLoading,
+      propertyRules,
+      setPropertyRules,
+      catalogServices,
+    ],
+  );
+  const pricingScenarioControls = useMemo(
+    () => ({
+      strategySim,
+      setStrategySim,
+      pricingSegments,
+      catalogServices,
+      propertyTypeOptions: PROPERTY_TYPE_OPTIONS,
+      applyStrategyProjectionToBillingDesk,
+      scenarioDraftName,
+      setScenarioDraftName,
+      canEditTariffConfig: tariffCatalogControls.canEditTariffConfig,
+      scenariosBusyId,
+      pricingScenarioActions,
+      scenariosLoading,
+      pricingScenarios,
+      selectedPricingSegment,
+      strategyProjection,
+      formatCurrency,
+    }),
+    [
+      strategySim,
+      setStrategySim,
+      pricingSegments,
+      catalogServices,
+      applyStrategyProjectionToBillingDesk,
+      scenarioDraftName,
+      setScenarioDraftName,
+      tariffCatalogControls.canEditTariffConfig,
+      scenariosBusyId,
+      pricingScenarioActions,
+      scenariosLoading,
+      pricingScenarios,
+      selectedPricingSegment,
+      strategyProjection,
+      formatCurrency,
+    ],
+  );
+  const tariffConfigControls = useMemo(
+    () => ({
+      tariffLocationLabel,
+      applyPricingMeta,
+      applyPricingV2,
+      propertyTypeOptions: PROPERTY_TYPE_OPTIONS,
+      getPropertyTypeDeltaPercent,
+      updatePropertyTypeDeltaPercent,
+    }),
+    [
+      tariffLocationLabel,
+      applyPricingMeta,
+      applyPricingV2,
+      getPropertyTypeDeltaPercent,
+      updatePropertyTypeDeltaPercent,
+    ],
+  );
 
-  const activeTabContent = (
-    <ConciergeProfileActiveTabContent
-      activeTab={activeTab}
-      styles={styles}
-      profile={profile}
-      editProfile={editProfile}
-      editingSection={editingSection}
-      avatarFile={avatarFile}
-      defaultAvatar={DEFAULT_AVATAR}
-      sectionIds={{
+  const activeTabContentProps = useMemo<React.ComponentProps<typeof ConciergeProfileActiveTabContent>>(
+    () => ({
+      activeTab,
+      styles,
+      profile,
+      editProfile,
+      editingSection,
+      avatarFile,
+      defaultAvatar: DEFAULT_AVATAR,
+      sectionIds: {
         INFO_PERSO: SECTION_IDS.INFO_PERSO,
         PRESENTATION: SECTION_IDS.PRESENTATION,
-      }}
-      missionSectionIds={MISSION_SECTION_IDS}
-      tariffSectionIds={TARIFF_SECTION_IDS}
-      renderSection={renderSection}
-      renderField={renderField}
-      formatExperienceLabel={formatExperienceLabel}
-      setAvatarFile={setAvatarFile}
-      setEditProfile={setEditProfile}
-      handleSaveSection={handleSaveSection}
-      beginSectionEdit={beginSectionEdit}
-      handleSocialChange={handleSocialChange}
-      errors={errors}
-      missionProgressPercent={missionProgressPercent}
-      missionProgressDoneCount={missionProgressDoneCount}
-      missionProgressSteps={missionProgressSteps}
-      showPendingMissionStepsOnly={showPendingMissionStepsOnly}
-      setShowPendingMissionStepsOnly={setShowPendingMissionStepsOnly}
-      activeMissionRawLabels={activeMissionRawLabels}
-      recognizedActiveMissionCount={recognizedActiveMissionCount}
-      unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
-      missionOpenDaysCount={missionOpenDaysCount}
-      missionRangesCount={missionRangesCount}
-      missionAvailability={missionAvailability}
-      openMissionSectionForEdit={openMissionSectionForEdit}
-      selectedMissionQuoteId={selectedMissionQuoteId}
-      setSelectedMissionQuoteId={setSelectedMissionQuoteId}
-      missionRows={missionRows}
-      missionQuoteBusy={missionQuoteBusy}
-      createQuoteFromMission={createQuoteFromMission}
-      missionQuoteFeedback={missionQuoteFeedback}
-      missionPayload={missionPayload}
-      removeUnrecognizedServices={removeUnrecognizedServices}
-      catalogSyncBusy={catalogSyncBusy}
-      parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
-      parseMissionPayload={parseMissionPayload}
-      buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
-      toMissionTypeId={toMissionTypeId}
-      normalizeMissionSchedule={normalizeMissionSchedule}
-      activeMissionServiceCatalogIds={activeMissionServiceCatalogIds}
-      activeMissionServiceLabels={activeMissionServiceLabels}
-      pricingMeta={pricingMeta}
-      pricingV2={pricingV2}
-      configuredPricingCount={configuredPricingCount}
-      tariffReadinessPercent={tariffReadinessPercent}
-      pendingTariffReadinessChecks={pendingTariffReadinessChecks}
-      scrollToTariffSection={scrollToTariffSection}
-      handleTabChange={handleTabChange}
-      tariffLocationLabel={tariffLocationLabel}
-      applyPricingMeta={applyPricingMeta}
-      pricingCatalogRows={pricingCatalogRows}
-      applyPricingV2={applyPricingV2}
-      pricingSortMode={pricingSortMode}
-      setPricingSortMode={setPricingSortMode}
-      showAllPricingServices={showAllPricingServices}
-      setShowAllPricingServices={setShowAllPricingServices}
-      canEditTariffConfig={canEditTariffConfig}
-      servicePrices={servicePrices}
-      servicePricesBusyId={servicePricesBusyId}
-      servicePricesLoading={servicePricesLoading}
-      visiblePricingCatalogRows={visiblePricingCatalogRows}
-      groupedPricingCatalogRows={groupedPricingCatalogRows}
-      collapsedPricingCategories={collapsedPricingCategories}
-      togglePricingCategory={togglePricingCategory}
-      openCreatePricingModal={openCreatePricingModal}
-      openEditPricingModal={openEditPricingModal}
-      deleteServicePrice={deleteServicePrice}
-      resetAllServicePrices={resetAllServicePrices}
-      propertyTypeOptions={PROPERTY_TYPE_OPTIONS}
-      getPropertyTypeDeltaPercent={getPropertyTypeDeltaPercent}
-      updatePropertyTypeDeltaPercent={updatePropertyTypeDeltaPercent}
-      segmentDraft={segmentDraft}
-      setSegmentDraft={setSegmentDraft}
-      segmentsBusyId={segmentsBusyId}
-      createPricingSegment={createPricingSegment}
-      segmentsLoading={segmentsLoading}
-      pricingSegments={pricingSegments}
-      setPricingSegments={setPricingSegments}
-      updatePricingSegment={updatePricingSegment}
-      deletePricingSegment={deletePricingSegment}
-      propertyRuleDraft={propertyRuleDraft}
-      setPropertyRuleDraft={setPropertyRuleDraft}
-      propertyRulesBusyId={propertyRulesBusyId}
-      createPricingPropertyRule={createPricingPropertyRule}
-      propertyRulesLoading={propertyRulesLoading}
-      propertyRules={propertyRules}
-      setPropertyRules={setPropertyRules}
-      updatePricingPropertyRule={updatePricingPropertyRule}
-      deletePricingPropertyRule={deletePricingPropertyRule}
-      catalogServices={catalogServices}
-      strategySim={strategySim}
-      setStrategySim={setStrategySim}
-      applyStrategyProjectionToBillingDesk={applyStrategyProjectionToBillingDesk}
-      scenarioDraftName={scenarioDraftName}
-      setScenarioDraftName={setScenarioDraftName}
-      scenariosBusyId={scenariosBusyId}
-      createPricingScenario={createPricingScenario}
-      resetStrategySim={() => setStrategySim(DEFAULT_STRATEGY_SIM)}
-      scenariosLoading={scenariosLoading}
-      pricingScenarios={pricingScenarios}
-      loadPricingScenario={loadPricingScenario}
-      setDefaultPricingScenario={setDefaultPricingScenario}
-      deletePricingScenario={deletePricingScenario}
-      selectedPricingSegment={selectedPricingSegment}
-      strategyProjection={strategyProjection}
-      formatCurrency={formatCurrency}
-      pricingModalOpen={pricingModalOpen}
-      pricingModalState={pricingModalState}
-      pricingModalSaving={pricingModalSaving}
-      pricingModalError={pricingModalError}
-      pricingUnitOptions={PRICING_UNIT_OPTIONS}
-      closePricingModal={closePricingModal}
-      saveServicePrice={saveServicePrice}
-      resetPricingModalToDefaults={resetPricingModalToDefaults}
-      setPricingModalState={setPricingModalState}
-      billingDeskProps={billingDeskProps}
-    />
+      },
+      missionSectionIds: MISSION_SECTION_IDS,
+      tariffSectionIds: TARIFF_SECTION_IDS,
+      renderSection,
+      renderField,
+      formatExperienceLabel,
+      setAvatarFile,
+      setEditProfile,
+      handleSaveSection,
+      beginSectionEdit,
+      handleSocialChange,
+      errors,
+      missionProgressControls,
+      missionOverviewStats,
+      missionQuoteControls,
+      missionPayload,
+      removeUnrecognizedServices,
+      catalogSyncBusy,
+      parseAvailabilityPayloadRaw,
+      parseMissionPayload,
+      buildLegacyFromMissionProfile,
+      toMissionTypeId,
+      normalizeMissionSchedule,
+      activeMissionServiceCatalogIds,
+      activeMissionServiceLabels,
+      pricingMeta,
+      pricingV2,
+      configuredPricingCount,
+      tariffReadinessPercent,
+      pendingTariffReadinessChecks,
+      scrollToTariffSection,
+      handleTabChange,
+      tariffConfigControls,
+      pricingCatalogRows,
+      tariffCatalogControls,
+      pricingSegmentsControls,
+      pricingRulesControls,
+      pricingScenarioControls,
+      pricingModalControls,
+      billingDeskSectionProps,
+    }),
+    [
+      activeMissionRawLabels,
+      activeMissionServiceCatalogIds,
+      activeMissionServiceLabels,
+      activeTab,
+      applyPricingMeta,
+      applyPricingV2,
+      applyStrategyProjectionToBillingDesk,
+      avatarFile,
+      beginSectionEdit,
+      billingDeskSectionProps,
+      catalogSyncBusy,
+      configuredPricingCount,
+      pricingRulesControls,
+      pricingScenarioControls,
+      pricingSegmentsControls,
+      editProfile,
+      editingSection,
+      errors,
+      handleSaveSection,
+      handleSocialChange,
+      handleTabChange,
+      missionPayload,
+      missionOverviewStats,
+      missionProgressControls,
+      missionQuoteControls,
+      pendingTariffReadinessChecks,
+      pricingCatalogRows,
+      pricingMeta,
+      pricingModalControls,
+      pricingV2,
+      profile,
+      removeUnrecognizedServices,
+      renderField,
+      renderSection,
+      scrollToTariffSection,
+      setAvatarFile,
+      setEditProfile,
+      setShowPendingMissionStepsOnly,
+      tariffReadinessPercent,
+      tariffCatalogControls,
+      tariffConfigControls,
+    ],
+  );
+
+  const activeTabContent = useMemo(
+    () => <ConciergeProfileActiveTabContent {...activeTabContentProps} />,
+    [activeTabContentProps],
   );
 
   if (errorMsg && !profile) {
