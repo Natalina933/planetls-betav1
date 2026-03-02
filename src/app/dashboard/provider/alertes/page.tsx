@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
+import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
+import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../ProviderCrudPage.module.scss";
 
 type ProviderIntervention = {
@@ -326,11 +329,24 @@ export default function ProviderAlertesPage() {
         {success ? <p className={styles.successBox}>{success}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
+        <ActionPanel
+          eyebrow="Actions a mener"
+          title="Gardez les alertes sous controle"
+          description="Creez une alerte terrain, ouvrez les interventions liees et fermez rapidement les points qui bloquent l'execution."
+          actions={[
+            { label: "Ajouter une alerte", href: "/dashboard/provider/alertes", primary: true },
+            { label: "Voir les interventions", href: "/dashboard/provider/interventions" },
+            { label: "Ouvrir les messages", href: "/dashboard/provider/messages" },
+          ]}
+        />
 
         <div className={styles.layout}>
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>{editingId ? "Modifier une alerte" : "Ajouter une alerte"}</h2>
+              <SectionHeader
+                eyebrow="1. Mise a jour"
+                title={editingId ? "Modifier une alerte" : "Ajouter une alerte"}
+              />
               {editingId ? (
                 <button type="button" className={styles.secondaryButton} onClick={resetForm}>
                   Annuler
@@ -394,7 +410,12 @@ export default function ProviderAlertesPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Flux d&apos;alertes</h2>
+              <SectionHeader
+                eyebrow="2. Informations prioritaires"
+                title="Flux d'alertes"
+                actionLabel="Voir les interventions"
+                actionHref="/dashboard/provider/interventions"
+              />
               <span>{loading ? "..." : `${filteredItems.length} alerte(s)`}</span>
             </div>
 
@@ -450,11 +471,14 @@ export default function ProviderAlertesPage() {
                           <h3>{item.title}</h3>
                           <p>{linkedIntervention?.title || "Sans intervention"}</p>
                         </div>
-                        <span className={styles.badge}>{item.severity || "normal"}</span>
+                        <WorkflowStatusBadge value={item.severity || "normal"} />
                       </div>
                       <div className={styles.itemMeta}>
                         <span>Type: {item.alert_type || "general"}</span>
-                        <span>Statut: {item.status || "open"}</span>
+                        <span className={styles.inlineBadge}>
+                          <span>Statut:</span>
+                          <WorkflowStatusBadge value={item.status || "open"} />
+                        </span>
                         <span>Creee le {formatDateTime(item.created_at)}</span>
                       </div>
                       {item.body ? <p className={styles.itemBody}>{item.body}</p> : null}

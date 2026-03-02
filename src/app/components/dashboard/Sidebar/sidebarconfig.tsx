@@ -36,28 +36,34 @@ function buildSharedWorkspaceItems(
   },
 ): SidebarItem[] {
   return [
-    { label: labels?.planning ?? "Planning", path: `${basePath}/planning`, icon: FiCalendar },
-    { label: labels?.messages ?? "Messages", path: `${basePath}/messages`, icon: FiMessageSquare },
-    { label: labels?.objectifs ?? "Objectifs", path: `${basePath}/objectifs`, icon: FiTarget },
-    { label: labels?.alertes ?? "Alertes", path: `${basePath}/alertes`, icon: FiBell },
+    { label: labels?.planning ?? "Pilotage planning", path: `${basePath}/planning`, icon: FiCalendar },
+    { label: labels?.messages ?? "Suivi messages", path: `${basePath}/messages`, icon: FiMessageSquare },
+    { label: labels?.objectifs ?? "Pilotage objectifs", path: `${basePath}/objectifs`, icon: FiTarget },
+    { label: labels?.alertes ?? "Points d'attention", path: `${basePath}/alertes`, icon: FiBell },
     { label: labels?.settings ?? "Parametres", path: `${basePath}/settings`, icon: FiSettings },
   ];
 }
 
 const providerSidebarItems: SidebarItem[] = [
-  { label: "Vue d'ensemble", path: "/dashboard/provider", icon: FiHome },
+  { label: "Vue prioritaire", path: "/dashboard/provider", icon: FiHome },
   { label: "Interventions", path: "/dashboard/provider/interventions", icon: FiTool },
   { label: "Devis et factures", path: "/dashboard/provider/devis", icon: FiFileText },
-  { label: "Clients", path: "/dashboard/provider/clients", icon: FiUsers },
+  { label: "Suivi clients", path: "/dashboard/provider/clients", icon: FiUsers },
   { label: "Outils", path: "/dashboard/provider/outils", icon: FiSettings },
-  ...buildSharedWorkspaceItems("/dashboard/provider"),
+  ...buildSharedWorkspaceItems("/dashboard/provider", {
+    planning: "Pilotage planning",
+    messages: "Suivi des echanges",
+    objectifs: "Objectifs d'activite",
+    alertes: "Points d'attention",
+    settings: "Compte et configuration",
+  }),
 ];
 
 export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   owner: [
-    { label: "Vue d'ensemble", path: "/dashboard/owner", icon: FiHome },
+    { label: "Vue prioritaire", path: "/dashboard/owner", icon: FiHome },
     {
-      label: "Mes biens",
+      label: "Parc immobilier",
       path: "/dashboard/owner/logements",
       icon: FiClipboard,
       children: [
@@ -67,34 +73,38 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       ],
     },
     {
-      label: "Conciergerie",
+      label: "Relation concierge",
       path: "/dashboard/owner/conciergerie",
       icon: FiUsers,
       children: [
         { label: "Suivi de ma conciergerie", path: "/dashboard/owner/conciergerie", icon: FiUsers },
         { label: "Trouver un concierge", path: "/dashboard/owner/concierges", icon: FiSearch },
-        { label: "Contacts", path: "/dashboard/owner/contacts", icon: FiUsers },
+        { label: "Contacts et echanges", path: "/dashboard/owner/contacts", icon: FiUsers },
       ],
     },
     {
-      label: "Finances",
+      label: "Pilotage financier",
       path: "/dashboard/owner/devis",
       icon: FiCreditCard,
       children: [
         { label: "Devis", path: "/dashboard/owner/devis", icon: FiFileText },
         { label: "Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
-        { label: "Reglement", path: "/dashboard/owner/reglement", icon: FiSettings },
+        { label: "Reglements", path: "/dashboard/owner/reglement", icon: FiSettings },
       ],
     },
     ...buildSharedWorkspaceItems("/dashboard/owner", {
+      planning: "Suivi des interventions",
+      messages: "Suivi des echanges",
+      objectifs: "Objectifs de pilotage",
+      alertes: "Points d'attention",
       settings: "Parametres du compte",
     }),
   ],
 
   concierge: [
-    { label: "Vue d'ensemble", path: "/dashboard/concierge", icon: FiHome },
+    { label: "Vue prioritaire", path: "/dashboard/concierge", icon: FiHome },
     {
-      label: "Mon activite",
+      label: "Offre et positionnement",
       path: "/dashboard/concierge/profile?tab=fiche",
       icon: FiClipboard,
       children: [
@@ -106,13 +116,18 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
         { label: "Documents et avis", path: "/dashboard/concierge/profile?tab=documents", icon: FiFileText },
       ],
     },
-    { label: "Logements", path: "/dashboard/concierge/logements", icon: FiClipboard },
-    { label: "Recherche d'annonces", path: "/dashboard/concierge/recherche", icon: FiSearch },
-    { label: "Contacts", path: "/dashboard/concierge/contacts", icon: FiUsers },
-    { label: "Stocks", path: "/dashboard/concierge/stocks", icon: FiBox },
-    { label: "Abonnement PRO", path: "/abonnement/concierge-pro", icon: FiCreditCard },
-    { label: "Facturation Stripe", path: "/dashboard/concierge/billing", icon: FiFileText },
-    ...buildSharedWorkspaceItems("/dashboard/concierge"),
+    { label: "Parc gere", path: "/dashboard/concierge/logements", icon: FiClipboard },
+    { label: "Prospection proprietaires", path: "/dashboard/concierge/recherche", icon: FiSearch },
+    { label: "Contacts et relation", path: "/dashboard/concierge/contacts", icon: FiUsers },
+    { label: "Stocks et terrain", path: "/dashboard/concierge/stocks", icon: FiBox },
+    { label: "Offre PRO", path: "/abonnement/concierge-pro", icon: FiCreditCard },
+    { label: "Facturation et revenus", path: "/dashboard/concierge/billing", icon: FiFileText },
+    ...buildSharedWorkspaceItems("/dashboard/concierge", {
+      planning: "Pilotage terrain",
+      messages: "Suivi des conversations",
+      objectifs: "Objectifs d'activite",
+      alertes: "Points d'attention",
+    }),
   ],
 
   provider: providerSidebarItems,

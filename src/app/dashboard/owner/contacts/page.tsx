@@ -57,12 +57,12 @@ export default function OwnerContactsPage() {
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Contacts"
-      title="Contacts"
+      eyebrow="Relation concierge"
+      title="Contacts et echanges"
       description={
         error
           ? error
-          : "Retrouvez les concierges avec lesquels vous avez deja echange et accedez rapidement aux fils actifs."
+          : "Retrouvez les concierges avec lesquels vous avez deja echange et priorisez les fils qui demandent un prochain pas."
       }
       chips={[
         `${conversations.length} contact(s)`,
@@ -70,9 +70,26 @@ export default function OwnerContactsPage() {
         conversations[0]?.counterpart_name ? `Dernier contact: ${conversations[0].counterpart_name}` : "Aucun contact recent",
       ]}
       actions={[
-        { label: "Voir les messages", href: "/dashboard/owner/messages" },
+        { label: "Ouvrir les messages", href: "/dashboard/owner/messages" },
         { label: "Voir la conciergerie", href: "/dashboard/owner/conciergerie" },
         { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
+      ]}
+      metrics={[
+        {
+          label: "Contacts suivis",
+          value: String(conversations.length),
+          hint: "Concierges avec lesquels un echange existe deja",
+        },
+        {
+          label: "Fils ouverts",
+          value: String(openCount),
+          hint: "Discussions qui demandent encore un suivi",
+        },
+        {
+          label: "Dernier contact",
+          value: conversations[0]?.counterpart_name || "-",
+          hint: "Dernier interlocuteur remonte dans votre espace",
+        },
       ]}
       cards={
         conversations.length > 0
@@ -93,6 +110,32 @@ export default function OwnerContactsPage() {
               },
             ]
       }
+      detailSections={[
+        {
+          title: "Prochaines actions relationnelles",
+          description:
+            "Utilisez cette vue pour savoir avec qui relancer, avec qui poursuivre et ou une decision est bloquee.",
+          items:
+            conversations.length > 0
+              ? conversations.slice(0, 6).map((conversation) => ({
+                  title: conversation.counterpart_name || "Concierge",
+                  meta: conversation.status || "ouvert",
+                  description: `${conversation.subject || "Sans sujet"} - dernier echange ${formatDate(conversation.last_message_at)}`,
+                  href: "/dashboard/owner/messages",
+                  actionLabel: "Reprendre l'echange",
+                }))
+              : [
+                  {
+                    title: "Initialiser votre relation concierge",
+                    meta: "A demarrer",
+                    description: "Aucun fil actif pour le moment. Lancez une premiere prise de contact depuis la recherche.",
+                    href: "/dashboard/owner/concierges",
+                    actionLabel: "Trouver un concierge",
+                    tone: "warning",
+                  },
+                ],
+        },
+      ]}
     />
   );
 }

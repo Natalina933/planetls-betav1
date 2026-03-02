@@ -74,11 +74,11 @@ export default function ProviderDashboardPage() {
 
   return (
     <ProviderWorkspacePage
-      eyebrow="Vue d'ensemble"
-      title="Artisan"
+      eyebrow="Vue prioritaire"
+      title="Pilotage artisan"
       description={
         error ||
-        `Pilotez l'activite de ${displayName}, vos interventions, vos devis et vos priorites quotidiennes depuis un espace unifie.`
+        `Pilotez l'activite de ${displayName}, vos interventions, vos devis et vos priorites quotidiennes depuis une vue prioritaire.`
       }
       chips={[
         profile?.company_name || "Activite artisanale",
@@ -115,7 +115,7 @@ export default function ProviderDashboardPage() {
       ]}
       cards={[
         {
-          title: "Profil actif",
+          title: "1. Profil actif",
           text: profile
             ? `${displayName}${profile.email ? ` - ${profile.email}` : ""}${profile.phone ? ` - ${profile.phone}` : ""}`
             : "Chargement du profil artisan en cours.",
@@ -128,7 +128,7 @@ export default function ProviderDashboardPage() {
           ],
         },
         {
-          title: "Interventions a suivre",
+          title: "2. Interventions a suivre",
           text: `${stats?.interventions ?? 0} interventions, dont ${stats?.inProgress ?? 0} en cours pour garder une execution claire.`,
           actions: [
             {
@@ -139,7 +139,7 @@ export default function ProviderDashboardPage() {
           ],
         },
         {
-          title: "Pilotage commercial",
+          title: "3. Pilotage commercial",
           text: `${stats?.clients ?? 0} clients, dont ${stats?.activeClients ?? 0} actifs, pour suivre votre activite commerciale.`,
           actions: [
             {
@@ -150,7 +150,7 @@ export default function ProviderDashboardPage() {
           ],
         },
         {
-          title: "Organisation quotidienne",
+          title: "4. Organisation quotidienne",
           text: `${stats?.alerts ?? 0} alertes dont ${stats?.urgentAlerts ?? 0} urgentes, et ${stats?.conversations ?? 0} conversations ouvertes.`,
           actions: [
             {

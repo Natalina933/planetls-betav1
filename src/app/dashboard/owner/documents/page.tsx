@@ -76,12 +76,12 @@ export default function OwnerDocumentsPage() {
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Documents"
-      title="Documents"
+      eyebrow="Pilotage documentaire"
+      title="Documents et PDF"
       description={
         error
           ? error
-          : "Centralisez ici vos devis et factures avec un acces direct aux apercus PDF et aux espaces de suivi."
+          : "Centralisez ici vos devis et factures avec un acces direct aux PDF et aux espaces de suivi associes."
       }
       chips={[
         `${quotes.length} devis`,
@@ -101,16 +101,16 @@ export default function OwnerDocumentsPage() {
         },
       ]}
       actions={[
-        { label: "Voir les devis", href: "/dashboard/owner/devis" },
-        { label: "Voir les factures", href: "/dashboard/owner/factures" },
+        { label: "Ouvrir les devis", href: "/dashboard/owner/devis" },
+        { label: "Ouvrir les factures", href: "/dashboard/owner/factures" },
       ]}
       cards={[
         {
-          title: "Acces rapide",
+          title: "1. Acces rapide",
           text: "Retrouvez les documents les plus recents et accedez directement a leur PDF ou a leur suivi complet.",
         },
         {
-          title: "Suivi administratif",
+          title: "2. Tri par action",
           text: "Cette vue vous aide a distinguer les documents a valider, a payer ou simplement a archiver.",
         },
       ]}

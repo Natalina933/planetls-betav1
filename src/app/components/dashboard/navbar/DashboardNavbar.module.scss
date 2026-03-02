@@ -10,6 +10,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var.$spacing-md;
+  flex-wrap: wrap;
   padding: var.$spacing-md var.$spacing-lg;
   background: var.$mucha-paper;
   border-bottom: 2px solid var.$profile-border;
@@ -25,6 +27,7 @@
   display: flex;
   align-items: center;
   gap: var.$spacing-md;
+  min-width: 0;
 }
 
 .menuButton {
@@ -47,6 +50,7 @@
 .titleBlock {
   display: grid;
   gap: 0.1rem;
+  min-width: 0;
 }
 
 .logoText {
@@ -61,6 +65,9 @@
   font-family: var.$font-elegant;
   font-size: 1rem;
   color: var.$text-light;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sectionLabel {
@@ -69,6 +76,9 @@
   text-transform: uppercase;
   color: var.$gold-dark;
   opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .userRole {
@@ -90,6 +100,7 @@
   display: flex;
   align-items: center;
   gap: var.$spacing-md;
+  min-width: 0;
 }
 
 .rightInfoBlock {
@@ -101,6 +112,7 @@
 .greetingBlock {
   text-align: right;
   line-height: 1.2;
+  min-width: 0;
 }
 
 .companyName {
@@ -111,6 +123,44 @@
 .greeting {
   font-size: 0.85rem;
   color: var.$text-light;
+}
+
+@media (max-width: 920px) {
+  .dashNavbar {
+    padding: var.$spacing-sm var.$spacing-md;
+  }
+
+  .rightInfoBlock {
+    display: none;
+  }
+
+  .leftSection {
+    flex: 1 1 auto;
+  }
+
+  .sectionLabel {
+    max-width: 38vw;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashNavbar {
+    align-items: flex-start;
+  }
+
+  .leftSection,
+  .rightSection {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .userRole {
+    display: none;
+  }
+
+  .sectionLabel {
+    max-width: 56vw;
+  }
 }
 
 /* ==========================================================================

@@ -24,7 +24,7 @@ interface StepCategory {
 
 const stepsByCategory: Record<string, StepCategory> = {
   proprietaires: {
-    label: "Propriétaires",
+    label: "Proprietaires",
     icon: Users,
     ctaLabel: "Trouver une conciergerie",
     ctaLink: "/dashboard/owner/concierges",
@@ -32,7 +32,7 @@ const stepsByCategory: Record<string, StepCategory> = {
       {
         Icon: Lightbulb,
         title: "Publiez votre besoin",
-        description: "Décrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
+        description: "Decrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
         link: "/login",
       },
       {
@@ -43,8 +43,8 @@ const stepsByCategory: Record<string, StepCategory> = {
       },
       {
         Icon: Handshake,
-        title: "Centralisez vos échanges",
-        description: "Suivez devis, factures, missions et messages dans un espace unique.",
+        title: "Pilotez vos priorites",
+        description: "Suivez devis, factures, missions et messages dans un espace unique oriente action.",
         link: "/dashboard/owner",
       },
     ],
@@ -52,25 +52,25 @@ const stepsByCategory: Record<string, StepCategory> = {
   concierges: {
     label: "Concierges",
     icon: User,
-    ctaLabel: "Démarrer ma conciergerie",
+    ctaLabel: "Demarrer ma conciergerie",
     ctaLink: "/abonnement/concierge-pro",
     steps: [
       {
         Icon: Lightbulb,
         title: "Structurez votre offre",
-        description: "Créez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
+        description: "Creez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
         link: "/dashboard/concierge/profile?tab=fiche",
       },
       {
         Icon: Users,
-        title: "Prospectez les propriétaires",
+        title: "Prospectez les proprietaires",
         description: "Activez la recherche, ouvrez des conversations et transformez vos prises de contact.",
         link: "/dashboard/concierge/recherche",
       },
       {
         Icon: Handshake,
-        title: "Pilotez l'opérationnel",
-        description: "Gérez logements, missions, planning, documents et suivi Stripe depuis le dashboard.",
+        title: "Pilotez l'operationnel",
+        description: "Gerez logements, missions, planning, documents et suivi financier depuis le dashboard.",
         link: "/dashboard/concierge",
       },
     ],
@@ -83,20 +83,20 @@ const stepsByCategory: Record<string, StepCategory> = {
     steps: [
       {
         Icon: Users,
-        title: "Accédez au réseau local",
-        description: "Positionnez votre savoir-faire auprès des concierges et propriétaires actifs.",
+        title: "Accedez au reseau local",
+        description: "Positionnez votre savoir-faire aupres des concierges et proprietaires actifs.",
         link: "/home",
       },
       {
         Icon: Lightbulb,
-        title: "Recevez des missions ciblées",
+        title: "Recevez des missions ciblees",
         description: "Travaillez avec des demandes plus lisibles et un cadre plus professionnel.",
         link: "/home",
       },
       {
         Icon: Handshake,
-        title: "Renforcez votre visibilité",
-        description: "Capitalisez sur la recommandation, les avis et la qualité d'exécution.",
+        title: "Renforcez votre visibilite",
+        description: "Capitalisez sur la recommandation, les avis et la qualite d'execution.",
         link: "/home",
       },
     ],
@@ -142,7 +142,7 @@ export function HowItWorksSection() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        Comment ça marche ?
+        Comment ca marche ?
       </motion.h2>
 
       <Tabs.Root defaultValue="concierges" className={styles.tabs}>

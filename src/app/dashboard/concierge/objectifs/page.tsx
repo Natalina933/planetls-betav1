@@ -102,12 +102,12 @@ export default function ConciergeObjectifsPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Pilotage activite"
-      title="Objectifs"
+      title="Objectifs d'activite"
       description={
         loading
           ? "Calcul de vos objectifs d'activite..."
           : error ||
-            "Suivez votre traction commerciale, votre volume d'execution et vos reperes de rentabilite depuis un seul ecran."
+            "Cadrez votre acquisition, votre execution terrain et votre rentabilite depuis une vue orientee decision."
       }
       chips={[
         `${activeHousing} logement(s) actifs`,
@@ -115,8 +115,8 @@ export default function ConciergeObjectifsPage() {
         `${completionRate} % de cloture`,
       ]}
       actions={[
-        { label: "Mettre a jour mes tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
-        { label: "Voir la recherche", href: "/dashboard/concierge/recherche" },
+        { label: "Revoir mes tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
+        { label: "Relancer la prospection", href: "/dashboard/concierge/recherche" },
       ]}
       metrics={[
         {
@@ -145,8 +145,8 @@ export default function ConciergeObjectifsPage() {
           title: "Cap sur la conversion",
           text:
             activeHousing === 0
-              ? "Aucun logement actif n'est encore rattache a votre compte. Commencez par publier votre premier bien ou relancer un proprietaire."
-              : `Votre portefeuille compte ${activeHousing} logement(s) actif(s). Conservez un taux de reponse rapide pour accelerer la signature des prochains proprietaires.`,
+              ? "Aucun logement actif n'est encore rattache a votre compte. Commencez par publier votre premier bien ou relancer un proprietaire cible."
+              : `Votre portefeuille compte ${activeHousing} logement(s) actif(s). Gardez une promesse claire et un taux de reponse rapide pour accelerer les prochaines signatures.`,
           actions: [
             {
               label: "Gerer mes logements",
@@ -159,8 +159,8 @@ export default function ConciergeObjectifsPage() {
           title: "Missions a prioriser",
           text:
             activeMissions.length > 0
-              ? `${activeMissions.length} mission(s) necessitent encore un suivi. Appuyez-vous sur le planning et les messages pour garder le rythme.`
-              : "Aucune mission en cours. Profitez-en pour mettre a jour votre profil public et capter de nouvelles demandes.",
+              ? `${activeMissions.length} mission(s) necessitent encore un suivi. Appuyez-vous sur le planning et les messages pour garder une execution propre.`
+              : "Aucune mission en cours. Profitez-en pour renforcer votre profil public et capter de nouvelles demandes.",
           actions: [
             {
               label: "Voir mes missions",
@@ -172,7 +172,7 @@ export default function ConciergeObjectifsPage() {
         {
           title: "Levier premium",
           text:
-            "Activez ou consolidez votre offre PRO pour valoriser votre note, votre historique Stripe et votre niveau de service dans les parcours proprietaires.",
+            "Activez ou consolidez votre offre PRO pour valoriser votre note, votre historique de facturation et votre niveau de service dans les parcours proprietaires.",
           actions: [
             {
               label: "Voir mon abonnement",

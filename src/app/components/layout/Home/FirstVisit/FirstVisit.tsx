@@ -38,8 +38,8 @@ const FirstVisit = () => {
         </button>
         <h1>Bienvenue sur PlanetLS</h1>
         <p>
-          Parcourez les services, explorez les concierges recommandés et lancez votre mise en
-          relation en quelques clics.
+          Parcourez les services, explorez les concierges recommandes et lancez votre mise en
+          relation depuis un parcours plus clair, plus rapide et plus actionnable.
         </p>
         <div className={styles.actions}>
           <button onClick={() => router.push("/home")}>Decouvrir</button>

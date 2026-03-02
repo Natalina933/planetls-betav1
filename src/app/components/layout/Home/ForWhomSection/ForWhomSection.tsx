@@ -17,36 +17,36 @@ interface CardData {
 const CARDS: CardData[] = [
   {
     key: "proprietaire",
-    title: "Propriétaires",
+    title: "Proprietaires",
     img: "/icons/proprio_belle_epoque.png",
-    alt: "Illustration propriétaire location saisonnière",
+    alt: "Illustration proprietaire location saisonniere",
     cta: "Trouver une conciergerie",
     href: "/dashboard/owner/concierges",
     eyebrow: "Mise en relation rapide",
     description:
-      "Trouvez une conciergerie adaptée à votre ville, à votre type de bien et à votre niveau d'accompagnement, puis suivez missions, documents et paiements depuis un même espace.",
+      "Trouvez une conciergerie adaptee a votre ville, a votre type de bien et a votre niveau d'accompagnement, puis pilotez missions, documents et paiements depuis un meme espace.",
   },
   {
     key: "concierge",
     title: "Concierges",
     img: "/icons/concierges_belle_epoque.png",
     alt: "Illustration conciergerie premium",
-    cta: "Développer mon activité",
+    cta: "Developper mon activite",
     href: "/abonnement/concierge-pro",
     eyebrow: "Pilotage tout-en-un",
     description:
-      "Structurez vos services, vos tarifs, vos packs, vos logements et vos missions. PlanetLS vous aide à gagner du temps et à rendre votre activité plus premium.",
+      "Structurez vos services, vos tarifs, vos packs, vos logements et vos missions. PlanetLS vous aide a gagner du temps et a rendre votre activite plus lisible et plus premium.",
   },
   {
     key: "artisan",
-    title: "Artisans & partenaires",
+    title: "Artisans et partenaires",
     img: "/icons/artisans_belle_epoque.png",
     alt: "Illustration artisan partenaire local",
     cta: "Proposer mon savoir-faire",
     href: "/login",
-    eyebrow: "Réseau local qualifié",
+    eyebrow: "Reseau local qualifie",
     description:
-      "Rejoignez un écosystème de propriétaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
+      "Rejoignez un ecosysteme de proprietaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
   },
 ];
 
@@ -84,11 +84,11 @@ const ForWhomSection: React.FC = () => (
       <div className={styles.introBlock}>
         <span className={styles.kicker}>Pour qui ?</span>
         <h2 id="for-whom-title" className={styles.planetLSTitle}>
-          Une plateforme conçue pour faire grandir tout l&apos;écosystème locatif
+          Une plateforme concue pour faire grandir tout l&apos;ecosysteme locatif
         </h2>
         <p className={styles.planetLSIntro}>
-          PlanetLS relie propriétaires, concierges et partenaires terrain dans une expérience plus
-          fluide, plus rassurante et beaucoup plus simple à piloter au quotidien.
+          PlanetLS relie proprietaires, concierges et partenaires terrain dans une experience plus
+          fluide, plus rassurante et beaucoup plus simple a piloter au quotidien.
         </p>
       </div>
 
@@ -100,14 +100,14 @@ const ForWhomSection: React.FC = () => (
 
       <div className={styles.sectionMission}>
         <strong>Notre mission :</strong> centraliser la mise en relation, la gestion des biens et
-        la coordination terrain pour professionnaliser la location saisonnière, sans complexifier
+        la coordination terrain pour professionnaliser la location saisonniere, sans complexifier
         le quotidien.
       </div>
 
       <div className={styles.heroActions}>
         <div className={styles.buttonsRow}>
           <Link href="/login" className={styles.CTAButton}>
-            Démarrer sur PlanetLS
+            Demarrer sur PlanetLS
           </Link>
           <Link href="/home#how-it-works" className={styles.CTAButtonSecondary}>
             Voir le fonctionnement

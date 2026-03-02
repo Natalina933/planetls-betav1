@@ -15,14 +15,14 @@ const Icons = {
 
 export default function PromotePlatformSection() {
   return (
-    <ServicesBlock title="Professionnalisez votre activité">
+    <ServicesBlock title="Professionnalisez votre activite">
       <div className={styles.platformSectionContent}>
         <div className={styles.heroBanner}>
           <span className={styles.eyebrow}>Conciergerie premium</span>
-          <h2 className={styles.heroTitle}>Je veux ouvrir ma conciergerie</h2>
+          <h2 className={styles.heroTitle}>Je veux structurer ma conciergerie</h2>
           <p className={styles.heroSubtitle}>
-            Structurez votre offre, vos packs, vos tarifs et votre relation propriétaire avec un
-            outil pensé pour la location saisonnière.
+            Structurez votre offre, vos packs, vos tarifs et votre relation proprietaire avec un
+            outil pense pour la location saisonniere.
           </p>
           <div className={styles.heroActions}>
             <Link href="/abonnement/concierge-pro" className={styles.heroButton}>
@@ -35,9 +35,9 @@ export default function PromotePlatformSection() {
         </div>
 
         <div className={styles.introBox}>
-          <h3>Une base SaaS pour piloter votre conciergerie</h3>
+          <h3>Une base SaaS pour piloter votre activite</h3>
           <p>
-            Prospection propriétaires, packs de services, devis, factures, missions, planning et
+            Prospection proprietaires, packs de services, devis, factures, missions, planning et
             messagerie : la plateforme centralise le cycle complet.
           </p>
         </div>
@@ -50,13 +50,13 @@ export default function PromotePlatformSection() {
           </div>
           <div className={styles.pillarItem}>
             <Icons.TbPackages size={24} />
-            <h4>Offres structurées</h4>
-            <p>Transformez vos prestations en packs clairs, tarifs liés et contrats réutilisables.</p>
+            <h4>Offres structurees</h4>
+            <p>Transformez vos prestations en packs clairs, tarifs lies et contrats reutilisables.</p>
           </div>
           <div className={styles.pillarItem}>
             <Icons.MdAutoMode size={24} />
             <h4>Pilotage terrain</h4>
-            <p>Gardez la main sur missions, urgences, stocks et planning avec une vision centralisée.</p>
+            <p>Gardez la main sur missions, urgences, stocks et planning avec une vision centralisee.</p>
           </div>
         </div>
       </div>

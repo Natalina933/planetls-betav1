@@ -100,36 +100,53 @@ export default function OwnerAlertesPage() {
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Alertes"
-      title="Alertes"
+      eyebrow="Points d'attention"
+      title="Points d'attention"
       description={
         error
           ? error
-          : "Concentrez ici les urgences de planning, les soldes a regler et les devis en attente de validation."
+          : "Concentrez ici les urgences d'execution, les soldes a regler et les validations qui demandent une decision rapide."
       }
       chips={[
         `${urgentMissions.length} mission(s) prioritaires`,
         `${pendingInvoices.length} facture(s) a suivre`,
         `${pendingQuotes.length} devis a valider`,
       ]}
+      metrics={[
+        {
+          label: "Priorites execution",
+          value: String(urgentMissions.length),
+          hint: "Interventions qui peuvent creer une friction immediate",
+        },
+        {
+          label: "Alertes finance",
+          value: String(pendingInvoices.length),
+          hint: "Factures qui demandent un suivi ou un reglement",
+        },
+        {
+          label: "Decisions en attente",
+          value: String(pendingQuotes.length),
+          hint: "Devis a arbitrer rapidement",
+        },
+      ]}
       actions={[
-        { label: "Voir le planning", href: "/dashboard/owner/planning" },
-        { label: "Voir les factures", href: "/dashboard/owner/factures" },
-        { label: "Voir les devis", href: "/dashboard/owner/devis" },
+        { label: "Voir le suivi des interventions", href: "/dashboard/owner/planning" },
+        { label: "Ouvrir les factures", href: "/dashboard/owner/factures" },
+        { label: "Ouvrir les devis", href: "/dashboard/owner/devis" },
       ]}
       cards={[
         {
-          title: "Priorites planning",
+          title: "1. Priorites execution",
           text:
             urgentMissions.length > 0
               ? urgentMissions
                   .slice(0, 3)
                   .map((mission) => `${mission.title || "Mission"} - ${mission.status || "-"} - ${formatDate(mission.scheduled_start)}`)
                   .join(" | ")
-              : "Aucune mission prioritaire a signaler pour le moment.",
+              : "Aucune intervention prioritaire a signaler pour le moment.",
         },
         {
-          title: "Suivi financier",
+          title: "2. Suivi financier",
           text:
             pendingInvoices.length > 0
               ? pendingInvoices
@@ -139,7 +156,7 @@ export default function OwnerAlertesPage() {
               : "Aucune facture en attente de reglement.",
         },
         {
-          title: "Validation de devis",
+          title: "3. Validations en attente",
           text:
             pendingQuotes.length > 0
               ? pendingQuotes
@@ -147,6 +164,38 @@ export default function OwnerAlertesPage() {
                   .map((quote) => `${quote.quote_number || "Devis"} - ${quote.status || "-"} - valide jusqu'au ${formatDate(quote.valid_until)}`)
                   .join(" | ")
               : "Aucun devis en attente de validation.",
+        },
+      ]}
+      detailSections={[
+        {
+          title: "Actions a lancer maintenant",
+          description:
+            "Les alertes utiles sont celles qui debloquent une decision ou evitent un retard. Commencez par ces trois leviers.",
+          items: [
+            {
+              title: "Verifier les interventions prioritaires",
+              meta: `${urgentMissions.length} priorite(s)`,
+              description: "Confirmer statut, date et niveau d'urgence sur les missions ouvertes.",
+              href: "/dashboard/owner/planning",
+              actionLabel: "Ouvrir le planning",
+              tone: urgentMissions.length > 0 ? "warning" : "default",
+            },
+            {
+              title: "Traiter les factures ouvertes",
+              meta: `${pendingInvoices.length} facture(s)`,
+              description: "Eviter les echeances ratees et garder une vision propre du solde en cours.",
+              href: "/dashboard/owner/factures",
+              actionLabel: "Voir les factures",
+              tone: pendingInvoices.length > 0 ? "warning" : "default",
+            },
+            {
+              title: "Arbitrer les devis en attente",
+              meta: `${pendingQuotes.length} devis`,
+              description: "Valider ou repousser les propositions qui influencent votre execution et votre budget.",
+              href: "/dashboard/owner/devis",
+              actionLabel: "Voir les devis",
+            },
+          ],
         },
       ]}
     />

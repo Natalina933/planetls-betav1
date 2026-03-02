@@ -151,6 +151,103 @@ $concierge-accent-soft: #f3ead8;
   @include grid-template(repeat(auto-fit, minmax(280px, 1fr)), $spacing-lg);
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-md;
+}
+
+.sectionEyebrow {
+  margin: 0 0 0.35rem;
+  color: $concierge-accent-deep;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sectionAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.5rem 0.9rem;
+  border-radius: $radius-md;
+  border: 1px solid rgba($concierge-accent, 0.32);
+  text-decoration: none;
+  color: $concierge-accent-deep;
+  background: rgba($concierge-accent, 0.1);
+  font-weight: 700;
+}
+
+.focusGrid {
+  @include grid-template(repeat(auto-fit, minmax(240px, 1fr)), $spacing-md);
+}
+
+.focusCard {
+  display: grid;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  border: 1px solid rgba($concierge-accent, 0.2);
+  background: rgba(255, 251, 245, 0.9);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.focusCardTop {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.focusIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba($concierge-accent, 0.15);
+  color: $concierge-accent-deep;
+}
+
+.focusLabel {
+  margin: 0;
+  color: $concierge-accent-deep;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.focusValue {
+  font-size: clamp(1.7rem, 3.8vw, 2.4rem);
+  color: $text-dark;
+  line-height: 1;
+}
+
+.focusText {
+  margin: 0;
+  color: $color-text-neutral;
+}
+
+.focusLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  color: $concierge-accent-deep;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.focusLink:hover {
+  text-decoration: underline;
+}
+
 .matchesSection {
   padding: $spacing-lg;
   border-radius: $radius-lg;

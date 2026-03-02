@@ -56,7 +56,7 @@ export default function ConciergeStocksPage() {
       }
     }
 
-    loadStocksContext();
+    void loadStocksContext();
   }, []);
 
   const activeMissions = useMemo(
@@ -91,9 +91,9 @@ export default function ConciergeStocksPage() {
       title="Stocks et consommables"
       description={
         loading
-          ? "Préparation du pilotage stock..."
+          ? "Preparation du pilotage stock..."
           : error ||
-            "Gardez un repère simple sur le linge, les kits d'accueil et les consommables pour éviter les tensions terrain."
+            "Gardez un repere simple sur le linge, les kits d'accueil et les consommables pour eviter les tensions terrain."
       }
       chips={[
         `${housingCount} logement(s) suivis`,
@@ -108,49 +108,49 @@ export default function ConciergeStocksPage() {
         {
           label: "Kits accueil",
           value: loading ? "..." : String(stockForecast.welcomeKits),
-          hint: "Base minimale recommandée",
+          hint: "Base minimale recommandee",
         },
         {
           label: "Jeux de linge",
           value: loading ? "..." : String(stockForecast.linenSets),
-          hint: "Rotation estimée",
+          hint: "Rotation estimee",
         },
         {
-          label: "Réassort ménage",
+          label: "Reassort menage",
           value: loading ? "..." : String(stockForecast.cleaningUnits),
-          hint: "Unités à garder en réserve",
+          hint: "Unites a garder en reserve",
         },
         {
           label: "Tampon urgence",
           value: loading ? "..." : String(stockForecast.backupSets),
-          hint: "Réserve minimum pour imprévus",
+          hint: "Reserve minimum pour imprevus",
         },
       ]}
       cards={[
         {
-          title: "Rotation linge",
-          text: `Avec ${housingCount} logement(s), gardez au moins ${stockForecast.linenSets} jeux de linge disponibles pour absorber les check-in et ménages consécutifs.`,
+          title: "1. Rotation linge",
+          text: `Avec ${housingCount} logement(s), gardez au moins ${stockForecast.linenSets} jeux de linge disponibles pour absorber les check-in et menages consecutifs.`,
         },
         {
-          title: "Kits voyageurs",
+          title: "2. Kits voyageurs",
           text:
             urgentMissions.length > 0
-              ? `${urgentMissions.length} mission(s) urgente(s) sont en cours : vérifiez gels douche, café, papier et consommables d'accueil.`
-              : "Aucune urgence remontée : profitez-en pour standardiser vos kits voyageurs et vos procédures de réapprovisionnement.",
+              ? `${urgentMissions.length} mission(s) urgente(s) sont en cours : verifiez gels douche, cafe, papier et consommables d'accueil.`
+              : "Aucune urgence remontee : profitez-en pour standardiser vos kits voyageurs et vos procedures de reapprovisionnement.",
         },
         {
-          title: "Biens à fiabiliser",
+          title: "3. Biens a fiabiliser",
           text:
             inactiveHousings.length > 0
-              ? `${inactiveHousings.length} logement(s) restent incomplets ou inactifs : ils faussent votre estimation stock et votre rotation réelle.`
-              : "Tous vos logements sont actifs ou publiés, votre base stock est plus simple à piloter.",
+              ? `${inactiveHousings.length} logement(s) restent incomplets ou inactifs : ils faussent votre estimation stock et votre rotation reelle.`
+              : "Tous vos logements sont actifs ou publies, votre base stock est plus simple a piloter.",
         },
       ]}
       detailSections={[
         {
-          title: "Contrôle par logement",
+          title: "Controle par logement",
           description:
-            "Passez rapidement en revue les biens à réapprovisionner ou à fiabiliser avant les prochains séjours.",
+            "Passez rapidement en revue les biens a reapprovisionner ou a fiabiliser avant les prochains sejours.",
           emptyText:
             loading
               ? "Chargement des logements."
@@ -168,13 +168,13 @@ export default function ConciergeStocksPage() {
           items: urgentMissionItems,
         },
         {
-          title: "Biens à remettre au carré",
+          title: "Biens a remettre au carre",
           description:
-            "Les logements encore inactifs ou incomplets méritent une vérification rapide pour éviter les écarts de stock.",
+            "Les logements encore inactifs ou incomplets meritent une verification rapide pour eviter les ecarts de stock.",
           emptyText:
             loading
               ? "Analyse des logements incomplets."
-              : error || "Aucun logement brouillon à corriger.",
+              : error || "Aucun logement brouillon a corriger.",
           items: inactiveHousingItems,
         },
       ]}

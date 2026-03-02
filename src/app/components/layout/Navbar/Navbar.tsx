@@ -304,7 +304,7 @@ export default function Navbar() {
           {isAuthenticated && !isDashboardRoute && (
             <li className={styles["auth-dashboard"]}>
               <button type="button" onClick={handleGoToDashboard} className={styles.dashboardButton}>
-                <Icons.FaTachometerAlt size={18} /> Mon dashboard
+                <Icons.FaTachometerAlt size={18} /> Mon espace
               </button>
             </li>
           )}

@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./OwnerDashboardPages.module.scss";
+import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
+import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
 
 type OwnerHousingRow = {
   id: number;
@@ -83,6 +85,22 @@ function formatMissionDate(value: string | null) {
 function formatAmount(value: number | null) {
   return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non defini";
 }
+
+type DashboardHighlight = {
+  title: string;
+  value: string;
+  detail: string;
+  href: string;
+  action: string;
+};
+
+type DashboardPriority = {
+  title: string;
+  detail: string;
+  href: string;
+  action: string;
+  tone?: "default" | "warning";
+};
 
 export default function OwnerDashboardPage() {
   const [properties, setProperties] = useState<OwnerHousingRow[]>([]);
@@ -219,12 +237,130 @@ export default function OwnerDashboardPage() {
     missions.length,
     invoices.length,
   ]);
+  const objectiveCards = useMemo<DashboardHighlight[]>(
+    () => [
+      {
+        title: "Garder des logements operationnels",
+        value: `${activeCount}/${properties.length || 0}`,
+        detail:
+          activeCount === 0
+            ? "Aucun logement actif pour le moment."
+            : `${draftCount} logement(s) restent a completer ou publier.`,
+        href: "/dashboard/owner/logements",
+        action: activeCount === 0 ? "Activer mes logements" : "Voir mes logements",
+      },
+      {
+        title: "Maitriser les interventions en cours",
+        value: `${ongoingMissions.length}`,
+        detail:
+          ongoingMissions.length === 0
+            ? "Aucune intervention active a surveiller."
+            : `${completedMissions.length} intervention(s) deja terminee(s).`,
+        href: "/dashboard/owner/planning",
+        action: "Suivre les missions",
+      },
+      {
+        title: "Securiser le suivi financier",
+        value: `${pendingInvoices.length}`,
+        detail:
+          pendingInvoices.length === 0
+            ? "Aucune facture en attente de reglement."
+            : `${latestQuotes.length} devis recent(s) a verifier en priorite.`,
+        href: "/dashboard/owner/factures",
+        action: "Ouvrir le suivi financier",
+      },
+    ],
+    [
+      activeCount,
+      properties.length,
+      draftCount,
+      ongoingMissions.length,
+      completedMissions.length,
+      pendingInvoices.length,
+      latestQuotes.length,
+    ],
+  );
+  const priorityItems = useMemo<DashboardPriority[]>(() => {
+    const items: DashboardPriority[] = [];
+
+    if (draftCount > 0) {
+      items.push({
+        title: "Logements a finaliser",
+        detail: `${draftCount} logement(s) ne sont pas encore actifs ou publies.`,
+        href: "/dashboard/owner/logements",
+        action: "Completer les fiches",
+        tone: "warning",
+      });
+    }
+
+    if (pendingInvoices.length > 0) {
+      items.push({
+        title: "Reglements a suivre",
+        detail: `${pendingInvoices.length} facture(s) demandent une verification ou un reglement.`,
+        href: "/dashboard/owner/factures",
+        action: "Voir les factures",
+        tone: "warning",
+      });
+    }
+
+    if (ongoingMissions.length > 0) {
+      items.push({
+        title: "Missions en cours",
+        detail: `${ongoingMissions.length} intervention(s) sont actuellement ouvertes.`,
+        href: "/dashboard/owner/planning",
+        action: "Verifier le planning",
+      });
+    }
+
+    if (reviews.length === 0) {
+      items.push({
+        title: "Relation concierge a documenter",
+        detail: "Aucun avis enregistre pour l'instant sur votre conciergerie.",
+        href: "/dashboard/owner/conciergerie",
+        action: "Partager un retour",
+      });
+    }
+
+    if (items.length === 0) {
+      items.push({
+        title: "Espace sous controle",
+        detail: "Aucune alerte immediate. Vous pouvez optimiser vos arbitrages ou developper votre parc.",
+        href: "/dashboard/owner/objectifs",
+        action: "Definir mes objectifs",
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [draftCount, ongoingMissions.length, pendingInvoices.length, reviews.length]);
+  const actionItems = useMemo<DashboardPriority[]>(
+    () => [
+      {
+        title: "Ajouter un logement",
+        detail: "Creer une nouvelle fiche pour elargir votre parc et demarrer un suivi propre.",
+        href: "/dashboard/owner/logements",
+        action: "Gerer mes logements",
+      },
+      {
+        title: "Trouver une conciergerie",
+        detail: "Comparer les profils standards et PRO adaptes a votre ville et a vos besoins.",
+        href: "/dashboard/owner/concierges",
+        action: "Explorer les concierges",
+      },
+      {
+        title: "Arbitrer mes objectifs",
+        detail: "Prioriser revenus, occupation et qualite de service depuis un espace dedie.",
+        href: "/dashboard/owner/objectifs",
+        action: "Ouvrir mes objectifs",
+      },
+    ],
+    [],
+  );
 
   return (
     <section className="dashboard-grid">
       <header>
         <h1>Tableau de bord proprietaire</h1>
-        <p>Suivez vos logements, vos interventions et vos prochaines actions en un seul endroit.</p>
+        <p>Organisez votre pilotage par objectif, surveillez l&apos;essentiel et traitez les actions prioritaires sans dispersion.</p>
       </header>
 
       <div className="stats-row">
@@ -251,110 +387,90 @@ export default function OwnerDashboardPage() {
       </div>
 
       <div className="main-section">
-        <div className={styles.inlineActions}>
-          <h2>Actions rapides</h2>
-          <div className={styles.inlineActions}>
-            <Link href="/dashboard/concierge/logements/create" className={styles.linkButton}>
-              Ajouter un logement
-            </Link>
-            <Link href="/dashboard/owner/concierges" className={styles.linkButton}>
-              Trouver un concierge PRO ou Standard
-            </Link>
-          </div>
-        </div>
+        <div className={styles.dashboardFlow}>
+          <ActionPanel
+            eyebrow="Vue priorisee"
+            title="Vos priorites du moment"
+            description="Ce tableau de bord met en avant les objectifs de gestion, les informations a forte valeur et les prochaines decisions a prendre."
+            actions={[
+              { label: "Gerer mes logements", href: "/dashboard/owner/logements", primary: true },
+              { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
+              { label: "Verifier mes factures", href: "/dashboard/owner/factures" },
+            ]}
+          />
 
-        {loading ? <p>Chargement de votre espace proprietaire...</p> : null}
-        {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
+          {loading ? <p>Chargement de votre espace proprietaire...</p> : null}
+          {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
-        {!loading && !error ? (
-          <>
-            <div className={styles.sectionGrid}>
-              <div className={styles.panel}>
-                <h3>Interventions en cours</h3>
-                {ongoingMissions.length === 0 ? (
-                  <p>Aucune intervention en cours pour le moment.</p>
-                ) : (
-                  <ul>
-                    {ongoingMissions.slice(0, 4).map((mission) => (
-                      <li key={mission.id}>
-                        <strong>{mission.title || "Mission sans titre"}</strong>
-                        <br />
-                        {mission.status || "Statut non defini"} - {formatMissionDate(mission.scheduled_start)}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className={styles.panel}>
-                <h3>Historique recent</h3>
-                {recentMissions.length === 0 ? (
-                  <p>Aucune mission historique disponible.</p>
-                ) : (
-                  <ul>
-                    {recentMissions.map((mission) => (
-                      <li key={mission.id}>
-                        <strong>{mission.title || "Mission sans titre"}</strong>
-                        <br />
-                        {formatMissionDate(mission.scheduled_start)} - {formatAmount(mission.amount)}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className={styles.panel}>
-                <h3>Satisfaction concierge</h3>
-                {reviews.length === 0 ? (
-                  <p>Aucun avis publie pour le moment.</p>
-                ) : (
-                  <div>
-                    <p>
-                      Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur {reviews.length} avis
-                    </p>
-                    <p>{reviews[0]?.comment || "Dernier retour enregistre sans commentaire."}</p>
-                    <Link href="/dashboard/owner/conciergerie">Voir les avis, les badges PRO et noter</Link>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={{ marginTop: "2rem" }}>
-              <h2>Vos logements</h2>
-              {properties.length === 0 ? (
-                <div>
-                  <p>Vous n'avez pas encore de logement visible sur votre compte.</p>
-                  <p>
-                    Si vous aviez des exemples de test avant la securisation, ils peuvent etre lies a
-                    un autre identifiant. Creez-en un nouveau pour repartir sur des donnees propres.
-                  </p>
-                </div>
-              ) : (
-                <ul>
-                  {properties.map((property) => (
-                    <li key={property.id}>
-                      <strong>{property.nom_logement || "Logement sans nom"}</strong> -{" "}
-                      {property.ville || "Ville non renseignee"} ({getStatusLabel(property.statut)})
-                    </li>
+          {!loading && !error ? (
+            <>
+              <section className={styles.flowSection}>
+                <SectionHeader
+                  eyebrow="1. Objectifs"
+                  title="Organisation par objectif"
+                  actionLabel="Ouvrir mes objectifs"
+                  actionHref="/dashboard/owner/objectifs"
+                />
+                <div className={styles.priorityGrid}>
+                  {objectiveCards.map((item) => (
+                    <article key={item.title} className={styles.priorityCard}>
+                      <p className={styles.cardLabel}>{item.title}</p>
+                      <strong className={styles.cardValue}>{item.value}</strong>
+                      <p className={styles.meta}>{item.detail}</p>
+                      <Link href={item.href} className={styles.cardAction}>
+                        {item.action}
+                      </Link>
+                    </article>
                   ))}
-                </ul>
-              )}
-            </div>
+                </div>
+              </section>
 
-            <div style={{ marginTop: "2rem" }}>
-              <h2>Devis et factures</h2>
+              <section className={styles.flowSection}>
+                <SectionHeader eyebrow="2. Informations prioritaires" title="Ce qui demande votre attention" />
+                <div className={styles.priorityGrid}>
+                  {priorityItems.map((item) => (
+                    <article
+                      key={item.title}
+                      className={`${styles.priorityCard} ${item.tone === "warning" ? styles.priorityWarning : ""}`}
+                    >
+                      <p className={styles.cardLabel}>{item.title}</p>
+                      <p className={styles.meta}>{item.detail}</p>
+                      <Link href={item.href} className={styles.cardAction}>
+                        {item.action}
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section className={styles.flowSection}>
+                <SectionHeader eyebrow="3. Actions a mener" title="Raccourcis vers les prochaines decisions" />
+                <div className={styles.priorityGrid}>
+                  {actionItems.map((item) => (
+                    <article key={item.title} className={styles.priorityCard}>
+                      <p className={styles.cardLabel}>{item.title}</p>
+                      <p className={styles.meta}>{item.detail}</p>
+                      <Link href={item.href} className={styles.cardAction}>
+                        {item.action}
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
               <div className={styles.sectionGrid}>
                 <div className={styles.panel}>
-                  <h3>Derniers devis</h3>
-                  {latestQuotes.length === 0 ? (
-                    <p>Aucun devis disponible pour le moment.</p>
+                  <h3>Interventions en cours</h3>
+                  {ongoingMissions.length === 0 ? (
+                    <p>Aucune intervention en cours pour le moment.</p>
                   ) : (
-                    <ul>
-                      {latestQuotes.map((quote) => (
-                        <li key={quote.id}>
-                          <strong>{quote.quote_number || "Devis sans numero"}</strong>
-                          <br />
-                          {quote.status || "Statut non defini"} - {formatAmount(quote.total_amount)}
+                    <ul className={styles.list}>
+                      {ongoingMissions.slice(0, 4).map((mission) => (
+                        <li key={mission.id} className={styles.listItem}>
+                          <strong>{mission.title || "Mission sans titre"}</strong>
+                          <p className={styles.meta}>
+                            {mission.status || "Statut non defini"} - {formatMissionDate(mission.scheduled_start)}
+                          </p>
                         </li>
                       ))}
                     </ul>
@@ -362,50 +478,139 @@ export default function OwnerDashboardPage() {
                 </div>
 
                 <div className={styles.panel}>
-                  <h3>Dernieres factures</h3>
-                  {latestInvoices.length === 0 ? (
-                    <p>Aucune facture disponible pour le moment.</p>
+                  <h3>Historique recent</h3>
+                  {recentMissions.length === 0 ? (
+                    <p>Aucune mission historique disponible.</p>
                   ) : (
-                    <ul>
-                      {latestInvoices.map((invoice) => (
-                        <li key={invoice.id}>
-                          <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
-                          <br />
-                          {invoice.status || "Statut non defini"} - Solde {formatAmount(invoice.balance_amount)}
+                    <ul className={styles.list}>
+                      {recentMissions.map((mission) => (
+                        <li key={mission.id} className={styles.listItem}>
+                          <strong>{mission.title || "Mission sans titre"}</strong>
+                          <p className={styles.meta}>
+                            {formatMissionDate(mission.scheduled_start)} - {formatAmount(mission.amount)}
+                          </p>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
+
+                <div className={styles.panel}>
+                  <h3>Satisfaction concierge</h3>
+                  {reviews.length === 0 ? (
+                    <p>Aucun avis publie pour le moment.</p>
+                  ) : (
+                    <div>
+                      <p>
+                        Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur {reviews.length} avis
+                      </p>
+                      <p className={styles.meta}>
+                        {reviews[0]?.comment || "Dernier retour enregistre sans commentaire."}
+                      </p>
+                      <Link href="/dashboard/owner/conciergerie" className={styles.cardAction}>
+                        Voir les avis et noter
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div style={{ marginTop: "2rem" }}>
-              <h2>Suivi de votre activite</h2>
-              <ul>
-                <li>{ongoingMissions.length} mission(s) demandent actuellement un suivi.</li>
-                <li>{completedMissions.length} intervention(s) sont deja terminees.</li>
-                <li>{draftCount} logement(s) restent a finaliser ou publier.</li>
-                <li>{pendingInvoices.length} facture(s) restent a suivre ou regler.</li>
-              </ul>
-            </div>
+              <div className={styles.sectionGrid}>
+                <div className={styles.panel}>
+                  <h3>Vos logements</h3>
+                  {properties.length === 0 ? (
+                    <div>
+                      <p>Vous n&apos;avez pas encore de logement visible sur votre compte.</p>
+                      <p className={styles.meta}>
+                        Creez un nouveau bien pour repartir sur des donnees propres et lancer votre suivi.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className={styles.list}>
+                      {properties.slice(0, 5).map((property) => (
+                        <li key={property.id} className={styles.listItem}>
+                          <strong>{property.nom_logement || "Logement sans nom"}</strong>
+                          <p className={styles.meta}>
+                            {property.ville || "Ville non renseignee"} ({getStatusLabel(property.statut)})
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
-            <div className={styles.statsList} style={{ marginTop: "2rem" }}>
-              <h2>Indicateurs cles</h2>
-              {ownerMetrics.map((metric) => (
-                <div key={metric.label} className={styles.metricRow}>
-                  <div className={styles.metricLabel}>
-                    <span>{metric.label}</span>
-                    <span>{metric.value}</span>
-                  </div>
-                  <div className={styles.metricTrack}>
-                    <div className={styles.metricBar} style={{ width: metric.width }} />
+                <div className={styles.panel}>
+                  <h3>Devis et factures</h3>
+                  <div className={styles.sectionStack}>
+                    <div>
+                      <h4>Derniers devis</h4>
+                      {latestQuotes.length === 0 ? (
+                        <p>Aucun devis disponible pour le moment.</p>
+                      ) : (
+                        <ul className={styles.list}>
+                          {latestQuotes.map((quote) => (
+                            <li key={quote.id} className={styles.listItem}>
+                              <strong>{quote.quote_number || "Devis sans numero"}</strong>
+                              <p className={styles.meta}>
+                                {quote.status || "Statut non defini"} - {formatAmount(quote.total_amount)}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div>
+                      <h4>Dernieres factures</h4>
+                      {latestInvoices.length === 0 ? (
+                        <p>Aucune facture disponible pour le moment.</p>
+                      ) : (
+                        <ul className={styles.list}>
+                          {latestInvoices.map((invoice) => (
+                            <li key={invoice.id} className={styles.listItem}>
+                              <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
+                              <p className={styles.meta}>
+                                {invoice.status || "Statut non defini"} - Solde {formatAmount(invoice.balance_amount)}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
-        ) : null}
+              </div>
+
+              <div className={styles.sectionGrid}>
+                <div className={styles.panel}>
+                  <h3>Suivi de votre activite</h3>
+                  <ul className={styles.list}>
+                    <li className={styles.listItem}>{ongoingMissions.length} mission(s) demandent actuellement un suivi.</li>
+                    <li className={styles.listItem}>{completedMissions.length} intervention(s) sont deja terminees.</li>
+                    <li className={styles.listItem}>{draftCount} logement(s) restent a finaliser ou publier.</li>
+                    <li className={styles.listItem}>{pendingInvoices.length} facture(s) restent a suivre ou regler.</li>
+                  </ul>
+                </div>
+
+                <div className={styles.panel}>
+                  <h3>Indicateurs cles</h3>
+                  <div className={styles.statsList}>
+                    {ownerMetrics.map((metric) => (
+                      <div key={metric.label} className={styles.metricRow}>
+                        <div className={styles.metricLabel}>
+                          <span>{metric.label}</span>
+                          <span>{metric.value}</span>
+                        </div>
+                        <div className={styles.metricTrack}>
+                          <div className={styles.metricBar} style={{ width: metric.width }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
     </section>
   );

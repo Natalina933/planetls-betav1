@@ -91,7 +91,7 @@ export default function ConciergeAlertesPage() {
       }
     }
 
-    loadAlerts();
+    void loadAlerts();
   }, []);
 
   const urgentMissions = useMemo(
@@ -123,24 +123,24 @@ export default function ConciergeAlertesPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Vigilance"
-      title="Alertes concierge"
+      eyebrow="Points d'attention"
+      title="Points d'attention"
       description={
         loading
           ? "Analyse des points de vigilance..."
           : error ||
-            "Centralisez les urgences terrain, les relances propriétaires et les logements à finaliser."
+            "Centralisez les urgences terrain, les relances proprietaires et les fiches a fiabiliser."
       }
       chips={[
         `${urgentMissions.length} urgence(s)`,
-        `${stalledConversations.length} relance(s) à faire`,
-        `${draftHousings.length} fiche(s) à fiabiliser`,
+        `${stalledConversations.length} relance(s) a faire`,
+        `${draftHousings.length} fiche(s) a fiabiliser`,
       ]}
       metrics={[
         {
           label: "Urgences",
           value: loading ? "..." : String(urgentMissions.length),
-          hint: "Missions à priorité urgente à absorber",
+          hint: "Missions a priorite urgente a absorber",
         },
         {
           label: "Relances",
@@ -150,25 +150,25 @@ export default function ConciergeAlertesPage() {
         {
           label: "Brouillons",
           value: loading ? "..." : String(draftHousings.length),
-          hint: "Biens ou profils à finaliser",
+          hint: "Biens ou profils a finaliser",
         },
         {
-          label: "Sans badge PRO",
-          value: loading ? "..." : profile?.role === "concierge_pro" ? "0" : "1",
-          hint: "Levier de visibilité encore disponible",
+          label: "Levier PRO",
+          value: loading ? "..." : profile?.role === "concierge_pro" ? "Actif" : "Disponible",
+          hint: "Visibilite et conversion a renforcer",
         },
       ]}
       actions={[
-        { label: "Messagerie", href: "/dashboard/concierge/messages" },
-        { label: "Planning", href: "/dashboard/concierge/planning" },
+        { label: "Ouvrir la messagerie", href: "/dashboard/concierge/messages" },
+        { label: "Ouvrir le planning", href: "/dashboard/concierge/planning" },
       ]}
       cards={[
         {
-          title: "Urgences terrain",
+          title: "1. Urgences terrain",
           text:
             urgentMissions.length > 0
               ? `${urgentMissions.length} mission(s) urgente(s) demandent une action rapide.`
-              : "Aucune urgence mission détectée pour le moment.",
+              : "Aucune urgence mission detectee pour le moment.",
           actions: [
             {
               label: "Voir les missions",
@@ -178,11 +178,11 @@ export default function ConciergeAlertesPage() {
           ],
         },
         {
-          title: "Relances propriétaires",
+          title: "2. Relances proprietaires",
           text:
             stalledConversations.length > 0
-              ? `${stalledConversations.length} conversation(s) n'ont pas bougé depuis plus de 3 jours.`
-              : "Aucune conversation en souffrance détectée.",
+              ? `${stalledConversations.length} conversation(s) n'ont pas bouge depuis plus de 3 jours.`
+              : "Aucune conversation en souffrance detectee.",
           actions: [
             {
               label: "Ouvrir la messagerie",
@@ -192,28 +192,28 @@ export default function ConciergeAlertesPage() {
           ],
         },
         {
-          title: "Logements à finaliser",
+          title: "3. Logements a finaliser",
           text:
             draftHousings.length > 0
               ? `${draftHousings.length} logement(s) restent en brouillon ou inactifs et peuvent freiner votre acquisition.`
-              : "Tous vos logements sont actifs ou publiés.",
+              : "Tous vos logements sont actifs ou publies.",
           actions: [
             {
-              label: "Vérifier mes logements",
+              label: "Verifier mes logements",
               href: "/dashboard/concierge/logements",
               variant: "secondary",
             },
           ],
         },
         {
-          title: "Optimisation profil & offre",
+          title: "4. Optimisation profil et offre",
           text:
             profileSetupAlerts.length > 0
-              ? `${profileSetupAlerts.length} optimisation(s) peuvent renforcer votre conversion et votre visibilité.`
-              : "Votre profil et votre offre sont déjà bien structurés.",
+              ? `${profileSetupAlerts.length} optimisation(s) peuvent renforcer votre conversion et votre visibilite.`
+              : "Votre profil et votre offre sont deja bien structures.",
           actions: [
             {
-              label: "Améliorer mon profil",
+              label: "Ameliorer mon profil",
               href: "/dashboard/concierge/profile?tab=fiche",
               variant: "secondary",
             },
@@ -222,43 +222,43 @@ export default function ConciergeAlertesPage() {
       ]}
       detailSections={[
         {
-          title: "Urgences à traiter",
+          title: "Urgences a traiter",
           description:
             "Les missions prioritaires doivent rester visibles pour limiter les oublis et tenir le niveau de service.",
           emptyText:
             loading
               ? "Chargement des urgences."
-              : error || "Aucune urgence terrain détectée.",
+              : error || "Aucune urgence terrain detectee.",
           items: urgentMissionItems,
         },
         {
-          title: "À suivre - relances propriétaires",
+          title: "A suivre - relances proprietaires",
           description:
-            "Conversations à reprendre pour ne pas laisser refroidir une opportunité ou une demande active.",
+            "Conversations a reprendre pour ne pas laisser refroidir une opportunite ou une demande active.",
           emptyText:
             loading
               ? "Analyse des conversations."
-              : error || "Aucune relance urgente à faire.",
+              : error || "Aucune relance urgente a faire.",
           items: stalledConversationItems,
         },
         {
-          title: "À suivre - fiches logement à finaliser",
+          title: "A suivre - fiches logement a finaliser",
           description:
-            "Biens encore inactifs ou incomplets qui méritent une vérification rapide avant mise en avant.",
+            "Biens encore inactifs ou incomplets qui meritent une verification rapide avant mise en avant.",
           emptyText:
             loading
-              ? "Vérification des logements en cours."
-              : error || "Tous vos logements sont déjà actifs ou publiés.",
+              ? "Verification des logements en cours."
+              : error || "Tous vos logements sont deja actifs ou publies.",
           items: draftHousingItems,
         },
         {
           title: "Optimisation",
           description:
-            "Actions moins urgentes, mais très utiles pour renforcer votre conversion, votre visibilité et votre positionnement premium.",
+            "Actions moins urgentes, mais tres utiles pour renforcer votre conversion, votre visibilite et votre positionnement premium.",
           emptyText:
             loading
               ? "Analyse des optimisations."
-              : error || "Aucune optimisation prioritaire détectée.",
+              : error || "Aucune optimisation prioritaire detectee.",
           items: profileSetupAlerts,
         },
       ]}

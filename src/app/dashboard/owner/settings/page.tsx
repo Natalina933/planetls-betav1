@@ -45,12 +45,12 @@ export default function OwnerSettingsPage() {
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Parametres"
-      title="Parametres"
+      eyebrow="Compte et preferences"
+      title="Compte et preferences"
       description={
         error
           ? error
-          : "Consultez les informations de votre compte, vos coordonnees et les acces utiles a votre espace proprietaire."
+          : "Retrouvez les informations de votre compte, vos coordonnees et les reperes utiles pour garder un espace proprietaire clair."
       }
       chips={[
         profile?.role?.endsWith("_pro") ? "Compte PRO" : "Compte standard",
@@ -66,17 +66,17 @@ export default function OwnerSettingsPage() {
         { label: "Telephone", value: profile?.phone || "-", hint: "Coordonnee de contact" },
       ]}
       actions={[
-        { label: "Tableau de bord", href: "/dashboard/owner" },
-        { label: "Documents", href: "/dashboard/owner/documents" },
+        { label: "Revenir a la vue prioritaire", href: "/dashboard/owner" },
+        { label: "Voir mes documents", href: "/dashboard/owner/documents" },
       ]}
       cards={[
         {
-          title: "Compte",
+          title: "1. Identite du compte",
           text: "Retrouvez ici vos informations principales de connexion et de presentation.",
         },
         {
-          title: "Notifications",
-          text: "Le prochain usage sera de piloter vos preferences d'alertes, de facturation et de mission depuis cet espace.",
+          title: "2. Preferences a structurer",
+          text: "Cet espace a vocation a centraliser vos preferences d'alertes, de facturation et de suivi proprietaire.",
         },
       ]}
       detailSections={[

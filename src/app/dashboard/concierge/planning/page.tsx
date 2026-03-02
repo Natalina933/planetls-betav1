@@ -116,12 +116,12 @@ export default function ConciergePlanningPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Organisation terrain"
-      title="Planning"
+      title="Pilotage terrain"
       description={
         loading
           ? "Preparation de votre planning..."
           : error ||
-            "Reperez immediatement ce qui doit etre traite aujourd'hui, dans les 48 heures, ou replanifie."
+            "Reperez immediatement ce qui doit etre traite aujourd'hui, confirme sous 48 h ou replanifie sans delai."
       }
       chips={[
         `${missions.length} mission(s) chargee(s)`,
@@ -129,7 +129,7 @@ export default function ConciergePlanningPage() {
         `${unscheduledMissions.length} mission(s) sans date`,
       ]}
       actions={[
-        { label: "Voir le tableau de bord", href: "/dashboard/concierge" },
+        { label: "Revenir a la vue prioritaire", href: "/dashboard/concierge" },
         { label: "Ouvrir les missions", href: "/dashboard/concierge/profile?tab=missions" },
       ]}
       metrics={[
@@ -159,7 +159,7 @@ export default function ConciergePlanningPage() {
           title: "Aujourd'hui sur le terrain",
           text:
             todayMissions.length > 0
-              ? `${todayMissions.length} intervention(s) sont prevues aujourd'hui. Verifiez les confirmations, l'acces au logement et les creneaux.`
+              ? `${todayMissions.length} intervention(s) sont prevues aujourd'hui. Verifiez confirmations, acces au logement et creneaux avant execution.`
               : loading
                 ? "Chargement de vos interventions du jour."
                 : error || "Aucune intervention n'est prevue aujourd'hui.",
@@ -190,7 +190,7 @@ export default function ConciergePlanningPage() {
           text:
             urgentMissions.length > 0
               ? `${urgentMissions.length} mission(s) urgentes demandent une verification immediate du planning, du stock et de la disponibilite.`
-              : "Aucune urgence active pour le moment. Profitez-en pour nettoyer vos missions sans date.",
+              : "Aucune urgence active pour le moment. Profitez-en pour assainir vos missions sans date.",
           actions: [
             {
               label: "Voir le pilotage urgent",

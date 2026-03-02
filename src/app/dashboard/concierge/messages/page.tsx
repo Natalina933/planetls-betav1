@@ -62,7 +62,7 @@ function ConversationListSidebar({
   return (
     <aside className={styles.sidebar}>
       <div className={styles.sidebarHeader}>
-        <h2>Conversations</h2>
+        <h2>Conversations prioritaires</h2>
         {listLoading && <span>MAJ...</span>}
       </div>
 
@@ -70,7 +70,7 @@ function ConversationListSidebar({
         <input
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Rechercher un proprietaire"
+          placeholder="Rechercher un proprietaire ou un sujet"
           className={styles.searchField}
         />
         <select
@@ -258,8 +258,8 @@ function ConciergeMessagesContent() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Relation proprietaires"
-      title="Messages"
-      description="Suivez vos conversations proprietaires et vos echanges commerciaux depuis une seule vue."
+      title="Suivi des conversations"
+      description="Centralisez vos echanges proprietaires, vos relances et vos fils actifs depuis une seule vue de pilotage."
       chips={[
         `${conversations.length} conversation(s)`,
         `${openCount} ouverte(s)`,
@@ -285,7 +285,7 @@ function ConciergeMessagesContent() {
         },
       ]}
       actions={[
-        { label: "Voir le planning", href: "/dashboard/concierge/planning" },
+        { label: "Voir le pilotage terrain", href: "/dashboard/concierge/planning" },
         { label: "Voir les objectifs", href: "/dashboard/concierge/objectifs" },
       ]}
       cards={[
@@ -293,7 +293,7 @@ function ConciergeMessagesContent() {
           title: "Suivi relationnel",
           text:
             openCount > 0
-              ? `${openCount} conversation(s) restent ouvertes avec vos proprietaires.`
+              ? `${openCount} conversation(s) restent ouvertes avec vos proprietaires. Priorisez celles qui font avancer signature, execution ou satisfaction.`
               : "Aucune conversation ouverte pour le moment.",
         },
         {

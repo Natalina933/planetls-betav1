@@ -119,21 +119,21 @@ export default function OwnerPlanningPage() {
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Planning</h1>
-        <p>Suivez les interventions planifiees pour vos logements et anticipez les prochaines etapes.</p>
+        <h1>Suivi des interventions</h1>
+        <p>Reperez en priorite ce qui doit etre confirme, execute ou replanifie sur votre parc.</p>
       </header>
 
       <div className="stats-row">
         <div className="stat-card">
-          <h3>Total missions</h3>
+          <h3>Interventions suivies</h3>
           <p>{loading ? "..." : missions.length}</p>
         </div>
         <div className="stat-card">
-          <h3>A venir</h3>
+          <h3>A traiter</h3>
           <p>{loading ? "..." : upcomingMissions.filter((mission) => mission.status !== "completed").length}</p>
         </div>
         <div className="stat-card">
-          <h3>Montant prevu</h3>
+          <h3>Budget suivi</h3>
           <p>
             {loading
               ? "..."
@@ -147,7 +147,7 @@ export default function OwnerPlanningPage() {
           <input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Rechercher une mission"
+            placeholder="Rechercher une intervention"
             className={styles.field}
           />
           <select
@@ -166,7 +166,7 @@ export default function OwnerPlanningPage() {
             onChange={(event) => setViewMode(event.target.value as "list" | "week" | "month")}
             className={styles.select}
           >
-            <option value="list">Vue liste</option>
+            <option value="list">Vue prioritaire</option>
             <option value="week">Vue semaine</option>
             <option value="month">Vue mois</option>
           </select>
@@ -184,7 +184,7 @@ export default function OwnerPlanningPage() {
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune mission planifiee pour le moment.</p>
+          <p>Aucune intervention planifiee pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (

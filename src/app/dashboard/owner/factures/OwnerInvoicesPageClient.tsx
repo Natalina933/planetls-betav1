@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerInvoiceRow = {
@@ -205,21 +206,21 @@ export default function OwnerInvoicesPageClient() {
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Factures</h1>
-        <p>Suivez les montants emis, les echeances et le solde restant a regler.</p>
+        <h1>Suivi des factures</h1>
+        <p>Suivez les montants emis, les echeances et les reglements a prioriser sur votre parc.</p>
       </header>
 
       <div className="stats-row">
         <div className="stat-card">
-          <h3>Total factures</h3>
+          <h3>Factures suivies</h3>
           <p>{loading ? "..." : invoices.length}</p>
         </div>
         <div className="stat-card">
-          <h3>A suivre</h3>
+          <h3>A regler</h3>
           <p>{loading ? "..." : pendingInvoices.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Solde filtre</h3>
+          <h3>Solde visible</h3>
           <p>{loading ? "..." : formatAmount(filteredBalance)}</p>
         </div>
       </div>
@@ -229,7 +230,7 @@ export default function OwnerInvoicesPageClient() {
           <input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Rechercher une facture"
+            placeholder="Rechercher une facture ou un statut"
             className={styles.field}
           />
           <select
@@ -266,8 +267,12 @@ export default function OwnerInvoicesPageClient() {
               <li key={invoice.id} className={styles.listItem}>
                 <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
                 <br />
-                Statut : {invoice.status || "-"} | Total : {formatAmount(invoice.total_amount)} |
-                Solde : {formatAmount(invoice.balance_amount)}
+                <span className={styles.inlineActions}>
+                  <span>Statut :</span>
+                  <WorkflowStatusBadge value={invoice.status || "-"} />
+                </span>{" "}
+                | Total : {formatAmount(invoice.total_amount)} | Solde :{" "}
+                {formatAmount(invoice.balance_amount)}
                 <br />
                 Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
                 <br />

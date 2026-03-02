@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerQuoteRow = {
@@ -113,21 +114,21 @@ export default function OwnerQuotesPage() {
   return (
     <section className="dashboard-grid">
       <header>
-        <h1>Devis</h1>
-        <p>Retrouvez les propositions envoyees pour vos biens et leur statut actuel.</p>
+        <h1>Suivi des devis</h1>
+        <p>Retrouvez les propositions recues pour vos biens et priorisez celles qui demandent une decision.</p>
       </header>
 
       <div className="stats-row">
         <div className="stat-card">
-          <h3>Total devis</h3>
+          <h3>Devis suivis</h3>
           <p>{loading ? "..." : quotes.length}</p>
         </div>
         <div className="stat-card">
-          <h3>En attente</h3>
+          <h3>A arbitrer</h3>
           <p>{loading ? "..." : pendingQuotes.length}</p>
         </div>
         <div className="stat-card">
-          <h3>Montant filtre</h3>
+          <h3>Montant visible</h3>
           <p>{loading ? "..." : formatAmount(totalAmount)}</p>
         </div>
       </div>
@@ -137,7 +138,7 @@ export default function OwnerQuotesPage() {
           <input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Rechercher un devis"
+            placeholder="Rechercher un devis ou un statut"
             className={styles.field}
           />
           <select
@@ -174,8 +175,12 @@ export default function OwnerQuotesPage() {
               <li key={quote.id} className={styles.listItem}>
                 <strong>{quote.quote_number || "Devis sans numero"}</strong>
                 <br />
-                Statut : {quote.status || "-"} | Total : {formatAmount(quote.total_amount)} | Valide
-                jusqu&apos;au {formatDate(quote.valid_until)}
+                <span className={styles.inlineActions}>
+                  <span>Statut :</span>
+                  <WorkflowStatusBadge value={quote.status || "-"} />
+                </span>{" "}
+                | Total : {formatAmount(quote.total_amount)} | Valide jusqu&apos;au{" "}
+                {formatDate(quote.valid_until)}
                 <br />
                 Lignes : {quote.quote_items?.length ?? 0}
                 <br />

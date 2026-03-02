@@ -93,6 +93,99 @@
   gap: 0.75rem;
 }
 
+.dashboardFlow {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.heroPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.14), transparent 36%),
+    linear-gradient(180deg, #fff9f6, #f7e5de);
+  border: 1px solid rgba(184, 92, 72, 0.2);
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.08);
+}
+
+.flowSection {
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #9f4838;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.priorityGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.priorityCard {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 10px 22px rgba(109, 53, 41, 0.06);
+}
+
+.priorityWarning {
+  background: linear-gradient(180deg, #fff5f1, #fde9e2);
+  border-color: rgba(184, 92, 72, 0.3);
+}
+
+.cardLabel {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a4030;
+}
+
+.cardValue {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1;
+  color: #4a2018;
+}
+
+.cardAction {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  color: #8a4030;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cardAction:hover {
+  text-decoration: underline;
+}
+
+.sectionStack {
+  display: grid;
+  gap: 1rem;
+}
+
 .list {
   display: grid;
   gap: 0.9rem;

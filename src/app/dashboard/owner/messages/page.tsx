@@ -154,12 +154,12 @@ function OwnerMessagesContent() {
       setDetail(null);
       return;
     }
-    loadConversationDetail(activeConversationId);
+    void loadConversationDetail(activeConversationId);
   }, [activeConversationId]);
 
   useEffect(() => {
-  if (!createdConversationId) return;
-    setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
+    if (!createdConversationId) return;
+    setSuccess("La conversation a bien ete creee. Vous pouvez maintenant poursuivre ici.");
   }, [createdConversationId]);
 
   useEffect(() => {
@@ -172,6 +172,7 @@ function OwnerMessagesContent() {
     () => activeConversationId.trim().length > 0 && draftMessage.trim().length > 0,
     [activeConversationId, draftMessage],
   );
+
   const filteredConversations = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
     return conversations.filter((conversation) => {
@@ -213,7 +214,7 @@ function OwnerMessagesContent() {
       setDraftMessage("");
       await loadConversationDetail(activeConversationId);
       await loadConversations(activeConversationId);
-      setSuccess("Message envoyé.");
+      setSuccess("Message envoye.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
     } finally {
@@ -225,10 +226,9 @@ function OwnerMessagesContent() {
     <section className="dashboard-grid">
       <div className={styles.page}>
         <header className={styles.header}>
-          <h1>Messages</h1>
+          <h1>Suivi des echanges</h1>
           <p>
-            Retrouvez vos échanges avec vos concierges et poursuivez vos conversations depuis votre
-            espace propriétaire.
+            Centralisez vos conversations prioritaires avec vos concierges et poursuivez chaque suivi depuis un seul espace.
           </p>
         </header>
 
@@ -238,7 +238,7 @@ function OwnerMessagesContent() {
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
             <div className={styles.sidebarHeader}>
-              <h2>Conversations</h2>
+              <h2>Conversations prioritaires</h2>
               <span>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
             </div>
 
@@ -246,7 +246,7 @@ function OwnerMessagesContent() {
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Rechercher un fil"
+                placeholder="Rechercher un echange"
                 style={{
                   flex: "1 1 220px",
                   borderRadius: 14,
@@ -267,7 +267,7 @@ function OwnerMessagesContent() {
               >
                 <option value="all">Tous statuts</option>
                 <option value="open">Ouverts</option>
-                <option value="closed">Fermés</option>
+                <option value="closed">Fermes</option>
               </select>
             </div>
 
@@ -298,7 +298,7 @@ function OwnerMessagesContent() {
                       <span>{formatDate(conversation.last_message_at)}</span>
                     </div>
                     <p>{conversation.subject || "Conversation directe"}</p>
-                    <small>{conversation.last_message_preview || "Aucun aperçu"}</small>
+                    <small>{conversation.last_message_preview || "Aucun apercu"}</small>
                   </button>
                 ))}
               </div>
@@ -308,7 +308,7 @@ function OwnerMessagesContent() {
           <section className={styles.thread}>
             {!activeConversationId ? (
               <p className={styles.emptyState}>
-                Sélectionnez une conversation pour lire et répondre.
+                Selectionnez une conversation pour lire et repondre.
               </p>
             ) : detailLoading ? (
               <p className={styles.emptyState}>Chargement de la conversation...</p>
@@ -351,8 +351,8 @@ function OwnerMessagesContent() {
                   <textarea
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
-                    placeholder="Écrivez votre message au concierge..."
-                    aria-label="Écrivez votre message au concierge"
+                    placeholder="Ecrivez votre message au concierge..."
+                    aria-label="Ecrivez votre message au concierge"
                   />
                   <button type="button" onClick={handleSendMessage} disabled={sending || !canSend}>
                     {sending ? "Envoi..." : "Envoyer"}

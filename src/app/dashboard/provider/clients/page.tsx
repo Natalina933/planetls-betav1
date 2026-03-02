@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
+import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
+import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../ProviderCrudPage.module.scss";
 
 type ProviderClient = {
@@ -312,11 +315,24 @@ export default function ProviderClientsPage() {
         {success ? <p className={styles.successBox}>{success}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
+        <ActionPanel
+          eyebrow="Actions a mener"
+          title="Accelerez le suivi relation client"
+          description="Ajoutez une fiche, ouvrez les conversations actives ou nettoyez le portefeuille pour garder une base exploitable."
+          actions={[
+            { label: "Ajouter un client", href: "/dashboard/provider/clients", primary: true },
+            { label: "Ouvrir les messages", href: "/dashboard/provider/messages" },
+            { label: "Voir la vue prioritaire", href: "/dashboard/provider" },
+          ]}
+        />
 
         <div className={styles.layout}>
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>{editingId ? "Modifier un client" : "Ajouter un client"}</h2>
+              <SectionHeader
+                eyebrow="1. Mise a jour"
+                title={editingId ? "Modifier un client" : "Ajouter un client"}
+              />
               {editingId ? (
                 <button type="button" className={styles.secondaryButton} onClick={resetForm}>
                   Annuler
@@ -378,7 +394,12 @@ export default function ProviderClientsPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Portefeuille client</h2>
+              <SectionHeader
+                eyebrow="2. Informations prioritaires"
+                title="Portefeuille client"
+                actionLabel="Voir les messages"
+                actionHref="/dashboard/provider/messages"
+              />
               <span>{loading ? "..." : `${filteredClients.length} fiche(s)`}</span>
             </div>
 
@@ -432,7 +453,7 @@ export default function ProviderClientsPage() {
                         <h3>{client.client_name}</h3>
                         <p>{client.company_name || client.city || "Client artisanal"}</p>
                       </div>
-                      <span className={styles.badge}>{client.status || "active"}</span>
+                      <WorkflowStatusBadge value={client.status || "active"} />
                     </div>
                     <div className={styles.itemMeta}>
                       <span>{client.email || "Email non renseigne"}</span>

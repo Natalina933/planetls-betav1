@@ -61,7 +61,7 @@ export default function ConciergeBillingPage() {
       }
     }
 
-    loadHistory();
+    void loadHistory();
 
     return () => {
       cancelled = true;
@@ -72,21 +72,21 @@ export default function ConciergeBillingPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Abonnement et paiements"
-      title="Facturation Stripe"
+      eyebrow="Revenus et abonnement"
+      title="Facturation et revenus"
       description={
         loading
           ? "Synchronisation de votre historique Stripe..."
           : error ||
-            "Suivez l'état de votre abonnement PRO, vos références Stripe et les derniers événements synchronisés sur votre compte."
+            "Suivez l'etat de votre abonnement PRO, vos references de facturation et les derniers evenements synchronises sur votre compte."
       }
       chips={[
         data?.subscription?.is_pro ? "PRO actif" : "Compte standard",
-        `${data?.events.length ?? 0} événement(s)`,
+        `${data?.events.length ?? 0} evenement(s)`,
       ]}
       actions={[
         { label: "Voir mon abonnement PRO", href: "/abonnement/concierge-pro" },
-        { label: "Mettre à jour mes tarifs", href: "/dashboard/concierge/pricing" },
+        { label: "Mettre a jour mes tarifs", href: "/dashboard/concierge/pricing" },
       ]}
       metrics={[
         {
@@ -98,11 +98,11 @@ export default function ConciergeBillingPage() {
           value: loading ? "..." : getBillingSourceLabel(data?.subscription?.source ?? null),
         },
         {
-          label: "Référence",
+          label: "Reference",
           value: loading ? "..." : data?.subscription?.reference || "-",
         },
         {
-          label: "Dernière synchro",
+          label: "Derniere synchro",
           value: loading ? "..." : formatBillingDate(data?.subscription?.updated_at ?? null),
         },
       ]}

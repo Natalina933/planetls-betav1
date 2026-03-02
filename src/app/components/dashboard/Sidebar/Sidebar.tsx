@@ -14,9 +14,9 @@ interface SidebarProps {
 }
 
 const roleLabels: Record<string, string> = {
-  owner: "Proprietaire",
-  concierge: "Conciergerie",
-  provider: "Artisan",
+  owner: "proprietaire",
+  concierge: "concierge",
+  provider: "artisan",
 };
 
 const roleThemeClasses: Record<string, string> = {
@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       >
         <div className={styles.header}>
           <span className={styles.title}>
-            {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
+            {userType ? `Vue prioritaire ${roleLabels[userType] || userType}` : "Chargement..."}
           </span>
           <button
             onClick={toggleSidebar}

@@ -10,6 +10,8 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
 import { fetchConciergeMatches, type ConciergeOwnerMatch } from "./dashboardClient";
 import {
+  ConciergeActionsSection,
+  ConciergeObjectivesSection,
   DashboardHeader,
   DashboardMetricsGrid,
   DashboardPlanningSection,
@@ -138,6 +140,7 @@ export default function ConciergeDashboardPage() {
   const displayName = user?.firstName || user?.username || "Utilisateur";
   const experienceLevel = user?.experience_level ?? null;
   const yearsExperience = user?.years_experience ?? null;
+  const averageRating = typeof kpis?.avg_rating === "number" ? kpis.avg_rating : null;
 
   return (
     <div className={styles.conciergeDashboardPage}>
@@ -146,8 +149,14 @@ export default function ConciergeDashboardPage() {
         isPro={isPro}
         experienceLevel={experienceLevel}
         yearsExperience={yearsExperience}
-        averageRating={typeof kpis?.avg_rating === "number" ? kpis.avg_rating : null}
+        averageRating={averageRating}
         ratingsCount={typeof kpis?.ratings_count === "number" ? kpis.ratings_count : 0}
+      />
+      <ConciergeObjectivesSection
+        isPro={isPro}
+        matchCount={matches.length}
+        averageRating={averageRating}
+        eventsCount={eventsDemo.length}
       />
       <MatchesSection
         matches={matches}
@@ -155,9 +164,9 @@ export default function ConciergeDashboardPage() {
         matchesError={matchesError}
       />
       <DashboardMetricsGrid isPro={isPro} />
+      <ConciergeActionsSection isPro={isPro} />
       <DashboardToolsSection isPro={isPro} />
       <DashboardPlanningSection events={eventsDemo} />
     </div>
   );
 }
-

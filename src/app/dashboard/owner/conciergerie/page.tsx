@@ -208,7 +208,7 @@ export default function OwnerConciergeriePage() {
     <div className="dashboard-grid">
       <OwnerWorkspacePage
         eyebrow="Relation concierge"
-        title="Conciergerie"
+        title="Suivi de ma conciergerie"
         description={
           error
             ? error
@@ -222,7 +222,7 @@ export default function OwnerConciergeriePage() {
           spotlightProfile?.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard",
         ]}
         actions={[
-          { label: "Voir les messages", href: "/dashboard/owner/messages" },
+          { label: "Ouvrir les messages", href: "/dashboard/owner/messages" },
           { label: "Voir le planning", href: "/dashboard/owner/planning" },
           { label: "Trouver un autre concierge", href: "/dashboard/owner/concierges" },
           ...(spotlightConciergeProfileId
@@ -231,7 +231,7 @@ export default function OwnerConciergeriePage() {
         ]}
         cards={[
           {
-            title: "Missions recentes",
+            title: "1. Missions recentes",
             text:
               missions.length > 0
                 ? missions
@@ -241,7 +241,7 @@ export default function OwnerConciergeriePage() {
                 : "Aucune mission chargee pour le moment.",
           },
           {
-            title: "Contacts actifs",
+            title: "2. Contacts actifs",
             text:
               conversations.length > 0
                 ? conversations
@@ -251,7 +251,7 @@ export default function OwnerConciergeriePage() {
                 : "Aucun contact actif pour le moment.",
           },
           {
-            title: "Pilotage",
+            title: "3. Pilotage",
             text:
               ongoingCount > 0
                 ? `${ongoingCount} intervention(s) demandent actuellement un suivi proprietaire.`
