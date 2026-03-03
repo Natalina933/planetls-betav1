@@ -110,6 +110,93 @@
   box-shadow: 0 14px 28px rgba(109, 53, 41, 0.08);
 }
 
+.terracottaTitle,
+.terracottaSectionTitle {
+  margin: 0;
+  color: #9f4838;
+}
+
+.iconActions {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.24);
+  background: #fff4f0;
+  color: #793528;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.iconButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(109, 53, 41, 0.12);
+}
+
+.iconButtonPrimary {
+  background: linear-gradient(135deg, #b85c48, #9f4838);
+  color: #fff;
+  border: none;
+}
+
+.iconButtonDanger {
+  background: #fff;
+}
+
+.avatarPanel {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.avatarPreview {
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid rgba(184, 92, 72, 0.22);
+  background: #fff7f3;
+}
+
+.avatarContent {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.avatarUploadButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.24);
+  background: #fff4f0;
+  color: #793528;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.avatarFileInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .flowSection {
   display: grid;
   gap: 1rem;

@@ -1374,7 +1374,7 @@ function FicheBadgeSection({ styles }: Pick<FicheStaticSidebarSectionProps, "sty
     <div className={styles.badgeCard}>
       <h4 className={styles.badgeTitle}>
         <Shield size={16} />
-        <span>Badge Verifie</span>
+        <span>Badge Vérifié</span>
       </h4>
       <p className={styles.badgeText}>
         Votre profil a été certifié par nos équipes. Vous profitez d&apos;une

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
+import Link from "next/link";
+import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerQuoteRow = {
   id: string;
@@ -60,7 +61,7 @@ export default function OwnerDocumentsPage() {
       }
     }
 
-    loadDocuments();
+    void loadDocuments();
   }, []);
 
   const pendingQuotes = useMemo(
@@ -68,90 +69,135 @@ export default function OwnerDocumentsPage() {
     [quotes],
   );
   const pendingInvoices = useMemo(
-    () =>
-      invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "canceled")
-        .length,
+    () => invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "canceled").length,
     [invoices],
   );
 
   return (
-    <OwnerWorkspacePage
-      eyebrow="Pilotage documentaire"
-      title="Documents et PDF"
-      description={
-        error
-          ? error
-          : "Centralisez ici vos devis et factures avec un acces direct aux PDF et aux espaces de suivi associes."
-      }
-      chips={[
-        `${quotes.length} devis`,
-        `${invoices.length} factures`,
-        `${pendingInvoices} facture(s) a suivre`,
-      ]}
-      metrics={[
-        {
-          label: "Devis",
-          value: `${quotes.length}`,
-          hint: `${pendingQuotes} en attente de validation`,
-        },
-        {
-          label: "Factures",
-          value: `${invoices.length}`,
-          hint: `${pendingInvoices} a regler ou suivre`,
-        },
-      ]}
-      actions={[
-        { label: "Ouvrir les devis", href: "/dashboard/owner/devis" },
-        { label: "Ouvrir les factures", href: "/dashboard/owner/factures" },
-      ]}
-      cards={[
-        {
-          title: "1. Accès rapide",
-          text: "Retrouvez les documents les plus recents et accedez directement a leur PDF ou a leur suivi complet.",
-        },
-        {
-          title: "2. Tri par action",
-          text: "Cette vue vous aide a distinguer les documents a valider, a payer ou simplement a archiver.",
-        },
-      ]}
-      detailSections={[
-        {
-          title: "Derniers devis",
-          description: "Les devis les plus recents envoyes pour vos biens.",
-          emptyText: "Aucun devis disponible pour le moment.",
-          items: quotes.slice(0, 5).map((quote) => ({
-            title: quote.quote_number || "Devis",
-            meta: quote.status || "brouillon",
-            description: `Valide jusqu'au ${formatDate(quote.valid_until)}`,
-            href: `/api/quotes/${quote.id}/document`,
-            actionLabel: "PDF",
-            tone:
-              quote.status === "accepted"
-                ? "success"
-                : quote.status === "rejected"
-                  ? "warning"
-                  : "default",
-          })),
-        },
-        {
-          title: "Dernieres factures",
-          description: "Vos factures disponibles avec acces direct au document.",
-          emptyText: "Aucune facture disponible pour le moment.",
-          items: invoices.slice(0, 5).map((invoice) => ({
-            title: invoice.invoice_number || "Facture",
-            meta: invoice.status || "ouverte",
-            description: `Echeance ${formatDate(invoice.due_date)}`,
-            href: `/api/invoices/${invoice.id}/document`,
-            actionLabel: "PDF",
-            tone:
-              invoice.status === "paid"
-                ? "success"
-                : invoice.status === "open"
-                  ? "warning"
-                  : "default",
-          })),
-        },
-      ]}
-    />
+    <section className="dashboard-grid">
+      <div className={styles.dashboardFlow}>
+        <section className={styles.heroPanel}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Pilotage documentaire</p>
+              <h1 className={styles.terracottaTitle}>Documents et PDF</h1>
+              <p className={styles.meta}>
+                {error ||
+                  "Retrouvez vos devis et factures dans une lecture plus claire, pensée pour distinguer ce qui est à valider, à régler ou simplement à archiver."}
+              </p>
+            </div>
+            <div className={styles.inlineActions}>
+              <Link href="/dashboard/owner/devis" className={styles.buttonSecondary}>
+                Ouvrir les devis
+              </Link>
+              <Link href="/dashboard/owner/factures" className={styles.buttonPrimary}>
+                Ouvrir les factures
+              </Link>
+            </div>
+          </div>
+
+          <div className={styles.priorityGrid}>
+            <article className={styles.priorityCard}>
+              <p className={styles.cardLabel}>Devis</p>
+              <strong className={styles.cardValue}>{quotes.length}</strong>
+              <span className={styles.meta}>{pendingQuotes} en attente de validation.</span>
+            </article>
+            <article className={styles.priorityCard}>
+              <p className={styles.cardLabel}>Factures</p>
+              <strong className={styles.cardValue}>{invoices.length}</strong>
+              <span className={styles.meta}>{pendingInvoices} à suivre ou à régler.</span>
+            </article>
+            <article className={`${styles.priorityCard} ${styles.priorityWarning}`}>
+              <p className={styles.cardLabel}>Actions</p>
+              <strong className={styles.cardValue}>{pendingQuotes + pendingInvoices}</strong>
+              <span className={styles.meta}>Documents qui demandent encore une décision.</span>
+            </article>
+          </div>
+        </section>
+
+        <div className={styles.sectionGrid}>
+          <section className={styles.panel}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>Derniers devis</p>
+                <h2 className={styles.terracottaSectionTitle}>À valider ou comparer</h2>
+              </div>
+            </div>
+            {quotes.length ? (
+              <ul className={styles.list}>
+                {quotes.slice(0, 5).map((quote) => (
+                  <li key={quote.id} className={styles.listItem}>
+                    <strong>{quote.quote_number || "Devis"}</strong>
+                    <p className={styles.meta}>
+                      {quote.status || "brouillon"} | Valide jusqu’au {formatDate(quote.valid_until)}
+                    </p>
+                    <a href={`/api/quotes/${quote.id}/document`} className={styles.cardAction}>
+                      Ouvrir le PDF
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.meta}>Aucun devis disponible pour le moment.</p>
+            )}
+          </section>
+
+          <section className={styles.panel}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>Dernières factures</p>
+                <h2 className={styles.terracottaSectionTitle}>Paiement et archivage</h2>
+              </div>
+            </div>
+            {invoices.length ? (
+              <ul className={styles.list}>
+                {invoices.slice(0, 5).map((invoice) => (
+                  <li key={invoice.id} className={styles.listItem}>
+                    <strong>{invoice.invoice_number || "Facture"}</strong>
+                    <p className={styles.meta}>
+                      {invoice.status || "ouverte"} | Échéance {formatDate(invoice.due_date)}
+                    </p>
+                    <a href={`/api/invoices/${invoice.id}/document`} className={styles.cardAction}>
+                      Ouvrir le PDF
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.meta}>Aucune facture disponible pour le moment.</p>
+            )}
+          </section>
+        </div>
+
+        <section className={styles.panel}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Lecture rapide</p>
+              <h2 className={styles.terracottaSectionTitle}>Repères documentaires</h2>
+            </div>
+          </div>
+          <div className={styles.sectionGrid}>
+            <article className={styles.priorityCard}>
+              <p className={styles.cardLabel}>Validation</p>
+              <p className={styles.meta}>
+                Concentrez-vous d’abord sur les devis `draft` ou `sent` avant de lancer une mission ou de confirmer une prestation.
+              </p>
+            </article>
+            <article className={styles.priorityCard}>
+              <p className={styles.cardLabel}>Paiement</p>
+              <p className={styles.meta}>
+                Les factures non `paid` restent vos points d’attention immédiats pour garder un suivi financier propre.
+              </p>
+            </article>
+            <article className={styles.priorityCard}>
+              <p className={styles.cardLabel}>Archivage</p>
+              <p className={styles.meta}>
+                Gardez ici une base lisible avant d’ajouter ensuite des filtres par logement, concierge ou période.
+              </p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
   );
 }

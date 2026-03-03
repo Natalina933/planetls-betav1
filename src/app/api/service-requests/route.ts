@@ -1,0 +1,382 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/app/lib/dbServer";
+import { getApiAuthContext } from "@/app/lib/apiAuth";
+
+type ServiceRequestType = "ponctuel" | "renfort" | "durable";
+type ServiceRequestStatus =
+  | "draft"
+  | "sent"
+  | "in_review"
+  | "quoted"
+  | "accepted"
+  | "closed"
+  | "cancelled";
+type RecipientStatus =
+  | "sent"
+  | "viewed"
+  | "interested"
+  | "quoted"
+  | "declined"
+  | "selected"
+  | "not_selected";
+
+interface CreateServiceRequestBody {
+  property_id?: string | null;
+  request_type?: ServiceRequestType;
+  title?: string;
+  description?: string | null;
+  requested_services?: string[];
+  city?: string | null;
+  postal_code?: string | null;
+  desired_date?: string | null;
+  urgency?: boolean;
+  budget_max?: number | null;
+  currency?: string | null;
+  recipient_ids?: string[];
+}
+
+const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
+const VALID_REQUEST_TYPES: ServiceRequestType[] = ["ponctuel", "renfort", "durable"];
+
+const dbAny = db as any;
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeRecipientIds(value: unknown): string[] {
+  return Array.from(new Set(normalizeStringArray(value)));
+}
+
+function normalizeCurrency(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) return "EUR";
+  return value.trim().toUpperCase();
+}
+
+function parseLimit(raw: string | null, fallback = 20) {
+  const parsed = Number(raw ?? fallback);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.round(parsed), 1), 100);
+}
+
+async function hydrateOwnerRequests(ownerId: string, limit: number) {
+  const { data: requests, error } = await dbAny
+    .from("service_requests")
+    .select("*")
+    .eq("owner_profile_id", ownerId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("[GET /api/service-requests] owner requests error:", error);
+    throw new Error("Impossible de charger les demandes proprietaire.");
+  }
+
+  const requestIds = (requests ?? []).map((row: { id: string }) => row.id);
+  const selectedConciergeIds = (requests ?? [])
+    .map((row: { selected_concierge_profile_id?: string | null }) => row.selected_concierge_profile_id)
+    .filter((id: unknown): id is string => typeof id === "string" && id.length > 0);
+
+  const { data: recipients, error: recipientsError } = await dbAny
+    .from("service_request_recipients")
+    .select("*")
+    .in("service_request_id", requestIds.length > 0 ? requestIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (recipientsError) {
+    console.error("[GET /api/service-requests] owner recipients error:", recipientsError);
+    throw new Error("Impossible de charger les destinataires.");
+  }
+
+  const conciergeIds = Array.from(
+    new Set(
+      (recipients ?? [])
+        .map((row: { concierge_profile_id?: string | null }) => row.concierge_profile_id)
+        .concat(selectedConciergeIds)
+        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+    ),
+  );
+
+  const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
+    .from("profiles")
+    .select("id, first_name, last_name, username, company_name")
+    .in("id", conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (conciergeProfilesError) {
+    console.error("[GET /api/service-requests] owner concierge profiles error:", conciergeProfilesError);
+    throw new Error("Impossible de charger les profils concierges.");
+  }
+
+  const conciergeNameById = new Map<string, string>();
+  (conciergeProfiles ?? []).forEach(
+    (profile: {
+      id: string;
+      first_name?: string | null;
+      last_name?: string | null;
+      username?: string | null;
+      company_name?: string | null;
+    }) => {
+      const displayName =
+        `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
+        profile.company_name ||
+        profile.username ||
+        "Concierge";
+      conciergeNameById.set(profile.id, displayName);
+    },
+  );
+
+  const recipientsByRequestId = new Map<string, any[]>();
+  (recipients ?? []).forEach((recipient: any) => {
+    const current = recipientsByRequestId.get(recipient.service_request_id) ?? [];
+    current.push({
+      ...recipient,
+      concierge_name: conciergeNameById.get(recipient.concierge_profile_id) ?? "Concierge",
+    });
+    recipientsByRequestId.set(recipient.service_request_id, current);
+  });
+
+  return (requests ?? []).map((request: any) => ({
+    ...request,
+    selected_concierge_name: request.selected_concierge_profile_id
+      ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
+      : null,
+    recipients: recipientsByRequestId.get(request.id) ?? [],
+  }));
+}
+
+async function hydrateConciergeRequests(conciergeId: string, limit: number) {
+  const { data: recipients, error } = await dbAny
+    .from("service_request_recipients")
+    .select("*")
+    .eq("concierge_profile_id", conciergeId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("[GET /api/service-requests] concierge recipients error:", error);
+    throw new Error("Impossible de charger les demandes recues.");
+  }
+
+  const requestIds = (recipients ?? []).map((row: { service_request_id: string }) => row.service_request_id);
+  const { data: requests, error: requestsError } = await dbAny
+    .from("service_requests")
+    .select("*")
+    .in("id", requestIds.length > 0 ? requestIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (requestsError) {
+    console.error("[GET /api/service-requests] concierge requests error:", requestsError);
+    throw new Error("Impossible de charger les details des demandes.");
+  }
+
+  const ownerIds = Array.from(
+    new Set(
+      (requests ?? [])
+        .map((row: { owner_profile_id?: string | null }) => row.owner_profile_id)
+        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+    ),
+  );
+
+  const { data: ownerProfiles, error: ownerProfilesError } = await dbAny
+    .from("profiles")
+    .select("id, first_name, last_name, username, company_name")
+    .in("id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (ownerProfilesError) {
+    console.error("[GET /api/service-requests] concierge owner profiles error:", ownerProfilesError);
+    throw new Error("Impossible de charger les proprietaires.");
+  }
+
+  const ownerNameById = new Map<string, string>();
+  (ownerProfiles ?? []).forEach(
+    (profile: {
+      id: string;
+      first_name?: string | null;
+      last_name?: string | null;
+      username?: string | null;
+      company_name?: string | null;
+    }) => {
+      const displayName =
+        `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
+        profile.company_name ||
+        profile.username ||
+        "Proprietaire";
+      ownerNameById.set(profile.id, displayName);
+    },
+  );
+
+  const requestById = new Map<string, any>();
+  (requests ?? []).forEach((request: any) => {
+    requestById.set(request.id, request);
+  });
+
+  return (recipients ?? []).map((recipient: any) => {
+    const request = requestById.get(recipient.service_request_id);
+    return {
+      ...request,
+      recipient_id: recipient.id,
+      recipient_status: recipient.status,
+      response_message: recipient.response_message,
+      viewed_at: recipient.viewed_at,
+      responded_at: recipient.responded_at,
+      owner_name: request?.owner_profile_id
+        ? ownerNameById.get(request.owner_profile_id) ?? "Proprietaire"
+        : "Proprietaire",
+    };
+  });
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId, role } = await getApiAuthContext(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!OWNER_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
+    const body = (await req.json()) as CreateServiceRequestBody;
+    const title = typeof body.title === "string" ? body.title.trim() : "";
+    if (!title) {
+      return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
+    }
+
+    const recipientIds = normalizeRecipientIds(body.recipient_ids);
+    if (recipientIds.length === 0) {
+      return NextResponse.json(
+        { error: "Selectionnez au moins un concierge destinataire." },
+        { status: 400 },
+      );
+    }
+
+    const requestType: ServiceRequestType = VALID_REQUEST_TYPES.includes(body.request_type as ServiceRequestType)
+      ? (body.request_type as ServiceRequestType)
+      : "ponctuel";
+
+    const requestedServices = normalizeStringArray(body.requested_services);
+    const desiredDate =
+      typeof body.desired_date === "string" && body.desired_date.trim().length > 0
+        ? body.desired_date
+        : null;
+
+    const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
+      .from("profiles")
+      .select("id, role, category")
+      .in("id", recipientIds);
+
+    if (conciergeProfilesError) {
+      console.error("[POST /api/service-requests] concierge profiles error:", conciergeProfilesError);
+      return NextResponse.json({ error: "Impossible de verifier les concierges." }, { status: 500 });
+    }
+
+    const validRecipientIds = (conciergeProfiles ?? [])
+      .filter((profile: { role?: string | null; category?: string | null }) => {
+        const roleValue = (profile.role ?? "").toLowerCase();
+        const categoryValue = (profile.category ?? "").toLowerCase();
+        return (
+          roleValue === "concierge" ||
+          roleValue === "concierge_pro" ||
+          categoryValue.startsWith("concierge")
+        );
+      })
+      .map((profile: { id: string }) => profile.id);
+
+    if (validRecipientIds.length === 0) {
+      return NextResponse.json({ error: "Aucun concierge valide selectionne." }, { status: 400 });
+    }
+
+    const insertPayload = {
+      owner_profile_id: userId,
+      property_id: body.property_id ?? null,
+      request_type: requestType,
+      status: "sent" as ServiceRequestStatus,
+      title,
+      description: typeof body.description === "string" ? body.description.trim() || null : null,
+      requested_services: requestedServices,
+      city: typeof body.city === "string" ? body.city.trim() || null : null,
+      postal_code: typeof body.postal_code === "string" ? body.postal_code.trim() || null : null,
+      desired_date: desiredDate,
+      urgency: body.urgency === true,
+      budget_max: typeof body.budget_max === "number" ? body.budget_max : null,
+      currency: normalizeCurrency(body.currency),
+      metadata: {
+        origin: "owner_search_flow",
+      },
+    };
+
+    const { data: createdRequest, error: requestError } = await dbAny
+      .from("service_requests")
+      .insert(insertPayload)
+      .select("*")
+      .single();
+
+    if (requestError || !createdRequest) {
+      console.error("[POST /api/service-requests] create request error:", requestError);
+      return NextResponse.json({ error: "Impossible de creer la demande." }, { status: 500 });
+    }
+
+    const recipientRows = validRecipientIds.map((conciergeId) => ({
+      service_request_id: createdRequest.id,
+      concierge_profile_id: conciergeId,
+      status: "sent" as RecipientStatus,
+      metadata: {
+        origin: "owner_search_flow",
+      },
+    }));
+
+    const { data: createdRecipients, error: recipientsError } = await dbAny
+      .from("service_request_recipients")
+      .insert(recipientRows)
+      .select("*");
+
+    if (recipientsError) {
+      console.error("[POST /api/service-requests] create recipients error:", recipientsError);
+      await dbAny.from("service_requests").delete().eq("id", createdRequest.id);
+      return NextResponse.json({ error: "Impossible d'ajouter les destinataires." }, { status: 500 });
+    }
+
+    return NextResponse.json(
+      {
+        request: createdRequest,
+        recipients: createdRecipients ?? [],
+      },
+      { status: 201 },
+    );
+  } catch (err) {
+    console.error("[POST /api/service-requests] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const { userId, role } = await getApiAuthContext(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const view = url.searchParams.get("view") ?? "";
+    const limit = parseLimit(url.searchParams.get("limit"), 20);
+
+    if (OWNER_ROLES.has(role) && view !== "concierge") {
+      const items = await hydrateOwnerRequests(userId, limit);
+      return NextResponse.json({ items, scope: "owner" });
+    }
+
+    if (CONCIERGE_ROLES.has(role)) {
+      const items = await hydrateConciergeRequests(userId, limit);
+      return NextResponse.json({ items, scope: "concierge" });
+    }
+
+    return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+  } catch (err) {
+    console.error("[GET /api/service-requests] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+  }
+}

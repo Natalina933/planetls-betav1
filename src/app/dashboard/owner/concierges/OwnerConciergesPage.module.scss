@@ -63,6 +63,58 @@
   background: rgba(255, 252, 245, 0.96);
 }
 
+.requestPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.1), transparent 30%),
+    linear-gradient(145deg, #fffdfa 0%, #f7e9e3 100%);
+  box-shadow: 0 12px 28px rgba(109, 53, 41, 0.06);
+}
+
+.requestHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.requestTitle {
+  margin: 0;
+  color: #4a231b;
+}
+
+.requestCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.12);
+  color: var(--owner-accent-text);
+  font-weight: 700;
+}
+
+.selectedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.selectedChip {
+  padding: 0.4rem 0.72rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f8e2da, #efc9bd);
+  color: #6c3125;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .fieldGrid {
   display: grid;
   gap: 0.9rem;
@@ -96,6 +148,15 @@
   border: 1px solid rgba(184, 92, 72, 0.28);
   padding: 0.75rem 0.85rem;
   background: #fff;
+}
+
+.requestTextarea {
+  min-height: 140px;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 92, 72, 0.28);
+  padding: 0.85rem;
+  background: #fff;
+  resize: vertical;
 }
 
 .servicesBlock {
@@ -216,6 +277,14 @@
   border: 1px solid rgba(184, 92, 72, 0.18);
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 12px 28px rgba(109, 53, 41, 0.06);
+}
+
+.cardSelected {
+  border-color: rgba(184, 92, 72, 0.36);
+  box-shadow: 0 16px 32px rgba(109, 53, 41, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 32%),
+    rgba(255, 255, 255, 0.96);
 }
 
 .cardHead {

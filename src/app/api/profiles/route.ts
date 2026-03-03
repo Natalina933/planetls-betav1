@@ -107,6 +107,9 @@ export async function PATCH(req: NextRequest) {
 
     [
       "avatar_scale",
+      "avatar_offset_x",
+      "avatar_offset_y",
+      "avatar_rotation",
       "travel_fee",
       "service_radius_km",
       "hourly_rate",

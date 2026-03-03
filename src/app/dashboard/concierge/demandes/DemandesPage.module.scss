@@ -1,0 +1,154 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.2rem;
+  border-radius: 22px;
+  border: 1px solid rgba(198, 166, 107, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(198, 166, 107, 0.08), transparent 30%),
+    rgba(255, 253, 247, 0.96);
+  box-shadow: 0 12px 28px rgba(111, 87, 40, 0.08);
+}
+
+.cardHead,
+.actions,
+.badges,
+.metaGrid,
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.cardHead {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardTitleBlock {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ownerName,
+.meta,
+.description,
+.emptyState,
+.successBox,
+.errorBox {
+  margin: 0;
+}
+
+.ownerName {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7b5b23;
+}
+
+.cardTitleBlock h2 {
+  margin: 0;
+  color: #2f2415;
+}
+
+.meta,
+.description,
+.metaGrid span,
+.emptyState {
+  color: #6f5a3b;
+  line-height: 1.5;
+}
+
+.statusBadge,
+.urgentBadge,
+.tag,
+.tagMuted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusBadge {
+  background: rgba(198, 166, 107, 0.14);
+  color: #7b5b23;
+}
+
+.urgentBadge {
+  background: rgba(198, 74, 54, 0.12);
+  color: #9a3f2f;
+}
+
+.tag {
+  background: rgba(198, 166, 107, 0.12);
+  color: #7b5b23;
+}
+
+.tagMuted {
+  background: rgba(148, 163, 184, 0.18);
+  color: #6a5841;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.ghostBtn,
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primaryBtn {
+  border: none;
+  background: linear-gradient(135deg, #c6a66b, #a8864f);
+  color: #fffdf7;
+}
+
+.secondaryBtn,
+.linkBtn {
+  border: 1px solid rgba(198, 166, 107, 0.3);
+  background: linear-gradient(135deg, #fffdfa, #f3ead8);
+  color: #7b5b23;
+}
+
+.ghostBtn {
+  border: 1px solid rgba(184, 92, 72, 0.24);
+  background: rgba(184, 92, 72, 0.08);
+  color: #8a4030;
+}
+
+.successBox,
+.errorBox {
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+}
+
+.successBox {
+  background: rgba(198, 166, 107, 0.12);
+  color: #7b5b23;
+}
+
+.errorBox {
+  background: rgba(188, 74, 72, 0.1);
+  color: #8a2220;
+}

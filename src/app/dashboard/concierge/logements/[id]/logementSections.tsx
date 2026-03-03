@@ -2,11 +2,7 @@
 
 import type { ChangeEvent, Dispatch, SetStateAction } from "react";
 import styles from "./FicheLogement.module.scss";
-import type {
-  DocumentItem,
-  LogementTyped,
-  PlanningEvent,
-} from "./logementHelpers";
+import type { DocumentItem, LogementTyped, PlanningEvent } from "./logementHelpers";
 
 type EditedData = Partial<LogementTyped>;
 
@@ -45,42 +41,45 @@ export function InfosTabSection({ editMode, logement, setEditedData }: TabSectio
 
   return (
     <div className={styles.sectionStack}>
-      <label>
-        <span>Type de bien</span>
-        <input
-          value={infos.categorie ?? ""}
-          onChange={handleInfosChange("categorie")}
-          disabled={!editMode}
-          placeholder="Type de bien"
-        />
-      </label>
-      <label>
-        <span>Capacite</span>
-        <input
-          value={infos.capacite ?? ""}
-          onChange={handleInfosChange("capacite")}
-          disabled={!editMode}
-          placeholder="Capacite"
-        />
-      </label>
-      <label>
-        <span>Nombre de chambres</span>
-        <input
-          value={infos.nb_chambres ?? ""}
-          onChange={handleInfosChange("nb_chambres")}
-          disabled={!editMode}
-          placeholder="Nombre de chambres"
-        />
-      </label>
-      <label>
-        <span>Description</span>
-        <textarea
-          value={infos.description ?? ""}
-          onChange={handleInfosChange("description")}
-          disabled={!editMode}
-          placeholder="Description du logement"
-        />
-      </label>
+      <p className={styles.sectionTitle}>Informations du logement</p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}>
+          <span>Type de bien</span>
+          <input
+            value={infos.categorie ?? ""}
+            onChange={handleInfosChange("categorie")}
+            disabled={!editMode}
+            placeholder="Type de bien"
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Capacité</span>
+          <input
+            value={infos.capacite ?? ""}
+            onChange={handleInfosChange("capacite")}
+            disabled={!editMode}
+            placeholder="Capacité"
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Nombre de chambres</span>
+          <input
+            value={infos.nb_chambres ?? ""}
+            onChange={handleInfosChange("nb_chambres")}
+            disabled={!editMode}
+            placeholder="Nombre de chambres"
+          />
+        </label>
+        <label className={styles.fullField}>
+          <span>Description</span>
+          <textarea
+            value={infos.description ?? ""}
+            onChange={handleInfosChange("description")}
+            disabled={!editMode}
+            placeholder="Description du logement"
+          />
+        </label>
+      </div>
     </div>
   );
 }
@@ -101,33 +100,36 @@ export function MenageTabSection({ editMode, logement, setEditedData }: TabSecti
 
   return (
     <div className={styles.sectionStack}>
-      <label>
-        <span>Temps estime</span>
-        <input
-          value={menage.temps ?? ""}
-          onChange={handleMenageChange("temps")}
-          disabled={!editMode}
-          placeholder="Temps de ménage"
-        />
-      </label>
-      <label>
-        <span>Checklist</span>
-        <textarea
-          value={menage.checklist ?? ""}
-          onChange={handleMenageChange("checklist")}
-          disabled={!editMode}
-          placeholder="Checklist"
-        />
-      </label>
-      <label>
-        <span>Instructions</span>
-        <textarea
-          value={menage.instructions ?? ""}
-          onChange={handleMenageChange("instructions")}
-          disabled={!editMode}
-          placeholder="Instructions de ménage"
-        />
-      </label>
+      <p className={styles.sectionTitle}>Ménage et préparation</p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}>
+          <span>Temps estimé</span>
+          <input
+            value={menage.temps ?? ""}
+            onChange={handleMenageChange("temps")}
+            disabled={!editMode}
+            placeholder="Temps de ménage"
+          />
+        </label>
+        <label className={styles.fullField}>
+          <span>Checklist</span>
+          <textarea
+            value={menage.checklist ?? ""}
+            onChange={handleMenageChange("checklist")}
+            disabled={!editMode}
+            placeholder="Checklist"
+          />
+        </label>
+        <label className={styles.fullField}>
+          <span>Instructions</span>
+          <textarea
+            value={menage.instructions ?? ""}
+            onChange={handleMenageChange("instructions")}
+            disabled={!editMode}
+            placeholder="Instructions de ménage"
+          />
+        </label>
+      </div>
     </div>
   );
 }
@@ -139,35 +141,45 @@ export function PlanningTabSection({
   const planning = (logement.planning ?? []) as PlanningEvent[];
 
   return (
-    <div>
-      <h2>Planning</h2>
+    <div className={styles.sectionStack}>
+      <p className={styles.sectionTitle}>Planning du logement</p>
 
       {planning.length ? (
-        planning.map((event, index) => (
-          <div key={`${event.date}-${index}`}>
-            <strong>{event.date}</strong> - {event.type}
-          </div>
-        ))
+        <div className={styles.list}>
+          {planning.map((event, index) => (
+            <div className={styles.listItem} key={`${event.date}-${index}`}>
+              <strong>{event.date}</strong> - {event.type}
+            </div>
+          ))}
+        </div>
       ) : (
-        <p>Aucun evenement</p>
+        <div className={styles.panel}>
+          <p>Aucun événement.</p>
+        </div>
       )}
 
-      {editMode && <p>L&apos;edition du planning necessite un module dedie.</p>}
+      {editMode ? (
+        <div className={styles.panel}>
+          <p>L&apos;édition du planning nécessite un module dédié.</p>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function DocumentsTabSection({ editMode, documents }: DocumentsTabSectionProps) {
   return (
-    <div>
-      <h2>Documents</h2>
+    <div className={styles.sectionStack}>
+      <p className={styles.sectionTitle}>Documents du logement</p>
 
       {!documents?.length ? (
-        <p>Aucun document</p>
+        <div className={styles.panel}>
+          <p>Aucun document.</p>
+        </div>
       ) : (
-        <ul>
+        <ul className={styles.list}>
           {documents.map((doc, index) => (
-            <li key={`${doc.name}-${index}`}>
+            <li className={styles.listItem} key={`${doc.name}-${index}`}>
               {doc.url ? (
                 <a href={doc.url} target="_blank" rel="noreferrer">
                   {doc.name}
@@ -180,15 +192,19 @@ export function DocumentsTabSection({ editMode, documents }: DocumentsTabSection
         </ul>
       )}
 
-      {editMode && <p>L&apos;upload de documents necessite un module dedie.</p>}
+      {editMode ? (
+        <div className={styles.panel}>
+          <p>L&apos;upload de documents nécessite un module dédié.</p>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function NotesTabSection({ editMode, logement, setEditedData }: TabSectionProps) {
   return (
-    <div>
-      <h2>Notes internes</h2>
+    <div className={styles.sectionStack}>
+      <p className={styles.sectionTitle}>Notes internes</p>
       <textarea
         value={Array.isArray(logement.notes) ? logement.notes.join("\n") : ""}
         onChange={(event) =>
@@ -240,64 +256,67 @@ export function TarifsTabSection({ editMode, logement, setEditedData }: TabSecti
 
   return (
     <div className={styles.sectionStack}>
-      <label>
-        <span>Prix de base</span>
-        <input
-          type="number"
-          value={tarifs.prix_base ?? ""}
-          onChange={handleTarifChange("prix_base")}
-          disabled={!editMode}
-          placeholder="Prix de base"
-        />
-      </label>
-      <label>
-        <span>Prix par nuit</span>
-        <input
-          type="number"
-          value={tarifs.prix_par_nuit ?? ""}
-          onChange={handleTarifChange("prix_par_nuit")}
-          disabled={!editMode}
-          placeholder="Prix par nuit"
-        />
-      </label>
-      <label>
-        <span>Caution</span>
-        <input
-          type="number"
-          value={tarifs.caution ?? ""}
-          onChange={handleTarifChange("caution")}
-          disabled={!editMode}
-          placeholder="Caution"
-        />
-      </label>
-      <label>
-        <span>Frais de ménage</span>
-        <input
-          type="number"
-          value={tarifs.frais_menage ?? ""}
-          onChange={handleTarifChange("frais_menage")}
-          disabled={!editMode}
-          placeholder="Frais de ménage"
-        />
-      </label>
-      <label>
-        <span>Fichier contrat</span>
-        <input
-          value={contrat.fichier_pdf ?? ""}
-          onChange={handleContratChange("fichier_pdf")}
-          disabled={!editMode}
-          placeholder="URL fichier PDF"
-        />
-      </label>
-      <label className={styles.checkboxRow}>
-        <input
-          type="checkbox"
-          checked={Boolean(contrat.renouvellement_auto)}
-          onChange={handleContratChange("renouvellement_auto")}
-          disabled={!editMode}
-        />
-        <span>Renouvellement automatique</span>
-      </label>
+      <p className={styles.sectionTitle}>Tarifs et contrat</p>
+      <div className={styles.formGrid}>
+        <label className={styles.field}>
+          <span>Prix de base</span>
+          <input
+            type="number"
+            value={tarifs.prix_base ?? ""}
+            onChange={handleTarifChange("prix_base")}
+            disabled={!editMode}
+            placeholder="Prix de base"
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Prix par nuit</span>
+          <input
+            type="number"
+            value={tarifs.prix_par_nuit ?? ""}
+            onChange={handleTarifChange("prix_par_nuit")}
+            disabled={!editMode}
+            placeholder="Prix par nuit"
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Caution</span>
+          <input
+            type="number"
+            value={tarifs.caution ?? ""}
+            onChange={handleTarifChange("caution")}
+            disabled={!editMode}
+            placeholder="Caution"
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Frais de ménage</span>
+          <input
+            type="number"
+            value={tarifs.frais_menage ?? ""}
+            onChange={handleTarifChange("frais_menage")}
+            disabled={!editMode}
+            placeholder="Frais de ménage"
+          />
+        </label>
+        <label className={styles.fullField}>
+          <span>Fichier contrat</span>
+          <input
+            value={contrat.fichier_pdf ?? ""}
+            onChange={handleContratChange("fichier_pdf")}
+            disabled={!editMode}
+            placeholder="URL fichier PDF"
+          />
+        </label>
+        <label className={styles.checkboxRow}>
+          <input
+            type="checkbox"
+            checked={Boolean(contrat.renouvellement_auto)}
+            onChange={handleContratChange("renouvellement_auto")}
+            disabled={!editMode}
+          />
+          <span>Renouvellement automatique</span>
+        </label>
+      </div>
     </div>
   );
 }

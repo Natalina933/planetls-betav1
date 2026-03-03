@@ -38,6 +38,19 @@ type ConciergeSearchPayload = {
   };
 };
 
+type RequestType = "ponctuel" | "renfort" | "durable";
+
+type RequestFormState = {
+  requestType: RequestType;
+  title: string;
+  description: string;
+  city: string;
+  postalCode: string;
+  desiredDate: string;
+  budgetMax: string;
+  urgency: boolean;
+};
+
 const initialFilters: OwnerConciergeSearchFilters = {
   city: "",
   selectedServices: [],
@@ -47,8 +60,19 @@ const initialFilters: OwnerConciergeSearchFilters = {
   proOnly: false,
 };
 
+const initialRequestForm: RequestFormState = {
+  requestType: "ponctuel",
+  title: "",
+  description: "",
+  city: "",
+  postalCode: "",
+  desiredDate: "",
+  budgetMax: "",
+  urgency: false,
+};
+
 function formatAmount(value: number | null, suffix: string) {
-  if (typeof value !== "number") return "Non renseigné";
+  if (typeof value !== "number") return "Non renseigne";
   return `${value.toFixed(0)} EUR ${suffix}`;
 }
 
@@ -67,8 +91,10 @@ export default function OwnerConciergesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [contactingId, setContactingId] = useState<string | null>(null);
+  const [submittingRequest, setSubmittingRequest] = useState(false);
   const [items, setItems] = useState<ConciergeSearchRow[]>([]);
+  const [selectedConciergeIds, setSelectedConciergeIds] = useState<string[]>([]);
+  const [requestForm, setRequestForm] = useState<RequestFormState>(initialRequestForm);
   const [serverOptions, setServerOptions] = useState<{ services: string[]; propertyTypes: string[] }>({
     services: [],
     propertyTypes: [],
@@ -76,6 +102,11 @@ export default function OwnerConciergesPage() {
 
   const totalPro = useMemo(() => items.filter((item) => item.is_pro).length, [items]);
   const clientOptions = useMemo(() => buildOwnerConciergeFilterOptions(items), [items]);
+
+  const selectedConcierges = useMemo(
+    () => items.filter((item) => selectedConciergeIds.includes(item.id)),
+    [items, selectedConciergeIds],
+  );
 
   const serviceOptions = useMemo(() => {
     const values = new Set([...serverOptions.services, ...clientOptions.services]);
@@ -103,7 +134,9 @@ export default function OwnerConciergesPage() {
         throw new Error(payload?.error || "Impossible de charger les concierges.");
       }
 
-      setItems(Array.isArray(payload?.items) ? payload.items : []);
+      const nextItems = Array.isArray(payload?.items) ? payload.items : [];
+      setItems(nextItems);
+      setSelectedConciergeIds((prev) => prev.filter((id) => nextItems.some((item) => item.id === id)));
       setServerOptions({
         services: Array.isArray(payload?.available_filters?.services)
           ? payload.available_filters.services
@@ -120,53 +153,84 @@ export default function OwnerConciergesPage() {
   }
 
   useEffect(() => {
-    loadConcierges(initialFilters);
+    void loadConcierges(initialFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setRequestForm((prev) => ({
+      ...prev,
+      city: prev.city || filters.city,
+    }));
+  }, [filters.city]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
-    loadConcierges(filters);
+    void loadConcierges(filters);
   }
 
-  async function handleContactConcierge(item: ConciergeSearchRow) {
+  function toggleConciergeSelection(itemId: string) {
+    setSelectedConciergeIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
+    );
+    setFeedback(null);
+    setError(null);
+  }
+
+  async function handleSendRequest(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (selectedConciergeIds.length === 0) {
+      setError("Selectionnez au moins un concierge avant d'envoyer une demande.");
+      return;
+    }
+
+    if (!requestForm.title.trim()) {
+      setError("Ajoutez un titre a votre demande.");
+      return;
+    }
+
     try {
-      setContactingId(item.id);
+      setSubmittingRequest(true);
       setError(null);
       setFeedback(null);
 
-      const response = await fetch("/api/messages/conversations", {
+      const response = await fetch("/api/service-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          concierge_profile_id: item.id,
-          source: "search",
-          source_reference: item.id,
-          subject: `Prise de contact propriétaire - ${item.display_name}`,
-          prefill_message: `Bonjour ${item.display_name}, je souhaite échanger avec vous sur la gestion de mes logements en ${item.city || item.service_area || "France"}.`,
-          metadata: {
-            origin: "owner_concierge_search",
-            concierge_profile_id: item.id,
-          },
+          request_type: requestForm.requestType,
+          title: requestForm.title.trim(),
+          description: requestForm.description.trim(),
+          requested_services: filters.selectedServices,
+          city: requestForm.city.trim(),
+          postal_code: requestForm.postalCode.trim(),
+          desired_date: requestForm.desiredDate ? new Date(requestForm.desiredDate).toISOString() : null,
+          urgency: requestForm.urgency,
+          budget_max: requestForm.budgetMax ? Number(requestForm.budgetMax) : null,
+          currency: "EUR",
+          recipient_ids: selectedConciergeIds,
         }),
       });
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de créer la conversation.");
+        throw new Error(payload?.error || "Impossible d'envoyer votre demande.");
       }
 
       setFeedback(
-        `Conversation créée avec ${item.display_name}. Vous pouvez maintenant poursuivre dans la messagerie propriétaire.`,
+        `Demande envoyee a ${selectedConciergeIds.length} concierge(s). Vous pouvez maintenant suivre les retours.`,
       );
-      window.location.href = `/dashboard/owner/messages?created=${payload.id}`;
+      setSelectedConciergeIds([]);
+      setRequestForm({
+        ...initialRequestForm,
+        city: filters.city,
+      });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Impossible de créer la conversation.",
-      );
+      setError(err instanceof Error ? err.message : "Impossible d'envoyer votre demande.");
     } finally {
-      setContactingId(null);
+      setSubmittingRequest(false);
     }
   }
 
@@ -177,15 +241,16 @@ export default function OwnerConciergesPage() {
           <span className={styles.eyebrow}>Mise en relation</span>
           <h1 className={styles.title}>Trouver un concierge</h1>
           <p className={styles.description}>
-            Filtrez par zone, services, type de bien, budget et rayon pour trouver le bon partenaire concierge.
+            Filtrez par zone, services, type de bien, budget et rayon, puis envoyez une vraie
+            demande aux profils que vous retenez.
           </p>
           <div className={styles.chips}>
             <span className={styles.chip}>{items.length} concierge(s)</span>
             <span className={styles.chip}>{totalPro} profil(s) PRO</span>
             <span className={styles.chip}>
-              {filters.selectedServices.length > 0
-                ? `${filters.selectedServices.length} service(s) filtrés`
-                : "Tous services"}
+              {selectedConciergeIds.length > 0
+                ? `${selectedConciergeIds.length} concierge(s) selectionne(s)`
+                : "Aucune selection"}
             </span>
           </div>
         </header>
@@ -250,11 +315,11 @@ export default function OwnerConciergesPage() {
           </div>
 
           <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Services recherchés</span>
+            <span className={styles.blockLabel}>Services recherches</span>
             <div className={styles.serviceChips}>
               {serviceOptions.length === 0 ? (
                 <span className={styles.tagMuted}>
-                  Les services apparaîtront après le premier chargement.
+                  Les services apparaitront apres le premier chargement.
                 </span>
               ) : (
                 serviceOptions.map((serviceLabel) => {
@@ -303,12 +368,150 @@ export default function OwnerConciergesPage() {
               onClick={() => {
                 setFilters(initialFilters);
                 setFeedback(null);
-                loadConcierges(initialFilters);
+                void loadConcierges(initialFilters);
               }}
               disabled={loading}
             >
-              Réinitialiser
+              Reinitialiser
             </button>
+          </div>
+        </form>
+
+        <form className={styles.requestPanel} onSubmit={handleSendRequest}>
+          <div className={styles.requestHeader}>
+            <div>
+              <p className={styles.eyebrow}>Demande</p>
+              <h2 className={styles.requestTitle}>Envoyer un brief a vos concierges selectionnes</h2>
+            </div>
+            <span className={styles.requestCount}>{selectedConciergeIds.length} cible(s)</span>
+          </div>
+
+          <div className={styles.selectedList}>
+            {selectedConcierges.length > 0 ? (
+              selectedConcierges.map((item) => (
+                <span key={item.id} className={styles.selectedChip}>
+                  {item.display_name}
+                </span>
+              ))
+            ) : (
+              <span className={styles.tagMuted}>
+                Selectionnez un ou plusieurs concierges dans la liste ci-dessous.
+              </span>
+            )}
+          </div>
+
+          <div className={styles.fieldGrid}>
+            <label className={styles.field}>
+              <span>Type de demande</span>
+              <select
+                value={requestForm.requestType}
+                onChange={(event) =>
+                  setRequestForm((prev) => ({
+                    ...prev,
+                    requestType: event.target.value as RequestType,
+                  }))
+                }
+              >
+                <option value="ponctuel">Besoin ponctuel</option>
+                <option value="renfort">Remplacement / renfort</option>
+                <option value="durable">Besoin durable</option>
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>Ville</span>
+              <input
+                value={requestForm.city}
+                onChange={(event) =>
+                  setRequestForm((prev) => ({ ...prev, city: event.target.value }))
+                }
+                placeholder="Ville d'intervention"
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Code postal</span>
+              <input
+                value={requestForm.postalCode}
+                onChange={(event) =>
+                  setRequestForm((prev) => ({ ...prev, postalCode: event.target.value }))
+                }
+                placeholder="75015"
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Date souhaitee</span>
+              <input
+                type="datetime-local"
+                value={requestForm.desiredDate}
+                onChange={(event) =>
+                  setRequestForm((prev) => ({ ...prev, desiredDate: event.target.value }))
+                }
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Budget max</span>
+              <input
+                type="number"
+                min="0"
+                inputMode="numeric"
+                value={requestForm.budgetMax}
+                onChange={(event) =>
+                  setRequestForm((prev) => ({ ...prev, budgetMax: event.target.value }))
+                }
+                placeholder="120"
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Titre</span>
+              <input
+                value={requestForm.title}
+                onChange={(event) =>
+                  setRequestForm((prev) => ({ ...prev, title: event.target.value }))
+                }
+                placeholder="Ex: besoin de check-in ce week-end"
+              />
+            </label>
+          </div>
+
+          <label className={styles.field}>
+            <span>Description</span>
+            <textarea
+              className={styles.requestTextarea}
+              value={requestForm.description}
+              onChange={(event) =>
+                setRequestForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+              placeholder="Expliquez la situation, le logement, l'urgence et ce que vous attendez."
+              rows={5}
+            />
+          </label>
+
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={requestForm.urgency}
+              onChange={(event) =>
+                setRequestForm((prev) => ({ ...prev, urgency: event.target.checked }))
+              }
+            />
+            <span>Cette demande est urgente</span>
+          </label>
+
+          <div className={styles.actions}>
+            <button
+              type="submit"
+              className={styles.primaryBtn}
+              disabled={submittingRequest || selectedConciergeIds.length === 0}
+            >
+              {submittingRequest ? "Envoi..." : "Envoyer ma demande"}
+            </button>
+            <Link href="/dashboard/owner/conciergerie" className={styles.secondaryBtn}>
+              Voir mon suivi concierge
+            </Link>
           </div>
         </form>
 
@@ -317,104 +520,104 @@ export default function OwnerConciergesPage() {
 
         {!loading && !error && items.length === 0 ? (
           <div className={styles.emptyState}>
-            <h2>Aucun concierge ne correspond à vos critères.</h2>
-            <p>Essayez d&apos;élargir la zone, de relever le budget ou de retirer un filtre service.</p>
+            <h2>Aucun concierge ne correspond a vos criteres.</h2>
+            <p>Essayez d'elargir la zone, de relever le budget ou de retirer un filtre service.</p>
           </div>
         ) : null}
 
         <div className={styles.grid}>
-          {items.map((item) => (
-            <article key={item.id} className={styles.card}>
-              <div className={styles.cardHead}>
-                <div>
-                  <h2>{item.display_name}</h2>
-                  <p>{item.city || item.service_area || "Zone non renseignée"}</p>
+          {items.map((item) => {
+            const isSelected = selectedConciergeIds.includes(item.id);
+
+            return (
+              <article key={item.id} className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}>
+                <div className={styles.cardHead}>
+                  <div>
+                    <h2>{item.display_name}</h2>
+                    <p>{item.city || item.service_area || "Zone non renseignee"}</p>
+                  </div>
+                  <div className={styles.badgesCol}>
+                    <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
+                      {item.is_pro ? "PRO" : "Standard"}
+                    </span>
+                    <span className={styles.ratingBadge}>
+                      {typeof item.average_rating === "number"
+                        ? `${item.average_rating.toFixed(1)} / 5`
+                        : "Sans avis"}
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.badgesCol}>
-                  <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
-                    {item.is_pro ? "PRO" : "Standard"}
-                  </span>
-                  <span className={styles.ratingBadge}>
-                    {typeof item.average_rating === "number"
-                      ? `${item.average_rating.toFixed(1)} / 5`
-                      : "Sans avis"}
-                  </span>
+
+                <div className={styles.stats}>
+                  <p>
+                    <strong>Avis :</strong> {item.reviews_count}
+                  </p>
+                  <p>
+                    <strong>Experience :</strong>{" "}
+                    {typeof item.years_experience === "number"
+                      ? `${item.years_experience} an(s)`
+                      : item.experience_level || "Non renseignee"}
+                  </p>
+                  <p>
+                    <strong>Rayon :</strong>{" "}
+                    {typeof item.service_radius_km === "number"
+                      ? `${item.service_radius_km} km`
+                      : "Non renseigne"}
+                  </p>
                 </div>
-              </div>
 
-              <div className={styles.stats}>
-                <p>
-                  <strong>Avis :</strong> {item.reviews_count}
-                </p>
-                <p>
-                  <strong>Expérience :</strong>{" "}
-                  {typeof item.years_experience === "number"
-                    ? `${item.years_experience} an(s)`
-                    : item.experience_level || "Non renseignée"}
-                </p>
-                <p>
-                  <strong>Rayon :</strong>{" "}
-                  {typeof item.service_radius_km === "number"
-                    ? `${item.service_radius_km} km`
-                    : "Non renseigné"}
-                </p>
-              </div>
+                <div className={styles.pricing}>
+                  <span>{formatAmount(item.hourly_rate, "/ h")}</span>
+                  <span>{formatAmount(item.monthly_rate, "/ mois")}</span>
+                </div>
 
-              <div className={styles.pricing}>
-                <span>{formatAmount(item.hourly_rate, "/ h")}</span>
-                <span>{formatAmount(item.monthly_rate, "/ mois")}</span>
-              </div>
+                {item.property_types && item.property_types.length > 0 ? (
+                  <div className={styles.tags}>
+                    {item.property_types.map((propertyType) => (
+                      <span key={`${item.id}-property-${propertyType}`} className={styles.propertyTag}>
+                        {propertyType}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
 
-              {item.property_types && item.property_types.length > 0 ? (
                 <div className={styles.tags}>
-                  {item.property_types.map((propertyType) => (
-                    <span key={`${item.id}-property-${propertyType}`} className={styles.propertyTag}>
-                      {propertyType}
-                    </span>
-                  ))}
+                  {item.services.length > 0 ? (
+                    item.services.slice(0, 6).map((serviceLabel) => (
+                      <span key={`${item.id}-${serviceLabel}`} className={styles.tag}>
+                        {serviceLabel}
+                      </span>
+                    ))
+                  ) : (
+                    <span className={styles.tagMuted}>Services non renseignes</span>
+                  )}
                 </div>
-              ) : null}
 
-              <div className={styles.tags}>
-                {item.services.length > 0 ? (
-                  item.services.slice(0, 6).map((serviceLabel) => (
-                    <span key={`${item.id}-${serviceLabel}`} className={styles.tag}>
-                      {serviceLabel}
-                    </span>
-                  ))
-                ) : (
-                  <span className={styles.tagMuted}>Services non renseignés</span>
-                )}
-              </div>
+                {item.latest_review_comment ? (
+                  <div className={styles.reviewSnippet}>
+                    <strong>Avis recent</strong>
+                    <p>{item.latest_review_comment}</p>
+                    {item.latest_review_at ? (
+                      <small>{formatReviewDate(item.latest_review_at)}</small>
+                    ) : null}
+                  </div>
+                ) : null}
 
-              {item.latest_review_comment ? (
-                <div className={styles.reviewSnippet}>
-                  <strong>Avis récent</strong>
-                  <p>{item.latest_review_comment}</p>
-                  {item.latest_review_at ? (
-                    <small>{formatReviewDate(item.latest_review_at)}</small>
-                  ) : null}
+                <div className={styles.cardActions}>
+                  <Link href={`/concierges/${item.id}`} className={styles.primaryBtn}>
+                    Voir le profil
+                  </Link>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    onClick={() => toggleConciergeSelection(item.id)}
+                  >
+                    {isSelected ? "Retirer de la demande" : "Selectionner"}
+                  </button>
                 </div>
-              ) : null}
-
-              <div className={styles.cardActions}>
-                <Link href={`/concierges/${item.id}`} className={styles.primaryBtn}>
-                  Voir le profil
-                </Link>
-                <button
-                  type="button"
-                  className={styles.secondaryBtn}
-                  disabled={contactingId === item.id}
-                  onClick={() => handleContactConcierge(item)}
-                >
-                  {contactingId === item.id ? "Ouverture..." : "Contacter"}
-                </button>
-                <Link href="/dashboard/owner/conciergerie" className={styles.secondaryBtn}>
-                  Voir mon suivi concierge
-                </Link>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
