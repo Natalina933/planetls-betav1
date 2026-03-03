@@ -118,9 +118,9 @@ export default function ProviderClientsPage() {
     return () => window.clearTimeout(timeout);
   }, [success]);
 
-  const clients = data?.items ?? [];
   const canSubmit = useMemo(() => form.client_name.trim().length > 0, [form.client_name]);
   const filteredClients = useMemo(() => {
+    const clients = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = clients.filter((client) => {
       const matchesStatus = statusFilter === "all" || (client.status ?? "active") === statusFilter;
@@ -156,7 +156,7 @@ export default function ProviderClientsPage() {
     });
 
     return next;
-  }, [clients, searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
+  }, [data?.items, searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredClients.length / pageSize));
   const paginatedClients = useMemo(
@@ -170,7 +170,7 @@ export default function ProviderClientsPage() {
 
   function handleExportCsv() {
     const rows = [
-      ["Nom", "Societe", "Email", "Telephone", "Ville", "Type", "Statut", "Creation"],
+      ["Nom", "Société", "Email", "Téléphone", "Ville", "Type", "Statut", "Création"],
       ...filteredClients.map((client) => [
         client.client_name ?? "",
         client.company_name ?? "",
@@ -354,7 +354,7 @@ export default function ProviderClientsPage() {
                 <input value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="client@exemple.fr" />
               </label>
               <label>
-                <span>Telephone</span>
+                <span>Téléphone</span>
                 <input value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="06..." />
               </label>
               <label>
@@ -457,7 +457,7 @@ export default function ProviderClientsPage() {
                     </div>
                     <div className={styles.itemMeta}>
                       <span>{client.email || "Email non renseigne"}</span>
-                      <span>{client.phone || "Telephone non renseigne"}</span>
+                      <span>{client.phone || "Téléphone non renseigné"}</span>
                       <span>Ajoute le {formatDate(client.created_at)}</span>
                     </div>
                     {client.notes ? <p className={styles.itemBody}>{client.notes}</p> : null}

@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import {
   Inter,
@@ -39,9 +38,6 @@ const openSans = Open_Sans({
   display: "swap",
 });
 
-// =======================================================
-// 🧾 METADATA
-// =======================================================
 export const metadata: Metadata = {
   title: {
     default: "PlanetLs",
@@ -50,6 +46,11 @@ export const metadata: Metadata = {
   description:
     "Plateforme de mise en relation propriétaires, concierges, artisans et commerçants.",
   applicationName: "PlanetLs",
+  metadataBase: new URL("https://planetls.fr"),
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/icons/icon-192x192.png",
@@ -57,16 +58,10 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
-// =======================================================
-// 📱 VIEWPORT
-// =======================================================
 export const viewport: Viewport = {
   themeColor: "#f2c200ff",
 };
 
-// =======================================================
-// 🌍 ROOT LAYOUT
-// =======================================================
 export default function RootLayout({
   children,
 }: {

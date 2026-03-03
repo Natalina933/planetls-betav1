@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx,.mts",
     "test": "node --experimental-strip-types --test src/tests/*.test.mts"
   },
   "dependencies": {

@@ -407,7 +407,7 @@ const TariffBillingDesk = ({
   };
 
   if (loading) {
-    return <p className={styles.placeholder}>Chargement des donnees devis et factures...</p>;
+    return <p className={styles.placeholder}>Chargement des données devis et factures...</p>;
   }
 
   return (
@@ -460,7 +460,7 @@ const TariffBillingDesk = ({
             />
           </label>
           <label>
-            <span>Services &agrave; l'acte / mois</span>
+            <span>Services &agrave; l&apos;acte / mois</span>
             <input
               type="number"
               min={0}

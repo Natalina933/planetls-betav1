@@ -41,57 +41,57 @@ export default function OwnerSettingsPage() {
   const displayName =
     `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() ||
     profile?.username ||
-    "Compte proprietaire";
+    "Compte propriétaire";
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Compte et preferences"
-      title="Compte et preferences"
+      eyebrow="Compte et préférences"
+      title="Compte et préférences"
       description={
         error
           ? error
-          : "Retrouvez les informations de votre compte, vos coordonnees et les reperes utiles pour garder un espace proprietaire clair."
+          : "Retrouvez les informations de votre compte, vos coordonnées et les repères utiles pour garder un espace propriétaire clair."
       }
       chips={[
         profile?.role?.endsWith("_pro") ? "Compte PRO" : "Compte standard",
-        profile?.city || "Ville non renseignee",
-        profile?.email || "Email non renseigne",
+        profile?.city || "Ville non renseignée",
+        profile?.email || "Email non renseigné",
       ]}
       metrics={[
         {
           label: "Profil",
           value: displayName,
-          hint: profile?.company_name || "Sans societe renseignee",
+          hint: profile?.company_name || "Sans société renseignée",
         },
-        { label: "Telephone", value: profile?.phone || "-", hint: "Coordonnee de contact" },
+        { label: "Téléphone", value: profile?.phone || "-", hint: "Coordonnée de contact" },
       ]}
       actions={[
-        { label: "Revenir a la vue prioritaire", href: "/dashboard/owner" },
+        { label: "Revenir à la vue prioritaire", href: "/dashboard/owner" },
         { label: "Voir mes documents", href: "/dashboard/owner/documents" },
       ]}
       cards={[
         {
-          title: "1. Identite du compte",
-          text: "Retrouvez ici vos informations principales de connexion et de presentation.",
+          title: "1. Identité du compte",
+          text: "Retrouvez ici vos informations principales de connexion et de présentation.",
         },
         {
-          title: "2. Preferences a structurer",
-          text: "Cet espace a vocation a centraliser vos preferences d'alertes, de facturation et de suivi proprietaire.",
+          title: "2. Préférences à structurer",
+          text: "Cet espace a vocation à centraliser vos préférences d'alertes, de facturation et de suivi propriétaire.",
         },
       ]}
       detailSections={[
         {
           title: "Informations du profil",
-          description: "Synthese des donnees deja disponibles sur votre compte.",
+          description: "Synthèse des données déjà disponibles sur votre compte.",
           items: [
             {
               title: displayName,
               meta: profile?.role || "owner",
-              description: `${profile?.email || "Email non renseigne"}${profile?.phone ? ` | ${profile.phone}` : ""}`,
+              description: `${profile?.email || "Email non renseigné"}${profile?.phone ? ` | ${profile.phone}` : ""}`,
             },
             {
-              title: profile?.company_name || "Aucune societe renseignee",
-              description: profile?.city || "Ville non renseignee",
+              title: profile?.company_name || "Aucune société renseignée",
+              description: profile?.city || "Ville non renseignée",
             },
           ],
         },

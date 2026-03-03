@@ -116,20 +116,20 @@ export default function ConciergeStocksPage() {
           hint: "Rotation estimee",
         },
         {
-          label: "Reassort menage",
+          label: "Réassort ménage",
           value: loading ? "..." : String(stockForecast.cleaningUnits),
           hint: "Unites a garder en reserve",
         },
         {
           label: "Tampon urgence",
           value: loading ? "..." : String(stockForecast.backupSets),
-          hint: "Reserve minimum pour imprevus",
+          hint: "Réserve minimum pour imprévus",
         },
       ]}
       cards={[
         {
           title: "1. Rotation linge",
-          text: `Avec ${housingCount} logement(s), gardez au moins ${stockForecast.linenSets} jeux de linge disponibles pour absorber les check-in et menages consecutifs.`,
+          text: `Avec ${housingCount} logement(s), gardez au moins ${stockForecast.linenSets} jeux de linge disponibles pour absorber les check-in et ménages consécutifs.`,
         },
         {
           title: "2. Kits voyageurs",

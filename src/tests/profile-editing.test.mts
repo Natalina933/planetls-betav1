@@ -60,6 +60,10 @@ import {
   upsertSectionSnapshot,
 } from "../app/dashboard/concierge/profile/profileEditing.ts";
 
+type MissionProfileForLegacy = {
+  missions: Array<{ id: string; label: string }>;
+};
+
 const seasonalPricingFixture = {
   checkInFee: 0,
   checkOutFee: 0,
@@ -734,8 +738,8 @@ test("syncMissionServiceFromPricing toggles mission activation from pricing acti
     catalogServices: [{ id: 2, service: "Check-in" }],
     parseMissionPayload,
     parseAvailabilityPayloadRaw: () => ({ existing: true }),
-    buildLegacyFromMissionProfile: (missionProfile: any) => ({
-      missionCatalog: missionProfile.missions.map((mission: any) => ({
+    buildLegacyFromMissionProfile: (missionProfile: MissionProfileForLegacy) => ({
+      missionCatalog: missionProfile.missions.map((mission) => ({
         id: mission.id,
         label: mission.label,
       })),
@@ -768,8 +772,8 @@ test("syncMissionServiceFromPricing toggles mission activation from pricing acti
       preferences: {},
     }),
     parseAvailabilityPayloadRaw: () => ({ existing: true }),
-    buildLegacyFromMissionProfile: (missionProfile: any) => ({
-      missionCatalog: missionProfile.missions.map((mission: any) => ({
+    buildLegacyFromMissionProfile: (missionProfile: MissionProfileForLegacy) => ({
+      missionCatalog: missionProfile.missions.map((mission) => ({
         id: mission.id,
         label: mission.label,
       })),

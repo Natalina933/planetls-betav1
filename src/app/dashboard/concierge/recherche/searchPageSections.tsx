@@ -84,7 +84,7 @@ export function SearchHeader({ searching, onRefresh }: SearchHeaderProps) {
     <header className={styles.header}>
       <div className={styles.headerMain}>
         <p className={styles.kicker}>Prospection concierge</p>
-        <h1>Recherche d'annonces</h1>
+        <h1>Recherche d&apos;annonces</h1>
         <p>
           Filtrez par zone et services pour identifier rapidement les demandes qui
           correspondent a votre profil missions.
@@ -232,7 +232,7 @@ function SearchServiceFilter({
       <div className={styles.servicePills}>
         {availableServiceOptions.length === 0 && (
           <span className={styles.emptyHint}>
-            Aucun service detecte. Activez des services dans l'onglet Missions.
+            Aucun service detecte. Activez des services dans l&apos;onglet Missions.
           </span>
         )}
         {availableServiceOptions.map((service) => {
@@ -273,7 +273,7 @@ export function SearchResultsSection({
           <h3>Aucune annonce compatible pour ces filtres.</h3>
           <p>
             Elargissez la zone ou retirez quelques filtres services pour afficher plus de
-            profils proprietaires.
+            profils propriétaires.
           </p>
         </div>
       )}
@@ -327,7 +327,7 @@ function SearchResultCard({
         </p>
         <p>
           <strong>Surface :</strong>{" "}
-          {typeof listing.surface_m2 === "number" ? `${listing.surface_m2} m2` : "Non renseignee"}
+          {typeof listing.surface_m2 === "number" ? `${listing.surface_m2} m2` : "Non renseignée"}
         </p>
         <p>
           <strong>Statut :</strong> {listing.status ?? "Non renseigne"}

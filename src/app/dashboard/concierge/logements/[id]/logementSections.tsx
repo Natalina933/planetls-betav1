@@ -1,206 +1,133 @@
 "use client";
 
-import Image from "next/image";
-import React from "react";
+import type { ChangeEvent, Dispatch, SetStateAction } from "react";
 import styles from "./FicheLogement.module.scss";
-import {
+import type {
   DocumentItem,
   LogementTyped,
-  formatMoney,
-  toOptionalNumber,
+  PlanningEvent,
 } from "./logementHelpers";
 
-interface TabSectionProps {
+type EditedData = Partial<LogementTyped>;
+
+type TabSectionProps = {
   editMode: boolean;
   logement: LogementTyped;
-  setEditedData: React.Dispatch<React.SetStateAction<Partial<LogementTyped>>>;
-}
+  setEditedData: Dispatch<SetStateAction<EditedData>>;
+};
 
-interface DocumentsTabSectionProps {
+type DocumentsTabSectionProps = {
   editMode: boolean;
   documents?: DocumentItem[];
+};
+
+function updateField(
+  setEditedData: Dispatch<SetStateAction<EditedData>>,
+  field: keyof LogementTyped,
+  value: LogementTyped[keyof LogementTyped],
+) {
+  setEditedData((prev) => ({ ...prev, [field]: value }));
 }
 
-export function InfosTabSection({
-  editMode,
-  logement,
-  setEditedData,
-}: TabSectionProps) {
+export function InfosTabSection({ editMode, logement, setEditedData }: TabSectionProps) {
+  const infos = logement.infos ?? {};
+
+  const handleInfosChange =
+    (field: keyof typeof infos) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setEditedData((prev) => ({
+        ...prev,
+        infos: {
+          ...(prev.infos ?? logement.infos ?? {}),
+          [field]: event.target.value,
+        },
+      }));
+    };
+
   return (
-    <div>
-      <h2>Informations générales</h2>
-
-      {!editMode ? (
-        <ul>
-          <li>Nom : {logement.nom_logement}</li>
-          <li>Adresse : {logement.adresse}</li>
-          <li>Ville : {logement.ville}</li>
-          <li>Type : {logement.infos?.categorie || "-"}</li>
-          <li>Capacité : {logement.infos?.capacite ?? "-"}</li>
-          <li>Chambres : {logement.infos?.nb_chambres ?? "-"}</li>
-          <li>Plateforme : {logement.plateforme || "-"}</li>
-          <li>Statut : {logement.statut}</li>
-          <li>Description : {logement.infos?.description || "-"}</li>
-          <li>
-            Équipements :{" "}
-            {Array.isArray(logement.infos?.equipements) && logement.infos.equipements.length > 0
-              ? logement.infos.equipements.join(", ")
-              : "-"}
-          </li>
-        </ul>
-      ) : (
-        <div className={styles.formGrid}>
-          <input
-            value={logement.nom_logement ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({ ...prev, nom_logement: e.target.value }))
-            }
-            placeholder="Nom du logement"
-          />
-          <input
-            value={logement.adresse ?? ""}
-            onChange={(e) => setEditedData((prev) => ({ ...prev, adresse: e.target.value }))}
-            placeholder="Adresse"
-          />
-          <input
-            value={logement.ville ?? ""}
-            onChange={(e) => setEditedData((prev) => ({ ...prev, ville: e.target.value }))}
-            placeholder="Ville"
-          />
-          <input
-            value={logement.infos?.categorie ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                infos: { ...prev.infos, categorie: e.target.value },
-              }))
-            }
-            placeholder="Type de bien"
-          />
-          <input
-            type="number"
-            value={logement.infos?.capacite ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                infos: { ...prev.infos, capacite: toOptionalNumber(e.target.value) },
-              }))
-            }
-            placeholder="Capacité"
-          />
-          <input
-            type="number"
-            value={logement.infos?.nb_chambres ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                infos: { ...prev.infos, nb_chambres: toOptionalNumber(e.target.value) },
-              }))
-            }
-            placeholder="Nombre de chambres"
-          />
-          <input
-            value={logement.plateforme ?? ""}
-            onChange={(e) => setEditedData((prev) => ({ ...prev, plateforme: e.target.value }))}
-            placeholder="Plateforme"
-          />
-          <textarea
-            value={logement.infos?.description ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                infos: { ...prev.infos, description: e.target.value },
-              }))
-            }
-            placeholder="Description du logement"
-          />
-          <input
-            value={Array.isArray(logement.infos?.equipements) ? logement.infos.equipements.join(", ") : ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                infos: {
-                  ...prev.infos,
-                  equipements: e.target.value
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter(Boolean),
-                },
-              }))
-            }
-            placeholder="Wifi, Climatisation, Parking"
-          />
-        </div>
-      )}
-
-      <h3>Photo principale</h3>
-      <Image
-        src={logement.photo_principale || "/images/default-logement.png"}
-        width={240}
-        height={160}
-        alt="Photo logement"
-      />
-
-      {editMode && (
+    <div className={styles.sectionStack}>
+      <label>
+        <span>Type de bien</span>
         <input
-          value={logement.photo_principale ?? ""}
-          onChange={(e) =>
-            setEditedData((prev) => ({ ...prev, photo_principale: e.target.value }))
-          }
-          placeholder="URL photo principale"
+          value={infos.categorie ?? ""}
+          onChange={handleInfosChange("categorie")}
+          disabled={!editMode}
+          placeholder="Type de bien"
         />
-      )}
+      </label>
+      <label>
+        <span>Capacite</span>
+        <input
+          value={infos.capacite ?? ""}
+          onChange={handleInfosChange("capacite")}
+          disabled={!editMode}
+          placeholder="Capacite"
+        />
+      </label>
+      <label>
+        <span>Nombre de chambres</span>
+        <input
+          value={infos.nb_chambres ?? ""}
+          onChange={handleInfosChange("nb_chambres")}
+          disabled={!editMode}
+          placeholder="Nombre de chambres"
+        />
+      </label>
+      <label>
+        <span>Description</span>
+        <textarea
+          value={infos.description ?? ""}
+          onChange={handleInfosChange("description")}
+          disabled={!editMode}
+          placeholder="Description du logement"
+        />
+      </label>
     </div>
   );
 }
 
-export function MenageTabSection({
-  editMode,
-  logement,
-  setEditedData,
-}: TabSectionProps) {
-  return (
-    <div>
-      <h2>Ménage</h2>
+export function MenageTabSection({ editMode, logement, setEditedData }: TabSectionProps) {
+  const menage = logement.menage ?? {};
 
-      {!editMode ? (
-        <ul>
-          <li>Temps : {logement.menage?.temps || "Non défini"}</li>
-          <li>Checklist : {logement.menage?.checklist || "-"}</li>
-          <li>Instructions : {logement.menage?.instructions || "-"}</li>
-        </ul>
-      ) : (
-        <>
-          <input
-            type="text"
-            value={logement.menage?.temps ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                menage: { ...prev.menage, temps: e.target.value },
-              }))
-            }
-          />
-          <textarea
-            value={logement.menage?.checklist ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                menage: { ...prev.menage, checklist: e.target.value },
-              }))
-            }
-          />
-          <textarea
-            value={logement.menage?.instructions ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                menage: { ...prev.menage, instructions: e.target.value },
-              }))
-            }
-          />
-        </>
-      )}
+  const handleMenageChange =
+    (field: keyof typeof menage) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setEditedData((prev) => ({
+        ...prev,
+        menage: {
+          ...(prev.menage ?? logement.menage ?? {}),
+          [field]: event.target.value,
+        },
+      }));
+    };
+
+  return (
+    <div className={styles.sectionStack}>
+      <label>
+        <span>Temps estime</span>
+        <input
+          value={menage.temps ?? ""}
+          onChange={handleMenageChange("temps")}
+          disabled={!editMode}
+          placeholder="Temps de ménage"
+        />
+      </label>
+      <label>
+        <span>Checklist</span>
+        <textarea
+          value={menage.checklist ?? ""}
+          onChange={handleMenageChange("checklist")}
+          disabled={!editMode}
+          placeholder="Checklist"
+        />
+      </label>
+      <label>
+        <span>Instructions</span>
+        <textarea
+          value={menage.instructions ?? ""}
+          onChange={handleMenageChange("instructions")}
+          disabled={!editMode}
+          placeholder="Instructions de ménage"
+        />
+      </label>
     </div>
   );
 }
@@ -209,29 +136,28 @@ export function PlanningTabSection({
   editMode,
   logement,
 }: Omit<TabSectionProps, "setEditedData">) {
+  const planning = (logement.planning ?? []) as PlanningEvent[];
+
   return (
     <div>
       <h2>Planning</h2>
 
-      {logement.planning?.length ? (
-        logement.planning.map((event, index) => (
+      {planning.length ? (
+        planning.map((event, index) => (
           <div key={`${event.date}-${index}`}>
             <strong>{event.date}</strong> - {event.type}
           </div>
         ))
       ) : (
-          <p>Aucun événement</p>
+        <p>Aucun evenement</p>
       )}
 
-      {editMode && <p>L'édition du planning nécessite un module dédié.</p>}
+      {editMode && <p>L&apos;edition du planning necessite un module dedie.</p>}
     </div>
   );
 }
 
-export function DocumentsTabSection({
-  editMode,
-  documents,
-}: DocumentsTabSectionProps) {
+export function DocumentsTabSection({ editMode, documents }: DocumentsTabSectionProps) {
   return (
     <div>
       <h2>Documents</h2>
@@ -254,163 +180,124 @@ export function DocumentsTabSection({
         </ul>
       )}
 
-      {editMode && <p>L'upload de documents nécessite un module dédié.</p>}
+      {editMode && <p>L&apos;upload de documents necessite un module dedie.</p>}
     </div>
   );
 }
 
-export function NotesTabSection({
-  editMode,
-  logement,
-  setEditedData,
-}: TabSectionProps) {
+export function NotesTabSection({ editMode, logement, setEditedData }: TabSectionProps) {
   return (
     <div>
       <h2>Notes internes</h2>
-
-      {!editMode ? (
-        logement.notes?.length ? (
-          <ul>
-            {logement.notes.map((note, index) => (
-              <li key={`${note}-${index}`}>{note}</li>
-            ))}
-          </ul>
-        ) : (
-          <p>Aucune note</p>
-        )
-      ) : (
-        <textarea
-          value={logement.notes?.join("\n") ?? ""}
-          onChange={(e) =>
-            setEditedData((prev) => ({
-              ...prev,
-              notes: e.target.value.split("\n"),
-            }))
-          }
-        />
-      )}
+      <textarea
+        value={Array.isArray(logement.notes) ? logement.notes.join("\n") : ""}
+        onChange={(event) =>
+          updateField(
+            setEditedData,
+            "notes",
+            event.target.value
+              .split("\n")
+              .map((note) => note.trim())
+              .filter(Boolean),
+          )
+        }
+        disabled={!editMode}
+        placeholder="Notes internes"
+      />
     </div>
   );
 }
 
-export function TarifsTabSection({
-  editMode,
-  logement,
-  setEditedData,
-}: TabSectionProps) {
+export function TarifsTabSection({ editMode, logement, setEditedData }: TabSectionProps) {
+  const tarifs = logement.tarifs ?? {};
+  const contrat = logement.contrat ?? {};
+
+  const handleTarifChange =
+    (field: keyof typeof tarifs) => (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value.trim();
+      setEditedData((prev) => ({
+        ...prev,
+        tarifs: {
+          ...(prev.tarifs ?? logement.tarifs ?? {}),
+          [field]: value === "" ? undefined : Number(value),
+        },
+      }));
+    };
+
+  const handleContratChange =
+    (field: keyof typeof contrat) => (event: ChangeEvent<HTMLInputElement>) => {
+      const value =
+        event.target.type === "checkbox" ? event.target.checked : event.target.value;
+
+      setEditedData((prev) => ({
+        ...prev,
+        contrat: {
+          ...(prev.contrat ?? logement.contrat ?? {}),
+          [field]: value,
+        },
+      }));
+    };
+
   return (
-    <div>
-      <h2>Tarifs & Contrat</h2>
-
-      <h3>Tarifs</h3>
-      {!editMode ? (
-        <ul>
-          <li>Prix de base : {formatMoney(logement.tarifs?.prix_base)}</li>
-          <li>Prix / nuit : {formatMoney(logement.tarifs?.prix_par_nuit)}</li>
-          <li>Caution : {formatMoney(logement.tarifs?.caution)}</li>
-          <li>Frais menage : {formatMoney(logement.tarifs?.frais_menage)}</li>
-        </ul>
-      ) : (
-        <div className={styles.formGrid}>
-          <input
-            type="number"
-            value={logement.tarifs?.prix_base ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                tarifs: { ...prev.tarifs, prix_base: toOptionalNumber(e.target.value) },
-              }))
-            }
-          />
-          <input
-            type="number"
-            value={logement.tarifs?.prix_par_nuit ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                tarifs: { ...prev.tarifs, prix_par_nuit: toOptionalNumber(e.target.value) },
-              }))
-            }
-          />
-          <input
-            type="number"
-            value={logement.tarifs?.caution ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                tarifs: { ...prev.tarifs, caution: toOptionalNumber(e.target.value) },
-              }))
-            }
-          />
-          <input
-            type="number"
-            value={logement.tarifs?.frais_menage ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                tarifs: { ...prev.tarifs, frais_menage: toOptionalNumber(e.target.value) },
-              }))
-            }
-          />
-        </div>
-      )}
-
-      <h3>Contrat</h3>
-      {!editMode ? (
-        <ul>
-          <li>Date signature : {logement.contrat?.date_signature || "-"}</li>
-          <li>
-            Renouvellement automatique : {logement.contrat?.renouvellement_auto ? "Oui" : "Non"}
-          </li>
-          {logement.contrat?.fichier_pdf && (
-            <li>
-              <a href={logement.contrat.fichier_pdf} target="_blank" rel="noreferrer">
-                Télécharger le contrat
-              </a>
-            </li>
-          )}
-        </ul>
-      ) : (
-        <>
-          <input
-            type="date"
-            value={logement.contrat?.date_signature ?? ""}
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                contrat: { ...prev.contrat, date_signature: e.target.value },
-              }))
-            }
-          />
-          <label>
-            <input
-              type="checkbox"
-              checked={Boolean(logement.contrat?.renouvellement_auto)}
-              onChange={(e) =>
-                setEditedData((prev) => ({
-                  ...prev,
-                  contrat: {
-                    ...prev.contrat,
-                    renouvellement_auto: e.target.checked,
-                  },
-                }))
-              }
-            />
-            Renouvellement automatique
-          </label>
-          <input
-            type="text"
-            value={logement.contrat?.fichier_pdf ?? ""}
-            placeholder="URL fichier PDF"
-            onChange={(e) =>
-              setEditedData((prev) => ({
-                ...prev,
-                contrat: { ...prev.contrat, fichier_pdf: e.target.value },
-              }))
-            }
-          />
-        </>
-      )}
+    <div className={styles.sectionStack}>
+      <label>
+        <span>Prix de base</span>
+        <input
+          type="number"
+          value={tarifs.prix_base ?? ""}
+          onChange={handleTarifChange("prix_base")}
+          disabled={!editMode}
+          placeholder="Prix de base"
+        />
+      </label>
+      <label>
+        <span>Prix par nuit</span>
+        <input
+          type="number"
+          value={tarifs.prix_par_nuit ?? ""}
+          onChange={handleTarifChange("prix_par_nuit")}
+          disabled={!editMode}
+          placeholder="Prix par nuit"
+        />
+      </label>
+      <label>
+        <span>Caution</span>
+        <input
+          type="number"
+          value={tarifs.caution ?? ""}
+          onChange={handleTarifChange("caution")}
+          disabled={!editMode}
+          placeholder="Caution"
+        />
+      </label>
+      <label>
+        <span>Frais de ménage</span>
+        <input
+          type="number"
+          value={tarifs.frais_menage ?? ""}
+          onChange={handleTarifChange("frais_menage")}
+          disabled={!editMode}
+          placeholder="Frais de ménage"
+        />
+      </label>
+      <label>
+        <span>Fichier contrat</span>
+        <input
+          value={contrat.fichier_pdf ?? ""}
+          onChange={handleContratChange("fichier_pdf")}
+          disabled={!editMode}
+          placeholder="URL fichier PDF"
+        />
+      </label>
+      <label className={styles.checkboxRow}>
+        <input
+          type="checkbox"
+          checked={Boolean(contrat.renouvellement_auto)}
+          onChange={handleContratChange("renouvellement_auto")}
+          disabled={!editMode}
+        />
+        <span>Renouvellement automatique</span>
+      </label>
     </div>
   );
 }

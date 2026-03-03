@@ -11,6 +11,8 @@ import {
   validateLogementChanges,
 } from "../app/dashboard/concierge/logements/[id]/logementHelpers.ts";
 
+type HousingRowInput = Parameters<typeof parseHousingRow>[0];
+
 test("formatMoney formats numbers and fallback values", () => {
   assert.equal(formatMoney(120), "120 EUR");
   assert.equal(formatMoney(undefined), "-");
@@ -38,7 +40,7 @@ test("parseHousingRow converts json fields into typed logement payload", () => {
     notes: ["Note 1"],
     tarifs: { prix_base: 90 },
     contrat: { renouvellement_auto: true },
-  } as any);
+  } as HousingRowInput);
 
   assert.equal(parsed.nom_logement, "Appartement test");
   assert.equal(parsed.menage?.temps, "2h");
@@ -67,7 +69,7 @@ test("buildEditableLogement merges nested edition values over source logement", 
     notes: ["Note 1"],
     tarifs: { prix_base: 90, caution: 300 },
     contrat: { renouvellement_auto: false },
-  } as any);
+  } as HousingRowInput);
 
   const editable = buildEditableLogement(logement, {
     ville: "Bordeaux",
@@ -93,7 +95,7 @@ test("hasPendingLogementChanges detects direct and nested edits", () => {
   assert.equal(hasPendingLogementChanges({}), false);
   assert.equal(hasPendingLogementChanges({ ville: "Bordeaux" }), true);
   assert.equal(hasPendingLogementChanges({ menage: {} }), false);
-  assert.equal(hasPendingLogementChanges({ menage: { temps: "2h" } } as any), true);
+  assert.equal(hasPendingLogementChanges({ menage: { temps: "2h" } }), true);
 });
 
 test("validateLogementChanges rejects missing required fields", () => {
@@ -117,7 +119,7 @@ test("validateLogementChanges rejects missing required fields", () => {
     notes: [],
     tarifs: null,
     contrat: null,
-  } as any);
+  } as HousingRowInput);
 
   assert.equal(validateLogementChanges(logement).isValid, false);
   assert.equal(validateLogementChanges(logement).message, "Le nom du logement est obligatoire.");
@@ -160,7 +162,7 @@ test("validateLogementChanges rejects invalid media urls and negative amounts", 
     notes: [],
     tarifs: { prix_base: -10 },
     contrat: { fichier_pdf: "/contrat.pdf" },
-  } as any);
+  } as HousingRowInput);
 
   assert.equal(validateLogementChanges(logement).isValid, false);
   assert.equal(
@@ -190,7 +192,7 @@ test("validateLogementChanges rejects invalid capacity values", () => {
     notes: [],
     tarifs: null,
     contrat: null,
-  } as any);
+  } as HousingRowInput);
 
   assert.equal(validateLogementChanges(logement).isValid, false);
   assert.equal(

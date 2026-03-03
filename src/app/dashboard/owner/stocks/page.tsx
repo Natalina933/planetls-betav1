@@ -30,7 +30,7 @@ export default function OwnerStocksPage() {
         },
         {
           title: "2. Coordination concierge",
-          text: "Le stock pourra etre relie aux missions de menage et de preparation pour fluidifier les operations.",
+          text: "Le stock pourra être relié aux missions de ménage et de préparation pour fluidifier les opérations.",
         },
         {
           title: "3. Valeur de pilotage",

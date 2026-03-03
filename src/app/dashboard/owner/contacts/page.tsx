@@ -13,7 +13,7 @@ type OwnerConversationRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Aucune activite recente";
+  if (!value) return "Aucune activité récente";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -58,7 +58,7 @@ export default function OwnerContactsPage() {
   return (
     <OwnerWorkspacePage
       eyebrow="Relation concierge"
-      title="Contacts et echanges"
+      title="Contacts et échanges"
       description={
         error
           ? error

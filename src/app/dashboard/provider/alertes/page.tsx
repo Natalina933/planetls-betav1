@@ -139,10 +139,10 @@ export default function ProviderAlertesPage() {
     return () => window.clearTimeout(timeout);
   }, [success]);
 
-  const items = data?.items ?? [];
   const interventionsById = useMemo(() => new Map(interventions.map((item) => [item.id, item])), [interventions]);
   const canSubmit = useMemo(() => form.title.trim().length > 0, [form.title]);
   const filteredItems = useMemo(() => {
+    const items = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = items.filter((item) => {
       const matchesSeverity = severityFilter === "all" || (item.severity ?? "normal") === severityFilter;
@@ -174,7 +174,7 @@ export default function ProviderAlertesPage() {
     });
 
     return next;
-  }, [items, searchTerm, severityFilter, sortBy, interventionsById, dateFrom, dateTo]);
+  }, [data?.items, searchTerm, severityFilter, sortBy, interventionsById, dateFrom, dateTo]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = useMemo(

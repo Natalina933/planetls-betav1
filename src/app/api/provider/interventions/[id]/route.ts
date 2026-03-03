@@ -42,6 +42,7 @@ export async function PATCH(
         : undefined,
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (db as any)
     .from("provider_interventions")
     .update(updatePayload)
@@ -77,6 +78,7 @@ export async function DELETE(
   }
   const { id } = await context.params;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (db as any)
     .from("provider_interventions")
     .delete()

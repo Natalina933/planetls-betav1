@@ -83,7 +83,7 @@ export default function OwnerLogementsPage() {
       description={
         error
           ? error
-          : "Consultez les informations essentielles de vos biens et leur niveau de preparation."
+          : "Consultez les informations essentielles de vos biens et leur niveau de préparation."
       }
       chips={[
         `${properties.length} logement(s)`,
@@ -119,7 +119,7 @@ export default function OwnerLogementsPage() {
       detailSections={[
         {
           title: "Liste des logements",
-          description: "Vue synthetique de vos biens et de leur niveau de preparation.",
+          description: "Vue synthétique de vos biens et de leur niveau de préparation.",
           emptyText:
             "Commencez par creer un logement pour centraliser vos biens, vos missions et vos futurs devis.",
           items: properties.map((property) => ({
@@ -127,9 +127,9 @@ export default function OwnerLogementsPage() {
             meta: getStatusLabel(property.statut),
             description: [
               property.infos?.categorie || "Type non renseigne",
-              property.ville || "Ville non renseignee",
-              property.adresse || "Adresse non renseignee",
-              `Plateforme ${property.plateforme || "non renseignee"}`,
+              property.ville || "Ville non renseignée",
+              property.adresse || "Adresse non renseignée",
+              `Plateforme ${property.plateforme || "non renseignée"}`,
               `Capacite ${property.infos?.capacite ?? "-"}`,
               `Chambres ${property.infos?.nb_chambres ?? "-"}`,
               Array.isArray(property.infos?.equipements) && property.infos.equipements.length > 0

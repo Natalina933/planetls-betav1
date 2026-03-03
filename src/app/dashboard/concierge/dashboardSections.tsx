@@ -83,15 +83,15 @@ export function DashboardHeader({
       </div>
 
       <p className={styles.subtitle}>
-        Bienvenue, {displayName}. Pilotez votre activite par objectifs, priorites terrain et actions immediates.
+        Bienvenue, {displayName}. Pilotez votre activité par objectifs, priorités terrain et actions immédiates.
       </p>
 
       <div className={styles.headerActions}>
         <Link href="/abonnement/concierge-pro" className={styles.subscriptionLink}>
-          {isPro ? "Voir mon abonnement PRO" : "Passer a Concierge PRO"}
+          {isPro ? "Voir mon abonnement PRO" : "Passer à Concierge PRO"}
         </Link>
         <Link href="/dashboard/concierge/recherche" className={styles.subscriptionLink}>
-          Prospecter des proprietaires
+          Prospecter des propriétaires
         </Link>
       </div>
 
@@ -110,7 +110,7 @@ export function DashboardHeader({
           {ratingsCount > 0 ? ` sur ${ratingsCount} avis` : ""}
         </p>
       ) : (
-        <p className={styles.ratingSummary}>Aucun avis client consolide pour le moment.</p>
+        <p className={styles.ratingSummary}>Aucun avis client consolidé pour le moment.</p>
       )}
     </header>
   );
@@ -124,32 +124,32 @@ export function ConciergeObjectivesSection({
 }: ConciergeObjectivesSectionProps) {
   const objectives = [
     {
-      title: "Developper le portefeuille",
+      title: "Développer le portefeuille",
       value: `${matchCount}`,
       detail:
         matchCount > 0
-          ? "Proprietaires compatibles a activer en priorite."
+          ? "Propriétaires compatibles à activer en priorité."
           : "Travaillez votre positionnement pour faire remonter de nouveaux profils.",
       href: "/dashboard/concierge/recherche",
       action: "Ouvrir la prospection",
       icon: Target,
     },
     {
-      title: "Fluidifier l'execution",
+      title: "Fluidifier l'exécution",
       value: `${eventsCount}`,
       detail:
         eventsCount > 0
-          ? "Evenements planifies a suivre pour tenir vos engagements."
-          : "Aucun repere agenda pour le moment. Verifiez vos prochaines missions.",
+          ? "Événements planifiés à suivre pour tenir vos engagements."
+          : "Aucun repère agenda pour le moment. Vérifiez vos prochaines missions.",
       href: "/dashboard/concierge/planning",
       action: "Voir le planning",
       icon: CalendarClock,
     },
     {
-      title: "Securiser la rentabilite",
+      title: "Sécuriser la rentabilité",
       value: isPro ? "PRO" : averageRating ? averageRating.toFixed(1) : "--",
       detail: isPro
-        ? "Vos outils avances peuvent servir a consolider tarifs, devis et revenus."
+        ? "Vos outils avancés peuvent servir à consolider tarifs, devis et revenus."
         : "Passez en revue votre fiche, vos prix et vos avis pour mieux convertir.",
       href: isPro ? "/dashboard/concierge/billing" : "/abonnement/concierge-pro",
       action: isPro ? "Piloter mes revenus" : "Renforcer mon offre",
@@ -217,14 +217,14 @@ export function MatchesSection({
 
       {!matchesLoading && !matchesError && matches.length === 0 ? (
         <p className={styles.matchesInfo}>
-          Aucun proprietaire compatible pour le moment. Affinez votre zone, votre fiche et vos services cibles.
+          Aucun propriétaire compatible pour le moment. Affinez votre zone, votre fiche et vos services cibles.
         </p>
       ) : null}
 
       {!matchesLoading && !matchesError && matches.length > 0 ? (
         <>
           <p className={styles.matchesInfo}>
-            {matches.length} profil(s) compatible(s) ont ete identifies pres de votre zone. Priorisez les contacts les plus proches et les mieux alignes.
+            {matches.length} profil(s) compatible(s) ont été identifiés près de votre zone. Priorisez les contacts les plus proches et les mieux alignés.
           </p>
           <div className={styles.matchesGrid}>
             {matches.map((match) => (
@@ -234,17 +234,17 @@ export function MatchesSection({
                   <span className={styles.matchScore}>{match.compatibility_score}%</span>
                 </div>
                 <p className={styles.matchMeta}>
-                  {match.city ?? "Ville non renseignee"}
+                  {match.city ?? "Ville non renseignée"}
                   {typeof match.distance_km === "number" ? ` - ${match.distance_km} km` : ""}
                 </p>
                 <p className={styles.matchMeta}>
-                  Compatibilite : {match.compatibility_ratio ?? "n/a"}
+                  Compatibilité : {match.compatibility_ratio ?? "n/a"}
                 </p>
                 <p className={styles.matchServices}>
                   Services :{" "}
                   {match.services_wanted.length > 0
                     ? match.services_wanted.slice(0, 3).join(", ")
-                    : "non renseignes"}
+                    : "non renseignés"}
                 </p>
               </article>
             ))}
@@ -261,19 +261,19 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
       <div className={styles.sectionHeader}>
         <div>
           <p className={styles.sectionEyebrow}>2. Vue de pilotage</p>
-          <h2>Informations a forte valeur</h2>
+          <h2>Informations à forte valeur</h2>
         </div>
       </div>
       <div className={styles.dashboardGrid}>
         <DashboardCard
-          title="Reservations actives"
+          title="Réservations actives"
           value="12"
           icon={Zap}
           description="Total des sejours en cours."
         />
 
         <DashboardCard
-          title="Demandes de taches"
+          title="Demandes de tâches"
           value="3"
           icon={MessageSquare}
           description="Nouvelles demandes en attente."
@@ -281,13 +281,13 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
 
         <DashboardCard
           title="Revenu potentiel"
-          value={isPro ? "EUR 14.5k" : "Acces PRO"}
+          value={isPro ? "EUR 14.5k" : "Accès PRO"}
           icon={DollarSign}
           isLocked={!isPro}
           description={
             isPro
               ? "Mois en cours (estimation)."
-              : "Statistiques avancees reservees aux comptes PRO."
+              : "Statistiques avancées réservées aux comptes PRO."
           }
         />
       </div>
@@ -298,22 +298,22 @@ export function DashboardMetricsGrid({ isPro }: DashboardMetricsGridProps) {
 export function ConciergeActionsSection({ isPro }: ConciergeActionsSectionProps) {
   const actions = [
     {
-      title: "Completer la fiche concierge",
+      title: "Compléter la fiche concierge",
       detail: "Affichez clairement votre zone, vos services et vos points forts.",
       href: "/dashboard/concierge/profile?tab=fiche",
-      action: "Mettre a jour ma fiche",
+      action: "Mettre à jour ma fiche",
     },
     {
       title: "Lancer la prospection",
-      detail: "Contactez les proprietaires les plus compatibles depuis votre recherche ciblee.",
+      detail: "Contactez les propriétaires les plus compatibles depuis votre recherche ciblée.",
       href: "/dashboard/concierge/recherche",
-      action: "Voir les opportunites",
+      action: "Voir les opportunités",
     },
     {
       title: isPro ? "Piloter devis et factures" : "Renforcer votre offre commerciale",
       detail: isPro
         ? "Centralisez vos documents et votre suivi financier dans le workspace."
-        : "Debloquez plus d'outils pour structurer vos revenus et votre image.",
+        : "Débloquez plus d'outils pour structurer vos revenus et votre image.",
       href: isPro ? "/dashboard/concierge/billing" : "/abonnement/concierge-pro",
       action: isPro ? "Ouvrir la facturation" : "Voir l'offre PRO",
     },
@@ -323,7 +323,7 @@ export function ConciergeActionsSection({ isPro }: ConciergeActionsSectionProps)
     <section className={styles.dashboardSection}>
       <div className={styles.sectionHeader}>
         <div>
-          <p className={styles.sectionEyebrow}>3. Actions a mener</p>
+          <p className={styles.sectionEyebrow}>3. Actions à mener</p>
           <h2>Mise en avant des prochaines actions</h2>
         </div>
       </div>
@@ -349,7 +349,7 @@ export function DashboardToolsSection({ isPro }: DashboardToolsSectionProps) {
       <div className={styles.sectionHeader}>
         <div>
           <p className={styles.sectionEyebrow}>Outils</p>
-          <h2>Fonctionnalites et leviers</h2>
+          <h2>Fonctionnalités et leviers</h2>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
@@ -366,7 +366,7 @@ export function DashboardPlanningSection({ events }: DashboardPlanningSectionPro
       <div className={styles.sectionHeader}>
         <div>
           <p className={styles.sectionEyebrow}>Planning</p>
-          <h2>Planification et reservations</h2>
+          <h2>Planification et réservations</h2>
         </div>
       </div>
       <DashboardCalendar events={events} title="" />

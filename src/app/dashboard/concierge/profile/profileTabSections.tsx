@@ -1033,7 +1033,7 @@ function FicheSidebarCard({
           roleLabel="Concierge partenaire"
           email={editProfile.email}
           phone={editProfile.phone}
-          location={editProfile.location ?? "Ville non renseignee, FR"}
+          location={editProfile.location ?? "Ville non renseignée, FR"}
           isEditing={editingSection === "Photo de profil"}
           avatarFile={avatarFile}
           existingAvatarUrl={editProfile.avatar_url ?? defaultAvatar}
@@ -1126,7 +1126,7 @@ function FichePresentationSection({
               <strong>Exemple</strong>
               <p>
                 Conciergerie locale a Paris, disponible 7j/7, specialisee en accueil
-                voyageurs, menage et intendance.
+                voyageurs, ménage et intendance.
               </p>
             </div>
           )}
@@ -2322,7 +2322,7 @@ export function TariffBillingDeskSection({
       className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard} ${styles.tariffEmphasisCard}`}
     >
       {renderSection(
-        "2. Devis et factures operationnels",
+        "2. Devis et factures opérationnels",
         <FiFile />,
         <>
           <div className={styles.tariffCardIntro}>

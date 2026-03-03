@@ -129,18 +129,18 @@ export default function ConciergeAlertesPage() {
         loading
           ? "Analyse des points de vigilance..."
           : error ||
-            "Centralisez les urgences terrain, les relances proprietaires et les fiches a fiabiliser."
+            "Centralisez les urgences terrain, les relances propriétaires et les fiches à fiabiliser."
       }
       chips={[
         `${urgentMissions.length} urgence(s)`,
-        `${stalledConversations.length} relance(s) a faire`,
-        `${draftHousings.length} fiche(s) a fiabiliser`,
+        `${stalledConversations.length} relance(s) à faire`,
+        `${draftHousings.length} fiche(s) à fiabiliser`,
       ]}
       metrics={[
         {
           label: "Urgences",
           value: loading ? "..." : String(urgentMissions.length),
-          hint: "Missions a priorite urgente a absorber",
+          hint: "Missions à priorité urgente à absorber",
         },
         {
           label: "Relances",
@@ -155,7 +155,7 @@ export default function ConciergeAlertesPage() {
         {
           label: "Levier PRO",
           value: loading ? "..." : profile?.role === "concierge_pro" ? "Actif" : "Disponible",
-          hint: "Visibilite et conversion a renforcer",
+          hint: "Visibilité et conversion à renforcer",
         },
       ]}
       actions={[
@@ -168,7 +168,7 @@ export default function ConciergeAlertesPage() {
           text:
             urgentMissions.length > 0
               ? `${urgentMissions.length} mission(s) urgente(s) demandent une action rapide.`
-              : "Aucune urgence mission detectee pour le moment.",
+              : "Aucune urgence mission détectée pour le moment.",
           actions: [
             {
               label: "Voir les missions",
@@ -178,11 +178,11 @@ export default function ConciergeAlertesPage() {
           ],
         },
         {
-          title: "2. Relances proprietaires",
+          title: "2. Relances propriétaires",
           text:
             stalledConversations.length > 0
-              ? `${stalledConversations.length} conversation(s) n'ont pas bouge depuis plus de 3 jours.`
-              : "Aucune conversation en souffrance detectee.",
+              ? `${stalledConversations.length} conversation(s) n'ont pas bougé depuis plus de 3 jours.`
+              : "Aucune conversation en souffrance détectée.",
           actions: [
             {
               label: "Ouvrir la messagerie",
@@ -192,14 +192,14 @@ export default function ConciergeAlertesPage() {
           ],
         },
         {
-          title: "3. Logements a finaliser",
+          title: "3. Logements à finaliser",
           text:
             draftHousings.length > 0
               ? `${draftHousings.length} logement(s) restent en brouillon ou inactifs et peuvent freiner votre acquisition.`
-              : "Tous vos logements sont actifs ou publies.",
+              : "Tous vos logements sont actifs ou publiés.",
           actions: [
             {
-              label: "Verifier mes logements",
+              label: "Vérifier mes logements",
               href: "/dashboard/concierge/logements",
               variant: "secondary",
             },
@@ -209,11 +209,11 @@ export default function ConciergeAlertesPage() {
           title: "4. Optimisation profil et offre",
           text:
             profileSetupAlerts.length > 0
-              ? `${profileSetupAlerts.length} optimisation(s) peuvent renforcer votre conversion et votre visibilite.`
-              : "Votre profil et votre offre sont deja bien structures.",
+              ? `${profileSetupAlerts.length} optimisation(s) peuvent renforcer votre conversion et votre visibilité.`
+              : "Votre profil et votre offre sont déjà bien structurés.",
           actions: [
             {
-              label: "Ameliorer mon profil",
+              label: "Améliorer mon profil",
               href: "/dashboard/concierge/profile?tab=fiche",
               variant: "secondary",
             },
@@ -222,43 +222,43 @@ export default function ConciergeAlertesPage() {
       ]}
       detailSections={[
         {
-          title: "Urgences a traiter",
+          title: "Urgences à traiter",
           description:
             "Les missions prioritaires doivent rester visibles pour limiter les oublis et tenir le niveau de service.",
           emptyText:
             loading
               ? "Chargement des urgences."
-              : error || "Aucune urgence terrain detectee.",
+              : error || "Aucune urgence terrain détectée.",
           items: urgentMissionItems,
         },
         {
-          title: "A suivre - relances proprietaires",
+          title: "À suivre - relances propriétaires",
           description:
-            "Conversations a reprendre pour ne pas laisser refroidir une opportunite ou une demande active.",
+            "Conversations à reprendre pour ne pas laisser refroidir une opportunité ou une demande active.",
           emptyText:
             loading
               ? "Analyse des conversations."
-              : error || "Aucune relance urgente a faire.",
+              : error || "Aucune relance urgente à faire.",
           items: stalledConversationItems,
         },
         {
-          title: "A suivre - fiches logement a finaliser",
+          title: "À suivre - fiches logement à finaliser",
           description:
-            "Biens encore inactifs ou incomplets qui meritent une verification rapide avant mise en avant.",
+            "Biens encore inactifs ou incomplets qui méritent une vérification rapide avant mise en avant.",
           emptyText:
             loading
               ? "Verification des logements en cours."
-              : error || "Tous vos logements sont deja actifs ou publies.",
+              : error || "Tous vos logements sont déjà actifs ou publiés.",
           items: draftHousingItems,
         },
         {
           title: "Optimisation",
           description:
-            "Actions moins urgentes, mais tres utiles pour renforcer votre conversion, votre visibilite et votre positionnement premium.",
+            "Actions moins urgentes, mais très utiles pour renforcer votre conversion, votre visibilité et votre positionnement premium.",
           emptyText:
             loading
               ? "Analyse des optimisations."
-              : error || "Aucune optimisation prioritaire detectee.",
+              : error || "Aucune optimisation prioritaire détectée.",
           items: profileSetupAlerts,
         },
       ]}

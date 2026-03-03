@@ -182,7 +182,7 @@ const SECTION_IDS = {
 const TARIFF_SECTION_IDS = {
   WORKFLOW: normalizeSectionId("Parcours devis & facturation"),
   CONFIG: normalizeSectionId("Configuration tarifs conciergerie"),
-  BILLING_DESK: normalizeSectionId("Devis et factures operationnels"),
+  BILLING_DESK: normalizeSectionId("Devis et factures opérationnels"),
 } as const;
 
 const MISSION_SECTION_IDS = {

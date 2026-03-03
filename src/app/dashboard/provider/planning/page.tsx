@@ -5,6 +5,8 @@ import Link from "next/link";
 import styles from "../ProviderCrudPage.module.scss";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 
+const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
 type ProviderIntervention = {
   id: string;
   title: string;
@@ -88,7 +90,6 @@ export default function ProviderPlanningPage() {
     ).length;
   }, [data]);
 
-  const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
   const weekBuckets = useMemo(() => {
     const now = new Date();
     const monday = new Date(now);
@@ -96,7 +97,7 @@ export default function ProviderPlanningPage() {
     monday.setDate(now.getDate() - day);
     monday.setHours(0, 0, 0, 0);
 
-    return weekDays.map((label, index) => {
+    return WEEK_DAYS.map((label, index) => {
       const start = new Date(monday);
       start.setDate(monday.getDate() + index);
       const end = new Date(start);
@@ -141,7 +142,7 @@ export default function ProviderPlanningPage() {
           <div>
             <p className={styles.eyebrow}>Pilotage terrain</p>
             <h1>Pilotage planning</h1>
-            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges a venir avec une lecture priorisee."}</p>
+            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée."}</p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} missions</span>
@@ -193,7 +194,7 @@ export default function ProviderPlanningPage() {
             </div>
 
             {viewMode === "list" && upcoming.length === 0 ? (
-              <p className={styles.emptyState}>Aucune intervention planifiee pour le moment.</p>
+              <p className={styles.emptyState}>Aucune intervention planifiée pour le moment.</p>
             ) : null}
 
             {viewMode === "list" && upcoming.length > 0 ? (
@@ -244,7 +245,7 @@ export default function ProviderPlanningPage() {
 
             {viewMode === "month" ? (
               <div className={styles.calendarGrid}>
-                {weekDays.map((day) => (
+                {WEEK_DAYS.map((day) => (
                   <div key={day} className={styles.calendarHeader}>
                     {day}
                   </div>

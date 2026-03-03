@@ -101,18 +101,18 @@ export default function ConciergeObjectifsPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Pilotage activite"
-      title="Objectifs d'activite"
+      eyebrow="Pilotage activité"
+      title="Objectifs d'activité"
       description={
         loading
-          ? "Calcul de vos objectifs d'activite..."
+          ? "Calcul de vos objectifs d'activité..."
           : error ||
-            "Cadrez votre acquisition, votre execution terrain et votre rentabilite depuis une vue orientee decision."
+            "Cadrez votre acquisition, votre exécution terrain et votre rentabilité depuis une vue orientée décision."
       }
       chips={[
         `${activeHousing} logement(s) actifs`,
-        `${completedMissions.length} mission(s) terminee(s)`,
-        `${completionRate} % de cloture`,
+        `${completedMissions.length} mission(s) terminée(s)`,
+        `${completionRate} % de clôture`,
       ]}
       actions={[
         { label: "Revoir mes tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
@@ -122,22 +122,22 @@ export default function ConciergeObjectifsPage() {
         {
           label: "Missions actives",
           value: loading ? "..." : String(activeMissions.length),
-          hint: "Interventions a suivre maintenant",
+          hint: "Interventions à suivre maintenant",
         },
         {
-          label: "Missions terminees",
+          label: "Missions terminées",
           value: loading ? "..." : String(completedMissions.length),
-          hint: "Livrables deja executes",
+          hint: "Livrables déjà exécutés",
         },
         {
-          label: "Revenus traces",
+          label: "Revenus tracés",
           value: loading ? "..." : `${trackedRevenue.toFixed(0)} EUR`,
-          hint: "Montants consolides",
+          hint: "Montants consolidés",
         },
         {
           label: "Panier moyen",
           value: loading ? "..." : averageRevenue > 0 ? `${averageRevenue.toFixed(0)} EUR` : "-",
-          hint: "Revenu moyen par mission terminee",
+          hint: "Revenu moyen par mission terminée",
         },
       ]}
       cards={[
@@ -145,21 +145,21 @@ export default function ConciergeObjectifsPage() {
           title: "Cap sur la conversion",
           text:
             activeHousing === 0
-              ? "Aucun logement actif n'est encore rattache a votre compte. Commencez par publier votre premier bien ou relancer un proprietaire cible."
-              : `Votre portefeuille compte ${activeHousing} logement(s) actif(s). Gardez une promesse claire et un taux de reponse rapide pour accelerer les prochaines signatures.`,
+              ? "Aucun logement actif n'est encore rattaché à votre compte. Commencez par publier votre premier bien ou relancer un propriétaire ciblé."
+              : `Votre portefeuille compte ${activeHousing} logement(s) actif(s). Gardez une promesse claire et un taux de réponse rapide pour accélérer les prochaines signatures.`,
           actions: [
             {
-              label: "Gerer mes logements",
+              label: "Gérer mes logements",
               href: "/dashboard/concierge/logements",
               variant: "primary",
             },
           ],
         },
         {
-          title: "Missions a prioriser",
+          title: "Missions à prioriser",
           text:
             activeMissions.length > 0
-              ? `${activeMissions.length} mission(s) necessitent encore un suivi. Appuyez-vous sur le planning et les messages pour garder une execution propre.`
+              ? `${activeMissions.length} mission(s) nécessitent encore un suivi. Appuyez-vous sur le planning et les messages pour garder une exécution propre.`
               : "Aucune mission en cours. Profitez-en pour renforcer votre profil public et capter de nouvelles demandes.",
           actions: [
             {
@@ -172,7 +172,7 @@ export default function ConciergeObjectifsPage() {
         {
           title: "Levier premium",
           text:
-            "Activez ou consolidez votre offre PRO pour valoriser votre note, votre historique de facturation et votre niveau de service dans les parcours proprietaires.",
+            "Activez ou consolidez votre offre PRO pour valoriser votre note, votre historique de facturation et votre niveau de service dans les parcours propriétaires.",
           actions: [
             {
               label: "Voir mon abonnement",
@@ -186,18 +186,18 @@ export default function ConciergeObjectifsPage() {
         {
           title: "Checklist objectifs",
           description:
-            "Quatre leviers simples pour garder un pilotage clair : acquisition, execution, marge et cloture.",
+            "Quatre leviers simples pour garder un pilotage clair : acquisition, exécution, marge et clôture.",
           emptyText: "Aucun objectif disponible.",
           items: objectiveChecklist,
         },
         {
-          title: "Dernieres missions terminees",
+          title: "Dernières missions terminées",
           description:
-            "Appuyez-vous sur vos interventions deja livrees pour ajuster vos prix, votre charge et vos objectifs mensuels.",
+            "Appuyez-vous sur vos interventions déjà livrées pour ajuster vos prix, votre charge et vos objectifs mensuels.",
           emptyText:
             loading
-              ? "Chargement des missions terminees."
-              : error || "Aucune mission terminee n'est encore disponible.",
+              ? "Chargement des missions terminées."
+              : error || "Aucune mission terminée n'est encore disponible.",
           items: completedMissionHighlights,
         },
       ]}

@@ -38,7 +38,7 @@ type ConversationDetailPayload = {
 };
 
 function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activite";
+  if (!value) return "Aucune activité";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
 
@@ -226,7 +226,7 @@ function OwnerMessagesContent() {
     <section className="dashboard-grid">
       <div className={styles.page}>
         <header className={styles.header}>
-          <h1>Suivi des echanges</h1>
+          <h1>Suivi des échanges</h1>
           <p>
             Centralisez vos conversations prioritaires avec vos concierges et poursuivez chaque suivi depuis un seul espace.
           </p>

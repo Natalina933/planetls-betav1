@@ -5,7 +5,7 @@ export default function ProviderOutilsPage() {
     <ProviderWorkspacePage
       eyebrow="Operations"
       title="Outils"
-      description="Accedez ici aux outils metier, aux ressources utiles et aux automatismes de votre activite."
+      description="Accédez ici aux outils métier, aux ressources utiles et aux automatismes de votre activité."
       chips={["Outils", "Ressources", "Automatisation"]}
       actions={[
         { label: "Voir le planning", href: "/dashboard/provider/planning" },

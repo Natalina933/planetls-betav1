@@ -27,7 +27,7 @@ type QuoteRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date non renseignee";
+  if (!value) return "Date non renseignée";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -121,7 +121,7 @@ export default function OwnerAlertesPage() {
         {
           label: "Alertes finance",
           value: String(pendingInvoices.length),
-          hint: "Factures qui demandent un suivi ou un reglement",
+          hint: "Factures qui demandent un suivi ou un règlement",
         },
         {
           label: "Decisions en attente",
@@ -153,7 +153,7 @@ export default function OwnerAlertesPage() {
                   .slice(0, 3)
                   .map((invoice) => `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - echeance ${formatDate(invoice.due_date)}`)
                   .join(" | ")
-              : "Aucune facture en attente de reglement.",
+              : "Aucune facture en attente de règlement.",
         },
         {
           title: "3. Validations en attente",

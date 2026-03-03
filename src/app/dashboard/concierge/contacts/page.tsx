@@ -68,22 +68,22 @@ export default function ConciergeContactsPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Relation proprietaires"
+      eyebrow="Relation propriétaires"
       title="Contacts et relation"
       description={
         loading
-          ? "Chargement de vos proprietaires et opportunites en cours..."
+          ? "Chargement de vos propriétaires et opportunités en cours..."
           : error ||
-            "Pilotez vos echanges commerciaux, vos relances et les conversations les plus chaudes sans perdre le fil."
+            "Pilotez vos échanges commerciaux, vos relances et les conversations les plus chaudes sans perdre le fil."
       }
       chips={[
         `${items.length} contact(s)`,
         `${activeConversations.length} conversation(s) active(s)`,
-        `${dormantConversations.length} relance(s) a faire`,
+        `${dormantConversations.length} relance(s) à faire`,
       ]}
       actions={[
         { label: "Ouvrir la messagerie", href: "/dashboard/concierge/messages" },
-        { label: "Trouver de nouveaux proprietaires", href: "/dashboard/concierge/recherche" },
+        { label: "Trouver de nouveaux propriétaires", href: "/dashboard/concierge/recherche" },
       ]}
       metrics={[
         {
@@ -94,25 +94,25 @@ export default function ConciergeContactsPage() {
         {
           label: "Conversations chaudes",
           value: loading ? "..." : String(freshOpportunities.length),
-          hint: "A traiter rapidement",
+          hint: "À traiter rapidement",
         },
         {
-          label: "Relances a faire",
+          label: "Relances à faire",
           value: loading ? "..." : String(dormantConversations.length),
-          hint: "Plus de 5 jours sans reponse",
+          hint: "Plus de 5 jours sans réponse",
         },
         {
-          label: "Cloturees",
+          label: "Clôturées",
           value: loading ? "..." : String(closedConversations),
-          hint: "Fils deja termines",
+          hint: "Fils déjà terminés",
         },
       ]}
       cards={
         recentContacts.length > 0
           ? recentContacts.map((conversation) => ({
-              title: conversation.counterpart_name || "Proprietaire",
+              title: conversation.counterpart_name || "Propriétaire",
               text: `${conversation.subject || "Conversation directe"} - ${
-                conversation.last_message_preview || "Aucun apercu"
+                conversation.last_message_preview || "Aucun aperçu"
               } (${formatContactDate(conversation.last_message_at)})`,
               actions: [
                 {
@@ -128,7 +128,7 @@ export default function ConciergeContactsPage() {
                 text: loading
                   ? "Synchronisation des contacts en cours."
                   : error ||
-                    "Lancez une prise de contact depuis la recherche proprietaires pour alimenter cette vue.",
+                    "Lancez une prise de contact depuis la recherche propriétaires pour alimenter cette vue.",
                 actions: [
                   {
                     label: "Explorer les annonces",
@@ -143,11 +143,11 @@ export default function ConciergeContactsPage() {
         {
           title: "Pipeline actif",
           description:
-            "Toutes les conversations ouvertes qui meritent une prochaine etape commerciale ou operationnelle.",
+            "Toutes les conversations ouvertes qui méritent une prochaine étape commerciale ou opérationnelle.",
           emptyText:
             loading
               ? "Chargement des conversations en cours."
-              : error || "Aucun contact actif a suivre pour le moment.",
+              : error || "Aucun contact actif à suivre pour le moment.",
           items: activeConversations.slice(0, 8).map((conversation) =>
             toConversationItem(
               conversation,
@@ -163,7 +163,7 @@ export default function ConciergeContactsPage() {
           emptyText:
             loading
               ? "Analyse des relances commerciales."
-              : error || "Aucune relance prioritaire detectee.",
+              : error || "Aucune relance prioritaire détectée.",
           items: dormantConversations.map((conversation) =>
             toConversationItem(
               conversation,
@@ -176,11 +176,11 @@ export default function ConciergeContactsPage() {
         {
           title: "Opportunites recentes",
           description:
-            "Conversations encore chaudes a traiter rapidement pour maximiser la conversion.",
+            "Conversations encore chaudes à traiter rapidement pour maximiser la conversion.",
           emptyText:
             loading
               ? "Chargement des conversations recentes."
-              : error || "Aucune opportunite recente a traiter.",
+              : error || "Aucune opportunité récente à traiter.",
           items: freshOpportunities.map((conversation) =>
             toConversationItem(
               conversation,

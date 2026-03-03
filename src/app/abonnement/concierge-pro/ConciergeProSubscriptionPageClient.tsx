@@ -7,13 +7,13 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 
 const features = [
   "Tableau de bord pro plus lisible pour piloter logements, missions et revenus",
-  "Priorisation des leads proprietaires et workflows de conversion",
-  "Facturation, devis et offres premium centralises",
-  "Base prete pour l'abonnement Stripe et le suivi du statut PRO",
+  "Priorisation des leads propriétaires et workflows de conversion",
+  "Facturation, devis et offres premium centralisés",
+  "Base prête pour l'abonnement Stripe et le suivi du statut PRO",
 ];
 
 const summary = [
-  "Abonnement mensuel concierge PRO",
+  "Abonnement mensuel Concierge PRO",
   "Orientation premium pour les concierges en croissance",
   "Compatible avec une future commission de mise en relation",
 ];
@@ -33,8 +33,8 @@ export default function ConciergeProSubscriptionPageClient() {
 
   const banner = useMemo(() => {
     const status = searchParams.get("checkout");
-    if (status === "success") return "Paiement confirme. Le statut PRO peut maintenant etre synchronise.";
-    if (status === "cancel") return "Paiement annule. Vous pouvez reprendre plus tard.";
+    if (status === "success") return "Paiement confirmé. Le statut PRO peut maintenant être synchronisé.";
+    if (status === "cancel") return "Paiement annulé. Vous pouvez reprendre plus tard.";
     return null;
   }, [searchParams]);
 
@@ -63,7 +63,7 @@ export default function ConciergeProSubscriptionPageClient() {
         }
 
         if (!cancelled) {
-          setFeedback("Abonnement Stripe valide. Le profil concierge est maintenant synchronise en PRO.");
+          setFeedback("Abonnement Stripe validé. Le profil concierge est maintenant synchronisé en PRO.");
         }
       } catch (err) {
         if (!cancelled) {
@@ -136,7 +136,7 @@ export default function ConciergeProSubscriptionPageClient() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de demarrer le checkout Stripe.");
+        throw new Error(payload?.error || "Impossible de démarrer le checkout Stripe.");
       }
 
       if (payload?.url) {
@@ -144,7 +144,7 @@ export default function ConciergeProSubscriptionPageClient() {
         return;
       }
 
-      setFeedback("Checkout prepare. Il reste a ouvrir Stripe avec l'URL retournee.");
+      setFeedback("Checkout préparé. Il reste à ouvrir Stripe avec l'URL retournée.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de lancer l'abonnement.");
     } finally {
@@ -176,19 +176,19 @@ export default function ConciergeProSubscriptionPageClient() {
     <div className={styles.page}>
       <div className={styles.shell}>
         <section className={styles.hero}>
-          <span className={styles.eyebrow}>Abonnement concierge PRO</span>
-          <h1 className={styles.title}>Passez a un espace plus premium et plus rentable.</h1>
+          <span className={styles.eyebrow}>Abonnement Concierge PRO</span>
+          <h1 className={styles.title}>Passez à un espace plus premium et plus rentable.</h1>
           <p className={styles.subtitle}>
             Cette page pose la base du module d&apos;abonnement Stripe pour les concierges.
-            Le parcours est deja structure, et la session checkout pourra etre ouverte des que
-            les cles Stripe et le prix mensuel seront configures.
+            Le parcours est déjà structuré, et la session checkout pourra être ouverte dès que
+            les clés Stripe et le prix mensuel seront configurés.
           </p>
           {banner ? <div className={styles.feedback}>{banner}</div> : null}
         </section>
 
         <section className={styles.grid}>
           <article className={styles.features}>
-            <h2>Ce que debloque l&apos;offre PRO</h2>
+            <h2>Ce que débloque l&apos;offre PRO</h2>
             <div className={styles.featureList}>
               {features.map((feature) => (
                 <div key={feature} className={styles.featureItem}>
@@ -205,17 +205,17 @@ export default function ConciergeProSubscriptionPageClient() {
               <strong>{isPro ? "Statut actuel : PRO actif" : "Statut actuel : Standard"}</strong>
               <span>
                 {isPro
-                  ? "Votre compte a acces aux fonctions premium et aux workflows avances."
-                  : "Passez en PRO pour afficher vos outils premium et un pilotage avance."}
+                  ? "Votre compte a accès aux fonctions premium et aux workflows avancés."
+                  : "Passez en PRO pour afficher vos outils premium et un pilotage avancé."}
               </span>
               {subscriptionRef ? (
-                <span className={styles.reference}>Reference Stripe : {subscriptionRef}</span>
+                <span className={styles.reference}>Référence Stripe : {subscriptionRef}</span>
               ) : null}
               {subscriptionSourceLabel ? (
                 <span className={styles.reference}>Source de synchronisation : {subscriptionSourceLabel}</span>
               ) : null}
               {subscriptionUpdatedLabel ? (
-                <span className={styles.reference}>Derniere mise a jour : {subscriptionUpdatedLabel}</span>
+                <span className={styles.reference}>Dernière mise à jour : {subscriptionUpdatedLabel}</span>
               ) : null}
             </div>
             <div className={styles.price}>
@@ -231,11 +231,11 @@ export default function ConciergeProSubscriptionPageClient() {
             </div>
             <button className={styles.cta} onClick={startCheckout} disabled={loading || syncing || isPro}>
               {loading
-                ? "Preparation du checkout..."
+                ? "Préparation du checkout..."
                 : syncing
                   ? "Synchronisation du statut PRO..."
                   : isPro
-                    ? "Abonnement deja actif"
+                    ? "Abonnement déjà actif"
                     : "Activer Concierge PRO"}
             </button>
             {feedback ? <div className={styles.feedback}>{feedback}</div> : null}

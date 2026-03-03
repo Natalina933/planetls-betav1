@@ -70,7 +70,7 @@ function ConversationListSidebar({
         <input
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Rechercher un proprietaire ou un sujet"
+          placeholder="Rechercher un propriétaire ou un sujet"
           className={styles.searchField}
         />
         <select
@@ -80,7 +80,7 @@ function ConversationListSidebar({
         >
           <option value="all">Tous statuts</option>
           <option value="open">Ouverts</option>
-          <option value="closed">Fermes</option>
+          <option value="closed">Fermées</option>
         </select>
       </div>
 
@@ -125,7 +125,7 @@ function ConversationThread({
   if (!activeConversationId) {
     return (
       <section className={styles.thread}>
-        <p className={styles.emptyState}>Selectionnez une conversation.</p>
+        <p className={styles.emptyState}>Sélectionnez une conversation.</p>
       </section>
     );
   }
@@ -178,8 +178,8 @@ function ConversationThread({
         <textarea
           value={draftMessage}
           onChange={(event) => onDraftChange(event.target.value)}
-          placeholder="Ecrire votre message..."
-          aria-label="Ecrire votre message"
+          placeholder="Écrire votre message..."
+          aria-label="Écrire votre message"
         />
         <button type="button" onClick={onSend} disabled={sending || !canSend}>
           <FiSend size={14} />
@@ -257,9 +257,9 @@ function ConciergeMessagesContent() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Relation proprietaires"
+      eyebrow="Relation propriétaires"
       title="Suivi des conversations"
-      description="Centralisez vos echanges proprietaires, vos relances et vos fils actifs depuis une seule vue de pilotage."
+      description="Centralisez vos échanges propriétaires, vos relances et vos fils actifs depuis une seule vue de pilotage."
       chips={[
         `${conversations.length} conversation(s)`,
         `${openCount} ouverte(s)`,
@@ -293,14 +293,14 @@ function ConciergeMessagesContent() {
           title: "Suivi relationnel",
           text:
             openCount > 0
-              ? `${openCount} conversation(s) restent ouvertes avec vos proprietaires. Priorisez celles qui font avancer signature, execution ou satisfaction.`
+              ? `${openCount} conversation(s) restent ouvertes avec vos propriétaires. Priorisez celles qui font avancer signature, exécution ou satisfaction.`
               : "Aucune conversation ouverte pour le moment.",
         },
         {
           title: "Conversation active",
           text: activeConversation
             ? `${getConversationTitle(activeConversation.conversation.subject)} - ${activeConversation.messages.length} message(s)`
-            : "Selectionnez un fil pour voir le detail des echanges.",
+            : "Sélectionnez un fil pour voir le détail des échanges.",
         },
       ]}
     >

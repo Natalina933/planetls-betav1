@@ -4,8 +4,8 @@ export default function ProviderObjectifsPage() {
   return (
     <ProviderWorkspacePage
       eyebrow="Pilotage artisan"
-      title="Objectifs d'activite"
-      description="Cadrez vos objectifs de charge, de chiffre d'affaires et de qualite d'execution pour arbitrer plus vite."
+      title="Objectifs d'activité"
+      description="Cadrez vos objectifs de charge, de chiffre d'affaires et de qualité d'exécution pour arbitrer plus vite."
       chips={["Revenus", "Charge", "Qualite", "Execution"]}
       actions={[
         { label: "Voir les devis et factures", href: "/dashboard/provider/devis" },
@@ -30,8 +30,8 @@ export default function ProviderObjectifsPage() {
       ]}
       cards={[
         {
-          title: "1. Rythme d'activite",
-          text: "Comparez vos interventions prevues, realisees et facturees pour piloter votre cadence mensuelle.",
+          title: "1. Rythme d'activité",
+          text: "Comparez vos interventions prévues, réalisées et facturées pour piloter votre cadence mensuelle.",
         },
         {
           title: "2. Objectifs financiers",

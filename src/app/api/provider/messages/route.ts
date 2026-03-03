@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
   if (!providerProfileId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (db as any)
     .from("provider_conversations")
     .select("id, client_id, subject, status, last_message_preview, last_message_at, created_at")
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
   const clientsById = new Map<string, ProviderClientLookupRow>();
 
   if (clientIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: clients, error: clientsError } = await (db as any)
       .from("provider_clients")
       .select("id, client_name, company_name")
@@ -105,6 +107,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "client_id requis" }, { status: 400 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: client, error: clientError } = await (db as any)
     .from("provider_clients")
     .select("id")
@@ -122,6 +125,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Client introuvable" }, { status: 404 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: conversation, error: conversationError } = await (db as any)
     .from("provider_conversations")
     .insert({
@@ -143,6 +147,7 @@ export async function POST(req: NextRequest) {
 
   let createdMessage = null;
   if (content) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: message, error: messageError } = await (db as any)
       .from("provider_messages")
       .insert({

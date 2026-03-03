@@ -1,4 +1,6 @@
 'use client';
+
+import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './CategoryCarousel.module.scss';
 
@@ -24,7 +26,7 @@ export default function CategoryCarousel() {
         const data = await response.json();
         setCategories(data);
       } catch (error) {
-        console.error("Impossible de charger les catégories :", error);
+        console.error("Impossible de charger les categories :", error);
       }
     };
     fetchCategories();
@@ -56,11 +58,12 @@ export default function CategoryCarousel() {
             aria-hidden={index !== active}
           >
             <div className={styles.imageWrapper}>
-              <img
+              <Image
                 src={category.image}
                 alt={category.label}
                 className={styles.image}
-                loading="lazy"
+                width={640}
+                height={420}
               />
               <div className={styles.legend}>
                 <span>{category.description}</span>
@@ -79,7 +82,7 @@ export default function CategoryCarousel() {
             key={index}
             className={styles.dot + (active === index ? ' ' + styles.active : '')}
             onClick={() => goTo(index)}
-            aria-label={`Aller à la slide ${index + 1}`}
+            aria-label={`Aller a la slide ${index + 1}`}
             aria-current={active === index ? "true" : undefined}
           />
         ))}

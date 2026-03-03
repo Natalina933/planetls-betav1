@@ -62,7 +62,7 @@ type ProviderClientsPayload = {
 };
 
 function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activite";
+  if (!value) return "Aucune activité";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
 
@@ -214,8 +214,8 @@ export default function ProviderMessagesPage() {
     () => activeConversationId.trim().length > 0 && draftMessage.trim().length > 0,
     [activeConversationId, draftMessage],
   );
-  const conversations = list?.items ?? [];
   const filteredConversations = useMemo(() => {
+    const conversations = list?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     return conversations.filter((conversation) => {
       const matchesStatus =
@@ -232,7 +232,7 @@ export default function ProviderMessagesPage() {
         .toLowerCase();
       return haystack.includes(normalizedSearch);
     });
-  }, [conversations, searchTerm, statusFilter]);
+  }, [list?.items, searchTerm, statusFilter]);
 
   const canCreateConversation = useMemo(
     () => selectedClientId.trim().length > 0 && newMessage.trim().length > 0,
@@ -315,7 +315,7 @@ export default function ProviderMessagesPage() {
         <header className={styles.header}>
           <h1>Messages</h1>
           <p>
-            Suivez vos echanges clients depuis l&apos;espace Artisan, avec un fil unique par
+            Suivez vos échanges clients depuis l&apos;espace Artisan, avec un fil unique par
             dossier.
           </p>
         </header>

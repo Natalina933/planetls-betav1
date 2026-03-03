@@ -120,7 +120,7 @@ export default function OwnerPlanningPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Suivi des interventions</h1>
-        <p>Reperez en priorite ce qui doit etre confirme, execute ou replanifie sur votre parc.</p>
+        <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
       </header>
 
       <div className="stats-row">
@@ -184,7 +184,7 @@ export default function OwnerPlanningPage() {
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune intervention planifiee pour le moment.</p>
+          <p>Aucune intervention planifiée pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (

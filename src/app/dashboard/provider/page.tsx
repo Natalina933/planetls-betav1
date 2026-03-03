@@ -68,7 +68,7 @@ export default function ProviderDashboardPage() {
   const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
   const locationLabel = useMemo(
-    () => workspace?.summary.location || "Localisation a completer",
+    () => workspace?.summary.location || "Localisation à compléter",
     [workspace],
   );
 
@@ -78,10 +78,10 @@ export default function ProviderDashboardPage() {
       title="Pilotage artisan"
       description={
         error ||
-        `Pilotez l'activite de ${displayName}, vos interventions, vos devis et vos priorites quotidiennes depuis une vue prioritaire.`
+        `Pilotez l'activité de ${displayName}, vos interventions, vos devis et vos priorités quotidiennes depuis une vue prioritaire.`
       }
       chips={[
-        profile?.company_name || "Activite artisanale",
+        profile?.company_name || "Activité artisanale",
         locationLabel,
         workspace?.summary.is_pro ? "Artisan PRO" : "Artisan standard",
         `${stats?.interventions ?? 0} interventions`,
@@ -105,12 +105,12 @@ export default function ProviderDashboardPage() {
         {
           label: "Alertes urgentes",
           value: `${stats?.urgentAlerts ?? 0}/${stats?.alerts ?? 0}`,
-          hint: "Points a traiter en priorite",
+          hint: "Points à traiter en priorité",
         },
         {
           label: "Conversations",
           value: `${stats?.conversations ?? 0}`,
-          hint: "Echanges ouverts",
+          hint: "Échanges ouverts",
         },
       ]}
       cards={[
@@ -121,15 +121,15 @@ export default function ProviderDashboardPage() {
             : "Chargement du profil artisan en cours.",
           actions: [
             {
-              label: "Ouvrir les parametres",
+              label: "Ouvrir les paramètres",
               href: "/dashboard/provider/settings",
               variant: "primary",
             },
           ],
         },
         {
-          title: "2. Interventions a suivre",
-          text: `${stats?.interventions ?? 0} interventions, dont ${stats?.inProgress ?? 0} en cours pour garder une execution claire.`,
+          title: "2. Interventions à suivre",
+          text: `${stats?.interventions ?? 0} interventions, dont ${stats?.inProgress ?? 0} en cours pour garder une exécution claire.`,
           actions: [
             {
               label: "Ouvrir les interventions",
@@ -140,7 +140,7 @@ export default function ProviderDashboardPage() {
         },
         {
           title: "3. Pilotage commercial",
-          text: `${stats?.clients ?? 0} clients, dont ${stats?.activeClients ?? 0} actifs, pour suivre votre activite commerciale.`,
+          text: `${stats?.clients ?? 0} clients, dont ${stats?.activeClients ?? 0} actifs, pour suivre votre activité commerciale.`,
           actions: [
             {
               label: "Voir les clients",
@@ -163,13 +163,13 @@ export default function ProviderDashboardPage() {
       ]}
       detailSections={[
         {
-          title: "Synthese operationnelle",
-          description: "Vue rapide pour equilibrer relation client, execution et priorites terrain.",
+          title: "Synthèse opérationnelle",
+          description: "Vue rapide pour équilibrer relation client, exécution et priorités terrain.",
           items: [
             {
               title: "Base clients",
               meta: `${stats?.clients ?? 0} comptes`,
-              description: `${stats?.activeClients ?? 0} clients actifs a entretenir.`,
+              description: `${stats?.activeClients ?? 0} clients actifs à entretenir.`,
               href: "/dashboard/provider/clients",
               actionLabel: "Ouvrir",
             },

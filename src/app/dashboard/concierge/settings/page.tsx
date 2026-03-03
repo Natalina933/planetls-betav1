@@ -72,7 +72,7 @@ export default function ConciergeSettingsPage() {
   }, []);
 
   const subscription = billing?.subscription ?? null;
-  const recentEvents = billing?.events ?? [];
+  const recentEvents = useMemo(() => billing?.events ?? [], [billing?.events]);
 
   const settingsChecklist = useMemo(
     () => buildSettingsChecklist(profile, subscription),
@@ -130,7 +130,7 @@ export default function ConciergeSettingsPage() {
       ]}
       cards={[
         {
-          title: "1. Identite de compte",
+          title: "1. Identité de compte",
           text: `${profile?.first_name || profile?.company_name || "Compte concierge"} - ${profile?.email || "email non disponible"}`,
           actions: [
             {

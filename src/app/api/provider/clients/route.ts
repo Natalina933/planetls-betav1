@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   if (!providerProfileId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (db as any)
     .from("provider_clients")
     .select("*")
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
         : {},
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (db as any)
     .from("provider_clients")
     .insert(insertPayload)

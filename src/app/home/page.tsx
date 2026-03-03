@@ -1,27 +1,31 @@
-import Head from "next/head";
+import type { Metadata } from "next";
 import HomeContent from "./HomePage";
 
 export const revalidate = 60;
 
+export const metadata: Metadata = {
+  title: "Location saisonnière intelligente",
+  description:
+    "Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée.",
+  keywords: [
+    "location saisonnière",
+    "conciergerie",
+    "propriétaires",
+    "gestion locative",
+    "PlanetLs",
+  ],
+  openGraph: {
+    title: "PlanetLs | Location saisonnière intelligente",
+    description:
+      "Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée.",
+    images: ["/images/hero-warmv2.jpg"],
+  },
+};
+
 export default function HomePage() {
   return (
-    <>
-      <Head>
-        <title>PlanetLS | Location saisonnière intelligente</title>
-        <meta
-          name="description"
-          content="Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée. Inscription gratuite."
-        />
-        <meta
-          name="keywords"
-          content="location saisonnière, conciergerie, propriétaires, gestion locative, PlanetLS"
-        />
-        <meta property="og:image" content="/images/planetls-banner.png" />
-      </Head>
-
-      <main>
-        <HomeContent />
-      </main>
-    </>
+    <main>
+      <HomeContent />
+    </main>
   );
 }

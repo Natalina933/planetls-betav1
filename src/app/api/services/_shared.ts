@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import { isAllowedServiceRole } from "@/app/api/services/pure";
 
 export { isAllowedServiceRole } from "@/app/api/services/pure";
 

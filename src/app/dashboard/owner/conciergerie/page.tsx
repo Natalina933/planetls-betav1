@@ -212,7 +212,7 @@ export default function OwnerConciergeriePage() {
         description={
           error
             ? error
-            : "Retrouvez vos echanges recents, le niveau d'activite de votre concierge et les retours collectes apres mission."
+            : "Retrouvez vos échanges récents, le niveau d'activité de votre concierge et les retours collectés après mission."
         }
         chips={[
           `${missions.length} mission(s)`,
@@ -238,7 +238,7 @@ export default function OwnerConciergeriePage() {
                     .slice(0, 3)
                     .map((mission) => `${mission.title || "Mission"} (${mission.status || "-"})`)
                     .join(" | ")
-                : "Aucune mission chargee pour le moment.",
+                : "Aucune mission chargée pour le moment.",
           },
           {
             title: "2. Contacts actifs",
@@ -254,7 +254,7 @@ export default function OwnerConciergeriePage() {
             title: "3. Pilotage",
             text:
               ongoingCount > 0
-                ? `${ongoingCount} intervention(s) demandent actuellement un suivi proprietaire.`
+                ? `${ongoingCount} intervention(s) demandent actuellement un suivi propriétaire.`
                 : "Aucune intervention en cours a suivre actuellement.",
           },
           {
@@ -262,7 +262,7 @@ export default function OwnerConciergeriePage() {
             text:
               reviews.length > 0
                 ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
-                : "Les avis laisses apres les missions terminees apparaitront ici.",
+                : "Les avis laissés après les missions terminées apparaîtront ici.",
           },
           {
             title: "Badge concierge",
@@ -276,7 +276,7 @@ export default function OwnerConciergeriePage() {
       <section className={workspaceStyles.card}>
         <h2 className={workspaceStyles.cardTitle}>Laisser un avis</h2>
         <p className={workspaceStyles.cardText}>
-          Notez votre concierge apres une mission terminee pour renforcer la confiance sur la
+          Notez votre concierge après une mission terminée pour renforcer la confiance sur la
           plateforme.
         </p>
 
@@ -289,12 +289,12 @@ export default function OwnerConciergeriePage() {
 
         {reviewableMissions.length === 0 ? (
           <p className={workspaceStyles.cardText}>
-            Aucun avis en attente. Les missions terminees non encore notees apparaitront ici.
+            Aucun avis en attente. Les missions terminées non encore notées apparaîtront ici.
           </p>
         ) : (
           <form onSubmit={handleSubmitReview} className={pageStyles.formGrid}>
             <label className={pageStyles.label}>
-              <span className={workspaceStyles.cardText}>Mission terminee</span>
+              <span className={workspaceStyles.cardText}>Mission terminée</span>
               <select
                 value={selectedMissionId}
                 onChange={(event) => setSelectedMissionId(event.target.value)}
@@ -329,7 +329,7 @@ export default function OwnerConciergeriePage() {
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
                 rows={4}
-                placeholder="Votre retour sur la reactivite, la qualite d'execution ou la communication."
+                placeholder="Votre retour sur la réactivité, la qualité d'exécution ou la communication."
                 className={pageStyles.textarea}
               />
             </label>

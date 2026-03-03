@@ -170,10 +170,10 @@ export default function ProviderInterventionsPage() {
     return () => window.clearTimeout(timeout);
   }, [success]);
 
-  const items = data?.items ?? [];
   const clientsById = useMemo(() => new Map(clients.map((client) => [client.id, client])), [clients]);
   const canSubmit = useMemo(() => form.title.trim().length > 0, [form.title]);
   const filteredItems = useMemo(() => {
+    const items = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = items.filter((item) => {
       const matchesStatus = statusFilter === "all" || (item.status ?? "pending") === statusFilter;
@@ -214,7 +214,7 @@ export default function ProviderInterventionsPage() {
     });
 
     return next;
-  }, [items, searchTerm, statusFilter, sortBy, clientsById, dateFrom, dateTo]);
+  }, [data?.items, searchTerm, statusFilter, sortBy, clientsById, dateFrom, dateTo]);
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = useMemo(
@@ -441,7 +441,7 @@ export default function ProviderInterventionsPage() {
                 <input type="datetime-local" value={form.scheduled_start} onChange={(event) => updateField("scheduled_start", event.target.value)} />
               </label>
               <label>
-                <span>Fin prevue</span>
+                <span>Fin prévue</span>
                 <input type="datetime-local" value={form.scheduled_end} onChange={(event) => updateField("scheduled_end", event.target.value)} />
               </label>
               <label className={styles.fullWidth}>

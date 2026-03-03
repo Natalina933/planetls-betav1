@@ -327,7 +327,7 @@ export default function Navbar() {
         <div className={styles.warningOverlay}>
           <div className={styles.warningModal} ref={warningModalRef}>
             <h3>Session bientot expiree</h3>
-            <p>Vous serez deconnecte dans 2 minutes en raison d&apos;inactivite.</p>
+            <p>Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.</p>
             <p className={styles.warningSubtext}>
               Temps restant: <strong>{warningTimeLabel}</strong>. Cliquez sur
               &quot;Rester connecte&quot; pour continuer votre session.

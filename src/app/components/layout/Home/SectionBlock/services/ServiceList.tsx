@@ -1,6 +1,6 @@
 "use client";
+
 import React, { useState } from "react";
-import Head from "next/head";
 import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 
@@ -29,14 +29,6 @@ export default function ServiceList() {
 
   return (
     <>
-      <Head>
-        <title>Découvrez Notre Plateforme de Gestion Intuitive et Complète</title>
-        <meta
-          name="description"
-          content="Plateforme centralisée, sécurisée et intelligente pour propriétaires, concierges et artisans."
-        />
-      </Head>
-
       <ServicesBlock
         title={
           <>
@@ -53,12 +45,10 @@ export default function ServiceList() {
             <span className={styles.highlightText}>
               simplifier la vie de toutes les catégories professionnelles
             </span>
-            , notre plateforme centralise vos outils, automatise vos tâches et sécurise
-            vos données. Que vous soyez{" "}
-            <strong className={styles.userCategory}>
-              propriétaire, concierge ou artisan
-            </strong>
-            , gagnez en efficacité et en sérénité.
+            , notre plateforme centralise vos outils, automatise vos tâches et sécurise vos
+            données. Que vous soyez{" "}
+            <strong className={styles.userCategory}>propriétaire, concierge ou artisan</strong>,
+            gagnez en efficacité et en sérénité.
           </p>
 
           <a href="#contact" className={styles.CTAButton}>

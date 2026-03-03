@@ -1,7 +1,5 @@
-// src/app/home/HomePage.tsx
 "use client";
 
-import Head from "next/head";
 import Footer from "../components/layout/Footer/Footer";
 import FirstVisit from "../components/layout/Home/FirstVisit/FirstVisit";
 import ForWhomSection from "../components/layout/Home/ForWhomSection/ForWhomSection";
@@ -17,36 +15,21 @@ import VideoIntro from "../components/layout/Home/VideoIntro/VideoIntro";
 
 export default function HomePage() {
   return (
-    <>
-      <Head>
-        <title>PlanetLS | Location saisonnière intelligente</title>
-        <meta
-          name="description"
-          content="Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée. Inscription gratuite."
-        />
-        <meta
-          name="keywords"
-          content="location saisonnière, conciergerie, propriétaires, gestion locative, PlanetLS"
-        />
-        <meta property="og:image" content="/images/planetls-banner.png" />
-      </Head>
-
-      <div>
-        <main>
-          <FirstVisit />
-          <HeroSection />
-          <HowItWorksSection />
-          <ServiceList />
-          <VideoIntro />
-          <ForWhomSection />
-          <PromotePlatformSection />
-          <RecommendedConciergesSection />
-          <TrustSection />
-          <BlogNewsSection />
-          <ShopSection />
-          <Footer />
-        </main>
-      </div>
-    </>
+    <div>
+      <main>
+        <FirstVisit />
+        <HeroSection />
+        <HowItWorksSection />
+        <ServiceList />
+        <VideoIntro />
+        <ForWhomSection />
+        <PromotePlatformSection />
+        <RecommendedConciergesSection />
+        <TrustSection />
+        <BlogNewsSection />
+        <ShopSection />
+        <Footer />
+      </main>
+    </div>
   );
 }

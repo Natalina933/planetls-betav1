@@ -18,7 +18,7 @@ type OwnerInvoiceRow = {
 };
 
 function formatDate(value?: string | null) {
-  if (!value) return "Date non renseignee";
+  if (!value) return "Date non renseignée";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -106,7 +106,7 @@ export default function OwnerDocumentsPage() {
       ]}
       cards={[
         {
-          title: "1. Acces rapide",
+          title: "1. Accès rapide",
           text: "Retrouvez les documents les plus recents et accedez directement a leur PDF ou a leur suivi complet.",
         },
         {

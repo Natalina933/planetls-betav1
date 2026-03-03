@@ -97,7 +97,7 @@ export default function ConciergeRecherchePage() {
         }
       }
     },
-    [router],
+    [],
   );
 
   useEffect(() => {

@@ -207,7 +207,7 @@ export default function OwnerInvoicesPageClient() {
     <section className="dashboard-grid">
       <header>
         <h1>Suivi des factures</h1>
-        <p>Suivez les montants emis, les echeances et les reglements a prioriser sur votre parc.</p>
+        <p>Suivez les montants émis, les échéances et les règlements à prioriser sur votre parc.</p>
       </header>
 
       <div className="stats-row">

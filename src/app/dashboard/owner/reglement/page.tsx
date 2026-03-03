@@ -5,7 +5,7 @@ export default function OwnerReglementPage() {
     <OwnerWorkspacePage
       eyebrow="Paiements"
       title="Reglements et paiements"
-      description="Retrouvez ici la vision de vos paiements, des methodes de reglement et du suivi administratif associe."
+      description="Retrouvez ici la vision de vos paiements, des méthodes de règlement et du suivi administratif associé."
       chips={["Paiements", "Factures", "Abonnements", "Historique"]}
       actions={[
         { label: "Voir mes factures", href: "/dashboard/owner/factures" },
@@ -13,8 +13,8 @@ export default function OwnerReglementPage() {
       ]}
       metrics={[
         {
-          label: "Vue reglements",
-          value: "En preparation",
+          label: "Vue règlements",
+          value: "En préparation",
           hint: "Cette brique accueillera le suivi des paiements effectifs",
         },
         {
@@ -26,11 +26,11 @@ export default function OwnerReglementPage() {
       cards={[
         {
           title: "1. Paiements centralises",
-          text: "Cette page est destinee a consolider factures, reglements recus et futurs flux de paiement.",
+          text: "Cette page est destinée à consolider factures, règlements reçus et futurs flux de paiement.",
         },
         {
           title: "2. Suivi administratif",
-          text: "Elle pourra aussi exposer les coordonnees de facturation et les methodes de paiement enregistrees.",
+          text: "Elle pourra aussi exposer les coordonnées de facturation et les méthodes de paiement enregistrées.",
         },
         {
           title: "3. Prochaine etape",

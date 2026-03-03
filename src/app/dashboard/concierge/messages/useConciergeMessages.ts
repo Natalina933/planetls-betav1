@@ -92,7 +92,7 @@ export function useConciergeMessages({
 
   const participantNameById = useMemo(() => {
     return buildParticipantNameMap(activeConversation);
-  }, [activeConversation?.participants]);
+  }, [activeConversation]);
 
   const sendMessage = useCallback(async () => {
     if (!canSendConversationMessage(activeConversationId, draftMessage)) return;

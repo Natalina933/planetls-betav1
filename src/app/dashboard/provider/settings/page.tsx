@@ -71,7 +71,7 @@ export default function ProviderSettingsPage() {
   const profile = workspace?.profile ?? null;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
   const locationLabel = useMemo(
-    () => workspace?.summary.location || "Localisation a completer",
+    () => workspace?.summary.location || "Localisation à compléter",
     [workspace],
   );
   const isDirty = useMemo(
@@ -95,7 +95,7 @@ export default function ProviderSettingsPage() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de mettre a jour le profil.");
+        throw new Error(payload?.error || "Impossible de mettre à jour le profil.");
       }
 
       const refreshedWorkspace = await fetchCurrentProviderProfile();
@@ -103,9 +103,9 @@ export default function ProviderSettingsPage() {
       setWorkspace(refreshedWorkspace);
       setForm(refreshedForm);
       setBaseline(refreshedForm);
-      setSuccess("Les parametres artisan ont ete enregistres.");
+      setSuccess("Les paramètres artisan ont été enregistrés.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le profil.");
+      setError(err instanceof Error ? err.message : "Impossible de mettre à jour le profil.");
     } finally {
       setSaving(false);
     }
@@ -117,10 +117,10 @@ export default function ProviderSettingsPage() {
         <header className={styles.header}>
           <div>
             <p className={styles.eyebrow}>Compte</p>
-            <h1>Parametres</h1>
+            <h1>Paramètres</h1>
             <p>
               {error ||
-                "Mettez a jour vos informations de compte, vos coordonnees et vos donnees de vitrine Artisan."}
+                "Mettez à jour vos informations de compte, vos coordonnées et vos données de vitrine Artisan."}
             </p>
           </div>
           <div className={styles.metrics}>
@@ -137,17 +137,17 @@ export default function ProviderSettingsPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <h2>Modifier mon profil</h2>
-              <span className={styles.counter}>{isDirty ? "Modifications en cours" : "A jour"}</span>
+              <span className={styles.counter}>{isDirty ? "Modifications en cours" : "À jour"}</span>
             </div>
 
             <form className={styles.formGrid} onSubmit={handleSubmit}>
               {(
                 [
                   ["username", "Nom d'utilisateur"],
-                  ["first_name", "Prenom"],
+                  ["first_name", "Prénom"],
                   ["last_name", "Nom"],
                   ["company_name", "Entreprise"],
-                  ["phone", "Telephone"],
+                  ["phone", "Téléphone"],
                   ["city", "Ville"],
                   ["postal_code", "Code postal"],
                   ["website", "Site web"],
@@ -177,7 +177,7 @@ export default function ProviderSettingsPage() {
                   disabled={!isDirty}
                   onClick={() => setForm(baseline)}
                 >
-                  Reinitialiser
+                  Réinitialiser
                 </button>
               </div>
             </form>
@@ -185,39 +185,39 @@ export default function ProviderSettingsPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Resume du compte</h2>
+              <h2>Résumé du compte</h2>
             </div>
             <div className={styles.cardList}>
               <article className={styles.itemCard}>
                 <div className={styles.itemHead}>
                   <div>
-                    <h3>Identite</h3>
+                    <h3>Identité</h3>
                     <p>{displayName}</p>
                   </div>
                   <span className={styles.badge}>{profile?.role || "provider"}</span>
                 </div>
                 <p className={styles.itemBody}>
-                  {profile?.company_name || "Entreprise non renseignee"}
+                  {profile?.company_name || "Entreprise non renseignée"}
                 </p>
               </article>
               <article className={styles.itemCard}>
                 <div className={styles.itemHead}>
                   <div>
-                    <h3>Coordonnees</h3>
+                    <h3>Coordonnées</h3>
                     <p>{locationLabel}</p>
                   </div>
                 </div>
                 <div className={styles.itemMeta}>
-                  <span>{profile?.email || "Email non renseigne"}</span>
-                  <span>{profile?.phone || "Telephone non renseigne"}</span>
-                  <span>{profile?.website || "Site non renseigne"}</span>
+                  <span>{profile?.email || "Email non renseigné"}</span>
+                  <span>{profile?.phone || "Téléphone non renseigné"}</span>
+                  <span>{profile?.website || "Site non renseigné"}</span>
                 </div>
               </article>
               <article className={styles.itemCard}>
                 <div className={styles.itemHead}>
                   <div>
                     <h3>Navigation</h3>
-                    <p>Acces rapide aux espaces relies</p>
+                    <p>Accès rapide aux espaces reliés</p>
                   </div>
                 </div>
                 <div className={styles.cardActions}>
