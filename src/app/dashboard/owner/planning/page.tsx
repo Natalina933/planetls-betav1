@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerMissionRow = {
@@ -32,6 +33,46 @@ function formatAmount(value: number | null) {
   return typeof value === "number" ? `${value.toFixed(2)} EUR` : "-";
 }
 
+function formatShortTime(value: string | null) {
+  if (!value) return "--:--";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--";
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function buildWeekBuckets(missions: OwnerMissionRow[]) {
+  const now = new Date();
+  const monday = new Date(now);
+  const day = (now.getDay() + 6) % 7;
+  monday.setDate(now.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const start = new Date(monday);
+    start.setDate(monday.getDate() + index);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 1);
+
+    const items = missions.filter((mission) => {
+      if (!mission.scheduled_start) return false;
+      const eventDate = new Date(mission.scheduled_start);
+      return eventDate >= start && eventDate < end;
+    });
+
+    return {
+      key: start.toISOString(),
+      label: new Intl.DateTimeFormat("fr-FR", { weekday: "short" }).format(start),
+      dateLabel: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" }).format(start),
+      items,
+    };
+  });
+}
+
 export default function OwnerPlanningPage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +102,7 @@ export default function OwnerPlanningPage() {
       }
     }
 
-    loadPlanning();
+    void loadPlanning();
   }, []);
 
   const upcomingMissions = useMemo(
@@ -73,6 +114,7 @@ export default function OwnerPlanningPage() {
       }),
     [missions],
   );
+
   const filteredMissions = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -81,14 +123,21 @@ export default function OwnerPlanningPage() {
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
 
-      const haystack = [mission.title, mission.priority, mission.status].filter(Boolean).join(" ").toLowerCase();
+      const haystack = [mission.title, mission.priority, mission.status]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
       return haystack.includes(normalizedSearch);
     });
   }, [upcomingMissions, searchTerm, statusFilter]);
+
   const visibleMissions = useMemo(
     () => filteredMissions.slice(0, viewMode === "list" ? 30 : 12),
     [filteredMissions, viewMode],
   );
+
+  const weekBuckets = useMemo(() => buildWeekBuckets(filteredMissions), [filteredMissions]);
 
   function exportPlanningCsv() {
     const rows = [
@@ -120,7 +169,7 @@ export default function OwnerPlanningPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Suivi des interventions</h1>
-        <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
+        <p>Reperez en priorite ce qui doit etre confirme, execute ou replanifie sur votre parc.</p>
       </header>
 
       <div className="stats-row">
@@ -143,6 +192,31 @@ export default function OwnerPlanningPage() {
       </div>
 
       <div className="main-section">
+        <section className={styles.heroPanel}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Vue planning</p>
+              <h2>Semaine proprietaire</h2>
+            </div>
+          </div>
+
+          <div className={styles.priorityGrid}>
+            {weekBuckets.slice(0, 4).map((bucket) => (
+              <article key={bucket.key} className={styles.priorityCard}>
+                <p className={styles.cardLabel}>
+                  {bucket.label} {bucket.dateLabel}
+                </p>
+                <strong className={styles.cardValue}>{bucket.items.length}</strong>
+                <p className={styles.meta}>
+                  {bucket.items.length > 0
+                    ? `${bucket.items.filter((mission) => mission.priority === "urgent").length} urgente(s) a surveiller.`
+                    : "Aucune intervention planifiee."}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <div className={styles.toolbar}>
           <input
             value={searchTerm}
@@ -184,7 +258,7 @@ export default function OwnerPlanningPage() {
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune intervention planifiée pour le moment.</p>
+          <p>Aucune intervention planifiee pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (
@@ -201,16 +275,46 @@ export default function OwnerPlanningPage() {
                 </li>
               ))}
             </ul>
+          ) : viewMode === "week" ? (
+            <div className={styles.weekBoard}>
+              {weekBuckets.map((bucket) => (
+                <article key={bucket.key} className={styles.weekColumn}>
+                  <div className={styles.metricLabel}>
+                    <span>
+                      {bucket.label} {bucket.dateLabel}
+                    </span>
+                    <span>{bucket.items.length}</span>
+                  </div>
+                  {bucket.items.length > 0 ? (
+                    bucket.items.map((mission) => (
+                      <article key={mission.id} className={styles.weekEventCard}>
+                        <strong>{formatShortTime(mission.scheduled_start)}</strong>
+                        <span>{mission.title || "Mission sans titre"}</span>
+                        <div className={styles.inlineActions}>
+                          <WorkflowStatusBadge value={mission.status || "pending"} />
+                          <WorkflowStatusBadge value={mission.priority || "normal"} />
+                        </div>
+                        <span className={styles.meta}>
+                          {mission.status || "-"} | {formatAmount(mission.amount)}
+                        </span>
+                      </article>
+                    ))
+                  ) : (
+                    <p className={styles.meta}>Libre</p>
+                  )}
+                </article>
+              ))}
+            </div>
           ) : (
-            <div
-              className={styles.sectionGrid}
-            >
+            <div className={styles.sectionGrid}>
               {visibleMissions.map((mission) => (
                 <article key={mission.id} className={styles.panel}>
                   <strong>{mission.title || "Mission sans titre"}</strong>
                   <span>{formatDate(mission.scheduled_start)}</span>
-                  <span>Statut: {mission.status || "-"}</span>
-                  <span>Priorite: {mission.priority || "-"}</span>
+                  <div className={styles.inlineActions}>
+                    <WorkflowStatusBadge value={mission.status || "pending"} />
+                    <WorkflowStatusBadge value={mission.priority || "normal"} />
+                  </div>
                   <span>Budget: {formatAmount(mission.amount)}</span>
                 </article>
               ))}

@@ -1,0 +1,250 @@
+.showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(300px, 0.95fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.overviewCard,
+.timelinePanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 26px;
+  border: 1px solid rgba(198, 166, 107, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(198, 166, 107, 0.12), transparent 30%),
+    linear-gradient(160deg, rgba(255, 253, 248, 0.98), rgba(250, 243, 229, 0.94));
+  box-shadow: 0 18px 42px rgba(111, 87, 40, 0.12);
+}
+
+.overviewHeader,
+.timelineHeader {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7b5b23;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.22rem;
+  color: #2f2415;
+}
+
+.overviewBadge {
+  justify-self: start;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f4dfb5, #d2b06f);
+  color: #4b3617;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.loadStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 0.85rem;
+}
+
+.weekBoard {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.weekColumn {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  min-height: 180px;
+  border-radius: 20px;
+  border: 1px solid rgba(198, 166, 107, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.weekColumnToday {
+  background:
+    linear-gradient(180deg, rgba(245, 224, 180, 0.52), rgba(255, 255, 255, 0.86)),
+    rgba(255, 255, 255, 0.8);
+  border-color: rgba(198, 166, 107, 0.3);
+}
+
+.weekColumnHeader,
+.weekEvent {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.weekLabel,
+.weekEventTime,
+.weekEventMeta,
+.weekEmpty {
+  color: #6f5a3b;
+}
+
+.weekLabel {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+}
+
+.weekDate {
+  color: #332715;
+  text-transform: capitalize;
+}
+
+.weekColumnBody {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
+.weekEvent {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  padding: 0.65rem;
+  border-radius: 14px;
+  background: rgba(247, 239, 221, 0.72);
+}
+
+.weekEventTime {
+  min-width: 46px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.weekEventContent {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.weekEventTitle {
+  color: #2f2415;
+  font-size: 0.88rem;
+}
+
+.weekEventMeta,
+.weekEmpty {
+  font-size: 0.8rem;
+}
+
+.loadCard {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(198, 166, 107, 0.16);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.loadLabel,
+.loadHint,
+.timelineMeta,
+.timelineStatus,
+.timelineText,
+.emptyState {
+  margin: 0;
+  color: #6f5a3b;
+}
+
+.loadLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.loadValue {
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #332715;
+}
+
+.loadHint {
+  font-size: 0.82rem;
+}
+
+.timelineList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(198, 166, 107, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  margin-top: 0.32rem;
+  border-radius: 999px;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.86);
+}
+
+.timelineDotDefault {
+  background: #c79a4f;
+}
+
+.timelineDotFocus {
+  background: #2f6f73;
+}
+
+.timelineDotWarning {
+  background: #c6553f;
+}
+
+.timelineContent {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.timelineTitle {
+  margin: 0;
+  color: #2f2415;
+  font-size: 0.98rem;
+}
+
+.timelineMeta {
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.timelineStatus,
+.timelineText,
+.emptyState {
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .weekBoard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .weekBoard {
+    grid-template-columns: 1fr;
+  }
+}

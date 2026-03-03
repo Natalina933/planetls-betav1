@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import styles from "../ProviderCrudPage.module.scss";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import styles from "../ProviderCrudPage.module.scss";
 
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
@@ -41,6 +41,16 @@ function formatDateTime(value: string | null) {
   }).format(date);
 }
 
+function formatShortTime(value: string | null) {
+  if (!value) return "--:--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--";
+  return new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export default function ProviderPlanningPage() {
   const [data, setData] = useState<ProviderInterventionsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +58,7 @@ export default function ProviderPlanningPage() {
 
   useEffect(() => {
     let cancelled = false;
+
     async function loadData() {
       try {
         const response = await fetch("/api/provider/interventions", { cache: "no-store" });
@@ -142,7 +153,7 @@ export default function ProviderPlanningPage() {
           <div>
             <p className={styles.eyebrow}>Pilotage terrain</p>
             <h1>Pilotage planning</h1>
-            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée."}</p>
+            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges a venir avec une lecture priorisee."}</p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} missions</span>
@@ -173,6 +184,21 @@ export default function ProviderPlanningPage() {
                 Voir les alertes
               </Link>
             </div>
+            <div className={styles.spotlightGrid}>
+              {weekBuckets.slice(0, 3).map((bucket) => (
+                <article key={bucket.label} className={styles.spotlightCard}>
+                  <div className={styles.spotlightHeader}>
+                    <span className={styles.badge}>{bucket.label}</span>
+                    <strong>{bucket.events.length}</strong>
+                  </div>
+                  <p className={styles.emptyState}>
+                    {bucket.events.length > 0
+                      ? `${bucket.events.filter((item) => item.priority === "urgent").length} urgente(s) sur la journee.`
+                      : "Journee libre pour absorber les imprevus."}
+                  </p>
+                </article>
+              ))}
+            </div>
           </section>
 
           <section className={styles.panel}>
@@ -194,7 +220,7 @@ export default function ProviderPlanningPage() {
             </div>
 
             {viewMode === "list" && upcoming.length === 0 ? (
-              <p className={styles.emptyState}>Aucune intervention planifiée pour le moment.</p>
+              <p className={styles.emptyState}>Aucune intervention planifiee pour le moment.</p>
             ) : null}
 
             {viewMode === "list" && upcoming.length > 0 ? (
@@ -221,21 +247,30 @@ export default function ProviderPlanningPage() {
             ) : null}
 
             {viewMode === "week" ? (
-              <div className={styles.calendarGrid}>
+              <div className={styles.weekBoard}>
                 {weekBuckets.map((bucket) => (
-                  <article key={bucket.label} className={styles.calendarCell}>
-                    <div className={styles.calendarDay}>{bucket.label}</div>
+                  <article key={bucket.label} className={styles.weekColumn}>
+                    <div className={styles.weekColumnHeader}>
+                      <div className={styles.calendarDay}>{bucket.label}</div>
+                      <span className={styles.counter}>{bucket.events.length}</span>
+                    </div>
                     {bucket.events.length === 0 ? (
-                      <span className={styles.emptyState}>Libre</span>
+                      <span className={styles.weekEmpty}>Libre</span>
                     ) : (
                       bucket.events.map((item) => (
-                        <Link
-                          key={item.id}
-                          href="/dashboard/provider/interventions"
-                          className={styles.calendarEvent}
-                        >
-                          {item.title}
-                        </Link>
+                        <article key={item.id} className={styles.weekEventCard}>
+                          <div className={styles.weekEventHead}>
+                            <strong>{formatShortTime(item.scheduled_start)}</strong>
+                            <WorkflowStatusBadge value={item.priority || "normal"} />
+                          </div>
+                          <Link href="/dashboard/provider/interventions" className={styles.weekEventTitle}>
+                            {item.title}
+                          </Link>
+                          <div className={styles.inlineBadge}>
+                            <WorkflowStatusBadge value={item.status || "pending"} />
+                          </div>
+                          <span className={styles.itemMeta}>{item.location_label || "Lieu a confirmer"}</span>
+                        </article>
                       ))
                     )}
                   </article>

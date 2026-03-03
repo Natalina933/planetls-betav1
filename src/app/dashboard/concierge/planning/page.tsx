@@ -1,14 +1,19 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import DashboardCalendar, {
+  DashboardEvent,
+} from "@/app/components/dashboard/calendar/DashboardCalendar";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import {
   buildPlanningStatusBreakdown,
+  formatPlanningDate,
   isPlanningDone,
   normalizePlanningStatus,
   toPlanningItem,
   toTimestamp,
 } from "./planningHelpers";
+import styles from "./page.module.scss";
 
 type MissionRow = {
   id: string;
@@ -28,6 +33,73 @@ function getEndOfToday() {
   const date = new Date();
   date.setHours(23, 59, 59, 999);
   return date.getTime();
+}
+
+function getWeekdayLabel(value: string | null) {
+  if (!value) return "Sans date";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date invalide";
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+  }).format(date);
+}
+
+function getShortTime(value: string | null) {
+  if (!value) return "--:--";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--:--";
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function buildWeekBuckets(missions: MissionRow[]) {
+  const now = new Date();
+  const monday = new Date(now);
+  const day = (now.getDay() + 6) % 7;
+  monday.setDate(now.getDate() - day);
+  monday.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const start = new Date(monday);
+    start.setDate(monday.getDate() + index);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 1);
+
+    const items = missions.filter((mission) => {
+      const ts = toTimestamp(mission.scheduled_start);
+      return ts >= start.getTime() && ts < end.getTime();
+    });
+
+    return {
+      key: start.toISOString(),
+      label: new Intl.DateTimeFormat("fr-FR", { weekday: "short" }).format(start),
+      dateLabel: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" }).format(start),
+      items,
+      isToday: start.toDateString() === now.toDateString(),
+    };
+  });
+}
+
+function getTimelineTone(mission: MissionRow, now: number) {
+  const scheduledAt = toTimestamp(mission.scheduled_start);
+
+  if (mission.priority === "urgent" || scheduledAt < now) {
+    return "warning";
+  }
+
+  if (scheduledAt <= now + 48 * 60 * 60 * 1000) {
+    return "focus";
+  }
+
+  return "default";
 }
 
 export default function ConciergePlanningPage() {
@@ -57,7 +129,7 @@ export default function ConciergePlanningPage() {
       }
     }
 
-    loadPlanning();
+    void loadPlanning();
   }, []);
 
   const now = Date.now();
@@ -113,6 +185,58 @@ export default function ConciergePlanningPage() {
 
   const statusBreakdown = useMemo(() => buildPlanningStatusBreakdown(missions), [missions]);
 
+  const occupancyRate = useMemo(() => {
+    const totalTracked = plannedActiveMissions.length + unscheduledMissions.length;
+    if (totalTracked === 0) return 0;
+    return Math.round((plannedActiveMissions.length / totalTracked) * 100);
+  }, [plannedActiveMissions.length, unscheduledMissions.length]);
+
+  const dailyLoad = useMemo(() => {
+    const buckets = new Map<string, number>();
+
+    plannedActiveMissions.forEach((mission) => {
+      const key = getWeekdayLabel(mission.scheduled_start);
+      buckets.set(key, (buckets.get(key) || 0) + 1);
+    });
+
+    return Array.from(buckets.entries())
+      .map(([label, count]) => ({ label, count }))
+      .slice(0, 5);
+  }, [plannedActiveMissions]);
+
+  const visualEvents = useMemo<DashboardEvent[]>(
+    () =>
+      plannedActiveMissions.map((mission) => {
+        const start = new Date(mission.scheduled_start as string);
+        const end = new Date(start.getTime() + 90 * 60 * 1000);
+
+        return {
+          title: mission.title || "Mission sans titre",
+          start,
+          end,
+          type: mission.priority === "urgent" ? "reminder" : "mission",
+        };
+      }),
+    [plannedActiveMissions],
+  );
+
+  const timeline = useMemo(
+    () =>
+      plannedActiveMissions.slice(0, 8).map((mission) => ({
+        id: mission.id,
+        title: mission.title || "Mission sans titre",
+        meta: formatPlanningDate(mission.scheduled_start),
+        status: normalizePlanningStatus(mission.status),
+        tone: getTimelineTone(mission, now),
+      })),
+    [now, plannedActiveMissions],
+  );
+
+  const weekBuckets = useMemo(
+    () => buildWeekBuckets(plannedActiveMissions),
+    [plannedActiveMissions],
+  );
+
   return (
     <ConciergeWorkspacePage
       eyebrow="Organisation terrain"
@@ -124,7 +248,7 @@ export default function ConciergePlanningPage() {
             "Reperez immediatement ce qui doit etre traite aujourd'hui, confirme sous 48 h ou replanifie sans delai."
       }
       chips={[
-        `${missions.length} mission(s) chargée(s)`,
+        `${missions.length} mission(s) chargee(s)`,
         `${urgentMissions.length} urgence(s)`,
         `${unscheduledMissions.length} mission(s) sans date`,
       ]}
@@ -136,7 +260,7 @@ export default function ConciergePlanningPage() {
         {
           label: "Aujourd'hui",
           value: loading ? "..." : String(todayMissions.length),
-          hint: "Interventions à exécuter dans la journée",
+          hint: "Interventions a executer dans la journee",
         },
         {
           label: "48 heures",
@@ -146,12 +270,12 @@ export default function ConciergePlanningPage() {
         {
           label: "En retard",
           value: loading ? "..." : String(overdueMissions.length),
-          hint: "Interventions planifiées mais non clôturées",
+          hint: "Interventions planifiees mais non cloturees",
         },
         {
           label: "Sans date",
           value: loading ? "..." : String(unscheduledMissions.length),
-          hint: "Angles morts à sécuriser",
+          hint: "Angles morts a securiser",
         },
       ]}
       cards={[
@@ -159,10 +283,10 @@ export default function ConciergePlanningPage() {
           title: "Aujourd'hui sur le terrain",
           text:
             todayMissions.length > 0
-              ? `${todayMissions.length} intervention(s) sont prévues aujourd'hui. Vérifiez confirmations, accès au logement et créneaux avant exécution.`
+              ? `${todayMissions.length} intervention(s) sont prevues aujourd'hui. Verifiez confirmations, acces au logement et creneaux avant execution.`
               : loading
                 ? "Chargement de vos interventions du jour."
-                : error || "Aucune intervention n'est prévue aujourd'hui.",
+                : error || "Aucune intervention n'est prevue aujourd'hui.",
           actions: [
             {
               label: "Voir les missions du jour",
@@ -172,11 +296,11 @@ export default function ConciergePlanningPage() {
           ],
         },
         {
-          title: "Missions à replanifier",
+          title: "Missions a replanifier",
           text:
             overdueMissions.length > 0
-              ? `${overdueMissions.length} mission(s) semblent en retard ou non mises à jour. Reprenez-les avant qu'elles ne deviennent des irritants client.`
-              : "Aucune mission planifiée en retard. Votre cadence terrain reste propre.",
+              ? `${overdueMissions.length} mission(s) semblent en retard ou non mises a jour. Reprenez-les avant qu'elles ne deviennent des irritants client.`
+              : "Aucune mission planifiee en retard. Votre cadence terrain reste propre.",
           actions: [
             {
               label: "Traiter les retards",
@@ -186,10 +310,10 @@ export default function ConciergePlanningPage() {
           ],
         },
         {
-          title: "Urgences et imprévus",
+          title: "Urgences et imprevus",
           text:
             urgentMissions.length > 0
-              ? `${urgentMissions.length} mission(s) urgentes demandent une vérification immédiate du planning, du stock et de la disponibilité.`
+              ? `${urgentMissions.length} mission(s) urgentes demandent une verification immediate du planning, du stock et de la disponibilite.`
               : "Aucune urgence active pour le moment. Profitez-en pour assainir vos missions sans date.",
           actions: [
             {
@@ -202,64 +326,168 @@ export default function ConciergePlanningPage() {
       ]}
       detailSections={[
         {
-          title: "À traiter aujourd'hui",
+          title: "A traiter aujourd'hui",
           description:
-            "Le cœur de votre journée terrain : ce qui doit être confirmé, exécuté ou clos avant ce soir.",
+            "Le coeur de votre journee terrain : ce qui doit etre confirme, execute ou clos avant ce soir.",
           emptyText:
             loading
               ? "Chargement des interventions du jour."
-              : error || "Aucune intervention prévue aujourd'hui.",
+              : error || "Aucune intervention prevue aujourd'hui.",
           items: todayMissions.map((mission) => toPlanningItem(mission, "Ouvrir")),
         },
         {
-          title: "À confirmer sous 48 h",
+          title: "A confirmer sous 48 h",
           description:
-            "Les prochaines interventions qui demandent une validation rapide avec le propriétaire ou l'équipe terrain.",
+            "Les prochaines interventions qui demandent une validation rapide avec le proprietaire ou l'equipe terrain.",
           emptyText:
             loading
-              ? "Chargement des missions à venir."
-              : error || "Aucune mission à confirmer dans les 48 prochaines heures.",
+              ? "Chargement des missions a venir."
+              : error || "Aucune mission a confirmer dans les 48 prochaines heures.",
           items: nextMissions.map((mission) => toPlanningItem(mission, "Confirmer")),
         },
         {
           title: "Missions en retard",
           description:
-            "Interventions déjà planifiées mais encore actives. Ce sont les premières sources de friction à résorber.",
+            "Interventions deja planifiees mais encore actives. Ce sont les premieres sources de friction a resorber.",
           emptyText:
             loading
               ? "Analyse des missions en retard."
-              : error || "Aucune mission en retard détectée.",
+              : error || "Aucune mission en retard detectee.",
           items: overdueMissions.map((mission) => toPlanningItem(mission, "Replanifier", "warning")),
         },
         {
           title: "Missions sans date",
           description:
-            "Liste des interventions encore non positionnées dans le temps pour éviter les angles morts opérationnels.",
+            "Liste des interventions encore non positionnees dans le temps pour eviter les angles morts operationnels.",
           emptyText:
             loading
               ? "Analyse des missions sans date."
-              : error || "Toutes les missions actives ont déjà une date planifiée.",
+              : error || "Toutes les missions actives ont deja une date planifiee.",
           items: unscheduledMissions.slice(0, 6).map((mission) => ({
             title: mission.title || "Mission sans date",
             meta: normalizePlanningStatus(mission.status),
             description:
-              "Cette intervention doit être cadrée avec un créneau précis pour fiabiliser votre planning terrain.",
+              "Cette intervention doit etre cadree avec un creneau precis pour fiabiliser votre planning terrain.",
             href: "/dashboard/concierge/profile?tab=missions",
             actionLabel: "Planifier",
             tone: "warning" as const,
           })),
         },
         {
-          title: "État du pipe missions",
+          title: "Etat du pipe missions",
           description:
-            "Vue synthétique de vos statuts pour équilibrer exécution, suivi client et clôture des interventions.",
+            "Vue synthetique de vos statuts pour equilibrer execution, suivi client et cloture des interventions.",
           emptyText:
             loading
               ? "Analyse des statuts en cours."
-              : error || "Aucune mission disponible pour établir un état des lieux.",
+              : error || "Aucune mission disponible pour etablir un etat des lieux.",
           items: statusBreakdown,
         },
       ]}
-    />
+    >
+      <section className={styles.showcase}>
+        <div className={styles.overviewCard}>
+          <div className={styles.overviewHeader}>
+            <div>
+              <p className={styles.sectionEyebrow}>Vue planning</p>
+              <h2 className={styles.sectionTitle}>Lecture visuelle de la charge</h2>
+            </div>
+            <span className={styles.overviewBadge}>{occupancyRate}% planifie</span>
+          </div>
+
+          <div className={styles.loadStrip}>
+            {dailyLoad.length > 0 ? (
+              dailyLoad.map((item) => (
+                <article key={item.label} className={styles.loadCard}>
+                  <span className={styles.loadLabel}>{item.label}</span>
+                  <strong className={styles.loadValue}>{item.count}</strong>
+                  <span className={styles.loadHint}>mission(s)</span>
+                </article>
+              ))
+            ) : (
+              <p className={styles.emptyState}>
+                {loading
+                  ? "Analyse des creneaux en cours."
+                  : error || "Aucun creneau exploitable a afficher dans la vue calendrier."}
+              </p>
+            )}
+          </div>
+
+          <div className={styles.weekBoard}>
+            {weekBuckets.map((bucket) => (
+              <article
+                key={bucket.key}
+                className={`${styles.weekColumn} ${bucket.isToday ? styles.weekColumnToday : ""}`}
+              >
+                <div className={styles.weekColumnHeader}>
+                  <span className={styles.weekLabel}>{bucket.label}</span>
+                  <strong className={styles.weekDate}>{bucket.dateLabel}</strong>
+                </div>
+                <div className={styles.weekColumnBody}>
+                  {bucket.items.length > 0 ? (
+                    bucket.items.slice(0, 3).map((mission) => (
+                      <div key={mission.id} className={styles.weekEvent}>
+                        <span className={styles.weekEventTime}>{getShortTime(mission.scheduled_start)}</span>
+                        <div className={styles.weekEventContent}>
+                          <strong className={styles.weekEventTitle}>
+                            {mission.title || "Mission sans titre"}
+                          </strong>
+                          <span className={styles.weekEventMeta}>
+                            {normalizePlanningStatus(mission.status)}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={styles.weekEmpty}>Libre</p>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <DashboardCalendar events={visualEvents} title="Calendrier terrain" />
+        </div>
+
+        <aside className={styles.timelinePanel}>
+          <div className={styles.timelineHeader}>
+            <p className={styles.sectionEyebrow}>Cadence</p>
+            <h2 className={styles.sectionTitle}>Prochaines etapes</h2>
+            <p className={styles.timelineText}>
+              Une timeline courte pour reperer ce qui arrive vite et ce qui glisse.
+            </p>
+          </div>
+
+          <div className={styles.timelineList}>
+            {timeline.length > 0 ? (
+              timeline.map((item) => (
+                <article key={item.id} className={styles.timelineItem}>
+                  <span
+                    className={`${styles.timelineDot} ${
+                      item.tone === "warning"
+                        ? styles.timelineDotWarning
+                        : item.tone === "focus"
+                          ? styles.timelineDotFocus
+                          : styles.timelineDotDefault
+                    }`}
+                  />
+                  <div className={styles.timelineContent}>
+                    <p className={styles.timelineMeta}>{item.meta}</p>
+                    <h3 className={styles.timelineTitle}>{item.title}</h3>
+                    <p className={styles.timelineStatus}>{item.status}</p>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className={styles.emptyState}>
+                {loading
+                  ? "Chargement de la timeline."
+                  : error || "Aucune mission planifiee pour alimenter la timeline."}
+              </p>
+            )}
+          </div>
+        </aside>
+      </section>
+    </ConciergeWorkspacePage>
   );
 }

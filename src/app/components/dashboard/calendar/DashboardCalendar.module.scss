@@ -1,76 +1,285 @@
-/* src/app/components/dashboard/Calendar/DashboardCalendar.module.scss */
-
-@use "sass:color";
-
-// Importez vos variables si nécessaire
-// @import '@/app/styles/abstracts/variables';
-
-.dashboard-calendar-container {
-    margin-top: $spacing-lg;
-    padding: $spacing-lg;
-    border: 1px solid $mucha-ink;
-    background: $mucha-paper; // Le fond du calendrier est blanc cassé
-    box-shadow: $shadow;
-
-    .calendar-title {
-        font-family: $font-elegant;
-        font-size: 1.5rem;
-        color: $primary-dark-color-sass;
-        margin-bottom: $spacing-md;
-        padding-bottom: 5px;
-        border-bottom: 1px dashed $text-light;
-    }
+.container {
+  --calendar-ink: #2d2418;
+  --calendar-soft-ink: #6f5a3b;
+  --calendar-line: rgba(168, 133, 78, 0.2);
+  --calendar-surface: rgba(255, 252, 247, 0.94);
+  --calendar-surface-strong: rgba(255, 248, 236, 0.96);
+  --calendar-shadow: rgba(99, 75, 33, 0.16);
+  --calendar-mission: #b7792d;
+  --calendar-booking: #2f6f73;
+  --calendar-reminder: #8c4f7d;
+  display: grid;
+  gap: 1rem;
 }
 
-// ----------------------------------------------------
-// Surcharge des styles par défaut de react-big-calendar
-// ----------------------------------------------------
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
 
-.calendar-wrapper :global {
-    .rbc-calendar {
-        font-family: $font-text;
-    }
+.titleBlock {
+  display: grid;
+  gap: 0.35rem;
+}
 
-    // Header du calendrier (Mois/Année)
-    .rbc-toolbar button {
-        background-color: $gold-light;
-        border: 1px solid $primary-color-sass;
-        color: $mucha-ink;
-        font-family: $font-title;
-        transition: $transition;
+.title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--calendar-ink);
+}
 
-        &:hover {
-            background-color: $primary-light-color-sass;
-            color: $mucha-ink;
-        }
+.subtitle {
+  margin: 0;
+  color: var(--calendar-soft-ink);
+  line-height: 1.5;
+}
 
-        &.rbc-active {
-            background-color: $primary-color-sass;
-            color: $mucha-paper;
-            box-shadow: $shadow-soft;
-        }
-    }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
 
-    // Journées et événements
-    .rbc-header {
-        background-color: $gold-light;
-        padding: 8px 0;
-        border-bottom: 1px solid $mucha-ink;
-        border-top: 1px solid $mucha-ink;
-        font-weight: $font-weight-bold;
-        color: $mucha-ink;
-    }
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--calendar-line);
+  background: rgba(255, 255, 255, 0.65);
+}
 
-    // Événements dans le calendrier (missions, réservations)
-    .rbc-event {
-        background-color: $primary-dark-color-sass; // Couleur dorée foncée pour les blocs
-        border-radius: 0;
-        border: 1px solid $mucha-ink;
-        font-family: $font-text;
-        font-size: 0.9rem;
-    }
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
 
-    .rbc-today {
-        background-color: color.scale($gold-light, $lightness: 5%); // Mise en évidence d'aujourd'hui
-    }
+.legendLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--calendar-soft-ink);
+}
+
+.calendarShell {
+  padding: 1rem;
+  border-radius: 28px;
+  border: 1px solid var(--calendar-line);
+  background:
+    radial-gradient(circle at top left, rgba(214, 181, 126, 0.14), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(68, 121, 124, 0.12), transparent 26%),
+    linear-gradient(145deg, rgba(255, 254, 250, 0.98), var(--calendar-surface-strong));
+  box-shadow: 0 18px 44px var(--calendar-shadow);
+}
+
+.calendarWrapper {
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(168, 133, 78, 0.12);
+  background: var(--calendar-surface);
+}
+
+.missionEvent,
+.bookingEvent,
+.reminderEvent {
+  position: relative;
+  color: #fff7eb;
+}
+
+.missionEvent {
+  background: linear-gradient(135deg, #cb8e37, var(--calendar-mission));
+}
+
+.bookingEvent {
+  background: linear-gradient(135deg, #3d8b90, var(--calendar-booking));
+}
+
+.reminderEvent {
+  background: linear-gradient(135deg, #a56695, var(--calendar-reminder));
+}
+
+.eventContent {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.eventType {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.84;
+}
+
+.eventTitle {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.calendarWrapper :global(.rbc-calendar) {
+  font-family: inherit;
+  color: var(--calendar-ink);
+}
+
+.calendarWrapper :global(.rbc-toolbar) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1rem 0;
+}
+
+.calendarWrapper :global(.rbc-toolbar-label) {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--calendar-ink);
+}
+
+.calendarWrapper :global(.rbc-btn-group) {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.calendarWrapper :global(.rbc-toolbar button) {
+  min-height: 40px;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--calendar-line);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--calendar-soft-ink);
+  font-weight: 700;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.calendarWrapper :global(.rbc-toolbar button:hover),
+.calendarWrapper :global(.rbc-toolbar button:focus-visible) {
+  transform: translateY(-1px);
+  border-color: rgba(168, 133, 78, 0.36);
+  box-shadow: 0 8px 20px rgba(120, 91, 35, 0.12);
+}
+
+.calendarWrapper :global(.rbc-toolbar button.rbc-active) {
+  background: linear-gradient(135deg, #f0d8ab, #d0ad6d);
+  color: #3a2a14;
+  border-color: rgba(168, 133, 78, 0.5);
+}
+
+.calendarWrapper :global(.rbc-month-view),
+.calendarWrapper :global(.rbc-time-view),
+.calendarWrapper :global(.rbc-agenda-view) {
+  border: 0;
+}
+
+.calendarWrapper :global(.rbc-header) {
+  padding: 0.9rem 0.5rem;
+  border-bottom: 1px solid rgba(168, 133, 78, 0.18);
+  background: rgba(244, 233, 208, 0.6);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--calendar-soft-ink);
+}
+
+.calendarWrapper :global(.rbc-month-row + .rbc-month-row),
+.calendarWrapper :global(.rbc-day-bg + .rbc-day-bg),
+.calendarWrapper :global(.rbc-time-content > * + * > *) {
+  border-left-color: rgba(168, 133, 78, 0.12);
+}
+
+.calendarWrapper :global(.rbc-month-row),
+.calendarWrapper :global(.rbc-time-content),
+.calendarWrapper :global(.rbc-timeslot-group) {
+  border-top-color: rgba(168, 133, 78, 0.12);
+}
+
+.calendarWrapper :global(.rbc-date-cell) {
+  padding: 0.45rem 0.55rem 0;
+  text-align: right;
+  font-weight: 700;
+  color: rgba(45, 36, 24, 0.68);
+}
+
+.calendarWrapper :global(.rbc-off-range-bg) {
+  background: rgba(121, 97, 64, 0.04);
+}
+
+.calendarWrapper :global(.rbc-today) {
+  background:
+    linear-gradient(180deg, rgba(212, 176, 110, 0.1), transparent 42%),
+    rgba(255, 248, 230, 0.62);
+}
+
+.calendarWrapper :global(.rbc-event) {
+  min-height: 30px;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 10px 18px rgba(54, 40, 16, 0.16);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff7eb;
+}
+
+.calendarWrapper :global(.rbc-event-label) {
+  display: none;
+}
+
+.calendarWrapper :global(.rbc-row-segment) {
+  padding: 0 0.25rem 0.3rem;
+}
+
+.calendarWrapper :global(.rbc-show-more) {
+  color: var(--calendar-mission);
+  font-weight: 800;
+  background: transparent;
+}
+
+.calendarWrapper :global(.rbc-time-header-content),
+.calendarWrapper :global(.rbc-time-content) {
+  border-left-color: rgba(168, 133, 78, 0.12);
+}
+
+.calendarWrapper :global(.rbc-current-time-indicator) {
+  background-color: #d4654c;
+  height: 2px;
+}
+
+.calendarWrapper :global(.rbc-agenda-table) {
+  border: 0;
+}
+
+.calendarWrapper :global(.rbc-agenda-table tbody > tr > td),
+.calendarWrapper :global(.rbc-agenda-table tbody > tr > th),
+.calendarWrapper :global(.rbc-agenda-table thead > tr > th) {
+  padding: 0.85rem 0.75rem;
+  border-bottom: 1px solid rgba(168, 133, 78, 0.12);
+}
+
+@media (max-width: 900px) {
+  .calendarShell {
+    padding: 0.75rem;
+    border-radius: 22px;
+  }
+
+  .calendarWrapper :global(.rbc-toolbar) {
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .calendarWrapper :global(.rbc-toolbar-label) {
+    width: 100%;
+    text-align: left;
+  }
 }

@@ -1,94 +1,146 @@
-// src/app/components/dashboard/Calendar/DashboardCalendar.tsx
 'use client';
 
-import React, { useMemo } from 'react';
-// 🛑 CORRECTION 1 : L'importation de 'Event' et 'Calendar' est correcte.
-// Assurez-vous d'avoir installé @types/react-big-calendar.
-import { Calendar, dateFnsLocalizer, Event } from 'react-big-calendar';
-
-// 🛑 CORRECTION 2 : Utilisez l'importation nommée pour 'fr'
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { fr } from 'date-fns/locale/fr'; // ✅ Importation nommée correcte
-// import { endOfWeek } from 'date-fns'; // 🛑 CORRECTION 3 : 'endOfWeek' retiré car inutilisé
+import React, { useMemo, useState } from 'react';
+import { Calendar, dateFnsLocalizer, Event, type NavigateAction, type View } from 'react-big-calendar';
+import { format, getDay, parse, startOfWeek } from 'date-fns';
+import { fr } from 'date-fns/locale/fr';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-
-// ----------------------------------------------------
-// Configuration de la Locale (français)
-// ----------------------------------------------------
+import styles from './DashboardCalendar.module.scss';
 
 const locales = {
-    'fr': fr,
+  fr,
 };
 
 const localizer = dateFnsLocalizer({
-    format,
-    parse,
-    // 🛑 CORRECTION 4 : Définition des types pour les paramètres (date: Date)
-    startOfWeek: (date: Date) => startOfWeek(date, { locale: fr, weekStartsOn: 1 }),
-    getDay: (date: Date) => getDay(date), // Définition du type 'date' pour éviter 'any'
-    locales,
+  format,
+  parse,
+  startOfWeek: (date: Date) => startOfWeek(date, { locale: fr, weekStartsOn: 1 }),
+  getDay: (date: Date) => getDay(date),
+  locales,
 });
 
-// ----------------------------------------------------
-// Définition de l'Événement (pour le typage)
-// ----------------------------------------------------
-
 export interface DashboardEvent extends Event {
-    // title: string; // Laisser l'interface Event gérer ceci, MAIS:
-    // S'assurer que les autres propriétés correspondent
-    start: Date;
-    end: Date;
-    bookingId?: string;
-    type: 'booking' | 'mission' | 'reminder';
+  start: Date;
+  end: Date;
+  bookingId?: string;
+  type: 'booking' | 'mission' | 'reminder';
 }
 
 interface DashboardCalendarProps {
-    events: DashboardEvent[];
-    title: string;
+  events: DashboardEvent[];
+  title: string;
 }
 
+const EVENT_LABELS: Record<DashboardEvent['type'], string> = {
+  booking: 'Reservations',
+  mission: 'Missions',
+  reminder: 'Rappels',
+};
+
+const EVENT_CLASSNAMES: Record<DashboardEvent['type'], string> = {
+  booking: styles.bookingEvent,
+  mission: styles.missionEvent,
+  reminder: styles.reminderEvent,
+};
+
 const DashboardCalendar: React.FC<DashboardCalendarProps> = ({ events, title }) => {
-    // Déclarer tous les accesseurs ici pour plus de clarté
-    const eventTitleAccessor = 'title' as keyof DashboardEvent;
-    // ✅ CORRECTION APPLIQUÉE : Casting pour startAccessor et endAccessor
-    const eventStartAccessor = 'start' as keyof DashboardEvent;
-    const eventEndAccessor = 'end' as keyof DashboardEvent;
+  const [view, setView] = useState<View>('month');
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
-    const calendarProps = useMemo(() => ({
-        localizer,
-        events,
-        defaultView: 'month' as const,
-        messages: {
-            allDay: 'Toute la journée',
-            previous: 'Précédent',
-            next: 'Suivant',
-            today: "Aujourd'hui",
-            month: 'Mois',
-            week: 'Semaine',
-            day: 'Jour',
-            agenda: 'Agenda',
-            date: 'Date',
-            time: 'Heure',
-            event: 'Événement',
-            noEventsInRange: 'Aucun événement dans cette période.',
-        },
-        culture: 'fr',
-        startAccessor: eventStartAccessor,
-        endAccessor: eventEndAccessor,
-        titleAccessor: eventTitleAccessor,
-        style: { height: 700 },
-        defaultDate: new Date(),
-    }), [events, eventTitleAccessor, eventStartAccessor, eventEndAccessor]);
-
-    return (
-        <div className="dashboard-calendar-container">
-            <h3 className="calendar-title">{title}</h3>
-            <div className="calendar-wrapper">
-                <Calendar {...calendarProps} />
-            </div>
-        </div>
+  const counts = useMemo(() => {
+    return events.reduce(
+      (acc, event) => {
+        acc[event.type] += 1;
+        return acc;
+      },
+      { booking: 0, mission: 0, reminder: 0 } as Record<DashboardEvent['type'], number>,
     );
+  }, [events]);
 
+  const components = useMemo(
+    () => ({
+      event: ({ event }: { event: DashboardEvent }) => (
+        <div className={styles.eventContent}>
+          <span className={styles.eventType}>{EVENT_LABELS[event.type]}</span>
+          <strong className={styles.eventTitle}>{event.title}</strong>
+        </div>
+      ),
+    }),
+    [],
+  );
+
+  const calendarProps = useMemo(
+    () => ({
+      localizer,
+      events,
+      view,
+      views: ['month', 'week', 'day', 'agenda'] as View[],
+      messages: {
+        allDay: 'Toute la journee',
+        previous: 'Precedent',
+        next: 'Suivant',
+        today: "Aujourd'hui",
+        month: 'Mois',
+        week: 'Semaine',
+        day: 'Jour',
+        agenda: 'Agenda',
+        date: 'Date',
+        time: 'Heure',
+        event: 'Evenement',
+        noEventsInRange: 'Aucun evenement dans cette periode.',
+      },
+      culture: 'fr',
+      startAccessor: 'start' as keyof DashboardEvent,
+      endAccessor: 'end' as keyof DashboardEvent,
+      titleAccessor: 'title' as keyof DashboardEvent,
+      date: currentDate,
+      style: { height: 720 },
+      popup: true,
+      components,
+      onView: (nextView: View) => setView(nextView),
+      onNavigate: (nextDate: Date, nextView: View, action: NavigateAction) => {
+        void nextView;
+        void action;
+        setCurrentDate(nextDate);
+      },
+      eventPropGetter: (event: DashboardEvent) => ({
+        className: EVENT_CLASSNAMES[event.type],
+      }),
+    }),
+    [components, currentDate, events, view],
+  );
+
+  return (
+    <section className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.titleBlock}>
+          {title ? <h3 className={styles.title}>{title}</h3> : null}
+          <p className={styles.subtitle}>
+            {events.length > 0
+              ? `${events.length} evenement(s) affiches sur la periode.`
+              : 'Aucun evenement planifie pour le moment.'}
+          </p>
+        </div>
+
+        <div className={styles.legend}>
+          {(Object.keys(EVENT_LABELS) as DashboardEvent['type'][]).map((type) => (
+            <div key={type} className={styles.legendItem}>
+              <span className={`${styles.legendDot} ${EVENT_CLASSNAMES[type]}`} />
+              <span className={styles.legendLabel}>
+                {EVENT_LABELS[type]} {counts[type] > 0 ? `(${counts[type]})` : ''}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.calendarShell}>
+        <div className={styles.calendarWrapper}>
+          <Calendar {...calendarProps} />
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default DashboardCalendar;
