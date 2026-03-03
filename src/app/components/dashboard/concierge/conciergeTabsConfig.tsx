@@ -25,10 +25,10 @@ export interface ConciergeTab {
 
 export const CONCIERGE_TABS: ConciergeTab[] = [
   { id: "fiche", label: "Fiche & Infos", icon: FiUser },
+  { id: "equipe", label: "Equipe & Zones", icon: FiUsers },
+  { id: "documents", label: "Documents & Avis", icon: FiFileText },
   { id: "missions", label: "Missions", icon: FiTarget },
   { id: "tarifs", label: "Grille tarifaire", icon: FiDollarSign },
   { id: "packs", label: "Mes Packs", icon: FiPackage },
   { id: "devis", label: "Devis & factures", icon: FiFileText },
-  { id: "equipe", label: "Equipe & Zones", icon: FiUsers },
-  { id: "documents", label: "Documents & Avis", icon: FiFileText },
 ];

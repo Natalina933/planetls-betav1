@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       >
         <div className={styles.header}>
           <span className={styles.title}>
-            {userType ? `Vue prioritaire ${roleLabels[userType] || userType}` : "Chargement..."}
+            {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
           </span>
           <button
             onClick={toggleSidebar}

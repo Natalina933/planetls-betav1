@@ -1282,6 +1282,11 @@ export default function ConciergeProfilePage() {
     }
   }, [tabFromUrl, activeTab]);
 
+  const activeTabLabel = useMemo(
+    () => CONCIERGE_TABS.find((tab) => tab.id === activeTab)?.label ?? "Fiche & Infos",
+    [activeTab],
+  );
+
   // Charger le profil au montage
   useEffect(() => {
     let isMounted = true;
@@ -2328,7 +2333,7 @@ export default function ConciergeProfilePage() {
   );
 
   useEffect(() => {
-    if (activeTab !== "tarifs") return;
+    if (activeTab !== "tarifs" && activeTab !== "devis") return;
     fetchServicePrices();
     fetchPricingSegments();
     fetchPricingPropertyRules();
@@ -2965,7 +2970,7 @@ export default function ConciergeProfilePage() {
   return (
     <ConciergeProfileShell
       styles={styles}
-      title="Espace Concierge"
+      title={activeTabLabel}
       successMsg={successMsg}
       errorMsg={errorMsg}
       tabs={CONCIERGE_TABS}

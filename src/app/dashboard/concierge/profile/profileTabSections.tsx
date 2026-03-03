@@ -604,6 +604,7 @@ interface TariffWorkflowSectionProps {
   styles: Record<string, string>;
   renderSection: RenderSection;
   sectionId: string;
+  title: string;
   commissionRatePct: number;
   hourlyRate: number;
   configuredPricingCount: number;
@@ -674,6 +675,8 @@ interface TariffBillingDeskSectionProps {
   styles: Record<string, string>;
   renderSection: RenderSection;
   sectionId: string;
+  title?: string;
+  collapsible?: boolean;
   missionRowsCount: number;
   deskProps: {
     hourlyRate: number;
@@ -976,6 +979,30 @@ export function ConciergeProfileActiveTabContent({
           styles={styles}
           renderSection={profileEditorControls.renderSection}
           sectionIds={tariffSectionIds}
+          mode="tarifs"
+          tariffOverviewControls={tariffOverviewControls}
+          tariffFoundationControls={tariffFoundationControls}
+          tariffConfigControls={tariffConfigControls}
+          editingSection={profileEditorControls.editingSection}
+          pricingCatalogRows={pricingCatalogRows}
+          activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
+          renderField={profileEditorControls.renderField}
+          tariffCatalogControls={tariffCatalogControls}
+          pricingSegmentsControls={pricingSegmentsControls}
+          pricingRulesControls={pricingRulesControls}
+          pricingScenarioControls={pricingScenarioControls}
+          pricingModalControls={pricingModalControls}
+          billingDeskSectionProps={billingDeskSectionProps}
+          formatExperienceLabel={profileEditorControls.formatExperienceLabel}
+        />
+      );
+    case "devis":
+      return (
+        <ConciergeTariffsTabContent
+          styles={styles}
+          renderSection={profileEditorControls.renderSection}
+          sectionIds={tariffSectionIds}
+          mode="devis"
           tariffOverviewControls={tariffOverviewControls}
           tariffFoundationControls={tariffFoundationControls}
           tariffConfigControls={tariffConfigControls}
@@ -1987,6 +2014,7 @@ export function TariffWorkflowSection({
   styles,
   renderSection,
   sectionId,
+  title,
   commissionRatePct,
   hourlyRate,
   configuredPricingCount,
@@ -1999,7 +2027,7 @@ export function TariffWorkflowSection({
   return (
     <div className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard}`}>
       {renderSection(
-        "Parcours devis & facturation",
+        title,
         <FiTarget />,
         <div className={styles.tariffWorkflow}>
           <div className={styles.tariffHero}>
@@ -2313,6 +2341,8 @@ export function TariffBillingDeskSection({
   styles,
   renderSection,
   sectionId,
+  title = "Devis & factures",
+  collapsible = true,
   missionRowsCount,
   deskProps,
 }: TariffBillingDeskSectionProps) {
@@ -2322,7 +2352,7 @@ export function TariffBillingDeskSection({
       className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard} ${styles.tariffEmphasisCard}`}
     >
       {renderSection(
-        "2. Devis et factures opérationnels",
+        title,
         <FiFile />,
         <>
           <div className={styles.tariffCardIntro}>
@@ -2340,6 +2370,7 @@ export function TariffBillingDeskSection({
         </>,
         false,
         sectionId,
+        collapsible,
       )}
     </div>
   );
@@ -3044,7 +3075,7 @@ export function TariffStrategySection({
     <section className={styles.tariffSimpleCard}>
       <h3 className={styles.tariffSimpleTitle}>G. Simulateur strategique</h3>
       <p className={styles.tariffHint}>
-        Testez un scénario commercial puis injectez-le dans le parcours devis/facturation.
+        Testez un scénario commercial puis injectez-le dans Devis & factures.
       </p>
       <div className={styles.pricingSegmentsDraft}>
         <select
@@ -3245,6 +3276,7 @@ export function ConciergeTariffsTabContent({
   styles,
   renderSection,
   sectionIds,
+  mode = "tarifs",
   tariffOverviewControls,
   tariffFoundationControls,
   tariffConfigControls,
@@ -3260,12 +3292,29 @@ export function ConciergeTariffsTabContent({
   billingDeskSectionProps,
   formatExperienceLabel,
 }: any) {
+  if (mode === "devis") {
+    return (
+      <div className={styles.financeGrid}>
+        <TariffBillingDeskSection
+          styles={styles}
+          renderSection={renderSection}
+          sectionId={sectionIds.BILLING_DESK}
+          title="Devis & factures"
+          collapsible={false}
+          missionRowsCount={billingDeskSectionProps.missionRowsCount}
+          deskProps={billingDeskSectionProps.deskProps}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.financeGrid}>
       <TariffWorkflowSection
         styles={styles}
         renderSection={renderSection}
         sectionId={sectionIds.WORKFLOW}
+        title="Grille tarifaire"
         commissionRatePct={tariffFoundationControls.pricingMeta.commissionRatePct}
         hourlyRate={tariffFoundationControls.pricingV2.base.hourlyRate}
         configuredPricingCount={tariffOverviewControls.configuredPricingCount}
@@ -3445,6 +3494,7 @@ export function ConciergeTariffsTabContent({
         styles={styles}
         renderSection={renderSection}
         sectionId={sectionIds.BILLING_DESK}
+        title="Devis & factures"
         missionRowsCount={billingDeskSectionProps.missionRowsCount}
         deskProps={billingDeskSectionProps.deskProps}
       />

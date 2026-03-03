@@ -19,7 +19,7 @@ const HeroSection = () => {
 
       window.scrollTo({ top: 800, behavior: "smooth" });
     } catch (error) {
-      console.error("Échec du scroll :", error);
+      console.error("Echec du scroll :", error);
     }
   };
 
@@ -27,7 +27,7 @@ const HeroSection = () => {
     <section className={styles.hero}>
       <Image
         src="/images/hero-warmv2.jpg"
-        alt="Plateforme de location saisonnière"
+        alt="Plateforme de location saisonniere"
         fill
         priority
         style={{ objectFit: "cover" }}
@@ -42,10 +42,10 @@ const HeroSection = () => {
 
         <div className={styles.content}>
           <h1>
-            Simplifiez la <span className={styles.highlight}>location saisonnière</span>
+            Simplifiez la <span className={styles.highlight}>location saisonniere</span>
           </h1>
           <p className={styles.subHeadline}>
-            PlanetLS connecte <strong>propriétaires</strong>, <strong>concierges</strong> et{" "}
+            PlanetLS connecte <strong>proprietaires</strong>, <strong>concierges</strong> et{" "}
             <strong>prestataires locaux</strong> de confiance.
           </p>
 
@@ -56,19 +56,28 @@ const HeroSection = () => {
 
           <div className={styles.buttonsRow}>
             <button
+              className={`${styles.CTAButton} ${styles.urgent}`}
+              onClick={() => router.push("/mission-urgente")}
+            >
+              Besoin d&apos;un check-in en urgence ?
+            </button>
+
+            <button
               className={`${styles.CTAButton} ${styles.primary}`}
               onClick={() => router.push("/login")}
             >
-              Créer mon compte
+              Creer mon compte
             </button>
 
             <button
               className={`${styles.CTAButton} ${styles.secondary}`}
               onClick={scrollToHowItWorks}
             >
-              Découvrir comment ça marche
+              Decouvrir comment ca marche
             </button>
           </div>
+
+          <p className={styles.urgentHint}>Trouvez un concierge disponible en moins de 24h.</p>
         </div>
       </div>
     </section>

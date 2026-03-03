@@ -2,7 +2,7 @@
 @use "sass:map";
 
 /* ==========================================================================
-   NAVBAR — Mucha 1900
+   NAVBAR
    ========================================================================== */
 
 .dashNavbar {
@@ -15,13 +15,9 @@
   padding: var.$spacing-md var.$spacing-lg;
   background: var.$mucha-paper;
   border-bottom: 2px solid var.$profile-border;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   top: 0;
 }
-
-/* ==========================================================================
-   LEFT SECTION
-   ========================================================================== */
 
 .leftSection {
   display: flex;
@@ -48,8 +44,8 @@
 }
 
 .titleBlock {
-  display: grid;
-  gap: 0.1rem;
+  display: flex;
+  align-items: center;
   min-width: 0;
 }
 
@@ -70,17 +66,6 @@
   text-overflow: ellipsis;
 }
 
-.sectionLabel {
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var.$gold-dark;
-  opacity: 0.85;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .userRole {
   padding: 0.25rem 0.7rem;
   border-radius: var.$radius-pill;
@@ -91,10 +76,6 @@
   letter-spacing: 0.05em;
   color: var.$gold-dark;
 }
-
-/* ==========================================================================
-   RIGHT SECTION
-   ========================================================================== */
 
 .rightSection {
   display: flex;
@@ -137,10 +118,6 @@
   .leftSection {
     flex: 1 1 auto;
   }
-
-  .sectionLabel {
-    max-width: 38vw;
-  }
 }
 
 @media (max-width: 640px) {
@@ -157,15 +134,7 @@
   .userRole {
     display: none;
   }
-
-  .sectionLabel {
-    max-width: 56vw;
-  }
 }
-
-/* ==========================================================================
-   PRO BADGE
-   ========================================================================== */
 
 .proBadge {
   display: flex;
@@ -180,10 +149,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
-/* ==========================================================================
-   NOTIFICATIONS
-   ========================================================================== */
 
 .iconButton {
   position: relative;
@@ -215,10 +180,6 @@
   border: 1px solid white;
 }
 
-/* ==========================================================================
-   AVATAR
-   ========================================================================== */
-
 .userProfile {
   width: 48px;
   height: 48px;
@@ -233,7 +194,7 @@
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -270,7 +231,7 @@
 }
 
 @keyframes pulse {
-  0% { opacity: .6; }
+  0% { opacity: 0.6; }
   50% { opacity: 1; }
- 100% { opacity: .6; }
+  100% { opacity: 0.6; }
 }

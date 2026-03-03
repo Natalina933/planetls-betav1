@@ -1,0 +1,104 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: #f5efe4;
+  color: #5c4938;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 24px;
+  border: 1px solid rgba(84, 67, 48, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.topline h2 {
+  margin: 0;
+}
+
+.meta {
+  display: grid;
+  gap: 0.4rem;
+  color: #5f4c3d;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: #eef9ef;
+  color: #296947;
+  font-weight: 800;
+  height: fit-content;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.stats span {
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  background: #f6f1e8;
+  color: #503f31;
+  font-weight: 600;
+}
+
+.acceptButton {
+  width: fit-content;
+  min-height: 46px;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2f7d57, #1d5944);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.acceptButton:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.message {
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: #fff7eb;
+  color: #6b4a21;
+  font-weight: 600;
+}

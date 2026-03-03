@@ -10,12 +10,10 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
 import { fetchConciergeMatches, type ConciergeOwnerMatch } from "./dashboardClient";
 import {
-  ConciergeActionsSection,
   ConciergeObjectivesSection,
   DashboardHeader,
   DashboardMetricsGrid,
   DashboardPlanningSection,
-  DashboardToolsSection,
   MatchesSection,
 } from "./dashboardSections";
 
@@ -30,6 +28,12 @@ interface ConciergeUser {
 }
 
 interface ConciergeKpis {
+  total_missions?: number | null;
+  in_progress?: number | null;
+  completed?: number | null;
+  canceled?: number | null;
+  acceptance_rate?: number | null;
+  avg_response_minutes?: number | null;
   avg_rating?: number | null;
   ratings_count?: number | null;
 }
@@ -137,7 +141,6 @@ export default function ConciergeDashboardPage() {
   }
 
   const isPro = user?.role === "concierge_pro";
-  const displayName = user?.firstName || user?.username || "Utilisateur";
   const experienceLevel = user?.experience_level ?? null;
   const yearsExperience = user?.years_experience ?? null;
   const averageRating = typeof kpis?.avg_rating === "number" ? kpis.avg_rating : null;
@@ -145,7 +148,6 @@ export default function ConciergeDashboardPage() {
   return (
     <div className={styles.conciergeDashboardPage}>
       <DashboardHeader
-        displayName={displayName}
         isPro={isPro}
         experienceLevel={experienceLevel}
         yearsExperience={yearsExperience}
@@ -158,14 +160,19 @@ export default function ConciergeDashboardPage() {
         averageRating={averageRating}
         eventsCount={eventsDemo.length}
       />
+      <DashboardMetricsGrid
+        isPro={isPro}
+        matchCount={matches.length}
+        eventsCount={eventsDemo.length}
+        inProgressCount={typeof kpis?.in_progress === "number" ? kpis.in_progress : null}
+        totalMissions={typeof kpis?.total_missions === "number" ? kpis.total_missions : null}
+        avgResponseMinutes={typeof kpis?.avg_response_minutes === "number" ? kpis.avg_response_minutes : null}
+      />
       <MatchesSection
         matches={matches}
         matchesLoading={matchesLoading}
         matchesError={matchesError}
       />
-      <DashboardMetricsGrid isPro={isPro} />
-      <ConciergeActionsSection isPro={isPro} />
-      <DashboardToolsSection isPro={isPro} />
       <DashboardPlanningSection events={eventsDemo} />
     </div>
   );

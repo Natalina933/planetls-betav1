@@ -151,6 +151,119 @@ $concierge-accent-soft: #f3ead8;
   @include grid-template(repeat(auto-fit, minmax(280px, 1fr)), $spacing-lg);
 }
 
+.dashboardHero {
+  display: grid;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  border-radius: $radius-lg;
+  background:
+    linear-gradient(135deg, rgba(255, 251, 244, 0.98), rgba($concierge-accent-soft, 0.8)),
+    radial-gradient(circle at top right, rgba($gold, 0.18), transparent 38%);
+  border: 1px solid rgba($concierge-accent, 0.24);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.06);
+}
+
+.heroTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.heroTitleBlock {
+  display: grid;
+  gap: $spacing-xs;
+
+  h1 {
+    @include flex-center;
+    justify-content: flex-start;
+    gap: $spacing-sm;
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: $concierge-accent-deep;
+  }
+}
+
+.heroLead {
+  margin: 0;
+  color: $color-text-neutral;
+  font-size: 0.95rem;
+}
+
+.heroMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.metricsStrip {
+  @include grid-template(repeat(auto-fit, minmax(180px, 1fr)), $spacing-md);
+}
+
+.metricCard {
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  background: rgba(255, 251, 245, 0.9);
+  border: 1px solid rgba($concierge-accent, 0.18);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+.metricHead {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.metricIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba($concierge-accent, 0.14);
+  color: $concierge-accent-deep;
+}
+
+.metricLabel {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: $concierge-accent-deep;
+  font-weight: 800;
+}
+
+.metricValue {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: $text-dark;
+  line-height: 1;
+}
+
+.metricDescription {
+  margin: 0;
+  color: $color-text-neutral;
+  font-size: 0.9rem;
+}
+
+.metricLock {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba($concierge-accent, 0.14);
+  color: $concierge-accent-deep;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
 .sectionHeader {
   display: flex;
   align-items: flex-end;
@@ -185,6 +298,57 @@ $concierge-accent-soft: #f3ead8;
 
 .focusGrid {
   @include grid-template(repeat(auto-fit, minmax(240px, 1fr)), $spacing-md);
+}
+
+.priorityGrid {
+  @include grid-template(repeat(auto-fit, minmax(240px, 1fr)), $spacing-md);
+}
+
+.priorityCard {
+  display: grid;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  border: 1px solid rgba($concierge-accent, 0.2);
+  background: rgba(255, 251, 245, 0.9);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.05);
+
+  h3 {
+    margin: 0;
+    color: $text-dark;
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0;
+    color: $color-text-neutral;
+  }
+}
+
+.priorityTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.priorityIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba($concierge-accent, 0.16);
+  color: $concierge-accent-deep;
+}
+
+.priorityValue {
+  color: $concierge-accent-deep;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .focusCard {
@@ -306,11 +470,24 @@ $concierge-accent-soft: #f3ead8;
   @include grid-template(repeat(auto-fit, minmax(220px, 1fr)), $spacing-md);
 }
 
+.matchCardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .matchCard {
   padding: $spacing-md;
   border-radius: $radius-md;
   border: 1px solid rgba($concierge-accent, 0.2);
   background: rgba(255, 250, 244, 0.82);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.06);
+    border-color: rgba($concierge-accent, 0.34);
+  }
 }
 
 .matchCardHead {
