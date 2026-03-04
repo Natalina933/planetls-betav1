@@ -348,7 +348,7 @@ export default function ConciergePlanningPage() {
         {
           title: "Missions en retard",
           description:
-            "Interventions deja planifiees mais encore actives. Ce sont les premieres sources de friction a resorber.",
+            "Interventions déjà planifiées mais encore actives. Ce sont les premières sources de friction à résorber.",
           emptyText:
             loading
               ? "Analyse des missions en retard."
@@ -362,7 +362,7 @@ export default function ConciergePlanningPage() {
           emptyText:
             loading
               ? "Analyse des missions sans date."
-              : error || "Toutes les missions actives ont deja une date planifiee.",
+              : error || "Toutes les missions actives ont déjà une date planifiée.",
           items: unscheduledMissions.slice(0, 6).map((mission) => ({
             title: mission.title || "Mission sans date",
             meta: normalizePlanningStatus(mission.status),

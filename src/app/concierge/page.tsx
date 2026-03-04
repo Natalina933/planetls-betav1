@@ -18,7 +18,7 @@ const onboardingSteps = [
   },
   {
     title: "Activez vos services",
-    description: "Choisissez les missions que vous acceptez: check-in, ménage, maintenance, urgence.",
+    description: "Choisissez les missions que vous acceptez : check-in, ménage, maintenance, urgence.",
   },
   {
     title: "Structurez votre offre",
@@ -70,7 +70,7 @@ const actionSteps = [
 export const metadata: Metadata = {
   title: "Concierge | Trouvez des propriétaires et pilotez votre activité",
   description:
-    "Développez votre conciergerie avec un parcours clair: profil, zone, services, leads propriétaires, messages, devis et pilotage.",
+    "Développez votre conciergerie avec un parcours clair : profil, zone, services, leads propriétaires, messages, devis et pilotage.",
 };
 
 export default function ConciergeLandingPage() {
@@ -81,8 +81,8 @@ export default function ConciergeLandingPage() {
           <span className={styles.kicker}>Parcours Concierge</span>
           <h1>Trouvez des propriétaires et gérez toute votre conciergerie au même endroit.</h1>
           <p className={styles.lead}>
-            PlanetLS réunit prospection, activation, demandes, messages, devis et pilotage dans
-            un seul espace pensé pour les conciergeries qui veulent structurer leur croissance.
+            PlanetLS réunit prospection, activation, demandes, messages, devis et pilotage dans un
+            seul espace pensé pour les conciergeries qui veulent structurer leur croissance.
           </p>
 
           <div className={styles.heroActions}>
@@ -108,8 +108,8 @@ export default function ConciergeLandingPage() {
           <p className={styles.panelEyebrow}>Objectif</p>
           <h2>Passer de profil créé à activité active</h2>
           <p className={styles.panelLead}>
-            Le bon parcours concierge n’est pas seulement un compte ouvert. C’est un profil prêt,
-            une offre lisible et des leads réellement activés.
+            Le bon parcours concierge n&apos;est pas seulement un compte ouvert. C&apos;est un profil
+            prêt, une offre lisible et des leads réellement activés.
           </p>
           <div className={styles.panelMetrics}>
             <article>
@@ -122,7 +122,7 @@ export default function ConciergeLandingPage() {
             </article>
             <article>
               <strong>3+</strong>
-              <span>actions d’activation</span>
+              <span>actions d&apos;activation</span>
             </article>
           </div>
         </aside>
@@ -133,7 +133,7 @@ export default function ConciergeLandingPage() {
           <span className={styles.sectionKicker}>Onboarding</span>
           <h2>Un parcours simple en 4 étapes</h2>
           <p>
-            Voici la structure cible du tunnel concierge: activation métier d’abord, gestion
+            Voici la structure cible du tunnel concierge : activation métier d&apos;abord, gestion
             avancée ensuite.
           </p>
         </div>
@@ -153,8 +153,8 @@ export default function ConciergeLandingPage() {
           <span className={styles.sectionKicker}>Activation</span>
           <h2>Commencez par les actions qui convertissent</h2>
           <p>
-            L’ordre utile n’est pas de tout ouvrir. Il faut d’abord rendre votre profil crédible,
-            puis activer les demandes et la prospection.
+            L&apos;ordre utile n&apos;est pas de tout ouvrir. Il faut d&apos;abord rendre votre profil
+            crédible, puis activer les demandes et la prospection.
           </p>
         </div>
 
@@ -184,9 +184,9 @@ export default function ConciergeLandingPage() {
             <span className={styles.sectionKicker}>Conversion</span>
             <h2>Le bon enchaînement concierge</h2>
             <p>
-              Lead propriétaire reçu, message ouvert, devis préparé, mission planifiée: ton site a
-              déjà une grande partie de ces briques. Cette page relie maintenant ce tunnel de façon
-              plus lisible.
+              Lead propriétaire reçu, message ouvert, devis préparé, mission planifiée : votre
+              produit a déjà une grande partie de ces briques. Cette page relie maintenant ce
+              tunnel de façon plus lisible.
             </p>
           </div>
 
@@ -207,14 +207,14 @@ export default function ConciergeLandingPage() {
           <span className={styles.sectionKicker}>Suite</span>
           <h2>Créer, activer, convertir</h2>
           <p>
-            Commencez par votre profil concierge puis ouvrez votre prospection. C’est le point de
-            départ le plus rentable pour le produit actuel.
+            Commencez par votre profil concierge puis ouvrez votre prospection. C&apos;est le point
+            de départ le plus rentable pour le produit actuel.
           </p>
         </div>
 
         <div className={styles.bottomActions}>
           <Link href="/dashboard/concierge/profile?tab=fiche" className={styles.primaryCta}>
-            Commencer l’activation
+            Commencer l&apos;activation
           </Link>
           <Link href="/abonnement/concierge-pro" className={styles.secondaryCta}>
             Voir Concierge PRO

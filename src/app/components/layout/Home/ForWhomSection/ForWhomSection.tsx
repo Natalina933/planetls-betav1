@@ -1,4 +1,6 @@
-import Image, { ImageProps } from "next/image";
+"use client";
+
+import Image, { type ImageProps } from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import styles from "./ForWhomSection.module.scss";
@@ -20,8 +22,8 @@ const CARDS: CardData[] = [
     title: "Propriétaires",
     img: "/icons/proprio_belle_epoque.png",
     alt: "Illustration propriétaire location saisonnière",
-    cta: "Trouver une conciergerie",
-    href: "/dashboard/owner/concierges",
+    cta: "Découvrir le parcours propriétaire",
+    href: "/owner",
     eyebrow: "Mise en relation rapide",
     description:
       "Trouvez une conciergerie adaptée à votre ville, à votre type de bien et à votre niveau d'accompagnement, puis pilotez missions, documents et paiements depuis un même espace.",
@@ -42,8 +44,8 @@ const CARDS: CardData[] = [
     title: "Artisans et partenaires",
     img: "/icons/artisans_belle_epoque.png",
     alt: "Illustration artisan partenaire local",
-    cta: "Proposer mon savoir-faire",
-    href: "/login",
+    cta: "Découvrir le parcours partenaire",
+    href: "/provider",
     eyebrow: "Réseau local qualifié",
     description:
       "Rejoignez un écosystème de propriétaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
@@ -113,8 +115,8 @@ const ForWhomSection: React.FC = () => (
             Voir le fonctionnement
           </Link>
         </div>
-        <Link href="/dashboard/owner/concierges" className={styles.ctaTertiary}>
-          Explorer les concierges disponibles
+        <Link href="/owner" className={styles.ctaTertiary}>
+          Explorer le parcours propriétaire
         </Link>
       </div>
     </div>

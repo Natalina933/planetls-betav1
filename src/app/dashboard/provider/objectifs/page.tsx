@@ -14,18 +14,18 @@ export default function ProviderObjectifsPage() {
       metrics={[
         {
           label: "Objectif charge",
-          value: "A cadrer",
-          hint: "Definir le bon niveau de capacite par semaine",
+          value: "À cadrer",
+          hint: "Définir le bon niveau de capacité par semaine",
         },
         {
           label: "Objectif revenus",
-          value: "A suivre",
-          hint: "Croiser signe, facture et encaisse",
+          value: "À suivre",
+          hint: "Croiser signé, facturé et encaissé",
         },
         {
           label: "Qualité d'exécution",
-          value: "A fiabiliser",
-          hint: "Delais, satisfaction et reouverture",
+          value: "À fiabiliser",
+          hint: "Délais, satisfaction et réouverture",
         },
       ]}
       cards={[
@@ -39,7 +39,7 @@ export default function ProviderObjectifsPage() {
         },
         {
           title: "3. Qualité de service",
-          text: "Ajoutez ici des indicateurs de delais, de satisfaction et de taux de reouverture pour fiabiliser l'execution.",
+          text: "Ajoutez ici des indicateurs de délais, de satisfaction et de taux de réouverture pour fiabiliser l'exécution.",
         },
       ]}
     />

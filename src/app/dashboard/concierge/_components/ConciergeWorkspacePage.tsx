@@ -200,7 +200,7 @@ export default function ConciergeWorkspacePage({
                   </div>
                 ) : (
                   <p className={styles.detailEmpty}>
-                    {section.emptyText || "Aucun element a afficher pour le moment."}
+                    {section.emptyText || "Aucun élément à afficher pour le moment."}
                   </p>
                 )}
               </section>
