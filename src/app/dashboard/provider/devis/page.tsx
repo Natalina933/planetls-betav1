@@ -14,15 +14,15 @@ export default function ProviderDevisPage() {
       cards={[
         {
           title: "Devis en attente",
-          text: "Suivez les demandes en attente de validation et les relances a effectuer.",
+          text: "Suivez les demandes en attente de validation et les relances à effectuer.",
         },
         {
-          title: "Factures emises",
+          title: "Factures émises",
           text: "Retrouvez ici vos factures, leur statut et les paiements à suivre.",
         },
         {
-          title: "Marge et rentabilite",
-          text: "Cette zone servira a comparer le chiffre facture, les couts engages et la rentabilite par intervention.",
+          title: "Marge et rentabilité",
+          text: "Cette zone servira à comparer le chiffre facturé, les coûts engagés et la rentabilité par intervention.",
         },
       ]}
     />

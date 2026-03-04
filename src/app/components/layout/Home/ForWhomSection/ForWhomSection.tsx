@@ -111,12 +111,12 @@ const ForWhomSection: React.FC = () => (
           <Link href="/login" className={styles.CTAButton}>
             Démarrer sur PlanetLS
           </Link>
-          <Link href="/home#how-it-works" className={styles.CTAButtonSecondary}>
-            Voir le fonctionnement
+          <Link href="/parcours" className={styles.CTAButtonSecondary}>
+            Choisir mon parcours
           </Link>
         </div>
-        <Link href="/owner" className={styles.ctaTertiary}>
-          Explorer le parcours propriétaire
+        <Link href="/home#how-it-works" className={styles.ctaTertiary}>
+          Voir le fonctionnement
         </Link>
       </div>
     </div>

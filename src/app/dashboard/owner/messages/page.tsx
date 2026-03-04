@@ -246,7 +246,7 @@ function OwnerMessagesContent() {
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Rechercher un echange"
+                placeholder="Rechercher un échange"
                 style={{
                   flex: "1 1 220px",
                   borderRadius: 14,
@@ -298,7 +298,7 @@ function OwnerMessagesContent() {
                       <span>{formatDate(conversation.last_message_at)}</span>
                     </div>
                     <p>{conversation.subject || "Conversation directe"}</p>
-                    <small>{conversation.last_message_preview || "Aucun apercu"}</small>
+                    <small>{conversation.last_message_preview || "Aucun aperçu"}</small>
                   </button>
                 ))}
               </div>

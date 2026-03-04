@@ -4,7 +4,7 @@ export default function OwnerReglementPage() {
   return (
     <OwnerWorkspacePage
       eyebrow="Paiements"
-      title="Reglements et paiements"
+      title="Règlements et paiements"
       description="Retrouvez ici la vision de vos paiements, des méthodes de règlement et du suivi administratif associé."
       chips={["Paiements", "Factures", "Abonnements", "Historique"]}
       actions={[
@@ -20,12 +20,12 @@ export default function OwnerReglementPage() {
         {
           label: "Source principale",
           value: "Factures",
-          hint: "Le pilotage actif passe deja par le suivi facture",
+          hint: "Le pilotage actif passe déjà par le suivi facture",
         },
       ]}
       cards={[
         {
-          title: "1. Paiements centralises",
+          title: "1. Paiements centralisés",
           text: "Cette page est destinée à consolider factures, règlements reçus et futurs flux de paiement.",
         },
         {
@@ -33,8 +33,8 @@ export default function OwnerReglementPage() {
           text: "Elle pourra aussi exposer les coordonnées de facturation et les méthodes de paiement enregistrées.",
         },
         {
-          title: "3. Prochaine etape",
-          text: "La base de paiement deja presente permettra d'y connecter ensuite des parcours plus complets.",
+          title: "3. Prochaine étape",
+          text: "La base de paiement déjà présente permettra d'y connecter ensuite des parcours plus complets.",
         },
       ]}
     />

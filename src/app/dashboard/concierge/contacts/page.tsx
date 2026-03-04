@@ -118,7 +118,7 @@ export default function ConciergeContactsPage() {
                 {
                   label: "Voir la conversation",
                   href: `/dashboard/concierge/messages?conversation=${conversation.id}`,
-                  variant: "primary",
+                  variant: "primary" as const,
                 },
               ],
             }))
@@ -133,7 +133,7 @@ export default function ConciergeContactsPage() {
                   {
                     label: "Explorer les annonces",
                     href: "/dashboard/concierge/recherche",
-                    variant: "primary",
+                    variant: "primary" as const,
                   },
                 ],
               },
@@ -152,7 +152,7 @@ export default function ConciergeContactsPage() {
             toConversationItem(
               conversation,
               normalizeContactStatus(conversation.status),
-              "Reprendre l'echange",
+              "Reprendre l'échange",
             ),
           ),
         },
@@ -174,18 +174,18 @@ export default function ConciergeContactsPage() {
           ),
         },
         {
-          title: "Opportunites recentes",
+          title: "Opportunités récentes",
           description:
             "Conversations encore chaudes à traiter rapidement pour maximiser la conversion.",
           emptyText:
             loading
-              ? "Chargement des conversations recentes."
+              ? "Chargement des conversations récentes."
               : error || "Aucune opportunité récente à traiter.",
           items: freshOpportunities.map((conversation) =>
             toConversationItem(
               conversation,
               `Actif au ${formatContactDate(conversation.last_message_at)}`,
-              "Continuer l'echange",
+              "Continuer l'échange",
               "success",
             ),
           ),

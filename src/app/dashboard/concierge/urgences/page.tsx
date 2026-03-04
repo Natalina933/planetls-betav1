@@ -79,7 +79,7 @@ export default function ConciergeUrgencesPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Opportunites urgentes"
+      eyebrow="Opportunités urgentes"
       title="Missions urgentes a capter"
       description={
         loading
@@ -101,7 +101,7 @@ export default function ConciergeUrgencesPage() {
         },
       ]}
       actions={[
-        { label: "Parametrer mon profil missions", href: "/dashboard/concierge/profile?tab=missions" },
+        { label: "Paramétrer mon profil missions", href: "/dashboard/concierge/profile?tab=missions" },
         { label: "Voir mon planning", href: "/dashboard/concierge/planning" },
       ]}
       cards={[

@@ -210,7 +210,7 @@ export default function OwnerPlanningPage() {
                 <p className={styles.meta}>
                   {bucket.items.length > 0
                     ? `${bucket.items.filter((mission) => mission.priority === "urgent").length} urgente(s) a surveiller.`
-                    : "Aucune intervention planifiee."}
+                    : "Aucune intervention planifiée."}
                 </p>
               </article>
             ))}
@@ -258,7 +258,7 @@ export default function OwnerPlanningPage() {
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune intervention planifiee pour le moment.</p>
+          <p>Aucune intervention planifiée pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (

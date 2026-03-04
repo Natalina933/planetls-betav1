@@ -12,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import DashboardCalendar, {
-  DashboardEvent,
+  type DashboardEvent,
 } from "@/app/components/dashboard/calendar/DashboardCalendar";
 import ProfileExperienceBadge from "@/app/components/ui/ProfileExperienceBadge/ProfileExperienceBadge";
 import type { ConciergeOwnerMatch } from "./dashboardClient";
@@ -69,7 +69,7 @@ export function DashboardHeader({
             <LayoutDashboard className={styles.headerIcon} size={28} />
             Tableau de bord
           </h1>
-          <p className={styles.heroLead}>Vue rapide de vos priorites du jour.</p>
+          <p className={styles.heroLead}>Vue rapide de vos priorités du jour.</p>
         </div>
         <span className={isPro ? styles.proBadge : styles.standardBadge}>
           {isPro ? "PRO" : "Standard"}
@@ -88,13 +88,16 @@ export function DashboardHeader({
         <p className={styles.ratingSummary}>
           {typeof averageRating === "number"
             ? `Note moyenne ${averageRating.toFixed(1)} / 5${ratingsCount > 0 ? ` sur ${ratingsCount} avis` : ""}`
-            : "Aucun avis client consolide pour le moment."}
+            : "Aucun avis client consolidé pour le moment."}
         </p>
       </div>
 
       <div className={styles.headerActions}>
-        <Link href={isPro ? "/dashboard/concierge/profile?tab=devis" : "/abonnement/concierge-pro"} className={styles.subscriptionLink}>
-          {isPro ? "Voir mes finances" : "Passer a Concierge PRO"}
+        <Link
+          href={isPro ? "/dashboard/concierge/profile?tab=devis" : "/abonnement/concierge-pro"}
+          className={styles.subscriptionLink}
+        >
+          {isPro ? "Voir mes finances" : "Passer à Concierge PRO"}
         </Link>
       </div>
     </header>
@@ -113,7 +116,7 @@ export function DashboardMetricsGrid({
     {
       title: "Missions aujourd'hui",
       value: String(eventsCount),
-      description: "Creneaux prevus dans votre planning.",
+      description: "Créneaux prévus dans votre planning.",
       icon: CalendarClock,
     },
     {
@@ -122,25 +125,25 @@ export function DashboardMetricsGrid({
       description:
         totalMissions && totalMissions > 0
           ? `${totalMissions} mission(s) suivie(s) au total.`
-          : "Aucune mission historisee pour le moment.",
+          : "Aucune mission historisée pour le moment.",
       icon: Zap,
     },
     {
-      title: "Proprietaires compatibles",
+      title: "Propriétaires compatibles",
       value: String(matchCount),
-      description: "Contacts chauds a activer.",
+      description: "Contacts chauds à activer.",
       icon: Target,
     },
     {
-      title: isPro ? "Reponse moyenne" : "Finances",
+      title: isPro ? "Réponse moyenne" : "Finances",
       value: isPro
         ? avgResponseMinutes === null
           ? "--"
           : `${Math.round(avgResponseMinutes)} min`
         : "PRO",
       description: isPro
-        ? "Temps moyen de reponse sur vos missions."
-        : "Passez a PRO pour le suivi financier avance.",
+        ? "Temps moyen de réponse sur vos missions."
+        : "Passez à PRO pour le suivi financier avancé.",
       icon: DollarSign,
       locked: !isPro,
     },
@@ -160,7 +163,7 @@ export function DashboardMetricsGrid({
             </div>
             <strong className={styles.metricValue}>{metric.value}</strong>
             <p className={styles.metricDescription}>{metric.description}</p>
-            {metric.locked ? <span className={styles.metricLock}>Acces PRO</span> : null}
+            {metric.locked ? <span className={styles.metricLock}>Accès PRO</span> : null}
           </article>
         );
       })}
@@ -176,11 +179,11 @@ export function ConciergeObjectivesSection({
 }: ConciergeObjectivesSectionProps) {
   const actions = [
     {
-      title: "Proprietaires a contacter",
+      title: "Propriétaires à contacter",
       value: `${matchCount}`,
       detail:
         matchCount > 0
-          ? "Profils compatibles detectes dans votre zone."
+          ? "Profils compatibles détectés dans votre zone."
           : "Aucun contact chaud pour le moment. Affinez votre fiche et votre zone.",
       href: "/dashboard/concierge/recherche",
       action: "Ouvrir la prospection",
@@ -191,7 +194,7 @@ export function ConciergeObjectivesSection({
       value: `${eventsCount}`,
       detail:
         eventsCount > 0
-          ? "Evenements planifies a confirmer et executer."
+          ? "Événements planifiés à confirmer et exécuter."
           : "Aucun événement à suivre pour l'instant.",
       href: "/dashboard/concierge/planning",
       action: "Voir le planning",
@@ -199,7 +202,7 @@ export function ConciergeObjectivesSection({
     },
     {
       title: isPro ? "Devis & factures" : "Offre commerciale",
-      value: isPro ? "Pret" : averageRating ? averageRating.toFixed(1) : "--",
+      value: isPro ? "Prêt" : averageRating ? averageRating.toFixed(1) : "--",
       detail: isPro
         ? "Centralisez vos documents et votre suivi financier."
         : "Renforcez votre offre pour structurer revenus et conversion.",
@@ -210,9 +213,9 @@ export function ConciergeObjectivesSection({
     {
       title: "Fiche à compléter",
       value: "Profil",
-      detail: "Zone, services, documents et points forts doivent rester a jour.",
+      detail: "Zone, services, documents et points forts doivent rester à jour.",
       href: "/dashboard/concierge/profile?tab=fiche",
-      action: "Mettre a jour ma fiche",
+      action: "Mettre à jour ma fiche",
       icon: MessageSquare,
     },
   ];
@@ -260,25 +263,19 @@ export function MatchesSection({
       return `/dashboard/concierge/logements/${match.listing_id}`;
     }
 
-    if (match.owner_profile_id) {
-      return `/dashboard/concierge/recherche`;
-    }
-
     return "/dashboard/concierge/recherche";
   };
 
   return (
     <section className={styles.matchesSection}>
       <div className={styles.matchesHeader}>
-        <h2>Proprietaires a activer</h2>
+        <h2>Propriétaires à activer</h2>
         <Link href="/dashboard/concierge/recherche" className={styles.matchesHeaderAction}>
           Voir tous les profils
         </Link>
       </div>
 
-      {matchesLoading ? (
-        <p className={styles.matchesInfo}>Recherche automatique en cours...</p>
-      ) : null}
+      {matchesLoading ? <p className={styles.matchesInfo}>Recherche automatique en cours...</p> : null}
 
       {!matchesLoading && matchesError ? (
         <p className={styles.matchesError}>{matchesError}</p>
@@ -286,14 +283,16 @@ export function MatchesSection({
 
       {!matchesLoading && !matchesError && matches.length === 0 ? (
         <p className={styles.matchesInfo}>
-          Aucun proprietaire compatible pour le moment. Affinez votre zone, votre fiche et vos services cibles.
+          Aucun propriétaire compatible pour le moment. Affinez votre zone, votre fiche et vos
+          services cibles.
         </p>
       ) : null}
 
       {!matchesLoading && !matchesError && matches.length > 0 ? (
         <>
           <p className={styles.matchesInfo}>
-            {matches.length} profil(s) compatible(s) identifies pres de votre zone. Commencez par les plus proches et les mieux alignes.
+            {matches.length} profil(s) compatible(s) identifiés près de votre zone. Commencez par
+            les plus proches et les mieux alignés.
           </p>
           <div className={styles.matchesGrid}>
             {matches.map((match) => (
@@ -304,17 +303,17 @@ export function MatchesSection({
                     <span className={styles.matchScore}>{match.compatibility_score}%</span>
                   </div>
                   <p className={styles.matchMeta}>
-                    {match.city ?? "Ville non renseignee"}
+                    {match.city ?? "Ville non renseignée"}
                     {typeof match.distance_km === "number" ? ` - ${match.distance_km} km` : ""}
                   </p>
                   <p className={styles.matchMeta}>
-                    Compatibilite : {match.compatibility_ratio ?? "n/a"}
+                    Compatibilité : {match.compatibility_ratio ?? "n/a"}
                   </p>
                   <p className={styles.matchServices}>
                     Services :{" "}
                     {match.services_wanted.length > 0
                       ? match.services_wanted.slice(0, 3).join(", ")
-                      : "non renseignes"}
+                      : "non renseignés"}
                   </p>
                 </article>
               </Link>
