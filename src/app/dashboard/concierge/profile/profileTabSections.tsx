@@ -2176,7 +2176,7 @@ export function TariffPillarsSection({
       </article>
 
       <article className={styles.tariffPillarCard}>
-        <h3>Pilier 3 - Catalogue a l&apos;acte</h3>
+        <h3>Pilier 3 - Catalogue à l&apos;acte</h3>
         <p>Services nommes librement pour plus de transparence.</p>
         <div className={styles.tariffPillarStats}>
           <span>
@@ -2228,19 +2228,19 @@ export function TariffContextSection({
       <h3 className={styles.tariffSimpleTitle}>A. Contexte automatique</h3>
       <div className={styles.tariffSimpleRows}>
         <p>
-          <strong>Positionnement:</strong> {experienceLabel}
+          <strong>Positionnement :</strong> {experienceLabel}
         </p>
         <p>
-          <strong>Lieu:</strong> {locationLabel}
+          <strong>Lieu :</strong> {locationLabel}
         </p>
         <p>
-          <strong>Rayon:</strong> {radiusKm} km
+          <strong>Rayon :</strong> {radiusKm} km
         </p>
         <p>
-          <strong>Urgences activees:</strong> {urgentEnabled ? "Oui" : "Non"} (+{urgentPercent}%)
+          <strong>Urgences activées :</strong> {urgentEnabled ? "Oui" : "Non"} (+{urgentPercent}%)
         </p>
         <p>
-          <strong>Haute saison:</strong> {highSeasonEnabled ? "Oui" : "Non"} (+{highSeasonPercent}%)
+          <strong>Haute saison :</strong> {highSeasonEnabled ? "Oui" : "Non"} (+{highSeasonPercent}%)
         </p>
       </div>
     </section>
@@ -2264,7 +2264,7 @@ export function TariffBaseSection({
       <div className={styles.tariffFieldPanel}>
         {renderField("Tarif horaire (EUR/h)", "hourly_rate", sectionId, false, true, "45", "number")}
         {renderField(
-          "Frais de deplacement (EUR)",
+          "Frais de déplacement (EUR)",
           "travel_fee",
           sectionId,
           false,
@@ -2428,7 +2428,7 @@ export function TariffPricingModal({
               }
               disabled={saving || !canEdit}
             >
-              <option value="">Selectionner un service</option>
+              <option value="">Sélectionner un service</option>
               {catalogServices.map((service) => (
                 <option key={service.id} value={String(service.id)}>
                   {service.service}
@@ -2437,9 +2437,9 @@ export function TariffPricingModal({
             </select>
           </label>
           <label>
-            <span>Libelle (optionnel)</span>
+            <span>Libellé (optionnel)</span>
             <input
-              aria-label="Libelle du tarif"
+              aria-label="Libellé du tarif"
               type="text"
               value={state.label}
               onChange={(e) =>

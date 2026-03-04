@@ -1,0 +1,43 @@
+@use "../concierge/page.module.scss" as *;
+
+.page {
+  background:
+    radial-gradient(circle at top left, rgba(184, 92, 72, 0.18), transparent 32%),
+    linear-gradient(180deg, #fff8f5 0%, #fffdfb 45%, #f4e7e1 100%);
+}
+
+.kicker,
+.sectionKicker,
+.panelEyebrow {
+  background: #f3ddd4;
+  color: #793528;
+}
+
+.primaryCta {
+  background: #a44838;
+}
+
+.secondaryCta {
+  border-color: rgba(121, 53, 40, 0.18);
+  background: #fff6f2;
+  color: #793528;
+}
+
+.heroCopy,
+.heroPanel,
+.stepCard,
+.actionCard,
+.highlightCard,
+.bottomCta {
+  box-shadow: 0 18px 50px rgba(109, 53, 41, 0.08);
+}
+
+.actionIcon {
+  background: #f3ddd4;
+  color: #793528;
+}
+
+.highlightFlow {
+  background: #fbede8;
+  color: #6b3227;
+}

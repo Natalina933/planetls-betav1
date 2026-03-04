@@ -1834,13 +1834,13 @@ export default function ConciergeProfilePage() {
         await updatePricingResource(
           `/api/pricing/segments/${encodeURIComponent(row.id)}`,
           buildPricingSegmentUpdatePayload(row),
-          "Impossible de mettre a jour le segment.",
+          "Impossible de mettre à jour le segment.",
         );
         await fetchPricingSegments();
         pushTransientMessage("success", "Segment mis à jour.");
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Erreur mise a jour segment.";
+          error instanceof Error ? error.message : "Erreur mise à jour segment.";
         pushTransientMessage("error", message);
       } finally {
         setSegmentsBusyId(null);
@@ -1912,13 +1912,13 @@ export default function ConciergeProfilePage() {
         await updatePricingResource(
           `/api/pricing/property-rules/${encodeURIComponent(row.id)}`,
           buildPricingPropertyRuleUpdatePayload(row),
-          "Impossible de mettre a jour la regle.",
+          "Impossible de mettre à jour la règle.",
         );
         await fetchPricingPropertyRules();
         pushTransientMessage("success", "Règle mise à jour.");
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Erreur mise a jour regle.";
+          error instanceof Error ? error.message : "Erreur mise à jour règle.";
         pushTransientMessage("error", message);
       } finally {
         setPropertyRulesBusyId(null);
@@ -2605,11 +2605,11 @@ export default function ConciergeProfilePage() {
       setMissionQuoteBusy(true);
       setMissionQuoteFeedback("");
       const quoteNumber = await createQuoteFromMissionRequest(selectedMissionQuoteId);
-      setMissionQuoteFeedback(`${quoteNumber} genere. Onglet Tarifs mis a jour.`);
+      setMissionQuoteFeedback(`${quoteNumber} généré. Onglet Tarifs mis à jour.`);
       handleTabChange("tarifs");
     } catch (error) {
       setMissionQuoteFeedback(
-        error instanceof Error ? error.message : "Erreur creation devis",
+        error instanceof Error ? error.message : "Erreur création devis",
       );
     } finally {
       setMissionQuoteBusy(false);

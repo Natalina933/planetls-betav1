@@ -10,7 +10,7 @@ import {
   Sparkles,
   Wrench,
 } from "lucide-react";
-import styles from "../concierge/page.module.scss";
+import styles from "./page.module.scss";
 
 const onboardingSteps = [
   {
