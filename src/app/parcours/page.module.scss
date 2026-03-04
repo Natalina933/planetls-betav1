@@ -1,0 +1,281 @@
+.page {
+  display: grid;
+  gap: 32px;
+  padding: 32px 20px 64px;
+  background:
+    radial-gradient(circle at top left, rgba(206, 173, 120, 0.22), transparent 26%),
+    radial-gradient(circle at top right, rgba(98, 123, 88, 0.14), transparent 28%),
+    linear-gradient(180deg, #f8f2e7 0%, #fbf8f2 44%, #efe7d8 100%);
+}
+
+.hero,
+.section,
+.bottomCta {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.heroCopy,
+.heroPanel,
+.pathCard,
+.bottomCta {
+  border: 1px solid rgba(70, 56, 35, 0.12);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 20px 60px rgba(83, 62, 28, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.heroCopy {
+  padding: 40px;
+}
+
+.kicker,
+.sectionKicker,
+.panelEyebrow,
+.pathEyebrow {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(76, 59, 27, 0.08);
+  color: #6d5429;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1,
+.sectionHeading h2,
+.bottomCta h2,
+.heroPanel h2 {
+  margin: 14px 0 0;
+  color: #2f2415;
+  line-height: 1.02;
+}
+
+.heroCopy h1 {
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 5vw, 4.9rem);
+}
+
+.lead,
+.sectionHeading p,
+.panelLead,
+.bottomCta p,
+.pathCard p {
+  color: #5f4e38;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.lead {
+  max-width: 60ch;
+  margin: 18px 0 0;
+}
+
+.heroActions,
+.bottomActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.primaryCta,
+.secondaryCta,
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.primaryCta,
+.secondaryCta {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.primaryCta {
+  background: linear-gradient(135deg, #8b6a2d, #584321);
+  color: #fffaf2;
+}
+
+.secondaryCta {
+  border: 1px solid rgba(88, 67, 33, 0.18);
+  background: #fff9ef;
+  color: #5d4723;
+}
+
+.heroPanel {
+  padding: 28px;
+}
+
+.panelLead {
+  margin-top: 14px;
+}
+
+.panelMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.panelMetrics article {
+  padding: 16px 12px;
+  border-radius: 18px;
+  background: rgba(242, 233, 214, 0.72);
+  text-align: center;
+}
+
+.panelMetrics strong {
+  display: block;
+  color: #5f4920;
+  font-size: 1.65rem;
+}
+
+.panelMetrics span {
+  color: #65543e;
+  font-size: 0.9rem;
+}
+
+.section {
+  display: grid;
+  gap: 20px;
+}
+
+.sectionHeading {
+  max-width: 760px;
+}
+
+.pathGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.pathCard {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  min-height: 250px;
+}
+
+.pathTop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.pathIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+
+.pathCard h3 {
+  margin: 0;
+  color: #2d2418;
+  font-size: 1.25rem;
+}
+
+.inlineLink {
+  margin-top: auto;
+  color: #4f3d1c;
+  font-weight: 700;
+}
+
+.owner .pathIcon {
+  background: #f3ddd4;
+  color: #7a3d2f;
+}
+
+.concierge .pathIcon {
+  background: #f3ead8;
+  color: #7b5b23;
+}
+
+.provider .pathIcon {
+  background: #e3e8d8;
+  color: #4d5b3d;
+}
+
+.admin .pathIcon {
+  background: #dfe5eb;
+  color: #415160;
+}
+
+.bottomCta {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+}
+
+.trustRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.trustRow span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #4f4333;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .pathGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    gap: 24px;
+    padding: 24px 16px 48px;
+  }
+
+  .heroCopy,
+  .heroPanel,
+  .pathCard,
+  .bottomCta {
+    padding: 20px;
+  }
+
+  .heroCopy h1 {
+    max-width: none;
+    font-size: 2.4rem;
+  }
+
+  .heroActions,
+  .bottomActions {
+    display: grid;
+  }
+
+  .primaryCta,
+  .secondaryCta {
+    width: 100%;
+  }
+}

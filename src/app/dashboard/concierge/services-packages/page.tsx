@@ -70,7 +70,7 @@ export default function ServicesPackagesPage() {
           throw new Error(packagesPayload?.error || "Impossible de charger vos packs.");
         }
         if (!pricingResponse.ok) {
-          throw new Error(pricingPayload?.error || "Impossible de charger vos tarifs lies.");
+          throw new Error(pricingPayload?.error || "Impossible de charger vos tarifs liés.");
         }
         if (!templatesResponse.ok) {
           throw new Error(templatesPayload?.error || "Impossible de charger vos modèles de contrat.");
@@ -87,14 +87,13 @@ export default function ServicesPackagesPage() {
       }
     }
 
-    loadData();
+    void loadData();
   }, []);
 
-  const serviceNameById = useMemo(() => {
-    return new Map(
-      catalog.map((service) => [service.id, service.service || service.category || "Service"]),
-    );
-  }, [catalog]);
+  const serviceNameById = useMemo(
+    () => new Map(catalog.map((service) => [service.id, service.service || service.category || "Service"])),
+    [catalog],
+  );
 
   const cards = useMemo(() => {
     if (packages.length === 0) {
@@ -128,18 +127,20 @@ export default function ServicesPackagesPage() {
               .slice(0, 2)
               .map((item) => `${item.label}: ${formatMoney(item.amount)}`)
               .join(" | ")
-          : "Aucun tarif lie";
+          : "Aucun tarif lié";
 
       const templatesPreview =
         linkedTemplates.length > 0
-          ? `${linkedTemplates.length} modele(s) de contrat`
-          : "Aucun modele de contrat";
+          ? `${linkedTemplates.length} modèle(s) de contrat`
+          : "Aucun modèle de contrat";
 
       return {
         title: pack.name,
         text: [
           pack.description || pack.category || "Pack sans description",
-          linkedServices.length > 0 ? `Services: ${linkedServices.slice(0, 4).join(", ")}` : "Services non renseignes",
+          linkedServices.length > 0
+            ? `Services : ${linkedServices.slice(0, 4).join(", ")}`
+            : "Services non renseignés",
           pricingPreview,
           templatesPreview,
         ].join(" - "),

@@ -25,7 +25,7 @@ type ConciergeRequestRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date a definir";
+  if (!value) return "Date à définir";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -37,7 +37,7 @@ function formatDate(value: string | null) {
 }
 
 function formatAmount(value: number | null, currency: string | null) {
-  if (typeof value !== "number") return "Budget non renseigne";
+  if (typeof value !== "number") return "Budget non renseigné";
   return `${value.toFixed(0)} ${currency || "EUR"} max`;
 }
 
@@ -100,19 +100,19 @@ export default function ConciergeDemandesPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de mettre a jour la demande.");
+        throw new Error(payload?.error || "Impossible de mettre à jour la demande.");
       }
 
       setActionMessage(
         status === "interested"
-          ? "Demande marquee comme interessante."
+          ? "Demande marquée comme intéressante."
           : status === "quoted"
-            ? "Demande marquee comme devis a preparer."
-            : "Demande refusee.",
+            ? "Demande marquée comme devis à préparer."
+            : "Demande refusée.",
       );
       await loadRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre a jour la demande.");
+      setError(err instanceof Error ? err.message : "Impossible de mettre à jour la demande.");
     } finally {
       setBusyRecipientId(null);
     }
@@ -121,38 +121,34 @@ export default function ConciergeDemandesPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Missions"
-      title="Demandes recues"
+      title="Demandes reçues"
       description={
         loading
           ? "Chargement des demandes..."
           : error ||
-            "Traitez les nouvelles demandes proprietaires avant qu'elles ne deviennent de vraies missions."
+            "Traitez les nouvelles demandes propriétaires avant qu'elles ne deviennent de vraies missions."
       }
-      chips={[
-        `${items.length} demande(s)`,
-        `${urgentCount} urgente(s)`,
-        `${quotedCount} a chiffrer`,
-      ]}
+      chips={[`${items.length} demande(s)`, `${urgentCount} urgente(s)`, `${quotedCount} à chiffrer`]}
       metrics={[
         {
           label: "Demandes",
           value: loading ? "..." : String(items.length),
-          hint: "Demandes recues dans votre file",
+          hint: "Demandes reçues dans votre file",
         },
         {
-          label: "A ouvrir",
+          label: "À ouvrir",
           value: loading ? "..." : String(openCount),
-          hint: "Demandes encore sans reponse claire",
+          hint: "Demandes encore sans réponse claire",
         },
         {
           label: "Urgentes",
           value: loading ? "..." : String(urgentCount),
-          hint: "Demandes qui demandent une reaction rapide",
+          hint: "Demandes qui demandent une réaction rapide",
         },
         {
           label: "Devis",
           value: loading ? "..." : String(quotedCount),
-          hint: "Demandes deja basculees en preparation devis",
+          hint: "Demandes déjà basculées en préparation devis",
         },
       ]}
       actions={[
@@ -163,15 +159,15 @@ export default function ConciergeDemandesPage() {
       cards={[
         {
           title: "1. Prioriser",
-          text: "Commencez par les urgences et les demandes de remplacement pour capter les opportunites chaudes.",
+          text: "Commencez par les urgences et les demandes de remplacement pour capter les opportunités chaudes.",
         },
         {
           title: "2. Qualifier",
-          text: "Utilisez 'interessee' si vous pouvez avancer, ou 'devis a preparer' si le chiffrage est la prochaine etape.",
+          text: "Utilisez 'intéressée' si vous pouvez avancer, ou 'devis à préparer' si le chiffrage est la prochaine étape.",
         },
         {
           title: "3. Convertir",
-          text: "Une fois choisie par le proprietaire, la demande deviendra une mission a planifier proprement.",
+          text: "Une fois choisie par le propriétaire, la demande deviendra une mission à planifier proprement.",
         },
       ]}
     >
@@ -187,7 +183,8 @@ export default function ConciergeDemandesPage() {
                   <p className={styles.ownerName}>{item.owner_name}</p>
                   <h2>{item.title}</h2>
                   <p className={styles.meta}>
-                    {formatType(item.request_type)} | {item.city || "Ville a confirmer"} | {formatDate(item.desired_date)}
+                    {formatType(item.request_type)} | {item.city || "Ville à confirmer"} |{" "}
+                    {formatDate(item.desired_date)}
                   </p>
                 </div>
                 <div className={styles.badges}>
@@ -200,7 +197,7 @@ export default function ConciergeDemandesPage() {
 
               <div className={styles.metaGrid}>
                 <span>{formatAmount(item.budget_max, item.currency)}</span>
-                <span>{item.postal_code || "Code postal non renseigne"}</span>
+                <span>{item.postal_code || "Code postal non renseigné"}</span>
                 <span>{item.status}</span>
               </div>
 
@@ -212,7 +209,7 @@ export default function ConciergeDemandesPage() {
                     </span>
                   ))
                 ) : (
-                  <span className={styles.tagMuted}>Services a preciser</span>
+                  <span className={styles.tagMuted}>Services à préciser</span>
                 )}
               </div>
 
@@ -223,7 +220,7 @@ export default function ConciergeDemandesPage() {
                   disabled={busyRecipientId === item.recipient_id}
                   onClick={() => void respond(item.recipient_id, "interested")}
                 >
-                  {busyRecipientId === item.recipient_id ? "Mise a jour..." : "Je suis interessee"}
+                  {busyRecipientId === item.recipient_id ? "Mise à jour..." : "Je suis intéressée"}
                 </button>
                 <button
                   type="button"
@@ -231,7 +228,7 @@ export default function ConciergeDemandesPage() {
                   disabled={busyRecipientId === item.recipient_id}
                   onClick={() => void respond(item.recipient_id, "quoted")}
                 >
-                  Preparer un devis
+                  Préparer un devis
                 </button>
                 <button
                   type="button"
@@ -249,7 +246,7 @@ export default function ConciergeDemandesPage() {
           ))}
 
           {!loading && !error && items.length === 0 ? (
-            <p className={styles.emptyState}>Aucune demande recue pour le moment.</p>
+            <p className={styles.emptyState}>Aucune demande reçue pour le moment.</p>
           ) : null}
         </div>
       </div>

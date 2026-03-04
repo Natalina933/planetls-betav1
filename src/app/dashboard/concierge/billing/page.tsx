@@ -78,15 +78,15 @@ export default function ConciergeBillingPage() {
         loading
           ? "Synchronisation de votre historique Stripe..."
           : error ||
-            "Suivez l'etat de votre abonnement PRO, vos references de facturation et les derniers evenements synchronises sur votre compte."
+            "Suivez l'état de votre abonnement PRO, vos références de facturation et les derniers événements synchronisés sur votre compte."
       }
       chips={[
         data?.subscription?.is_pro ? "PRO actif" : "Compte standard",
-        `${data?.events.length ?? 0} evenement(s)`,
+        `${data?.events.length ?? 0} événement(s)`,
       ]}
       actions={[
         { label: "Voir mon abonnement PRO", href: "/abonnement/concierge-pro" },
-        { label: "Mettre a jour mes tarifs", href: "/dashboard/concierge/pricing" },
+        { label: "Mettre à jour mes tarifs", href: "/dashboard/concierge/pricing" },
       ]}
       metrics={[
         {
@@ -98,11 +98,11 @@ export default function ConciergeBillingPage() {
           value: loading ? "..." : getBillingSourceLabel(data?.subscription?.source ?? null),
         },
         {
-          label: "Reference",
+          label: "Référence",
           value: loading ? "..." : data?.subscription?.reference || "-",
         },
         {
-          label: "Derniere synchro",
+          label: "Dernière synchro",
           value: loading ? "..." : formatBillingDate(data?.subscription?.updated_at ?? null),
         },
       ]}

@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Building2, BriefcaseBusiness, Shield, Sparkles, Users } from "lucide-react";
-import styles from "../concierge/page.module.scss";
+import {
+  ArrowRight,
+  Building2,
+  BriefcaseBusiness,
+  Shield,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import styles from "./page.module.scss";
 
 const paths = [
   {
@@ -12,6 +19,7 @@ const paths = [
     href: "/owner",
     cta: "Découvrir le parcours propriétaire",
     icon: Building2,
+    tone: "owner",
   },
   {
     title: "Concierge",
@@ -21,6 +29,7 @@ const paths = [
     href: "/concierge",
     cta: "Découvrir le parcours concierge",
     icon: Sparkles,
+    tone: "concierge",
   },
   {
     title: "Artisan / partenaire",
@@ -30,6 +39,7 @@ const paths = [
     href: "/provider",
     cta: "Découvrir le parcours partenaire",
     icon: BriefcaseBusiness,
+    tone: "provider",
   },
   {
     title: "Administration",
@@ -39,8 +49,9 @@ const paths = [
     href: "/dashboard/admin",
     cta: "Ouvrir l'administration",
     icon: Shield,
+    tone: "admin",
   },
-];
+] as const;
 
 export const metadata: Metadata = {
   title: "Parcours | Choisissez votre espace PlanetLS",
@@ -104,15 +115,17 @@ export default function ParcoursPage() {
           </p>
         </div>
 
-        <div className={styles.actionGrid}>
+        <div className={styles.pathGrid}>
           {paths.map((path) => {
             const Icon = path.icon;
             return (
-              <article key={path.title} className={styles.actionCard}>
-                <div className={styles.actionIcon}>
-                  <Icon size={18} />
+              <article key={path.title} className={`${styles.pathCard} ${styles[path.tone]}`}>
+                <div className={styles.pathTop}>
+                  <span className={styles.pathIcon}>
+                    <Icon size={20} />
+                  </span>
+                  <span className={styles.pathEyebrow}>{path.eyebrow}</span>
                 </div>
-                <span className={styles.sectionKicker}>{path.eyebrow}</span>
                 <h3>{path.title}</h3>
                 <p>{path.description}</p>
                 <Link href={path.href} className={styles.inlineLink}>
