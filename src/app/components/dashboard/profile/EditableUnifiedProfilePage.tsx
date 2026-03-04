@@ -122,7 +122,6 @@ export default function EditableUnifiedProfilePage({
   const { update } = useSession();
   const [form, setForm] = useState<UnifiedProfileForm>(emptyForm);
   const [initialForm, setInitialForm] = useState<UnifiedProfileForm>(emptyForm);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +139,6 @@ export default function EditableUnifiedProfilePage({
   useEffect(() => {
     async function loadProfile() {
       try {
-        setLoading(true);
         setError(null);
 
         const response = await fetch("/api/profiles/current", { cache: "no-store" });
@@ -184,7 +182,6 @@ export default function EditableUnifiedProfilePage({
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger votre profil.");
       } finally {
-        setLoading(false);
       }
     }
 
@@ -263,7 +260,8 @@ export default function EditableUnifiedProfilePage({
         payload.avatar_rotation = form.avatar_rotation;
       } else {
         for (const field of SECTION_FIELDS[sectionId] ?? []) {
-          payload[field] = form[field].trim();
+          const value = form[field];
+          payload[field] = typeof value === "string" ? value.trim() : value;
         }
       }
 

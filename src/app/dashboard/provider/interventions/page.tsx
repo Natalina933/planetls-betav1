@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import styles from "../ProviderCrudPage.module.scss";
 
 type ProviderClient = {
@@ -70,7 +71,7 @@ const defaultForm: InterventionFormState = {
 };
 
 function formatDateTime(value: string | null) {
-  if (!value) return "Non planifie";
+  if (!value) return "Non planifié";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -107,7 +108,9 @@ function toFormState(item: ProviderIntervention): InterventionFormState {
   };
 }
 
-export default function ProviderInterventionsPage() {
+function ProviderInterventionsContent() {
+  const searchParams = useSearchParams();
+  const targetInterventionId = searchParams.get("intervention");
   const [data, setData] = useState<ProviderInterventionsPayload | null>(null);
   const [clients, setClients] = useState<ProviderClient[]>([]);
   const [form, setForm] = useState<InterventionFormState>(defaultForm);
@@ -176,6 +179,8 @@ export default function ProviderInterventionsPage() {
     const items = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = items.filter((item) => {
+      if (targetInterventionId && item.id !== targetInterventionId) return false;
+
       const matchesStatus = statusFilter === "all" || (item.status ?? "pending") === statusFilter;
       if (!matchesStatus) return false;
       const referenceDate = new Date(item.scheduled_start ?? item.created_at);
@@ -214,7 +219,11 @@ export default function ProviderInterventionsPage() {
     });
 
     return next;
-  }, [data?.items, searchTerm, statusFilter, sortBy, clientsById, dateFrom, dateTo]);
+  }, [data?.items, searchTerm, statusFilter, sortBy, clientsById, dateFrom, dateTo, targetInterventionId]);
+  const targetedIntervention = useMemo(
+    () => (data?.items ?? []).find((item) => item.id === targetInterventionId) ?? null,
+    [data?.items, targetInterventionId],
+  );
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = useMemo(
@@ -224,7 +233,7 @@ export default function ProviderInterventionsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
+  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo, targetInterventionId]);
 
   function handleExportCsv() {
     const rows = [
@@ -303,7 +312,7 @@ export default function ProviderInterventionsPage() {
 
       resetForm();
       await loadInterventions();
-      setSuccess(editingId ? "Intervention mise a jour." : "Intervention ajoutee.");
+      setSuccess(editingId ? "Intervention mise à jour." : "Intervention ajoutée.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'enregistrer l'intervention.");
     } finally {
@@ -325,7 +334,7 @@ export default function ProviderInterventionsPage() {
 
       if (editingId === id) resetForm();
       await loadInterventions();
-      setSuccess("Intervention supprimee.");
+      setSuccess("Intervention supprimée.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de supprimer l'intervention.");
     } finally {
@@ -346,13 +355,13 @@ export default function ProviderInterventionsPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error || "Impossible de mettre a jour le statut.");
+        throw new Error(result?.error || "Impossible de mettre à jour le statut.");
       }
 
       await loadInterventions();
-      setSuccess("Statut intervention mis a jour.");
+      setSuccess("Statut intervention mis à jour.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le statut.");
+      setError(err instanceof Error ? err.message : "Impossible de mettre à jour le statut.");
     } finally {
       setQuickUpdatingId(null);
     }
@@ -363,9 +372,9 @@ export default function ProviderInterventionsPage() {
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Operations terrain</p>
+            <p className={styles.eyebrow}>Interventions</p>
             <h1>Interventions</h1>
-            <p>Pilotez vos missions client, leur statut, leur priorite et leur budget previsionnel.</p>
+            <p>Pilotez vos missions client, leur statut, leur priorité et leur budget prévisionnel.</p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} interventions</span>
@@ -377,6 +386,11 @@ export default function ProviderInterventionsPage() {
         {success ? <p className={styles.successBox}>{success}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
+        {targetedIntervention ? (
+          <p className={styles.infoBox}>
+            Focus sur {targetedIntervention.title || "l'intervention sélectionnée"}.
+          </p>
+        ) : null}
 
         <div className={styles.layout}>
           <section className={styles.panel}>
@@ -399,24 +413,24 @@ export default function ProviderInterventionsPage() {
               </label>
               <label>
                 <span>Titre</span>
-                <input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Ex: Reparation serrure" />
+                <input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Ex: Réparation serrure" />
               </label>
               <label>
                 <span>Service</span>
-                <input value={form.service_label} onChange={(event) => updateField("service_label", event.target.value)} placeholder="Plomberie, electricite..." />
+                <input value={form.service_label} onChange={(event) => updateField("service_label", event.target.value)} placeholder="Plomberie, électricité..." />
               </label>
               <label>
                 <span>Statut</span>
                 <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
                   <option value="pending">En attente</option>
-                  <option value="accepted">Acceptee</option>
+                  <option value="accepted">Acceptée</option>
                   <option value="in_progress">En cours</option>
-                  <option value="completed">Terminee</option>
-                  <option value="cancelled">Annulee</option>
+                  <option value="completed">Terminée</option>
+                  <option value="cancelled">Annulée</option>
                 </select>
               </label>
               <label>
-                <span>Priorite</span>
+                <span>Priorité</span>
                 <select value={form.priority} onChange={(event) => updateField("priority", event.target.value)}>
                   <option value="low">Basse</option>
                   <option value="normal">Normale</option>
@@ -437,7 +451,7 @@ export default function ProviderInterventionsPage() {
                 <input value={form.location_label} onChange={(event) => updateField("location_label", event.target.value)} placeholder="Adresse ou zone" />
               </label>
               <label>
-                <span>Debut prevu</span>
+                <span>Début prévu</span>
                 <input type="datetime-local" value={form.scheduled_start} onChange={(event) => updateField("scheduled_start", event.target.value)} />
               </label>
               <label>
@@ -446,11 +460,11 @@ export default function ProviderInterventionsPage() {
               </label>
               <label className={styles.fullWidth}>
                 <span>Description</span>
-                <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Travaux a effectuer, contexte client, consignes..." />
+                <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Travaux à effectuer, contexte client, consignes..." />
               </label>
               <div className={styles.formActions}>
                 <button type="submit" disabled={!canSubmit || saving}>
-                  {saving ? "Enregistrement..." : editingId ? "Mettre a jour" : "Ajouter"}
+                  {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
                 </button>
                 <Link href="/dashboard/provider/alertes" className={styles.linkButton}>
                   Voir les alertes
@@ -461,7 +475,7 @@ export default function ProviderInterventionsPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Planning d&apos;interventions</h2>
+              <h2>Planning d'interventions</h2>
               <span>{loading ? "..." : `${filteredItems.length} mission(s)`}</span>
             </div>
 
@@ -477,15 +491,15 @@ export default function ProviderInterventionsPage() {
                 <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                   <option value="all">Tous statuts</option>
                   <option value="pending">En attente</option>
-                  <option value="accepted">Acceptees</option>
+                  <option value="accepted">Acceptées</option>
                   <option value="in_progress">En cours</option>
-                  <option value="completed">Terminees</option>
-                  <option value="cancelled">Annulees</option>
+                  <option value="completed">Terminées</option>
+                  <option value="cancelled">Annulées</option>
                 </select>
                 <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-                  <option value="recent">Plus recentes</option>
+                  <option value="recent">Plus récentes</option>
                   <option value="schedule">Planning</option>
-                  <option value="priority">Priorite</option>
+                  <option value="priority">Priorité</option>
                 </select>
                 <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
                 <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
@@ -496,7 +510,7 @@ export default function ProviderInterventionsPage() {
             </div>
 
             <div className={styles.counterRow}>
-              <span className={styles.counter}>{filteredItems.length} resultats</span>
+              <span className={styles.counter}>{filteredItems.length} résultats</span>
               <span className={styles.counter}>
                 {filteredItems.filter((item) => (item.status ?? "pending") === "in_progress").length} en cours
               </span>
@@ -513,7 +527,18 @@ export default function ProviderInterventionsPage() {
                 {paginatedItems.map((item) => {
                   const client = item.client_id ? clientsById.get(item.client_id) : null;
                   return (
-                    <article key={item.id} className={styles.itemCard}>
+                    <article
+                      key={item.id}
+                      className={styles.itemCard}
+                      style={
+                        item.id === targetInterventionId
+                          ? {
+                              border: "1px solid rgba(180, 70, 44, 0.28)",
+                              boxShadow: "0 14px 28px rgba(180, 70, 44, 0.12)",
+                            }
+                          : undefined
+                      }
+                    >
                       <div className={styles.itemHead}>
                         <div>
                           <h3>{item.title}</h3>
@@ -522,10 +547,10 @@ export default function ProviderInterventionsPage() {
                         <span className={styles.badge}>{item.status || "pending"}</span>
                       </div>
                       <div className={styles.itemMeta}>
-                        <span>{item.service_label || "Service non renseigne"}</span>
-                        <span>Priorite: {item.priority || "normal"}</span>
-                        <span>Debut: {formatDateTime(item.scheduled_start)}</span>
-                        <span>Budget: {item.budget_amount != null ? `${item.budget_amount} ${item.currency || "EUR"}` : "Non renseigne"}</span>
+                        <span>{item.service_label || "Service non renseigné"}</span>
+                        <span>Priorité: {item.priority || "normal"}</span>
+                        <span>Début: {formatDateTime(item.scheduled_start)}</span>
+                        <span>Budget: {item.budget_amount != null ? `${item.budget_amount} ${item.currency || "EUR"}` : "Non renseigné"}</span>
                       </div>
                       {item.description ? <p className={styles.itemBody}>{item.description}</p> : null}
                       <div className={styles.cardActions}>
@@ -535,18 +560,25 @@ export default function ProviderInterventionsPage() {
                           onChange={(event) => void handleQuickStatusUpdate(item.id, event.target.value)}
                         >
                           <option value="pending">En attente</option>
-                          <option value="accepted">Acceptee</option>
+                          <option value="accepted">Acceptée</option>
                           <option value="in_progress">En cours</option>
-                          <option value="completed">Terminee</option>
-                          <option value="cancelled">Annulee</option>
+                          <option value="completed">Terminée</option>
+                          <option value="cancelled">Annulée</option>
                         </select>
-                        <button type="button" className={styles.secondaryButton} onClick={() => {
-                          setEditingId(item.id);
-                          setForm(toFormState(item));
-                        }}>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          onClick={() => {
+                            setEditingId(item.id);
+                            setForm(toFormState(item));
+                          }}
+                        >
                           Modifier
                         </button>
-                        <Link href="/dashboard/provider/messages" className={styles.linkButton}>
+                        <Link
+                          href={item.client_id ? `/dashboard/provider/messages?client=${item.client_id}` : "/dashboard/provider/messages"}
+                          className={styles.linkButton}
+                        >
                           Messages
                         </Link>
                         <button type="button" className={styles.dangerButton} disabled={deletingId === item.id} onClick={() => void handleDelete(item.id)}>
@@ -562,7 +594,7 @@ export default function ProviderInterventionsPage() {
             {!loading && filteredItems.length > pageSize ? (
               <div className={styles.pagination}>
                 <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
-                  Precedent
+                  Précédent
                 </button>
                 <span className={styles.counter}>
                   Page {page} / {totalPages}
@@ -580,5 +612,13 @@ export default function ProviderInterventionsPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function ProviderInterventionsPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement des interventions...</p></section>}>
+      <ProviderInterventionsContent />
+    </Suspense>
   );
 }

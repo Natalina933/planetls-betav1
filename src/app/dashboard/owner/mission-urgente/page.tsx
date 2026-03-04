@@ -58,7 +58,7 @@ export default function OwnerUrgentMissionDashboardPage() {
           : error ||
             "Postez une mission en quelques champs, suivez le broadcast et voyez quand un concierge verrouille l'intervention."
       }
-      chips={[`${items.length} demande(s)`, `${openCount} ouverte(s)`, `${acceptedCount} acceptee(s)`]}
+      chips={[`${items.length} demande(s)`, `${openCount} ouverte(s)`, `${acceptedCount} acceptée(s)`]}
       actions={[
         { label: "Nouvelle mission urgente", href: "/mission-urgente" },
         { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
@@ -67,7 +67,7 @@ export default function OwnerUrgentMissionDashboardPage() {
         {
           label: "Demandes",
           value: loading ? "..." : String(items.length),
-          hint: "Missions urgentes creees",
+          hint: "Missions urgentes créées",
         },
         {
           label: "Broadcast ouvert",
@@ -75,38 +75,38 @@ export default function OwnerUrgentMissionDashboardPage() {
           hint: "En attente d'un concierge",
         },
         {
-          label: "Verrouillees",
+          label: "Verrouillées",
           value: loading ? "..." : String(acceptedCount),
-          hint: "Concierge deja positionne",
+          hint: "Concierge déjà positionné",
         },
       ]}
       cards={[
         {
-          title: "1. Declenchement express",
-          text: "Un seul formulaire pour check-in, check-out, coordonnees et consignes critiques.",
+          title: "1. Déclenchement express",
+          text: "Un seul formulaire pour check-in, check-out, coordonnées et consignes critiques.",
           actions: [{ label: "Poster une urgence", href: "/mission-urgente", variant: "primary" }],
         },
         {
-          title: "2. Matching instantane",
-          text: "Le moteur croise zone, disponibilite urgente, note et temps de reponse moyen.",
+          title: "2. Matching instantané",
+          text: "Le moteur croise zone, disponibilité urgente, note et temps de réponse moyen.",
         },
         {
-          title: "3. Paiement securise",
-          text: "Le flux est prepare pour un paiement a la reservation avec securisation jusqu'a la mission.",
+          title: "3. Paiement sécurisé",
+          text: "Le flux est préparé pour un paiement à la réservation avec sécurisation jusqu'à la mission.",
         },
       ]}
       detailSections={[
         {
-          title: "Dernieres missions urgentes",
-          description: "Suivez les demandes les plus recentes et voyez lesquelles ont deja un concierge.",
+          title: "Dernières missions urgentes",
+          description: "Suivez les demandes les plus récentes et voyez lesquelles ont déjà un concierge.",
           emptyText:
             loading
               ? "Chargement des demandes."
-              : error || "Aucune mission urgente enregistree pour le moment.",
+              : error || "Aucune mission urgente enregistrée pour le moment.",
           items: items.map((item) => ({
             title: item.title || "Mission urgente",
-            meta: item.status === "accepted" ? "Acceptee" : item.status === "open" ? "Ouverte" : item.status,
-            description: `${formatMissionWhen(item.scheduled_at)} - ${item.property_address} - ${item.price ? `${item.price} EUR` : "Prix a confirmer"} - paiement ${item.payment_status}`,
+            meta: item.status === "accepted" ? "Acceptée" : item.status === "open" ? "Ouverte" : item.status,
+            description: `${formatMissionWhen(item.scheduled_at)} - ${item.property_address} - ${item.price ? `${item.price} EUR` : "Prix à confirmer"} - paiement ${item.payment_status}`,
             href: "/mission-urgente",
             actionLabel: item.status === "open" ? "Relancer une urgence" : "Voir le module",
             tone: item.status === "accepted" ? "success" : item.status === "open" ? "warning" : "default",

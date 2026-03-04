@@ -196,7 +196,7 @@ export default function OwnerPlanningPage() {
           <div className={styles.sectionHeading}>
             <div>
               <p className={styles.eyebrow}>Vue planning</p>
-              <h2>Semaine proprietaire</h2>
+              <h2>Semaine propriétaire</h2>
             </div>
           </div>
 

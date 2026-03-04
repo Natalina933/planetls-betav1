@@ -10,7 +10,7 @@ export default function ProviderSettingsPage() {
       verifiedCompleteText="Votre fiche provider est suffisamment complète pour inspirer confiance."
       verifiedPendingText="Renseignez votre structure, votre téléphone et votre localisation pour renforcer votre crédibilité."
       emptyDisplayName="Provider"
-      presentationIntro="Expliquez votre spécialité, vos types d’interventions et la manière dont vous accompagnez vos clients."
+      presentationIntro="Expliquez votre spécialité, vos types d'interventions et la manière dont vous accompagnez vos clients."
       preferCompanyName
       requireCompanyForVerified
     />

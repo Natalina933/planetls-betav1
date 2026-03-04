@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import styles from "./OwnerDashboardPages.module.scss";
-import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
-import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
+import OwnerWorkspacePage from "./_components/OwnerWorkspacePage";
 
 type OwnerHousingRow = {
   id: number;
@@ -17,11 +14,8 @@ type OwnerMissionRow = {
   id: string;
   title: string | null;
   status: string | null;
-  priority: string | null;
   amount: number | null;
   scheduled_start: string | null;
-  property_id: string | null;
-  created_at: string | null;
 };
 
 type OwnerQuoteRow = {
@@ -30,17 +24,13 @@ type OwnerQuoteRow = {
   status: string | null;
   total_amount: number | null;
   valid_until: string | null;
-  created_at: string | null;
 };
 
 type OwnerInvoiceRow = {
   id: string;
   invoice_number: string | null;
   status: string | null;
-  total_amount: number | null;
   balance_amount: number | null;
-  due_date: string | null;
-  created_at: string | null;
 };
 
 type OwnerReviewRow = {
@@ -85,22 +75,6 @@ function formatMissionDate(value: string | null) {
 function formatAmount(value: number | null) {
   return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non défini";
 }
-
-type DashboardHighlight = {
-  title: string;
-  value: string;
-  detail: string;
-  href: string;
-  action: string;
-};
-
-type DashboardPriority = {
-  title: string;
-  detail: string;
-  href: string;
-  action: string;
-  tone?: "default" | "warning";
-};
 
 export default function OwnerDashboardPage() {
   const [properties, setProperties] = useState<OwnerHousingRow[]>([]);
@@ -167,7 +141,7 @@ export default function OwnerDashboardPage() {
       }
     }
 
-    fetchOwnerDashboard();
+    void fetchOwnerDashboard();
   }, []);
 
   const activeCount = useMemo(
@@ -183,23 +157,12 @@ export default function OwnerDashboardPage() {
     () => missions.filter((mission) => mission.status === "completed"),
     [missions],
   );
-  const recentMissions = useMemo(
-    () =>
-      [...missions]
-        .sort((a, b) => {
-          const aTime = a.scheduled_start ? new Date(a.scheduled_start).getTime() : 0;
-          const bTime = b.scheduled_start ? new Date(b.scheduled_start).getTime() : 0;
-          return bTime - aTime;
-        })
-        .slice(0, 5),
-    [missions],
-  );
   const pendingInvoices = useMemo(
     () => invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "canceled"),
     [invoices],
   );
-  const latestQuotes = useMemo(() => quotes.slice(0, 4), [quotes]);
-  const latestInvoices = useMemo(() => invoices.slice(0, 4), [invoices]);
+  const latestQuotes = useMemo(() => quotes.slice(0, 3), [quotes]);
+  const latestInvoices = useMemo(() => invoices.slice(0, 3), [invoices]);
   const averageRating = useMemo(() => {
     const ratings = reviews
       .map((review) => review.rating)
@@ -209,435 +172,142 @@ export default function OwnerDashboardPage() {
     return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
   }, [reviews]);
 
-  const ownerMetrics = useMemo(() => {
-    const totalProperties = Math.max(properties.length, 1);
-    const totalMissions = Math.max(missions.length, 1);
-    const totalInvoices = Math.max(invoices.length, 1);
-
-    return [
-      {
-        label: "Biens actifs",
-        value: `${activeCount}/${properties.length}`,
-        width: `${(activeCount / totalProperties) * 100}%`,
-      },
-      {
-        label: "Missions en cours",
-        value: `${ongoingMissions.length}/${missions.length}`,
-        width: `${(ongoingMissions.length / totalMissions) * 100}%`,
-      },
-      {
-        label: "Factures à régler",
-        value: `${pendingInvoices.length}/${invoices.length}`,
-        width: `${(pendingInvoices.length / totalInvoices) * 100}%`,
-      },
-    ];
-  }, [
-    activeCount,
-    ongoingMissions.length,
-    pendingInvoices.length,
-    properties.length,
-    missions.length,
-    invoices.length,
-  ]);
-
-  const objectiveCards = useMemo<DashboardHighlight[]>(
-    () => [
-      {
-        title: "Garder des logements opérationnels",
-        value: `${activeCount}/${properties.length || 0}`,
-        detail:
-          activeCount === 0
-            ? "Aucun logement actif pour le moment."
-            : `${draftCount} logement(s) restent à compléter ou publier.`,
-        href: "/dashboard/owner/logements",
-        action: activeCount === 0 ? "Activer mes logements" : "Voir mes logements",
-      },
-      {
-        title: "Maîtriser les interventions en cours",
-        value: `${ongoingMissions.length}`,
-        detail:
-          ongoingMissions.length === 0
-            ? "Aucune intervention active à surveiller."
-            : `${completedMissions.length} intervention(s) déjà terminée(s).`,
-        href: "/dashboard/owner/planning",
-        action: "Suivre les missions",
-      },
-      {
-        title: "Sécuriser le suivi financier",
-        value: `${pendingInvoices.length}`,
-        detail:
-          pendingInvoices.length === 0
-            ? "Aucune facture en attente de règlement."
-            : `${latestQuotes.length} devis récent(s) à vérifier en priorité.`,
-        href: "/dashboard/owner/factures",
-        action: "Ouvrir le suivi financier",
-      },
-    ],
-    [
-      activeCount,
-      properties.length,
-      draftCount,
-      ongoingMissions.length,
-      completedMissions.length,
-      pendingInvoices.length,
-      latestQuotes.length,
-    ],
-  );
-
-  const priorityItems = useMemo<DashboardPriority[]>(() => {
-    const items: DashboardPriority[] = [];
-
-    if (draftCount > 0) {
-      items.push({
-        title: "Logements à finaliser",
-        detail: `${draftCount} logement(s) ne sont pas encore actifs ou publiés.`,
-        href: "/dashboard/owner/logements",
-        action: "Compléter les fiches",
-        tone: "warning",
-      });
-    }
-
-    if (pendingInvoices.length > 0) {
-      items.push({
-        title: "Règlements à suivre",
-        detail: `${pendingInvoices.length} facture(s) demandent une vérification ou un règlement.`,
-        href: "/dashboard/owner/factures",
-        action: "Voir les factures",
-        tone: "warning",
-      });
-    }
-
-    if (ongoingMissions.length > 0) {
-      items.push({
-        title: "Missions en cours",
-        detail: `${ongoingMissions.length} intervention(s) sont actuellement ouvertes.`,
-        href: "/dashboard/owner/planning",
-        action: "Vérifier le planning",
-      });
-    }
-
-    if (reviews.length === 0) {
-      items.push({
-        title: "Relation concierge à documenter",
-        detail: "Aucun avis enregistré pour l'instant sur votre conciergerie.",
-        href: "/dashboard/owner/conciergerie",
-        action: "Partager un retour",
-      });
-    }
-
-    if (items.length === 0) {
-      items.push({
-        title: "Espace sous contrôle",
-        detail: "Aucune alerte immédiate. Vous pouvez optimiser vos arbitrages ou développer votre parc.",
-        href: "/dashboard/owner/objectifs",
-        action: "Définir mes objectifs",
-      });
-    }
-
-    return items.slice(0, 4);
-  }, [draftCount, ongoingMissions.length, pendingInvoices.length, reviews.length]);
-
-  const actionItems = useMemo<DashboardPriority[]>(
-    () => [
-      {
-        title: "Ajouter un logement",
-        detail: "Créer une nouvelle fiche pour élargir votre parc et démarrer un suivi propre.",
-        href: "/dashboard/owner/logements",
-        action: "Gérer mes logements",
-      },
-      {
-        title: "Trouver une conciergerie",
-        detail: "Comparer les profils standards et PRO adaptés à votre ville et à vos besoins.",
-        href: "/dashboard/owner/concierges",
-        action: "Explorer les concierges",
-      },
-      {
-        title: "Arbitrer mes objectifs",
-        detail: "Prioriser revenus, occupation et qualité de service depuis un espace dédié.",
-        href: "/dashboard/owner/objectifs",
-        action: "Ouvrir mes objectifs",
-      },
-    ],
-    [],
-  );
-
   return (
-    <section className="dashboard-grid">
-      <header>
-        <h1>Tableau de bord propriétaire</h1>
-        <p>
-          Organisez votre pilotage par objectif, surveillez l&apos;essentiel et traitez les actions
-          prioritaires sans dispersion.
-        </p>
-      </header>
-
-      <div className="stats-row">
-        <div className="stat-card">
-          <h3>Biens gérés</h3>
-          <p>{loading ? "..." : properties.length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Biens actifs</h3>
-          <p>{loading ? "..." : activeCount}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Missions en cours</h3>
-          <p>{loading ? "..." : ongoingMissions.length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Interventions terminées</h3>
-          <p>{loading ? "..." : completedMissions.length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Factures à régler</h3>
-          <p>{loading ? "..." : pendingInvoices.length}</p>
-        </div>
-      </div>
-
-      <div className="main-section">
-        <div className={styles.dashboardFlow}>
-          <ActionPanel
-            eyebrow="Vue priorisée"
-            title="Vos priorités du moment"
-            description="Ce tableau de bord met en avant les objectifs de gestion, les informations à forte valeur et les prochaines décisions à prendre."
-            actions={[
-              { label: "Gérer mes logements", href: "/dashboard/owner/logements", primary: true },
-              { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
-              { label: "Vérifier mes factures", href: "/dashboard/owner/factures" },
-            ]}
-          />
-
-          {loading ? <p>Chargement de votre espace propriétaire...</p> : null}
-          {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
-
-          {!loading && !error ? (
-            <>
-              <section className={styles.flowSection}>
-                <SectionHeader
-                  eyebrow="1. Objectifs"
-                  title="Organisation par objectif"
-                  actionLabel="Ouvrir mes objectifs"
-                  actionHref="/dashboard/owner/objectifs"
-                />
-                <div className={styles.priorityGrid}>
-                  {objectiveCards.map((item) => (
-                    <article key={item.title} className={styles.priorityCard}>
-                      <p className={styles.cardLabel}>{item.title}</p>
-                      <strong className={styles.cardValue}>{item.value}</strong>
-                      <p className={styles.meta}>{item.detail}</p>
-                      <Link href={item.href} className={styles.cardAction}>
-                        {item.action}
-                      </Link>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <section className={styles.flowSection}>
-                <SectionHeader
-                  eyebrow="2. Informations prioritaires"
-                  title="Ce qui demande votre attention"
-                />
-                <div className={styles.priorityGrid}>
-                  {priorityItems.map((item) => (
-                    <article
-                      key={item.title}
-                      className={`${styles.priorityCard} ${item.tone === "warning" ? styles.priorityWarning : ""}`}
-                    >
-                      <p className={styles.cardLabel}>{item.title}</p>
-                      <p className={styles.meta}>{item.detail}</p>
-                      <Link href={item.href} className={styles.cardAction}>
-                        {item.action}
-                      </Link>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <section className={styles.flowSection}>
-                <SectionHeader
-                  eyebrow="3. Actions à mener"
-                  title="Raccourcis vers les prochaines décisions"
-                />
-                <div className={styles.priorityGrid}>
-                  {actionItems.map((item) => (
-                    <article key={item.title} className={styles.priorityCard}>
-                      <p className={styles.cardLabel}>{item.title}</p>
-                      <p className={styles.meta}>{item.detail}</p>
-                      <Link href={item.href} className={styles.cardAction}>
-                        {item.action}
-                      </Link>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <div className={styles.sectionGrid}>
-                <div className={styles.panel}>
-                  <h3>Interventions en cours</h3>
-                  {ongoingMissions.length === 0 ? (
-                    <p>Aucune intervention en cours pour le moment.</p>
-                  ) : (
-                    <ul className={styles.list}>
-                      {ongoingMissions.slice(0, 4).map((mission) => (
-                        <li key={mission.id} className={styles.listItem}>
-                          <strong>{mission.title || "Mission sans titre"}</strong>
-                          <p className={styles.meta}>
-                            {mission.status || "Statut non défini"} -{" "}
-                            {formatMissionDate(mission.scheduled_start)}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className={styles.panel}>
-                  <h3>Historique récent</h3>
-                  {recentMissions.length === 0 ? (
-                    <p>Aucune mission historique disponible.</p>
-                  ) : (
-                    <ul className={styles.list}>
-                      {recentMissions.map((mission) => (
-                        <li key={mission.id} className={styles.listItem}>
-                          <strong>{mission.title || "Mission sans titre"}</strong>
-                          <p className={styles.meta}>
-                            {formatMissionDate(mission.scheduled_start)} - {formatAmount(mission.amount)}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className={styles.panel}>
-                  <h3>Satisfaction concierge</h3>
-                  {reviews.length === 0 ? (
-                    <p>Aucun avis publié pour le moment.</p>
-                  ) : (
-                    <div>
-                      <p>
-                        Note moyenne : <strong>{averageRating?.toFixed(1)} / 5</strong> sur{" "}
-                        {reviews.length} avis
-                      </p>
-                      <p className={styles.meta}>
-                        {reviews[0]?.comment || "Dernier retour enregistré sans commentaire."}
-                      </p>
-                      <Link href="/dashboard/owner/conciergerie" className={styles.cardAction}>
-                        Voir les avis et noter
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.sectionGrid}>
-                <div className={styles.panel}>
-                  <h3>Vos logements</h3>
-                  {properties.length === 0 ? (
-                    <div>
-                      <p>Vous n&apos;avez pas encore de logement visible sur votre compte.</p>
-                      <p className={styles.meta}>
-                        Créez un nouveau bien pour repartir sur des données propres et lancer votre
-                        suivi.
-                      </p>
-                    </div>
-                  ) : (
-                    <ul className={styles.list}>
-                      {properties.slice(0, 5).map((property) => (
-                        <li key={property.id} className={styles.listItem}>
-                          <strong>{property.nom_logement || "Logement sans nom"}</strong>
-                          <p className={styles.meta}>
-                            {property.ville || "Ville non renseignée"} ({getStatusLabel(property.statut)})
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className={styles.panel}>
-                  <h3>Devis et factures</h3>
-                  <div className={styles.sectionStack}>
-                    <div>
-                      <h4>Derniers devis</h4>
-                      {latestQuotes.length === 0 ? (
-                        <p>Aucun devis disponible pour le moment.</p>
-                      ) : (
-                        <ul className={styles.list}>
-                          {latestQuotes.map((quote) => (
-                            <li key={quote.id} className={styles.listItem}>
-                              <strong>{quote.quote_number || "Devis sans numéro"}</strong>
-                              <p className={styles.meta}>
-                                {quote.status || "Statut non défini"} - {formatAmount(quote.total_amount)}
-                              </p>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <div>
-                      <h4>Dernières factures</h4>
-                      {latestInvoices.length === 0 ? (
-                        <p>Aucune facture disponible pour le moment.</p>
-                      ) : (
-                        <ul className={styles.list}>
-                          {latestInvoices.map((invoice) => (
-                            <li key={invoice.id} className={styles.listItem}>
-                              <strong>{invoice.invoice_number || "Facture sans numéro"}</strong>
-                              <p className={styles.meta}>
-                                {invoice.status || "Statut non défini"} - Solde{" "}
-                                {formatAmount(invoice.balance_amount)}
-                              </p>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.sectionGrid}>
-                <div className={styles.panel}>
-                  <h3>Suivi de votre activité</h3>
-                  <ul className={styles.list}>
-                    <li className={styles.listItem}>
-                      {ongoingMissions.length} mission(s) demandent actuellement un suivi.
-                    </li>
-                    <li className={styles.listItem}>
-                      {completedMissions.length} intervention(s) sont déjà terminées.
-                    </li>
-                    <li className={styles.listItem}>
-                      {draftCount} logement(s) restent à finaliser ou publier.
-                    </li>
-                    <li className={styles.listItem}>
-                      {pendingInvoices.length} facture(s) restent à suivre ou régler.
-                    </li>
-                  </ul>
-                </div>
-
-                <div className={styles.panel}>
-                  <h3>Indicateurs clés</h3>
-                  <div className={styles.statsList}>
-                    {ownerMetrics.map((metric) => (
-                      <div key={metric.label} className={styles.metricRow}>
-                        <div className={styles.metricLabel}>
-                          <span>{metric.label}</span>
-                          <span>{metric.value}</span>
-                        </div>
-                        <div className={styles.metricTrack}>
-                          <div className={styles.metricBar} style={{ width: metric.width }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </div>
-      </div>
-    </section>
+    <OwnerWorkspacePage
+      eyebrow="Tableau de bord"
+      title="Tableau de bord"
+      description={
+        error ||
+        "Vue rapide de vos logements, missions, conciergerie et finances pour arbitrer sans dispersion."
+      }
+      chips={[
+        `${activeCount} logement(s) actif(s)`,
+        `${ongoingMissions.length} mission(s) en cours`,
+        `${pendingInvoices.length} facture(s) à suivre`,
+        averageRating ? `${averageRating.toFixed(1)} / 5 de satisfaction` : "Avis à consolider",
+      ]}
+      actions={[
+        { label: "Voir mes logements", href: "/dashboard/owner/logements" },
+        { label: "Suivre mes missions", href: "/dashboard/owner/planning" },
+        { label: "Voir mes finances", href: "/dashboard/owner/factures" },
+      ]}
+      metrics={[
+        {
+          label: "Logements actifs",
+          value: `${activeCount}/${properties.length}`,
+          hint: draftCount > 0 ? `${draftCount} fiche(s) à finaliser` : "Parc publié et opérationnel",
+        },
+        {
+          label: "Missions en cours",
+          value: `${ongoingMissions.length}`,
+          hint: `${completedMissions.length} intervention(s) déjà terminée(s)`,
+        },
+        {
+          label: "Factures à régler",
+          value: `${pendingInvoices.length}`,
+          hint: `${invoices.length} facture(s) suivie(s) au total`,
+        },
+        {
+          label: "Satisfaction",
+          value: averageRating ? `${averageRating.toFixed(1)} / 5` : "--",
+          hint: reviews.length > 0 ? `${reviews.length} avis enregistrés` : "Aucun avis consolidé",
+        },
+      ]}
+      cards={[
+        {
+          title: "Priorité du jour : logements",
+          text:
+            draftCount > 0
+              ? `${draftCount} logement(s) restent en brouillon ou incomplets. Finalisez d'abord vos fiches les plus proches de la publication.`
+              : "Votre parc est actif. Vous pouvez maintenant vous concentrer sur l'exécution et la rentabilité.",
+          actions: [
+            {
+              label: draftCount > 0 ? "Compléter mes fiches" : "Voir mes logements",
+              href: "/dashboard/owner/logements",
+              variant: "primary",
+            },
+          ],
+        },
+        {
+          title: "Priorité du jour : missions",
+          text:
+            ongoingMissions.length > 0
+              ? `${ongoingMissions.length} intervention(s) sont actuellement ouvertes et demandent un suivi clair.`
+              : "Aucune intervention en cours. Vérifiez les prochaines demandes ou missions planifiées.",
+          actions: [
+            { label: "Ouvrir le planning", href: "/dashboard/owner/planning", variant: "secondary" },
+          ],
+        },
+        {
+          title: "Priorité du jour : finances",
+          text:
+            pendingInvoices.length > 0
+              ? `${pendingInvoices.length} facture(s) demandent une vérification ou un règlement.`
+              : "Aucune facture en attente immédiate. Vous pouvez revoir devis et arbitrages financiers.",
+          actions: [
+            { label: "Voir mes factures", href: "/dashboard/owner/factures", variant: "secondary" },
+            { label: "Voir mes devis", href: "/dashboard/owner/devis", variant: "secondary" },
+          ],
+        },
+        {
+          title: "Priorité du jour : conciergerie",
+          text:
+            reviews.length === 0
+              ? "Aucun avis récent sur votre conciergerie. Documentez la relation pour garder une lecture claire de la qualité de service."
+              : "Votre relation concierge est documentée. Continuez à suivre les échanges et les retours.",
+          actions: [
+            {
+              label: reviews.length === 0 ? "Voir ma conciergerie" : "Ouvrir les échanges",
+              href: reviews.length === 0 ? "/dashboard/owner/conciergerie" : "/dashboard/owner/messages",
+              variant: "secondary",
+            },
+          ],
+        },
+      ]}
+      detailSections={[
+        {
+          title: "Logements à surveiller",
+          description: "Concentrez-vous d'abord sur les biens actifs, puis sur ceux qui bloquent encore la mise en marche.",
+          emptyText: loading ? "Chargement des logements..." : "Aucun logement à afficher pour le moment.",
+          items: properties.slice(0, 4).map((property) => ({
+            title: property.nom_logement || "Logement sans nom",
+            meta: getStatusLabel(property.statut),
+            description: `${property.ville || "Ville non renseignée"}${isActiveHousingStatus(property.statut) ? " · prêt à être piloté" : " · fiche à finaliser"}`,
+            href: `/dashboard/owner/logements/${property.id}`,
+            actionLabel: "Ouvrir",
+            tone: isActiveHousingStatus(property.statut) ? "success" : "warning",
+          })),
+        },
+        {
+          title: "Missions et finances",
+          description: "Gardez les interventions ouvertes et les documents à impact direct dans votre champ proche.",
+          emptyText: loading ? "Chargement des missions et finances..." : "Aucun élément critique à afficher pour le moment.",
+          items: [
+            ...ongoingMissions.slice(0, 2).map((mission) => ({
+              title: mission.title || "Mission sans titre",
+              meta: mission.status || "En cours",
+              description: `${formatMissionDate(mission.scheduled_start)} · ${formatAmount(mission.amount)}`,
+              href: "/dashboard/owner/planning",
+              actionLabel: "Suivre",
+            })),
+            ...latestInvoices.slice(0, 1).map((invoice) => ({
+              title: invoice.invoice_number || "Facture sans numéro",
+              meta: invoice.status || "À suivre",
+              description: `Solde ${formatAmount(invoice.balance_amount)}`,
+              href: `/dashboard/owner/factures?invoice=${invoice.id}`,
+              actionLabel: "Vérifier",
+              tone: invoice.status === "paid" ? "success" : "warning",
+            })),
+            ...latestQuotes.slice(0, 1).map((quote) => ({
+              title: quote.quote_number || "Devis sans numéro",
+              meta: quote.status || "Brouillon",
+              description: `${formatAmount(quote.total_amount)}${quote.valid_until ? ` · valable jusqu'au ${formatMissionDate(quote.valid_until)}` : ""}`,
+              href: `/dashboard/owner/devis?quote=${quote.id}`,
+              actionLabel: "Ouvrir",
+            })),
+          ].slice(0, 4),
+        },
+      ]}
+    />
   );
 }

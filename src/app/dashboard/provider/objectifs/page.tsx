@@ -3,13 +3,13 @@ import ProviderWorkspacePage from "../_components/ProviderWorkspacePage";
 export default function ProviderObjectifsPage() {
   return (
     <ProviderWorkspacePage
-      eyebrow="Pilotage artisan"
+      eyebrow="Tableau de bord"
       title="Objectifs d'activité"
       description="Cadrez vos objectifs de charge, de chiffre d'affaires et de qualité d'exécution pour arbitrer plus vite."
-      chips={["Revenus", "Charge", "Qualite", "Execution"]}
+      chips={["Revenus", "Charge", "Qualité", "Exécution"]}
       actions={[
         { label: "Voir les devis et factures", href: "/dashboard/provider/devis" },
-        { label: "Revenir a la vue prioritaire", href: "/dashboard/provider" },
+        { label: "Revenir au tableau de bord", href: "/dashboard/provider" },
       ]}
       metrics={[
         {
@@ -23,7 +23,7 @@ export default function ProviderObjectifsPage() {
           hint: "Croiser signe, facture et encaisse",
         },
         {
-          label: "Qualite execution",
+          label: "Qualité d'exécution",
           value: "A fiabiliser",
           hint: "Delais, satisfaction et reouverture",
         },
@@ -35,10 +35,10 @@ export default function ProviderObjectifsPage() {
         },
         {
           title: "2. Objectifs financiers",
-          text: "Cette zone servira a suivre vos montants signes, factures et encaisses.",
+          text: "Cette zone servira à suivre vos montants signés, factures et encaissements.",
         },
         {
-          title: "3. Qualite de service",
+          title: "3. Qualité de service",
           text: "Ajoutez ici des indicateurs de delais, de satisfaction et de taux de reouverture pour fiabiliser l'execution.",
         },
       ]}

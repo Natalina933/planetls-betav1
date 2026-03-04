@@ -45,6 +45,7 @@ export default function OwnerInvoicesPageClient() {
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const targetInvoiceId = searchParams.get("invoice");
 
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");
@@ -52,7 +53,7 @@ export default function OwnerInvoicesPageClient() {
     const sessionId = searchParams.get("session_id");
 
     if (paymentStatus === "cancel") {
-      setFeedback("Paiement annule. Vous pouvez reprendre plus tard.");
+      setFeedback("Paiement annulé. Vous pouvez reprendre plus tard.");
       return;
     }
 
@@ -69,11 +70,11 @@ export default function OwnerInvoicesPageClient() {
         });
         const payload = await response.json();
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de synchroniser la facture payee.");
+          throw new Error(payload?.error || "Impossible de synchroniser la facture payée.");
         }
 
         if (!cancelled) {
-          setFeedback("Paiement confirme et facture synchronisee comme reglee.");
+          setFeedback("Paiement confirmé et facture synchronisée comme réglée.");
           setError(null);
           setInvoices((prev) =>
             prev.map((invoice) =>
@@ -91,13 +92,13 @@ export default function OwnerInvoicesPageClient() {
       } catch (err) {
         if (!cancelled) {
           setError(
-            err instanceof Error ? err.message : "Impossible de synchroniser la facture payee.",
+            err instanceof Error ? err.message : "Impossible de synchroniser la facture payée.",
           );
         }
       }
     }
 
-    syncPaidInvoice();
+    void syncPaidInvoice();
 
     return () => {
       cancelled = true;
@@ -125,7 +126,7 @@ export default function OwnerInvoicesPageClient() {
       }
     }
 
-    loadInvoices();
+    void loadInvoices();
   }, []);
 
   const pendingInvoices = useMemo(
@@ -136,6 +137,8 @@ export default function OwnerInvoicesPageClient() {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return invoices.filter((invoice) => {
+      if (targetInvoiceId && invoice.id !== targetInvoiceId) return false;
+
       const matchesStatus = statusFilter === "all" || (invoice.status ?? "open") === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
@@ -143,10 +146,14 @@ export default function OwnerInvoicesPageClient() {
       const haystack = [invoice.invoice_number, invoice.status].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(normalizedSearch);
     });
-  }, [invoices, searchTerm, statusFilter]);
+  }, [invoices, searchTerm, statusFilter, targetInvoiceId]);
   const filteredBalance = useMemo(
     () => filteredInvoices.reduce((sum, invoice) => sum + (invoice.balance_amount ?? 0), 0),
     [filteredInvoices],
+  );
+  const targetedInvoice = useMemo(
+    () => invoices.find((invoice) => invoice.id === targetInvoiceId) ?? null,
+    [invoices, targetInvoiceId],
   );
 
   async function handlePayInvoice(invoiceId: string) {
@@ -216,7 +223,7 @@ export default function OwnerInvoicesPageClient() {
           <p>{loading ? "..." : invoices.length}</p>
         </div>
         <div className="stat-card">
-          <h3>A regler</h3>
+          <h3>À régler</h3>
           <p>{loading ? "..." : pendingInvoices.length}</p>
         </div>
         <div className="stat-card">
@@ -240,8 +247,8 @@ export default function OwnerInvoicesPageClient() {
           >
             <option value="all">Tous statuts</option>
             <option value="open">Ouvertes</option>
-            <option value="paid">Reglees</option>
-            <option value="canceled">Annulees</option>
+            <option value="paid">Réglées</option>
+            <option value="canceled">Annulées</option>
           </select>
           <button
             type="button"
@@ -254,6 +261,11 @@ export default function OwnerInvoicesPageClient() {
         </div>
 
         {feedback ? <p style={{ color: "#7b5b23", fontWeight: 600 }}>{feedback}</p> : null}
+        {targetedInvoice ? (
+          <p style={{ color: "#7b5b23", fontWeight: 600 }}>
+            Focus sur {targetedInvoice.invoice_number || "la facture sélectionnée"}.
+          </p>
+        ) : null}
         {loading ? <p>Chargement des factures...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
@@ -265,37 +277,50 @@ export default function OwnerInvoicesPageClient() {
           <ul>
             {filteredInvoices.map((invoice) => (
               <li key={invoice.id} className={styles.listItem}>
-                <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
-                <br />
-                <span className={styles.inlineActions}>
-                  <span>Statut :</span>
-                  <WorkflowStatusBadge value={invoice.status || "-"} />
-                </span>{" "}
-                | Total : {formatAmount(invoice.total_amount)} | Solde :{" "}
-                {formatAmount(invoice.balance_amount)}
-                <br />
-                Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
-                <br />
-                <span className={styles.inlineActions}>
-                  <a
-                    href={`/api/invoices/${invoice.id}/document`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.linkButton}
-                  >
-                    Apercu PDF
-                  </a>
-                  {invoice.status !== "paid" && invoice.status !== "canceled" ? (
-                    <button
-                      type="button"
-                      onClick={() => handlePayInvoice(invoice.id)}
-                      disabled={payingInvoiceId === invoice.id}
-                      className={styles.buttonPrimary}
+                <div
+                  style={
+                    invoice.id === targetInvoiceId
+                      ? {
+                          border: "1px solid rgba(123, 91, 35, 0.35)",
+                          background: "rgba(123, 91, 35, 0.06)",
+                          borderRadius: "18px",
+                          padding: "0.75rem",
+                        }
+                      : undefined
+                  }
+                >
+                  <strong>{invoice.invoice_number || "Facture sans numero"}</strong>
+                  <br />
+                  <span className={styles.inlineActions}>
+                    <span>Statut :</span>
+                    <WorkflowStatusBadge value={invoice.status || "-"} />
+                  </span>{" "}
+                  | Total : {formatAmount(invoice.total_amount)} | Solde :{" "}
+                  {formatAmount(invoice.balance_amount)}
+                  <br />
+                  Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
+                  <br />
+                  <span className={styles.inlineActions}>
+                    <a
+                      href={`/api/invoices/${invoice.id}/document`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.linkButton}
                     >
-                      {payingInvoiceId === invoice.id ? "Redirection..." : "Regler"}
-                    </button>
-                  ) : null}
-                </span>
+                      Apercu PDF
+                    </a>
+                    {invoice.status !== "paid" && invoice.status !== "canceled" ? (
+                      <button
+                        type="button"
+                        onClick={() => handlePayInvoice(invoice.id)}
+                        disabled={payingInvoiceId === invoice.id}
+                        className={styles.buttonPrimary}
+                      >
+                        {payingInvoiceId === invoice.id ? "Redirection..." : "Regler"}
+                      </button>
+                    ) : null}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>

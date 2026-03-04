@@ -29,7 +29,7 @@ type ProviderInterventionsPayload = {
 };
 
 function formatDateTime(value: string | null) {
-  if (!value) return "Non planifie";
+  if (!value) return "Non planifié";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -151,9 +151,9 @@ export default function ProviderPlanningPage() {
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Pilotage terrain</p>
-            <h1>Pilotage planning</h1>
-            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges a venir avec une lecture priorisee."}</p>
+            <p className={styles.eyebrow}>Planning</p>
+            <h1>Suivi des interventions</h1>
+            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée."}</p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} missions</span>
@@ -165,10 +165,10 @@ export default function ProviderPlanningPage() {
         <div className={styles.layout}>
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Vue prioritaire</h2>
+              <h2>Vue d&apos;ensemble</h2>
             </div>
             <div className={styles.counterRow}>
-              <span className={styles.counter}>{upcoming.length} a venir</span>
+              <span className={styles.counter}>{upcoming.length} à venir</span>
               <span className={styles.counter}>
                 {(data?.items ?? []).filter((item) => item.priority === "urgent").length} urgentes
               </span>
@@ -193,8 +193,8 @@ export default function ProviderPlanningPage() {
                   </div>
                   <p className={styles.emptyState}>
                     {bucket.events.length > 0
-                      ? `${bucket.events.filter((item) => item.priority === "urgent").length} urgente(s) sur la journee.`
-                      : "Journee libre pour absorber les imprevus."}
+                      ? `${bucket.events.filter((item) => item.priority === "urgent").length} urgente(s) sur la journée.`
+                      : "Journée libre pour absorber les imprévus."}
                   </p>
                 </article>
               ))}
@@ -203,7 +203,7 @@ export default function ProviderPlanningPage() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Prochaines echeances</h2>
+              <h2>Prochaines échéances</h2>
               <span>{upcoming.length} ligne(s)</span>
             </div>
 
@@ -220,7 +220,7 @@ export default function ProviderPlanningPage() {
             </div>
 
             {viewMode === "list" && upcoming.length === 0 ? (
-              <p className={styles.emptyState}>Aucune intervention planifiee pour le moment.</p>
+              <p className={styles.emptyState}>Aucune intervention planifiée pour le moment.</p>
             ) : null}
 
             {viewMode === "list" && upcoming.length > 0 ? (
@@ -232,7 +232,7 @@ export default function ProviderPlanningPage() {
                         <h3>
                           <Link href="/dashboard/provider/interventions">{item.title}</Link>
                         </h3>
-                        <p>{item.location_label || "Lieu a confirmer"}</p>
+                        <p>{item.location_label || "Lieu à confirmer"}</p>
                       </div>
                       <WorkflowStatusBadge value={item.status || "pending"} />
                     </div>
@@ -269,7 +269,7 @@ export default function ProviderPlanningPage() {
                           <div className={styles.inlineBadge}>
                             <WorkflowStatusBadge value={item.status || "pending"} />
                           </div>
-                          <span className={styles.itemMeta}>{item.location_label || "Lieu a confirmer"}</span>
+                          <span className={styles.itemMeta}>{item.location_label || "Lieu à confirmer"}</span>
                         </article>
                       ))
                     )}

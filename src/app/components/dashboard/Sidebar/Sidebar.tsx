@@ -14,7 +14,7 @@ interface SidebarProps {
 }
 
 const roleLabels: Record<string, string> = {
-  owner: "proprietaire",
+  owner: "propriétaire",
   concierge: "concierge",
   provider: "artisan",
 };

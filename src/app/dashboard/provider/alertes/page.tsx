@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
 import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
@@ -78,7 +79,9 @@ function toFormState(item: ProviderAlert): AlertFormState {
   };
 }
 
-export default function ProviderAlertesPage() {
+function ProviderAlertesContent() {
+  const searchParams = useSearchParams();
+  const targetAlertId = searchParams.get("alert");
   const [data, setData] = useState<ProviderAlertsPayload | null>(null);
   const [interventions, setInterventions] = useState<ProviderIntervention[]>([]);
   const [form, setForm] = useState<AlertFormState>(defaultForm);
@@ -145,6 +148,8 @@ export default function ProviderAlertesPage() {
     const items = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = items.filter((item) => {
+      if (targetAlertId && item.id !== targetAlertId) return false;
+
       const matchesSeverity = severityFilter === "all" || (item.severity ?? "normal") === severityFilter;
       if (!matchesSeverity) return false;
       const createdAt = new Date(item.created_at);
@@ -174,7 +179,11 @@ export default function ProviderAlertesPage() {
     });
 
     return next;
-  }, [data?.items, searchTerm, severityFilter, sortBy, interventionsById, dateFrom, dateTo]);
+  }, [data?.items, searchTerm, severityFilter, sortBy, interventionsById, dateFrom, dateTo, targetAlertId]);
+  const targetedAlert = useMemo(
+    () => (data?.items ?? []).find((item) => item.id === targetAlertId) ?? null,
+    [data?.items, targetAlertId],
+  );
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = useMemo(
@@ -184,7 +193,7 @@ export default function ProviderAlertesPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, severityFilter, sortBy, dateFrom, dateTo]);
+  }, [searchTerm, severityFilter, sortBy, dateFrom, dateTo, targetAlertId]);
 
   function handleExportCsv() {
     const rows = [
@@ -256,7 +265,7 @@ export default function ProviderAlertesPage() {
 
       resetForm();
       await loadAlerts();
-      setSuccess(editingId ? "Alerte mise a jour." : "Alerte ajoutee.");
+      setSuccess(editingId ? "Alerte mise à jour." : "Alerte ajoutée.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'enregistrer l'alerte.");
     } finally {
@@ -278,7 +287,7 @@ export default function ProviderAlertesPage() {
 
       if (editingId === id) resetForm();
       await loadAlerts();
-      setSuccess("Alerte supprimee.");
+      setSuccess("Alerte supprimée.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de supprimer l'alerte.");
     } finally {
@@ -299,13 +308,13 @@ export default function ProviderAlertesPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error || "Impossible de mettre a jour le statut.");
+        throw new Error(result?.error || "Impossible de mettre à jour le statut.");
       }
 
       await loadAlerts();
-      setSuccess("Statut alerte mis a jour.");
+      setSuccess("Statut alerte mis à jour.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le statut.");
+      setError(err instanceof Error ? err.message : "Impossible de mettre à jour le statut.");
     } finally {
       setQuickUpdatingId(null);
     }
@@ -316,9 +325,9 @@ export default function ProviderAlertesPage() {
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Surveillance</p>
+            <p className={styles.eyebrow}>Alertes</p>
             <h1>Alertes</h1>
-            <p>Centralisez vos urgences terrain, vos blocages client et les priorites a resoudre.</p>
+            <p>Centralisez vos urgences terrain, vos blocages client et les priorités à résoudre.</p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} alertes</span>
@@ -329,10 +338,11 @@ export default function ProviderAlertesPage() {
         {success ? <p className={styles.successBox}>{success}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
+        {targetedAlert ? <p className={styles.infoBox}>Focus sur {targetedAlert.title}.</p> : null}
         <ActionPanel
-          eyebrow="Actions a mener"
-          title="Gardez les alertes sous controle"
-          description="Creez une alerte terrain, ouvrez les interventions liees et fermez rapidement les points qui bloquent l'execution."
+          eyebrow="Actions à mener"
+          title="Gardez les alertes sous contrôle"
+          description="Créez une alerte terrain, ouvrez les interventions liées et fermez rapidement les points qui bloquent l'exécution."
           actions={[
             { label: "Ajouter une alerte", href: "/dashboard/provider/alertes", primary: true },
             { label: "Voir les interventions", href: "/dashboard/provider/interventions" },
@@ -344,7 +354,7 @@ export default function ProviderAlertesPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <SectionHeader
-                eyebrow="1. Mise a jour"
+                eyebrow="1. Mise à jour"
                 title={editingId ? "Modifier une alerte" : "Ajouter une alerte"}
               />
               {editingId ? (
@@ -365,15 +375,15 @@ export default function ProviderAlertesPage() {
               <label>
                 <span>Type</span>
                 <select value={form.alert_type} onChange={(event) => updateField("alert_type", event.target.value)}>
-                  <option value="general">Generale</option>
-                  <option value="deadline">Echeance</option>
+                  <option value="general">Générale</option>
+                  <option value="deadline">Échéance</option>
                   <option value="client">Client</option>
                   <option value="payment">Paiement</option>
-                  <option value="quality">Qualite</option>
+                  <option value="quality">Qualité</option>
                 </select>
               </label>
               <label>
-                <span>Severite</span>
+                <span>Sévérité</span>
                 <select value={form.severity} onChange={(event) => updateField("severity", event.target.value)}>
                   <option value="low">Basse</option>
                   <option value="normal">Normale</option>
@@ -386,20 +396,20 @@ export default function ProviderAlertesPage() {
                 <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
                   <option value="open">Ouverte</option>
                   <option value="read">Lue</option>
-                  <option value="resolved">Resolue</option>
+                  <option value="resolved">Résolue</option>
                 </select>
               </label>
               <label className={styles.fullWidth}>
                 <span>Titre</span>
-                <input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Ex: Intervention retardee" />
+                <input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Ex: Intervention retardée" />
               </label>
               <label className={styles.fullWidth}>
-                <span>Detail</span>
+                <span>Détail</span>
                 <textarea value={form.body} onChange={(event) => updateField("body", event.target.value)} placeholder="Expliquez le blocage ou l'action attendue..." />
               </label>
               <div className={styles.formActions}>
                 <button type="submit" disabled={!canSubmit || saving}>
-                  {saving ? "Enregistrement..." : editingId ? "Mettre a jour" : "Ajouter"}
+                  {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
                 </button>
                 <Link href="/dashboard/provider/interventions" className={styles.linkButton}>
                   Voir les interventions
@@ -411,7 +421,7 @@ export default function ProviderAlertesPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <SectionHeader
-                eyebrow="2. Informations prioritaires"
+                eyebrow="2. Informations clés"
                 title="Flux d'alertes"
                 actionLabel="Voir les interventions"
                 actionHref="/dashboard/provider/interventions"
@@ -429,15 +439,15 @@ export default function ProviderAlertesPage() {
               </div>
               <div className={styles.toolbarGroup}>
                 <select value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value)}>
-                  <option value="all">Toutes severites</option>
+                  <option value="all">Toutes sévérités</option>
                   <option value="urgent">Urgentes</option>
                   <option value="high">Hautes</option>
                   <option value="normal">Normales</option>
                   <option value="low">Basses</option>
                 </select>
                 <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-                  <option value="recent">Plus recentes</option>
-                  <option value="severity">Severite</option>
+                  <option value="recent">Plus récentes</option>
+                  <option value="severity">Sévérité</option>
                 </select>
                 <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
                 <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
@@ -448,7 +458,7 @@ export default function ProviderAlertesPage() {
             </div>
 
             <div className={styles.counterRow}>
-              <span className={styles.counter}>{filteredItems.length} resultats</span>
+              <span className={styles.counter}>{filteredItems.length} résultats</span>
               <span className={styles.counter}>
                 {filteredItems.filter((item) => item.severity === "urgent").length} urgentes
               </span>
@@ -465,7 +475,18 @@ export default function ProviderAlertesPage() {
                 {paginatedItems.map((item) => {
                   const linkedIntervention = item.intervention_id ? interventionsById.get(item.intervention_id) : null;
                   return (
-                    <article key={item.id} className={styles.itemCard}>
+                    <article
+                      key={item.id}
+                      className={styles.itemCard}
+                      style={
+                        item.id === targetAlertId
+                          ? {
+                              border: "1px solid rgba(180, 70, 44, 0.28)",
+                              boxShadow: "0 14px 28px rgba(180, 70, 44, 0.12)",
+                            }
+                          : undefined
+                      }
+                    >
                       <div className={styles.itemHead}>
                         <div>
                           <h3>{item.title}</h3>
@@ -479,7 +500,7 @@ export default function ProviderAlertesPage() {
                           <span>Statut:</span>
                           <WorkflowStatusBadge value={item.status || "open"} />
                         </span>
-                        <span>Creee le {formatDateTime(item.created_at)}</span>
+                        <span>Créée le {formatDateTime(item.created_at)}</span>
                       </div>
                       {item.body ? <p className={styles.itemBody}>{item.body}</p> : null}
                       <div className={styles.cardActions}>
@@ -490,7 +511,7 @@ export default function ProviderAlertesPage() {
                         >
                           <option value="open">Ouverte</option>
                           <option value="read">Lue</option>
-                          <option value="resolved">Resolue</option>
+                          <option value="resolved">Résolue</option>
                         </select>
                         <button type="button" className={styles.secondaryButton} onClick={() => {
                           setEditingId(item.id);
@@ -498,8 +519,11 @@ export default function ProviderAlertesPage() {
                         }}>
                           Modifier
                         </button>
-                        <Link href="/dashboard/provider/messages" className={styles.linkButton}>
-                          Messages
+                        <Link
+                          href={item.intervention_id ? `/dashboard/provider/interventions?intervention=${item.intervention_id}` : "/dashboard/provider/messages"}
+                          className={styles.linkButton}
+                        >
+                          Ouvrir
                         </Link>
                         <button type="button" className={styles.dangerButton} disabled={deletingId === item.id} onClick={() => void handleDelete(item.id)}>
                           {deletingId === item.id ? "Suppression..." : "Supprimer"}
@@ -514,7 +538,7 @@ export default function ProviderAlertesPage() {
             {!loading && filteredItems.length > pageSize ? (
               <div className={styles.pagination}>
                 <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
-                  Precedent
+                  Précédent
                 </button>
                 <span className={styles.counter}>
                   Page {page} / {totalPages}
@@ -532,5 +556,13 @@ export default function ProviderAlertesPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function ProviderAlertesPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement des alertes...</p></section>}>
+      <ProviderAlertesContent />
+    </Suspense>
   );
 }

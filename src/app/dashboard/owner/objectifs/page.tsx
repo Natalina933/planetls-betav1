@@ -3,13 +3,13 @@ import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 export default function OwnerObjectifsPage() {
   return (
     <OwnerWorkspacePage
-      eyebrow="Pilotage propriétaire"
+      eyebrow="Tableau de bord"
       title="Objectifs de pilotage"
       description="Cadrez vos objectifs de revenus, de qualité de service et de priorisation du parc pour arbitrer plus vite."
       chips={["Revenus cibles", "Occupation", "Qualité perçue", "Priorités du parc"]}
       actions={[
         { label: "Prioriser mes logements", href: "/dashboard/owner/logements" },
-        { label: "Revenir à la vue prioritaire", href: "/dashboard/owner" },
+        { label: "Revenir au tableau de bord", href: "/dashboard/owner" },
       ]}
       metrics={[
         {
@@ -23,7 +23,7 @@ export default function OwnerObjectifsPage() {
           hint: "Mesurer les périodes creuses et les arbitrages saisonniers",
         },
         {
-          label: "Qualite de service",
+          label: "Qualité de service",
           value: "À fiabiliser",
           hint: "Suivre avis, réactivité et continuités de service",
         },
@@ -61,7 +61,7 @@ export default function OwnerObjectifsPage() {
             },
             {
               title: "Fixer un niveau de service attendu",
-              meta: "Qualite",
+              meta: "Qualité",
               description: "Clarifier ce qui compte le plus : réactivité, satisfaction, qualité terrain.",
               href: "/dashboard/owner/conciergerie",
               actionLabel: "Voir ma conciergerie",

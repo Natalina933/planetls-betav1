@@ -79,7 +79,7 @@ export default function OwnerAlertesPage() {
       }
     }
 
-    loadAlerts();
+    void loadAlerts();
   }, []);
 
   const urgentMissions = useMemo(
@@ -100,23 +100,23 @@ export default function OwnerAlertesPage() {
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Points d'attention"
+      eyebrow="Alertes"
       title="Points d'attention"
       description={
         error
           ? error
-          : "Concentrez ici les urgences d'execution, les soldes a regler et les validations qui demandent une decision rapide."
+          : "Concentrez ici les urgences d'exécution, les soldes à régler et les validations qui demandent une décision rapide."
       }
       chips={[
         `${urgentMissions.length} mission(s) prioritaires`,
-        `${pendingInvoices.length} facture(s) a suivre`,
-        `${pendingQuotes.length} devis a valider`,
+        `${pendingInvoices.length} facture(s) à suivre`,
+        `${pendingQuotes.length} devis à valider`,
       ]}
       metrics={[
         {
-          label: "Priorites execution",
+          label: "Priorités exécution",
           value: String(urgentMissions.length),
-          hint: "Interventions qui peuvent creer une friction immediate",
+          hint: "Interventions qui peuvent créer une friction immédiate",
         },
         {
           label: "Alertes finance",
@@ -124,9 +124,9 @@ export default function OwnerAlertesPage() {
           hint: "Factures qui demandent un suivi ou un règlement",
         },
         {
-          label: "Decisions en attente",
+          label: "Décisions en attente",
           value: String(pendingQuotes.length),
-          hint: "Devis a arbitrer rapidement",
+          hint: "Devis à arbitrer rapidement",
         },
       ]}
       actions={[
@@ -136,14 +136,14 @@ export default function OwnerAlertesPage() {
       ]}
       cards={[
         {
-          title: "1. Priorites execution",
+          title: "1. Priorités exécution",
           text:
             urgentMissions.length > 0
               ? urgentMissions
                   .slice(0, 3)
                   .map((mission) => `${mission.title || "Mission"} - ${mission.status || "-"} - ${formatDate(mission.scheduled_start)}`)
                   .join(" | ")
-              : "Aucune intervention prioritaire a signaler pour le moment.",
+              : "Aucune intervention prioritaire à signaler pour le moment.",
         },
         {
           title: "2. Suivi financier",
@@ -151,7 +151,7 @@ export default function OwnerAlertesPage() {
             pendingInvoices.length > 0
               ? pendingInvoices
                   .slice(0, 3)
-                  .map((invoice) => `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - echeance ${formatDate(invoice.due_date)}`)
+                  .map((invoice) => `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - échéance ${formatDate(invoice.due_date)}`)
                   .join(" | ")
               : "Aucune facture en attente de règlement.",
         },
@@ -168,13 +168,13 @@ export default function OwnerAlertesPage() {
       ]}
       detailSections={[
         {
-          title: "Actions a lancer maintenant",
+          title: "Actions à lancer maintenant",
           description:
-            "Les alertes utiles sont celles qui debloquent une decision ou evitent un retard. Commencez par ces trois leviers.",
+            "Les alertes utiles sont celles qui débloquent une décision ou évitent un retard. Commencez par ces trois leviers.",
           items: [
             {
-              title: "Verifier les interventions prioritaires",
-              meta: `${urgentMissions.length} priorite(s)`,
+              title: "Vérifier les interventions prioritaires",
+              meta: `${urgentMissions.length} priorité(s)`,
               description: "Confirmer statut, date et niveau d'urgence sur les missions ouvertes.",
               href: "/dashboard/owner/planning",
               actionLabel: "Ouvrir le planning",
@@ -183,16 +183,16 @@ export default function OwnerAlertesPage() {
             {
               title: "Traiter les factures ouvertes",
               meta: `${pendingInvoices.length} facture(s)`,
-              description: "Eviter les echeances ratees et garder une vision propre du solde en cours.",
-              href: "/dashboard/owner/factures",
+              description: "Éviter les échéances ratées et garder une vision propre du solde en cours.",
+              href: pendingInvoices[0] ? `/dashboard/owner/factures?invoice=${pendingInvoices[0].id}` : "/dashboard/owner/factures",
               actionLabel: "Voir les factures",
               tone: pendingInvoices.length > 0 ? "warning" : "default",
             },
             {
               title: "Arbitrer les devis en attente",
               meta: `${pendingQuotes.length} devis`,
-              description: "Valider ou repousser les propositions qui influencent votre execution et votre budget.",
-              href: "/dashboard/owner/devis",
+              description: "Valider ou repousser les propositions qui influencent votre exécution et votre budget.",
+              href: pendingQuotes[0] ? `/dashboard/owner/devis?quote=${pendingQuotes[0].id}` : "/dashboard/owner/devis",
               actionLabel: "Voir les devis",
             },
           ],

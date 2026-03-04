@@ -18,7 +18,7 @@ export default function ProviderDevisPage() {
         },
         {
           title: "Factures emises",
-          text: "Retrouvez ici vos factures, leur statut et les paiements a suivre.",
+          text: "Retrouvez ici vos factures, leur statut et les paiements à suivre.",
         },
         {
           title: "Marge et rentabilite",

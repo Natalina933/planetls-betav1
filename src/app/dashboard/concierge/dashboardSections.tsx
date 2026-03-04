@@ -187,12 +187,12 @@ export function ConciergeObjectivesSection({
       icon: Target,
     },
     {
-      title: "Missions a suivre",
+      title: "Missions à suivre",
       value: `${eventsCount}`,
       detail:
         eventsCount > 0
           ? "Evenements planifies a confirmer et executer."
-          : "Aucun evenement a suivre pour l'instant.",
+          : "Aucun événement à suivre pour l'instant.",
       href: "/dashboard/concierge/planning",
       action: "Voir le planning",
       icon: CalendarClock,
@@ -208,7 +208,7 @@ export function ConciergeObjectivesSection({
       icon: isPro ? DollarSign : ShieldCheck,
     },
     {
-      title: "Fiche a completer",
+      title: "Fiche à compléter",
       value: "Profil",
       detail: "Zone, services, documents et points forts doivent rester a jour.",
       href: "/dashboard/concierge/profile?tab=fiche",
@@ -221,8 +221,8 @@ export function ConciergeObjectivesSection({
     <section className={styles.dashboardSection}>
       <div className={styles.sectionHeader}>
         <div>
-          <p className={styles.sectionEyebrow}>Priorite du jour</p>
-          <h2>Actions immediates</h2>
+          <p className={styles.sectionEyebrow}>Priorité du jour</p>
+          <h2>Actions immédiates</h2>
         </div>
       </div>
       <div className={styles.priorityGrid}>

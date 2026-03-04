@@ -79,7 +79,7 @@ export default function OwnerDocumentsPage() {
         <section className={styles.heroPanel}>
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrow}>Pilotage documentaire</p>
+              <p className={styles.eyebrow}>Documents</p>
               <h1 className={styles.terracottaTitle}>Documents et PDF</h1>
               <p className={styles.meta}>
                 {error ||

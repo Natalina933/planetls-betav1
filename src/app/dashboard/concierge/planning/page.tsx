@@ -239,8 +239,8 @@ export default function ConciergePlanningPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Organisation terrain"
-      title="Pilotage terrain"
+      eyebrow="Planning"
+      title="Planning des missions"
       description={
         loading
           ? "Preparation de votre planning..."
@@ -253,7 +253,7 @@ export default function ConciergePlanningPage() {
         `${unscheduledMissions.length} mission(s) sans date`,
       ]}
       actions={[
-        { label: "Revenir a la vue prioritaire", href: "/dashboard/concierge" },
+        { label: "Revenir au tableau de bord", href: "/dashboard/concierge" },
         { label: "Ouvrir les missions", href: "/dashboard/concierge/profile?tab=missions" },
       ]}
       metrics={[

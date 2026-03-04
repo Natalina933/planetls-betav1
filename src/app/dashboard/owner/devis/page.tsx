@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../OwnerDashboardPages.module.scss";
 
@@ -34,12 +35,14 @@ function formatAmount(value: number | null) {
   return typeof value === "number" ? `${value.toFixed(2)} EUR` : "-";
 }
 
-export default function OwnerQuotesPage() {
+function OwnerQuotesContent() {
+  const searchParams = useSearchParams();
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const targetQuoteId = searchParams.get("quote");
 
   useEffect(() => {
     async function loadQuotes() {
@@ -62,7 +65,7 @@ export default function OwnerQuotesPage() {
       }
     }
 
-    loadQuotes();
+    void loadQuotes();
   }, []);
 
   const pendingQuotes = useMemo(
@@ -73,6 +76,8 @@ export default function OwnerQuotesPage() {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return quotes.filter((quote) => {
+      if (targetQuoteId && quote.id !== targetQuoteId) return false;
+
       const matchesStatus = statusFilter === "all" || (quote.status ?? "draft") === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
@@ -80,10 +85,14 @@ export default function OwnerQuotesPage() {
       const haystack = [quote.quote_number, quote.status].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(normalizedSearch);
     });
-  }, [quotes, searchTerm, statusFilter]);
+  }, [quotes, searchTerm, statusFilter, targetQuoteId]);
   const totalAmount = useMemo(
     () => filteredQuotes.reduce((sum, quote) => sum + (quote.total_amount ?? 0), 0),
     [filteredQuotes],
+  );
+  const targetedQuote = useMemo(
+    () => quotes.find((quote) => quote.id === targetQuoteId) ?? null,
+    [quotes, targetQuoteId],
   );
 
   function exportQuotesCsv() {
@@ -115,7 +124,7 @@ export default function OwnerQuotesPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Suivi des devis</h1>
-        <p>Retrouvez les propositions recues pour vos biens et priorisez celles qui demandent une decision.</p>
+        <p>Retrouvez les propositions reçues pour vos biens et priorisez celles qui demandent une décision.</p>
       </header>
 
       <div className="stats-row">
@@ -124,7 +133,7 @@ export default function OwnerQuotesPage() {
           <p>{loading ? "..." : quotes.length}</p>
         </div>
         <div className="stat-card">
-          <h3>A arbitrer</h3>
+          <h3>À arbitrer</h3>
           <p>{loading ? "..." : pendingQuotes.length}</p>
         </div>
         <div className="stat-card">
@@ -148,9 +157,9 @@ export default function OwnerQuotesPage() {
           >
             <option value="all">Tous statuts</option>
             <option value="draft">Brouillons</option>
-            <option value="sent">Envoyes</option>
-            <option value="accepted">Acceptes</option>
-            <option value="rejected">Refuses</option>
+            <option value="sent">Envoyés</option>
+            <option value="accepted">Acceptés</option>
+            <option value="rejected">Refusés</option>
           </select>
           <button
             type="button"
@@ -164,6 +173,11 @@ export default function OwnerQuotesPage() {
 
         {loading ? <p>Chargement des devis...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
+        {targetedQuote ? (
+          <p style={{ color: "#7b5b23", fontWeight: 600 }}>
+            Focus sur {targetedQuote.quote_number || "le devis sélectionné"}.
+          </p>
+        ) : null}
 
         {!loading && !error && filteredQuotes.length === 0 ? (
           <p>Aucun devis disponible pour le moment.</p>
@@ -173,30 +187,51 @@ export default function OwnerQuotesPage() {
           <ul>
             {filteredQuotes.map((quote) => (
               <li key={quote.id} className={styles.listItem}>
-                <strong>{quote.quote_number || "Devis sans numero"}</strong>
-                <br />
-                <span className={styles.inlineActions}>
-                  <span>Statut :</span>
-                  <WorkflowStatusBadge value={quote.status || "-"} />
-                </span>{" "}
-                | Total : {formatAmount(quote.total_amount)} | Valide jusqu&apos;au{" "}
-                {formatDate(quote.valid_until)}
-                <br />
-                Lignes : {quote.quote_items?.length ?? 0}
-                <br />
-                <a
-                  href={`/api/quotes/${quote.id}/document`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.linkButton}
+                <div
+                  style={
+                    quote.id === targetQuoteId
+                      ? {
+                          border: "1px solid rgba(123, 91, 35, 0.35)",
+                          background: "rgba(123, 91, 35, 0.06)",
+                          borderRadius: "18px",
+                          padding: "0.75rem",
+                        }
+                      : undefined
+                  }
                 >
-                  Apercu PDF
-                </a>
+                  <strong>{quote.quote_number || "Devis sans numero"}</strong>
+                  <br />
+                  <span className={styles.inlineActions}>
+                    <span>Statut :</span>
+                    <WorkflowStatusBadge value={quote.status || "-"} />
+                  </span>{" "}
+                  | Total : {formatAmount(quote.total_amount)} | Valide jusqu&apos;au{" "}
+                  {formatDate(quote.valid_until)}
+                  <br />
+                  Lignes : {quote.quote_items?.length ?? 0}
+                  <br />
+                  <a
+                    href={`/api/quotes/${quote.id}/document`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.linkButton}
+                  >
+                    Apercu PDF
+                  </a>
+                </div>
               </li>
             ))}
           </ul>
         ) : null}
       </div>
     </section>
+  );
+}
+
+export default function OwnerQuotesPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement des devis...</p></section>}>
+      <OwnerQuotesContent />
+    </Suspense>
   );
 }

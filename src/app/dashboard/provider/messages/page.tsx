@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import styles from "./ProviderMessagesPage.module.scss";
 
 type ProviderConversationRow = {
@@ -90,7 +91,10 @@ function getParticipantName(
   );
 }
 
-export default function ProviderMessagesPage() {
+function ProviderMessagesContent() {
+  const searchParams = useSearchParams();
+  const targetConversationId = searchParams.get("conversation");
+  const targetClientId = searchParams.get("client");
   const [list, setList] = useState<ProviderMessagesListPayload | null>(null);
   const [activeConversationId, setActiveConversationId] = useState("");
   const [detail, setDetail] = useState<ProviderConversationDetail | null>(null);
@@ -124,7 +128,11 @@ export default function ProviderMessagesPage() {
       const rows = Array.isArray(payload.items) ? payload.items : [];
       const nextId =
         (preferredId && rows.some((item) => item.id === preferredId) && preferredId) ||
-        (activeConversationId && rows.some((item) => item.id === activeConversationId)
+        (targetConversationId &&
+          rows.some((item) => item.id === targetConversationId) &&
+          targetConversationId) ||
+        (activeConversationId &&
+        rows.some((item) => item.id === activeConversationId)
           ? activeConversationId
           : rows[0]?.id || "");
 
@@ -168,9 +176,8 @@ export default function ProviderMessagesPage() {
   }
 
   useEffect(() => {
-    void loadConversations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void loadConversations(targetConversationId || undefined);
+  }, [targetConversationId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -185,7 +192,7 @@ export default function ProviderMessagesPage() {
         if (!cancelled) {
           const nextClients = Array.isArray(payload.items) ? payload.items : [];
           setClients(nextClients);
-          setSelectedClientId((current) => current || nextClients[0]?.id || "");
+          setSelectedClientId((current) => current || targetClientId || nextClients[0]?.id || "");
         }
       } catch {
         if (!cancelled) {
@@ -198,7 +205,7 @@ export default function ProviderMessagesPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [targetClientId]);
 
   useEffect(() => {
     void loadConversationDetail(activeConversationId);
@@ -261,7 +268,7 @@ export default function ProviderMessagesPage() {
       setDraftMessage("");
       await loadConversationDetail(activeConversationId);
       await loadConversations(activeConversationId);
-      setSuccess("Message envoye.");
+      setSuccess("Message envoyé.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
     } finally {
@@ -289,7 +296,7 @@ export default function ProviderMessagesPage() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de creer la conversation.");
+        throw new Error(payload?.error || "Impossible de créer la conversation.");
       }
 
       const createdConversationId =
@@ -301,9 +308,9 @@ export default function ProviderMessagesPage() {
       if (createdConversationId) {
         await loadConversationDetail(createdConversationId);
       }
-      setSuccess("Conversation creee.");
+      setSuccess("Conversation créée.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de creer la conversation.");
+      setError(err instanceof Error ? err.message : "Impossible de créer la conversation.");
     } finally {
       setCreating(false);
     }
@@ -315,7 +322,7 @@ export default function ProviderMessagesPage() {
         <header className={styles.header}>
           <h1>Messages</h1>
           <p>
-            Suivez vos échanges clients depuis l&apos;espace Artisan, avec un fil unique par
+            Suivez vos échanges clients depuis l&apos;espace artisan, avec un fil unique par
             dossier.
           </p>
         </header>
@@ -323,6 +330,7 @@ export default function ProviderMessagesPage() {
         {success ? <p className={styles.successBox}>{success}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {!error && list?.note ? <p className={styles.infoBox}>{list.note}</p> : null}
+        {targetClientId ? <p className={styles.infoBox}>Focus sur le client sélectionné.</p> : null}
 
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -330,7 +338,7 @@ export default function ProviderMessagesPage() {
               <h2>Nouveau fil</h2>
               {clients.length === 0 ? (
                 <p className={styles.emptyState}>
-                  Ajoutez d&apos;abord un client pour demarrer une conversation.
+                  Ajoutez d&apos;abord un client pour démarrer une conversation.
                 </p>
               ) : (
                 <>
@@ -361,7 +369,7 @@ export default function ProviderMessagesPage() {
                     disabled={!canCreateConversation || creating}
                     onClick={handleCreateConversation}
                   >
-                    {creating ? "Creation..." : "Creer le fil"}
+                    {creating ? "Création..." : "Créer le fil"}
                   </button>
                 </>
               )}
@@ -382,7 +390,7 @@ export default function ProviderMessagesPage() {
                 <option value="all">Tous statuts</option>
                 <option value="open">Ouverts</option>
                 <option value="archived">Archives</option>
-                <option value="closed">Fermes</option>
+                <option value="closed">Fermés</option>
               </select>
               <span className={styles.counter}>
                 {filteredConversations.filter((item) => (item.status ?? "open") === "open").length} ouverts
@@ -426,7 +434,7 @@ export default function ProviderMessagesPage() {
           <section className={styles.thread}>
             {!activeConversationId ? (
               <p className={styles.emptyState}>
-                Selectionnez une conversation pour lire et repondre.
+                Sélectionnez une conversation pour lire et répondre.
               </p>
             ) : detailLoading ? (
               <p className={styles.emptyState}>Chargement de la conversation...</p>
@@ -475,7 +483,7 @@ export default function ProviderMessagesPage() {
                   <textarea
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
-                    placeholder="Ecrivez votre message client..."
+                    placeholder="Écrivez votre message client..."
                   />
                   <button type="button" disabled={!canSend || sending} onClick={handleSendMessage}>
                     {sending ? "Envoi..." : "Envoyer"}
@@ -487,5 +495,13 @@ export default function ProviderMessagesPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function ProviderMessagesPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement des messages...</p></section>}>
+      <ProviderMessagesContent />
+    </Suspense>
   );
 }

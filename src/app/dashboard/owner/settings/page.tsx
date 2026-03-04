@@ -10,7 +10,7 @@ export default function OwnerSettingsPage() {
       verifiedCompleteText="Votre profil est suffisamment renseigné pour rassurer les concierges contactés."
       verifiedPendingText="Ajoutez au minimum votre téléphone, votre ville et une fiche complète pour afficher un profil plus fiable."
       emptyDisplayName="Profil propriétaire"
-      presentationIntro="Expliquez votre fonctionnement, le type de biens concernés et le niveau d’accompagnement attendu."
+      presentationIntro="Expliquez votre fonctionnement, le type de biens concernés et le niveau d'accompagnement attendu."
     />
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
 import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
@@ -74,7 +75,9 @@ function toFormState(client: ProviderClient): ClientFormState {
   };
 }
 
-export default function ProviderClientsPage() {
+function ProviderClientsContent() {
+  const searchParams = useSearchParams();
+  const targetClientId = searchParams.get("client");
   const [data, setData] = useState<ProviderClientsPayload | null>(null);
   const [form, setForm] = useState<ClientFormState>(defaultForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -123,6 +126,8 @@ export default function ProviderClientsPage() {
     const clients = data?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const next = clients.filter((client) => {
+      if (targetClientId && client.id !== targetClientId) return false;
+
       const matchesStatus = statusFilter === "all" || (client.status ?? "active") === statusFilter;
       if (!matchesStatus) return false;
       const createdAt = new Date(client.created_at);
@@ -156,7 +161,11 @@ export default function ProviderClientsPage() {
     });
 
     return next;
-  }, [data?.items, searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
+  }, [data?.items, searchTerm, statusFilter, sortBy, dateFrom, dateTo, targetClientId]);
+  const targetedClient = useMemo(
+    () => (data?.items ?? []).find((client) => client.id === targetClientId) ?? null,
+    [data?.items, targetClientId],
+  );
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredClients.length / pageSize));
   const paginatedClients = useMemo(
@@ -166,11 +175,11 @@ export default function ProviderClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo]);
+  }, [searchTerm, statusFilter, sortBy, dateFrom, dateTo, targetClientId]);
 
   function handleExportCsv() {
     const rows = [
-      ["Nom", "Société", "Email", "Téléphone", "Ville", "Type", "Statut", "Création"],
+      ["Nom", "Societe", "Email", "Telephone", "Ville", "Type", "Statut", "Creation"],
       ...filteredClients.map((client) => [
         client.client_name ?? "",
         client.company_name ?? "",
@@ -242,7 +251,7 @@ export default function ProviderClientsPage() {
 
       resetForm();
       await loadClients();
-      setSuccess(editingId ? "Client mis a jour." : "Client ajoute.");
+      setSuccess(editingId ? "Client mis à jour." : "Client ajouté.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'enregistrer le client.");
     } finally {
@@ -264,7 +273,7 @@ export default function ProviderClientsPage() {
 
       if (editingId === id) resetForm();
       await loadClients();
-      setSuccess("Client supprime.");
+      setSuccess("Client supprimé.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de supprimer le client.");
     } finally {
@@ -285,13 +294,13 @@ export default function ProviderClientsPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error || "Impossible de mettre a jour le statut.");
+        throw new Error(result?.error || "Impossible de mettre à jour le statut.");
       }
 
       await loadClients();
-      setSuccess("Statut client mis a jour.");
+      setSuccess("Statut client mis à jour.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre a jour le statut.");
+      setError(err instanceof Error ? err.message : "Impossible de mettre à jour le statut.");
     } finally {
       setQuickUpdatingId(null);
     }
@@ -302,9 +311,9 @@ export default function ProviderClientsPage() {
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>Relation client</p>
+            <p className={styles.eyebrow}>Clients</p>
             <h1>Clients</h1>
-            <p>Gerez votre portefeuille client, puis ouvrez un fil de message depuis chaque fiche.</p>
+            <p>Gérez votre portefeuille client, puis ouvrez un fil de message depuis chaque fiche.</p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} clients</span>
@@ -315,14 +324,15 @@ export default function ProviderClientsPage() {
         {success ? <p className={styles.successBox}>{success}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
+        {targetedClient ? <p className={styles.infoBox}>Focus sur {targetedClient.client_name}.</p> : null}
         <ActionPanel
-          eyebrow="Actions a mener"
-          title="Accelerez le suivi relation client"
+          eyebrow="Actions à mener"
+          title="Accélérez le suivi relation client"
           description="Ajoutez une fiche, ouvrez les conversations actives ou nettoyez le portefeuille pour garder une base exploitable."
           actions={[
             { label: "Ajouter un client", href: "/dashboard/provider/clients", primary: true },
             { label: "Ouvrir les messages", href: "/dashboard/provider/messages" },
-            { label: "Voir la vue prioritaire", href: "/dashboard/provider" },
+            { label: "Revenir au tableau de bord", href: "/dashboard/provider" },
           ]}
         />
 
@@ -330,7 +340,7 @@ export default function ProviderClientsPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <SectionHeader
-                eyebrow="1. Mise a jour"
+                eyebrow="1. Mise à jour"
                 title={editingId ? "Modifier un client" : "Ajouter un client"}
               />
               {editingId ? (
@@ -346,7 +356,7 @@ export default function ProviderClientsPage() {
                 <input value={form.client_name} onChange={(event) => updateField("client_name", event.target.value)} placeholder="Nom complet" />
               </label>
               <label>
-                <span>Societe</span>
+                <span>Société</span>
                 <input value={form.company_name} onChange={(event) => updateField("company_name", event.target.value)} placeholder="Optionnel" />
               </label>
               <label>
@@ -365,8 +375,8 @@ export default function ProviderClientsPage() {
                 <span>Type</span>
                 <select value={form.client_type} onChange={(event) => updateField("client_type", event.target.value)}>
                   <option value="manual">Manuel</option>
-                  <option value="owner">Proprietaire</option>
-                  <option value="business">Societe</option>
+                  <option value="owner">Propriétaire</option>
+                  <option value="business">Société</option>
                 </select>
               </label>
               <label>
@@ -374,18 +384,18 @@ export default function ProviderClientsPage() {
                 <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
                   <option value="active">Actif</option>
                   <option value="inactive">Inactif</option>
-                  <option value="archived">Archive</option>
+                  <option value="archived">Archivé</option>
                 </select>
               </label>
               <label className={styles.fullWidth}>
                 <span>Notes</span>
-                <textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder="Contexte, attentes, details utiles..." />
+                <textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder="Contexte, attentes, détails utiles..." />
               </label>
               <div className={styles.formActions}>
                 <button type="submit" disabled={!canSubmit || saving}>
-                  {saving ? "Enregistrement..." : editingId ? "Mettre a jour" : "Ajouter"}
+                  {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
                 </button>
-                <Link href="/dashboard/provider/messages" className={styles.linkButton}>
+                <Link href={editingId ? `/dashboard/provider/messages?client=${editingId}` : "/dashboard/provider/messages"} className={styles.linkButton}>
                   Voir les messages
                 </Link>
               </div>
@@ -395,7 +405,7 @@ export default function ProviderClientsPage() {
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
               <SectionHeader
-                eyebrow="2. Informations prioritaires"
+                eyebrow="2. Informations clés"
                 title="Portefeuille client"
                 actionLabel="Voir les messages"
                 actionHref="/dashboard/provider/messages"
@@ -416,10 +426,10 @@ export default function ProviderClientsPage() {
                   <option value="all">Tous statuts</option>
                   <option value="active">Actifs</option>
                   <option value="inactive">Inactifs</option>
-                  <option value="archived">Archives</option>
+                  <option value="archived">Archivés</option>
                 </select>
                 <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-                  <option value="recent">Plus recents</option>
+                  <option value="recent">Plus récents</option>
                   <option value="name">Nom</option>
                   <option value="city">Ville</option>
                 </select>
@@ -432,7 +442,7 @@ export default function ProviderClientsPage() {
             </div>
 
             <div className={styles.counterRow}>
-              <span className={styles.counter}>{filteredClients.length} resultats</span>
+              <span className={styles.counter}>{filteredClients.length} résultats</span>
               <span className={styles.counter}>
                 {filteredClients.filter((client) => (client.status ?? "active") === "active").length} actifs
               </span>
@@ -447,7 +457,18 @@ export default function ProviderClientsPage() {
             {!loading && filteredClients.length > 0 ? (
               <div className={styles.cardList}>
                 {paginatedClients.map((client) => (
-                  <article key={client.id} className={styles.itemCard}>
+                  <article
+                    key={client.id}
+                    className={styles.itemCard}
+                    style={
+                      client.id === targetClientId
+                        ? {
+                            border: "1px solid rgba(180, 70, 44, 0.28)",
+                            boxShadow: "0 14px 28px rgba(180, 70, 44, 0.12)",
+                          }
+                        : undefined
+                    }
+                  >
                     <div className={styles.itemHead}>
                       <div>
                         <h3>{client.client_name}</h3>
@@ -456,9 +477,9 @@ export default function ProviderClientsPage() {
                       <WorkflowStatusBadge value={client.status || "active"} />
                     </div>
                     <div className={styles.itemMeta}>
-                      <span>{client.email || "Email non renseigne"}</span>
+                      <span>{client.email || "Email non renseigné"}</span>
                       <span>{client.phone || "Téléphone non renseigné"}</span>
-                      <span>Ajoute le {formatDate(client.created_at)}</span>
+                      <span>Ajouté le {formatDate(client.created_at)}</span>
                     </div>
                     {client.notes ? <p className={styles.itemBody}>{client.notes}</p> : null}
                     <div className={styles.cardActions}>
@@ -469,7 +490,7 @@ export default function ProviderClientsPage() {
                       >
                         <option value="active">Actif</option>
                         <option value="inactive">Inactif</option>
-                        <option value="archived">Archive</option>
+                        <option value="archived">Archivé</option>
                       </select>
                       <button type="button" className={styles.secondaryButton} onClick={() => {
                         setEditingId(client.id);
@@ -477,7 +498,7 @@ export default function ProviderClientsPage() {
                       }}>
                         Modifier
                       </button>
-                      <Link href="/dashboard/provider/messages" className={styles.linkButton}>
+                      <Link href={`/dashboard/provider/messages?client=${client.id}`} className={styles.linkButton}>
                         Message
                       </Link>
                       <button type="button" className={styles.dangerButton} disabled={deletingId === client.id} onClick={() => void handleDelete(client.id)}>
@@ -492,7 +513,7 @@ export default function ProviderClientsPage() {
             {!loading && filteredClients.length > pageSize ? (
               <div className={styles.pagination}>
                 <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
-                  Precedent
+                  Précédent
                 </button>
                 <span className={styles.counter}>
                   Page {page} / {totalPages}
@@ -510,5 +531,13 @@ export default function ProviderClientsPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function ProviderClientsPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement des clients...</p></section>}>
+      <ProviderClientsContent />
+    </Suspense>
   );
 }

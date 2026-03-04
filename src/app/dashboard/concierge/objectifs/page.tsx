@@ -58,7 +58,7 @@ export default function ConciergeObjectifsPage() {
       }
     }
 
-    loadData();
+    void loadData();
   }, []);
 
   const completedMissions = useMemo(
@@ -101,7 +101,7 @@ export default function ConciergeObjectifsPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Pilotage activité"
+      eyebrow="Tableau de bord"
       title="Objectifs d'activité"
       description={
         loading

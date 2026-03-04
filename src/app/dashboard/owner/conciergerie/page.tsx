@@ -87,7 +87,7 @@ export default function OwnerConciergeriePage() {
       }
     }
 
-    loadData();
+    void loadData();
   }, []);
 
   const ongoingCount = useMemo(
@@ -156,7 +156,7 @@ export default function OwnerConciergeriePage() {
       }
     }
 
-    loadSpotlightProfile();
+    void loadSpotlightProfile();
 
     return () => {
       cancelled = true;
@@ -167,7 +167,7 @@ export default function OwnerConciergeriePage() {
     event.preventDefault();
 
     if (!selectedMission?.concierge_profile_id) {
-      setReviewError("Impossible d'identifier le concierge a evaluer.");
+      setReviewError("Impossible d'identifier le concierge à évaluer.");
       return;
     }
 
@@ -193,7 +193,7 @@ export default function OwnerConciergeriePage() {
       }
 
       setReviews((prev) => [payload, ...prev]);
-      setReviewSuccess("Votre avis a bien ete enregistre.");
+      setReviewSuccess("Votre avis a bien été enregistré.");
       setComment("");
       setRating("5");
       setSelectedMissionId("");
@@ -207,7 +207,7 @@ export default function OwnerConciergeriePage() {
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
-        eyebrow="Relation concierge"
+        eyebrow="Conciergerie"
         title="Suivi de ma conciergerie"
         description={
           error
@@ -231,7 +231,7 @@ export default function OwnerConciergeriePage() {
         ]}
         cards={[
           {
-            title: "1. Missions recentes",
+            title: "1. Missions récentes",
             text:
               missions.length > 0
                 ? missions
@@ -251,24 +251,24 @@ export default function OwnerConciergeriePage() {
                 : "Aucun contact actif pour le moment.",
           },
           {
-            title: "3. Pilotage",
+            title: "3. Suivi opérationnel",
             text:
               ongoingCount > 0
                 ? `${ongoingCount} intervention(s) demandent actuellement un suivi propriétaire.`
-                : "Aucune intervention en cours a suivre actuellement.",
+                : "Aucune intervention en cours à suivre actuellement.",
           },
           {
             title: "Avis et notation",
             text:
               reviews.length > 0
-                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
+                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Évaluation recueillie sans commentaire."}`
                 : "Les avis laissés après les missions terminées apparaîtront ici.",
           },
           {
             title: "Badge concierge",
             text: spotlightProfile
               ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` | ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
-              : "Le statut PRO et la note du concierge apparaitront ici des qu'un profil sera associe.",
+              : "Le statut PRO et la note du concierge apparaîtront ici dès qu'un profil sera associé.",
           },
         ]}
       />

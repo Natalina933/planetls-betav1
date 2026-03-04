@@ -521,7 +521,7 @@ export default function OwnerConciergesPage() {
         {!loading && !error && items.length === 0 ? (
           <div className={styles.emptyState}>
             <h2>Aucun concierge ne correspond a vos criteres.</h2>
-            <p>Essayez d'elargir la zone, de relever le budget ou de retirer un filtre service.</p>
+            <p>Essayez d&apos;elargir la zone, de relever le budget ou de retirer un filtre service.</p>
           </div>
         ) : null}
 
