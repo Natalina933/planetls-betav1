@@ -32,7 +32,7 @@ const CARDS: CardData[] = [
     img: "/icons/concierges_belle_epoque.png",
     alt: "Illustration conciergerie premium",
     cta: "Développer mon activité",
-    href: "/abonnement/concierge-pro",
+    href: "/concierge",
     eyebrow: "Pilotage tout-en-un",
     description:
       "Structurez vos services, vos tarifs, vos packs, vos logements et vos missions. PlanetLS vous aide à gagner du temps et à rendre votre activité plus lisible et plus premium.",

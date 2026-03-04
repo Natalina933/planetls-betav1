@@ -39,6 +39,28 @@ const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 const VALID_REQUEST_TYPES: ServiceRequestType[] = ["ponctuel", "renfort", "durable"];
 
+type ServiceRequestRecipientRow = {
+  id: string;
+  service_request_id: string;
+  concierge_profile_id: string;
+  status: RecipientStatus;
+  concierge_name?: string;
+  response_message?: string | null;
+  viewed_at?: string | null;
+  responded_at?: string | null;
+  created_at?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type ServiceRequestRow = {
+  id: string;
+  owner_profile_id?: string | null;
+  selected_concierge_profile_id?: string | null;
+  [key: string]: unknown;
+};
+
+// Legacy Supabase typing is incomplete on these tables in this project.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dbAny = db as any;
 
 function normalizeStringArray(value: unknown): string[] {
@@ -130,8 +152,8 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     },
   );
 
-  const recipientsByRequestId = new Map<string, any[]>();
-  (recipients ?? []).forEach((recipient: any) => {
+  const recipientsByRequestId = new Map<string, ServiceRequestRecipientRow[]>();
+  (recipients ?? []).forEach((recipient: ServiceRequestRecipientRow) => {
     const current = recipientsByRequestId.get(recipient.service_request_id) ?? [];
     current.push({
       ...recipient,
@@ -140,7 +162,7 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     recipientsByRequestId.set(recipient.service_request_id, current);
   });
 
-  return (requests ?? []).map((request: any) => ({
+  return (requests ?? []).map((request: ServiceRequestRow) => ({
     ...request,
     selected_concierge_name: request.selected_concierge_profile_id
       ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
@@ -209,12 +231,12 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
     },
   );
 
-  const requestById = new Map<string, any>();
-  (requests ?? []).forEach((request: any) => {
+  const requestById = new Map<string, ServiceRequestRow>();
+  (requests ?? []).forEach((request: ServiceRequestRow) => {
     requestById.set(request.id, request);
   });
 
-  return (recipients ?? []).map((recipient: any) => {
+  return (recipients ?? []).map((recipient: ServiceRequestRecipientRow) => {
     const request = requestById.get(recipient.service_request_id);
     return {
       ...request,
@@ -320,7 +342,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Impossible de creer la demande." }, { status: 500 });
     }
 
-    const recipientRows = validRecipientIds.map((conciergeId) => ({
+    const recipientRows = validRecipientIds.map((conciergeId: string) => ({
       service_request_id: createdRequest.id,
       concierge_profile_id: conciergeId,
       status: "sent" as RecipientStatus,

@@ -2,18 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import {
+  type ConciergeMatchCandidate,
   buildUrgentMissionMatches,
   buildUrgentMissionMetadata,
+  type ConciergeProfileRow,
   deriveUrgentMissionTitle,
   normalizeUrgentMissionType,
+  type ReviewRow,
   sanitizeUrgentMissionPayload,
 } from "@/app/lib/urgentMissions";
 
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
+// Legacy Supabase typing is incomplete on urgent mission tables in this project.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const dbAny = db as any;
 
-async function loadConciergeMatches(propertyAddress: string, missionType: "check-in" | "check-out") {
-  const { data: profiles, error: profilesError } = await db
+type UrgentMissionRow = {
+  property_address: string;
+  mission_type: string;
+  [key: string]: unknown;
+};
+
+async function loadConciergeMatches(
+  propertyAddress: string,
+  missionType: "check-in" | "check-out",
+): Promise<ConciergeMatchCandidate[]> {
+  const { data: profiles, error: profilesError } = await dbAny
     .from("profiles")
     .select(
       "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, emergency_service, is_available_for_urgent, max_radius_km, response_time_avg, availability_hours, role",
@@ -24,8 +39,8 @@ async function loadConciergeMatches(propertyAddress: string, missionType: "check
     throw new Error("Impossible de charger les concierges compatibles.");
   }
 
-  const profileIds = (profiles ?? []).map((profile) => profile.id);
-  const { data: reviews, error: reviewsError } = await db
+  const profileIds = (profiles ?? []).map((profile: ConciergeProfileRow) => profile.id);
+  const { data: reviews, error: reviewsError } = await dbAny
     .from("mission_reviews")
     .select("reviewed_profile_id, rating")
     .in(
@@ -40,8 +55,8 @@ async function loadConciergeMatches(propertyAddress: string, missionType: "check
   return buildUrgentMissionMatches({
     address: propertyAddress,
     missionType,
-    profiles: profiles ?? [],
-    reviews: reviews ?? [],
+    profiles: (profiles ?? []) as ConciergeProfileRow[],
+    reviews: (reviews ?? []) as ReviewRow[],
   });
 }
 
@@ -62,7 +77,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Non autorise" }, { status: 403 });
       }
 
-      const { data: conciergeProfile, error: conciergeError } = await db
+      const { data: conciergeProfile, error: conciergeError } = await dbAny
         .from("profiles")
         .select(
           "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, emergency_service, is_available_for_urgent, max_radius_km, response_time_avg, availability_hours, role",
@@ -78,7 +93,7 @@ export async function GET(req: NextRequest) {
       const end = new Date(now);
       end.setDate(now.getDate() + (horizon === "tomorrow" ? 2 : 1));
 
-      const { data: missions, error: missionsError } = await db
+      const { data: missions, error: missionsError } = await dbAny
         .from("urgent_missions")
         .select("*")
         .eq("status", "open")
@@ -92,7 +107,7 @@ export async function GET(req: NextRequest) {
       }
 
       const items = (missions ?? [])
-        .map((mission) => {
+        .map((mission: UrgentMissionRow) => {
           const matches = buildUrgentMissionMatches({
             address: mission.property_address,
             missionType: normalizeUrgentMissionType(mission.mission_type),
@@ -117,7 +132,7 @@ export async function GET(req: NextRequest) {
     }
 
     const column = scope === "concierge" ? "accepted_by" : "owner_id";
-    const { data, error } = await db
+    const { data, error } = await dbAny
       .from("urgent_missions")
       .select("*")
       .eq(column, auth.userId)
@@ -140,7 +155,10 @@ export async function POST(req: NextRequest) {
     const auth = await getApiAuthContext(req);
     const body = await req.json();
     const payload = sanitizeUrgentMissionPayload(body);
-    const matches = await loadConciergeMatches(payload.property_address, payload.mission_type);
+    const matches: ConciergeMatchCandidate[] = await loadConciergeMatches(
+      payload.property_address,
+      payload.mission_type,
+    );
 
     const estimatedPrice =
       matches.length > 0
@@ -158,7 +176,7 @@ export async function POST(req: NextRequest) {
       ownerAuthenticated: Boolean(auth.userId),
     });
 
-    const { data: createdMission, error: createError } = await db
+    const { data: createdMission, error: createError } = await dbAny
       .from("urgent_missions")
       .insert({
         title: deriveUrgentMissionTitle(payload.mission_type, payload.property_address),

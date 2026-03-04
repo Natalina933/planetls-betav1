@@ -1,4 +1,4 @@
-import type { Json, Tables } from "@/types/supabase";
+import type { Json } from "@/types/supabase";
 
 export type UrgentMissionType = "check-in" | "check-out";
 export type UrgentMissionStatus = "open" | "accepted" | "completed" | "cancelled";
@@ -37,30 +37,29 @@ export interface ConciergeMatchCandidate {
   score: number;
 }
 
-type ReviewRow = {
+export type ReviewRow = {
   reviewed_profile_id: string | null;
   rating: number | null;
 };
 
-type ConciergeProfileRow = Pick<
-  Tables<"profiles">,
-  | "id"
-  | "first_name"
-  | "last_name"
-  | "username"
-  | "company_name"
-  | "city"
-  | "country"
-  | "service_area"
-  | "service_radius_km"
-  | "hourly_rate"
-  | "emergency_service"
-  | "is_available_for_urgent"
-  | "max_radius_km"
-  | "response_time_avg"
-  | "availability_hours"
-  | "role"
->;
+export type ConciergeProfileRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  username: string | null;
+  company_name: string | null;
+  city: string | null;
+  country: string | null;
+  service_area: string | null;
+  service_radius_km: number | null;
+  hourly_rate: number | null;
+  emergency_service: boolean | null;
+  is_available_for_urgent: boolean | null;
+  max_radius_km: number | null;
+  response_time_avg: number | null;
+  availability_hours: string | null;
+  role: string | null;
+};
 
 export function normalizeUrgentMissionType(value: string): UrgentMissionType {
   return value === "check-out" ? "check-out" : "check-in";

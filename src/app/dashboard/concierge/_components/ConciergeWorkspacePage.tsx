@@ -11,6 +11,12 @@ interface ConciergeCardAction {
   variant?: "primary" | "secondary";
 }
 
+interface ConciergeWorkspaceAction {
+  label: string;
+  href: string;
+  variant?: "primary" | "secondary";
+}
+
 interface ConciergeCard {
   title: string;
   text: string;
@@ -46,7 +52,7 @@ interface ConciergeWorkspacePageProps {
   metrics?: ConciergeMetric[];
   cards: ConciergeCard[];
   chips?: string[];
-  actions?: Array<{ label: string; href: string }>;
+  actions?: ConciergeWorkspaceAction[];
   detailSections?: ConciergeDetailSection[];
   children?: React.ReactNode;
 }
@@ -91,7 +97,17 @@ export default function ConciergeWorkspacePage({
           {actions && actions.length > 0 ? (
             <div className={styles.actions}>
               {actions.map((action) => (
-                <Link key={action.href} href={action.href} className={styles.actionLink}>
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={
+                    action.variant === "primary"
+                      ? styles.actionLinkPrimary
+                      : action.variant === "secondary"
+                        ? styles.actionLinkSecondary
+                        : styles.actionLink
+                  }
+                >
                   {action.label}
                 </Link>
               ))}

@@ -187,9 +187,9 @@ export default function OwnerDashboardPage() {
         averageRating ? `${averageRating.toFixed(1)} / 5 de satisfaction` : "Avis à consolider",
       ]}
       actions={[
-        { label: "Voir mes logements", href: "/dashboard/owner/logements" },
-        { label: "Suivre mes missions", href: "/dashboard/owner/planning" },
-        { label: "Voir mes finances", href: "/dashboard/owner/factures" },
+        { label: "Voir mes logements", href: "/dashboard/owner/logements", variant: "primary" },
+        { label: "Suivre mes missions", href: "/dashboard/owner/planning", variant: "secondary" },
+        { label: "Voir mes finances", href: "/dashboard/owner/factures", variant: "secondary" },
       ]}
       metrics={[
         {

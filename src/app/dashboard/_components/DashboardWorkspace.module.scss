@@ -46,6 +46,7 @@
     radial-gradient(circle at top right, color-mix(in srgb, var(--workspace-accent) 16%, transparent), transparent 32%),
     linear-gradient(145deg, #fffdf7 0%, var(--workspace-accent-soft) 100%);
   box-shadow: 0 14px 34px var(--workspace-shadow);
+  align-items: start;
 }
 
 .eyebrow {
@@ -107,6 +108,17 @@
     border-color 160ms ease;
 }
 
+.metricCard {
+  min-height: 148px;
+  align-content: start;
+}
+
+.card {
+  min-height: 100%;
+  align-content: start;
+  grid-template-rows: auto 1fr auto;
+}
+
 .metricCard:hover,
 .card:hover {
   transform: translateY(-2px);
@@ -138,6 +150,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 0.9rem;
+  align-items: stretch;
 }
 
 .detailSections {
@@ -153,6 +166,7 @@
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 18%, transparent);
   background: var(--workspace-surface-strong);
   box-shadow: 0 12px 24px color-mix(in srgb, var(--workspace-shadow) 52%, transparent);
+  align-content: start;
 }
 
 .detailHeader {
@@ -289,9 +303,16 @@
   color: color-mix(in srgb, var(--workspace-accent-text) 72%, #23180d);
 }
 
+.cardActions {
+  margin-top: auto;
+  gap: 0.6rem;
+}
+
 .cardActionPrimary,
 .cardActionSecondary,
-.actionLink {
+.actionLink,
+.actionLinkPrimary,
+.actionLinkSecondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -317,15 +338,28 @@
 }
 
 .cardActionSecondary,
-.actionLink {
+.actionLink,
+.actionLinkSecondary {
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 35%, transparent);
   background: linear-gradient(135deg, #fffdfa, var(--workspace-accent-soft));
   color: var(--workspace-accent-text);
 }
 
+.actionLinkPrimary {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--workspace-accent) 90%, white),
+    color-mix(in srgb, var(--workspace-accent) 82%, #7c5b20)
+  );
+  color: #fff;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--workspace-shadow) 72%, transparent);
+}
+
 .cardActionPrimary:hover,
 .cardActionSecondary:hover,
-.actionLink:hover {
+.actionLink:hover,
+.actionLinkPrimary:hover,
+.actionLinkSecondary:hover {
   transform: translateY(-1px);
 }
 
@@ -357,6 +391,10 @@
   .card,
   .detailSection {
     padding: 0.95rem;
+  }
+
+  .metricCard {
+    min-height: 0;
   }
 
   .detailItem {

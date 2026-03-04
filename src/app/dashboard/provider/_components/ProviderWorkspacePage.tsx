@@ -11,6 +11,12 @@ interface ProviderCardAction {
   variant?: "primary" | "secondary";
 }
 
+interface ProviderWorkspaceAction {
+  label: string;
+  href: string;
+  variant?: "primary" | "secondary";
+}
+
 interface ProviderCard {
   title: string;
   text: string;
@@ -46,7 +52,7 @@ interface ProviderWorkspacePageProps {
   cards: ProviderCard[];
   metrics?: ProviderMetric[];
   chips?: string[];
-  actions?: Array<{ label: string; href: string }>;
+  actions?: ProviderWorkspaceAction[];
   detailSections?: ProviderDetailSection[];
   children?: React.ReactNode;
 }
@@ -91,7 +97,17 @@ export default function ProviderWorkspacePage({
           {actions && actions.length > 0 ? (
             <div className={styles.actions}>
               {actions.map((action) => (
-                <Link key={action.href} href={action.href} className={styles.actionLink}>
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={
+                    action.variant === "primary"
+                      ? styles.actionLinkPrimary
+                      : action.variant === "secondary"
+                        ? styles.actionLinkSecondary
+                        : styles.actionLink
+                  }
+                >
                   {action.label}
                 </Link>
               ))}

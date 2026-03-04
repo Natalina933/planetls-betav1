@@ -209,9 +209,17 @@ export default function ProviderDashboardPage() {
         `${stats?.inProgress ?? 0} intervention(s) en cours`,
       ]}
       actions={[
-        { label: "Voir les interventions", href: "/dashboard/provider/interventions" },
-        { label: "Voir les clients", href: "/dashboard/provider/clients" },
-        { label: "Voir les devis & factures", href: "/dashboard/provider/devis" },
+        {
+          label: "Voir les interventions",
+          href: "/dashboard/provider/interventions",
+          variant: "primary",
+        },
+        { label: "Voir les clients", href: "/dashboard/provider/clients", variant: "secondary" },
+        {
+          label: "Voir les devis & factures",
+          href: "/dashboard/provider/devis",
+          variant: "secondary",
+        },
       ]}
       metrics={[
         {

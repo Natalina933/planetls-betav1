@@ -23,6 +23,9 @@ interface RespondBody {
 
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 const VALID_STATUSES: RecipientStatus[] = ["viewed", "interested", "quoted", "declined"];
+// Legacy Supabase typing is incomplete on these tables in this project.
+// Keep the cast local instead of spreading `any` through the whole handler.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dbAny = db as any;
 
 function mapRequestStatus(status: RecipientStatus): RequestStatus | null {

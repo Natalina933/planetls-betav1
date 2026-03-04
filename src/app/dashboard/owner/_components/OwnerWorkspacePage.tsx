@@ -11,6 +11,12 @@ interface InfoCard {
   actions?: Array<{ label: string; href: string; variant?: "primary" | "secondary" }>;
 }
 
+interface WorkspaceAction {
+  label: string;
+  href: string;
+  variant?: "primary" | "secondary";
+}
+
 interface WorkspaceMetric {
   label: string;
   value: string;
@@ -40,7 +46,7 @@ interface OwnerWorkspacePageProps {
   cards: InfoCard[];
   metrics?: WorkspaceMetric[];
   chips?: string[];
-  actions?: Array<{ label: string; href: string }>;
+  actions?: WorkspaceAction[];
   detailSections?: WorkspaceDetailSection[];
 }
 
@@ -83,7 +89,17 @@ export default function OwnerWorkspacePage({
           {actions && actions.length > 0 ? (
             <div className={styles.actions}>
               {actions.map((action) => (
-                <Link key={action.href} href={action.href} className={styles.actionLink}>
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={
+                    action.variant === "primary"
+                      ? styles.actionLinkPrimary
+                      : action.variant === "secondary"
+                        ? styles.actionLinkSecondary
+                        : styles.actionLink
+                  }
+                >
                   {action.label}
                 </Link>
               ))}

@@ -3,6 +3,9 @@ import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
+// Legacy Supabase typing is incomplete on urgent mission tables in this project.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const dbAny = db as any;
 
 export async function POST(
   req: NextRequest,
@@ -18,7 +21,7 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { data: mission, error: readError } = await db
+    const { data: mission, error: readError } = await dbAny
       .from("urgent_missions")
       .select("*")
       .eq("id", id)
@@ -32,7 +35,7 @@ export async function POST(
     }
 
     const acceptedAt = new Date().toISOString();
-    const { data: updatedMission, error: updateError } = await db
+    const { data: updatedMission, error: updateError } = await dbAny
       .from("urgent_missions")
       .update({
         status: "accepted",
@@ -53,7 +56,7 @@ export async function POST(
     }
 
     if (mission.owner_id) {
-      const { data: existingConversation } = await db
+      const { data: existingConversation } = await dbAny
         .from("contact_conversations")
         .select("id")
         .eq("owner_profile_id", mission.owner_id)
@@ -65,7 +68,7 @@ export async function POST(
       let conversationId = existingConversation?.[0]?.id ?? null;
 
       if (!conversationId) {
-        const { data: conversation } = await db
+        const { data: conversation } = await dbAny
           .from("contact_conversations")
           .insert({
             owner_profile_id: mission.owner_id,
@@ -85,7 +88,7 @@ export async function POST(
       }
 
       if (conversationId) {
-        await db.from("contact_messages").insert({
+        await dbAny.from("contact_messages").insert({
           conversation_id: conversationId,
           sender_profile_id: auth.userId,
           message_type: "text",
