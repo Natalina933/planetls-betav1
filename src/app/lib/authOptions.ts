@@ -23,6 +23,10 @@ const VALID_ROLES: UserRole[] = [
   "super_admin",
 ] as const;
 
+const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
 // Type for our custom user fields passed through JWT
 interface CustomUser {
   id: string;
@@ -42,92 +46,97 @@ interface CustomUser {
   status: string;
 }
 
-export const authOptions: NextAuthConfig = {
-  session: { strategy: "jwt" },
+const providers: NextAuthConfig["providers"] = [
+  CredentialsProvider({
+    name: "Credentials",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Mot de passe", type: "password" },
+    },
 
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Mot de passe", type: "password" },
-      },
-
-      async authorize(credentials) {
-        try {
-          if (!credentials?.email || !credentials.password) {
-            console.warn("[AUTH] Missing email or password");
-            return null;
-          }
-
-          const { data: authData, error } =
-            await supabase.auth.signInWithPassword({
-              email: credentials.email as string,
-              password: credentials.password as string,
-            });
-
-          if (error || !authData.user) {
-            console.warn("[AUTH] Supabase login failed:", error?.message);
-            return null;
-          }
-
-          const userId = authData.user.id;
-
-          const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
-
-          if (profileError || !profile) {
-            console.warn("[AUTH] Profile missing:", profileError?.message);
-            return null;
-          }
-
-          if (profile.status === "suspended" || profile.status === "deleted") {
-            console.warn(`[AUTH] User suspended or deleted: ${userId}`);
-            return null;
-          }
-
-          const role: UserRole = VALID_ROLES.includes(profile.role)
-            ? profile.role
-            : "owner";
-
-          const fullName =
-            profile.first_name && profile.last_name
-              ? `${profile.first_name} ${profile.last_name}`
-              : profile.first_name || profile.last_name || "";
-
-          return {
-            id: profile.id,
-            email: profile.email,
-            emailVerified: profile.email_confirmed_at ? new Date(profile.email_confirmed_at) : null,
-            username: profile.username || null,
-            name: fullName,
-            firstName: profile.first_name || null,
-            lastName: profile.last_name || null,
-            phone: profile.phone || null,
-            role,
-            avatar_url: profile.avatar_url || null,
-            location: profile.location || null,
-            option: profile.option || null,
-            search_target: profile.search_target || null,
-            company_name: profile.company_name || null,
-            status: profile.status ?? "active",
-          } satisfies CustomUser;
-        } catch (error) {
-          console.error("[AUTH] Authorize error:", error);
+    async authorize(credentials) {
+      try {
+        if (!credentials?.email || !credentials.password) {
+          console.warn("[AUTH] Missing email or password");
           return null;
         }
-      },
-    }),
 
+        const { data: authData, error } =
+          await supabase.auth.signInWithPassword({
+            email: credentials.email as string,
+            password: credentials.password as string,
+          });
+
+        if (error || !authData.user) {
+          console.warn("[AUTH] Supabase login failed:", error?.message);
+          return null;
+        }
+
+        const userId = authData.user.id;
+
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (profileError || !profile) {
+          console.warn("[AUTH] Profile missing:", profileError?.message);
+          return null;
+        }
+
+        if (profile.status === "suspended" || profile.status === "deleted") {
+          console.warn(`[AUTH] User suspended or deleted: ${userId}`);
+          return null;
+        }
+
+        const role: UserRole = VALID_ROLES.includes(profile.role)
+          ? profile.role
+          : "owner";
+
+        const fullName =
+          profile.first_name && profile.last_name
+            ? `${profile.first_name} ${profile.last_name}`
+            : profile.first_name || profile.last_name || "";
+
+        return {
+          id: profile.id,
+          email: profile.email,
+          emailVerified: profile.email_confirmed_at ? new Date(profile.email_confirmed_at) : null,
+          username: profile.username || null,
+          name: fullName,
+          firstName: profile.first_name || null,
+          lastName: profile.last_name || null,
+          phone: profile.phone || null,
+          role,
+          avatar_url: profile.avatar_url || null,
+          location: profile.location || null,
+          option: profile.option || null,
+          search_target: profile.search_target || null,
+          company_name: profile.company_name || null,
+          status: profile.status ?? "active",
+        } satisfies CustomUser;
+      } catch (error) {
+        console.error("[AUTH] Authorize error:", error);
+        return null;
+      }
+    },
+  }),
+];
+
+if (googleClientId && googleClientSecret) {
+  providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
       allowDangerousEmailAccountLinking: true,
     }),
-  ],
+  );
+}
+
+export const authOptions: NextAuthConfig = {
+  session: { strategy: "jwt" },
+  providers,
 
   callbacks: {
     async jwt({ token, user }) {
@@ -183,7 +192,8 @@ export const authOptions: NextAuthConfig = {
     signIn: "/login",
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: authSecret,
+  trustHost: true,
 };
 
 export const { handlers, auth } = NextAuth(authOptions);
