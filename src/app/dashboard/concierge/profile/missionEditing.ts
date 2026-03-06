@@ -25,6 +25,8 @@ interface MissionZoneChangeLike {
   rules: unknown;
 }
 
+type AvailabilityPayloadLike = Record<string, unknown>;
+
 export function buildMissionProfileFromSelection(
   parsed: ParsedMissionPayloadLike,
   selected: string[],
@@ -95,7 +97,7 @@ export function buildProfileZoneUpdate(
     availability_hours?: string | null;
   },
   data: MissionZoneChangeLike,
-  parseAvailabilityPayloadRaw: (value: string | null | undefined) => any,
+  parseAvailabilityPayloadRaw: (value: string | null | undefined) => AvailabilityPayloadLike,
 ) {
   const zoneLabel = data.zones[0]?.label?.trim()
     ? data.zones[0].label.trim()
@@ -117,10 +119,12 @@ export function buildProfileWeeklyAvailabilityUpdate(
   previousProfile: {
     availability_hours?: string | null;
   },
-  schedule: unknown,
+  schedule: MissionAvailability["schedule"],
   emergency24h: boolean,
-  parseAvailabilityPayloadRaw: (value: string | null | undefined) => any,
-  normalizeMissionSchedule: (schedule: unknown) => unknown,
+  parseAvailabilityPayloadRaw: (value: string | null | undefined) => AvailabilityPayloadLike,
+  normalizeMissionSchedule: (
+    schedule: MissionAvailability["schedule"],
+  ) => MissionAvailability["schedule"],
 ) {
   return {
     ...previousProfile,
@@ -131,3 +135,4 @@ export function buildProfileWeeklyAvailabilityUpdate(
     emergency_service: emergency24h,
   };
 }
+import type { MissionAvailability } from "@/app/components/missions/types";

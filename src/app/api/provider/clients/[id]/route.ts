@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
 import {
   isProviderSchemaMissing,
+  providerDb,
   providerSchemaMissingResponse,
   requireProviderAuth,
 } from "../../shared";
@@ -39,8 +39,7 @@ export async function PATCH(
         : undefined,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (db as any)
+  const { data, error } = await providerDb
     .from("provider_clients")
     .update(updatePayload)
     .eq("id", id)
@@ -75,8 +74,7 @@ export async function DELETE(
   }
   const { id } = await context.params;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (db as any)
+  const { error } = await providerDb
     .from("provider_clients")
     .delete()
     .eq("id", id)

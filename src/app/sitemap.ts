@@ -2,27 +2,25 @@ import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://planetls.fr";
+  const lastModified = new Date();
 
-  return [
-    {
-      url: `${baseUrl}/`,
-      lastModified: new Date(),
-    },
-    {
-      url: `${baseUrl}/home`,
-      lastModified: new Date(),
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-    },
-    {
-      url: `${baseUrl}/complete-registration`,
-      lastModified: new Date(),
-    },
-    {
-      url: `${baseUrl}/abonnement/concierge-pro`,
-      lastModified: new Date(),
-    },
+  const publicRoutes = [
+    "/",
+    "/home",
+    "/login",
+    "/complete-registration",
+    "/abonnement/concierge-pro",
+    "/concierge",
+    "/owner",
+    "/provider",
+    "/parcours",
+    "/mission-urgente",
+    "/planning",
+    "/map-list",
   ];
+
+  return publicRoutes.map((path) => ({
+    url: `${baseUrl}${path}`,
+    lastModified,
+  }));
 }

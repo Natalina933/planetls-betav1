@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
-import { requireProviderAuth } from "../shared";
+import { providerDb, requireProviderAuth } from "../shared";
 import type { ProviderInsert, ProviderRow } from "@/types/supabase-provider";
 
 type ProviderInterventionRow = ProviderRow<"provider_interventions">;
@@ -14,8 +13,7 @@ export async function GET(req: NextRequest) {
   if (!providerProfileId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (db as any)
+  const { data, error } = await providerDb
     .from("provider_interventions")
     .select("*")
     .eq("provider_profile_id", providerProfileId)
@@ -82,8 +80,7 @@ export async function POST(req: NextRequest) {
         : {},
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (db as any)
+  const { data, error } = await providerDb
     .from("provider_interventions")
     .insert(insertPayload)
     .select("*")

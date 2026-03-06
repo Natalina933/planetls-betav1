@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export type UserType = "admin" | "concierge" | "owner" | "provider";
 
@@ -62,6 +63,7 @@ function inferSidebarUserTypeFromPath(pathname: string | null | undefined): User
 export function UserTypeProvider({ children }: { children: ReactNode }) {
   const [userType, setUserType] = useState<UserType | null>(null);
   const pathname = usePathname();
+  const { status } = useSession();
 
   useEffect(() => {
     const routeUserType = inferSidebarUserTypeFromPath(pathname);
@@ -72,6 +74,10 @@ export function UserTypeProvider({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
+    const isDashboardRoute = Boolean(pathname?.startsWith("/dashboard/"));
+    if (!isDashboardRoute) return;
+    if (status !== "authenticated") return;
+
     async function fetchUserType() {
       try {
         const res = await fetch("/api/profiles/current");
@@ -94,7 +100,7 @@ export function UserTypeProvider({ children }: { children: ReactNode }) {
     }
 
     fetchUserType();
-  }, [pathname]);
+  }, [pathname, status]);
 
   const changeUserType = (type: UserType) => {
     setUserType(type);

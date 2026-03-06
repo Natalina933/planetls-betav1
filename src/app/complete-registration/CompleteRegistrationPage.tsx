@@ -322,6 +322,7 @@ export default function CompleteRegistrationPage() {
           placeholder="Nom d'utilisateur"
           value={form.username}
           onChange={handleFormChange}
+          autoComplete="username"
           required
         />
 
@@ -332,6 +333,7 @@ export default function CompleteRegistrationPage() {
             placeholder="Mot de passe"
             value={form.password}
             onChange={handleFormChange}
+            autoComplete="new-password"
             required
           />
           <button type="button" onClick={() => setShowPassword((v) => !v)}>
@@ -350,6 +352,7 @@ export default function CompleteRegistrationPage() {
             placeholder="Confirmation"
             value={form.confirmPassword}
             onChange={handleFormChange}
+            autoComplete="new-password"
             required
           />
           <button type="button" onClick={() => setShowConfirmPassword((v) => !v)}>

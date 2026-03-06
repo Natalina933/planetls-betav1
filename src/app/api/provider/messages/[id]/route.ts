@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
 import {
   isProviderSchemaMissing,
+  providerDb,
   providerSchemaMissingResponse,
   requireProviderAuth,
   toProviderJsonRecord,
@@ -20,8 +20,7 @@ type ProviderConversation = {
 };
 
 async function getConversationForProvider(id: string, providerProfileId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (db as any)
+  const { data, error } = await providerDb
     .from("provider_conversations")
     .select(
       "id, provider_profile_id, client_id, subject, status, last_message_preview, last_message_at, created_at, updated_at",
@@ -61,8 +60,7 @@ export async function GET(
     return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: messages, error: messagesError } = await (db as any)
+  const { data: messages, error: messagesError } = await providerDb
     .from("provider_messages")
     .select("id, conversation_id, sender_profile_id, body, metadata, created_at")
     .eq("conversation_id", id)
@@ -84,7 +82,7 @@ export async function GET(
       ),
     ]),
   );
-  const { data: profiles, error: profilesError } = await db
+  const { data: profiles, error: profilesError } = await providerDb
     .from("profiles")
     .select("id, first_name, last_name, username, company_name")
     .in("id", participantIds);
@@ -95,8 +93,7 @@ export async function GET(
 
   let client = null;
   if (conversation.client_id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: clientData, error: clientError } = await (db as any)
+    const { data: clientData, error: clientError } = await providerDb
       .from("provider_clients")
       .select("id, client_name, company_name, email, phone, city, owner_profile_id")
       .eq("id", conversation.client_id)
@@ -160,8 +157,7 @@ export async function POST(
     return NextResponse.json({ error: "Conversation fermee" }, { status: 400 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: createdMessage, error: messageError } = await (db as any)
+  const { data: createdMessage, error: messageError } = await providerDb
     .from("provider_messages")
     .insert({
       conversation_id: id,

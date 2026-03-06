@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import styles from "./ProviderMessagesPage.module.scss";
@@ -112,7 +112,7 @@ function ProviderMessagesContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  async function loadConversations(preferredId?: string) {
+  const loadConversations = useCallback(async (preferredId?: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -126,17 +126,17 @@ function ProviderMessagesContent() {
 
       setList(payload);
       const rows = Array.isArray(payload.items) ? payload.items : [];
-      const nextId =
-        (preferredId && rows.some((item) => item.id === preferredId) && preferredId) ||
-        (targetConversationId &&
-          rows.some((item) => item.id === targetConversationId) &&
-          targetConversationId) ||
-        (activeConversationId &&
-        rows.some((item) => item.id === activeConversationId)
-          ? activeConversationId
-          : rows[0]?.id || "");
-
-      setActiveConversationId(nextId);
+      setActiveConversationId((currentActiveId) => {
+        return (
+          (preferredId && rows.some((item) => item.id === preferredId) && preferredId) ||
+          (targetConversationId &&
+            rows.some((item) => item.id === targetConversationId) &&
+            targetConversationId) ||
+          (currentActiveId && rows.some((item) => item.id === currentActiveId)
+            ? currentActiveId
+            : rows[0]?.id || "")
+        );
+      });
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Impossible de charger vos conversations.",
@@ -144,7 +144,7 @@ function ProviderMessagesContent() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [targetConversationId]);
 
   async function loadConversationDetail(conversationId: string) {
     if (!conversationId) {
@@ -177,7 +177,7 @@ function ProviderMessagesContent() {
 
   useEffect(() => {
     void loadConversations(targetConversationId || undefined);
-  }, [targetConversationId]);
+  }, [loadConversations, targetConversationId]);
 
   useEffect(() => {
     let cancelled = false;

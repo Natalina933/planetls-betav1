@@ -16,7 +16,7 @@ import styles from "./page.module.scss";
 const onboardingSteps = [
   {
     title: "Présentez votre activité",
-    description: "Renseignez votre profil, votre zone d'intervention et vos spécialités métier.",
+    description: "Renseignez votre profil, votre zone d’intervention et vos spécialités métier.",
   },
   {
     title: "Activez vos services",
@@ -49,7 +49,7 @@ const actionSteps = [
   {
     icon: Wrench,
     title: "2. Suivre les interventions",
-    description: "Gardez visibles les missions ouvertes, en attente ou proches de l'exécution.",
+    description: "Gardez visibles les missions ouvertes, en attente ou proches de l’exécution.",
     href: "/dashboard/provider/interventions",
     cta: "Voir les interventions",
   },
@@ -108,7 +108,7 @@ export default function ProviderLandingPage() {
 
         <aside className={styles.heroPanel}>
           <p className={styles.panelEyebrow}>Objectif</p>
-          <h2>Passer d'activité locale à exécution pilotée</h2>
+          <h2>Passer d’activité locale à exécution pilotée</h2>
           <p className={styles.panelLead}>
             Le bon parcours artisan ne consiste pas seulement à recevoir une demande. Il faut aussi
             traiter les alertes, suivre les clients et garder un flux d&apos;intervention propre.
@@ -134,7 +134,7 @@ export default function ProviderLandingPage() {
         <div className={styles.sectionHeading}>
           <span className={styles.sectionKicker}>Onboarding</span>
           <h2>Un parcours partenaire en 4 étapes</h2>
-          <p>Commencez par votre profil, puis l'exécution terrain, puis la relation client.</p>
+          <p>Commencez par votre profil, puis l’exécution terrain, puis la relation client.</p>
         </div>
 
         <div className={styles.stepGrid}>

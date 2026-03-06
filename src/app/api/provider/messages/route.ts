@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
 import {
   isProviderSchemaMissing,
+  providerDb,
   providerSchemaMissingResponse,
   requireProviderAuth,
   toProviderJsonRecord,
@@ -22,8 +22,7 @@ export async function GET(req: NextRequest) {
   if (!providerProfileId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (db as any)
+  const { data, error } = await providerDb
     .from("provider_conversations")
     .select("id, client_id, subject, status, last_message_preview, last_message_at, created_at")
     .eq("provider_profile_id", providerProfileId)
@@ -53,8 +52,7 @@ export async function GET(req: NextRequest) {
   const clientsById = new Map<string, ProviderClientLookupRow>();
 
   if (clientIds.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: clients, error: clientsError } = await (db as any)
+    const { data: clients, error: clientsError } = await providerDb
       .from("provider_clients")
       .select("id, client_name, company_name")
       .in("id", clientIds);
@@ -107,8 +105,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "client_id requis" }, { status: 400 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: client, error: clientError } = await (db as any)
+  const { data: client, error: clientError } = await providerDb
     .from("provider_clients")
     .select("id")
     .eq("id", clientId)
@@ -125,8 +122,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Client introuvable" }, { status: 404 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: conversation, error: conversationError } = await (db as any)
+  const { data: conversation, error: conversationError } = await providerDb
     .from("provider_conversations")
     .insert({
       provider_profile_id: providerProfileId,
@@ -147,8 +143,7 @@ export async function POST(req: NextRequest) {
 
   let createdMessage = null;
   if (content) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: message, error: messageError } = await (db as any)
+    const { data: message, error: messageError } = await providerDb
       .from("provider_messages")
       .insert({
         conversation_id: conversation.id,

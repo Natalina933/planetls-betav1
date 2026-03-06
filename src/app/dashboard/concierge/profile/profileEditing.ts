@@ -99,6 +99,11 @@ interface MissionProfileLike {
   missions: MissionProfileMissionLike[];
 }
 
+interface LegacyMissionProfileInputLike {
+  missions: MissionProfileMissionLike[];
+  positioning?: "standard" | "urgent_24_7" | "premium";
+}
+
 interface MissionPayloadLike {
   missionProfile: MissionProfileLike;
   missionCatalog: MissionCatalogLike[];
@@ -870,7 +875,7 @@ export function syncMissionServiceFromPricing<TProfile extends ProfileWithAvaila
     catalogServices: CatalogServiceLabelLike[];
     parseMissionPayload: (value?: string | null) => MissionPayloadLike;
     parseAvailabilityPayloadRaw: (value?: string | null) => Record<string, unknown>;
-    buildLegacyFromMissionProfile: (missionProfile: any) => {
+    buildLegacyFromMissionProfile: (missionProfile: LegacyMissionProfileInputLike) => {
       missionCatalog: MissionCatalogLike[];
       preferences: unknown;
     };

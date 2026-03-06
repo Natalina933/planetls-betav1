@@ -31,6 +31,8 @@ import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvaila
 import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
 import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
+import type { ConciergeTabId } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+import type { MissionAvailability } from "@/app/components/missions/types";
 
 type RenderSection = (
   title: string,
@@ -41,7 +43,102 @@ type RenderSection = (
   showEditTop?: boolean,
 ) => React.ReactNode;
 
-type RenderField = (...args: any[]) => React.ReactNode;
+type RenderField = (label: string, ...args: unknown[]) => React.ReactNode;
+type TabIconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
+type MissionProgressStepItem = {
+  key: string;
+  label: string;
+  hint: string;
+  done: boolean;
+  sectionId?: string;
+};
+type MissionQuoteRowItem = { id: string; title: string; status: string };
+type MissionCatalogItem = {
+  id: string;
+  label: string;
+  basePrice?: number | null;
+  customizable?: boolean;
+};
+type MissionProfileItem = {
+  id: string;
+  label: string;
+  isActive: boolean;
+  minNoticeHours: number;
+  allowUrgent: boolean;
+  urgentMultiplier: number;
+};
+type MissionPayloadState = {
+  missionProfile: { missions: MissionProfileItem[] };
+  missionCatalog: MissionCatalogItem[];
+  preferences: unknown;
+};
+type MissionAvailabilityState = MissionAvailability;
+type EditProfileStateLike = {
+  availability_hours?: string | null;
+  [key: string]: unknown;
+} | null;
+type SetEditProfile = React.Dispatch<React.SetStateAction<EditProfileStateLike>>;
+type PricingModalState = {
+  id?: string;
+  serviceId: string;
+  label: string;
+  amount: string;
+  unit: string;
+  type: string;
+};
+type PricingCatalogRow = {
+  id?: string;
+  service_id?: number | null;
+  label?: string | null;
+  type?: string | null;
+  amount?: number | null;
+  unit?: string | null;
+};
+type PricingSegmentDraft = {
+  name: string;
+  commission_delta_pct: string;
+  setup_fee_delta_pct: string;
+};
+type PricingSegment = {
+  id: string;
+  name: string;
+  commission_delta_pct: number;
+  setup_fee_delta_pct: number;
+  is_default?: boolean;
+};
+type PricingPropertyRuleDraft = {
+  service_id: string;
+  property_type: string;
+  min_surface_m2: string;
+  max_surface_m2: string;
+  delta_pct: string;
+};
+type PricingPropertyRule = {
+  id: string;
+  service_id: number | null;
+  property_type: string | null;
+  min_surface_m2: number | null;
+  max_surface_m2: number | null;
+  delta_pct: number;
+};
+type PricingStrategySim = {
+  segmentId: string;
+  serviceId: string;
+  propertyType: string;
+  surfaceM2: string;
+  revenueEstimate: string;
+  newListingsCount: string;
+  actServicesCount: string;
+  isUrgent: boolean;
+  isNight: boolean;
+  isWeekend: boolean;
+  isHighSeason: boolean;
+};
+type PricingScenario = {
+  id: string;
+  name: string;
+  is_default: boolean;
+};
 
 interface EditableProfileFieldProps {
   styles: Record<string, string>;
@@ -114,7 +211,7 @@ interface FicheTabSectionProps {
   renderSection: RenderSection;
   renderField: RenderField;
   formatExperienceLabel: (level: "debutant" | "intermediaire" | "experimente" | null) => string;
-  setEditProfile: React.Dispatch<React.SetStateAction<any>>;
+  setEditProfile: SetEditProfile;
   handleSaveSection: (sectionTitle: string) => void;
   beginSectionEdit: (sectionId: string) => void;
 }
@@ -127,7 +224,7 @@ interface FicheSidebarCardProps {
   avatarFile: File | null;
   defaultAvatar: string;
   setAvatarFile: (file: File | null) => void;
-  setEditProfile: React.Dispatch<React.SetStateAction<any>>;
+  setEditProfile: SetEditProfile;
   handleSaveSection: (sectionTitle: string) => void;
   beginSectionEdit: (sectionId: string) => void;
 }
@@ -147,7 +244,7 @@ interface FichePersonalInfoSectionProps {
   editProfile: any;
   editingSection: string | null;
   sectionId: string;
-  setEditProfile: React.Dispatch<React.SetStateAction<any>>;
+  setEditProfile: SetEditProfile;
   formatExperienceLabel: (level: "debutant" | "intermediaire" | "experimente" | null) => string;
 }
 
@@ -180,13 +277,13 @@ interface MissionsSecondaryPanelsProps {
   missionProgressTotal: number;
   showPendingMissionStepsOnly: boolean;
   setShowPendingMissionStepsOnly: React.Dispatch<React.SetStateAction<boolean>>;
-  missionProgressSteps: any[];
+  missionProgressSteps: MissionProgressStepItem[];
   openMissionSectionForEdit: (sectionId: string) => void;
   renderSection: RenderSection;
   missionQuoteControls: {
     selectedMissionQuoteId: string;
     setSelectedMissionQuoteId: React.Dispatch<React.SetStateAction<string>>;
-    missionRows: any[];
+    missionRows: MissionQuoteRowItem[];
     missionQuoteBusy: boolean;
     createQuoteFromMission: () => void;
     missionQuoteFeedback: string;
@@ -204,24 +301,24 @@ interface ConciergeProfileShellProps {
   successMsg: string | null;
   errorMsg: string | null;
   tabs: Array<{
-    id: string;
+    id: ConciergeTabId;
     label: string;
-    icon: React.ComponentType<any>;
+    icon: TabIconComponent;
   }>;
-  activeTab: string;
-  onTabChange: (tabId: any) => void;
+  activeTab: ConciergeTabId;
+  onTabChange: (tabId: ConciergeTabId) => void;
   activeTabContent: React.ReactNode;
 }
 
 interface ConciergeTabNavigationProps {
   styles: Record<string, string>;
   tabs: Array<{
-    id: string;
+    id: ConciergeTabId;
     label: string;
-    icon: React.ComponentType<any>;
+    icon: TabIconComponent;
   }>;
-  activeTab: string;
-  onTabChange: (tabId: any) => void;
+  activeTab: ConciergeTabId;
+  onTabChange: (tabId: ConciergeTabId) => void;
 }
 
 interface ConciergeNotificationsProps {
@@ -538,17 +635,22 @@ interface MissionsPrimarySectionsProps {
     WEEKLY_AVAILABILITY: string;
   };
   editingSection: string | null;
-  missionPayload: any;
-  missionAvailability: any;
+  missionPayload: MissionPayloadState;
+  missionAvailability: MissionAvailabilityState;
   unrecognizedActiveMissionLabels: string[];
   removeUnrecognizedServices: () => void;
   catalogSyncBusy: boolean;
-  setEditProfile: React.Dispatch<React.SetStateAction<any>>;
-  parseAvailabilityPayloadRaw: (value: string | null | undefined) => any;
-  parseMissionPayload: (value: string | null | undefined) => any;
-  buildLegacyFromMissionProfile: (profile: any) => any;
+  setEditProfile: SetEditProfile;
+  parseAvailabilityPayloadRaw: (value: string | null | undefined) => Record<string, unknown>;
+  parseMissionPayload: (value: string | null | undefined) => MissionPayloadState;
+  buildLegacyFromMissionProfile: (profile: MissionPayloadState["missionProfile"]) => {
+    missionCatalog: MissionCatalogItem[];
+    preferences: unknown;
+  };
   toMissionTypeId: (value: string) => string;
-  normalizeMissionSchedule: (schedule: any) => any;
+  normalizeMissionSchedule: (
+    schedule: MissionAvailability["schedule"],
+  ) => MissionAvailability["schedule"];
 }
 
 interface MissionServicesSectionProps extends MissionsPrimarySectionsProps {}
@@ -558,19 +660,21 @@ interface MissionZoneRulesSectionProps {
   renderField: RenderField;
   sectionId: string;
   editingSection: string | null;
-  missionAvailability: any;
-  setEditProfile: React.Dispatch<React.SetStateAction<any>>;
-  parseAvailabilityPayloadRaw: (value: string | null | undefined) => any;
+  missionAvailability: MissionAvailabilityState;
+  setEditProfile: SetEditProfile;
+  parseAvailabilityPayloadRaw: (value: string | null | undefined) => Record<string, unknown>;
 }
 
 interface MissionWeeklyAvailabilitySectionProps {
   renderSection: RenderSection;
   sectionId: string;
   editingSection: string | null;
-  missionAvailability: any;
-  setEditProfile: React.Dispatch<React.SetStateAction<any>>;
-  parseAvailabilityPayloadRaw: (value: string | null | undefined) => any;
-  normalizeMissionSchedule: (schedule: any) => any;
+  missionAvailability: MissionAvailabilityState;
+  setEditProfile: SetEditProfile;
+  parseAvailabilityPayloadRaw: (value: string | null | undefined) => Record<string, unknown>;
+  normalizeMissionSchedule: (
+    schedule: MissionAvailability["schedule"],
+  ) => MissionAvailability["schedule"];
 }
 
 interface MissionProgressPanelSectionProps {
@@ -598,6 +702,97 @@ interface MissionQuickQuoteSectionProps {
   missionQuoteBusy: boolean;
   createQuoteFromMission: () => void;
   missionQuoteFeedback: string;
+}
+
+interface MissionProgressControlsLike {
+  missionProgressPercent: number;
+  missionProgressDoneCount: number;
+  missionProgressSteps: MissionProgressStepItem[];
+  showPendingMissionStepsOnly: boolean;
+  setShowPendingMissionStepsOnly: React.Dispatch<React.SetStateAction<boolean>>;
+  openMissionSectionForEdit: (sectionId: string) => void;
+}
+
+interface MissionOverviewStatsLike {
+  activeMissionRawLabels: string[];
+  recognizedActiveMissionCount: number;
+  unrecognizedActiveMissionLabels: string[];
+  missionOpenDaysCount: number;
+  missionRangesCount: number;
+  missionAvailability: MissionAvailabilityState | null;
+}
+
+interface ProfileEditorControlsLike {
+  editProfile: unknown;
+  editingSection: string | null;
+  renderSection: RenderSection;
+  renderField: unknown;
+  formatExperienceLabel: (level: "debutant" | "intermediaire" | "experimente" | null) => string;
+  setEditProfile: unknown;
+  handleSaveSection: (sectionTitle: string) => void;
+  beginSectionEdit: (sectionId: string) => void;
+}
+
+interface MissionFoundationControlsLike {
+  missionPayload: MissionPayloadState;
+  missionAvailability: MissionAvailabilityState | null;
+  unrecognizedActiveMissionLabels: string[];
+  removeUnrecognizedServices: () => void;
+  catalogSyncBusy: boolean;
+  setEditProfile: unknown;
+  parseAvailabilityPayloadRaw: (value: string | null | undefined) => Record<string, unknown>;
+  parseMissionPayload: (value: string | null | undefined) => MissionPayloadState;
+  buildLegacyFromMissionProfile: (profile: MissionPayloadState["missionProfile"]) => {
+    missionCatalog: MissionCatalogItem[];
+    preferences: unknown;
+  };
+  toMissionTypeId: (value: string) => string;
+  normalizeMissionSchedule: (
+    schedule: MissionAvailability["schedule"],
+  ) => MissionAvailability["schedule"];
+}
+
+interface ConciergeProfileActiveTabContentProps {
+  activeTab: ConciergeTabId;
+  styles: Record<string, string>;
+  ficheControls: FicheTabSectionProps["ficheControls"];
+  profileEditorControls: ProfileEditorControlsLike;
+  missionSectionIds: MissionsPrimarySectionsProps["sectionIds"];
+  tariffSectionIds: Record<string, string>;
+  missionProgressControls: MissionProgressControlsLike;
+  missionOverviewStats: MissionOverviewStatsLike;
+  missionQuoteControls: MissionsSecondaryPanelsProps["missionQuoteControls"];
+  missionFoundationControls: MissionFoundationControlsLike;
+  simpleTabControls: {
+    renderSection: RenderSection;
+    renderField: unknown;
+    placeholderClassName: string;
+    profile?: unknown;
+    activeMissionServiceCatalogIds: string[];
+    activeMissionServiceLabels: string[];
+  };
+  tariffOverviewControls: unknown;
+  tariffFoundationControls: unknown;
+  tariffConfigControls: unknown;
+  pricingCatalogRows: unknown;
+  tariffCatalogControls: unknown;
+  pricingSegmentsControls: unknown;
+  pricingRulesControls: unknown;
+  pricingScenarioControls: unknown;
+  pricingModalControls: unknown;
+  billingDeskSectionProps: unknown;
+}
+
+interface ConciergeMissionsTabContentProps {
+  styles: Record<string, string>;
+  renderSection: RenderSection;
+  renderField: RenderField;
+  sectionIds: MissionsPrimarySectionsProps["sectionIds"];
+  editingSection: string | null;
+  missionProgressControls: MissionProgressControlsLike;
+  missionOverviewStats: MissionOverviewStatsLike;
+  missionQuoteControls: MissionsSecondaryPanelsProps["missionQuoteControls"];
+  missionFoundationControls: MissionFoundationControlsLike;
 }
 
 interface TariffWorkflowSectionProps {
@@ -698,7 +893,7 @@ interface TariffBillingDeskSectionProps {
 interface TariffPricingModalProps {
   styles: Record<string, string>;
   isOpen: boolean;
-  state: any;
+  state: PricingModalState;
   catalogServices: Array<{ id: number; service: string }>;
   saving: boolean;
   canEdit: boolean;
@@ -707,7 +902,7 @@ interface TariffPricingModalProps {
   closeModal: () => void;
   saveServicePrice: () => void;
   resetState: () => void;
-  setState: React.Dispatch<React.SetStateAction<any>>;
+  setState: React.Dispatch<React.SetStateAction<PricingModalState>>;
 }
 
 interface TariffServicesCatalogSectionProps {
@@ -734,9 +929,9 @@ interface TariffServicesCatalogSectionProps {
   collapsedPricingCategories: Record<string, boolean>;
   togglePricingCategory: (category: string) => void;
   pricingServiceActions: {
-    openCreatePricingModal: (service?: any) => void;
-    openEditPricingModal: (pricing: any) => void;
-    deleteServicePrice: (pricing: any) => void;
+    openCreatePricingModal: (service?: { id: number; service: string }) => void;
+    openEditPricingModal: (pricing: PricingCatalogRow) => void;
+    deleteServicePrice: (pricing: PricingCatalogRow) => void;
     resetAllServicePrices: () => void;
   };
 }
@@ -744,37 +939,37 @@ interface TariffServicesCatalogSectionProps {
 interface TariffSegmentsSectionProps {
   styles: Record<string, string>;
   canEditTariffConfig: boolean;
-  segmentDraft: any;
-  setSegmentDraft: React.Dispatch<React.SetStateAction<any>>;
+  segmentDraft: PricingSegmentDraft;
+  setSegmentDraft: React.Dispatch<React.SetStateAction<PricingSegmentDraft>>;
   segmentsBusyId: string | null;
   createPricingSegment: () => void;
   segmentsLoading: boolean;
-  pricingSegments: any[];
-  setPricingSegments: React.Dispatch<React.SetStateAction<any[]>>;
-  updatePricingSegment: (segment: any) => void;
+  pricingSegments: PricingSegment[];
+  setPricingSegments: React.Dispatch<React.SetStateAction<PricingSegment[]>>;
+  updatePricingSegment: (segment: PricingSegment) => void;
   deletePricingSegment: (id: string) => void;
 }
 
 interface TariffPropertyRulesSectionProps {
   styles: Record<string, string>;
   canEditTariffConfig: boolean;
-  propertyRuleDraft: any;
-  setPropertyRuleDraft: React.Dispatch<React.SetStateAction<any>>;
+  propertyRuleDraft: PricingPropertyRuleDraft;
+  setPropertyRuleDraft: React.Dispatch<React.SetStateAction<PricingPropertyRuleDraft>>;
   propertyRulesBusyId: string | null;
   createPricingPropertyRule: () => void;
   propertyRulesLoading: boolean;
-  propertyRules: any[];
-  setPropertyRules: React.Dispatch<React.SetStateAction<any[]>>;
-  updatePricingPropertyRule: (rule: any) => void;
+  propertyRules: PricingPropertyRule[];
+  setPropertyRules: React.Dispatch<React.SetStateAction<PricingPropertyRule[]>>;
+  updatePricingPropertyRule: (rule: PricingPropertyRule) => void;
   deletePricingPropertyRule: (id: string) => void;
   catalogServices: Array<{ id: number; service: string }>;
 }
 
 interface TariffStrategySectionProps {
   styles: Record<string, string>;
-  strategySim: any;
-  setStrategySim: React.Dispatch<React.SetStateAction<any>>;
-  pricingSegments: any[];
+  strategySim: PricingStrategySim;
+  setStrategySim: React.Dispatch<React.SetStateAction<PricingStrategySim>>;
+  pricingSegments: PricingSegment[];
   catalogServices: Array<{ id: number; service: string }>;
   propertyTypeOptions: Array<{ key: string; label: string }>;
   applyStrategyProjectionToBillingDesk: () => void;
@@ -785,9 +980,9 @@ interface TariffStrategySectionProps {
   createPricingScenario: () => void;
   resetStrategySim: () => void;
   scenariosLoading: boolean;
-  pricingScenarios: any[];
-  loadPricingScenario: (row: any) => void;
-  setDefaultPricingScenario: (row: any) => void;
+  pricingScenarios: PricingScenario[];
+  loadPricingScenario: (row: PricingScenario) => void;
+  setDefaultPricingScenario: (row: PricingScenario) => void;
   deletePricingScenario: (id: string) => void;
   selectedPricingSegmentName: string;
   strategyProjection: {
@@ -931,7 +1126,7 @@ export function ConciergeProfileActiveTabContent({
   pricingScenarioControls,
   pricingModalControls,
   billingDeskSectionProps,
-}: any) {
+}: ConciergeProfileActiveTabContentProps) {
   if (!ficheControls?.profile || !profileEditorControls?.editProfile) return null;
 
   switch (activeTab) {
@@ -943,9 +1138,9 @@ export function ConciergeProfileActiveTabContent({
           editProfile={profileEditorControls.editProfile}
           editingSection={profileEditorControls.editingSection}
           renderSection={profileEditorControls.renderSection}
-          renderField={profileEditorControls.renderField}
+          renderField={profileEditorControls.renderField as RenderField}
           formatExperienceLabel={profileEditorControls.formatExperienceLabel}
-          setEditProfile={profileEditorControls.setEditProfile}
+          setEditProfile={profileEditorControls.setEditProfile as SetEditProfile}
           handleSaveSection={profileEditorControls.handleSaveSection}
           beginSectionEdit={profileEditorControls.beginSectionEdit}
         />
@@ -955,7 +1150,7 @@ export function ConciergeProfileActiveTabContent({
         <ConciergeMissionsTabContent
           styles={styles}
           renderSection={profileEditorControls.renderSection}
-          renderField={profileEditorControls.renderField}
+          renderField={profileEditorControls.renderField as RenderField}
           sectionIds={missionSectionIds}
           editingSection={profileEditorControls.editingSection}
           missionProgressControls={missionProgressControls}
@@ -986,7 +1181,7 @@ export function ConciergeProfileActiveTabContent({
           editingSection={profileEditorControls.editingSection}
           pricingCatalogRows={pricingCatalogRows}
           activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
-          renderField={profileEditorControls.renderField}
+          renderField={profileEditorControls.renderField as RenderField}
           tariffCatalogControls={tariffCatalogControls}
           pricingSegmentsControls={pricingSegmentsControls}
           pricingRulesControls={pricingRulesControls}
@@ -1009,7 +1204,7 @@ export function ConciergeProfileActiveTabContent({
           editingSection={profileEditorControls.editingSection}
           pricingCatalogRows={pricingCatalogRows}
           activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
-          renderField={profileEditorControls.renderField}
+          renderField={profileEditorControls.renderField as RenderField}
           tariffCatalogControls={tariffCatalogControls}
           pricingSegmentsControls={pricingSegmentsControls}
           pricingRulesControls={pricingRulesControls}
@@ -1023,7 +1218,7 @@ export function ConciergeProfileActiveTabContent({
       return (
         <ConciergeTeamTabContent
           renderSection={profileEditorControls.renderSection}
-          renderField={profileEditorControls.renderField}
+          renderField={profileEditorControls.renderField as RenderField}
         />
       );
     case "documents":
@@ -1070,12 +1265,12 @@ function FicheSidebarCard({
           existingRotation={editProfile.avatar_rotation ?? 0}
           onAvatarChange={setAvatarFile}
           onAvatarScaleChange={(scale) =>
-            setEditProfile((prev: any) =>
+            setEditProfile((prev: EditProfileStateLike) =>
               prev ? { ...prev, avatar_scale: scale } : prev,
             )
           }
           onAvatarOffsetChange={(offsetX, offsetY) =>
-            setEditProfile((prev: any) =>
+            setEditProfile((prev: EditProfileStateLike) =>
               prev
                 ? {
                     ...prev,
@@ -1086,14 +1281,14 @@ function FicheSidebarCard({
             )
           }
           onAvatarRotationChange={(rotation) =>
-            setEditProfile((prev: any) =>
+            setEditProfile((prev: EditProfileStateLike) =>
               prev ? { ...prev, avatar_rotation: rotation } : prev,
             )
           }
           onAvatarSave={() => handleSaveSection("Photo de profil")}
           onAvatarRemove={() => {
             setAvatarFile(null);
-            setEditProfile((prev: any) =>
+            setEditProfile((prev: EditProfileStateLike) =>
               prev
                 ? {
                     ...prev,
@@ -1223,7 +1418,7 @@ function FichePersonalInfoSection({
             value={editProfile.experience_level ?? ""}
             onChange={(e) => {
               const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
-              setEditProfile((prev: any) =>
+              setEditProfile((prev: EditProfileStateLike) =>
                 prev
                   ? {
                       ...prev,
@@ -1643,11 +1838,11 @@ export function MissionServicesSection({
     <>
       <MissionDetails
         selectedServices={missionPayload.missionProfile.missions
-          .filter((mission: any) => mission.isActive)
-          .map((mission: any) => mission.label)}
+          .filter((mission) => mission.isActive)
+          .map((mission) => mission.label)}
         isEditing={editingSection === sectionIds.SERVICES}
         onChangeOption={(selected) =>
-          setEditProfile((prev: any) =>
+          setEditProfile((prev: EditProfileStateLike) =>
             prev
               ? (() => {
                   const existingPayload = parseAvailabilityPayloadRaw(prev.availability_hours);
@@ -1732,7 +1927,7 @@ export function MissionZoneRulesSection({
         showScheduleSection={false}
         showRulesSection={false}
         onChange={(data) =>
-          setEditProfile((prev: any) =>
+          setEditProfile((prev: EditProfileStateLike) =>
             prev ? buildProfileZoneUpdate(prev, data, parseAvailabilityPayloadRaw) : prev,
           )
         }
@@ -1759,7 +1954,7 @@ export function MissionWeeklyAvailabilitySection({
         emergency24h={missionAvailability?.emergency24h ?? false}
         isEditing={editingSection === sectionId}
         onChange={(schedule, emergency24h) =>
-          setEditProfile((prev: any) =>
+          setEditProfile((prev: EditProfileStateLike) =>
             prev
               ? buildProfileWeeklyAvailabilityUpdate(
                   prev,
@@ -1957,7 +2152,7 @@ export function ConciergeMissionsTabContent({
   missionOverviewStats,
   missionQuoteControls,
   missionFoundationControls,
-}: any) {
+}: ConciergeMissionsTabContentProps) {
   return (
     <MissionsTabLayout
       styles={styles}
@@ -1995,11 +2190,23 @@ export function ConciergeMissionsTabContent({
         sectionIds={sectionIds}
         editingSection={editingSection}
         missionPayload={missionFoundationControls.missionPayload}
-        missionAvailability={missionFoundationControls.missionAvailability}
+        missionAvailability={
+          missionFoundationControls.missionAvailability ?? {
+            zones: [],
+            radiusKm: 0,
+            schedule: [],
+            emergency24h: false,
+            rules: {
+              refuseOutOfZone: true,
+              refuseOutOfSchedule: true,
+              autoAcceptEmergency: false,
+            },
+          }
+        }
         unrecognizedActiveMissionLabels={missionFoundationControls.unrecognizedActiveMissionLabels}
         removeUnrecognizedServices={missionFoundationControls.removeUnrecognizedServices}
         catalogSyncBusy={missionFoundationControls.catalogSyncBusy}
-        setEditProfile={missionFoundationControls.setEditProfile}
+        setEditProfile={missionFoundationControls.setEditProfile as SetEditProfile}
         parseAvailabilityPayloadRaw={missionFoundationControls.parseAvailabilityPayloadRaw}
         parseMissionPayload={missionFoundationControls.parseMissionPayload}
         buildLegacyFromMissionProfile={missionFoundationControls.buildLegacyFromMissionProfile}
@@ -2417,7 +2624,7 @@ export function TariffPricingModal({
               title="Service du tarif"
               value={state.serviceId}
               onChange={(e) =>
-                setState((prev: any) => ({
+                setState((prev) => ({
                   ...prev,
                   serviceId: e.target.value,
                   label:
@@ -2443,7 +2650,7 @@ export function TariffPricingModal({
               type="text"
               value={state.label}
               onChange={(e) =>
-                setState((prev: any) => ({
+                setState((prev) => ({
                   ...prev,
                   label: e.target.value,
                 }))
@@ -2462,7 +2669,7 @@ export function TariffPricingModal({
                 step="1"
                 value={state.amount}
                 onChange={(e) =>
-                  setState((prev: any) => ({
+                  setState((prev) => ({
                     ...prev,
                     amount: e.target.value,
                   }))
@@ -2477,7 +2684,7 @@ export function TariffPricingModal({
                 title="Unite du tarif"
                 value={state.unit}
                 onChange={(e) =>
-                  setState((prev: any) => ({
+                  setState((prev) => ({
                     ...prev,
                     unit: e.target.value,
                   }))
@@ -2499,7 +2706,7 @@ export function TariffPricingModal({
               title="Type de tarification"
               value={state.type}
               onChange={(e) =>
-                setState((prev: any) => ({
+                setState((prev) => ({
                   ...prev,
                   type: e.target.value,
                 }))
@@ -2720,7 +2927,7 @@ export function TariffSegmentsSection({
           placeholder="Nom du segment (ex: Grands comptes)"
           value={segmentDraft.name}
           disabled={!canEditTariffConfig}
-          onChange={(e) => setSegmentDraft((prev: any) => ({ ...prev, name: e.target.value }))}
+          onChange={(e) => setSegmentDraft((prev) => ({ ...prev, name: e.target.value }))}
         />
         <input
           type="number"
@@ -2729,7 +2936,7 @@ export function TariffSegmentsSection({
           value={segmentDraft.commission_delta_pct}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setSegmentDraft((prev: any) => ({
+            setSegmentDraft((prev) => ({
               ...prev,
               commission_delta_pct: e.target.value,
             }))
@@ -2742,7 +2949,7 @@ export function TariffSegmentsSection({
           value={segmentDraft.setup_fee_delta_pct}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setSegmentDraft((prev: any) => ({
+            setSegmentDraft((prev) => ({
               ...prev,
               setup_fee_delta_pct: e.target.value,
             }))
@@ -2771,7 +2978,7 @@ export function TariffSegmentsSection({
                 value={segment.name}
                 disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
                 onChange={(e) =>
-                  setPricingSegments((prev: any[]) =>
+                  setPricingSegments((prev) =>
                     prev.map((item) =>
                       item.id === segment.id ? { ...item, name: e.target.value } : item,
                     ),
@@ -2785,7 +2992,7 @@ export function TariffSegmentsSection({
                 value={segment.commission_delta_pct}
                 disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
                 onChange={(e) =>
-                  setPricingSegments((prev: any[]) =>
+                  setPricingSegments((prev) =>
                     prev.map((item) =>
                       item.id === segment.id
                         ? { ...item, commission_delta_pct: Number(e.target.value || 0) }
@@ -2801,7 +3008,7 @@ export function TariffSegmentsSection({
                 value={segment.setup_fee_delta_pct}
                 disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
                 onChange={(e) =>
-                  setPricingSegments((prev: any[]) =>
+                  setPricingSegments((prev) =>
                     prev.map((item) =>
                       item.id === segment.id
                         ? { ...item, setup_fee_delta_pct: Number(e.target.value || 0) }
@@ -2816,7 +3023,7 @@ export function TariffSegmentsSection({
                   checked={segment.is_default}
                   disabled={!canEditTariffConfig || segmentsBusyId === segment.id}
                   onChange={(e) =>
-                    setPricingSegments((prev: any[]) =>
+                    setPricingSegments((prev) =>
                       prev.map((item) =>
                         item.id === segment.id
                           ? { ...item, is_default: e.target.checked }
@@ -2880,7 +3087,7 @@ export function TariffPropertyRulesSection({
           value={propertyRuleDraft.service_id}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setPropertyRuleDraft((prev: any) => ({
+            setPropertyRuleDraft((prev) => ({
               ...prev,
               service_id: e.target.value,
             }))
@@ -2900,7 +3107,7 @@ export function TariffPropertyRulesSection({
           value={propertyRuleDraft.property_type}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setPropertyRuleDraft((prev: any) => ({
+            setPropertyRuleDraft((prev) => ({
               ...prev,
               property_type: e.target.value,
             }))
@@ -2913,7 +3120,7 @@ export function TariffPropertyRulesSection({
           value={propertyRuleDraft.min_surface_m2}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setPropertyRuleDraft((prev: any) => ({
+            setPropertyRuleDraft((prev) => ({
               ...prev,
               min_surface_m2: e.target.value,
             }))
@@ -2926,7 +3133,7 @@ export function TariffPropertyRulesSection({
           value={propertyRuleDraft.max_surface_m2}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setPropertyRuleDraft((prev: any) => ({
+            setPropertyRuleDraft((prev) => ({
               ...prev,
               max_surface_m2: e.target.value,
             }))
@@ -2940,7 +3147,7 @@ export function TariffPropertyRulesSection({
           value={propertyRuleDraft.delta_pct}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
-            setPropertyRuleDraft((prev: any) => ({
+            setPropertyRuleDraft((prev) => ({
               ...prev,
               delta_pct: e.target.value,
             }))
@@ -2969,7 +3176,7 @@ export function TariffPropertyRulesSection({
                 value={rule.property_type ?? ""}
                 disabled={!canEditTariffConfig || propertyRulesBusyId === rule.id}
                 onChange={(e) =>
-                  setPropertyRules((prev: any[]) =>
+                  setPropertyRules((prev) =>
                     prev.map((item) =>
                       item.id === rule.id ? { ...item, property_type: e.target.value || null } : item,
                     ),
@@ -2983,7 +3190,7 @@ export function TariffPropertyRulesSection({
                 value={rule.min_surface_m2 ?? ""}
                 disabled={!canEditTariffConfig || propertyRulesBusyId === rule.id}
                 onChange={(e) =>
-                  setPropertyRules((prev: any[]) =>
+                  setPropertyRules((prev) =>
                     prev.map((item) =>
                       item.id === rule.id
                         ? { ...item, min_surface_m2: e.target.value ? Number(e.target.value) : null }
@@ -2999,7 +3206,7 @@ export function TariffPropertyRulesSection({
                 value={rule.max_surface_m2 ?? ""}
                 disabled={!canEditTariffConfig || propertyRulesBusyId === rule.id}
                 onChange={(e) =>
-                  setPropertyRules((prev: any[]) =>
+                  setPropertyRules((prev) =>
                     prev.map((item) =>
                       item.id === rule.id
                         ? { ...item, max_surface_m2: e.target.value ? Number(e.target.value) : null }
@@ -3015,7 +3222,7 @@ export function TariffPropertyRulesSection({
                 value={rule.delta_pct}
                 disabled={!canEditTariffConfig || propertyRulesBusyId === rule.id}
                 onChange={(e) =>
-                  setPropertyRules((prev: any[]) =>
+                  setPropertyRules((prev) =>
                     prev.map((item) =>
                       item.id === rule.id ? { ...item, delta_pct: Number(e.target.value || 0) } : item,
                     ),
@@ -3082,7 +3289,7 @@ export function TariffStrategySection({
           aria-label="Segment pour la simulation strategique"
           title="Segment pour la simulation strategique"
           value={strategySim.segmentId}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, segmentId: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, segmentId: e.target.value }))}
         >
           <option value="">Segment automatique (défaut)</option>
           {pricingSegments.map((segment) => (
@@ -3095,7 +3302,7 @@ export function TariffStrategySection({
           aria-label="Service acte pour la simulation strategique"
           title="Service acte pour la simulation strategique"
           value={strategySim.serviceId}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, serviceId: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, serviceId: e.target.value }))}
         >
           <option value="">Service acte (optionnel)</option>
           {catalogServices.map((service) => (
@@ -3108,7 +3315,7 @@ export function TariffStrategySection({
           aria-label="Type de bien pour la simulation strategique"
           title="Type de bien pour la simulation strategique"
           value={strategySim.propertyType}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, propertyType: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, propertyType: e.target.value }))}
         >
           {propertyTypeOptions.map((option) => (
             <option key={option.key} value={option.key}>
@@ -3122,7 +3329,7 @@ export function TariffStrategySection({
           min={0}
           step={1}
           value={strategySim.surfaceM2}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, surfaceM2: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, surfaceM2: e.target.value }))}
           placeholder="Surface m2"
         />
         <input
@@ -3131,7 +3338,7 @@ export function TariffStrategySection({
           min={0}
           step={100}
           value={strategySim.revenueEstimate}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, revenueEstimate: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, revenueEstimate: e.target.value }))}
           placeholder="Revenus mensuels EUR"
         />
         <input
@@ -3140,7 +3347,7 @@ export function TariffStrategySection({
           min={0}
           step={1}
           value={strategySim.newListingsCount}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, newListingsCount: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, newListingsCount: e.target.value }))}
           placeholder="Nouveaux logements / mois"
         />
       </div>
@@ -3151,14 +3358,14 @@ export function TariffStrategySection({
           min={0}
           step={1}
           value={strategySim.actServicesCount}
-          onChange={(e) => setStrategySim((prev: any) => ({ ...prev, actServicesCount: e.target.value }))}
+          onChange={(e) => setStrategySim((prev) => ({ ...prev, actServicesCount: e.target.value }))}
           placeholder="Services a l'acte / mois"
         />
         <label className={styles.tariffQuoteToggle}>
           <input
             type="checkbox"
             checked={strategySim.isUrgent}
-            onChange={(e) => setStrategySim((prev: any) => ({ ...prev, isUrgent: e.target.checked }))}
+            onChange={(e) => setStrategySim((prev) => ({ ...prev, isUrgent: e.target.checked }))}
           />
           <span>Urgence</span>
         </label>
@@ -3166,7 +3373,7 @@ export function TariffStrategySection({
           <input
             type="checkbox"
             checked={strategySim.isNight}
-            onChange={(e) => setStrategySim((prev: any) => ({ ...prev, isNight: e.target.checked }))}
+            onChange={(e) => setStrategySim((prev) => ({ ...prev, isNight: e.target.checked }))}
           />
           <span>Nuit</span>
         </label>
@@ -3174,7 +3381,7 @@ export function TariffStrategySection({
           <input
             type="checkbox"
             checked={strategySim.isWeekend}
-            onChange={(e) => setStrategySim((prev: any) => ({ ...prev, isWeekend: e.target.checked }))}
+            onChange={(e) => setStrategySim((prev) => ({ ...prev, isWeekend: e.target.checked }))}
           />
           <span>Week-end</span>
         </label>
@@ -3182,7 +3389,7 @@ export function TariffStrategySection({
           <input
             type="checkbox"
             checked={strategySim.isHighSeason}
-            onChange={(e) => setStrategySim((prev: any) => ({ ...prev, isHighSeason: e.target.checked }))}
+            onChange={(e) => setStrategySim((prev) => ({ ...prev, isHighSeason: e.target.checked }))}
           />
           <span>Haute saison</span>
         </label>
@@ -3501,5 +3708,7 @@ export function ConciergeTariffsTabContent({
     </div>
   );
 }
+
+
 
 

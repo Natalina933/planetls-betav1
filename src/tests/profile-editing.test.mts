@@ -274,7 +274,7 @@ test("validateProfileField enforces common profile formats", () => {
   assert.equal(validateProfileField("email", "bad-email"), "Email invalide");
 
   assert.equal(validateProfileField("phone", "+33612345678"), "");
-  assert.equal(validateProfileField("phone", "abc"), "Telephone invalide");
+  assert.equal(validateProfileField("phone", "abc"), "Téléphone invalide");
 
   assert.equal(validateProfileField("siret", "12345678901234"), "");
   assert.equal(

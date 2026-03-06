@@ -517,7 +517,10 @@ const inferPositioningFromLegacy = (
   return "standard";
 };
 
-const buildLegacyFromMissionProfile = (missionProfile: ConciergeMissionProfile) => {
+const buildLegacyFromMissionProfile = (missionProfile: {
+  missions: ConciergeMissionProfile["missions"];
+  positioning?: ConciergeMissionProfile["positioning"];
+}) => {
   const missionCatalog: MissionCatalogItem[] = missionProfile.missions.map(
     (mission) => ({
       id: mission.id,
