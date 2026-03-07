@@ -10,6 +10,7 @@ import {
 } from "../app/api/profiles/concierges/shared.ts";
 import {
   buildOwnerConciergeFilterOptions,
+  hasOwnerConciergeSearchCriteria,
   buildOwnerConciergeSearchParams,
   toggleOwnerConciergeService,
 } from "../app/dashboard/owner/concierges/searchHelpers.ts";
@@ -180,4 +181,30 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
 
   assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Check-in"), ["Menage", "Check-in"]);
   assert.deepEqual(toggleOwnerConciergeService(["Menage"], "Menage"), []);
+});
+
+test("hasOwnerConciergeSearchCriteria detects whether the owner started building a search", () => {
+  assert.equal(
+    hasOwnerConciergeSearchCriteria({
+      location: "",
+      selectedServices: [],
+      propertyType: "",
+      budgetMax: "",
+      radiusKm: "",
+      proOnly: false,
+    }),
+    false,
+  );
+
+  assert.equal(
+    hasOwnerConciergeSearchCriteria({
+      location: "Paris",
+      selectedServices: [],
+      propertyType: "",
+      budgetMax: "",
+      radiusKm: "",
+      proOnly: false,
+    }),
+    true,
+  );
 });

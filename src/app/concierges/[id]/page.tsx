@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 type PublicReview = {
@@ -40,6 +41,8 @@ const conciergeTheme = {
   title: "#3f2f14",
   body: "#5f5237",
 };
+
+const DEFAULT_CONCIERGE_AVATAR = "/icons/account-svgrepo-com.svg";
 
 function formatAmount(value: number | null, suffix: string) {
   if (typeof value !== "number") return "Non renseigne";
@@ -132,6 +135,29 @@ export default function PublicConciergeProfilePage({
             boxShadow: "0 18px 42px rgba(74, 53, 16, 0.08)",
           }}
         >
+          <div
+            style={{
+              width: 112,
+              height: 112,
+              borderRadius: 28,
+              overflow: "hidden",
+              border: "1px solid rgba(198, 166, 107, 0.24)",
+              background: "rgba(255,255,255,0.9)",
+              boxShadow: "0 12px 30px rgba(74, 53, 16, 0.08)",
+            }}
+          >
+            <Image
+              src={data?.profile.avatar_url || DEFAULT_CONCIERGE_AVATAR}
+              alt={
+                data?.profile.display_name
+                  ? `Avatar de ${data.profile.display_name}`
+                  : "Avatar du concierge"
+              }
+              width={112}
+              height={112}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
           <span
             style={{
               fontSize: "0.82rem",

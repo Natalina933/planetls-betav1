@@ -27,6 +27,17 @@ export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFil
   return params;
 }
 
+export function hasOwnerConciergeSearchCriteria(filters: OwnerConciergeSearchFilters) {
+  return Boolean(
+    filters.location.trim() ||
+      filters.selectedServices.length > 0 ||
+      filters.propertyType.trim() ||
+      filters.budgetMax.trim() ||
+      filters.radiusKm.trim() ||
+      filters.proOnly,
+  );
+}
+
 export function buildOwnerConciergeFilterOptions(results: ConciergeSearchResult[]) {
   const services = new Set<string>();
   const propertyTypes = new Set<string>();

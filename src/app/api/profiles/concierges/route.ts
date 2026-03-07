@@ -17,6 +17,7 @@ const isSchemaDriftError = (code: string | undefined): boolean =>
 
 type ConciergeProfileRow = {
   id: string;
+  avatar_url: string | null;
   first_name: string | null;
   last_name: string | null;
   username: string | null;
@@ -54,7 +55,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
   const { data: profiles, error: profilesError } = await db
     .from("profiles")
     .select(
-    "id, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role",
+    "id, avatar_url, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role",
     )
     .in("role", targetRoles)
     .limit(limit);
@@ -71,7 +72,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
   const { data: fallbackProfiles, error: fallbackError } = await db
     .from("profiles")
     .select(
-      "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, years_experience, option, role",
+      "id, avatar_url, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, years_experience, option, role",
     )
     .in("role", targetRoles)
     .limit(limit);
@@ -83,6 +84,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
 
   return ((fallbackProfiles ?? []) as Array<{
     id: string;
+    avatar_url?: string | null;
     first_name: string | null;
     last_name: string | null;
     username: string | null;
@@ -98,6 +100,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
     role: string | null;
   }>).map((profile) => ({
     ...profile,
+    avatar_url: profile.avatar_url ?? null,
     postal_code: null,
     location: null,
     experience_level: null,
@@ -221,6 +224,7 @@ export async function GET(req: NextRequest) {
 
         return {
           id: profile.id,
+          avatar_url: profile.avatar_url ?? null,
           display_name: displayName,
           city: normalizedProfile.city,
           postal_code: profile.postal_code,
