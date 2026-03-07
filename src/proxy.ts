@@ -15,6 +15,15 @@ const ROLE_FOLDER_MAP: Record<string, string> = {
 };
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth"];
+const SESSION_COOKIE_NAMES = [
+  "__Secure-authjs.session-token",
+  "authjs.session-token",
+  "__Secure-next-auth.session-token",
+  "next-auth.session-token",
+];
+
+const hasSessionCookie = (req: NextRequest): boolean =>
+  SESSION_COOKIE_NAMES.some((name) => Boolean(req.cookies.get(name)?.value));
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -27,9 +36,13 @@ export async function proxy(req: NextRequest) {
     req,
     secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
   });
+  const sessionCookiePresent = hasSessionCookie(req);
 
   if (!token) {
     if (pathname.startsWith("/dashboard")) {
+      if (sessionCookiePresent) {
+        return NextResponse.next();
+      }
       return NextResponse.redirect(new URL("/login", req.url));
     }
     return NextResponse.next();
@@ -40,6 +53,9 @@ export async function proxy(req: NextRequest) {
 
   if (!targetFolder) {
     console.error("[PROXY] Role inconnu:", role);
+    if (sessionCookiePresent) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

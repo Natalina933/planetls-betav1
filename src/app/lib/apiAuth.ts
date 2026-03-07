@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { auth } from "@/app/lib/authOptions";
 
 export interface ApiAuthContext {
   userId?: string;
@@ -9,6 +10,21 @@ export interface ApiAuthContext {
 }
 
 export async function getApiAuthContext(req: NextRequest): Promise<ApiAuthContext> {
+  const session = await auth();
+  const sessionUser = session?.user;
+
+  if (sessionUser?.id) {
+    const role = typeof sessionUser.role === "string" ? sessionUser.role : "";
+    const isAdmin = role === "admin" || role === "super_admin";
+
+    return {
+      userId: sessionUser.id,
+      email: typeof sessionUser.email === "string" ? sessionUser.email : undefined,
+      role,
+      isAdmin,
+    };
+  }
+
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
