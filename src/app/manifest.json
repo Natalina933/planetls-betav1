@@ -1,20 +1,14 @@
-{
+﻿{
   "name": "PlanetLs",
   "short_name": "PlanetLs",
-  "description": "Plateforme de mise en relation propriétaires, concierges, artisans et commerçants.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0075f2",
+  "theme_color": "#f2c200",
   "icons": [
     {
       "src": "/icons/Mini_logo.svg",
       "sizes": "192x192",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/icons/Mon_logo.svg",
-      "sizes": "512x512",
       "type": "image/svg+xml"
     }
   ]
