@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+﻿import type { Metadata, Viewport } from "next";
 import {
   Inter,
   Montserrat,
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
     template: "%s | PlanetLs",
   },
   description:
-    "Plateforme de mise en relation propriétaires, concierges, artisans et commerçants.",
+    "Plateforme de mise en relation propriÃ©taires, concierges, artisans et commerÃ§ants.",
   applicationName: "PlanetLs",
-  metadataBase: new URL("https://planetls.fr"),
+  metadataBase: new URL("https://planetls-betav1.vercel.app"),
   robots: {
     index: true,
     follow: true,
@@ -87,3 +87,4 @@ export default function RootLayout({
     </html>
   );
 }
+
