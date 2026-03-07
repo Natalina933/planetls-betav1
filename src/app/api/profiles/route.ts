@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { normalizeProfileLocationFields } from "../../lib/profileLocation.ts";
 
 const VALID_PROFILE_ROLES = new Set([
   "owner",
@@ -118,6 +119,14 @@ export async function PATCH(req: NextRequest) {
     ].forEach((key) => assignNumber(body, updateData, key));
 
     ["emergency_service"].forEach((key) => assignBoolean(body, updateData, key));
+
+    if (
+      "location" in updateData ||
+      "service_area" in updateData ||
+      "city" in updateData
+    ) {
+      Object.assign(updateData, normalizeProfileLocationFields(updateData));
+    }
 
     if (typeof body.role === "string" && isAdmin && VALID_PROFILE_ROLES.has(body.role)) {
       updateData.role = body.role;

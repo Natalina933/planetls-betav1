@@ -14,6 +14,7 @@ type ConciergeSearchRow = {
   id: string;
   display_name: string;
   city: string | null;
+  location?: string | null;
   country: string | null;
   service_area: string | null;
   service_radius_km: number | null;
@@ -24,6 +25,7 @@ type ConciergeSearchRow = {
   services: string[];
   property_types?: string[];
   is_pro: boolean;
+  is_available_now?: boolean;
   average_rating: number | null;
   reviews_count: number;
   latest_review_comment: string | null;
@@ -44,7 +46,7 @@ type RequestFormState = {
   requestType: RequestType;
   title: string;
   description: string;
-  city: string;
+  location: string;
   postalCode: string;
   desiredDate: string;
   budgetMax: string;
@@ -52,7 +54,7 @@ type RequestFormState = {
 };
 
 const initialFilters: OwnerConciergeSearchFilters = {
-  city: "",
+  location: "",
   selectedServices: [],
   propertyType: "",
   budgetMax: "",
@@ -64,7 +66,7 @@ const initialRequestForm: RequestFormState = {
   requestType: "ponctuel",
   title: "",
   description: "",
-  city: "",
+  location: "",
   postalCode: "",
   desiredDate: "",
   budgetMax: "",
@@ -89,6 +91,7 @@ function formatReviewDate(value: string | null) {
 export default function OwnerConciergesPage() {
   const [filters, setFilters] = useState<OwnerConciergeSearchFilters>(initialFilters);
   const [loading, setLoading] = useState(true);
+  const [hasSubmittedSearch, setHasSubmittedSearch] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [submittingRequest, setSubmittingRequest] = useState(false);
@@ -160,13 +163,14 @@ export default function OwnerConciergesPage() {
   useEffect(() => {
     setRequestForm((prev) => ({
       ...prev,
-      city: prev.city || filters.city,
+      location: prev.location || filters.location,
     }));
-  }, [filters.city]);
+  }, [filters.location]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
+    setHasSubmittedSearch(true);
     void loadConcierges(filters);
   }
 
@@ -204,7 +208,7 @@ export default function OwnerConciergesPage() {
           title: requestForm.title.trim(),
           description: requestForm.description.trim(),
           requested_services: filters.selectedServices,
-          city: requestForm.city.trim(),
+          city: requestForm.location.trim(),
           postal_code: requestForm.postalCode.trim(),
           desired_date: requestForm.desiredDate ? new Date(requestForm.desiredDate).toISOString() : null,
           urgency: requestForm.urgency,
@@ -225,7 +229,7 @@ export default function OwnerConciergesPage() {
       setSelectedConciergeIds([]);
       setRequestForm({
         ...initialRequestForm,
-        city: filters.city,
+        location: filters.location,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre demande.");
@@ -241,11 +245,12 @@ export default function OwnerConciergesPage() {
           <span className={styles.eyebrow}>Mise en relation</span>
           <h1 className={styles.title}>Trouver un concierge</h1>
           <p className={styles.description}>
-            Filtrez par zone, services, type de bien, budget et rayon, puis envoyez une vraie
-            demande aux profils que vous retenez.
+            Renseignez une region, puis affichez les concierges actuellement disponibles dans cette
+            zone avant de leur envoyer votre demande.
           </p>
           <div className={styles.chips}>
             <span className={styles.chip}>{items.length} concierge(s)</span>
+            <span className={styles.chip}>{items.filter((item) => item.is_available_now).length} disponible(s)</span>
             <span className={styles.chip}>{totalPro} profil(s) PRO</span>
             <span className={styles.chip}>
               {selectedConciergeIds.length > 0
@@ -258,13 +263,13 @@ export default function OwnerConciergesPage() {
         <form className={styles.filters} onSubmit={handleSubmit}>
           <div className={styles.fieldGrid}>
             <label className={styles.field}>
-              <span>Ville ou zone</span>
+              <span>Région ou localisation</span>
               <input
-                value={filters.city}
+                value={filters.location}
                 onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, city: event.target.value }))
+                  setFilters((prev) => ({ ...prev, location: event.target.value }))
                 }
-                placeholder="Paris, Annecy, Bordeaux..."
+                placeholder="Île-de-France, Annecy, Bordeaux, PACA..."
               />
             </label>
 
@@ -360,13 +365,14 @@ export default function OwnerConciergesPage() {
 
           <div className={styles.actions}>
             <button type="submit" className={styles.primaryBtn} disabled={loading}>
-              {loading ? "Recherche..." : "Rechercher"}
+              {loading ? "Recherche..." : "Voir les concierges disponibles"}
             </button>
             <button
               type="button"
               className={styles.secondaryBtn}
               onClick={() => {
                 setFilters(initialFilters);
+                setHasSubmittedSearch(false);
                 setFeedback(null);
                 void loadConcierges(initialFilters);
               }}
@@ -419,13 +425,13 @@ export default function OwnerConciergesPage() {
             </label>
 
             <label className={styles.field}>
-              <span>Ville</span>
+              <span>Localisation</span>
               <input
-                value={requestForm.city}
+                value={requestForm.location}
                 onChange={(event) =>
-                  setRequestForm((prev) => ({ ...prev, city: event.target.value }))
+                  setRequestForm((prev) => ({ ...prev, location: event.target.value }))
                 }
-                placeholder="Ville d'intervention"
+                placeholder="Région ou zone d'intervention"
               />
             </label>
 
@@ -517,8 +523,20 @@ export default function OwnerConciergesPage() {
 
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {feedback ? <p className={styles.successBox}>{feedback}</p> : null}
+        {!loading && !error && items.length === 0 && hasSubmittedSearch && filters.location.trim() ? (
+          <div className={styles.emptyState}>
+            <h2>{`Aucun concierge disponible dans la region ${filters.location.trim()}.`}</h2>
+            <p>
+              Aucun profil actif et disponible n&apos;a ete trouve dans cette zone. Essayez une
+              region voisine ou elargissez votre recherche.
+            </p>
+          </div>
+        ) : null}
 
-        {!loading && !error && items.length === 0 ? (
+        {!loading &&
+        !error &&
+        items.length === 0 &&
+        (!hasSubmittedSearch || !filters.location.trim()) ? (
           <div className={styles.emptyState}>
             <h2>Aucun concierge ne correspond à vos critères.</h2>
             <p>Essayez d&apos;élargir la zone, de relever le budget ou de retirer un filtre service.</p>
@@ -534,11 +552,14 @@ export default function OwnerConciergesPage() {
                 <div className={styles.cardHead}>
                   <div>
                     <h2>{item.display_name}</h2>
-                    <p>{item.city || item.service_area || "Zone non renseignée"}</p>
+                    <p>{item.location || item.service_area || item.city || "Zone non renseignée"}</p>
                   </div>
                   <div className={styles.badgesCol}>
                     <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
                       {item.is_pro ? "PRO" : "Standard"}
+                    </span>
+                    <span className={styles.standardBadge}>
+                      {item.is_available_now ? "Disponible" : "Indisponible"}
                     </span>
                     <span className={styles.ratingBadge}>
                       {typeof item.average_rating === "number"

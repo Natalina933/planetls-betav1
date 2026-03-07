@@ -82,3 +82,9 @@ create table if not exists public.provider_messages (
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table if exists public.provider_clients enable row level security;
+alter table if exists public.provider_interventions enable row level security;
+alter table if exists public.provider_conversations enable row level security;
+alter table if exists public.provider_messages enable row level security;
+alter table if exists public.provider_alerts enable row level security;

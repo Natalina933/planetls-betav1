@@ -1,3 +1,5 @@
+import { normalizeProfileLocationFields } from "../../../lib/profileLocation.ts";
+
 type PublicConciergeRouteInput = {
   id: string;
   first_name: string | null;
@@ -89,6 +91,10 @@ export function buildPublicConciergeRecommendations(
 
   return profiles
     .map((profile) => {
+      const normalizedProfile = normalizeProfileLocationFields({
+        city: profile.city,
+        service_area: profile.service_area,
+      });
       const ratings = ratingsByProfile.get(profile.id) ?? [];
       const averageRating =
         ratings.length > 0
@@ -104,8 +110,8 @@ export function buildPublicConciergeRecommendations(
           profile.company_name ||
           profile.username ||
           "Concierge",
-        city: profile.city,
-        service_area: profile.service_area,
+        city: normalizedProfile.city,
+        service_area: normalizedProfile.service_area,
         services: parsePublicConciergeServices(profile.option, profile.availability_hours),
         hourly_rate: profile.hourly_rate,
         monthly_rate: profile.monthly_rate,

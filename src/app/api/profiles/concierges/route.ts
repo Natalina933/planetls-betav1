@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { normalizeProfileLocationFields } from "../../../lib/profileLocation.ts";
 import {
   applyConciergeSearchFilters,
   buildAvailableConciergeFilters,
   buildConciergeSearchFilters,
   mapPropertyTypesByProfile,
+  isProfileAvailableNow,
   parseProfileServices,
 } from "./shared";
 
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
+const isSchemaDriftError = (code: string | undefined): boolean =>
+  code === "42P01" || code === "42703";
 
 type ConciergeProfileRow = {
   id: string;
@@ -18,8 +22,10 @@ type ConciergeProfileRow = {
   username: string | null;
   company_name: string | null;
   city: string | null;
+  postal_code: string | null;
   country: string | null;
   service_area: string | null;
+  location: string | null;
   service_radius_km: number | null;
   hourly_rate: number | null;
   monthly_rate: number | null;
@@ -27,6 +33,7 @@ type ConciergeProfileRow = {
   years_experience: number | null;
   option: string | null;
   availability_hours: string | null;
+  emergency_service: boolean | null;
   role: string | null;
 };
 
@@ -36,6 +43,116 @@ type ConciergeReviewRow = {
   comment: string | null;
   created_at: string | null;
 };
+
+type PricingPackageRow = {
+  profile_id: string;
+  property_type: string | null;
+};
+
+async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<ConciergeProfileRow[]> {
+  const targetRoles = proOnly ? ["concierge_pro"] : ["concierge", "concierge_pro"];
+  const { data: profiles, error: profilesError } = await db
+    .from("profiles")
+    .select(
+    "id, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role",
+    )
+    .in("role", targetRoles)
+    .limit(limit);
+
+  if (!profilesError) {
+    return (profiles ?? []) as ConciergeProfileRow[];
+  }
+
+  if (!isSchemaDriftError(profilesError.code)) {
+    console.error("[GET /api/profiles/concierges] profiles error:", profilesError);
+    throw new Error("Erreur chargement concierges.");
+  }
+
+  const { data: fallbackProfiles, error: fallbackError } = await db
+    .from("profiles")
+    .select(
+      "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, years_experience, option, role",
+    )
+    .in("role", targetRoles)
+    .limit(limit);
+
+  if (fallbackError) {
+    console.error("[GET /api/profiles/concierges] fallback profiles error:", fallbackError);
+    throw new Error("Erreur chargement concierges.");
+  }
+
+  return ((fallbackProfiles ?? []) as Array<{
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    username: string | null;
+    company_name: string | null;
+    city: string | null;
+    country: string | null;
+    service_area: string | null;
+    service_radius_km: number | null;
+    hourly_rate: number | null;
+    monthly_rate: number | null;
+    years_experience: number | null;
+    option: string | null;
+    role: string | null;
+  }>).map((profile) => ({
+    ...profile,
+    postal_code: null,
+    location: null,
+    experience_level: null,
+    availability_hours: null,
+    emergency_service: null,
+  }));
+}
+
+async function loadPricingPackages(profileIds: string[]): Promise<PricingPackageRow[]> {
+  const safeIds =
+    profileIds.length > 0 ? profileIds : ["00000000-0000-0000-0000-000000000000"];
+
+  const { data: pricingPackages, error: pricingPackagesError } = await db
+    .from("pricing_packages")
+    .select("profile_id, property_type")
+    .in("profile_id", safeIds);
+
+  if (!pricingPackagesError) {
+    return (pricingPackages ?? []) as PricingPackageRow[];
+  }
+
+  if (isSchemaDriftError(pricingPackagesError.code)) {
+    console.warn(
+      `[GET /api/profiles/concierges] pricing_packages unavailable (code=${pricingPackagesError.code}), continuing without property types`,
+    );
+    return [];
+  }
+
+  console.error("[GET /api/profiles/concierges] pricing packages error:", pricingPackagesError);
+  throw new Error("Erreur chargement specialites logements.");
+}
+
+async function loadConciergeReviews(profileIds: string[]): Promise<ConciergeReviewRow[]> {
+  const safeIds =
+    profileIds.length > 0 ? profileIds : ["00000000-0000-0000-0000-000000000000"];
+
+  const { data: reviews, error: reviewsError } = await db
+    .from("mission_reviews")
+    .select("reviewed_profile_id, rating, comment, created_at")
+    .in("reviewed_profile_id", safeIds);
+
+  if (!reviewsError) {
+    return (reviews ?? []) as ConciergeReviewRow[];
+  }
+
+  if (isSchemaDriftError(reviewsError.code)) {
+    console.warn(
+      `[GET /api/profiles/concierges] mission_reviews unavailable (code=${reviewsError.code}), continuing without reviews`,
+    );
+    return [];
+  }
+
+  console.error("[GET /api/profiles/concierges] reviews error:", reviewsError);
+  throw new Error("Erreur chargement avis concierges.");
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,48 +167,15 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const filters = buildConciergeSearchFilters(url.searchParams);
 
-    const { data: profiles, error: profilesError } = await db
-      .from("profiles")
-      .select(
-        "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, role",
-      )
-      .in("role", filters.proOnly ? ["concierge_pro"] : ["concierge", "concierge_pro"])
-      .limit(filters.limit * 3);
-
-    if (profilesError) {
-      return NextResponse.json({ error: "Erreur chargement concierges." }, { status: 500 });
-    }
-
-    const conciergeRows = (profiles ?? []) as ConciergeProfileRow[];
+    const conciergeRows = await loadConciergeProfiles(filters.limit * 3, filters.proOnly);
     const profileIds = conciergeRows.map((profile) => profile.id);
 
-    const { data: reviews, error: reviewsError } = await db
-      .from("mission_reviews")
-      .select("reviewed_profile_id, rating, comment, created_at")
-      .in("reviewed_profile_id", profileIds.length > 0 ? profileIds : ["00000000-0000-0000-0000-000000000000"]);
-
-    if (reviewsError) {
-      return NextResponse.json({ error: "Erreur chargement avis concierges." }, { status: 500 });
-    }
-
-    const { data: pricingPackages, error: pricingPackagesError } = await db
-      .from("pricing_packages")
-      .select("profile_id, property_type")
-      .in(
-        "profile_id",
-        profileIds.length > 0 ? profileIds : ["00000000-0000-0000-0000-000000000000"],
-      );
-
-    if (pricingPackagesError) {
-      return NextResponse.json(
-        { error: "Erreur chargement specialites logements." },
-        { status: 500 },
-      );
-    }
+    const reviews = await loadConciergeReviews(profileIds);
+    const pricingPackages = await loadPricingPackages(profileIds);
 
     const ratingsByProfile = new Map<string, number[]>();
     const latestReviewByProfile = new Map<string, { comment: string | null; created_at: string | null }>();
-    (reviews as ConciergeReviewRow[] | null ?? []).forEach((review) => {
+    reviews.forEach((review) => {
       if (typeof review.reviewed_profile_id !== "string" || typeof review.rating !== "number") return;
       if (!ratingsByProfile.has(review.reviewed_profile_id)) {
         ratingsByProfile.set(review.reviewed_profile_id, []);
@@ -109,16 +193,25 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const propertyTypesByProfile = mapPropertyTypesByProfile(pricingPackages ?? []);
+    const propertyTypesByProfile = mapPropertyTypesByProfile(pricingPackages);
 
     const enrichedResults = conciergeRows
       .map((profile) => {
+        const normalizedProfile = normalizeProfileLocationFields({
+          city: profile.city,
+          service_area: profile.service_area,
+          location: profile.location,
+        });
         const displayName =
           `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
           profile.company_name ||
           profile.username ||
           "Concierge";
         const services = parseProfileServices(profile.option, profile.availability_hours);
+        const isAvailableNow = isProfileAvailableNow({
+          availabilityHours: profile.availability_hours,
+          emergencyService: profile.emergency_service,
+        });
         const ratings = ratingsByProfile.get(profile.id) ?? [];
         const averageRating =
           ratings.length > 0
@@ -129,9 +222,11 @@ export async function GET(req: NextRequest) {
         return {
           id: profile.id,
           display_name: displayName,
-          city: profile.city,
+          city: normalizedProfile.city,
+          postal_code: profile.postal_code,
           country: profile.country,
-          service_area: profile.service_area,
+          service_area: normalizedProfile.service_area,
+          location: normalizedProfile.location,
           service_radius_km: profile.service_radius_km,
           hourly_rate: profile.hourly_rate,
           monthly_rate: profile.monthly_rate,
@@ -140,6 +235,7 @@ export async function GET(req: NextRequest) {
           services,
           property_types: propertyTypesByProfile.get(profile.id) ?? [],
           is_pro: profile.role === "concierge_pro",
+          is_available_now: isAvailableNow,
           average_rating: averageRating,
           reviews_count: ratings.length,
           latest_review_comment: latestReview?.comment ?? null,
@@ -152,9 +248,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       filters: {
-        city: filters.city || null,
+        location: filters.location || null,
         services: filters.services,
         pro_only: filters.proOnly,
+        available_only: filters.availableOnly,
         property_type: filters.propertyType || null,
         budget_max: filters.budgetMax,
         radius_km: filters.radiusKm,

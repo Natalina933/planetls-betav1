@@ -42,17 +42,18 @@ test("mapPropertyTypesByProfile groups and deduplicates property types", () => {
 
 test("buildConciergeSearchFilters parses advanced owner filters", () => {
   const params = new URLSearchParams(
-    "city=Paris&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
+    "location=Paris&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
   );
 
   const filters = buildConciergeSearchFilters(params);
 
-  assert.equal(filters.city, "Paris");
+  assert.equal(filters.location, "Paris");
   assert.deepEqual(filters.services, ["Menage", "Check-in"]);
   assert.equal(filters.propertyType, "Villa");
   assert.equal(filters.budgetMax, 90);
   assert.equal(filters.radiusKm, 25);
   assert.equal(filters.proOnly, true);
+  assert.equal(filters.availableOnly, true);
 });
 
 test("applyConciergeSearchFilters enforces service, property type and budget", () => {
@@ -72,6 +73,7 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
         services: ["Menage", "Check-in"],
         property_types: ["Appartement"],
         is_pro: true,
+        is_available_now: true,
         average_rating: 4.8,
         reviews_count: 12,
       },
@@ -89,17 +91,19 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
         services: ["Maintenance"],
         property_types: ["Villa"],
         is_pro: false,
+        is_available_now: false,
         average_rating: 4.1,
         reviews_count: 3,
       },
     ],
     {
-      city: "Paris",
+      location: "Paris",
       services: ["Menage"],
       propertyType: "Appartement",
       budgetMax: 80,
       radiusKm: 20,
       proOnly: false,
+      availableOnly: true,
       limit: 20,
     },
   );
@@ -124,6 +128,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
       average_rating: 4.8,
       reviews_count: 12,
       is_pro: true,
+      is_available_now: true,
       services: ["Menage", "Check-in"],
       property_types: ["Appartement"],
     },
@@ -141,6 +146,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
       average_rating: 4.2,
       reviews_count: 5,
       is_pro: false,
+      is_available_now: false,
       services: ["Maintenance"],
       property_types: ["Villa", "Maison"],
     },
@@ -157,7 +163,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   });
 
   const params = buildOwnerConciergeSearchParams({
-    city: "Nice",
+    location: "Nice",
     selectedServices: ["Menage", "Check-in"],
     propertyType: "Villa",
     budgetMax: "120",
@@ -165,7 +171,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
     proOnly: true,
   });
 
-  assert.equal(params.get("city"), "Nice");
+  assert.equal(params.get("location"), "Nice");
   assert.equal(params.get("services"), "Menage,Check-in");
   assert.equal(params.get("propertyType"), "Villa");
   assert.equal(params.get("budgetMax"), "120");

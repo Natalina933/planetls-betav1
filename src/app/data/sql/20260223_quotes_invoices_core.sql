@@ -151,6 +151,7 @@ create index if not exists idx_invoice_events_invoice_id on public.invoice_event
 create or replace function public.recompute_quote_totals(p_quote_id uuid)
 returns void
 language plpgsql
+set search_path = public
 as $$
 declare
   v_subtotal numeric(12,2);
@@ -187,6 +188,7 @@ $$;
 create or replace function public.trg_quote_items_recompute()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   if tg_op = 'DELETE' then
@@ -207,6 +209,7 @@ for each row execute function public.trg_quote_items_recompute();
 create or replace function public.recompute_invoice_totals(p_invoice_id uuid)
 returns void
 language plpgsql
+set search_path = public
 as $$
 declare
   v_subtotal numeric(12,2);
@@ -248,6 +251,7 @@ $$;
 create or replace function public.trg_invoice_items_recompute()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   if tg_op = 'DELETE' then

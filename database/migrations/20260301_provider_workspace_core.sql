@@ -85,6 +85,12 @@ CREATE TABLE IF NOT EXISTS public.provider_messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+ALTER TABLE IF EXISTS public.provider_clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.provider_interventions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.provider_conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.provider_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.provider_alerts ENABLE ROW LEVEL SECURITY;
+
 CREATE INDEX IF NOT EXISTS idx_provider_clients_provider
   ON public.provider_clients(provider_profile_id, created_at DESC);
 

@@ -1,5 +1,5 @@
 export type OwnerConciergeSearchFilters = {
-  city: string;
+  location: string;
   selectedServices: string[];
   propertyType: string;
   budgetMax: string;
@@ -15,7 +15,7 @@ export type ConciergeSearchResult = {
 export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFilters) {
   const params = new URLSearchParams();
 
-  if (filters.city.trim()) params.set("city", filters.city.trim());
+  if (filters.location.trim()) params.set("location", filters.location.trim());
   if (filters.selectedServices.length > 0) {
     params.set("services", filters.selectedServices.join(","));
   }

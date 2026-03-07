@@ -1,3 +1,17 @@
+const supabaseHostname = (() => {
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+
+  if (!rawUrl) {
+    return null;
+  }
+
+  try {
+    return new URL(rawUrl).hostname;
+  } catch {
+    return null;
+  }
+})();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -7,10 +21,6 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "dyqlixssykeecvtqmcxh.supabase.co",
       },
     ],
     formats: ["image/webp", "image/avif"],
@@ -68,5 +78,12 @@ const nextConfig = {
     ];
   },
 };
+
+if (supabaseHostname) {
+  nextConfig.images.remotePatterns.push({
+    protocol: "https",
+    hostname: supabaseHostname,
+  });
+}
 
 export default nextConfig;

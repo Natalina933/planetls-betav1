@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
+import { normalizeProfileLocationFields } from "../../../../lib/profileLocation.ts";
 
 type PublicProfileRow = {
   id: string;
@@ -108,6 +109,10 @@ export async function GET(
       profile.company_name ||
       profile.username ||
       "Concierge";
+    const normalizedProfile = normalizeProfileLocationFields({
+      city: profile.city,
+      service_area: profile.service_area,
+    });
 
     return NextResponse.json({
       profile: {
@@ -115,9 +120,9 @@ export async function GET(
         display_name: displayName,
         avatar_url: profile.avatar_url,
         company_name: profile.company_name,
-        city: profile.city,
+        city: normalizedProfile.city,
         country: profile.country,
-        service_area: profile.service_area,
+        service_area: normalizedProfile.service_area,
         service_radius_km: profile.service_radius_km,
         experience_level: profile.experience_level,
         years_experience: profile.years_experience,

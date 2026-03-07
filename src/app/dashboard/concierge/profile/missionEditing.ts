@@ -1,3 +1,6 @@
+import { normalizeAreaLabel } from "../../../lib/profileLocation.ts";
+import type { MissionAvailability } from "../../../components/missions/types.ts";
+
 interface MissionCatalogItemLike {
   id: string;
   label: string;
@@ -94,19 +97,21 @@ export function buildProfileZoneUpdate(
   previousProfile: {
     location?: string | null;
     service_area?: string | null;
+    city?: string | null;
     availability_hours?: string | null;
   },
   data: MissionZoneChangeLike,
   parseAvailabilityPayloadRaw: (value: string | null | undefined) => AvailabilityPayloadLike,
 ) {
-  const zoneLabel = data.zones[0]?.label?.trim()
-    ? data.zones[0].label.trim()
-    : previousProfile.location ?? previousProfile.service_area ?? null;
+  const zoneLabel = normalizeAreaLabel(data.zones[0]?.label);
+  const fallbackLocation = normalizeAreaLabel(previousProfile.location);
+  const fallbackServiceArea = normalizeAreaLabel(previousProfile.service_area);
+  const normalizedZone = zoneLabel ?? fallbackLocation ?? fallbackServiceArea ?? null;
 
   return {
     ...previousProfile,
-    location: zoneLabel,
-    service_area: zoneLabel,
+    location: normalizedZone,
+    service_area: normalizedZone,
     service_radius_km: data.radiusKm,
     availability_hours: JSON.stringify({
       ...parseAvailabilityPayloadRaw(previousProfile.availability_hours),
@@ -131,8 +136,8 @@ export function buildProfileWeeklyAvailabilityUpdate(
     availability_hours: JSON.stringify({
       ...parseAvailabilityPayloadRaw(previousProfile.availability_hours),
       schedule: normalizeMissionSchedule(schedule),
+      emergency24h,
     }),
     emergency_service: emergency24h,
   };
 }
-import type { MissionAvailability } from "@/app/components/missions/types";

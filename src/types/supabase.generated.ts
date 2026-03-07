@@ -617,63 +617,66 @@ export type Database = {
       mission_reviews: {
         Row: {
           comment: string | null
-          concierge_id: string
           created_at: string
           id: string
           mission_id: string
-          owner_id: string | null
+          reviewed_profile_id: string
+          reviewer_profile_id: string
           rating: number
+          updated_at: string
         }
         Insert: {
           comment?: string | null
-          concierge_id: string
           created_at?: string
           id?: string
           mission_id: string
-          owner_id?: string | null
+          reviewed_profile_id: string
+          reviewer_profile_id: string
           rating: number
+          updated_at?: string
         }
         Update: {
           comment?: string | null
-          concierge_id?: string
           created_at?: string
           id?: string
           mission_id?: string
-          owner_id?: string | null
+          reviewed_profile_id?: string
+          reviewer_profile_id?: string
           rating?: number
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "mission_reviews_concierge_id_fkey"
-            columns: ["concierge_id"]
+            foreignKeyName: "mission_reviews_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_reviews_reviewed_profile_id_fkey"
+            columns: ["reviewed_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "mission_reviews_concierge_id_fkey"
-            columns: ["concierge_id"]
+            foreignKeyName: "mission_reviews_reviewed_profile_id_fkey"
+            columns: ["reviewed_profile_id"]
             isOneToOne: false
             referencedRelation: "user_dashboard_view"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "mission_reviews_mission_id_fkey"
-            columns: ["mission_id"]
-            isOneToOne: true
-            referencedRelation: "missions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mission_reviews_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "mission_reviews_reviewer_profile_id_fkey"
+            columns: ["reviewer_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "mission_reviews_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "mission_reviews_reviewer_profile_id_fkey"
+            columns: ["reviewer_profile_id"]
             isOneToOne: false
             referencedRelation: "user_dashboard_view"
             referencedColumns: ["id"]
@@ -682,78 +685,76 @@ export type Database = {
       }
       missions: {
         Row: {
-          actual_end: string | null
-          actual_start: string | null
           amount: number | null
-          concierge_id: string
-          concierge_profile_id: string | null
+          cancel_reason: string | null
+          canceled_at: string | null
+          completed_at: string | null
+          concierge_profile_id: string
           created_at: string
           currency: string
+          description: string | null
           id: string
-          owner_id: string | null
           owner_profile_id: string | null
+          priority: string
           property_id: string | null
+          response_time_minutes: number | null
           scheduled_end: string | null
           scheduled_start: string | null
-          service_id: string
-          service_label: string
+          service_id: number | null
+          started_at: string | null
           status: string
+          title: string
           updated_at: string
+          metadata: Json
         }
         Insert: {
-          actual_end?: string | null
-          actual_start?: string | null
           amount?: number | null
-          concierge_id: string
-          concierge_profile_id?: string | null
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          completed_at?: string | null
+          concierge_profile_id: string
           created_at?: string
           currency?: string
+          description?: string | null
           id?: string
-          owner_id?: string | null
           owner_profile_id?: string | null
+          priority?: string
           property_id?: string | null
+          response_time_minutes?: number | null
           scheduled_end?: string | null
           scheduled_start?: string | null
-          service_id: string
-          service_label: string
+          service_id?: number | null
+          started_at?: string | null
           status?: string
+          title: string
           updated_at?: string
+          metadata?: Json
         }
         Update: {
-          actual_end?: string | null
-          actual_start?: string | null
           amount?: number | null
-          concierge_id?: string
-          concierge_profile_id?: string | null
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          completed_at?: string | null
+          concierge_profile_id?: string
           created_at?: string
           currency?: string
+          description?: string | null
           id?: string
-          owner_id?: string | null
           owner_profile_id?: string | null
+          priority?: string
           property_id?: string | null
+          response_time_minutes?: number | null
           scheduled_end?: string | null
           scheduled_start?: string | null
-          service_id?: string
-          service_label?: string
+          service_id?: number | null
+          started_at?: string | null
           status?: string
+          title?: string
           updated_at?: string
+          metadata?: Json
         }
         Relationships: [
           {
-            foreignKeyName: "missions_concierge_id_fkey"
-            columns: ["concierge_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "missions_concierge_id_fkey"
-            columns: ["concierge_id"]
-            isOneToOne: false
-            referencedRelation: "user_dashboard_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "missions_concierge_profile_id_fkey"
             columns: ["concierge_profile_id"]
             isOneToOne: false
@@ -763,20 +764,6 @@ export type Database = {
           {
             foreignKeyName: "missions_concierge_profile_id_fkey"
             columns: ["concierge_profile_id"]
-            isOneToOne: false
-            referencedRelation: "user_dashboard_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "missions_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "missions_owner_id_fkey"
-            columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "user_dashboard_view"
             referencedColumns: ["id"]

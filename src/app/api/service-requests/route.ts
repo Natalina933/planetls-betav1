@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import type { Json } from "@/types/supabase";
 
 type ServiceRequestType = "ponctuel" | "renfort" | "durable";
 type ServiceRequestStatus =
@@ -59,6 +60,12 @@ type ServiceRequestRow = {
   [key: string]: unknown;
 };
 
+type ContactConversationRow = {
+  id: string;
+  concierge_profile_id: string;
+  owner_profile_id: string;
+};
+
 // Legacy Supabase typing is incomplete on these tables in this project.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dbAny = db as any;
@@ -85,6 +92,121 @@ function parseLimit(raw: string | null, fallback = 20) {
   const parsed = Number(raw ?? fallback);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(Math.max(Math.round(parsed), 1), 100);
+}
+
+function isMissingRelationError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const maybeMessage = "message" in error ? error.message : null;
+  return (
+    typeof maybeMessage === "string" &&
+    (maybeMessage.includes("relation") || maybeMessage.includes("does not exist"))
+  );
+}
+
+function buildRequestPrefillMessage(body: CreateServiceRequestBody, requestedServices: string[]) {
+  const lines = [
+    `Bonjour, je souhaite vous adresser une demande ${body.request_type ?? "ponctuelle"}.`,
+    typeof body.title === "string" && body.title.trim() ? `Titre : ${body.title.trim()}` : null,
+    typeof body.city === "string" && body.city.trim() ? `Ville : ${body.city.trim()}` : null,
+    typeof body.postal_code === "string" && body.postal_code.trim()
+      ? `Code postal : ${body.postal_code.trim()}`
+      : null,
+    requestedServices.length > 0
+      ? `Services recherches : ${requestedServices.join(", ")}`
+      : null,
+    typeof body.budget_max === "number" ? `Budget max : ${body.budget_max} ${normalizeCurrency(body.currency)}` : null,
+    body.urgency === true ? "Urgence : oui" : null,
+    typeof body.description === "string" && body.description.trim()
+      ? `Details : ${body.description.trim()}`
+      : null,
+  ];
+
+  return lines.filter((line): line is string => typeof line === "string" && line.length > 0).join("\n");
+}
+
+async function ensureContactConversations(params: {
+  ownerProfileId: string;
+  conciergeIds: string[];
+  subject: string;
+  prefillMessage: string;
+  sourceReference: string | null;
+  metadata: Record<string, unknown>;
+}) {
+  const ownerProfileId = params.ownerProfileId;
+  const conciergeIds = Array.from(new Set(params.conciergeIds));
+  if (conciergeIds.length === 0) return [];
+
+  const { data: existingRows, error: existingError } = await dbAny
+    .from("contact_conversations")
+    .select("id, concierge_profile_id, owner_profile_id")
+    .eq("owner_profile_id", ownerProfileId)
+    .eq("source", "search")
+    .in("concierge_profile_id", conciergeIds)
+    .is("source_reference", params.sourceReference);
+
+  if (existingError) {
+    console.error("[service-requests] load contact conversations error:", existingError);
+    throw new Error("Impossible de preparer les conversations.");
+  }
+
+  const existingByConcierge = new Map<string, ContactConversationRow>();
+  (existingRows ?? []).forEach((row: ContactConversationRow) => {
+    existingByConcierge.set(row.concierge_profile_id, row);
+  });
+
+  const missingConciergeIds = conciergeIds.filter((id) => !existingByConcierge.has(id));
+  let createdRows: ContactConversationRow[] = [];
+
+  if (missingConciergeIds.length > 0) {
+    const { data: insertedRows, error: insertError } = await dbAny
+      .from("contact_conversations")
+      .insert(
+        missingConciergeIds.map((conciergeId) => ({
+          concierge_profile_id: conciergeId,
+          owner_profile_id: ownerProfileId,
+          source: "search",
+          source_reference: params.sourceReference,
+          subject: params.subject,
+          metadata: {
+            ...params.metadata,
+            prefilled: true,
+          } as Json,
+        })),
+      )
+      .select("id, concierge_profile_id, owner_profile_id");
+
+    if (insertError) {
+      console.error("[service-requests] create contact conversations error:", insertError);
+      throw new Error("Impossible de creer les conversations de suivi.");
+    }
+
+    createdRows = (insertedRows ?? []) as ContactConversationRow[];
+  }
+
+  const allConversations = [...(existingRows ?? []), ...createdRows] as ContactConversationRow[];
+  if (allConversations.length === 0) return [];
+
+  const { error: messagesError } = await dbAny.from("contact_messages").insert(
+    allConversations.map((conversation) => ({
+      conversation_id: conversation.id,
+      sender_profile_id: ownerProfileId,
+      message_type: "text",
+      body: params.prefillMessage,
+      metadata: {
+        ...params.metadata,
+        source: "search",
+        source_reference: params.sourceReference,
+        prefill: true,
+      } as Json,
+    })),
+  );
+
+  if (messagesError) {
+    console.error("[service-requests] create contact messages error:", messagesError);
+    throw new Error("Impossible d'envoyer le message d'introduction.");
+  }
+
+  return allConversations;
 }
 
 async function hydrateOwnerRequests(ownerId: string, limit: number) {
@@ -285,6 +407,8 @@ export async function POST(req: NextRequest) {
       typeof body.desired_date === "string" && body.desired_date.trim().length > 0
         ? body.desired_date
         : null;
+    const requestSubject = title;
+    const prefillMessage = buildRequestPrefillMessage(body, requestedServices);
 
     const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
       .from("profiles")
@@ -338,6 +462,33 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (requestError || !createdRequest) {
+      if (isMissingRelationError(requestError)) {
+        const conversations = await ensureContactConversations({
+          ownerProfileId: userId,
+          conciergeIds: validRecipientIds,
+          subject: requestSubject,
+          prefillMessage,
+          sourceReference: null,
+          metadata: {
+            origin: "owner_search_flow",
+            fallback_mode: "messages_only",
+          },
+        });
+
+        return NextResponse.json(
+          {
+            request: null,
+            recipients: validRecipientIds.map((conciergeId: string) => ({
+              concierge_profile_id: conciergeId,
+              status: "sent",
+            })),
+            conversations,
+            fallback_mode: "messages_only",
+          },
+          { status: 201 },
+        );
+      }
+
       console.error("[POST /api/service-requests] create request error:", requestError);
       return NextResponse.json({ error: "Impossible de creer la demande." }, { status: 500 });
     }
@@ -362,10 +513,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Impossible d'ajouter les destinataires." }, { status: 500 });
     }
 
+    const conversations = await ensureContactConversations({
+      ownerProfileId: userId,
+      conciergeIds: validRecipientIds,
+      subject: requestSubject,
+      prefillMessage,
+      sourceReference: createdRequest.id,
+      metadata: {
+        origin: "owner_search_flow",
+        service_request_id: createdRequest.id,
+      },
+    });
+
     return NextResponse.json(
       {
         request: createdRequest,
         recipients: createdRecipients ?? [],
+        conversations,
       },
       { status: 201 },
     );

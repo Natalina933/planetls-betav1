@@ -41,6 +41,7 @@ test("buildProfileZoneUpdate syncs location, service area and rules", () => {
   const previousProfile = {
     location: "Paris",
     service_area: "Paris",
+    city: "PARIS",
     availability_hours: JSON.stringify({ rules: { old: true } }),
   };
 
@@ -56,6 +57,7 @@ test("buildProfileZoneUpdate syncs location, service area and rules", () => {
 
   assert.equal(nextProfile.location, "Lyon");
   assert.equal(nextProfile.service_area, "Lyon");
+  assert.equal(nextProfile.city, "PARIS");
   assert.equal(nextProfile.service_radius_km, 25);
   assert.deepEqual(JSON.parse(nextProfile.availability_hours), {
     rules: { refuseOutOfZone: true },
@@ -69,7 +71,7 @@ test("buildProfileWeeklyAvailabilityUpdate syncs schedule and emergency flag", (
 
   const nextProfile = buildProfileWeeklyAvailabilityUpdate(
     previousProfile,
-    [{ day: "mon" }],
+    [{ day: "mon", ranges: [] }],
     true,
     (value) => (value ? JSON.parse(value) : {}),
     (schedule) => schedule,
@@ -78,6 +80,7 @@ test("buildProfileWeeklyAvailabilityUpdate syncs schedule and emergency flag", (
   assert.equal(nextProfile.emergency_service, true);
   assert.deepEqual(JSON.parse(nextProfile.availability_hours), {
     rules: { keep: true },
-    schedule: [{ day: "mon" }],
+    schedule: [{ day: "mon", ranges: [] }],
+    emergency24h: true,
   });
 });
