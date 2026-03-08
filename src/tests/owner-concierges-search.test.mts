@@ -14,6 +14,10 @@ import {
   buildOwnerConciergeSearchParams,
   toggleOwnerConciergeService,
 } from "../app/dashboard/owner/concierges/searchHelpers.ts";
+import {
+  createOwnerConciergeSearchAlert,
+  loadOwnerConciergeSearchAlerts,
+} from "../app/dashboard/owner/searchAlerts.ts";
 
 test("parseProfileServices merges option and active mission labels", () => {
   const result = parseProfileServices(
@@ -43,13 +47,13 @@ test("mapPropertyTypesByProfile groups and deduplicates property types", () => {
 
 test("buildConciergeSearchFilters parses advanced owner filters", () => {
   const params = new URLSearchParams(
-    "region=Ile-de-France&city=Paris&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
+    "city=Paris&postalCode=75015&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
   );
 
   const filters = buildConciergeSearchFilters(params);
 
-  assert.equal(filters.region, "Ile-de-France");
   assert.equal(filters.city, "Paris");
+  assert.equal(filters.postalCode, "75015");
   assert.deepEqual(filters.categories, []);
   assert.deepEqual(filters.services, ["Menage", "Check-in"]);
   assert.equal(filters.propertyType, "Villa");
@@ -67,6 +71,7 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
         display_name: "Concierge A",
         city: "Paris",
         country: "France",
+        postal_code: "75015",
         service_area: "Ile-de-France",
         service_radius_km: 15,
         hourly_rate: 60,
@@ -85,6 +90,7 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
         display_name: "Concierge B",
         city: "Paris",
         country: "France",
+        postal_code: "75016",
         service_area: "Ile-de-France",
         service_radius_km: 40,
         hourly_rate: 120,
@@ -100,8 +106,8 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
       },
     ],
     {
-      region: "Ile-de-France",
       city: "Paris",
+      postalCode: "75015",
       categories: [],
       services: ["Menage"],
       propertyType: "Appartement",
@@ -124,6 +130,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
       display_name: "Concierge A",
       city: "Paris",
       country: "France",
+      postal_code: "75015",
       service_area: "Paris centre",
       service_radius_km: 15,
       hourly_rate: 60,
@@ -142,6 +149,7 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
       display_name: "Concierge B",
       city: "Nice",
       country: "France",
+      postal_code: "06000",
       service_area: "Nice centre",
       service_radius_km: 25,
       hourly_rate: 80,
@@ -176,8 +184,8 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   });
 
   const params = buildOwnerConciergeSearchParams({
-    region: "PACA",
     city: "Nice",
+    postalCode: "06000",
     selectedCategories: ["Menage"],
     selectedServices: ["Menage", "Check-in"],
     propertyType: "Villa",
@@ -186,8 +194,8 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
     proOnly: true,
   });
 
-  assert.equal(params.get("region"), "PACA");
   assert.equal(params.get("city"), "Nice");
+  assert.equal(params.get("postalCode"), "06000");
   assert.equal(params.get("categories"), "Menage");
   assert.equal(params.get("services"), "Menage,Check-in");
   assert.equal(params.get("propertyType"), "Villa");
@@ -202,8 +210,8 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
 test("hasOwnerConciergeSearchCriteria detects whether the owner started building a search", () => {
   assert.equal(
     hasOwnerConciergeSearchCriteria({
-      region: "",
       city: "",
+      postalCode: "",
       selectedCategories: [],
       selectedServices: [],
       propertyType: "",
@@ -216,8 +224,8 @@ test("hasOwnerConciergeSearchCriteria detects whether the owner started building
 
   assert.equal(
     hasOwnerConciergeSearchCriteria({
-      region: "Ile-de-France",
       city: "",
+      postalCode: "75015",
       selectedCategories: [],
       selectedServices: [],
       propertyType: "",
@@ -227,4 +235,63 @@ test("hasOwnerConciergeSearchCriteria detects whether the owner started building
     }),
     true,
   );
+});
+
+test("createOwnerConciergeSearchAlert deduplicates identical alerts and requires a location", () => {
+  const storage = new Map<string, string>();
+  const previousWindow = globalThis.window;
+
+  Object.defineProperty(globalThis, "window", {
+    value: {
+      localStorage: {
+        getItem(key: string) {
+          return storage.has(key) ? storage.get(key) : null;
+        },
+        setItem(key: string, value: string) {
+          storage.set(key, value);
+        },
+      },
+    },
+    configurable: true,
+  });
+
+  try {
+    const first = createOwnerConciergeSearchAlert({
+      city: "Paris",
+      postalCode: "75015",
+      budgetMax: "120",
+      radiusKm: "15",
+    });
+    const duplicate = createOwnerConciergeSearchAlert({
+      city: " Paris ",
+      postalCode: "75015",
+      budgetMax: "120",
+      radiusKm: "15",
+    });
+
+    assert.equal(first.created, true);
+    assert.equal(duplicate.created, false);
+    assert.equal(duplicate.alert.id, first.alert.id);
+    assert.equal(loadOwnerConciergeSearchAlerts().length, 1);
+
+    assert.throws(
+      () =>
+        createOwnerConciergeSearchAlert({
+          city: "",
+          postalCode: "",
+          budgetMax: "",
+          radiusKm: "",
+        }),
+      /Ville ou code postal requis/,
+    );
+  } finally {
+    if (typeof previousWindow === "undefined") {
+      Reflect.deleteProperty(globalThis, "window");
+    } else {
+      Object.defineProperty(globalThis, "window", {
+        value: previousWindow,
+        configurable: true,
+      });
+    }
+  }
 });

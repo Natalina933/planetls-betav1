@@ -21,6 +21,9 @@ type ConciergeCardProps = {
 };
 
 function ConciergeCardComponent({ item, index, isSelected, onToggle }: ConciergeCardProps) {
+  const visibleServices = item.services.slice(0, 5);
+  const hiddenServicesCount = Math.max(item.services.length - visibleServices.length, 0);
+
   return (
     <article
       role="article"
@@ -28,6 +31,10 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
       className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
       style={{ ["--card-index" as string]: String(index) }}
     >
+      <div className={styles.cardSelectionRail}>
+        <span className={styles.cardSelectionLabel}>{isSelected ? "Sélectionné" : "Disponible"}</span>
+      </div>
+
       <div className={styles.cardHead}>
         <div className={styles.cardIdentityWrap}>
           <div className={styles.avatarFrame}>
@@ -36,7 +43,7 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
               alt={
                 item.avatar_url
                   ? `Avatar de ${item.display_name}`
-                  : `Avatar par defaut de ${item.display_name}`
+                  : `Avatar par défaut de ${item.display_name}`
               }
               className={styles.avatarImage}
               width={88}
@@ -44,8 +51,21 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
             />
           </div>
           <div className={styles.cardIdentity}>
-            <h2>{item.display_name}</h2>
+            <div className={styles.identityTopline}>
+              <h2>{item.display_name}</h2>
+              {typeof item.average_rating === "number" ? (
+                <span className={styles.inlineRating}>{item.average_rating.toFixed(1)} / 5</span>
+              ) : null}
+            </div>
             <p>{getConciergeLocation(item)}</p>
+            <div className={styles.identityMeta}>
+              <span className={styles.metaPill}>{item.reviews_count} avis</span>
+              <span className={styles.metaPill}>
+                {typeof item.service_radius_km === "number"
+                  ? `${item.service_radius_km} km autour`
+                  : "Zone à préciser"}
+              </span>
+            </div>
           </div>
         </div>
         <div className={styles.badgesCol}>
@@ -56,24 +76,24 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
             {item.is_pro ? "PRO" : "Standard"}
           </span>
           <span className={styles.ratingBadge}>
-            {typeof item.average_rating === "number" ? `${item.average_rating.toFixed(1)} / 5` : "Sans avis"}
+            {typeof item.average_rating === "number" ? "Avis vérifiés" : "Sans avis"}
           </span>
         </div>
       </div>
 
       <div className={styles.kpiRow}>
         <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Experience</span>
+          <span className={styles.kpiLabel}>Expérience</span>
           <strong>
             {typeof item.years_experience === "number"
               ? `${item.years_experience} ans`
-              : item.experience_level || "Non renseignee"}
+              : item.experience_level || "Non renseignée"}
           </strong>
         </div>
         <div className={styles.kpiCard}>
           <span className={styles.kpiLabel}>Rayon</span>
           <strong>
-            {typeof item.service_radius_km === "number" ? `${item.service_radius_km} km` : "Non renseigne"}
+            {typeof item.service_radius_km === "number" ? `${item.service_radius_km} km` : "Non renseigné"}
           </strong>
         </div>
         <div className={styles.kpiCard}>
@@ -94,30 +114,39 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
       </div>
 
       {item.property_types && item.property_types.length > 0 ? (
-        <div className={styles.tags}>
-          {item.property_types.map((propertyType) => (
-            <span key={`${item.id}-property-${propertyType}`} className={styles.propertyTag}>
-              {propertyType}
-            </span>
-          ))}
+        <div className={styles.tagGroup}>
+          <p className={styles.tagGroupLabel}>Biens couverts</p>
+          <div className={styles.tags}>
+            {item.property_types.map((propertyType) => (
+              <span key={`${item.id}-property-${propertyType}`} className={styles.propertyTag}>
+                {propertyType}
+              </span>
+            ))}
+          </div>
         </div>
       ) : null}
 
-      <div className={styles.tags}>
-        {item.services.length > 0 ? (
-          item.services.slice(0, 6).map((serviceLabel) => (
-            <span key={`${item.id}-${serviceLabel}`} className={styles.tag}>
-              {serviceLabel}
-            </span>
-          ))
-        ) : (
-          <span className={styles.tagMuted}>Services non renseignes</span>
-        )}
+      <div className={styles.tagGroup}>
+        <div className={styles.tagGroupHead}>
+          <p className={styles.tagGroupLabel}>Services clés</p>
+          {hiddenServicesCount > 0 ? <span className={styles.tagGroupCount}>+{hiddenServicesCount}</span> : null}
+        </div>
+        <div className={styles.tags}>
+          {item.services.length > 0 ? (
+            visibleServices.map((serviceLabel) => (
+              <span key={`${item.id}-${serviceLabel}`} className={styles.tag}>
+                {serviceLabel}
+              </span>
+            ))
+          ) : (
+            <span className={styles.tagMuted}>Services non renseignés</span>
+          )}
+        </div>
       </div>
 
       {item.latest_review_comment ? (
         <div className={styles.reviewSnippet}>
-          <strong>Avis recent</strong>
+          <strong>Avis récent</strong>
           <p>{item.latest_review_comment}</p>
           {item.latest_review_at ? <small>{formatReviewDate(item.latest_review_at)}</small> : null}
         </div>
@@ -131,7 +160,7 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
           type="button"
           className={isSelected ? styles.destructiveBtn : styles.primaryBtn}
           aria-pressed={isSelected}
-          aria-label={`${isSelected ? "Retirer" : "Selectionner"} ${item.display_name}`}
+          aria-label={`${isSelected ? "Retirer" : "Sélectionner"} ${item.display_name}`}
           onClick={() => onToggle(item.id)}
         >
           {getPrimaryActionLabel(isSelected, item.is_available_now)}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -21,7 +21,7 @@ import {
   toggleOwnerConciergeValue,
   type OwnerConciergeSearchFilters,
 } from "./searchHelpers";
-import { getOwnerCitySuggestions, getOwnerRegionSuggestions } from "./locationSuggestions";
+import { getOwnerCitySuggestions } from "./locationSuggestions";
 import { createOwnerConciergeSearchAlert } from "../searchAlerts";
 
 type RequestType = "ponctuel" | "renfort" | "durable";
@@ -30,7 +30,6 @@ type RequestFormState = {
   requestType: RequestType;
   title: string;
   description: string;
-  region: string;
   city: string;
   postalCode: string;
   desiredDate: string;
@@ -39,8 +38,8 @@ type RequestFormState = {
 };
 
 const initialFilters: OwnerConciergeSearchFilters = {
-  region: "",
   city: "",
+  postalCode: "",
   selectedCategories: [],
   selectedServices: [],
   propertyType: "",
@@ -53,7 +52,6 @@ const initialRequestForm: RequestFormState = {
   requestType: "ponctuel",
   title: "",
   description: "",
-  region: "",
   city: "",
   postalCode: "",
   desiredDate: "",
@@ -202,17 +200,17 @@ export default function OwnerConciergesPage() {
   useEffect(() => {
     setRequestForm((prev) => ({
       ...prev,
-      region: filters.region,
       city: filters.city,
+      postalCode: filters.postalCode,
     }));
-  }, [filters.city, filters.region]);
+  }, [filters.city, filters.postalCode]);
 
   useEffect(() => {
     if (hydratedFromUrlRef.current) return;
 
     const nextFilters: OwnerConciergeSearchFilters = {
-      region: searchParams.get("region") ?? "",
       city: searchParams.get("city") ?? "",
+      postalCode: searchParams.get("postalCode") ?? "",
       selectedCategories: (searchParams.get("categories") ?? "")
         .split(",")
         .map((value) => value.trim())
@@ -282,13 +280,21 @@ export default function OwnerConciergesPage() {
   }
 
   function handleCreateAlert() {
-    createOwnerConciergeSearchAlert({
-      city: filters.city,
-      region: filters.region,
-      budgetMax: filters.budgetMax,
-      radiusKm: filters.radiusKm,
-    });
-    setFeedback("Alerte créée. Vous la retrouverez dans vos alertes propriétaire.");
+    try {
+      const result = createOwnerConciergeSearchAlert({
+        city: filters.city,
+        postalCode: filters.postalCode,
+        budgetMax: filters.budgetMax,
+        radiusKm: filters.radiusKm,
+      });
+      setFeedback(
+        result.created
+          ? "Alerte créée. Vous la retrouverez dans vos alertes propriétaire."
+          : "Une alerte identique existe déjà. Vous la retrouverez dans vos alertes propriétaire.",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de créer l'alerte.");
+    }
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -314,7 +320,7 @@ export default function OwnerConciergesPage() {
     event.preventDefault();
 
     if (selectedConciergeIds.length === 0) {
-      setError("Selectionnez au moins un concierge avant d'envoyer une demande.");
+      setError("Sélectionnez au moins un concierge avant d'envoyer une demande.");
       return;
     }
 
@@ -338,7 +344,6 @@ export default function OwnerConciergesPage() {
             requested_services:
               filters.selectedServices.length > 0 ? filters.selectedServices : filters.selectedCategories,
             city: requestForm.city.trim(),
-            region: requestForm.region.trim(),
             postal_code: requestForm.postalCode.trim(),
             desired_date: requestForm.desiredDate ? new Date(requestForm.desiredDate).toISOString() : null,
           urgency: requestForm.urgency,
@@ -360,8 +365,8 @@ export default function OwnerConciergesPage() {
       setMobileFiltersOpen(false);
       setRequestForm({
         ...initialRequestForm,
-        region: filters.region,
         city: filters.city,
+        postalCode: filters.postalCode,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre demande.");
@@ -374,13 +379,13 @@ export default function OwnerConciergesPage() {
     <>
       <div className={styles.searchBar}>
         <label className={`${styles.field} ${styles.searchField}`}>
-          <span>Région</span>
-          <OwnerLocationAutocomplete
-            ariaLabel="Region"
-            value={filters.region}
-            onChange={(value) => updateFilters("region", value)}
-            placeholder="Ile-de-France, PACA, Bretagne..."
-            getSuggestions={getOwnerRegionSuggestions}
+          <span>Code postal</span>
+          <input
+            aria-label="Code postal"
+            value={filters.postalCode}
+            onChange={(event) => updateFilters("postalCode", event.target.value)}
+            placeholder="75015"
+            inputMode="numeric"
           />
         </label>
 
@@ -455,7 +460,7 @@ export default function OwnerConciergesPage() {
 
         <div className={styles.searchMeta}>
           <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Services Recherchées</span>
+            <span className={styles.blockLabel}>Services recherchés</span>
             <div className={styles.serviceChips}>
               {categoryOptions.length === 0 ? (
                 <span className={styles.tagMuted}>
@@ -555,7 +560,7 @@ export default function OwnerConciergesPage() {
         <header className={styles.hero}>
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>Mise en relation</span>
-            <h1 className={styles.title}>Trouvez un concierge disponible dans votre région</h1>
+            <h1 className={styles.title}>Trouvez un concierge disponible dans votre ville ou code postal</h1>
             <p className={styles.description}>
               Recherchez par zone, comparez les profils les plus utiles puis envoyez un brief clair
               aux concierges que vous retenez.
@@ -677,18 +682,18 @@ export default function OwnerConciergesPage() {
             {!loading && !error && items.length === 0 && hasSubmittedSearch ? (
               <div className={styles.emptyState}>
                 <h2>
-                  {filters.region.trim() || filters.city.trim()
-                    ? `Aucun concierge disponible pour ${[filters.city.trim(), filters.region.trim()].filter(Boolean).join(", ")}.`
+                  {filters.city.trim() || filters.postalCode.trim()
+                    ? `Aucun concierge disponible pour ${[filters.city.trim(), filters.postalCode.trim()].filter(Boolean).join(" ")}.`
                     : "Aucun concierge disponible pour cette recherche."}
                 </h2>
                 <p>
                   Aucun profil actif n&apos;a été trouvé avec les filtres actuels. Essayez une région
                   voisine, augmentez le rayon ou retirez quelques filtres.
                 </p>
-                {(filters.region.trim() || filters.city.trim()) && (
+                {(filters.city.trim() || filters.postalCode.trim()) && (
                   <div className={styles.emptyStateActions}>
                     <button type="button" className={styles.primaryBtn} onClick={handleCreateAlert}>
-                      Creer une alerte pour cette zone
+                      Créer une alerte pour cette zone
                     </button>
                     <Link href="/dashboard/owner/alertes" className={styles.secondaryBtn}>
                       Voir mes alertes
@@ -704,7 +709,7 @@ export default function OwnerConciergesPage() {
                 <p>
                   {hasSearchCriteria
                     ? "Vos filtres sont prêts. Cliquez sur Rechercher pour afficher les concierges disponibles."
-                    : "Saisissez une région, puis ajoutez une ville si besoin pour affiner."}
+                    : "Saisissez une ville ou un code postal pour affiner."}
                 </p>
               </div>
             ) : null}
@@ -766,15 +771,20 @@ export default function OwnerConciergesPage() {
           <aside className={styles.sidebar}>
             <form className={styles.requestPanel} onSubmit={handleSendRequest} id="owner-request-panel">
               <div className={styles.requestHeader}>
-                <div>
+                <div className={styles.requestHeaderCopy}>
                   <p className={styles.eyebrow}>Demande</p>
                   <h2 className={styles.requestTitle}>Votre brief concierge</h2>
+                  <p className={styles.requestIntro}>
+                    Formalisez votre besoin comme une fiche mission claire, puis ciblez les profils les
+                    plus adaptés.
+                  </p>
                 </div>
                 <span className={styles.requestCount}>{selectedConciergeIds.length} cible(s)</span>
               </div>
 
               <div className={styles.selectionSummary}>
                 <div className={styles.panelSummary}>
+                  <span className={styles.requestSectionLabel}>Recherche active</span>
                   <strong>Recherche active</strong>
                   <div className={styles.summaryChips}>
                     {activeSearchSummary.length > 0 ? (
@@ -791,7 +801,10 @@ export default function OwnerConciergesPage() {
 
                 <div className={styles.selectionDivider} />
 
-                <strong>Concierges sélectionnés</strong>
+                <div className={styles.panelSummary}>
+                  <span className={styles.requestSectionLabel}>Destinataires</span>
+                  <strong>Concierges sélectionnés</strong>
+                </div>
                 <div className={styles.selectedList}>
                   {selectedConcierges.length > 0 ? (
                     selectedConcierges.map((item) => (
@@ -802,7 +815,7 @@ export default function OwnerConciergesPage() {
                             alt={
                               item.avatar_url
                                 ? `Avatar de ${item.display_name}`
-                                : `Avatar par defaut de ${item.display_name}`
+                                : `Avatar par défaut de ${item.display_name}`
                             }
                             className={styles.selectedChipAvatarImage}
                             width={28}
@@ -814,100 +827,113 @@ export default function OwnerConciergesPage() {
                     ))
                   ) : (
                     <span className={styles.tagMuted}>
-                      Selectionnez un ou plusieurs concierges dans la liste.
+                      Sélectionnez un ou plusieurs concierges dans la liste.
                     </span>
                   )}
                 </div>
               </div>
 
               <div className={styles.sidebarFields}>
-                <label className={styles.field}>
-                  <span>Type de demande</span>
-                  <select
-                    value={requestForm.requestType}
-                    onChange={(event) =>
-                      updateRequestForm("requestType", event.target.value as RequestType)
-                    }
-                  >
-                    <option value="ponctuel">Besoin ponctuel</option>
-                    <option value="renfort">Remplacement / renfort</option>
-                    <option value="durable">Besoin durable</option>
-                  </select>
-                </label>
+                <div className={styles.requestBlock}>
+                  <div className={styles.requestBlockHeader}>
+                    <span className={styles.requestSectionLabel}>Cadre de mission</span>
+                    <p className={styles.requestBlockHint}>Les informations visibles en tête de brief.</p>
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.field}>
+                      <span>Type de demande</span>
+                      <select
+                        value={requestForm.requestType}
+                        onChange={(event) =>
+                          updateRequestForm("requestType", event.target.value as RequestType)
+                        }
+                      >
+                        <option value="ponctuel">Besoin ponctuel</option>
+                        <option value="renfort">Remplacement / renfort</option>
+                        <option value="durable">Besoin durable</option>
+                      </select>
+                    </label>
 
-                <label className={styles.field}>
-                  <span>Region</span>
-                  <OwnerLocationAutocomplete
-                    ariaLabel="Region"
-                    value={requestForm.region}
-                    onChange={(value) => updateRequestForm("region", value)}
-                    placeholder="Region ou zone d'intervention"
-                    getSuggestions={getOwnerRegionSuggestions}
-                  />
-                </label>
+                    <label className={styles.field}>
+                      <span>Code postal</span>
+                      <input
+                        value={requestForm.postalCode}
+                        onChange={(event) => updateRequestForm("postalCode", event.target.value)}
+                        placeholder="75015"
+                        inputMode="numeric"
+                      />
+                    </label>
+                  </div>
+                </div>
 
-                <label className={styles.field}>
-                  <span>Ville</span>
-                  <OwnerLocationAutocomplete
-                    ariaLabel="Ville"
-                    value={requestForm.city}
-                    onChange={(value) => updateRequestForm("city", value)}
-                    placeholder="Ville d'intervention"
-                    getSuggestions={getOwnerCitySuggestions}
-                  />
-                </label>
+                <div className={styles.requestBlock}>
+                  <div className={styles.requestBlockHeader}>
+                    <span className={styles.requestSectionLabel}>Zone et budget</span>
+                    <p className={styles.requestBlockHint}>Précisez l&apos;intervention attendue.</p>
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.field}>
+                      <span>Ville</span>
+                      <OwnerLocationAutocomplete
+                        ariaLabel="Ville"
+                        value={requestForm.city}
+                        onChange={(value) => updateRequestForm("city", value)}
+                        placeholder="Ville d'intervention"
+                        getSuggestions={getOwnerCitySuggestions}
+                      />
+                    </label>
 
-                <div className={styles.fieldGrid}>
+                    <label className={styles.field}>
+                      <span>Budget max</span>
+                      <input
+                        type="number"
+                        min="0"
+                        inputMode="numeric"
+                        value={requestForm.budgetMax}
+                        onChange={(event) => updateRequestForm("budgetMax", event.target.value)}
+                        placeholder="120"
+                      />
+                      <small className={styles.fieldHint}>En EUR par heure. Laissez vide si non défini.</small>
+                    </label>
+                  </div>
+                </div>
+
+                <div className={styles.requestBlock}>
+                  <div className={styles.requestBlockHeader}>
+                    <span className={styles.requestSectionLabel}>Contenu du brief</span>
+                    <p className={styles.requestBlockHint}>
+                      Donnez assez de contexte pour obtenir une réponse utile.
+                    </p>
+                  </div>
                   <label className={styles.field}>
-                    <span>Code postal</span>
+                    <span>Date souhaitée</span>
                     <input
-                      value={requestForm.postalCode}
-                      onChange={(event) => updateRequestForm("postalCode", event.target.value)}
-                      placeholder="75015"
+                      type="datetime-local"
+                      value={requestForm.desiredDate}
+                      onChange={(event) => updateRequestForm("desiredDate", event.target.value)}
                     />
                   </label>
 
                   <label className={styles.field}>
-                    <span>Budget max</span>
+                    <span>Titre</span>
                     <input
-                      type="number"
-                      min="0"
-                      inputMode="numeric"
-                      value={requestForm.budgetMax}
-                      onChange={(event) => updateRequestForm("budgetMax", event.target.value)}
-                      placeholder="120"
+                      value={requestForm.title}
+                      onChange={(event) => updateRequestForm("title", event.target.value)}
+                      placeholder="Ex: besoin de check-in ce week-end"
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>Description</span>
+                    <textarea
+                      className={styles.requestTextarea}
+                      value={requestForm.description}
+                      onChange={(event) => updateRequestForm("description", event.target.value)}
+                      placeholder="Expliquez la situation, le logement, l'urgence et ce que vous attendez."
+                      rows={5}
                     />
                   </label>
                 </div>
-
-                <label className={styles.field}>
-                  <span>Date souhaitee</span>
-                  <input
-                    type="datetime-local"
-                    value={requestForm.desiredDate}
-                    onChange={(event) => updateRequestForm("desiredDate", event.target.value)}
-                  />
-                </label>
-
-                <label className={styles.field}>
-                  <span>Titre</span>
-                  <input
-                    value={requestForm.title}
-                    onChange={(event) => updateRequestForm("title", event.target.value)}
-                    placeholder="Ex: besoin de check-in ce week-end"
-                  />
-                </label>
-
-                <label className={styles.field}>
-                  <span>Description</span>
-                  <textarea
-                    className={styles.requestTextarea}
-                    value={requestForm.description}
-                    onChange={(event) => updateRequestForm("description", event.target.value)}
-                    placeholder="Expliquez la situation, le logement, l'urgence et ce que vous attendez."
-                    rows={5}
-                  />
-                </label>
 
                 <label className={styles.checkboxRow}>
                   <input
@@ -981,3 +1007,4 @@ export default function OwnerConciergesPage() {
     </section>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
@@ -28,7 +28,7 @@ type QuoteRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date non renseignee";
+  if (!value) return "Date non renseignée";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -45,7 +45,7 @@ function formatAmount(value: number | null) {
 function buildSearchHref(alert: OwnerConciergeSearchAlert) {
   const params = new URLSearchParams();
   if (alert.city) params.set("city", alert.city);
-  if (alert.region) params.set("region", alert.region);
+  if (alert.postalCode) params.set("postalCode", alert.postalCode);
   if (alert.budgetMax) params.set("budgetMax", alert.budgetMax);
   if (alert.radiusKm) params.set("radiusKm", alert.radiusKm);
   return `/dashboard/owner/concierges?${params.toString()}`;
@@ -126,30 +126,30 @@ export default function OwnerAlertesPage() {
       }
       chips={[
         `${urgentMissions.length} mission(s) prioritaires`,
-        `${pendingInvoices.length} facture(s) a suivre`,
-        `${pendingQuotes.length} devis a valider`,
+        `${pendingInvoices.length} facture(s) à suivre`,
+        `${pendingQuotes.length} devis à valider`,
         `${searchAlerts.length} alerte(s) concierge`,
       ]}
       metrics={[
         {
-          label: "Priorites execution",
+          label: "Priorités exécution",
           value: String(urgentMissions.length),
           hint: "Interventions qui peuvent créer une friction immédiate",
         },
         {
           label: "Alertes finance",
           value: String(pendingInvoices.length),
-          hint: "Factures qui demandent un suivi ou un reglement",
+          hint: "Factures qui demandent un suivi ou un règlement",
         },
         {
-          label: "Decisions en attente",
+          label: "Décisions en attente",
           value: String(pendingQuotes.length),
-          hint: "Devis a arbitrer rapidement",
+          hint: "Devis à arbitrer rapidement",
         },
         {
           label: "Alertes concierge",
           value: String(searchAlerts.length),
-          hint: "Zones sans concierge ou recherche a relancer",
+          hint: "Zones sans concierge ou recherche à relancer",
         },
       ]}
       actions={[
@@ -160,7 +160,7 @@ export default function OwnerAlertesPage() {
       ]}
       cards={[
         {
-          title: "1. Priorites execution",
+          title: "1. Priorités exécution",
           text:
             urgentMissions.length > 0
               ? urgentMissions
@@ -180,7 +180,7 @@ export default function OwnerAlertesPage() {
                   .slice(0, 3)
                   .map(
                     (invoice) =>
-                      `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - echeance ${formatDate(invoice.due_date)}`,
+                      `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - échéance ${formatDate(invoice.due_date)}`,
                   )
                   .join(" | ")
               : "Aucune facture en attente de règlement.",
@@ -204,20 +204,20 @@ export default function OwnerAlertesPage() {
             searchAlerts.length > 0
               ? searchAlerts
                   .slice(0, 3)
-                  .map((alert) => [alert.city, alert.region].filter(Boolean).join(", ") || "Zone non définie")
+                  .map((alert) => [alert.city, alert.postalCode].filter(Boolean).join(" ") || "Zone non définie")
                   .join(" | ")
               : "Aucune alerte de recherche concierge active.",
         },
       ]}
       detailSections={[
         {
-          title: "Actions a lancer maintenant",
+          title: "Actions à lancer maintenant",
           description:
-            "Les alertes utiles sont celles qui debloquent une decision ou evitent un retard. Commencez par ces leviers.",
+            "Les alertes utiles sont celles qui débloquent une décision ou évitent un retard. Commencez par ces leviers.",
           items: [
             {
-              title: "Verifier les interventions prioritaires",
-              meta: `${urgentMissions.length} priorite(s)`,
+              title: "Vérifier les interventions prioritaires",
+              meta: `${urgentMissions.length} priorité(s)`,
               description: "Confirmer statut, date et niveau d'urgence sur les missions ouvertes.",
               href: "/dashboard/owner/planning",
               actionLabel: "Ouvrir le planning",
@@ -226,7 +226,7 @@ export default function OwnerAlertesPage() {
             {
               title: "Traiter les factures ouvertes",
               meta: `${pendingInvoices.length} facture(s)`,
-              description: "Eviter les echeances ratees et garder une vision propre du solde en cours.",
+              description: "Éviter les échéances ratées et garder une vision propre du solde en cours.",
               href: pendingInvoices[0] ? `/dashboard/owner/factures?invoice=${pendingInvoices[0].id}` : "/dashboard/owner/factures",
               actionLabel: "Voir les factures",
               tone: pendingInvoices.length > 0 ? "warning" : "default",
@@ -234,7 +234,7 @@ export default function OwnerAlertesPage() {
             {
               title: "Arbitrer les devis en attente",
               meta: `${pendingQuotes.length} devis`,
-              description: "Valider ou repousser les propositions qui influencent votre execution et votre budget.",
+              description: "Valider ou repousser les propositions qui influencent votre exécution et votre budget.",
               href: pendingQuotes[0] ? `/dashboard/owner/devis?quote=${pendingQuotes[0].id}` : "/dashboard/owner/devis",
               actionLabel: "Voir les devis",
             },
@@ -246,12 +246,12 @@ export default function OwnerAlertesPage() {
             "Ces alertes sont créées quand aucune conciergerie n'est disponible dans la zone recherchée.",
           emptyText: "Aucune alerte concierge active.",
           items: searchAlerts.map((alert) => ({
-            title: [alert.city, alert.region].filter(Boolean).join(", ") || "Zone non définie",
+            title: [alert.city, alert.postalCode].filter(Boolean).join(" ") || "Zone non définie",
             meta: "Alerte active",
-            description: `Creation le ${formatDate(alert.createdAt)}.`,
+            description: `Créée le ${formatDate(alert.createdAt)}.`,
             facts: [
-              alert.budgetMax ? `Budget max: ${alert.budgetMax} EUR/h` : "Budget: sans limite",
-              alert.radiusKm ? `Rayon: ${alert.radiusKm} km` : "Rayon: sans limite",
+              alert.budgetMax ? `Budget max : ${alert.budgetMax} EUR/h` : "Budget : sans limite",
+              alert.radiusKm ? `Rayon : ${alert.radiusKm} km` : "Rayon : sans limite",
             ],
             href: buildSearchHref(alert),
             actionLabel: "Relancer la recherche",
@@ -261,3 +261,4 @@ export default function OwnerAlertesPage() {
     />
   );
 }
+

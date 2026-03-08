@@ -4,7 +4,7 @@ import type { ConciergeSearchRow, SortMode } from "./conciergeSearchTypes";
 export const DEFAULT_CONCIERGE_AVATAR = "/icons/account-svgrepo-com.svg";
 
 export function formatAmount(value: number | null, suffix: string) {
-  if (typeof value !== "number") return "Non renseigne";
+  if (typeof value !== "number") return "Non renseigné";
   return `${value.toFixed(0)} EUR ${suffix}`;
 }
 
@@ -19,13 +19,14 @@ export function formatReviewDate(value: string | null) {
 }
 
 export function getAvailabilityLabel(item: ConciergeSearchRow) {
-  return item.is_available_now ? "Disponible maintenant" : "Disponibilite a confirmer";
+  return item.is_available_now ? "Disponible maintenant" : "Disponibilité à confirmer";
 }
 
 export function getConciergeLocation(item: ConciergeSearchRow) {
-  const region = item.location || item.service_area;
-  if (item.city && region && item.city !== region) return `${item.city} · ${region}`;
-  return item.city || region || "Zone non renseignée";
+  const area = item.location || item.service_area;
+  const cityAndPostal = [item.city, item.postal_code].filter(Boolean).join(" ");
+  if (cityAndPostal && area && cityAndPostal !== area) return `${cityAndPostal} · ${area}`;
+  return cityAndPostal || area || "Zone non renseignée";
 }
 
 function compareNullableNumberDesc(left: number | null | undefined, right: number | null | undefined) {
@@ -65,18 +66,18 @@ export function mergeSortedOptions(...groups: string[][]) {
 
 export function getActiveSearchSummary(filters: OwnerConciergeSearchFilters) {
   return [
-    filters.region.trim() ? `Région : ${filters.region.trim()}` : null,
-    filters.city.trim() ? `Ville: ${filters.city.trim()}` : null,
+    filters.city.trim() ? `Ville : ${filters.city.trim()}` : null,
+    filters.postalCode.trim() ? `Code postal : ${filters.postalCode.trim()}` : null,
     filters.selectedCategories.length > 0
-      ? `Categories: ${filters.selectedCategories.slice(0, 2).join(", ")}${
+      ? `Catégories : ${filters.selectedCategories.slice(0, 2).join(", ")}${
           filters.selectedCategories.length > 2 ? "..." : ""
         }`
       : null,
-    filters.propertyType.trim() ? `Bien: ${filters.propertyType.trim()}` : null,
-    filters.budgetMax.trim() ? `Budget max: ${filters.budgetMax.trim()} EUR/h` : null,
-    filters.radiusKm.trim() ? `Rayon: ${filters.radiusKm.trim()} km` : null,
+    filters.propertyType.trim() ? `Bien : ${filters.propertyType.trim()}` : null,
+    filters.budgetMax.trim() ? `Budget max : ${filters.budgetMax.trim()} EUR/h` : null,
+    filters.radiusKm.trim() ? `Rayon : ${filters.radiusKm.trim()} km` : null,
     filters.selectedServices.length > 0
-      ? `Services: ${filters.selectedServices.slice(0, 3).join(", ")}${
+      ? `Services : ${filters.selectedServices.slice(0, 3).join(", ")}${
           filters.selectedServices.length > 3 ? "..." : ""
         }`
       : null,
@@ -85,5 +86,5 @@ export function getActiveSearchSummary(filters: OwnerConciergeSearchFilters) {
 
 export function getPrimaryActionLabel(isSelected: boolean, isAvailableNow: boolean | undefined) {
   if (isSelected) return "Retirer de ma demande";
-  return isAvailableNow ? "Selectionner ce concierge" : "Selectionner quand meme";
+  return isAvailableNow ? "Sélectionner ce concierge" : "Sélectionner quand même";
 }

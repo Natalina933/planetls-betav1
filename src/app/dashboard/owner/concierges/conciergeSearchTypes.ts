@@ -5,6 +5,7 @@ export type ConciergeSearchRow = {
   avatar_url?: string | null;
   display_name: string;
   city: string | null;
+  postal_code?: string | null;
   location?: string | null;
   country: string | null;
   service_area: string | null;

@@ -371,13 +371,437 @@
   gap: 0.35rem;
 }
 
+.conciergeSectionEyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a4030;
+}
+
+.reviewCard {
+  position: relative;
+  gap: 1rem;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 30%),
+    radial-gradient(circle at left top, rgba(201, 164, 106, 0.12), transparent 24%),
+    linear-gradient(180deg, #fffdfa, #f8ede6);
+  box-shadow: 0 18px 34px rgba(109, 53, 41, 0.08);
+}
+
+.reviewCard::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 0.8rem;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #c9a46a, #b85c48);
+}
+
+.reviewCardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.reviewCardCopy {
+  display: grid;
+  gap: 0.45rem;
+  max-width: 40rem;
+}
+
+.reviewBadgeGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.reviewBadge,
+.reviewBadgeMuted {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.32rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reviewBadge {
+  background: linear-gradient(180deg, #f4e1b6, #e8c983);
+  color: #5c3d15;
+  border: 1px solid rgba(124, 88, 28, 0.14);
+}
+
+.reviewBadgeMuted {
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+}
+
+.reviewEmptyState {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.15rem;
+  border-radius: 20px;
+  border: 1px dashed rgba(184, 92, 72, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(249, 238, 231, 0.96));
+}
+
+.reviewEmptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), transparent 36%),
+    linear-gradient(135deg, #d7b06b, #b85c48);
+  color: #fffaf6;
+  font-size: 1.2rem;
+  box-shadow: 0 10px 18px rgba(109, 53, 41, 0.12);
+}
+
+.reviewEmptyCopy {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.reviewEmptyCopy h3 {
+  margin: 0;
+  color: #4a2018;
+  font-size: 1.02rem;
+}
+
+.reviewEmptyCopy p {
+  margin: 0;
+}
+
+.conciergeDashboardFlow {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.conciergeKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.conciergeKpiCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.15rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
+    linear-gradient(180deg, #fffdfa, #f8ede7);
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.06);
+}
+
+.conciergeKpiLabel {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a4030;
+}
+
+.conciergeKpiValue {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  line-height: 0.95;
+  color: #4a2018;
+}
+
+.conciergeKpiHint {
+  margin: 0;
+  color: #6f4338;
+  line-height: 1.5;
+}
+
+.conciergeLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.conciergeTimelinePanel,
+.conciergeSpotlightCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 24px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.98), rgba(247, 236, 229, 0.96));
+  box-shadow: 0 16px 32px rgba(109, 53, 41, 0.06);
+}
+
+.conciergeAside {
+  display: grid;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.conciergeSectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.conciergeSectionTitle {
+  margin: 0;
+  font-size: 1.55rem;
+  color: #4a2018;
+}
+
+.conciergeEmptyState {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px dashed rgba(184, 92, 72, 0.2);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.conciergeEmptyState h3,
+.conciergeEmptyState p {
+  margin: 0;
+}
+
+.conciergeTimeline {
+  display: grid;
+  gap: 1rem;
+}
+
+.conciergeRequestCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 32%),
+    linear-gradient(180deg, #fffdfa, #f7ece5);
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.05);
+}
+
+.conciergeRequestTopline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.conciergeRequestHeading {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.conciergeRequestHeading h3,
+.conciergeRequestHeading p {
+  margin: 0;
+}
+
+.conciergeRequestHeading h3 {
+  font-size: 1.2rem;
+  color: #4a2018;
+}
+
+.conciergeRequestHeading p {
+  color: #6f4338;
+}
+
+.conciergeRequestMeta {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: end;
+  color: #7d5448;
+  font-size: 0.9rem;
+}
+
+.conciergeStatusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.statusPending {
+  background: #f7ebdf;
+  color: #7a5030;
+  border-color: rgba(122, 80, 48, 0.14);
+}
+
+.statusInfo {
+  background: #efe6dc;
+  color: #7a3f32;
+  border-color: rgba(122, 63, 50, 0.14);
+}
+
+.statusSuccess {
+  background: #e8f0e7;
+  color: #355c40;
+  border-color: rgba(53, 92, 64, 0.14);
+}
+
+.statusUrgent {
+  background: #f8e2db;
+  color: #9b3b2f;
+  border-color: rgba(155, 59, 47, 0.16);
+}
+
+.conciergeFactRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.conciergeFactCard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.conciergeFactCard span {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a4030;
+}
+
+.conciergeFactCard strong {
+  font-size: 1rem;
+  color: #4a2018;
+}
+
+.conciergeRequestDescription {
+  margin: 0;
+  color: #574238;
+  line-height: 1.6;
+}
+
+.conciergeRecipients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.conciergeRecipientChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.conciergeQuickActions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.conciergeSnapshotList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.conciergeSnapshotRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(184, 92, 72, 0.12);
+  color: #6f4338;
+}
+
+.conciergeSnapshotRow:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.conciergeSnapshotRow strong {
+  color: #4a2018;
+}
+
 @media (max-width: 1024px) {
+  .conciergeKpiGrid,
+  .conciergeFactRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .conciergeLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .conciergeAside {
+    position: static;
+  }
+
   .weekBoard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .conciergeKpiGrid,
+  .conciergeFactRow {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewCardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reviewEmptyState {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .conciergeRequestTopline,
+  .conciergeSectionHeader {
+    align-items: start;
+  }
+
+  .conciergeRequestMeta {
+    justify-items: start;
+  }
+
   .weekBoard {
     grid-template-columns: 1fr;
   }

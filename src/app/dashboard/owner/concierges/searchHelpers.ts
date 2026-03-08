@@ -1,6 +1,6 @@
 export type OwnerConciergeSearchFilters = {
-  region: string;
   city: string;
+  postalCode: string;
   selectedCategories: string[];
   selectedServices: string[];
   propertyType: string;
@@ -17,8 +17,8 @@ export type ConciergeSearchResult = {
 export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFilters) {
   const params = new URLSearchParams();
 
-  if (filters.region.trim()) params.set("region", filters.region.trim());
   if (filters.city.trim()) params.set("city", filters.city.trim());
+  if (filters.postalCode.trim()) params.set("postalCode", filters.postalCode.trim());
   if (filters.selectedCategories.length > 0) {
     params.set("categories", filters.selectedCategories.join(","));
   }
@@ -35,8 +35,8 @@ export function buildOwnerConciergeSearchParams(filters: OwnerConciergeSearchFil
 
 export function hasOwnerConciergeSearchCriteria(filters: OwnerConciergeSearchFilters) {
   return Boolean(
-    filters.region.trim() ||
-      filters.city.trim() ||
+    filters.city.trim() ||
+      filters.postalCode.trim() ||
       filters.selectedCategories.length > 0 ||
       filters.selectedServices.length > 0 ||
       filters.propertyType.trim() ||

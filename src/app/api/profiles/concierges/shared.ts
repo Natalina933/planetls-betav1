@@ -27,8 +27,8 @@ type SearchResultInput = {
 };
 
 export type ConciergeSearchFilters = {
-  region: string;
   city: string;
+  postalCode: string;
   categories: string[];
   services: string[];
   proOnly: boolean;
@@ -140,8 +140,8 @@ export function buildConciergeSearchFilters(searchParams: URLSearchParams): Conc
   const limitRaw = Number(searchParams.get("limit") ?? "48");
 
   return {
-    region: (searchParams.get("region") ?? searchParams.get("location") ?? "").trim(),
     city: (searchParams.get("city") ?? "").trim(),
+    postalCode: (searchParams.get("postalCode") ?? "").trim(),
     categories,
     services:
       serviceFromList.length > 0
@@ -186,30 +186,14 @@ export function applyConciergeSearchFilters(
   filters: ConciergeSearchFilters,
   categoryByService: Map<string, string> = new Map(),
 ) {
-  const regionNormalized = normalizeSearchValue(filters.region);
   const cityNormalized = normalizeSearchValue(filters.city);
+  const postalCodeNormalized = normalizeSearchValue(filters.postalCode);
   const categoriesNormalized = filters.categories.map(normalizeSearchValue);
   const servicesNormalized = filters.services.map(normalizeSearchValue);
   const propertyTypeNormalized = normalizeSearchValue(filters.propertyType);
 
   return results
     .filter((profile) => {
-      if (regionNormalized) {
-        const area = normalizeSearchValue(
-          [
-            normalizeAreaLabel(profile.service_area),
-            normalizeAreaLabel(profile.location),
-            profile.country,
-            normalizeAreaLabel(profile.city),
-          ]
-            .filter(Boolean)
-            .join(" "),
-        );
-        if (!area.includes(regionNormalized)) {
-          return false;
-        }
-      }
-
       if (cityNormalized) {
         const area = normalizeSearchValue(
           [
@@ -222,6 +206,17 @@ export function applyConciergeSearchFilters(
             .join(" "),
         );
         if (!area.includes(cityNormalized)) {
+          return false;
+        }
+      }
+
+      if (postalCodeNormalized) {
+        const postalArea = normalizeSearchValue(
+          [profile.postal_code, normalizeAreaLabel(profile.location), normalizeAreaLabel(profile.service_area)]
+            .filter(Boolean)
+            .join(" "),
+        );
+        if (!postalArea.includes(postalCodeNormalized)) {
           return false;
         }
       }

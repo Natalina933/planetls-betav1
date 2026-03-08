@@ -276,8 +276,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       filters: {
-        region: filters.region || null,
         city: filters.city || null,
+        postal_code: filters.postalCode || null,
         categories: filters.categories,
         services: filters.services,
         pro_only: filters.proOnly,

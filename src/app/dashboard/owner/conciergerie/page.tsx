@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
-import FilterSliders from "@/app/components/ui/FilterSliders";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
 import pageStyles from "../OwnerDashboardPages.module.scss";
@@ -69,7 +68,7 @@ type OwnerServiceRequestRow = {
 };
 
 function formatDateTime(value: string | null | undefined) {
-  if (!value) return "Date a definir";
+  if (!value) return "Date à définir";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -81,7 +80,7 @@ function formatDateTime(value: string | null | undefined) {
 }
 
 function formatBudget(value: number | null | undefined, currency: string | null | undefined) {
-  if (typeof value !== "number") return "Budget non renseigne";
+  if (typeof value !== "number") return "Budget non renseigné";
   return `${value.toFixed(0)} ${currency || "EUR"} max`;
 }
 
@@ -89,6 +88,36 @@ function formatRequestType(value: OwnerServiceRequestRow["request_type"]) {
   if (value === "durable") return "Besoin durable";
   if (value === "renfort") return "Renfort / remplacement";
   return "Besoin ponctuel";
+}
+
+function formatRequestStatus(status: string) {
+  switch (status) {
+    case "sent":
+      return "Envoyée";
+    case "viewed":
+      return "Consultée";
+    case "in_review":
+      return "En cours d'examen";
+    case "interested":
+      return "Intérêt reçu";
+    case "quoted":
+      return "Devis reçu";
+    case "selected":
+      return "Concierge retenu";
+    case "closed":
+      return "Clôturée";
+    default:
+      return status || "En cours";
+  }
+}
+
+function getStatusTone(status: string, urgent?: boolean) {
+  if (urgent) return pageStyles.statusUrgent;
+  if (status === "selected" || status === "closed") return pageStyles.statusSuccess;
+  if (status === "quoted" || status === "interested" || status === "in_review") {
+    return pageStyles.statusInfo;
+  }
+  return pageStyles.statusPending;
 }
 
 export default function OwnerConciergeriePage() {
@@ -104,9 +133,6 @@ export default function OwnerConciergeriePage() {
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [cityPreference, setCityPreference] = useState("");
-  const [radiusPreference, setRadiusPreference] = useState(25);
-  const [budgetPreference, setBudgetPreference] = useState(90);
 
   useEffect(() => {
     async function loadData() {
@@ -162,55 +188,26 @@ export default function OwnerConciergeriePage() {
     () =>
       requests.filter((request) =>
         request.recipients.some((recipient) =>
-          ["sent", "viewed", "interested", "quoted"].includes(recipient.status),
+          ["sent", "viewed", "interested", "quoted", "in_review"].includes(recipient.status),
         ),
       ).length,
     [requests],
   );
 
-  const requestDetailSection = useMemo(
-    () => ({
-      title: "Demandes envoyées aux concierges",
-      description:
-        "Suivez ici les briefs envoyés depuis la recherche concierge, leur statut et les destinataires.",
-      emptyText: "Aucune demande envoyée pour le moment. Vos prochaines demandes apparaîtront ici.",
-      items: requests.map((request) => ({
-        title: request.title,
-        meta: request.status,
-        tone: request.urgency ? ("warning" as const) : ("default" as const),
-        description: [
-          `${formatRequestType(request.request_type)}${request.urgency ? " | Urgent" : ""}`,
-          `${request.city || "Ville a confirmer"}${request.postal_code ? ` (${request.postal_code})` : ""}`,
-          `Envoi le ${formatDateTime(request.created_at)}`,
-          request.description || "",
-        ]
-          .filter(Boolean)
-          .join(" | "),
-        facts: [
-          formatBudget(request.budget_max, request.currency),
-          `Echeance: ${formatDateTime(request.desired_date)}`,
-          request.recipients.length > 0
-            ? `Destinataires: ${request.recipients
-                .map((recipient) => `${recipient.concierge_name || "Concierge"} (${recipient.status})`)
-                .join(" | ")}`
-            : "Aucun concierge rattaché",
-          request.selected_concierge_name
-            ? `Concierge retenu : ${request.selected_concierge_name}`
-            : "",
-        ].filter(Boolean),
-      })),
-    }),
+  const repliedRequestsCount = useMemo(
+    () =>
+      requests.filter((request) =>
+        request.recipients.some((recipient) =>
+          ["interested", "quoted", "selected", "in_review"].includes(recipient.status),
+        ),
+      ).length,
     [requests],
   );
 
-  const searchHref = useMemo(() => {
-    const params = new URLSearchParams();
-    if (cityPreference.trim()) params.set("city", cityPreference.trim());
-    if (budgetPreference > 0) params.set("budgetMax", String(budgetPreference));
-    if (radiusPreference > 0) params.set("radiusKm", String(radiusPreference));
-    const query = params.toString();
-    return query ? `/dashboard/owner/concierges?${query}` : "/dashboard/owner/concierges";
-  }, [budgetPreference, cityPreference, radiusPreference]);
+  const selectedConciergeCount = useMemo(
+    () => requests.filter((request) => Boolean(request.selected_concierge_name)).length,
+    [requests],
+  );
 
   const averageRating = useMemo(() => {
     const validRatings = reviews
@@ -329,37 +326,34 @@ export default function OwnerConciergeriePage() {
         description={
           error
             ? error
-            : "Retrouvez vos demandes envoyées, vos échanges récents, le niveau d'activité de votre concierge et les retours collectés après mission."
+            : "Un espace de pilotage synthétique pour suivre vos demandes, vos échanges actifs et la qualité de la relation concierge."
         }
         chips={[
-          `${missions.length} mission(s)`,
           `${requests.length} demande(s) envoyée(s)`,
-          `${ongoingCount} en cours`,
-          `${conversations.length} conversation(s)`,
+          `${openRequestsCount} en attente`,
+          `${repliedRequestsCount} réponse(s) reçue(s)`,
+          `${ongoingCount} mission(s) en cours`,
           averageRating ? `${averageRating}/5 de satisfaction` : "Avis en cours de collecte",
-          spotlightProfile?.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard",
+          spotlightProfile?.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge standard",
         ]}
         actions={[
           { label: "Ouvrir les messages", href: "/dashboard/owner/messages" },
           { label: "Voir le planning", href: "/dashboard/owner/planning" },
-          { label: "Trouver un concierge", href: searchHref },
+          { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
           ...(spotlightConciergeProfileId
             ? [{ label: "Voir le profil concierge", href: `/concierges/${spotlightConciergeProfileId}` }]
             : []),
         ]}
         cards={[
           {
-            title: "Demandes envoyées",
+            title: "Vue opérationnelle",
             text:
               requests.length > 0
-                ? requests
-                    .slice(0, 3)
-                    .map((request) => `${request.title} (${request.status})`)
-                    .join(" | ")
+                ? `${openRequestsCount} demande(s) encore à qualifier, ${repliedRequestsCount} avec un retour exploitable et ${selectedConciergeCount} déjà transformée(s) en relation active.`
                 : "Aucune demande envoyée pour le moment.",
           },
           {
-            title: "1. Missions recentes",
+            title: "Missions récentes",
             text:
               missions.length > 0
                 ? missions
@@ -369,7 +363,7 @@ export default function OwnerConciergeriePage() {
                 : "Aucune mission chargée pour le moment.",
           },
           {
-            title: "2. Contacts actifs",
+            title: "Contacts actifs",
             text:
               conversations.length > 0
                 ? conversations
@@ -379,80 +373,195 @@ export default function OwnerConciergeriePage() {
                 : "Aucun contact actif pour le moment.",
           },
           {
-            title: "3. Suivi operationnel",
-            text:
-              openRequestsCount > 0
-                ? `${openRequestsCount} demande(s) attendent encore un retour ou une qualification concierge.`
-                : "Aucune demande envoyée n'attend actuellement de retour.",
-          },
-          {
             title: "Avis et notation",
             text:
               reviews.length > 0
-                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
+                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Évaluation recueillie sans commentaire."}`
                 : "Les avis laissés après les missions terminées apparaîtront ici.",
           },
           {
             title: "Badge concierge",
             text: spotlightProfile
-              ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge Standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` | ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
+              ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` | ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
               : "Le statut PRO et la note du concierge apparaîtront ici dès qu'un profil sera associé.",
           },
         ]}
-        detailSections={[requestDetailSection]}
       />
 
-      <section className={workspaceStyles.card}>
-        <h2 className={workspaceStyles.cardTitle}>Budget et rayon</h2>
-        <p className={workspaceStyles.cardText}>
-          Ajustez rapidement vos préférences avant de relancer une recherche de concierges.
-        </p>
-        <label className={pageStyles.label}>
-          <span className={workspaceStyles.cardText}>Ville</span>
-          <input
-            value={cityPreference}
-            onChange={(event) => setCityPreference(event.target.value)}
-            placeholder="Paris, Lyon, Bordeaux..."
-            className={pageStyles.field}
-          />
-        </label>
-        <FilterSliders
-          title="Préférences de recherche"
-          budget={{
-            label: "Budget max par heure",
-            value: budgetPreference,
-            min: 0,
-            max: 300,
-            step: 10,
-            helperText: "0 = sans limite",
-            formatValue: (value) => (value === 0 ? "Sans limite" : `${value} EUR/h`),
-            onChange: setBudgetPreference,
-          }}
-          radius={{
-            label: "Rayon max",
-            value: radiusPreference,
-            min: 0,
-            max: 100,
-            step: 5,
-            unit: "km",
-            helperText: "0 = sans limite",
-            formatValue: (value) => (value === 0 ? "Sans limite" : `${value} km`),
-            onChange: setRadiusPreference,
-          }}
-        />
-        <div className={workspaceStyles.cardActions}>
-          <Link href={searchHref} className={pageStyles.buttonPrimary}>
-            Relancer ma recherche concierge
-          </Link>
+      <section className={pageStyles.conciergeDashboardFlow}>
+        <div className={pageStyles.conciergeKpiGrid}>
+          <article className={pageStyles.conciergeKpiCard}>
+            <span className={pageStyles.conciergeKpiLabel}>Demandes envoyées</span>
+            <strong className={pageStyles.conciergeKpiValue}>{requests.length}</strong>
+            <p className={pageStyles.conciergeKpiHint}>Briefs déjà partis vers vos concierges ciblés.</p>
+          </article>
+          <article className={pageStyles.conciergeKpiCard}>
+            <span className={pageStyles.conciergeKpiLabel}>En attente</span>
+            <strong className={pageStyles.conciergeKpiValue}>{openRequestsCount}</strong>
+            <p className={pageStyles.conciergeKpiHint}>Demandes qui attendent encore une réponse exploitable.</p>
+          </article>
+          <article className={pageStyles.conciergeKpiCard}>
+            <span className={pageStyles.conciergeKpiLabel}>Réponses reçues</span>
+            <strong className={pageStyles.conciergeKpiValue}>{repliedRequestsCount}</strong>
+            <p className={pageStyles.conciergeKpiHint}>Concierges ayant consulté, répondu ou proposé un devis.</p>
+          </article>
+          <article className={pageStyles.conciergeKpiCard}>
+            <span className={pageStyles.conciergeKpiLabel}>Concierge retenu</span>
+            <strong className={pageStyles.conciergeKpiValue}>{selectedConciergeCount}</strong>
+            <p className={pageStyles.conciergeKpiHint}>Demandes déjà transformées en relation active.</p>
+          </article>
+        </div>
+
+        <div className={pageStyles.conciergeLayout}>
+          <section className={pageStyles.conciergeTimelinePanel}>
+            <div className={pageStyles.conciergeSectionHeader}>
+              <div>
+                <p className={pageStyles.eyebrow}>Pilotage</p>
+                <h2 className={pageStyles.conciergeSectionTitle}>Timeline des demandes</h2>
+              </div>
+              <Link href="/dashboard/owner/concierges" className={pageStyles.linkButton}>
+                Trouver un concierge
+              </Link>
+            </div>
+
+            {requests.length === 0 ? (
+              <div className={pageStyles.conciergeEmptyState}>
+                <h3>Aucune demande envoyée pour le moment.</h3>
+                <p>Commencez une recherche puis envoyez un brief à des concierges pour suivre ici les retours.</p>
+              </div>
+            ) : (
+              <div className={pageStyles.conciergeTimeline}>
+                {requests.map((request) => (
+                  <article key={request.id} className={pageStyles.conciergeRequestCard}>
+                    <div className={pageStyles.conciergeRequestTopline}>
+                      <div className={pageStyles.conciergeRequestHeading}>
+                        <span
+                          className={`${pageStyles.conciergeStatusPill} ${getStatusTone(request.status, request.urgency)}`}
+                        >
+                          {formatRequestStatus(request.status)}
+                        </span>
+                        <h3>{request.title}</h3>
+                        <p>
+                          {formatRequestType(request.request_type)}
+                          {request.urgency ? " · Urgent" : ""}
+                        </p>
+                      </div>
+                      <div className={pageStyles.conciergeRequestMeta}>
+                        <span>
+                          {request.city || "Ville à confirmer"}
+                          {request.postal_code ? ` ${request.postal_code}` : ""}
+                        </span>
+                        <span>Envoyée le {formatDateTime(request.created_at)}</span>
+                      </div>
+                    </div>
+
+                    <div className={pageStyles.conciergeFactRow}>
+                      <div className={pageStyles.conciergeFactCard}>
+                        <span>Budget</span>
+                        <strong>{formatBudget(request.budget_max, request.currency)}</strong>
+                      </div>
+                      <div className={pageStyles.conciergeFactCard}>
+                        <span>Échéance</span>
+                        <strong>{formatDateTime(request.desired_date)}</strong>
+                      </div>
+                      <div className={pageStyles.conciergeFactCard}>
+                        <span>Concierges contactés</span>
+                        <strong>{request.recipients.length}</strong>
+                      </div>
+                    </div>
+
+                    {request.description ? (
+                      <p className={pageStyles.conciergeRequestDescription}>{request.description}</p>
+                    ) : null}
+
+                    <div className={pageStyles.conciergeRecipients}>
+                      {request.recipients.length > 0 ? (
+                        request.recipients.slice(0, 4).map((recipient) => (
+                          <span key={recipient.id} className={pageStyles.conciergeRecipientChip}>
+                            {recipient.concierge_name || "Concierge"} · {formatRequestStatus(recipient.status)}
+                          </span>
+                        ))
+                      ) : (
+                        <span className={pageStyles.conciergeRecipientChip}>Aucun destinataire rattaché</span>
+                      )}
+                    </div>
+
+                    <div className={pageStyles.inlineActions}>
+                      <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
+                        Voir les messages
+                      </Link>
+                      <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
+                        Relancer une recherche
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <aside className={pageStyles.conciergeAside}>
+            <section className={pageStyles.conciergeSpotlightCard}>
+              <p className={pageStyles.eyebrow}>Actions rapides</p>
+              <h2 className={pageStyles.conciergeSectionTitle}>Prochaines actions</h2>
+              <div className={pageStyles.conciergeQuickActions}>
+                <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
+                  Trouver un concierge
+                </Link>
+                <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
+                  Ouvrir les messages
+                </Link>
+                <Link href="/dashboard/owner/planning" className={pageStyles.buttonSecondary}>
+                  Voir le planning
+                </Link>
+              </div>
+            </section>
+
+            <section className={pageStyles.conciergeSpotlightCard}>
+              <p className={pageStyles.eyebrow}>Relation</p>
+              <h2 className={pageStyles.conciergeSectionTitle}>Vue d'ensemble concierge</h2>
+              <div className={pageStyles.conciergeSnapshotList}>
+                <div className={pageStyles.conciergeSnapshotRow}>
+                  <span>Badge</span>
+                  <strong>
+                    {spotlightProfile?.profile.role === "concierge_pro"
+                      ? "Concierge PRO"
+                      : "Concierge standard"}
+                  </strong>
+                </div>
+                <div className={pageStyles.conciergeSnapshotRow}>
+                  <span>Note moyenne</span>
+                  <strong>{averageRating ? `${averageRating} / 5` : "À construire"}</strong>
+                </div>
+                <div className={pageStyles.conciergeSnapshotRow}>
+                  <span>Conversations</span>
+                  <strong>{conversations.length}</strong>
+                </div>
+                <div className={pageStyles.conciergeSnapshotRow}>
+                  <span>Missions en cours</span>
+                  <strong>{ongoingCount}</strong>
+                </div>
+              </div>
+            </section>
+          </aside>
         </div>
       </section>
 
-      <section className={workspaceStyles.card}>
-        <h2 className={workspaceStyles.cardTitle}>Laisser un avis</h2>
-        <p className={workspaceStyles.cardText}>
-          Notez votre concierge après une mission terminée pour renforcer la confiance sur la
-          plateforme.
-        </p>
+      <section className={`${workspaceStyles.card} ${pageStyles.reviewCard}`}>
+        <div className={pageStyles.reviewCardHeader}>
+          <div className={pageStyles.reviewCardCopy}>
+            <p className={pageStyles.conciergeSectionEyebrow}>Confiance</p>
+            <h2 className={workspaceStyles.cardTitle}>Laisser un avis</h2>
+            <p className={workspaceStyles.cardText}>
+              Notez votre concierge après une mission terminée pour renforcer la confiance sur la
+              plateforme.
+            </p>
+          </div>
+          <div className={pageStyles.reviewBadgeGroup}>
+            <span className={pageStyles.reviewBadge}>Mission terminée</span>
+            <span className={pageStyles.reviewBadgeMuted}>Avis propriétaire</span>
+          </div>
+        </div>
 
         {reviewSuccess ? (
           <p className={`${pageStyles.message} ${pageStyles.messageSuccess}`}>{reviewSuccess}</p>
@@ -462,9 +571,17 @@ export default function OwnerConciergeriePage() {
         ) : null}
 
         {reviewableMissions.length === 0 ? (
-          <p className={workspaceStyles.cardText}>
-            Aucun avis en attente. Les missions terminées non encore notées apparaîtront ici.
-          </p>
+          <div className={pageStyles.reviewEmptyState}>
+            <div className={pageStyles.reviewEmptyIcon} aria-hidden="true">
+              5
+            </div>
+            <div className={pageStyles.reviewEmptyCopy}>
+              <h3>Aucun avis en attente</h3>
+              <p className={workspaceStyles.cardText}>
+                Les missions terminées non encore notées apparaîtront ici.
+              </p>
+            </div>
+          </div>
         ) : (
           <form onSubmit={handleSubmitReview} className={pageStyles.formGrid}>
             <label className={pageStyles.label}>
