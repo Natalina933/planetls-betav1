@@ -66,8 +66,8 @@ export function mergeSortedOptions(...groups: string[][]) {
 
 export function getActiveSearchSummary(filters: OwnerConciergeSearchFilters) {
   return [
-    filters.city.trim() ? `Ville : ${filters.city.trim()}` : null,
-    filters.postalCode.trim() ? `Code postal : ${filters.postalCode.trim()}` : null,
+    filters.region.trim() ? `Région : ${filters.region.trim()}` : null,
+    filters.city.trim() ? `Ville ou code postal : ${filters.city.trim()}` : null,
     filters.selectedCategories.length > 0
       ? `Catégories : ${filters.selectedCategories.slice(0, 2).join(", ")}${
           filters.selectedCategories.length > 2 ? "..." : ""

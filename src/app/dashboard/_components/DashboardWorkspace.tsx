@@ -23,12 +23,15 @@ export interface DashboardWorkspaceMetric {
 }
 
 export interface DashboardWorkspaceDetailItem {
+  id?: string;
   title: string;
   meta?: string;
   description?: string;
   facts?: string[];
   href?: string;
   actionLabel?: string;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   tone?: "default" | "warning" | "success";
 }
 
@@ -181,10 +184,10 @@ export default function DashboardWorkspace({
                 {section.items.length > 0 ? (
                   <div className={styles.detailList}>
                     {section.items.map((item) => (
-                      <article
-                        key={`${section.title}-${item.title}-${item.meta || ""}`}
-                        className={styles.detailItem}
-                      >
+                        <article
+                          key={item.id || `${section.title}-${item.title}-${item.meta || ""}`}
+                          className={styles.detailItem}
+                        >
                         <div className={styles.detailItemMain}>
                           <div className={styles.detailItemTopline}>
                             <h3 className={styles.detailItemTitle}>{item.title}</h3>
@@ -210,9 +213,30 @@ export default function DashboardWorkspace({
                         </div>
 
                         {item.href && item.actionLabel ? (
-                          <Link href={item.href} className={styles.detailItemAction}>
-                            {item.actionLabel}
-                          </Link>
+                          <div className={styles.detailItemActions}>
+                            <Link href={item.href} className={styles.detailItemAction}>
+                              {item.actionLabel}
+                            </Link>
+                            {item.onSecondaryAction && item.secondaryActionLabel ? (
+                              <button
+                                type="button"
+                                className={styles.detailItemActionSecondary}
+                                onClick={item.onSecondaryAction}
+                              >
+                                {item.secondaryActionLabel}
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : item.onSecondaryAction && item.secondaryActionLabel ? (
+                          <div className={styles.detailItemActions}>
+                            <button
+                              type="button"
+                              className={styles.detailItemActionSecondary}
+                              onClick={item.onSecondaryAction}
+                            >
+                              {item.secondaryActionLabel}
+                            </button>
+                          </div>
                         ) : null}
                       </article>
                     ))}

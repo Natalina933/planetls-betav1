@@ -2,7 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
-import { loadOwnerConciergeSearchAlerts, type OwnerConciergeSearchAlert } from "../searchAlerts";
+import {
+  deleteOwnerConciergeSearchAlert,
+  loadOwnerConciergeSearchAlerts,
+  type OwnerConciergeSearchAlert,
+} from "../searchAlerts";
 
 type MissionRow = {
   id: string;
@@ -61,6 +65,10 @@ export default function OwnerAlertesPage() {
   useEffect(() => {
     setSearchAlerts(loadOwnerConciergeSearchAlerts());
   }, []);
+
+  function handleDeleteSearchAlert(alertId: string) {
+    setSearchAlerts(deleteOwnerConciergeSearchAlert(alertId));
+  }
 
   useEffect(() => {
     async function loadAlerts() {
@@ -246,6 +254,7 @@ export default function OwnerAlertesPage() {
             "Ces alertes sont créées quand aucune conciergerie n'est disponible dans la zone recherchée.",
           emptyText: "Aucune alerte concierge active.",
           items: searchAlerts.map((alert) => ({
+            id: alert.id,
             title: [alert.city, alert.postalCode].filter(Boolean).join(" ") || "Zone non définie",
             meta: "Alerte active",
             description: `Créée le ${formatDate(alert.createdAt)}.`,
@@ -253,8 +262,10 @@ export default function OwnerAlertesPage() {
               alert.budgetMax ? `Budget max : ${alert.budgetMax} EUR/h` : "Budget : sans limite",
               alert.radiusKm ? `Rayon : ${alert.radiusKm} km` : "Rayon : sans limite",
             ],
-            href: buildSearchHref(alert),
-            actionLabel: "Relancer la recherche",
+            href: `${buildSearchHref(alert)}&alertId=${encodeURIComponent(alert.id)}`,
+            actionLabel: "Modifier l'alerte",
+            secondaryActionLabel: "Supprimer",
+            onSecondaryAction: () => handleDeleteSearchAlert(alert.id),
           })),
         },
       ]}

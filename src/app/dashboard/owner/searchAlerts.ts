@@ -28,6 +28,13 @@ function normalizeText(value: string) {
   return value.trim();
 }
 
+function normalizeIdentityPart(value: string) {
+  return normalizeText(value)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
 function normalizeAlertInput(input: OwnerConciergeSearchAlertInput): OwnerConciergeSearchAlertInput {
   return {
     city: normalizeText(input.city),
@@ -62,13 +69,12 @@ function sanitizeAlert(alert: OwnerConciergeSearchAlert): OwnerConciergeSearchAl
   };
 }
 
-function buildAlertSignature(input: OwnerConciergeSearchAlertInput) {
-  return [
-    input.city.toLowerCase(),
-    input.postalCode.toLowerCase(),
-    input.budgetMax,
-    input.radiusKm,
-  ].join("::");
+function buildAlertIdentityKey(input: OwnerConciergeSearchAlertInput) {
+  if (input.city) {
+    return `city::${normalizeIdentityPart(input.city)}`;
+  }
+
+  return `postal::${normalizeIdentityPart(input.postalCode)}`;
 }
 
 export function loadOwnerConciergeSearchAlerts(): OwnerConciergeSearchAlert[] {
@@ -95,6 +101,12 @@ export function saveOwnerConciergeSearchAlerts(alerts: OwnerConciergeSearchAlert
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts));
 }
 
+export function deleteOwnerConciergeSearchAlert(alertId: string) {
+  const nextAlerts = loadOwnerConciergeSearchAlerts().filter((alert) => alert.id !== alertId);
+  saveOwnerConciergeSearchAlerts(nextAlerts);
+  return nextAlerts;
+}
+
 export function createOwnerConciergeSearchAlert(
   input: OwnerConciergeSearchAlertInput,
 ): CreateOwnerConciergeSearchAlertResult {
@@ -105,15 +117,15 @@ export function createOwnerConciergeSearchAlert(
   }
 
   const current = loadOwnerConciergeSearchAlerts();
-  const nextSignature = buildAlertSignature(normalizedInput);
+  const nextIdentityKey = buildAlertIdentityKey(normalizedInput);
   const existingAlert = current.find(
     (alert) =>
-      buildAlertSignature({
+      buildAlertIdentityKey({
         city: alert.city,
         postalCode: alert.postalCode,
         budgetMax: alert.budgetMax,
         radiusKm: alert.radiusKm,
-      }) === nextSignature,
+      }) === nextIdentityKey,
   );
 
   if (existingAlert) {
@@ -132,4 +144,55 @@ export function createOwnerConciergeSearchAlert(
 
   saveOwnerConciergeSearchAlerts([nextAlert, ...current]);
   return { alert: nextAlert, created: true };
+}
+
+export function upsertOwnerConciergeSearchAlert(
+  alertId: string | null,
+  input: OwnerConciergeSearchAlertInput,
+): CreateOwnerConciergeSearchAlertResult {
+  if (!alertId) {
+    return createOwnerConciergeSearchAlert(input);
+  }
+
+  const normalizedInput = normalizeAlertInput(input);
+
+  if (!normalizedInput.city && !normalizedInput.postalCode) {
+    throw new Error("Ville ou code postal requis pour créer une alerte.");
+  }
+
+  const current = loadOwnerConciergeSearchAlerts();
+  const alertToUpdate = current.find((alert) => alert.id === alertId);
+
+  if (!alertToUpdate) {
+    return createOwnerConciergeSearchAlert(normalizedInput);
+  }
+
+  const nextIdentityKey = buildAlertIdentityKey(normalizedInput);
+  const conflictingAlert = current.find(
+    (alert) =>
+      alert.id !== alertId &&
+      buildAlertIdentityKey({
+        city: alert.city,
+        postalCode: alert.postalCode,
+        budgetMax: alert.budgetMax,
+        radiusKm: alert.radiusKm,
+      }) === nextIdentityKey,
+  );
+
+  if (conflictingAlert) {
+    return { alert: conflictingAlert, created: false };
+  }
+
+  const updatedAlert: OwnerConciergeSearchAlert = {
+    ...alertToUpdate,
+    ...normalizedInput,
+  };
+
+  saveOwnerConciergeSearchAlerts(
+    current
+      .map((alert) => (alert.id === alertId ? updatedAlert : alert))
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
+  );
+
+  return { alert: updatedAlert, created: true };
 }

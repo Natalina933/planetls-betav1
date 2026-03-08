@@ -274,11 +274,12 @@ export async function GET(req: NextRequest) {
     const results = applyConciergeSearchFilters(enrichedResults, filters, categoryByService);
     const availableFilters = buildAvailableConciergeFilters(enrichedResults, categoryByService);
 
-    return NextResponse.json({
-      filters: {
-        city: filters.city || null,
-        postal_code: filters.postalCode || null,
-        categories: filters.categories,
+      return NextResponse.json({
+        filters: {
+          region: filters.region || null,
+          city: filters.city || null,
+          postal_code: filters.postalCode || null,
+          categories: filters.categories,
         services: filters.services,
         pro_only: filters.proOnly,
         available_only: filters.availableOnly,

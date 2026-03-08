@@ -27,6 +27,7 @@ type SearchResultInput = {
 };
 
 export type ConciergeSearchFilters = {
+  region: string;
   city: string;
   postalCode: string;
   categories: string[];
@@ -140,15 +141,16 @@ export function buildConciergeSearchFilters(searchParams: URLSearchParams): Conc
   const limitRaw = Number(searchParams.get("limit") ?? "48");
 
   return {
-    city: (searchParams.get("city") ?? "").trim(),
+    region: (searchParams.get("region") ?? "").trim(),
+    city: (searchParams.get("city") ?? searchParams.get("postalCode") ?? "").trim(),
     postalCode: (searchParams.get("postalCode") ?? "").trim(),
     categories,
     services:
       serviceFromList.length > 0
         ? serviceFromList
         : serviceFromSingle
-        ? [serviceFromSingle]
-        : [],
+          ? [serviceFromSingle]
+          : [],
     proOnly: ["1", "true", "yes"].includes(
       (searchParams.get("proOnly") ?? "").trim().toLowerCase(),
     ),
@@ -156,10 +158,8 @@ export function buildConciergeSearchFilters(searchParams: URLSearchParams): Conc
       (searchParams.get("availableOnly") ?? "1").trim().toLowerCase(),
     ),
     propertyType: (searchParams.get("propertyType") ?? "").trim(),
-    budgetMax:
-      Number.isFinite(budgetMaxRaw) && budgetMaxRaw > 0 ? budgetMaxRaw : null,
-    radiusKm:
-      Number.isFinite(radiusKmRaw) && radiusKmRaw > 0 ? radiusKmRaw : null,
+    budgetMax: Number.isFinite(budgetMaxRaw) && budgetMaxRaw > 0 ? budgetMaxRaw : null,
+    radiusKm: Number.isFinite(radiusKmRaw) && radiusKmRaw > 0 ? radiusKmRaw : null,
     limit: Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 120) : 48,
   };
 }
@@ -186,39 +186,42 @@ export function applyConciergeSearchFilters(
   filters: ConciergeSearchFilters,
   categoryByService: Map<string, string> = new Map(),
 ) {
-  const cityNormalized = normalizeSearchValue(filters.city);
-  const postalCodeNormalized = normalizeSearchValue(filters.postalCode);
+  const regionNormalized = normalizeSearchValue(filters.region);
+  const cityQueryNormalized = normalizeSearchValue(filters.city);
   const categoriesNormalized = filters.categories.map(normalizeSearchValue);
   const servicesNormalized = filters.services.map(normalizeSearchValue);
   const propertyTypeNormalized = normalizeSearchValue(filters.propertyType);
 
   return results
     .filter((profile) => {
-      if (cityNormalized) {
-        const area = normalizeSearchValue(
+      const fullLocation = normalizeSearchValue(
+        [
+          normalizeAreaLabel(profile.city),
+          profile.postal_code,
+          normalizeAreaLabel(profile.service_area),
+          normalizeAreaLabel(profile.location),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+
+      if (regionNormalized) {
+        const regionArea = normalizeSearchValue(
           [
-            normalizeAreaLabel(profile.city),
-            profile.postal_code,
             normalizeAreaLabel(profile.service_area),
             normalizeAreaLabel(profile.location),
+            normalizeAreaLabel(profile.city),
           ]
             .filter(Boolean)
             .join(" "),
         );
-        if (!area.includes(cityNormalized)) {
+        if (!regionArea.includes(regionNormalized)) {
           return false;
         }
       }
 
-      if (postalCodeNormalized) {
-        const postalArea = normalizeSearchValue(
-          [profile.postal_code, normalizeAreaLabel(profile.location), normalizeAreaLabel(profile.service_area)]
-            .filter(Boolean)
-            .join(" "),
-        );
-        if (!postalArea.includes(postalCodeNormalized)) {
-          return false;
-        }
+      if (cityQueryNormalized && !fullLocation.includes(cityQueryNormalized)) {
+        return false;
       }
 
       if (filters.availableOnly && profile.is_available_now !== true) {
@@ -237,9 +240,7 @@ export function applyConciergeSearchFilters(
           ),
         );
         const hasAllRequestedCategories = categoriesNormalized.every((category) =>
-          normalizedProfileCategories.some(
-            (item) => item.includes(category) || category.includes(item),
-          ),
+          normalizedProfileCategories.some((item) => item.includes(category) || category.includes(item)),
         );
         if (!hasAllRequestedCategories) {
           return false;
