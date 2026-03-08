@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
+import FilterSliders from "@/app/components/ui/FilterSliders";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
 import pageStyles from "../OwnerDashboardPages.module.scss";
@@ -41,10 +43,59 @@ type SpotlightConciergeProfile = {
   };
 };
 
+type OwnerServiceRequestRecipient = {
+  id: string;
+  status: string;
+  concierge_name?: string;
+  responded_at?: string | null;
+  viewed_at?: string | null;
+};
+
+type OwnerServiceRequestRow = {
+  id: string;
+  title: string;
+  description?: string | null;
+  request_type: "ponctuel" | "renfort" | "durable";
+  city?: string | null;
+  postal_code?: string | null;
+  desired_date?: string | null;
+  urgency?: boolean;
+  budget_max?: number | null;
+  currency?: string | null;
+  status: string;
+  created_at?: string | null;
+  selected_concierge_name?: string | null;
+  recipients: OwnerServiceRequestRecipient[];
+};
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "Date a definir";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date invalide";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatBudget(value: number | null | undefined, currency: string | null | undefined) {
+  if (typeof value !== "number") return "Budget non renseigne";
+  return `${value.toFixed(0)} ${currency || "EUR"} max`;
+}
+
+function formatRequestType(value: OwnerServiceRequestRow["request_type"]) {
+  if (value === "durable") return "Besoin durable";
+  if (value === "renfort") return "Renfort / remplacement";
+  return "Besoin ponctuel";
+}
+
 export default function OwnerConciergeriePage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
+  const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [spotlightProfile, setSpotlightProfile] = useState<SpotlightConciergeProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
@@ -53,21 +104,26 @@ export default function OwnerConciergeriePage() {
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [cityPreference, setCityPreference] = useState("");
+  const [radiusPreference, setRadiusPreference] = useState(25);
+  const [budgetPreference, setBudgetPreference] = useState(90);
 
   useEffect(() => {
     async function loadData() {
       try {
         setError(null);
 
-        const [missionsRes, conversationsRes, reviewsRes] = await Promise.all([
+        const [missionsRes, conversationsRes, reviewsRes, requestsRes] = await Promise.all([
           fetch("/api/missions?scope=owner&limit=8", { cache: "no-store" }),
           fetch("/api/messages/conversations?role=owner&limit=8", { cache: "no-store" }),
           fetch("/api/reviews?limit=6", { cache: "no-store" }),
+          fetch("/api/service-requests?limit=8", { cache: "no-store" }),
         ]);
 
         const missionsPayload = await missionsRes.json();
         const conversationsPayload = await conversationsRes.json();
         const reviewsPayload = await reviewsRes.json();
+        const requestsPayload = await requestsRes.json();
 
         if (!missionsRes.ok) {
           throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
@@ -78,10 +134,14 @@ export default function OwnerConciergeriePage() {
         if (!reviewsRes.ok) {
           throw new Error(reviewsPayload?.error || "Impossible de charger les avis.");
         }
+        if (!requestsRes.ok) {
+          throw new Error(requestsPayload?.error || "Impossible de charger les demandes envoyées.");
+        }
 
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
         setConversations(Array.isArray(conversationsPayload) ? conversationsPayload : []);
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
+        setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger la conciergerie.");
       }
@@ -97,6 +157,61 @@ export default function OwnerConciergeriePage() {
       ).length,
     [missions],
   );
+
+  const openRequestsCount = useMemo(
+    () =>
+      requests.filter((request) =>
+        request.recipients.some((recipient) =>
+          ["sent", "viewed", "interested", "quoted"].includes(recipient.status),
+        ),
+      ).length,
+    [requests],
+  );
+
+  const requestDetailSection = useMemo(
+    () => ({
+      title: "Demandes envoyées aux concierges",
+      description:
+        "Suivez ici les briefs envoyés depuis la recherche concierge, leur statut et les destinataires.",
+      emptyText: "Aucune demande envoyée pour le moment. Vos prochaines demandes apparaîtront ici.",
+      items: requests.map((request) => ({
+        title: request.title,
+        meta: request.status,
+        tone: request.urgency ? ("warning" as const) : ("default" as const),
+        description: [
+          `${formatRequestType(request.request_type)}${request.urgency ? " | Urgent" : ""}`,
+          `${request.city || "Ville a confirmer"}${request.postal_code ? ` (${request.postal_code})` : ""}`,
+          `Envoi le ${formatDateTime(request.created_at)}`,
+          request.description || "",
+        ]
+          .filter(Boolean)
+          .join(" | "),
+        facts: [
+          formatBudget(request.budget_max, request.currency),
+          `Echeance: ${formatDateTime(request.desired_date)}`,
+          request.recipients.length > 0
+            ? `Destinataires: ${request.recipients
+                .map((recipient) => `${recipient.concierge_name || "Concierge"} (${recipient.status})`)
+                .join(" | ")}`
+            : "Aucun concierge rattaché",
+          request.selected_concierge_name
+            ? `Concierge retenu : ${request.selected_concierge_name}`
+            : "",
+        ].filter(Boolean),
+      })),
+    }),
+    [requests],
+  );
+
+  const searchHref = useMemo(() => {
+    const params = new URLSearchParams();
+    if (cityPreference.trim()) params.set("city", cityPreference.trim());
+    if (budgetPreference > 0) params.set("budgetMax", String(budgetPreference));
+    if (radiusPreference > 0) params.set("radiusKm", String(radiusPreference));
+    const query = params.toString();
+    return query ? `/dashboard/owner/concierges?${query}` : "/dashboard/owner/concierges";
+  }, [budgetPreference, cityPreference, radiusPreference]);
+
   const averageRating = useMemo(() => {
     const validRatings = reviews
       .map((review) => review.rating)
@@ -105,7 +220,9 @@ export default function OwnerConciergeriePage() {
     if (validRatings.length === 0) return null;
     return (validRatings.reduce((sum, value) => sum + value, 0) / validRatings.length).toFixed(1);
   }, [reviews]);
+
   const reviewedMissionIds = useMemo(() => new Set(reviews.map((review) => review.mission_id)), [reviews]);
+
   const reviewableMissions = useMemo(
     () =>
       missions.filter(
@@ -208,14 +325,15 @@ export default function OwnerConciergeriePage() {
     <div className="dashboard-grid">
       <OwnerWorkspacePage
         eyebrow="Conciergerie"
-        title="Suivi de ma conciergerie"
+        title="Suivi de mes demandes concierge"
         description={
           error
             ? error
-            : "Retrouvez vos échanges récents, le niveau d'activité de votre concierge et les retours collectés après mission."
+            : "Retrouvez vos demandes envoyées, vos échanges récents, le niveau d'activité de votre concierge et les retours collectés après mission."
         }
         chips={[
           `${missions.length} mission(s)`,
+          `${requests.length} demande(s) envoyée(s)`,
           `${ongoingCount} en cours`,
           `${conversations.length} conversation(s)`,
           averageRating ? `${averageRating}/5 de satisfaction` : "Avis en cours de collecte",
@@ -224,14 +342,24 @@ export default function OwnerConciergeriePage() {
         actions={[
           { label: "Ouvrir les messages", href: "/dashboard/owner/messages" },
           { label: "Voir le planning", href: "/dashboard/owner/planning" },
-          { label: "Trouver un autre concierge", href: "/dashboard/owner/concierges" },
+          { label: "Trouver un concierge", href: searchHref },
           ...(spotlightConciergeProfileId
             ? [{ label: "Voir le profil concierge", href: `/concierges/${spotlightConciergeProfileId}` }]
             : []),
         ]}
         cards={[
           {
-            title: "1. Missions récentes",
+            title: "Demandes envoyées",
+            text:
+              requests.length > 0
+                ? requests
+                    .slice(0, 3)
+                    .map((request) => `${request.title} (${request.status})`)
+                    .join(" | ")
+                : "Aucune demande envoyée pour le moment.",
+          },
+          {
+            title: "1. Missions recentes",
             text:
               missions.length > 0
                 ? missions
@@ -251,17 +379,17 @@ export default function OwnerConciergeriePage() {
                 : "Aucun contact actif pour le moment.",
           },
           {
-            title: "3. Suivi opérationnel",
+            title: "3. Suivi operationnel",
             text:
-              ongoingCount > 0
-                ? `${ongoingCount} intervention(s) demandent actuellement un suivi propriétaire.`
-                : "Aucune intervention en cours à suivre actuellement.",
+              openRequestsCount > 0
+                ? `${openRequestsCount} demande(s) attendent encore un retour ou une qualification concierge.`
+                : "Aucune demande envoyée n'attend actuellement de retour.",
           },
           {
             title: "Avis et notation",
             text:
               reviews.length > 0
-                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Évaluation recueillie sans commentaire."}`
+                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Evaluation recueillie sans commentaire."}`
                 : "Les avis laissés après les missions terminées apparaîtront ici.",
           },
           {
@@ -271,7 +399,53 @@ export default function OwnerConciergeriePage() {
               : "Le statut PRO et la note du concierge apparaîtront ici dès qu'un profil sera associé.",
           },
         ]}
+        detailSections={[requestDetailSection]}
       />
+
+      <section className={workspaceStyles.card}>
+        <h2 className={workspaceStyles.cardTitle}>Budget et rayon</h2>
+        <p className={workspaceStyles.cardText}>
+          Ajustez rapidement vos préférences avant de relancer une recherche de concierges.
+        </p>
+        <label className={pageStyles.label}>
+          <span className={workspaceStyles.cardText}>Ville</span>
+          <input
+            value={cityPreference}
+            onChange={(event) => setCityPreference(event.target.value)}
+            placeholder="Paris, Lyon, Bordeaux..."
+            className={pageStyles.field}
+          />
+        </label>
+        <FilterSliders
+          title="Préférences de recherche"
+          budget={{
+            label: "Budget max par heure",
+            value: budgetPreference,
+            min: 0,
+            max: 300,
+            step: 10,
+            helperText: "0 = sans limite",
+            formatValue: (value) => (value === 0 ? "Sans limite" : `${value} EUR/h`),
+            onChange: setBudgetPreference,
+          }}
+          radius={{
+            label: "Rayon max",
+            value: radiusPreference,
+            min: 0,
+            max: 100,
+            step: 5,
+            unit: "km",
+            helperText: "0 = sans limite",
+            formatValue: (value) => (value === 0 ? "Sans limite" : `${value} km`),
+            onChange: setRadiusPreference,
+          }}
+        />
+        <div className={workspaceStyles.cardActions}>
+          <Link href={searchHref} className={pageStyles.buttonPrimary}>
+            Relancer ma recherche concierge
+          </Link>
+        </div>
+      </section>
 
       <section className={workspaceStyles.card}>
         <h2 className={workspaceStyles.cardTitle}>Laisser un avis</h2>

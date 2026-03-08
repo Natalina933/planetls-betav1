@@ -43,12 +43,14 @@ test("mapPropertyTypesByProfile groups and deduplicates property types", () => {
 
 test("buildConciergeSearchFilters parses advanced owner filters", () => {
   const params = new URLSearchParams(
-    "location=Paris&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
+    "region=Ile-de-France&city=Paris&services=Menage,Check-in&propertyType=Villa&budgetMax=90&radiusKm=25&proOnly=1",
   );
 
   const filters = buildConciergeSearchFilters(params);
 
-  assert.equal(filters.location, "Paris");
+  assert.equal(filters.region, "Ile-de-France");
+  assert.equal(filters.city, "Paris");
+  assert.deepEqual(filters.categories, []);
   assert.deepEqual(filters.services, ["Menage", "Check-in"]);
   assert.equal(filters.propertyType, "Villa");
   assert.equal(filters.budgetMax, 90);
@@ -65,7 +67,7 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
         display_name: "Concierge A",
         city: "Paris",
         country: "France",
-        service_area: "Paris centre",
+        service_area: "Ile-de-France",
         service_radius_km: 15,
         hourly_rate: 60,
         monthly_rate: 600,
@@ -83,7 +85,7 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
         display_name: "Concierge B",
         city: "Paris",
         country: "France",
-        service_area: "Paris ouest",
+        service_area: "Ile-de-France",
         service_radius_km: 40,
         hourly_rate: 120,
         monthly_rate: 900,
@@ -98,7 +100,9 @@ test("applyConciergeSearchFilters enforces service, property type and budget", (
       },
     ],
     {
-      location: "Paris",
+      region: "Ile-de-France",
+      city: "Paris",
+      categories: [],
       services: ["Menage"],
       propertyType: "Appartement",
       budgetMax: 80,
@@ -153,10 +157,18 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
     },
   ];
 
-  assert.deepEqual(buildAvailableConciergeFilters(results), {
-    services: ["Check-in", "Maintenance", "Menage"],
-    property_types: ["Appartement", "Maison", "Villa"],
-  });
+  assert.deepEqual(
+    buildAvailableConciergeFilters(results, new Map([
+      ["menage", "Menage"],
+      ["check-in", "Accueil"],
+      ["maintenance", "Maintenance"],
+    ])),
+    {
+      categories: ["Accueil", "Maintenance", "Menage"],
+      services: ["Check-in", "Maintenance", "Menage"],
+      property_types: ["Appartement", "Maison", "Villa"],
+    },
+  );
 
   assert.deepEqual(buildOwnerConciergeFilterOptions(results), {
     services: ["Check-in", "Maintenance", "Menage"],
@@ -164,7 +176,9 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
   });
 
   const params = buildOwnerConciergeSearchParams({
-    location: "Nice",
+    region: "PACA",
+    city: "Nice",
+    selectedCategories: ["Menage"],
     selectedServices: ["Menage", "Check-in"],
     propertyType: "Villa",
     budgetMax: "120",
@@ -172,7 +186,9 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
     proOnly: true,
   });
 
-  assert.equal(params.get("location"), "Nice");
+  assert.equal(params.get("region"), "PACA");
+  assert.equal(params.get("city"), "Nice");
+  assert.equal(params.get("categories"), "Menage");
   assert.equal(params.get("services"), "Menage,Check-in");
   assert.equal(params.get("propertyType"), "Villa");
   assert.equal(params.get("budgetMax"), "120");
@@ -186,7 +202,9 @@ test("buildAvailableConciergeFilters and owner client helpers expose UI options"
 test("hasOwnerConciergeSearchCriteria detects whether the owner started building a search", () => {
   assert.equal(
     hasOwnerConciergeSearchCriteria({
-      location: "",
+      region: "",
+      city: "",
+      selectedCategories: [],
       selectedServices: [],
       propertyType: "",
       budgetMax: "",
@@ -198,7 +216,9 @@ test("hasOwnerConciergeSearchCriteria detects whether the owner started building
 
   assert.equal(
     hasOwnerConciergeSearchCriteria({
-      location: "Paris",
+      region: "Ile-de-France",
+      city: "",
+      selectedCategories: [],
       selectedServices: [],
       propertyType: "",
       budgetMax: "",

@@ -8,6 +8,7 @@ import {
   buildConciergeSearchFilters,
   mapPropertyTypesByProfile,
   isProfileAvailableNow,
+  normalizeSearchValue,
   parseProfileServices,
 } from "./shared";
 
@@ -48,6 +49,11 @@ type ConciergeReviewRow = {
 type PricingPackageRow = {
   profile_id: string;
   property_type: string | null;
+};
+
+type ServiceCatalogRow = {
+  category: string | null;
+  service: string | null;
 };
 
 async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<ConciergeProfileRow[]> {
@@ -157,6 +163,16 @@ async function loadConciergeReviews(profileIds: string[]): Promise<ConciergeRevi
   throw new Error("Erreur chargement avis concierges.");
 }
 
+async function loadServiceCatalog(): Promise<ServiceCatalogRow[]> {
+  const { data, error } = await db.from("services_catalog").select("category, service");
+  if (error) {
+    console.error("[GET /api/profiles/concierges] services_catalog error:", error);
+    throw new Error("Erreur chargement catalogue services.");
+  }
+
+  return (data ?? []) as ServiceCatalogRow[];
+}
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await getApiAuthContext(req);
@@ -175,6 +191,14 @@ export async function GET(req: NextRequest) {
 
     const reviews = await loadConciergeReviews(profileIds);
     const pricingPackages = await loadPricingPackages(profileIds);
+    const serviceCatalog = await loadServiceCatalog();
+    const categoryByService = new Map<string, string>();
+    serviceCatalog.forEach((entry) => {
+      const category = typeof entry.category === "string" ? entry.category.trim() : "";
+      const service = typeof entry.service === "string" ? entry.service.trim() : "";
+      if (!category || !service) return;
+      categoryByService.set(normalizeSearchValue(service), category);
+    });
 
     const ratingsByProfile = new Map<string, number[]>();
     const latestReviewByProfile = new Map<string, { comment: string | null; created_at: string | null }>();
@@ -247,12 +271,14 @@ export async function GET(req: NextRequest) {
         };
       });
 
-    const results = applyConciergeSearchFilters(enrichedResults, filters);
-    const availableFilters = buildAvailableConciergeFilters(enrichedResults);
+    const results = applyConciergeSearchFilters(enrichedResults, filters, categoryByService);
+    const availableFilters = buildAvailableConciergeFilters(enrichedResults, categoryByService);
 
     return NextResponse.json({
       filters: {
-        location: filters.location || null,
+        region: filters.region || null,
+        city: filters.city || null,
+        categories: filters.categories,
         services: filters.services,
         pro_only: filters.proOnly,
         available_only: filters.availableOnly,

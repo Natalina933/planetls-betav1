@@ -23,7 +23,9 @@ export function getAvailabilityLabel(item: ConciergeSearchRow) {
 }
 
 export function getConciergeLocation(item: ConciergeSearchRow) {
-  return item.location || item.service_area || item.city || "Zone non renseignee";
+  const region = item.location || item.service_area;
+  if (item.city && region && item.city !== region) return `${item.city} · ${region}`;
+  return item.city || region || "Zone non renseignée";
 }
 
 function compareNullableNumberDesc(left: number | null | undefined, right: number | null | undefined) {
@@ -63,7 +65,13 @@ export function mergeSortedOptions(...groups: string[][]) {
 
 export function getActiveSearchSummary(filters: OwnerConciergeSearchFilters) {
   return [
-    filters.location.trim() ? `Zone: ${filters.location.trim()}` : null,
+    filters.region.trim() ? `Région : ${filters.region.trim()}` : null,
+    filters.city.trim() ? `Ville: ${filters.city.trim()}` : null,
+    filters.selectedCategories.length > 0
+      ? `Categories: ${filters.selectedCategories.slice(0, 2).join(", ")}${
+          filters.selectedCategories.length > 2 ? "..." : ""
+        }`
+      : null,
     filters.propertyType.trim() ? `Bien: ${filters.propertyType.trim()}` : null,
     filters.budgetMax.trim() ? `Budget max: ${filters.budgetMax.trim()} EUR/h` : null,
     filters.radiusKm.trim() ? `Rayon: ${filters.radiusKm.trim()} km` : null,
@@ -79,4 +87,3 @@ export function getPrimaryActionLabel(isSelected: boolean, isAvailableNow: boole
   if (isSelected) return "Retirer de ma demande";
   return isAvailableNow ? "Selectionner ce concierge" : "Selectionner quand meme";
 }
-

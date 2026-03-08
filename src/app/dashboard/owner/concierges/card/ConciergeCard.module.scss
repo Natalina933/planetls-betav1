@@ -1,0 +1,368 @@
+/* ==============================
+   Concierge Card
+   Dashboard propriétaire
+   ============================== */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+
+  padding: 1.4rem;
+  border-radius: 14px;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+
+  box-shadow:
+    0 6px 14px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+
+  transition: all 0.25s ease;
+
+  animation: cardFade .45s ease both;
+  animation-delay: calc(var(--card-index) * 70ms);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 14px 28px rgba(0,0,0,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+}
+
+.cardSelected {
+  border-color: var(--color-accent);
+  box-shadow:
+    0 10px 22px rgba(0,0,0,0.15),
+    0 0 0 1px var(--color-accent) inset;
+}
+
+/* ==============================
+   Header
+   ============================== */
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.cardIdentityWrap {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+/* ==============================
+   Avatar
+   ============================== */
+
+.avatarFrame {
+  position: relative;
+
+  border-radius: 50%;
+  padding: 3px;
+
+  background: linear-gradient(
+    140deg,
+    #d4af37,
+    #f6e6a8,
+    #c9a227
+  );
+
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.15);
+}
+
+.avatarImage {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ==============================
+   Identity
+   ============================== */
+
+.cardIdentity {
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 2px;
+  }
+
+  p {
+    font-size: .85rem;
+    color: var(--color-text-muted);
+  }
+
+}
+
+/* ==============================
+   Badges
+   ============================== */
+
+.badgesCol {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  align-items: flex-end;
+}
+
+.standardBadge {
+  font-size: .72rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+
+  background: var(--color-muted-bg);
+  color: var(--color-text-muted);
+}
+
+.availableBadge {
+  @extend .standardBadge;
+
+  background: rgba(40,160,90,.12);
+  color: #2d8c55;
+}
+
+.proBadge {
+  font-size: .72rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    135deg,
+    #e7c96d,
+    #d4af37
+  );
+
+  color: #5a4b17;
+  font-weight: 600;
+}
+
+.ratingBadge {
+  font-size: .72rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+
+  background: rgba(212,175,55,0.12);
+  color: #a88622;
+}
+
+/* ==============================
+   KPI Row
+   ============================== */
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: .6rem;
+}
+
+.kpiCard {
+  padding: .6rem;
+  border-radius: 10px;
+
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+
+  text-align: center;
+
+  strong {
+    display: block;
+    font-size: .95rem;
+    margin-top: 2px;
+  }
+}
+
+.kpiLabel {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--color-text-muted);
+}
+
+/* ==============================
+   Pricing
+   ============================== */
+
+.pricing {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+}
+
+.priceCard {
+  padding: .6rem;
+  border-radius: 10px;
+
+  border: 1px solid var(--color-border);
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,0.7),
+    rgba(240,240,240,0.4)
+  );
+
+  text-align: center;
+
+  strong {
+    font-size: .95rem;
+  }
+}
+
+/* ==============================
+   Tags
+   ============================== */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.tag,
+.propertyTag {
+  font-size: .7rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+
+  transition: all .2s ease;
+
+  &:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+}
+
+.propertyTag {
+  background: rgba(212,175,55,0.12);
+  border-color: rgba(212,175,55,0.35);
+}
+
+.tagMuted {
+  font-size: .7rem;
+  color: var(--color-text-muted);
+}
+
+/* ==============================
+   Review snippet
+   ============================== */
+
+.reviewSnippet {
+  padding: .7rem;
+  border-radius: 10px;
+
+  background: rgba(212,175,55,0.06);
+  border-left: 3px solid #d4af37;
+
+  strong {
+    font-size: .75rem;
+    color: var(--color-text-muted);
+  }
+
+  p {
+    font-size: .82rem;
+    margin: .2rem 0;
+    color: var(--color-text);
+  }
+
+  small {
+    font-size: .65rem;
+    color: var(--color-text-muted);
+  }
+}
+
+/* ==============================
+   Actions
+   ============================== */
+
+.cardActions {
+  display: flex;
+  gap: .6rem;
+  margin-top: .4rem;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.destructiveBtn {
+  flex: 1;
+
+  padding: .55rem .7rem;
+  border-radius: 8px;
+
+  font-size: .82rem;
+  text-align: center;
+
+  transition: all .2s ease;
+  cursor: pointer;
+}
+
+/* bouton principal */
+
+.primaryBtn {
+  border: none;
+
+  background: linear-gradient(
+    135deg,
+    var(--color-accent),
+    var(--color-accent-dark)
+  );
+
+  color: white;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  }
+}
+
+/* bouton secondaire */
+
+.secondaryBtn {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+
+  &:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+}
+
+/* bouton retirer */
+
+.destructiveBtn {
+  border: none;
+
+  background: rgba(200,60,60,0.15);
+  color: #b02d2d;
+
+  &:hover {
+    background: rgba(200,60,60,0.25);
+  }
+}
+
+/* ==============================
+   Animations
+   ============================== */
+
+@keyframes cardFade {
+
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+}

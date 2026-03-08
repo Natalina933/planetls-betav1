@@ -27,7 +27,9 @@ type SearchResultInput = {
 };
 
 export type ConciergeSearchFilters = {
-  location: string;
+  region: string;
+  city: string;
+  categories: string[];
   services: string[];
   proOnly: boolean;
   availableOnly: boolean;
@@ -124,6 +126,10 @@ export const isProfileAvailableNow = (input: {
 };
 
 export function buildConciergeSearchFilters(searchParams: URLSearchParams): ConciergeSearchFilters {
+  const categories = (searchParams.get("categories") ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
   const serviceFromList = (searchParams.get("services") ?? "")
     .split(",")
     .map((item) => item.trim())
@@ -134,7 +140,9 @@ export function buildConciergeSearchFilters(searchParams: URLSearchParams): Conc
   const limitRaw = Number(searchParams.get("limit") ?? "48");
 
   return {
-    location: (searchParams.get("location") ?? searchParams.get("city") ?? "").trim(),
+    region: (searchParams.get("region") ?? searchParams.get("location") ?? "").trim(),
+    city: (searchParams.get("city") ?? "").trim(),
+    categories,
     services:
       serviceFromList.length > 0
         ? serviceFromList
@@ -176,32 +184,71 @@ export function mapPropertyTypesByProfile(rows: PricingPackageRow[]) {
 export function applyConciergeSearchFilters(
   results: SearchResultInput[],
   filters: ConciergeSearchFilters,
+  categoryByService: Map<string, string> = new Map(),
 ) {
-  const locationNormalized = normalizeSearchValue(filters.location);
+  const regionNormalized = normalizeSearchValue(filters.region);
+  const cityNormalized = normalizeSearchValue(filters.city);
+  const categoriesNormalized = filters.categories.map(normalizeSearchValue);
   const servicesNormalized = filters.services.map(normalizeSearchValue);
   const propertyTypeNormalized = normalizeSearchValue(filters.propertyType);
 
   return results
     .filter((profile) => {
-      if (locationNormalized) {
+      if (regionNormalized) {
+        const area = normalizeSearchValue(
+          [
+            normalizeAreaLabel(profile.service_area),
+            normalizeAreaLabel(profile.location),
+            profile.country,
+            normalizeAreaLabel(profile.city),
+          ]
+            .filter(Boolean)
+            .join(" "),
+        );
+        if (!area.includes(regionNormalized)) {
+          return false;
+        }
+      }
+
+      if (cityNormalized) {
         const area = normalizeSearchValue(
           [
             normalizeAreaLabel(profile.city),
             profile.postal_code,
             normalizeAreaLabel(profile.service_area),
             normalizeAreaLabel(profile.location),
-            profile.country,
           ]
             .filter(Boolean)
             .join(" "),
         );
-        if (!area.includes(locationNormalized)) {
+        if (!area.includes(cityNormalized)) {
           return false;
         }
       }
 
       if (filters.availableOnly && profile.is_available_now !== true) {
         return false;
+      }
+
+      if (categoriesNormalized.length > 0) {
+        const normalizedProfileCategories = Array.from(
+          new Set(
+            profile.services
+              .map((service) => {
+                const normalizedService = normalizeSearchValue(service);
+                return categoryByService.get(normalizedService) ?? normalizedService;
+              })
+              .filter(Boolean),
+          ),
+        );
+        const hasAllRequestedCategories = categoriesNormalized.every((category) =>
+          normalizedProfileCategories.some(
+            (item) => item.includes(category) || category.includes(item),
+          ),
+        );
+        if (!hasAllRequestedCategories) {
+          return false;
+        }
       }
 
       if (servicesNormalized.length > 0) {
@@ -253,16 +300,25 @@ export function applyConciergeSearchFilters(
     .slice(0, filters.limit);
 }
 
-export function buildAvailableConciergeFilters(results: SearchResultInput[]) {
+export function buildAvailableConciergeFilters(
+  results: SearchResultInput[],
+  categoryByService: Map<string, string> = new Map(),
+) {
+  const categories = new Set<string>();
   const services = new Set<string>();
   const propertyTypes = new Set<string>();
 
   results.forEach((item) => {
-    item.services.forEach((service) => services.add(service));
+    item.services.forEach((service) => {
+      services.add(service);
+      const category = categoryByService.get(normalizeSearchValue(service));
+      if (category) categories.add(category);
+    });
     (item.property_types ?? []).forEach((propertyType) => propertyTypes.add(propertyType));
   });
 
   return {
+    categories: Array.from(categories).sort((a, b) => a.localeCompare(b)),
     services: Array.from(services).sort((a, b) => a.localeCompare(b)),
     property_types: Array.from(propertyTypes).sort((a, b) => a.localeCompare(b)),
   };

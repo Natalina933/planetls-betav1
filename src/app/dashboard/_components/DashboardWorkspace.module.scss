@@ -38,7 +38,8 @@
 
 .hero {
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.95fr);
+  gap: 1rem;
   padding: 1.35rem 1.4rem;
   border-radius: 24px;
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 24%, transparent);
@@ -47,6 +48,36 @@
     linear-gradient(145deg, #fffdf7 0%, var(--workspace-accent-soft) 100%);
   box-shadow: 0 14px 34px var(--workspace-shadow);
   align-items: start;
+}
+
+.heroMain {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.heroRail {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+}
+
+.heroBlock {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--workspace-accent) 18%, transparent);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.heroBlockLabel {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--workspace-accent-text);
 }
 
 .eyebrow {
@@ -111,6 +142,22 @@
 .metricCard {
   min-height: 148px;
   align-content: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.metricCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--workspace-accent) 90%, white),
+    color-mix(in srgb, var(--workspace-accent) 38%, transparent)
+  );
 }
 
 .card {
@@ -193,7 +240,27 @@
   gap: 0.85rem;
 }
 
+.detailFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.detailFact {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--workspace-accent) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--workspace-accent) 16%, transparent);
+  color: var(--workspace-accent-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 .detailItem {
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -206,6 +273,14 @@
     transform 160ms ease,
     box-shadow 160ms ease,
     border-color 160ms ease;
+}
+
+.detailItem::before {
+  content: "";
+  width: 4px;
+  align-self: stretch;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--workspace-accent) 28%, transparent);
 }
 
 .detailItem:hover {
@@ -255,18 +330,6 @@
   background: linear-gradient(135deg, rgba(56, 135, 92, 0.16), rgba(239, 251, 244, 0.92));
   color: #2c6c47;
   border: 1px solid rgba(56, 135, 92, 0.16);
-}
-
-.detailItem {
-  position: relative;
-}
-
-.detailItem::before {
-  content: "";
-  width: 4px;
-  align-self: stretch;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--workspace-accent) 28%, transparent);
 }
 
 .detailItem:has(.warningBadge)::before {
@@ -363,6 +426,12 @@
   transform: translateY(-1px);
 }
 
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
   .page {
     gap: 1rem;
@@ -411,6 +480,8 @@
   }
 
   .actionLink,
+  .actionLinkPrimary,
+  .actionLinkSecondary,
   .cardActionPrimary,
   .cardActionSecondary {
     width: 100%;

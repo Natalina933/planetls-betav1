@@ -27,6 +27,7 @@ interface CreateServiceRequestBody {
   title?: string;
   description?: string | null;
   requested_services?: string[];
+  region?: string | null;
   city?: string | null;
   postal_code?: string | null;
   desired_date?: string | null;
@@ -107,6 +108,7 @@ function buildRequestPrefillMessage(body: CreateServiceRequestBody, requestedSer
   const lines = [
     `Bonjour, je souhaite vous adresser une demande ${body.request_type ?? "ponctuelle"}.`,
     typeof body.title === "string" && body.title.trim() ? `Titre : ${body.title.trim()}` : null,
+    typeof body.region === "string" && body.region.trim() ? `Region : ${body.region.trim()}` : null,
     typeof body.city === "string" && body.city.trim() ? `Ville : ${body.city.trim()}` : null,
     typeof body.postal_code === "string" && body.postal_code.trim()
       ? `Code postal : ${body.postal_code.trim()}`
@@ -452,6 +454,7 @@ export async function POST(req: NextRequest) {
       currency: normalizeCurrency(body.currency),
       metadata: {
         origin: "owner_search_flow",
+        region: typeof body.region === "string" ? body.region.trim() || null : null,
       },
     };
 

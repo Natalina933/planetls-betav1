@@ -2,16 +2,16 @@
 
 import { memo } from "react";
 import Link from "next/link";
-import styles from "./OwnerConciergesPage.module.scss";
-import type { ConciergeSearchRow } from "./conciergeSearchTypes";
+import styles from "./ConciergeCard.module.scss";
+import type { ConciergeSearchRow } from "../conciergeSearchTypes";
 import {
   formatAmount,
   formatReviewDate,
   getAvailabilityLabel,
   getConciergeLocation,
   getPrimaryActionLabel,
-} from "./conciergeSearchUtils";
-import { ConciergeAvatar } from "./ConciergeAvatar";
+} from "../conciergeSearchUtils";
+import { ConciergeAvatar } from "../ConciergeAvatar";
 
 type ConciergeCardProps = {
   item: ConciergeSearchRow;

@@ -159,7 +159,7 @@ function OwnerMessagesContent() {
 
   useEffect(() => {
     if (!createdConversationId) return;
-    setSuccess("La conversation a bien ete creee. Vous pouvez maintenant poursuivre ici.");
+    setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
   }, [createdConversationId]);
 
   useEffect(() => {

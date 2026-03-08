@@ -49,7 +49,7 @@ const WORKFLOW_STATUS_META: Partial<Record<WorkflowStatusKey, WorkflowMeta>> = {
   pending: { label: "En attente", tone: "warning" },
   assigned: { label: "Assignee", tone: "info" },
   in_progress: { label: "En cours", tone: "warning" },
-  completed: { label: "Terminee", tone: "success" },
+  completed: { label: "Terminée", tone: "success" },
   cancelled: { label: "Annulee", tone: "neutral" },
   active: { label: "Actif", tone: "success" },
   inactive: { label: "Inactif", tone: "neutral" },

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FiMapPin, FiRefreshCw, FiSearch, FiSliders, FiTarget, FiUsers } from "react-icons/fi";
+import FilterSliders from "@/app/components/ui/FilterSliders";
 import styles from "./RecherchePage.module.scss";
 
 type ListingSource = "property" | "housing";
@@ -48,7 +49,6 @@ interface SearchFiltersCardProps {
   cityFilter: string;
   postalCodeFilter: string;
   radiusFilter: number;
-  radiusOptions: number[];
   availableServiceOptions: string[];
   selectedServices: string[];
   searching: boolean;
@@ -127,7 +127,6 @@ export function SearchFiltersCard({
   cityFilter,
   postalCodeFilter,
   radiusFilter,
-  radiusOptions,
   availableServiceOptions,
   selectedServices,
   searching,
@@ -185,22 +184,24 @@ export function SearchFiltersCard({
             disabled={allFranceMode}
           />
         </label>
-
-        <label className={styles.field}>
-          <span>Rayon (km)</span>
-          <select
-            value={radiusFilter}
-            onChange={(event) => onRadiusChange(Number(event.target.value))}
-            disabled={allFranceMode}
-          >
-            {radiusOptions.map((radius) => (
-              <option key={radius} value={radius}>
-                {radius} km
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
+
+      <FilterSliders
+        className={styles.radiusSlider}
+        title="Zone de recherche"
+        radius={{
+          label: "Rayon",
+          value: radiusFilter,
+          min: 10,
+          max: 120,
+          step: 10,
+          unit: "km",
+          helperText: allFranceMode ? "Desactive en mode national" : "Ajustez votre zone locale",
+          disabled: allFranceMode,
+          formatValue: (value) => `${value} km`,
+          onChange: onRadiusChange,
+        }}
+      />
 
       <SearchServiceFilter
         availableServiceOptions={availableServiceOptions}
@@ -214,7 +215,7 @@ export function SearchFiltersCard({
           {searching ? "Recherche..." : "Rechercher"}
         </button>
         <button type="button" className={styles.ghostBtn} onClick={onResetFilters} disabled={searching}>
-          Reinitialiser services
+          Réinitialiser services
         </button>
       </div>
     </section>

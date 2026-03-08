@@ -5,6 +5,7 @@ import type { ConciergeSearchPayload, ConciergeSearchRow, ServerOptions } from "
 import { buildOwnerConciergeSearchParams, type OwnerConciergeSearchFilters } from "./searchHelpers";
 
 const emptyServerOptions: ServerOptions = {
+  categories: [],
   services: [],
   propertyTypes: [],
 };
@@ -56,6 +57,9 @@ export function useOwnerConciergeSearch(): UseOwnerConciergeSearchResult {
       const nextItems = Array.isArray(payload?.items) ? payload.items : [];
       setItems(nextItems);
       setServerOptions({
+        categories: Array.isArray(payload?.available_filters?.categories)
+          ? payload.available_filters.categories
+          : [],
         services: Array.isArray(payload?.available_filters?.services) ? payload.available_filters.services : [],
         propertyTypes: Array.isArray(payload?.available_filters?.property_types)
           ? payload.available_filters.property_types

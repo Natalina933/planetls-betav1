@@ -138,7 +138,7 @@
 
 .searchBar {
   display: grid;
-  grid-template-columns: minmax(240px, 1.45fr) repeat(3, minmax(160px, 0.8fr)) auto;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(200px, 1fr) repeat(3, minmax(150px, 0.8fr)) auto;
   gap: 0.85rem;
   align-items: end;
 }
@@ -186,9 +186,53 @@
   flex-wrap: wrap;
 }
 
+.sliderFilters {
+  grid-column: span 2;
+  min-width: 0;
+}
+
 .field {
   display: grid;
   gap: 0.4rem;
+}
+
+.autocomplete {
+  position: relative;
+}
+
+.autocompletePanel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(147, 88, 69, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 253, 250, 0.98);
+  box-shadow: 0 18px 30px rgba(36, 18, 13, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.autocompleteOption {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.65rem 0.8rem;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--owner-ink);
+  text-align: left;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.autocompleteOption:hover {
+  background: rgba(181, 92, 69, 0.1);
+  color: var(--owner-accent-dark);
 }
 
 .searchField {
@@ -253,6 +297,62 @@ a:focus-visible {
 .servicesBlock {
   display: grid;
   gap: 0.6rem;
+}
+
+.serviceSections {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.serviceSection {
+  border: 1px solid rgba(147, 88, 69, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+}
+
+.serviceSectionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: none;
+  background: linear-gradient(180deg, rgba(246, 227, 219, 0.8), rgba(255, 255, 255, 0.92));
+  color: var(--owner-ink);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+}
+
+.serviceSectionMeta {
+  color: var(--owner-accent-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.serviceSectionBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid rgba(147, 88, 69, 0.1);
+}
+
+.filterHint {
+  margin: 0;
+  color: var(--owner-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.emptyStateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .serviceChips,
@@ -930,6 +1030,10 @@ a:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .sliderFilters {
+    grid-column: 1 / -1;
+  }
+
   .contentLayout {
     grid-template-columns: 1fr;
   }
@@ -985,6 +1089,10 @@ a:focus-visible {
   .kpiRow,
   .pricing {
     grid-template-columns: 1fr;
+  }
+
+  .sliderFilters {
+    grid-column: auto;
   }
 
   .resultsHeader,

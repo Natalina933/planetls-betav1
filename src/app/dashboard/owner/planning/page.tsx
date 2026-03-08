@@ -169,7 +169,7 @@ export default function OwnerPlanningPage() {
     <section className="dashboard-grid">
       <header>
         <h1>Suivi des interventions</h1>
-        <p>Reperez en priorite ce qui doit etre confirme, execute ou replanifie sur votre parc.</p>
+        <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
       </header>
 
       <div className="stats-row">
@@ -233,7 +233,7 @@ export default function OwnerPlanningPage() {
             <option value="assigned">Assignees</option>
             <option value="accepted">Acceptees</option>
             <option value="in_progress">En cours</option>
-            <option value="completed">Terminees</option>
+            <option value="completed">Terminées</option>
           </select>
           <select
             value={viewMode}

@@ -760,7 +760,7 @@ const PricingGridManager = ({
                 disabled={!prioritySearch.trim()}
               >
                 <FiRefreshCw size={14} aria-hidden="true" />
-                Reinitialiser
+                Réinitialiser
               </button>
               <button
                 type="button"
@@ -823,7 +823,7 @@ const PricingGridManager = ({
                 disabled={!hasFilters}
               >
                 <FiRefreshCw size={14} aria-hidden="true" />
-                Reinitialiser
+                Réinitialiser
               </button>
 
               <button

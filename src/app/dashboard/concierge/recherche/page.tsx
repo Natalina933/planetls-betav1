@@ -25,8 +25,6 @@ import {
 } from "./searchState";
 import styles from "./RecherchePage.module.scss";
 
-const radiusOptions = [10, 20, 30, 50, 80, 120];
-
 export default function ConciergeRecherchePage() {
   const { status } = useSession();
   const router = useRouter();
@@ -205,7 +203,6 @@ export default function ConciergeRecherchePage() {
         cityFilter={cityFilter}
         postalCodeFilter={postalCodeFilter}
         radiusFilter={radiusFilter}
-        radiusOptions={radiusOptions}
         availableServiceOptions={availableServiceOptions}
         selectedServices={selectedServices}
         searching={searching}

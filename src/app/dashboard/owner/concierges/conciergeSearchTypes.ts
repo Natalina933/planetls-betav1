@@ -26,6 +26,7 @@ export type ConciergeSearchRow = {
 export type ConciergeSearchPayload = {
   items: ConciergeSearchRow[];
   available_filters?: {
+    categories?: string[];
     services?: string[];
     property_types?: string[];
   };
@@ -35,7 +36,14 @@ export type SortMode = "available" | "rating" | "pro";
 export type ViewMode = "cards" | "list";
 
 export type ServerOptions = {
+  categories: string[];
   services: string[];
   propertyTypes: string[];
 };
 
+export type ServiceCatalogItem = {
+  id: number;
+  category: string;
+  service: string;
+  description?: string | null;
+};
