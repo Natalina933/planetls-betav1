@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import OwnerWorkspacePage from "./_components/OwnerWorkspacePage";
-
 type OwnerHousingRow = {
   id: number;
   nom_logement: string | null;
@@ -39,13 +38,25 @@ type OwnerReviewRow = {
   comment: string | null;
 };
 
+type OwnerConversationRow = {
+  id: string;
+  last_message_at: string | null;
+  source?: string | null;
+  source_reference?: string | null;
+  counterpart_name: string | null;
+  subject: string | null;
+  status: string | null;
+  last_message_preview: string | null;
+  unread_count?: number;
+};
+
 function getStatusLabel(status: string | null) {
   switch (status) {
     case "active":
     case "published":
       return "Actif";
     case "deleted":
-      return "Archivé";
+      return "Archive";
     default:
       return "Brouillon";
   }
@@ -60,7 +71,7 @@ function isOngoingMission(status: string | null) {
 }
 
 function formatMissionDate(value: string | null) {
-  if (!value) return "À planifier";
+  if (!value) return "A planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -73,7 +84,7 @@ function formatMissionDate(value: string | null) {
 }
 
 function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non défini";
+  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non defini";
 }
 
 export default function OwnerDashboardPage() {
@@ -82,6 +93,7 @@ export default function OwnerDashboardPage() {
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
   const [invoices, setInvoices] = useState<OwnerInvoiceRow[]>([]);
   const [reviews, setReviews] = useState<OwnerReviewRow[]>([]);
+  const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,12 +109,14 @@ export default function OwnerDashboardPage() {
           quotesResponse,
           invoicesResponse,
           reviewsResponse,
+          conversationsResponse,
         ] = await Promise.all([
           fetch("/api/housing", { cache: "no-store" }),
           fetch("/api/missions?scope=owner&limit=12", { cache: "no-store" }),
           fetch("/api/quotes?limit=8", { cache: "no-store" }),
           fetch("/api/invoices?limit=8", { cache: "no-store" }),
           fetch("/api/reviews?limit=6", { cache: "no-store" }),
+          fetch("/api/messages/conversations?role=owner&limit=20", { cache: "no-store" }),
         ]);
 
         const housingPayload = await housingResponse.json();
@@ -110,6 +124,7 @@ export default function OwnerDashboardPage() {
         const quotesPayload = await quotesResponse.json();
         const invoicesPayload = await invoicesResponse.json();
         const reviewsPayload = await reviewsResponse.json();
+        const conversationsPayload = await conversationsResponse.json();
 
         if (!housingResponse.ok) {
           throw new Error(housingPayload?.error || "Impossible de charger vos logements.");
@@ -126,15 +141,19 @@ export default function OwnerDashboardPage() {
         if (!reviewsResponse.ok) {
           throw new Error(reviewsPayload?.error || "Impossible de charger vos avis.");
         }
+        if (!conversationsResponse.ok) {
+          throw new Error(conversationsPayload?.error || "Impossible de charger vos messages.");
+        }
 
         setProperties(Array.isArray(housingPayload) ? housingPayload : []);
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
         setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
         setInvoices(Array.isArray(invoicesPayload) ? invoicesPayload : []);
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
+        setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Impossible de charger votre espace propriétaire.",
+          err instanceof Error ? err.message : "Impossible de charger votre espace proprietaire.",
         );
       } finally {
         setLoading(false);
@@ -171,117 +190,145 @@ export default function OwnerDashboardPage() {
     if (ratings.length === 0) return null;
     return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
   }, [reviews]);
+  const unreadConversationCount = useMemo(
+    () => conversations.reduce((sum, conversation) => sum + (conversation.unread_count ?? 0), 0),
+    [conversations],
+  );
 
   return (
     <OwnerWorkspacePage
-      eyebrow="Tableau de bord"
-      title="Tableau de bord"
+      eyebrow="Pilotage proprietaire"
+      title="Cabinet proprietaire"
       description={
         error ||
-        "Vue rapide de vos logements, missions, conciergerie et finances pour arbitrer sans dispersion."
+        "Une lecture resserree de votre parc, des operations en cours et des flux financiers a arbitrer sans dispersion."
       }
       chips={[
         `${activeCount} logement(s) actif(s)`,
-        `${ongoingMissions.length} mission(s) en cours`,
-        `${pendingInvoices.length} facture(s) à suivre`,
-        averageRating ? `${averageRating.toFixed(1)} / 5 de satisfaction` : "Avis à consolider",
+        `${ongoingMissions.length} mission(s) ouverte(s)`,
+        `${pendingInvoices.length} facture(s) a surveiller`,
+        unreadConversationCount > 0
+          ? `${unreadConversationCount} nouveau(x) message(s)`
+          : averageRating
+            ? `${averageRating.toFixed(1)} / 5 satisfaction`
+            : "Reputation a consolider",
       ]}
       actions={[
-        { label: "Voir mes logements", href: "/dashboard/owner/logements", variant: "primary" },
-        { label: "Suivre mes missions", href: "/dashboard/owner/planning", variant: "secondary" },
-        { label: "Voir mes finances", href: "/dashboard/owner/factures", variant: "secondary" },
+        { label: "Ouvrir le parc", href: "/dashboard/owner/logements", variant: "primary" },
+        { label: "Piloter les missions", href: "/dashboard/owner/planning", variant: "secondary" },
+        { label: "Suivre la tresorerie", href: "/dashboard/owner/factures", variant: "secondary" },
+        {
+          label: "Voir les messages",
+          href: "/dashboard/owner/messages",
+          variant: "secondary",
+          notificationCount: unreadConversationCount,
+        },
       ]}
       metrics={[
         {
           label: "Logements actifs",
           value: `${activeCount}/${properties.length}`,
-          hint: draftCount > 0 ? `${draftCount} fiche(s) à finaliser` : "Parc publié et opérationnel",
+          hint: draftCount > 0 ? `${draftCount} fiche(s) a finaliser` : "Parc publie et operationnel",
         },
         {
-          label: "Missions en cours",
+          label: "Operations ouvertes",
           value: `${ongoingMissions.length}`,
-          hint: `${completedMissions.length} intervention(s) déjà terminée(s)`,
+          hint: `${completedMissions.length} intervention(s) deja terminee(s)`,
         },
         {
-          label: "Factures à régler",
+          label: "Factures a regler",
           value: `${pendingInvoices.length}`,
           hint: `${invoices.length} facture(s) suivie(s) au total`,
         },
         {
-          label: "Satisfaction",
+          label: "Qualite percue",
           value: averageRating ? `${averageRating.toFixed(1)} / 5` : "--",
-          hint: reviews.length > 0 ? `${reviews.length} avis enregistrés` : "Aucun avis consolidé",
+          hint:
+            unreadConversationCount > 0
+              ? `${unreadConversationCount} nouveau(x) retour(s) a lire`
+              : reviews.length > 0
+                ? `${reviews.length} avis enregistres`
+                : "Aucun avis consolide",
         },
       ]}
       cards={[
         {
-          title: "Priorité du jour : logements",
+          title: "Parc a finaliser",
           text:
             draftCount > 0
-              ? `${draftCount} logement(s) restent en brouillon ou incomplets. Finalisez d'abord vos fiches les plus proches de la publication.`
-              : "Votre parc est actif. Vous pouvez maintenant vous concentrer sur l'exécution et la rentabilité.",
+              ? `${draftCount} logement(s) restent en brouillon ou incomplets. Finalisez d abord les fiches les plus proches de la mise en ligne.`
+              : "Votre parc est actif. Le sujet n est plus la mise en ligne mais la tenue du niveau de service et de rentabilite.",
           actions: [
             {
-              label: draftCount > 0 ? "Compléter mes fiches" : "Voir mes logements",
+              label: draftCount > 0 ? "Finaliser les fiches" : "Voir le parc",
               href: "/dashboard/owner/logements",
               variant: "primary",
             },
           ],
         },
         {
-          title: "Priorité du jour : missions",
+          title: "Execution terrain",
           text:
             ongoingMissions.length > 0
-              ? `${ongoingMissions.length} intervention(s) sont actuellement ouvertes et demandent un suivi clair.`
-              : "Aucune intervention en cours. Vérifiez les prochaines demandes ou missions planifiées.",
+              ? `${ongoingMissions.length} intervention(s) sont actuellement ouvertes et demandent un suivi simple, date par date, sans angle mort.`
+              : "Aucune intervention en cours. Verifiez les demandes a venir et les missions a lancer avant qu elles ne glissent.",
           actions: [
             { label: "Ouvrir le planning", href: "/dashboard/owner/planning", variant: "secondary" },
           ],
         },
         {
-          title: "Priorité du jour : finances",
+          title: "Arbitrage financier",
           text:
             pendingInvoices.length > 0
-              ? `${pendingInvoices.length} facture(s) demandent une vérification ou un règlement.`
-              : "Aucune facture en attente immédiate. Vous pouvez revoir devis et arbitrages financiers.",
+              ? `${pendingInvoices.length} facture(s) demandent une verification ou un reglement. Gardez le flux devis factures sous la meme lecture.`
+              : "Aucune facture en attente immediate. C est le bon moment pour reviser devis, marges et prochains engagements.",
           actions: [
-            { label: "Voir mes factures", href: "/dashboard/owner/factures", variant: "secondary" },
-            { label: "Voir mes devis", href: "/dashboard/owner/devis", variant: "secondary" },
+            { label: "Voir les factures", href: "/dashboard/owner/factures", variant: "secondary" },
+            { label: "Voir les devis", href: "/dashboard/owner/devis", variant: "secondary" },
           ],
         },
         {
-          title: "Priorité du jour : conciergerie",
+          title: "Relation concierge",
           text:
-            reviews.length === 0
-              ? "Aucun avis récent sur votre conciergerie. Documentez la relation pour garder une lecture claire de la qualité de service."
-              : "Votre relation concierge est documentée. Continuez à suivre les échanges et les retours.",
+            unreadConversationCount > 0
+              ? `${unreadConversationCount} nouveau(x) retour(s) sont arrives. Traitez d abord les reponses qui debloquent une mission, un devis ou une recherche concierge.`
+              : reviews.length === 0
+                ? "Aucun avis recent sur votre conciergerie. Structurez les echanges et les retours pour objectiver la qualite de service."
+                : "La relation concierge est documentee. Continuez a suivre les echanges, decisions et retours sans laisser de zones floues.",
+          notificationCount: unreadConversationCount,
           actions: [
             {
-              label: reviews.length === 0 ? "Voir ma conciergerie" : "Ouvrir les échanges",
-              href: reviews.length === 0 ? "/dashboard/owner/conciergerie" : "/dashboard/owner/messages",
+              label: unreadConversationCount > 0 ? "Lire les retours" : reviews.length === 0 ? "Voir la conciergerie" : "Ouvrir les echanges",
+              href:
+                unreadConversationCount > 0
+                  ? "/dashboard/owner/messages"
+                  : reviews.length === 0
+                    ? "/dashboard/owner/conciergerie"
+                    : "/dashboard/owner/messages",
               variant: "secondary",
+              notificationCount: unreadConversationCount,
             },
           ],
         },
       ]}
       detailSections={[
         {
-          title: "Logements à surveiller",
-          description: "Concentrez-vous d'abord sur les biens actifs, puis sur ceux qui bloquent encore la mise en marche.",
-          emptyText: loading ? "Chargement des logements..." : "Aucun logement à afficher pour le moment.",
+          title: "Biens sous surveillance",
+          description: "Commencez par les biens actifs, puis traitez les fiches qui retardent encore la mise en marche.",
+          emptyText: loading ? "Chargement des logements..." : "Aucun logement a afficher pour le moment.",
           items: properties.slice(0, 4).map((property) => ({
             title: property.nom_logement || "Logement sans nom",
             meta: getStatusLabel(property.statut),
-            description: `${property.ville || "Ville non renseignée"}${isActiveHousingStatus(property.statut) ? " · prêt à être piloté" : " · fiche à finaliser"}`,
+            description: `${property.ville || "Ville non renseignee"}${isActiveHousingStatus(property.statut) ? " · pret a etre pilote" : " · fiche a finaliser"}`,
             href: `/dashboard/owner/logements/${property.id}`,
             actionLabel: "Ouvrir",
             tone: isActiveHousingStatus(property.statut) ? "success" : "warning",
           })),
         },
         {
-          title: "Missions et finances",
-          description: "Gardez les interventions ouvertes et les documents à impact direct dans votre champ proche.",
-          emptyText: loading ? "Chargement des missions et finances..." : "Aucun élément critique à afficher pour le moment.",
+          title: "Operations et flux financiers",
+          description: "Gardez les interventions ouvertes et les documents a impact direct dans le meme champ de lecture.",
+          emptyText: loading ? "Chargement des missions et finances..." : "Aucun element critique a afficher pour le moment.",
           items: [
             ...ongoingMissions.slice(0, 2).map((mission) => ({
               title: mission.title || "Mission sans titre",
@@ -291,17 +338,17 @@ export default function OwnerDashboardPage() {
               actionLabel: "Suivre",
             })),
             ...latestInvoices.slice(0, 1).map((invoice) => ({
-              title: invoice.invoice_number || "Facture sans numéro",
-              meta: invoice.status || "À suivre",
+              title: invoice.invoice_number || "Facture sans numero",
+              meta: invoice.status || "A suivre",
               description: `Solde ${formatAmount(invoice.balance_amount)}`,
               href: `/dashboard/owner/factures?invoice=${invoice.id}`,
-              actionLabel: "Vérifier",
+              actionLabel: "Verifier",
               tone: invoice.status === "paid" ? "success" : "warning",
             })),
             ...latestQuotes.slice(0, 1).map((quote) => ({
-              title: quote.quote_number || "Devis sans numéro",
+              title: quote.quote_number || "Devis sans numero",
               meta: quote.status || "Brouillon",
-              description: `${formatAmount(quote.total_amount)}${quote.valid_until ? ` · valable jusqu'au ${formatMissionDate(quote.valid_until)}` : ""}`,
+              description: `${formatAmount(quote.total_amount)}${quote.valid_until ? ` · valable jusqu au ${formatMissionDate(quote.valid_until)}` : ""}`,
               href: `/dashboard/owner/devis?quote=${quote.id}`,
               actionLabel: "Ouvrir",
             })),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { setConversationSeenAt } from "../shared";
 
 interface SendMessageBody {
   body?: string;
@@ -65,6 +66,15 @@ export async function GET(
     if (!canAccessConversation(userId, conversation)) {
       return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
+
+    const roleView = conversation.owner_profile_id === userId ? "owner" : "concierge";
+    const lastSeenAt = conversation.last_message_at || new Date().toISOString();
+    const nextMetadata = setConversationSeenAt(conversation.metadata, roleView, lastSeenAt);
+
+    await db
+      .from("contact_conversations")
+      .update({ metadata: nextMetadata as Json })
+      .eq("id", id);
 
     const { data: messages, error: messagesError } = await db
       .from("contact_messages")
@@ -173,6 +183,23 @@ export async function POST(
       console.error("[POST /api/messages/conversations/:id] create message error:", messageError);
       return NextResponse.json({ error: "Erreur envoi message" }, { status: 500 });
     }
+
+    const roleView = conversation.owner_profile_id === userId ? "owner" : "concierge";
+    const { data: currentConversation } = await db
+      .from("contact_conversations")
+      .select("metadata")
+      .eq("id", id)
+      .maybeSingle();
+    const nextMetadata = setConversationSeenAt(
+      currentConversation?.metadata,
+      roleView,
+      createdMessage.created_at,
+    );
+
+    await db
+      .from("contact_conversations")
+      .update({ metadata: nextMetadata as Json })
+      .eq("id", id);
 
     return NextResponse.json(createdMessage, { status: 201 });
   } catch (err) {

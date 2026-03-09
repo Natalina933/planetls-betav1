@@ -9,6 +9,7 @@ export interface CurrentUser {
   email?: string | null;
   username?: string | null;
   firstName?: string | null;
+  lastName?: string | null;
   role?: string | null;
   company_name?: string | null;
   avatar_url?: string | null;
@@ -27,6 +28,17 @@ export function useCurrentUser() {
       return;
     }
 
+    // Expose session data immediately so the navbar doesn't flash fallback labels.
+    setUser((current) => ({
+      id: session.user.id,
+      email: session.user.email ?? current?.email ?? null,
+      username: session.user.username ?? current?.username ?? null,
+      firstName: session.user.firstName ?? current?.firstName ?? null,
+      lastName: session.user.lastName ?? current?.lastName ?? null,
+      role: session.user.role ?? current?.role ?? null,
+      company_name: session.user.company_name ?? current?.company_name ?? null,
+      avatar_url: session.user.avatar_url ?? current?.avatar_url ?? null,
+    }));
     setLoading(true);
 
     try {
@@ -71,8 +83,21 @@ export function useCurrentUser() {
     };
   }, [fetchUser]);
 
+  const resolvedUser: CurrentUser | null = session?.user?.id
+    ? {
+        id: user?.id || session.user.id,
+        email: user?.email ?? session.user.email ?? null,
+        username: user?.username ?? session.user.username ?? null,
+        firstName: user?.firstName ?? session.user.firstName ?? null,
+        lastName: user?.lastName ?? session.user.lastName ?? null,
+        role: user?.role ?? session.user.role ?? null,
+        company_name: user?.company_name ?? session.user.company_name ?? null,
+        avatar_url: user?.avatar_url ?? session.user.avatar_url ?? null,
+      }
+    : user;
+
   return {
-    user,
+    user: resolvedUser,
     loading: status === "loading" || loading,
     isAuthenticated: status === "authenticated",
   };

@@ -7,6 +7,16 @@ export interface ConversationItem {
   last_message_at: string | null;
   counterpart_profile_id: string | null;
   counterpart_name: string;
+  unread_count?: number;
+}
+
+interface ConversationsListPayload {
+  items: ConversationItem[];
+  summary: {
+    total: number;
+    unread: number;
+  };
+  note: string | null;
 }
 
 export interface ConversationMessage {
@@ -59,8 +69,8 @@ export async function fetchConversations() {
     throw new Error(await getResponseError(res, "Erreur chargement conversations"));
   }
 
-  const rows = (await res.json()) as ConversationItem[];
-  return Array.isArray(rows) ? rows : [];
+  const payload = (await res.json()) as ConversationsListPayload;
+  return Array.isArray(payload?.items) ? payload.items : [];
 }
 
 export async function fetchConversationDetail(conversationId: string) {

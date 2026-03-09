@@ -19,6 +19,7 @@ type OwnerConversationRow = {
   counterpart_name: string | null;
   last_message_preview: string | null;
   last_message_at: string | null;
+  unread_count?: number;
 };
 
 type ReviewRow = {
@@ -165,7 +166,7 @@ export default function OwnerConciergeriePage() {
         }
 
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
-        setConversations(Array.isArray(conversationsPayload) ? conversationsPayload : []);
+        setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
         setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
       } catch (err) {

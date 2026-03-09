@@ -63,7 +63,7 @@ type ProviderDashboardState = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "À planifier";
+  if (!value) return "A planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -75,7 +75,7 @@ function formatDate(value: string | null) {
 }
 
 function formatBudget(amount: number | null, currency: string | null) {
-  if (typeof amount !== "number") return "Budget à confirmer";
+  if (typeof amount !== "number") return "Budget a confirmer";
 
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -89,16 +89,16 @@ function getInterventionBadge(status: string | null) {
     case "in_progress":
       return "En cours";
     case "pending":
-      return "À confirmer";
+      return "A confirmer";
     case "completed":
-      return "Terminée";
+      return "Terminee";
     default:
-      return "À suivre";
+      return "A suivre";
   }
 }
 
 function getClientBadge(status: string | null) {
-  return status === "active" ? "Actif" : "À relancer";
+  return status === "active" ? "Actif" : "A relancer";
 }
 
 function getAlertBadge(severity: string | null) {
@@ -106,7 +106,7 @@ function getAlertBadge(severity: string | null) {
     case "urgent":
       return "Urgente";
     case "high":
-      return "Élevée";
+      return "Elevee";
     default:
       return "Standard";
   }
@@ -169,7 +169,7 @@ export default function ProviderDashboardPage() {
   const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
   const locationLabel = useMemo(
-    () => workspace?.summary.location || "Localisation à compléter",
+    () => workspace?.summary.location || "Localisation a completer",
     [workspace],
   );
   const stats = dashboard?.summary;
@@ -196,34 +196,34 @@ export default function ProviderDashboardPage() {
 
   return (
     <ProviderWorkspacePage
-      eyebrow="Tableau de bord"
-      title="Tableau de bord"
+      eyebrow="Pilotage artisan"
+      title="Atelier prestataire"
       description={
         error ||
-        `Vue rapide de ${displayName}, de vos interventions, alertes, clients et conversations prioritaires.`
+        `Une vue compacte de ${displayName}, de vos chantiers ouverts, alertes terrain, relations clients et echanges actifs.`
       }
       chips={[
-        profile?.company_name || "Activité artisanale",
+        profile?.company_name || "Activite artisanale",
         locationLabel,
         workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard",
         `${stats?.inProgress ?? 0} intervention(s) en cours`,
       ]}
       actions={[
         {
-          label: "Voir les interventions",
+          label: "Ouvrir les interventions",
           href: "/dashboard/provider/interventions",
           variant: "primary",
         },
-        { label: "Voir les clients", href: "/dashboard/provider/clients", variant: "secondary" },
+        { label: "Suivre les clients", href: "/dashboard/provider/clients", variant: "secondary" },
         {
-          label: "Voir les devis & factures",
+          label: "Voir devis et factures",
           href: "/dashboard/provider/devis",
           variant: "secondary",
         },
       ]}
       metrics={[
         {
-          label: "Interventions en cours",
+          label: "Chantiers ouverts",
           value: `${stats?.inProgress ?? 0}`,
           hint: `${stats?.interventions ?? 0} intervention(s) suivie(s)`,
         },
@@ -240,13 +240,13 @@ export default function ProviderDashboardPage() {
         {
           label: "Conversations",
           value: `${stats?.conversations ?? 0}`,
-          hint: "Échanges en cours",
+          hint: "Echanges a garder vivants",
         },
       ]}
       cards={[
         {
-          title: "Priorité du jour : interventions",
-          text: `${stats?.inProgress ?? 0} intervention(s) sont en cours. Gardez une exécution claire avant d'ouvrir de nouveaux chantiers.`,
+          title: "Cadence chantier",
+          text: `${stats?.inProgress ?? 0} intervention(s) sont en cours. La priorite est de tenir delais, confirmations et execution avant d ouvrir du nouveau flux.`,
           actions: [
             {
               label: "Ouvrir les interventions",
@@ -256,8 +256,8 @@ export default function ProviderDashboardPage() {
           ],
         },
         {
-          title: "Priorité du jour : alertes",
-          text: `${stats?.alerts ?? 0} alerte(s), dont ${stats?.urgentAlerts ?? 0} urgente(s), peuvent bloquer votre exécution terrain.`,
+          title: "Tensions terrain",
+          text: `${stats?.alerts ?? 0} alerte(s), dont ${stats?.urgentAlerts ?? 0} urgente(s), peuvent ralentir ou brouiller votre execution si elles restent hors champ.`,
           actions: [
             {
               label: "Traiter les alertes",
@@ -267,8 +267,8 @@ export default function ProviderDashboardPage() {
           ],
         },
         {
-          title: "Priorité du jour : clients",
-          text: `${stats?.activeClients ?? 0} client(s) actif(s) à entretenir pour garder un flux commercial propre.`,
+          title: "Base clients",
+          text: `${stats?.activeClients ?? 0} client(s) actif(s) composent votre socle commercial. Gardez relances, disponibilites et historique dans une lecture propre.`,
           actions: [
             {
               label: "Voir les clients",
@@ -278,18 +278,18 @@ export default function ProviderDashboardPage() {
           ],
         },
         {
-          title: "Priorité du jour : profil et revenus",
+          title: "Profil et revenus",
           text: profile
             ? `${displayName}${profile.email ? ` · ${profile.email}` : ""}${profile.phone ? ` · ${profile.phone}` : ""}`
-            : "Complétez votre profil et votre pilotage financier pour gagner en clarté.",
+            : "Completez votre profil et votre pilotage financier pour gagner en lisibilite commerciale.",
           actions: [
             {
-              label: "Ouvrir les paramètres",
+              label: "Ouvrir les parametres",
               href: "/dashboard/provider/settings",
               variant: "secondary",
             },
             {
-              label: "Voir devis & factures",
+              label: "Voir devis et factures",
               href: "/dashboard/provider/devis",
               variant: "secondary",
             },
@@ -298,21 +298,21 @@ export default function ProviderDashboardPage() {
       ]}
       detailSections={[
         {
-          title: "Interventions à suivre",
-          description: "Commencez par les missions ouvertes, celles qui ont une date proche ou un budget à confirmer.",
-          emptyText: "Aucune intervention prioritaire à afficher pour le moment.",
+          title: "Chantiers a suivre",
+          description: "Commencez par les missions ouvertes, celles qui approchent ou celles dont le budget reste a verrouiller.",
+          emptyText: "Aucune intervention prioritaire a afficher pour le moment.",
           items: highlightedInterventions.map((item) => ({
             title: item.title || item.service_label || "Intervention sans titre",
             meta: getInterventionBadge(item.status),
-            description: `${formatDate(item.scheduled_start)} · ${item.location_label || "Lieu à confirmer"} · ${formatBudget(item.budget_amount, item.currency)}`,
+            description: `${formatDate(item.scheduled_start)} · ${item.location_label || "Lieu a confirmer"} · ${formatBudget(item.budget_amount, item.currency)}`,
             href: `/dashboard/provider/interventions?intervention=${item.id}`,
             actionLabel: "Suivre",
             tone: item.status === "in_progress" ? "success" : "warning",
           })),
         },
         {
-          title: "Alertes et clients à relancer",
-          description: "Gardez visibles les frictions terrain et les relations client à réactiver.",
+          title: "Alertes, clients et echanges",
+          description: "Gardez dans le meme plan de vue les tensions terrain, les clients a relancer et les conversations qui demandent une reponse.",
           emptyText: "Aucune alerte ni aucun client prioritaire pour le moment.",
           items: [
             ...highlightedAlerts.map((item) => ({
@@ -326,17 +326,17 @@ export default function ProviderDashboardPage() {
             ...highlightedClients.map((item) => ({
               title: item.client_name || item.company_name || "Client sans nom",
               meta: getClientBadge(item.status),
-              description: item.city || "Ville non renseignée",
+              description: item.city || "Ville non renseignee",
               href: `/dashboard/provider/clients?client=${item.id}`,
               actionLabel: "Ouvrir",
               tone: item.status === "active" ? "success" : "default",
             })),
             ...highlightedConversations.map((item) => ({
               title: item.counterpart_name || item.subject || "Conversation",
-              meta: item.status === "open" ? "Ouverte" : "Archivée",
-              description: item.last_message_preview || `Dernier échange : ${formatDate(item.last_message_at)}`,
+              meta: item.status === "open" ? "Ouverte" : "Archivee",
+              description: item.last_message_preview || `Dernier echange : ${formatDate(item.last_message_at)}`,
               href: `/dashboard/provider/messages?conversation=${item.id}`,
-              actionLabel: "Répondre",
+              actionLabel: "Repondre",
             })),
           ].slice(0, 4),
         },

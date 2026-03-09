@@ -21,6 +21,7 @@ type ConversationRow = {
   id: string;
   counterpart_name: string | null;
   last_message_at: string | null;
+  unread_count?: number;
 };
 
 type HousingRow = {
@@ -81,7 +82,7 @@ export default function ConciergeAlertesPage() {
         }
 
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
-        setConversations(Array.isArray(conversationsPayload) ? conversationsPayload : []);
+        setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
         setHousings(Array.isArray(housingPayload) ? housingPayload : []);
         setProfile(profilePayload);
       } catch (err) {

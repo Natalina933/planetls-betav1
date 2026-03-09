@@ -16,6 +16,7 @@ type ContactConversation = {
   last_message_at: string | null;
   subject: string | null;
   status: string | null;
+  unread_count?: number;
 };
 
 export default function ConciergeContactsPage() {
@@ -37,7 +38,7 @@ export default function ConciergeContactsPage() {
           throw new Error(payload?.error || "Impossible de charger vos contacts.");
         }
 
-        setItems(Array.isArray(payload) ? payload : []);
+        setItems(Array.isArray(payload?.items) ? payload.items : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger vos contacts.");
       } finally {

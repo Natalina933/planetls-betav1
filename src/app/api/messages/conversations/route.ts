@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import { resolveConversationParticipants } from "./shared";
+import {
+  getConversationSeenAt,
+  resolveConversationParticipants,
+  setConversationSeenAt,
+} from "./shared";
 
 type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
 
@@ -136,7 +140,48 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json(hydrated);
+    const conversationIds = hydrated.map((conversation) => conversation.id);
+    const unreadCounts = new Map<string, number>();
+
+    if (conversationIds.length > 0) {
+      const { data: messages, error: messagesError } = await db
+        .from("contact_messages")
+        .select("conversation_id, sender_profile_id, created_at")
+        .in("conversation_id", conversationIds)
+        .neq("sender_profile_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (messagesError) {
+        console.error("[GET /api/messages/conversations] messages error:", messagesError);
+      } else {
+        const roleView = roleHint === "owner" ? "owner" : "concierge";
+        for (const conversation of hydrated) {
+          const seenAt = getConversationSeenAt(conversation.metadata, roleView);
+          const seenTime = seenAt ? new Date(seenAt).getTime() : 0;
+          const count = (messages ?? []).filter((message) => {
+            if (message.conversation_id !== conversation.id) return false;
+            const messageTime = new Date(message.created_at).getTime();
+            if (Number.isNaN(messageTime)) return false;
+            return seenTime === 0 || messageTime > seenTime;
+          }).length;
+          unreadCounts.set(conversation.id, count);
+        }
+      }
+    }
+
+    const items = hydrated.map((conversation) => ({
+      ...conversation,
+      unread_count: unreadCounts.get(conversation.id) ?? 0,
+    }));
+
+    return NextResponse.json({
+      items,
+      summary: {
+        total: items.length,
+        unread: items.reduce((sum, item) => sum + item.unread_count, 0),
+      },
+      note: items.length === 0 ? "Aucune conversation pour le moment." : null,
+    });
   } catch (err) {
     console.error("[GET /api/messages/conversations] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -303,6 +348,18 @@ export async function POST(req: NextRequest) {
     if (messageError) {
       console.error("[POST /api/messages/conversations] prefill message error:", messageError);
     }
+
+    const creatorRoleView = role === "owner" || role === "owner_pro" ? "owner" : "concierge";
+    const nextMetadata = setConversationSeenAt(
+      createdConversation.metadata,
+      creatorRoleView,
+      new Date().toISOString(),
+    );
+
+    await db
+      .from("contact_conversations")
+      .update({ metadata: nextMetadata as Json })
+      .eq("id", createdConversation.id);
 
     return NextResponse.json(createdConversation, { status: 201 });
   } catch (err) {

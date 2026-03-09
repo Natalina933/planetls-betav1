@@ -8,12 +8,14 @@ export interface DashboardWorkspaceAction {
   label: string;
   href: string;
   variant?: "primary" | "secondary";
+  notificationCount?: number;
 }
 
 export interface DashboardWorkspaceCard {
   title: string;
   text: string;
   actions?: DashboardWorkspaceAction[];
+  notificationCount?: number;
 }
 
 export interface DashboardWorkspaceMetric {
@@ -33,6 +35,7 @@ export interface DashboardWorkspaceDetailItem {
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
   tone?: "default" | "warning" | "success";
+  notificationCount?: number;
 }
 
 export interface DashboardWorkspaceDetailSection {
@@ -53,6 +56,12 @@ export interface DashboardWorkspaceProps {
   detailSections?: DashboardWorkspaceDetailSection[];
   children?: React.ReactNode;
   tone?: "owner" | "concierge" | "provider";
+}
+
+interface WorkspaceSectionIntroProps {
+  label: string;
+  title: string;
+  description: string;
 }
 
 function getToneClass(tone: DashboardWorkspaceProps["tone"]) {
@@ -77,6 +86,35 @@ function getDetailBadgeClass(tone: DashboardWorkspaceDetailItem["tone"]) {
   return styles.detailBadge;
 }
 
+function renderActionLink(
+  action: DashboardWorkspaceAction,
+  className: string,
+  key: string,
+) {
+  return (
+    <Link key={key} href={action.href} className={className}>
+      <span className={styles.actionContent}>
+        <span>{action.label}</span>
+        {action.notificationCount && action.notificationCount > 0 ? (
+          <span className={styles.notificationBadge}>{action.notificationCount}</span>
+        ) : null}
+      </span>
+    </Link>
+  );
+}
+
+function WorkspaceSectionIntro({ label, title, description }: WorkspaceSectionIntroProps) {
+  return (
+    <div className={styles.sectionIntro}>
+      <span className={styles.sectionLabel}>{label}</span>
+      <div className={styles.sectionHeading}>
+        <h2 className={styles.sectionTitle}>{title}</h2>
+        <p className={styles.sectionDescription}>{description}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardWorkspace({
   eyebrow,
   title,
@@ -97,6 +135,7 @@ export default function DashboardWorkspace({
         <div className={styles.hero}>
           <div className={styles.heroMain}>
             <span className={styles.eyebrow}>{eyebrow}</span>
+            <span className={styles.heroDivider} aria-hidden="true" />
             <h1 className={styles.title}>{title}</h1>
             <p className={styles.description}>{description}</p>
           </div>
@@ -105,7 +144,7 @@ export default function DashboardWorkspace({
             <aside className={styles.heroRail}>
               {chips && chips.length > 0 ? (
                 <div className={styles.heroBlock}>
-                  <span className={styles.heroBlockLabel}>Repères</span>
+                  <span className={styles.heroBlockLabel}>Reperes</span>
                   <div className={styles.chips}>
                     {chips.map((chip) => (
                       <span key={chip} className={styles.chip}>
@@ -120,15 +159,13 @@ export default function DashboardWorkspace({
                 <div className={styles.heroBlock}>
                   <span className={styles.heroBlockLabel}>Actions rapides</span>
                   <div className={styles.actions}>
-                    {actions.map((action) => (
-                      <Link
-                        key={action.href}
-                        href={action.href}
-                        className={getHeroActionClass(action.variant)}
-                      >
-                        {action.label}
-                      </Link>
-                    ))}
+                    {actions.map((action) =>
+                      renderActionLink(
+                        action,
+                        getHeroActionClass(action.variant),
+                        `${action.href}-${action.label}`,
+                      ),
+                    )}
                   </div>
                 </div>
               ) : null}
@@ -137,87 +174,128 @@ export default function DashboardWorkspace({
         </div>
 
         {metrics && metrics.length > 0 ? (
-          <div className={styles.metrics}>
-            {metrics.map((metric) => (
-              <article key={metric.label} className={styles.metricCard}>
-                <span className={styles.metricLabel}>{metric.label}</span>
-                <strong className={styles.metricValue}>{metric.value}</strong>
-                {metric.hint ? <p className={styles.metricHint}>{metric.hint}</p> : null}
+          <section className={styles.sectionBlock}>
+            <WorkspaceSectionIntro
+              label="Lecture rapide"
+              title="Indicateurs clefs"
+              description="Les chiffres a lire avant de descendre dans le detail."
+            />
+            <div className={styles.metrics}>
+              {metrics.map((metric) => (
+                <article key={metric.label} className={styles.metricCard}>
+                  <span className={styles.metricLabel}>{metric.label}</span>
+                  <strong className={styles.metricValue}>{metric.value}</strong>
+                  {metric.hint ? <p className={styles.metricHint}>{metric.hint}</p> : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className={styles.sectionBlock}>
+          <WorkspaceSectionIntro
+            label="Pilotage"
+            title="Priorites du moment"
+            description="Les zones a arbitrer ou a debloquer en premier."
+          />
+          <div className={styles.grid}>
+            {cards.map((card) => (
+              <article key={card.title} className={styles.card}>
+                <div className={styles.cardTitleRow}>
+                  <h2 className={styles.cardTitle}>{card.title}</h2>
+                  {card.notificationCount && card.notificationCount > 0 ? (
+                    <span className={styles.notificationBadge}>{card.notificationCount}</span>
+                  ) : null}
+                </div>
+                <p className={styles.cardText}>{card.text}</p>
+                {card.actions && card.actions.length > 0 ? (
+                  <div className={styles.cardActions}>
+                    {card.actions.map((action) =>
+                      renderActionLink(
+                        action,
+                        getCardActionClass(action.variant),
+                        `${card.title}-${action.href}-${action.label}`,
+                      ),
+                    )}
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>
-        ) : null}
-
-        <div className={styles.grid}>
-          {cards.map((card) => (
-            <article key={card.title} className={styles.card}>
-              <h2 className={styles.cardTitle}>{card.title}</h2>
-              <p className={styles.cardText}>{card.text}</p>
-              {card.actions && card.actions.length > 0 ? (
-                <div className={styles.cardActions}>
-                  {card.actions.map((action) => (
-                    <Link
-                      key={`${card.title}-${action.href}-${action.label}`}
-                      href={action.href}
-                      className={getCardActionClass(action.variant)}
-                    >
-                      {action.label}
-                    </Link>
-                  ))}
-                </div>
-              ) : null}
-            </article>
-          ))}
-        </div>
+        </section>
 
         {detailSections && detailSections.length > 0 ? (
-          <div className={styles.detailSections}>
-            {detailSections.map((section) => (
-              <section key={section.title} className={styles.detailSection}>
-                <div className={styles.detailHeader}>
-                  <h2 className={styles.detailTitle}>{section.title}</h2>
-                  {section.description ? (
-                    <p className={styles.detailDescription}>{section.description}</p>
-                  ) : null}
-                </div>
+          <section className={styles.sectionBlock}>
+            <WorkspaceSectionIntro
+              label="Surveillance"
+              title="Elements a garder proches"
+              description="Une lecture plus fine des dossiers, biens, missions ou alertes en mouvement."
+            />
+            <div className={styles.detailSections}>
+              {detailSections.map((section) => (
+                <section key={section.title} className={styles.detailSection}>
+                  <div className={styles.detailHeader}>
+                    <h2 className={styles.detailTitle}>{section.title}</h2>
+                    {section.description ? (
+                      <p className={styles.detailDescription}>{section.description}</p>
+                    ) : null}
+                  </div>
 
-                {section.items.length > 0 ? (
-                  <div className={styles.detailList}>
-                    {section.items.map((item) => (
+                  {section.items.length > 0 ? (
+                    <div className={styles.detailList}>
+                      {section.items.map((item) => (
                         <article
                           key={item.id || `${section.title}-${item.title}-${item.meta || ""}`}
                           className={styles.detailItem}
                         >
-                        <div className={styles.detailItemMain}>
+                          <div className={styles.detailItemMain}>
                           <div className={styles.detailItemTopline}>
-                            <h3 className={styles.detailItemTitle}>{item.title}</h3>
-                            {item.meta ? (
-                              <span className={getDetailBadgeClass(item.tone)}>{item.meta}</span>
+                              <div className={styles.detailItemHeading}>
+                                <h3 className={styles.detailItemTitle}>{item.title}</h3>
+                                {item.notificationCount && item.notificationCount > 0 ? (
+                                  <span className={styles.notificationBadge}>
+                                    {item.notificationCount}
+                                  </span>
+                                ) : null}
+                              </div>
+                              {item.meta ? (
+                                <span className={getDetailBadgeClass(item.tone)}>{item.meta}</span>
+                              ) : null}
+                            </div>
+                            {item.description ? (
+                              <p className={styles.detailItemDescription}>{item.description}</p>
+                            ) : null}
+                            {item.facts && item.facts.length > 0 ? (
+                              <div className={styles.detailFacts}>
+                                {item.facts.map((fact) => (
+                                  <span
+                                    key={`${section.title}-${item.title}-${fact}`}
+                                    className={styles.detailFact}
+                                  >
+                                    {fact}
+                                  </span>
+                                ))}
+                              </div>
                             ) : null}
                           </div>
-                          {item.description ? (
-                            <p className={styles.detailItemDescription}>{item.description}</p>
-                          ) : null}
-                          {item.facts && item.facts.length > 0 ? (
-                            <div className={styles.detailFacts}>
-                              {item.facts.map((fact) => (
-                                <span
-                                  key={`${section.title}-${item.title}-${fact}`}
-                                  className={styles.detailFact}
-                                >
-                                  {fact}
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
-                        </div>
 
-                        {item.href && item.actionLabel ? (
-                          <div className={styles.detailItemActions}>
-                            <Link href={item.href} className={styles.detailItemAction}>
-                              {item.actionLabel}
-                            </Link>
-                            {item.onSecondaryAction && item.secondaryActionLabel ? (
+                          {item.href && item.actionLabel ? (
+                            <div className={styles.detailItemActions}>
+                              <Link href={item.href} className={styles.detailItemAction}>
+                                {item.actionLabel}
+                              </Link>
+                              {item.onSecondaryAction && item.secondaryActionLabel ? (
+                                <button
+                                  type="button"
+                                  className={styles.detailItemActionSecondary}
+                                  onClick={item.onSecondaryAction}
+                                >
+                                  {item.secondaryActionLabel}
+                                </button>
+                              ) : null}
+                            </div>
+                          ) : item.onSecondaryAction && item.secondaryActionLabel ? (
+                            <div className={styles.detailItemActions}>
                               <button
                                 type="button"
                                 className={styles.detailItemActionSecondary}
@@ -225,30 +303,20 @@ export default function DashboardWorkspace({
                               >
                                 {item.secondaryActionLabel}
                               </button>
-                            ) : null}
-                          </div>
-                        ) : item.onSecondaryAction && item.secondaryActionLabel ? (
-                          <div className={styles.detailItemActions}>
-                            <button
-                              type="button"
-                              className={styles.detailItemActionSecondary}
-                              onClick={item.onSecondaryAction}
-                            >
-                              {item.secondaryActionLabel}
-                            </button>
-                          </div>
-                        ) : null}
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={styles.detailEmpty}>
-                    {section.emptyText || "Aucun élément à afficher pour le moment."}
-                  </p>
-                )}
-              </section>
-            ))}
-          </div>
+                            </div>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={styles.detailEmpty}>
+                      {section.emptyText || "Aucun element a afficher pour le moment."}
+                    </p>
+                  )}
+                </section>
+              ))}
+            </div>
+          </section>
         ) : null}
 
         {children}

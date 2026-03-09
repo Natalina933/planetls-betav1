@@ -4,6 +4,9 @@ import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import styles from "./OwnerMessagesPage.module.scss";
+import {
+  markOwnerConversationSeen,
+} from "../messageActivity";
 
 type OwnerConversationRow = {
   id: string;
@@ -12,6 +15,18 @@ type OwnerConversationRow = {
   last_message_preview: string | null;
   last_message_at: string | null;
   status: string | null;
+  source?: string | null;
+  source_reference?: string | null;
+  unread_count?: number;
+};
+
+type OwnerConversationsListPayload = {
+  items: OwnerConversationRow[];
+  summary: {
+    total: number;
+    unread: number;
+  };
+  note: string | null;
 };
 
 type ConversationDetailPayload = {
@@ -20,6 +35,7 @@ type ConversationDetailPayload = {
     subject: string | null;
     source: string;
     status: string;
+    last_message_at?: string | null;
   };
   messages: Array<{
     id: string;
@@ -38,7 +54,7 @@ type ConversationDetailPayload = {
 };
 
 function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activité";
+  if (!value) return "Aucune activite";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
 
@@ -81,6 +97,7 @@ function OwnerMessagesContent() {
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [, setSeenVersion] = useState(0);
 
   async function loadConversations(preferredId?: string) {
     try {
@@ -90,13 +107,13 @@ function OwnerMessagesContent() {
       const response = await fetch("/api/messages/conversations?role=owner&limit=40", {
         cache: "no-store",
       });
-      const payload = await response.json();
+      const payload = (await response.json()) as OwnerConversationsListPayload & { error?: string };
 
       if (!response.ok) {
         throw new Error(payload?.error || "Impossible de charger vos conversations.");
       }
 
-      const rows = Array.isArray(payload) ? payload : [];
+      const rows = Array.isArray(payload?.items) ? payload.items : [];
       setConversations(rows);
 
       const nextId =
@@ -135,6 +152,8 @@ function OwnerMessagesContent() {
       }
 
       setDetail(payload);
+      markOwnerConversationSeen(conversationId, payload?.conversation?.last_message_at ?? null);
+      setSeenVersion((current) => current + 1);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Impossible de charger cette conversation.",
@@ -145,7 +164,7 @@ function OwnerMessagesContent() {
   }
 
   useEffect(() => {
-    loadConversations(createdConversationId);
+    void loadConversations(createdConversationId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createdConversationId]);
 
@@ -159,7 +178,7 @@ function OwnerMessagesContent() {
 
   useEffect(() => {
     if (!createdConversationId) return;
-    setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
+    setSuccess("La conversation a bien ete creee. Vous pouvez maintenant poursuivre ici.");
   }, [createdConversationId]);
 
   useEffect(() => {
@@ -214,6 +233,8 @@ function OwnerMessagesContent() {
       setDraftMessage("");
       await loadConversationDetail(activeConversationId);
       await loadConversations(activeConversationId);
+      markOwnerConversationSeen(activeConversationId);
+      setSeenVersion((current) => current + 1);
       setSuccess("Message envoye.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
@@ -226,9 +247,10 @@ function OwnerMessagesContent() {
     <section className="dashboard-grid">
       <div className={styles.page}>
         <header className={styles.header}>
-          <h1>Suivi des échanges</h1>
+          <h1>Suivi des echanges</h1>
           <p>
-            Centralisez vos conversations prioritaires avec vos concierges et poursuivez chaque suivi depuis un seul espace.
+            Centralisez vos conversations prioritaires avec vos concierges et poursuivez chaque
+            suivi depuis un seul espace.
           </p>
         </header>
 
@@ -246,7 +268,7 @@ function OwnerMessagesContent() {
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Rechercher un échange"
+                placeholder="Rechercher un echange"
                 style={{
                   flex: "1 1 220px",
                   borderRadius: 14,
@@ -284,32 +306,51 @@ function OwnerMessagesContent() {
 
             {!loading && filteredConversations.length > 0 ? (
               <div className={styles.conversationList}>
-                {filteredConversations.map((conversation) => (
-                  <button
-                    key={conversation.id}
-                    type="button"
-                    className={`${styles.conversationItem} ${
-                      activeConversationId === conversation.id ? styles.conversationItemActive : ""
-                    }`}
-                    onClick={() => setActiveConversationId(conversation.id)}
-                  >
-                    <div className={styles.conversationHead}>
-                      <strong>{conversation.counterpart_name || "Concierge"}</strong>
-                      <span>{formatDate(conversation.last_message_at)}</span>
-                    </div>
-                    <p>{conversation.subject || "Conversation directe"}</p>
-                    <small>{conversation.last_message_preview || "Aucun aperçu"}</small>
-                  </button>
-                ))}
+                {filteredConversations.map((conversation) => {
+                  const unread = (conversation.unread_count ?? 0) > 0;
+
+                  return (
+                    <button
+                      key={conversation.id}
+                      type="button"
+                      className={`${styles.conversationItem} ${
+                        activeConversationId === conversation.id ? styles.conversationItemActive : ""
+                      }`}
+                      onClick={() => setActiveConversationId(conversation.id)}
+                    >
+                      <div className={styles.conversationHead}>
+                        <strong>{conversation.counterpart_name || "Concierge"}</strong>
+                        <div
+                          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+                        >
+                          {unread ? (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                width: "0.6rem",
+                                height: "0.6rem",
+                                borderRadius: "999px",
+                                background: "#b34832",
+                                boxShadow: "0 0 0 4px rgba(179, 72, 50, 0.12)",
+                              }}
+                              aria-label="Nouveau message"
+                            />
+                          ) : null}
+                          <span>{formatDate(conversation.last_message_at)}</span>
+                        </div>
+                      </div>
+                      <p>{conversation.subject || "Conversation directe"}</p>
+                      <small>{conversation.last_message_preview || "Aucun apercu"}</small>
+                    </button>
+                  );
+                })}
               </div>
             ) : null}
           </aside>
 
           <section className={styles.thread}>
             {!activeConversationId ? (
-              <p className={styles.emptyState}>
-                Selectionnez une conversation pour lire et repondre.
-              </p>
+              <p className={styles.emptyState}>Selectionnez une conversation pour lire et repondre.</p>
             ) : detailLoading ? (
               <p className={styles.emptyState}>Chargement de la conversation...</p>
             ) : !detail ? (

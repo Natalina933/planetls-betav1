@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Bell, User, CheckCircle } from "lucide-react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import styles from "./DashboardNavbar.module.scss";
@@ -10,6 +11,34 @@ import styles from "./DashboardNavbar.module.scss";
 interface DashboardNavbarProps {
   toggleSidebar: () => void;
   notificationCount?: number;
+}
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+  count: number;
+  kind: "mission" | "quote" | "search" | "message" | "alert";
+}
+
+type NotificationFilter = "all" | "mission" | "quote" | "search" | "message";
+
+interface MessageNotificationRow {
+  id: string;
+  source?: string | null;
+  subject?: string | null;
+  counterpart_name?: string | null;
+  last_message_preview?: string | null;
+  unread_count?: number;
+}
+
+interface ProviderNotificationRow {
+  id: string;
+  subject?: string | null;
+  counterpart_name?: string | null;
+  last_message_preview?: string | null;
+  unread?: number;
 }
 
 const ROLE_LABELS = {
@@ -41,12 +70,68 @@ const getTimeBasedGreeting = (): string => {
   return "Bonsoir";
 };
 
+const getNotificationKindLabel = (kind: NotificationItem["kind"]) => {
+  if (kind === "mission") return "Mission";
+  if (kind === "quote") return "Devis";
+  if (kind === "search") return "Recherche";
+  if (kind === "alert") return "Alerte";
+  return "Message";
+};
+
+const getNotificationsPageHref = (role?: string | null) => {
+  if (role === "owner" || role === "owner_pro") return "/dashboard/owner/alertes";
+  if (role === "concierge" || role === "concierge_pro") return "/dashboard/concierge/alertes";
+  if (
+    role === "provider" ||
+    role === "provider_pro" ||
+    role === "artisan" ||
+    role === "artisan_pro"
+  ) {
+    return "/dashboard/provider/messages";
+  }
+  return "/dashboard";
+};
+
+const PAGE_LABELS: Record<string, string> = {
+  owner: "Espace proprietaire",
+  concierge: "Espace concierge",
+  provider: "Espace artisan",
+  messages: "Messages",
+  alertes: "Alertes",
+  planning: "Planning",
+  factures: "Factures",
+  devis: "Devis",
+  logements: "Logements",
+  contacts: "Contacts",
+  conciergerie: "Conciergerie",
+  recherche: "Recherche",
+  demandes: "Demandes",
+  objectifs: "Objectifs",
+  settings: "Parametres",
+  profile: "Profil",
+  clients: "Clients",
+  interventions: "Interventions",
+};
+
+function formatPathSegment(segment: string) {
+  const normalized = segment.trim().toLowerCase();
+  if (!normalized) return "Dashboard";
+  if (PAGE_LABELS[normalized]) return PAGE_LABELS[normalized];
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1).replace(/-/g, " ");
+}
+
 export default function DashboardNavbar({
   toggleSidebar,
   notificationCount = 0,
 }: DashboardNavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, loading } = useCurrentUser();
+  const [liveNotificationCount, setLiveNotificationCount] = useState(notificationCount);
+  const [notificationItems, setNotificationItems] = useState<NotificationItem[]>([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notificationFilter, setNotificationFilter] = useState<NotificationFilter>("all");
+  const notificationRef = useRef<HTMLDivElement | null>(null);
 
   const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
   const roleLabel = useMemo(() => getRoleLabel(user?.role), [user?.role]);
@@ -56,21 +141,197 @@ export default function DashboardNavbar({
   const companyName = user?.company_name || DEFAULT_COMPANY_NAME;
   const greetingName = user?.firstName || user?.username || "vous";
   const timeBasedGreeting = getTimeBasedGreeting();
+  const userRole = user?.role ?? null;
+  const notificationsPageHref = useMemo(() => getNotificationsPageHref(userRole), [userRole]);
+  const pageTitle = useMemo(() => {
+    const segments = (pathname || "")
+      .split("/")
+      .filter(Boolean)
+      .filter((segment) => segment !== "dashboard");
+
+    if (segments.length === 0) return "Dashboard";
+
+    const lastSegment = segments[segments.length - 1];
+    if (/^\[.*\]$/.test(lastSegment) || /^[0-9a-f-]{6,}$/i.test(lastSegment)) {
+      return formatPathSegment(segments[segments.length - 2] || "dashboard");
+    }
+
+    return formatPathSegment(lastSegment);
+  }, [pathname]);
 
   const handleProfileClick = useCallback(() => {
     router.push("/dashboard/profile");
   }, [router]);
 
   const handleNotificationClick = useCallback(() => {
-    router.push("/dashboard/notifications");
-  }, [router]);
+    setIsNotificationsOpen((current) => !current);
+  }, []);
 
   const handleMenuClick = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
 
-  const notificationBadge = notificationCount > 9 ? "9+" : notificationCount.toString();
-  const hasNotifications = notificationCount > 0;
+  useEffect(() => {
+    setLiveNotificationCount(notificationCount);
+  }, [notificationCount]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !userRole) {
+      setLiveNotificationCount(notificationCount);
+      setNotificationItems([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadNotifications() {
+      try {
+        let nextCount = notificationCount;
+        let nextItems: NotificationItem[] = [];
+
+        if (userRole === "owner" || userRole === "owner_pro") {
+          const response = await fetch("/api/messages/conversations?role=owner&limit=40", {
+            cache: "no-store",
+          });
+          const payload = await response.json();
+          if (response.ok) {
+            nextCount = Number(payload?.summary?.unread ?? 0);
+            const rows: MessageNotificationRow[] = Array.isArray(payload?.items) ? payload.items : [];
+            nextItems = rows
+              .filter((item) => Number(item?.unread_count ?? 0) > 0)
+              .slice(0, 6)
+              .map((item) => ({
+                id: item.id,
+                title: item.counterpart_name || item.subject || "Nouvelle reponse",
+                description:
+                  item.last_message_preview ||
+                  "Une reponse est arrivee dans cette conversation.",
+                href: `/dashboard/owner/messages?conversation=${item.id}`,
+                count: Number(item.unread_count ?? 0),
+                kind:
+                  item.source === "mission"
+                    ? "mission"
+                    : item.source === "quote"
+                      ? "quote"
+                      : item.source === "search"
+                        ? "search"
+                        : "message",
+              }));
+          }
+        } else if (userRole === "concierge" || userRole === "concierge_pro") {
+          const response = await fetch("/api/messages/conversations?role=concierge&limit=40", {
+            cache: "no-store",
+          });
+          const payload = await response.json();
+          if (response.ok) {
+            nextCount = Number(payload?.summary?.unread ?? 0);
+            const rows: MessageNotificationRow[] = Array.isArray(payload?.items) ? payload.items : [];
+            nextItems = rows
+              .filter((item) => Number(item?.unread_count ?? 0) > 0)
+              .slice(0, 6)
+              .map((item) => ({
+                id: item.id,
+                title: item.counterpart_name || item.subject || "Nouveau message",
+                description:
+                  item.last_message_preview ||
+                  "Un proprietaire a repondu ou envoye un nouveau message.",
+                href: `/dashboard/concierge/messages?conversation=${item.id}`,
+                count: Number(item.unread_count ?? 0),
+                kind:
+                  item.source === "mission"
+                    ? "mission"
+                    : item.source === "quote"
+                      ? "quote"
+                      : item.source === "search"
+                        ? "search"
+                        : "message",
+              }));
+          }
+        } else if (
+          userRole === "provider" ||
+          userRole === "provider_pro" ||
+          userRole === "artisan" ||
+          userRole === "artisan_pro"
+        ) {
+          const response = await fetch("/api/provider/messages", { cache: "no-store" });
+          const payload = await response.json();
+          if (response.ok) {
+            nextCount = Number(payload?.summary?.unread ?? 0);
+            const rows: ProviderNotificationRow[] = Array.isArray(payload?.items) ? payload.items : [];
+            nextItems = rows
+              .filter((item) => Number(item?.unread ?? 0) > 0)
+              .slice(0, 6)
+              .map((item) => ({
+                id: item.id,
+                title: item.counterpart_name || item.subject || "Nouveau message",
+                description:
+                  item.last_message_preview || "Un client vous a repondu dans ce fil.",
+                href: `/dashboard/provider/messages?conversation=${item.id}`,
+                count: Number(item.unread ?? 0),
+                kind: "message",
+              }));
+          }
+        }
+
+        if (!cancelled) {
+          setLiveNotificationCount(nextCount);
+          setNotificationItems(nextItems);
+        }
+      } catch {
+        if (!cancelled) {
+          setLiveNotificationCount(notificationCount);
+          setNotificationItems([]);
+        }
+      }
+    }
+
+    void loadNotifications();
+    const interval = window.setInterval(() => {
+      void loadNotifications();
+    }, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [isAuthenticated, notificationCount, userRole]);
+
+  useEffect(() => {
+    if (!isNotificationsOpen) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      if (!notificationRef.current?.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsNotificationsOpen(false);
+      }
+    }
+
+    window.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isNotificationsOpen]);
+
+  const filteredNotificationItems = useMemo(() => {
+    if (notificationFilter === "all") return notificationItems;
+    return notificationItems.filter((item) => item.kind === notificationFilter);
+  }, [notificationFilter, notificationItems]);
+
+  const handleNotificationItemClick = useCallback((item: NotificationItem) => {
+    setNotificationItems((current) => current.filter((entry) => entry.id !== item.id));
+    setLiveNotificationCount((current) => Math.max(0, current - item.count));
+    setIsNotificationsOpen(false);
+  }, []);
+
+  const notificationBadge = liveNotificationCount > 9 ? "9+" : liveNotificationCount.toString();
+  const hasNotifications = liveNotificationCount > 0;
 
   return (
     <header className={styles.dashNavbar} role="banner">
@@ -86,7 +347,10 @@ export default function DashboardNavbar({
         </button>
 
         <div className={styles.titleBlock}>
-          <span className={styles.userNameInline}>{userName}</span>
+          <div className={styles.pageContext}>
+            <span className={styles.pageTitle}>{pageTitle}</span>
+            <span className={styles.userNameInline}>{userName}</span>
+          </div>
         </div>
 
         {roleLabel && (
@@ -116,20 +380,103 @@ export default function DashboardNavbar({
         )}
 
         {isAuthenticated && (
-          <button
-            type="button"
-            className={styles.iconButton}
-            onClick={handleNotificationClick}
-            aria-label={`Notifications${hasNotifications ? `, ${notificationCount} non lues` : ""}`}
-            title="Voir les notifications"
-          >
-            <Bell size={20} aria-hidden="true" />
-            {hasNotifications && (
-              <span className={styles.notificationCount} aria-hidden="true">
-                {notificationBadge}
-              </span>
-            )}
-          </button>
+          <div className={styles.notificationsWrapper} ref={notificationRef}>
+            <button
+              type="button"
+              className={styles.iconButton}
+              onClick={handleNotificationClick}
+              aria-label={`Notifications${hasNotifications ? `, ${liveNotificationCount} non lues` : ""}`}
+              title="Voir les notifications"
+              aria-expanded={isNotificationsOpen}
+            >
+              <Bell size={20} aria-hidden="true" />
+              {hasNotifications && (
+                <span className={styles.notificationCount} aria-hidden="true">
+                  {notificationBadge}
+                </span>
+              )}
+            </button>
+
+            {isNotificationsOpen ? (
+              <div className={styles.notificationsPanel} role="dialog" aria-label="Notifications">
+                <div className={styles.notificationsPanelHeader}>
+                  <div>
+                    <strong>Notifications</strong>
+                    <p>{hasNotifications ? `${liveNotificationCount} retour(s) a traiter` : "Aucun nouveau retour"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.notificationsPanelClose}
+                    onClick={() => setIsNotificationsOpen(false)}
+                    aria-label="Fermer les notifications"
+                  >
+                    Fermer
+                  </button>
+                </div>
+
+                <div className={styles.notificationsList}>
+                  <div className={styles.notificationFilters}>
+                    {([
+                      ["all", "Tout"],
+                      ["mission", "Missions"],
+                      ["quote", "Devis"],
+                      ["message", "Messages"],
+                      ["search", "Recherches"],
+                    ] as const).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={`${styles.notificationFilterButton} ${
+                          notificationFilter === value ? styles.notificationFilterButtonActive : ""
+                        }`}
+                        onClick={() => setNotificationFilter(value)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredNotificationItems.length > 0 ? (
+                    filteredNotificationItems.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        className={styles.notificationItem}
+                        onClick={() => handleNotificationItemClick(item)}
+                      >
+                        <div className={styles.notificationItemTopline}>
+                          <span className={styles.notificationKind}>
+                            {getNotificationKindLabel(item.kind)}
+                          </span>
+                          <span className={styles.notificationItemCount}>{item.count}</span>
+                        </div>
+                        <strong>{item.title}</strong>
+                        <p>{item.description}</p>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className={styles.notificationEmpty}>
+                      <strong>Rien d'immediat</strong>
+                      <p>Les nouveaux messages, reponses et alertes apparaitront ici.</p>
+                    </div>
+                  )}
+
+                  <div className={styles.notificationsFooter}>
+                    <button
+                      type="button"
+                      className={styles.notificationsFooterLink}
+                      onClick={() => {
+                        setIsNotificationsOpen(false);
+                        router.push(notificationsPageHref);
+                      }}
+                    >
+                      Voir toutes les notifications
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
         )}
 
         <button
