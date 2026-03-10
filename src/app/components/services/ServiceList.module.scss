@@ -1,0 +1,161 @@
+.platformSection {
+  padding: 3rem 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 45%),
+    var(--background, #fafafa);
+}
+
+.platformHeader {
+  max-width: 980px;
+  margin: 0 auto 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionIntro {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--color-text, #222);
+}
+
+.highlightText {
+  color: var(--color-primary, #d4af37);
+  font-weight: 700;
+}
+
+.userCategory {
+  color: var(--color-text, #222);
+}
+
+.CTAButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(135deg, #d4af37, #b99b2e);
+  color: #151515;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ctaIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.keyPoints {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto 1.5rem;
+  max-width: 980px;
+}
+
+.keyPoints--chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.keyPointChipWrapper {
+  margin: 0;
+}
+
+.keyPointChip {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.isActive {
+  border-color: var(--color-primary, #d4af37);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.serviceGrid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.flippable {
+  perspective: 1000px;
+  min-height: 240px;
+  cursor: pointer;
+  border-radius: 14px;
+}
+
+.cardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease;
+}
+
+.flipped .cardInner {
+  transform: rotateY(180deg);
+}
+
+.cardFront,
+.cardBack {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid var(--color-border, #e2e2e2);
+  background: #fff;
+  backface-visibility: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.cardFront {
+  padding: 1rem;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 0.75rem;
+}
+
+.serviceCardIconWrap {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(212, 175, 55, 0.14);
+}
+
+.goldenIcon {
+  width: 22px;
+  height: 22px;
+  color: var(--color-primary, #d4af37);
+}
+
+.serviceCardTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--color-text, #202020);
+}
+
+.serviceCardDesc {
+  margin: 0;
+  color: var(--color-text-secondary, #555);
+}
+
+.cardBack {
+  transform: rotateY(180deg);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.cardQuote {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--color-text, #222);
+}

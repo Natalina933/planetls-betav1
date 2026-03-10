@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useTheme } from "@/app/context/ThemeContext";
+import { useTheme } from "@/app/providers/ThemeProvider";
 import Navbar from "../Navbar/Navbar";
 import styles from "./Header.module.scss";
 

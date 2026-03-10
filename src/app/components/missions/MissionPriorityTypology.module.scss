@@ -1,0 +1,95 @@
+.wrapper {
+  display: grid;
+  gap: 1rem;
+}
+
+.block {
+  border: 1px solid var(--color-border, #e6e6e6);
+  border-radius: 14px;
+  background: var(--background-secondary, #fff);
+  padding: 1rem;
+}
+
+.title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--color-text, #1a1a1a);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  border: 1px solid var(--color-border, #d0d0d0);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text, #1a1a1a);
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+}
+
+.chipActive {
+  border-color: var(--color-primary, #d4af37);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.inputCol {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--color-border, #d0d0d0);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  background: #fff;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-error, #b3261e);
+}
+
+.addBtn {
+  border: none;
+  border-radius: 10px;
+  background: var(--color-primary, #d4af37);
+  color: #111;
+  font-weight: 700;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+}
+
+.chipRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.removeBtn {
+  border: none;
+  border-radius: 999px;
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 640px) {
+  .addRow {
+    grid-template-columns: 1fr;
+  }
+}

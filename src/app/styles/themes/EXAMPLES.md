@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // EXEMPLES D'UTILISATION DU SYSTÈME DE THÈMES
 // ============================================
 
@@ -20,7 +20,7 @@ const { theme, toggleTheme } = useTheme();
 }
 
 // ✅ APRÈS : Thèmes sophistiqués
-import { useTheme, THEMES, THEME_LABELS } from '@/app/context/ThemeContext';
+import { useTheme, THEMES, THEME_LABELS } from '@/app/providers/ThemeProvider';
 
 export function ImprovedThemeSelector() {
 const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
@@ -88,7 +88,7 @@ transition: all var(--transition-base);
 
 'use client';
 
-import { useTheme } from '@/app/context/ThemeContext';
+import { useTheme } from '@/app/providers/ThemeProvider';
 import styles from './ComponentExample.module.scss';
 
 export function AdvancedComponentExample() {
@@ -207,7 +207,7 @@ font-weight: 700;
       \*/
 
 // hooks/useThemeStyles.ts
-import { useTheme } from '@/app/context/ThemeContext';
+import { useTheme } from '@/app/providers/ThemeProvider';
 import { useMemo } from 'react';
 
 export function useThemeStyles() {

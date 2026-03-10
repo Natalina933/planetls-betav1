@@ -1,6 +1,10 @@
 // styles/main.scss
 // Point d'entrée principal pour tous les styles SCSS.
 
+// 0. Design System global tokens and layout helpers.
+@use '../../styles/globals.scss';
+
+
 // 1. Abstracts : Outils, variables, fonctions, mixins.
 // Ne produisent pas de CSS directement.
 @use 'abstracts/variables' as *; // Variables SCSS ($)
@@ -23,8 +27,7 @@
 @use 'base/animations'; // Si animations.scss contient des classes globales.
 
 // 4. Components : Styles pour les composants réutilisables.
-// Décommentez ou ajoutez des imports pour vos composants.
-// @use '../components/common/Buttons/CTAButton/CTAButton.module.scss';
+// Les primitives UI sont centralisees dans src/components/ui et src/styles.
 // @use '../components/Card/Card.scss';
 // @use '../components/MapWithList/MapWithList.module.scss'; // Attention aux modules
 

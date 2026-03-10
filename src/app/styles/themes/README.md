@@ -1,4 +1,4 @@
-# 🎨 Système de Thèmes - Documentation
+﻿# 🎨 Système de Thèmes - Documentation
 
 ## Vue d'ensemble
 
@@ -75,7 +75,7 @@ Tous les thèmes utilisent ces variables CSS standardisées :
 ### 1. Dans React (Changer de thème)
 
 ```typescript
-import { useTheme, THEMES, THEME_LABELS } from '@/app/context/ThemeContext';
+import { useTheme, THEMES, THEME_LABELS } from '@/app/providers/ThemeProvider';
 
 export function MyComponent() {
     const { theme, changeTheme, themes, labels } = useTheme();
@@ -163,7 +163,7 @@ Si aucun thème n'est sauvegardé et l'OS est en mode sombre, il applique "Mucha
 }
 ```
 
-2. Mettez à jour `ThemeContext.js` :
+2. Mettez à jour `src/app/providers/ThemeProvider.tsx` :
 
 ```javascript
 export const THEMES = {

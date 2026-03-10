@@ -8,9 +8,8 @@ import {
 import "./styles/main.scss";
 
 import Providers from "./context/Providers";
-import Header from "./components/layout/Header/Header";
+import AppChrome from "./components/layout/AppChrome/AppChrome";
 import { SearchPopupProvider } from "./context/SearchPopupContext";
-import MapPopup from "./components/layout/MapPopup/MapPopup";
 import { ThemeProvider } from "./providers/ThemeProvider";
 
 const inter = Inter({
@@ -77,8 +76,7 @@ export default function RootLayout({
         <Providers>
           <ThemeProvider>
             <SearchPopupProvider>
-              <Header />
-              <MapPopup />
+              <AppChrome />
               <main>{children}</main>
             </SearchPopupProvider>
           </ThemeProvider>

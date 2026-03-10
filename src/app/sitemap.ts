@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/owner",
     "/provider",
     "/parcours",
+    "/about",
+    "/contact",
     "/mission-urgente",
     "/planning",
     "/map-list",

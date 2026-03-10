@@ -3,8 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import styles from "./Navbar.module.scss";
-import { useSearchPopup } from "../../../context/SearchPopupContext";
-import { useTheme } from "../../../context/ThemeContext";
+import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useSession, signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
 
@@ -21,7 +20,6 @@ const WARNING_BEFORE_LOGOUT = 2 * 60 * 1000;
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { setSearchOpen } = useSearchPopup();
   const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -250,12 +248,12 @@ export default function Navbar() {
                   key={key}
                   className={`${styles.themeOption} ${theme === value ? styles.active : ""}`}
                   onClick={() => {
-                    changeTheme(value as string);
+                    changeTheme(value as Theme);
                     setThemeMenuOpen(false);
                   }}
-                  aria-label={`Selectionner theme ${labels[value as string]}`}
+                  aria-label={`Selectionner theme ${labels[value as Theme]}`}
                 >
-                  {labels[value as string]}
+                  {labels[value as Theme]}
                 </button>
               ))}
             </div>
@@ -276,11 +274,11 @@ export default function Navbar() {
           <li className={styles["nav-search"]}>
             <button
               onClick={() => {
-                setSearchOpen(true);
+                router.push("/map-list?filter=concierge");
                 closeMenu();
               }}
               className={`${styles.searchBtn} ${styles.navButton}`}
-              aria-label="Ouvrir la recherche"
+              aria-label="Ouvrir la recherche de profils"
             >
               <Icons.FaSearch size={18} /> Recherche
             </button>
@@ -290,11 +288,11 @@ export default function Navbar() {
             <li className={styles["auth-inscription"]}>
               <button
                 onClick={() => {
-                  setSearchOpen(true);
+                  router.push("/complete-registration");
                   closeMenu();
                 }}
                 className={`${styles.searchBtn} ${styles.navButton}`}
-                aria-label="Ouvrir la recherche pour inscription"
+                aria-label="Acceder a l'inscription"
               >
                 S&apos;inscrire
               </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 type PublicReview = {
@@ -218,8 +219,8 @@ export default function PublicConciergeProfilePage({
                 ? `${data.stats.average_rating.toFixed(1)} / 5 sur ${data.stats.reviews_count} avis`
                 : "Avis en cours de collecte"}
             </span>
-            <a
-              href="/dashboard/owner/concierges"
+            <Link
+              href="/login"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -233,10 +234,10 @@ export default function PublicConciergeProfilePage({
                 fontWeight: 700,
               }}
             >
-              Contacter ce concierge
-            </a>
-            <a
-              href="/dashboard/owner/messages"
+              Se connecter pour contacter
+            </Link>
+            <Link
+              href="/home#concierges-recommandes"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -251,8 +252,8 @@ export default function PublicConciergeProfilePage({
                 fontWeight: 700,
               }}
             >
-              Ouvrir ma messagerie
-            </a>
+              Retour aux profils
+            </Link>
           </div>
         </section>
 

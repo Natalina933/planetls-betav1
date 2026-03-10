@@ -23,8 +23,8 @@ export default function ThemeToggle() {
       </button>
 
       <button
-        aria-pressed={theme === "dark"}
-        onClick={() => setTheme("dark")}
+        aria-pressed={theme === "mucha-dark"}
+        onClick={() => setTheme("mucha-dark")}
         title="Mucha Nocturne"
       >
         <FaMoon />
