@@ -73,10 +73,10 @@ import {
 } from "./profileEditing";
 import {
   ConciergeProfileActiveTabContent,
-  ConciergeProfileShell,
   EditableProfileField,
   EditableProfileSection,
 } from "./profileTabSections";
+import { ConciergeProfileShell } from "./profileShellSections";
 import {
   CONCIERGE_TABS,
   ConciergeTabId,

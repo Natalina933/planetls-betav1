@@ -12,11 +12,13 @@ import {
 import { useSession } from "next-auth/react";
 import conciergeStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
 import {
-  ConciergeNotifications,
-  ConciergePageHeader,
   EditableProfileField,
   EditableProfileSection,
 } from "@/app/dashboard/concierge/profile/profileTabSections";
+import {
+  ConciergeNotifications,
+  ConciergePageHeader,
+} from "@/app/dashboard/concierge/profile/profileShellSections";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 
