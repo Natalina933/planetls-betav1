@@ -1,0 +1,67 @@
+# Mini Design System
+
+## Regles visuelles figees
+
+- Card `small`: largeur max 320px, usage map/suggestions/resultats compacts.
+- Card `large`: largeur max 520px, usage profils/resultats detailles.
+- Avatars: `sm` 32px, `md` 48px, `lg` 72px.
+- Loader: `sm` 20px, `md` 32px, `lg` 48px.
+- Espacements: utiliser uniquement `--ui-space-*`.
+- Layout page: `Container` pour la largeur, `Section` pour le rythme vertical.
+- Badges statuts: `Badge`.
+- Labels/categories: `Tag`.
+- Actions UI: `Button` ou `ButtonLink`.
+- Champs saisie: `Input`.
+- Recherche simple: `SearchBar`.
+
+## Variants autorises
+
+- `Button`: `primary | secondary | outline | ghost`
+- `Badge`: `neutral | success | warning | danger | info`
+- `Tag`: `default | category | status`
+- `Card`: `small | large`
+- `Loader`: `sm | md | lg`
+
+## Interdictions
+
+- Pas de nouvelle primitive dans `src/app/components/common/*`.
+- Pas de style inline pour boutons/cartes/badges/inputs/tags/avatars.
+- Pas de nouveaux variants locaux hors `src/components/ui/*`.
+
+## Mapping migration
+
+- `common/Cards/Card` -> `ui/Card`
+- `common/Badge` -> `ui/Badge`
+- `common/Avatar` -> `ui/Avatar`
+- `common/Inputs/Input` -> `ui/Input`
+- `common/Buttons/*` -> `ui/Button` ou `ui/ButtonLink`
+- `common/Loader/*` -> `ui/Loader`
+
+## Statut migration (frozen)
+
+- Etape 1: primitives `common/*` remplacees sur pages trafic prioritaire (`Home`, `Owner Concierges`, `MapWithList`).
+- Etape 2: styles inline retires pour primitives boutons/cartes/badges/inputs dans ces zones.
+- Etape 3: variants centralises dans `src/components/ui/*`.
+- Etape 4: anciens composants `src/app/components/common/*` supprimes (aucun import restant).
+- Etape 5: ce document est la reference figee des regles UI.
+
+## Import
+
+```ts
+import {
+  Button,
+  ButtonLink,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Badge,
+  Tag,
+  Avatar,
+  Container,
+  Section,
+  Input,
+  SearchBar,
+  Loader,
+} from "@/components/ui";
+```

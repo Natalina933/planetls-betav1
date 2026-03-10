@@ -2,13 +2,11 @@
 
 import React from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { Button, ButtonLink } from "@/components/ui";
 import CategoryCarousel from "./CategoryCarousel";
 import styles from "./HeroSection.module.scss";
 
 const HeroSection = () => {
-  const router = useRouter();
-
   const scrollToHowItWorks = () => {
     try {
       const target = document.getElementById("how-it-works");
@@ -55,26 +53,32 @@ const HeroSection = () => {
           </p>
 
           <div className={styles.buttonsRow}>
-            <button
-              className={`${styles.CTAButton} ${styles.urgent}`}
-              onClick={() => router.push("/mission-urgente")}
+            <ButtonLink
+              href="/mission-urgente"
+              variant="outline"
+              size="lg"
+              className={styles.heroButton}
             >
               Besoin d&apos;un check-in en urgence ?
-            </button>
+            </ButtonLink>
 
-            <button
-              className={`${styles.CTAButton} ${styles.primary}`}
-              onClick={() => router.push("/login")}
+            <ButtonLink
+              href="/login"
+              variant="primary"
+              size="lg"
+              className={styles.heroButton}
             >
               Creer mon compte
-            </button>
+            </ButtonLink>
 
-            <button
-              className={`${styles.CTAButton} ${styles.secondary}`}
+            <Button
+              variant="secondary"
+              size="lg"
+              className={styles.heroButton}
               onClick={scrollToHowItWorks}
             >
               Decouvrir comment ca marche
-            </button>
+            </Button>
           </div>
 
           <p className={styles.urgentHint}>Trouvez un concierge disponible en moins de 24h.</p>

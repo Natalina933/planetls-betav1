@@ -1,0 +1,42 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.neutral {
+  background: #efe8dc;
+  border-color: #e2d6c5;
+  color: #5f5042;
+}
+
+.success {
+  background: rgba(59, 125, 106, 0.14);
+  border-color: rgba(59, 125, 106, 0.35);
+  color: #245e4e;
+}
+
+.warning {
+  background: rgba(184, 135, 70, 0.16);
+  border-color: rgba(184, 135, 70, 0.36);
+  color: #7a5221;
+}
+
+.danger {
+  background: rgba(175, 63, 63, 0.14);
+  border-color: rgba(175, 63, 63, 0.34);
+  color: #7f2d2d;
+}
+
+.info {
+  background: rgba(71, 108, 160, 0.14);
+  border-color: rgba(71, 108, 160, 0.34);
+  color: #35507b;
+}

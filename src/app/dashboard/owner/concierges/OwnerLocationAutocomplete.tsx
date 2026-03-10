@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Button, Input } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 
 type OwnerLocationAutocompleteProps = {
@@ -35,7 +36,7 @@ export function OwnerLocationAutocomplete({
 
   return (
     <div className={styles.autocomplete} ref={containerRef}>
-      <input
+      <Input
         aria-label={ariaLabel}
         value={value}
         onChange={(event) => {
@@ -48,14 +49,17 @@ export function OwnerLocationAutocomplete({
         }}
         placeholder={placeholder}
         autoComplete="off"
+        className={styles.autocompleteInput}
       />
 
       {isOpen && suggestions.length > 0 ? (
         <div className={styles.autocompletePanel}>
           {suggestions.map((option) => (
-            <button
+            <Button
               key={option}
               type="button"
+              variant="ghost"
+              size="sm"
               className={styles.autocompleteOption}
               onMouseDown={(event) => {
                 event.preventDefault();
@@ -64,7 +68,7 @@ export function OwnerLocationAutocomplete({
               }}
             >
               {option}
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}

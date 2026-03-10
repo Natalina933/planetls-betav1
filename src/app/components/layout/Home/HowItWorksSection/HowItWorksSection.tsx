@@ -107,17 +107,11 @@ const StepCard = ({ step, index }: { step: Step; index: number }) => {
   const router = useRouter();
 
   return (
-    <motion.div
-      role="button"
-      tabIndex={0}
+    <motion.button
+      type="button"
       aria-label={step.title}
       className={styles.step}
       onClick={() => router.push(step.link)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          router.push(step.link);
-        }
-      }}
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -128,7 +122,7 @@ const StepCard = ({ step, index }: { step: Step; index: number }) => {
       </div>
       <h3>{step.title}</h3>
       <p>{step.description}</p>
-    </motion.div>
+    </motion.button>
   );
 };
 

@@ -1,0 +1,41 @@
+.wrapper {
+  display: grid;
+  gap: var(--ui-space-2);
+  width: 100%;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ui-color-text-muted);
+}
+
+.input {
+  width: 100%;
+  min-height: 44px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.92rem;
+  font-family: var(--ui-font-text);
+}
+
+.input::placeholder {
+  color: #9f9183;
+}
+
+.input:focus-visible {
+  outline: 2px solid rgba(184, 135, 70, 0.45);
+  outline-offset: 2px;
+}
+
+.error {
+  border-color: rgba(175, 63, 63, 0.45);
+}
+
+.errorText {
+  font-size: 0.78rem;
+  color: var(--ui-color-danger);
+}

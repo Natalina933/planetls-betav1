@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import { Button } from "@/components/ui";
 import styles from "./FirstVisit.module.scss";
 
 const FirstVisit = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const hasVisited = Cookies.get("hasVisited");
@@ -42,8 +41,12 @@ const FirstVisit = () => {
           relation depuis un parcours plus clair, plus rapide et plus actionnable.
         </p>
         <div className={styles.actions}>
-          <button onClick={() => router.push("/home")}>Decouvrir</button>
-          <button onClick={handleContactClick}>Nous contacter</button>
+          <Button onClick={() => setIsFirstVisit(false)} variant="primary">
+            Decouvrir
+          </Button>
+          <Button onClick={handleContactClick} variant="secondary">
+            Nous contacter
+          </Button>
         </div>
       </div>
     </div>

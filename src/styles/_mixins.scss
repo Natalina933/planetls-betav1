@@ -1,0 +1,23 @@
+@mixin ui-focus-ring {
+  outline: 2px solid rgba(184, 135, 70, 0.45);
+  outline-offset: 2px;
+}
+
+@mixin ui-card-shell {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+@mixin ui-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin ui-mobile {
+  @media (max-width: 768px) {
+    @content;
+  }
+}

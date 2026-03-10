@@ -1,10 +1,10 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import FilterSliders from "@/app/components/ui/FilterSliders";
+import { Button, ButtonLink, Input } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import { ConciergeAvatar } from "./ConciergeAvatar";
 import { ConciergeCard } from "./card/ConciergeCard";
@@ -395,8 +395,8 @@ export default function OwnerConciergesPageClient() {
   const filterControls = (
     <>
       <div className={styles.searchBar}>
-        <label className={`${styles.field} ${styles.searchField}`}>
-          <span>Région</span>
+        <div className={`${styles.field} ${styles.searchField}`}>
+          <span id="search-region-label">Région</span>
           <OwnerLocationAutocomplete
             ariaLabel="Région"
             value={filters.region}
@@ -404,10 +404,10 @@ export default function OwnerConciergesPageClient() {
             placeholder="Ile-de-France, PACA, Bretagne..."
             getSuggestions={getOwnerRegionSuggestions}
           />
-        </label>
+        </div>
 
-        <label className={`${styles.field} ${styles.searchField}`}>
-          <span>Ville ou code postal</span>
+        <div className={`${styles.field} ${styles.searchField}`}>
+          <span id="search-city-label">Ville ou code postal</span>
           <OwnerLocationAutocomplete
             ariaLabel="Ville ou code postal"
             value={filters.city}
@@ -415,7 +415,7 @@ export default function OwnerConciergesPageClient() {
             placeholder="Paris, 75015, Annecy..."
             getSuggestions={getOwnerCitySuggestions}
           />
-        </label>
+        </div>
 
         <label className={styles.field}>
           <span>Type de bien</span>
@@ -461,17 +461,18 @@ export default function OwnerConciergesPageClient() {
         </div>
 
         <div className={styles.searchActions}>
-          <button type="submit" className={styles.primaryBtn} disabled={loading}>
+          <Button type="submit" variant="primary" className={styles.primaryBtn} disabled={loading}>
             {loading ? "Recherche..." : "Rechercher"}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             className={styles.secondaryBtn}
             onClick={resetFilters}
             disabled={loading}
           >
             Réinitialiser
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -487,15 +488,17 @@ export default function OwnerConciergesPageClient() {
                 categoryOptions.map((categoryLabel) => {
                   const isSelected = filters.selectedCategories.includes(categoryLabel);
                   return (
-                    <button
+                    <Button
                       key={categoryLabel}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       aria-pressed={isSelected}
                       className={isSelected ? styles.serviceChipActive : styles.serviceChip}
                       onClick={() => toggleCategory(categoryLabel)}
                     >
                       {categoryLabel}
-                    </button>
+                    </Button>
                   );
                 })
               )}
@@ -521,8 +524,10 @@ export default function OwnerConciergesPageClient() {
 
                   return (
                     <section key={group.category} className={styles.serviceSection}>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         className={styles.serviceSectionHeader}
                         onClick={() => toggleServiceSection(group.category)}
                         aria-expanded={isOpen}
@@ -531,22 +536,24 @@ export default function OwnerConciergesPageClient() {
                         <span className={styles.serviceSectionMeta}>
                           {selectedCount}/{group.services.length} {isOpen ? "-" : "+"}
                         </span>
-                      </button>
+                      </Button>
 
                       {isOpen ? (
                         <div className={styles.serviceSectionBody}>
                           {group.services.map((serviceLabel) => {
                             const isSelected = filters.selectedServices.includes(serviceLabel);
                             return (
-                              <button
+                              <Button
                                 key={serviceLabel}
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 aria-pressed={isSelected}
                                 className={isSelected ? styles.serviceChipActive : styles.serviceChip}
                                 onClick={() => toggleService(serviceLabel)}
                               >
                                 {serviceLabel}
-                              </button>
+                              </Button>
                             );
                           })}
                         </div>
@@ -585,28 +592,33 @@ export default function OwnerConciergesPageClient() {
           </div>
 
           <div className={styles.mobileHeroActions}>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               className={styles.secondaryBtn}
               onClick={() => setMobileFiltersOpen(true)}
             >
               Ouvrir les filtres
-            </button>
+            </Button>
             <div className={styles.viewToggle} aria-label="Mode d'affichage">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 className={viewMode === "cards" ? styles.viewToggleActive : styles.viewToggleBtn}
                 onClick={() => setViewMode("cards")}
               >
                 Cartes
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 className={viewMode === "list" ? styles.viewToggleActive : styles.viewToggleBtn}
                 onClick={() => setViewMode("list")}
               >
                 Liste
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -655,43 +667,53 @@ export default function OwnerConciergesPageClient() {
                   Disponibles d&apos;abord, puis profils les mieux notes et les plus fiables.
                 </p>
                 <div className={styles.sortTabs} aria-label="Tri des concierges">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className={sortMode === "available" ? styles.sortTabActive : styles.sortTab}
                     onClick={() => setSortMode("available")}
                   >
                     Disponibles
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className={sortMode === "rating" ? styles.sortTabActive : styles.sortTab}
                     onClick={() => setSortMode("rating")}
                   >
                     Mieux notés
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className={sortMode === "pro" ? styles.sortTabActive : styles.sortTab}
                     onClick={() => setSortMode("pro")}
                   >
                     PRO
-                  </button>
+                  </Button>
                 </div>
                 <div className={styles.viewToggleDesktop} aria-label="Mode d'affichage">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className={viewMode === "cards" ? styles.viewToggleActive : styles.viewToggleBtn}
                     onClick={() => setViewMode("cards")}
                   >
                     Cartes
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className={viewMode === "list" ? styles.viewToggleActive : styles.viewToggleBtn}
                     onClick={() => setViewMode("list")}
                   >
                     Liste
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -709,12 +731,12 @@ export default function OwnerConciergesPageClient() {
                 </p>
                 {(filters.region.trim() || filters.city.trim()) && (
                   <div className={styles.emptyStateActions}>
-                    <button type="button" className={styles.primaryBtn} onClick={handleCreateAlert}>
+                    <Button type="button" variant="primary" className={styles.primaryBtn} onClick={handleCreateAlert}>
                       Créer une alerte pour cette zone
-                    </button>
-                    <Link href="/dashboard/owner/alertes" className={styles.secondaryBtn}>
+                    </Button>
+                    <ButtonLink href="/dashboard/owner/alertes" variant="secondary" className={styles.secondaryBtn}>
                       Voir mes alertes
-                    </Link>
+                    </ButtonLink>
                   </div>
                 )}
               </div>
@@ -871,15 +893,15 @@ export default function OwnerConciergesPageClient() {
                       </select>
                     </label>
 
-                    <label className={styles.field}>
+                    <div className={styles.field}>
                       <span>Code postal</span>
-                      <input
+                      <Input
                         value={requestForm.postalCode}
                         onChange={(event) => updateRequestForm("postalCode", event.target.value)}
                         placeholder="75015"
                         inputMode="numeric"
                       />
-                    </label>
+                    </div>
                   </div>
                 </div>
 
@@ -900,9 +922,9 @@ export default function OwnerConciergesPageClient() {
                       />
                     </label>
 
-                    <label className={styles.field}>
+                    <div className={styles.field}>
                       <span>Budget max</span>
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         inputMode="numeric"
@@ -911,7 +933,7 @@ export default function OwnerConciergesPageClient() {
                         placeholder="120"
                       />
                       <small className={styles.fieldHint}>En EUR par heure. Laissez vide si non défini.</small>
-                    </label>
+                    </div>
                   </div>
                 </div>
 
@@ -922,23 +944,23 @@ export default function OwnerConciergesPageClient() {
                       Donnez assez de contexte pour obtenir une réponse utile.
                     </p>
                   </div>
-                  <label className={styles.field}>
+                  <div className={styles.field}>
                     <span>Date souhaitée</span>
-                    <input
+                    <Input
                       type="datetime-local"
                       value={requestForm.desiredDate}
                       onChange={(event) => updateRequestForm("desiredDate", event.target.value)}
                     />
-                  </label>
+                  </div>
 
-                  <label className={styles.field}>
+                  <div className={styles.field}>
                     <span>Titre</span>
-                    <input
+                    <Input
                       value={requestForm.title}
                       onChange={(event) => updateRequestForm("title", event.target.value)}
                       placeholder="Ex: besoin de check-in ce week-end"
                     />
-                  </label>
+                  </div>
 
                   <label className={styles.field}>
                     <span>Description</span>
@@ -963,16 +985,17 @@ export default function OwnerConciergesPageClient() {
               </div>
 
               <div className={styles.actions}>
-                <button
+                <Button
                   type="submit"
+                  variant="primary"
                   className={styles.primaryBtn}
                   disabled={submittingRequest || selectedConciergeIds.length === 0}
                 >
                   {submittingRequest ? "Envoi..." : "Envoyer ma demande"}
-                </button>
-                <Link href="/dashboard/owner/conciergerie" className={styles.secondaryBtn}>
+                </Button>
+                <ButtonLink href="/dashboard/owner/conciergerie" variant="secondary" className={styles.secondaryBtn}>
                   Suivre mes demandes envoyées
-                </Link>
+                </ButtonLink>
               </div>
             </form>
           </aside>
@@ -987,9 +1010,9 @@ export default function OwnerConciergesPageClient() {
                 : "Ajoutez des profils pour envoyer une demande."}
             </span>
           </div>
-          <a href="#owner-request-panel" className={styles.primaryBtn}>
+          <ButtonLink href="#owner-request-panel" variant="primary" className={styles.primaryBtn}>
             Voir ma demande
-          </a>
+          </ButtonLink>
         </div>
 
         {mobileFiltersOpen ? (
@@ -1006,13 +1029,14 @@ export default function OwnerConciergesPageClient() {
                   <p className={styles.eyebrow}>Filtres</p>
                   <h2 className={styles.requestTitle}>Affinez votre recherche</h2>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
                   className={styles.secondaryBtn}
                   onClick={() => setMobileFiltersOpen(false)}
                 >
                   Fermer
-                </button>
+                </Button>
               </div>
               <form className={styles.mobileDrawerBody} onSubmit={handleSubmit}>
                 {filterControls}

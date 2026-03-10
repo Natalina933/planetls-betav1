@@ -1,0 +1,50 @@
+:root {
+  --ui-color-bg: #fffdf9;
+  --ui-color-surface: #ffffff;
+  --ui-color-surface-soft: #f8f3ea;
+  --ui-color-border: #e6dbc8;
+  --ui-color-text: #2f261f;
+  --ui-color-text-muted: #6f6257;
+  --ui-color-primary: #b88746;
+  --ui-color-primary-strong: #9a6f34;
+  --ui-color-accent: #3b7d6a;
+  --ui-color-danger: #af3f3f;
+
+  --ui-font-title: var(--font-title, "Montserrat", "Segoe UI", sans-serif);
+  --ui-font-text: var(--font-text, "Open Sans", "Segoe UI", sans-serif);
+
+  --ui-space-1: 0.25rem;
+  --ui-space-2: 0.5rem;
+  --ui-space-3: 0.75rem;
+  --ui-space-4: 1rem;
+  --ui-space-5: 1.5rem;
+  --ui-space-6: 2rem;
+  --ui-space-7: 3rem;
+
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 12px;
+  --ui-radius-lg: 18px;
+  --ui-radius-pill: 999px;
+
+  --ui-shadow-sm: 0 8px 24px rgba(63, 43, 22, 0.08);
+  --ui-shadow-md: 0 16px 36px rgba(63, 43, 22, 0.12);
+
+  --ui-card-small-max: 320px;
+  --ui-card-large-max: 520px;
+  --ui-avatar-sm: 32px;
+  --ui-avatar-md: 48px;
+  --ui-avatar-lg: 72px;
+}
+
+[data-theme="dark"] {
+  --ui-color-bg: #18120f;
+  --ui-color-surface: #231b16;
+  --ui-color-surface-soft: #2d241f;
+  --ui-color-border: #4a3d32;
+  --ui-color-text: #f4ece3;
+  --ui-color-text-muted: #c7b9ab;
+  --ui-color-primary: #d3a35d;
+  --ui-color-primary-strong: #be8c43;
+  --ui-color-accent: #5db79d;
+  --ui-color-danger: #cf6868;
+}

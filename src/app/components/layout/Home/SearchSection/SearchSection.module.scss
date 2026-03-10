@@ -1,21 +1,15 @@
-// src/app/components/layout/Home/MapWithSearch/SearchSection.module.scss
+@use "src/app/styles/abstracts/index" as *;
 
-@use "src/app/styles/abstracts/index" as *; // 
-
-/* Styles pour la section de recherche */
 .searchSection {
   max-width: 980px;
-  margin: 8rem auto 0 auto;
-  // Bordure avec la variable CSS définie précédemment dans :root
+  margin: 8rem auto 0;
   border: 1px solid var(--color-border-subtle-accent);
   border-radius: var(--radius);
   padding: 1.5rem;
   text-align: center;
-  // Ombre plus grande et plus douce avec un halo clair
   box-shadow: 0 12px 40px rgba(184, 139, 74, 0.25), 0 0 0 10px #fffbe6;
 
   @include mq(sm) {
-    // Mixin pour les media queries
     padding: 1.8rem;
     margin-top: 6rem;
   }
@@ -25,7 +19,6 @@
     font-size: 1.8rem;
     color: var(--color-accent-dark);
     margin-bottom: 1.5rem;
-    position: relative;
 
     &::after {
       content: "";
@@ -41,94 +34,29 @@
       font-size: 1.5rem;
     }
   }
+}
 
-  .searchInputGroup {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    max-width: 600px;
-    margin: 0 auto 1.5rem auto;
-    background-color: #fff;
-    border-radius: var(--radius);
-    // Bordure légèrement plus prononcée pour l'input group
-    border: 1px solid var(--color-border);
-    padding: 10px 15px; // Légèrement plus de padding
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); // Ombre plus douce et plus profonde
+.searchInputGroup {
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
+  background-color: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  padding: 10px 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
 
-    @include mq(sm) {
-      flex-wrap: wrap;
-      padding: 8px 12px;
-    }
-  }
+.searchBar {
+  width: 100%;
+}
 
-  .searchIcon {
-    color: var(--color-text-light);
-    font-size: 1.3em; // Légèrement plus grande
+.searchGuidance {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin-top: 1.2rem;
+  line-height: 1.5;
 
-    @include mq(sm) {
-      font-size: 1.1em;
-    }
-  }
-
-  .locationInput {
-    flex-grow: 1;
-    border: none;
-    outline: none;
-    padding: 8px 0;
-    font-size: 1.1rem; // Légèrement plus grande
-    color: var(--color-text);
-
-    @include mq(sm) {
-      flex-basis: 100%;
-      padding: 8px;
-      text-align: center;
-    }
-
-    &::placeholder {
-      color: var(--color-text-light);
-      opacity: 0.8; // Plus visible
-    }
-  }
-
-  .searchButton {
-    background-color: var(--color-accent);
-    color: var(--button-primary-text);
-    padding: 12px 25px; // Plus de padding
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 1.1rem; // Légèrement plus grande
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease,
-      box-shadow 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); // Ajout d'ombre par défaut au bouton
-
-    @include mq(sm) {
-      width: 100%;
-      padding: 12px;
-    }
-
-    &:hover {
-      background-color: var(--color-accent-hover); // Utiliser hover variable
-      transform: translateY(-2px); // Effet de survol plus prononcé
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); // Ombre plus prononcée au survol
-    }
-
-    &:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); // Ombre réduite au clic
-    }
-  }
-
-  .searchGuidance {
-    font-size: 1rem; // Légèrement plus grande
-    color: var(--color-text-light);
-    margin-top: 1.2rem; // Plus d'espace
-    line-height: 1.5; // Meilleure lisibilité
-
-    @include mq(sm) {
-      font-size: 0.9rem;
-    }
+  @include mq(sm) {
+    font-size: 0.9rem;
   }
 }

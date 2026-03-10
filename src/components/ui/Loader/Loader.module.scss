@@ -1,0 +1,38 @@
+.loaderWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+}
+
+.spinner {
+  border-radius: 50%;
+  border: 3px solid rgba(47, 38, 31, 0.14);
+  border-top-color: var(--ui-color-primary);
+  animation: spin 0.9s linear infinite;
+}
+
+.sm {
+  width: 20px;
+  height: 20px;
+}
+
+.md {
+  width: 32px;
+  height: 32px;
+}
+
+.lg {
+  width: 48px;
+  height: 48px;
+}
+
+.loadingText {
+  font-size: 0.9rem;
+  color: var(--ui-color-text-muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

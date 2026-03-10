@@ -1,0 +1,27 @@
+.section {
+  width: 100%;
+  display: grid;
+  gap: var(--ui-space-4);
+}
+
+.compact {
+  padding-block: var(--ui-space-4);
+}
+
+.default {
+  padding-block: var(--ui-space-6);
+}
+
+.spacious {
+  padding-block: var(--ui-space-7);
+}
+
+.toneDefault {
+}
+
+.toneSoft {
+  background: var(--ui-color-surface-soft);
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid var(--ui-color-border);
+  padding-inline: var(--ui-space-4);
+}

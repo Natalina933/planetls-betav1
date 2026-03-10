@@ -1,32 +1,27 @@
-"use client"; // conserve si c'est un composant client
+"use client";
 
-import dynamic from 'next/dynamic';
-import styles from './SearchSection.module.scss';
-
-// Lazy-load l'icône, pas besoin de SSR ici (false)
-const FaSearchLocation = dynamic(() => import('react-icons/fa').then(mod => mod.FaSearchLocation), { ssr: false });
+import { SearchBar } from "@/components/ui";
+import styles from "./SearchSection.module.scss";
 
 export default function SearchSection({ location, setLocation, handleSearch }) {
   return (
     <section className={styles.searchSection}>
-      <h2>Recherchez un professionnel dans votre région</h2>
+      <h2>Recherchez un professionnel dans votre region</h2>
       <div className={styles.searchInputGroup}>
-        <FaSearchLocation className={styles.searchIcon} aria-hidden="true" />
-        <input
-          id="location-input"
-          type="text"
+        <SearchBar
+          className={styles.searchBar}
+          defaultValue={location}
           placeholder="Saisir une ville, code postal..."
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className={styles.locationInput}
-          aria-label="Saisir une ville ou un code postal"
+          buttonLabel="Rechercher"
+          onSearch={handleSearch}
+          inputProps={{
+            id: "location-input",
+            onChange: (event) => setLocation(event.target.value),
+          }}
         />
-        <button onClick={handleSearch} className={styles.searchButton} type="button">
-          Rechercher
-        </button>
       </div>
       <p className={styles.searchGuidance}>
-        Entrez votre emplacement pour trouver les professionnels disponibles près de chez vous.
+        Entrez votre emplacement pour trouver les professionnels disponibles pres de chez vous.
       </p>
     </section>
   );

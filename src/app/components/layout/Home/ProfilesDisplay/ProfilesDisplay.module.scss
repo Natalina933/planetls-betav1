@@ -1,312 +1,136 @@
 @use "sass:color";
-@use "sass:math";
-@use "../../../../styles/abstracts/mixins" as *;
-@use "../../../../styles/abstracts/functions" as *;
 @use "../../../../styles/abstracts/variables" as *;
 
 .profilesDisplay {
-  background: linear-gradient(
-    135deg,
-    $mucha-paper 0%,
-    color.scale($cream, $lightness: 20%) 100%
-  );
+  background: linear-gradient(135deg, $mucha-paper 0%, color.scale($cream, $lightness: 20%) 100%);
   font-family: $font-elegant;
   padding: $spacing-lg;
   border: 2px solid $gold;
   border-radius: $radius-2xl;
   box-shadow: 0 8px 24px rgba($gold-dark, 0.15);
   color: $mucha-ink;
+}
 
-  .profileList {
-    list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: $spacing-lg;
-    padding: 0;
-    margin: 0;
-  }
+.profileList {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+  padding: 0;
+  margin: 0;
+}
 
-  .profileItem {
-    background: $gold-soft;
-    border: 1px solid $gold-light;
-    border-radius: $radius-lg;
-    padding: $spacing-md;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: $transition;
+.profileItem {
+  display: block;
+}
 
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 28px rgba($gold-dark, 0.2);
-    }
-  }
+.profileCard {
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+}
 
-  .profileAvatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid $primary-color-sass;
-    margin-bottom: $spacing-sm;
-  }
+.cardHeader {
+  align-items: center;
+}
 
-  .profileDetails {
-    h4 {
-      font-family: $font-title;
-      font-size: 1.2rem;
-      font-weight: $font-weight-bold;
-      color: $gold;
-      margin-bottom: $spacing-xs;
-      text-shadow: 0 0 4px rgba($gold, 0.25);
-    }
-
-    .categoryLabel {
-      font-size: 0.9rem;
-      font-weight: $font-weight-normal;
-      color: $color-text-light;
-    }
-  }
-
-  .categoryDescription {
-    font-family: $font-text;
-    font-size: 0.9rem;
-    color: $text-light;
-    margin-bottom: $spacing-sm;
-  }
-
-  .services {
-    margin-bottom: $spacing-sm;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: $spacing-xs;
-
-    .serviceBadge {
-      background: $primary-light-color-sass;
-      color: $mucha-ink;
-      font-size: 0.8rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: $radius-pill;
-      font-weight: 600;
-      border: 1px solid $primary-color-sass;
-    }
-
-    .more {
-      background: $gold-dark;
-      color: white;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: $radius-pill;
-    }
-
-    .serviceNone {
-      font-style: italic;
-      color: $text-light;
-    }
-  }
-
-  .location {
-    font-size: 0.9rem;
-    color: $text-dark;
-    margin: $spacing-xs 0;
-  }
-
-  .experience {
-    font-size: 0.85rem;
-    color: $color-text-light;
-    margin-bottom: $spacing-sm;
-  }
-
-  .status {
-    margin-bottom: $spacing-md;
-
-    .available {
-      color: green;
-      font-weight: 600;
-    }
-
-    .unavailable {
-      color: red;
-      font-weight: 600;
-    }
-  }
-
-  .actions {
-    display: flex;
-    gap: $spacing-sm;
-    justify-content: center;
-
-    .profileContactBtn,
-    .profileMoreBtn {
-      background: $primary-color-sass;
-      color: white;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: $radius-pill;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: $transition;
-
-      &:hover {
-        background: $primary-dark-color-sass;
-      }
-    }
-
-    .profileMoreBtn {
-      background: $gold-accent;
-      color: $mucha-ink;
-
-      &:hover {
-        background: $gold-dark;
-        color: white;
-      }
-    }
-  }
-
-  .profileContactBtn {
-    background: linear-gradient(90deg, $gold-alt, $gold-accent);
-    border: none;
-    border-radius: $radius-pill;
-    padding: 0.6rem 1.4rem;
-    font-size: 0.95rem;
+.profileDetails {
+  h4 {
+    font-family: $font-title;
+    font-size: 1.2rem;
     font-weight: $font-weight-bold;
-    color: $mucha-ink;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    box-shadow: 0 3px 8px rgba($gold-dark, 0.2);
-    transition: $transition;
-
-    &:hover {
-      background: linear-gradient(90deg, $gold-accent, $gold-alt);
-      box-shadow: 0 5px 12px rgba($gold-dark, 0.3);
-      transform: translateY(-2px);
-    }
-  }
-
-  .noResultAlert {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.9rem 2rem;
-    font-style: italic;
-    color: color.scale($gold-dark, $lightness: -10%);
-    border: 1px solid $gold-dark;
-    border-radius: $radius-lg;
-    background-color: $gold-soft;
-    font-weight: $font-weight-bold;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    transition: $transition;
-
-    svg {
-      margin-left: 0.5rem;
-      font-size: 1.5rem;
-      color: $gold;
-      filter: drop-shadow(0 0 2px rgba($gold, 0.6));
-      transition: color 0.3s ease;
-    }
-
-    &:hover {
-      background-color: color.scale($gold-soft, $lightness: -10%);
-      color: $gold-dark;
-
-      svg {
-        color: $gold-dark;
-      }
-    }
-  }
-
-  .confirmationMessage {
-    font-family: $font-text;
-    font-size: 0.95rem;
-    color: $primary-dark-color-sass;
-    font-weight: 600;
-    text-align: center;
-  }
-
-  // Styles par type (codes couleurs inspirés 1900)
-  .proprietaire {
-    border-top: 3px solid $gold;
-  }
-
-  .concierge {
-    border-top: 3px solid $gold-accent;
-  }
-
-  .artisan {
-    border-top: 3px solid $gold-light;
+    color: $gold;
   }
 }
+
+.categoryLabel {
+  font-size: 0.9rem;
+  font-weight: $font-weight-normal;
+  color: $color-text-light;
+}
+
+.categoryDescription {
+  font-family: $font-text;
+  font-size: 0.9rem;
+  color: $text-light;
+}
+
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.serviceTag {
+  font-size: 0.8rem;
+}
+
+.more {
+  background: $gold-dark;
+  color: #fff;
+}
+
+.serviceNone {
+  font-style: italic;
+  color: $text-light;
+}
+
+.location {
+  font-size: 0.9rem;
+  color: $text-dark;
+}
+
+.experience {
+  font-size: 0.85rem;
+  color: $color-text-light;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: center;
+}
+
+.noResultAlert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 2rem;
+  font-style: italic;
+  color: color.scale($gold-dark, $lightness: -10%);
+  border: 1px solid $gold-dark;
+  border-radius: $radius-lg;
+  background-color: $gold-soft;
+  font-weight: $font-weight-bold;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.proprietaire {
+  border-top: 3px solid $gold;
+}
+
+.concierge {
+  border-top: 3px solid $gold-accent;
+}
+
+.artisan {
+  border-top: 3px solid $gold-light;
+}
+
 @media (max-width: 600px) {
   .profilesDisplay {
     padding: $spacing-md;
+  }
 
-    .profileList {
-      display: flex;
-      flex-direction: column;
-      gap: $spacing-md;
-    }
+  .profileList {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
 
-    .profileItem {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    .profileAvatar {
-      width: 80px;
-      height: 80px;
-      margin-bottom: $spacing-sm;
-    }
-
-    .profileDetails {
-      h4 {
-        font-size: 1rem;
-      }
-
-      .categoryLabel {
-        font-size: 0.85rem;
-      }
-    }
-
-    .services {
-      flex-direction: column;
-      align-items: center;
-      gap: $spacing-xs;
-    }
-
-    .location,
-    .experience,
-    .status {
-      font-size: 0.85rem;
-      text-align: center;
-    }
-
-    .actions {
-      flex-direction: column;
-      gap: $spacing-xs;
-      width: 100%;
-
-      .profileContactBtn,
-      .profileMoreBtn {
-        width: 100%;
-        font-size: 0.85rem;
-        padding: 0.5rem 1rem;
-      }
-    }
-
-    .noResultAlert {
-      flex-direction: column;
-      padding: 0.8rem 1.2rem;
-      font-size: 0.85rem;
-
-      svg {
-        margin-top: 0.5rem;
-        margin-left: 0;
-      }
-    }
+  .actions {
+    flex-direction: column;
+    width: 100%;
   }
 }

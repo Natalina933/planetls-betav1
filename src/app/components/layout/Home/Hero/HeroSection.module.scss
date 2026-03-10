@@ -74,39 +74,9 @@
   margin-top: 0.5rem;
 }
 
-.CTAButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.heroButton {
   min-height: 48px;
-  padding: 0.85rem 1.3rem;
-  border-radius: 999px;
   font-size: 0.98rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease,
-    color 180ms ease;
-}
-
-.primary {
-  border: none;
-  background: linear-gradient(135deg, #b88b4a, #d4af37);
-  color: #fff;
-  box-shadow: 0 16px 34px rgba(31, 20, 8, 0.28);
-}
-
-.secondary {
-  border: 1px solid rgba(255, 233, 193, 0.44);
-  background: rgba(255, 249, 238, 0.08);
-  backdrop-filter: blur(10px);
-  color: #f7e8c1;
-}
-
-.CTAButton:hover {
-  transform: translateY(-2px);
 }
 
 .carouselWrapper {
@@ -155,7 +125,7 @@
     padding: 4rem 1rem 2.5rem;
   }
 
-  .CTAButton {
+  .heroButton {
     width: 100%;
   }
 

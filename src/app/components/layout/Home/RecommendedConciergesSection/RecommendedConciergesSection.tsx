@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { Badge, ButtonLink, Card, CardBody, CardFooter, CardHeader, Tag } from "@/components/ui";
 import styles from "./RecommendedConciergesSection.module.scss";
 
 type RecommendedConcierge = {
@@ -40,7 +40,7 @@ export default function RecommendedConciergesSection() {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger les concierges recommandés.");
+          throw new Error(payload?.error || "Impossible de charger les concierges recommandes.");
         }
 
         if (!cancelled) {
@@ -65,12 +65,12 @@ export default function RecommendedConciergesSection() {
   }, []);
 
   return (
-    <section className={styles.section}>
+    <section id="concierges-recommandes" className={styles.section}>
       <div className={styles.header}>
-        <span className={styles.eyebrow}>Sélection premium</span>
-        <h2>Concierges recommandés</h2>
+        <span className={styles.eyebrow}>Selection premium</span>
+        <h2>Concierges recommandes</h2>
         <p>
-          Une première vitrine de profils visibles publiquement, notés par leurs clients et prêts
+          Une premiere vitrine de profils visibles publiquement, notes par leurs clients et prets
           pour la mise en relation.
         </p>
       </div>
@@ -79,70 +79,68 @@ export default function RecommendedConciergesSection() {
 
       {!loading && items.length === 0 ? (
         <p className={styles.info}>
-          Les recommandations apparaîtront ici dès que davantage de profils concierges publics
-          seront complétés.
+          Les recommandations apparaitront ici des que davantage de profils concierges publics
+          seront completes.
         </p>
       ) : null}
 
       <div className={styles.grid}>
         {items.map((item) => (
-          <article key={item.id} className={styles.card}>
-            <div className={styles.cardHead}>
+          <Card key={item.id} variant="large" className={styles.card} interactive>
+            <CardHeader className={styles.cardHead}>
               <div>
                 <h3>{item.display_name}</h3>
                 <p>{item.city || item.service_area || "France"}</p>
               </div>
-              <span className={item.is_pro ? styles.proBadge : styles.standardBadge}>
-                {item.is_pro ? "PRO" : "Standard"}
-              </span>
-            </div>
+              <Badge variant={item.is_pro ? "warning" : "neutral"}>{item.is_pro ? "PRO" : "Standard"}</Badge>
+            </CardHeader>
 
-            <div className={styles.meta}>
-              <span>
-                {typeof item.average_rating === "number"
-                  ? `${item.average_rating.toFixed(1)} / 5`
-                  : "Sans avis"}
-              </span>
-              <span>{item.reviews_count} avis</span>
-              <span>
-                {typeof item.years_experience === "number"
-                  ? `${item.years_experience} an(s)`
-                  : "Expérience non renseignée"}
-              </span>
-            </div>
+            <CardBody className={styles.body}>
+              <div className={styles.meta}>
+                <span>
+                  {typeof item.average_rating === "number"
+                    ? `${item.average_rating.toFixed(1)} / 5`
+                    : "Sans avis"}
+                </span>
+                <span>{item.reviews_count} avis</span>
+                <span>
+                  {typeof item.years_experience === "number"
+                    ? `${item.years_experience} an(s)`
+                    : "Experience non renseignee"}
+                </span>
+              </div>
 
-            <div className={styles.pricing}>
-              <span>{formatMoney(item.hourly_rate, "/ h")}</span>
-              <span>{formatMoney(item.monthly_rate, "/ mois")}</span>
-            </div>
+              <div className={styles.pricing}>
+                <span>{formatMoney(item.hourly_rate, "/ h")}</span>
+                <span>{formatMoney(item.monthly_rate, "/ mois")}</span>
+              </div>
 
-            <div className={styles.tags}>
-              {item.services.length > 0 ? (
-                item.services.slice(0, 4).map((service) => (
-                  <span key={`${item.id}-${service}`} className={styles.tag}>
-                    {service}
-                  </span>
-                ))
-              ) : (
-                <span className={styles.tagMuted}>Services non renseignés</span>
-              )}
-            </div>
+              <div className={styles.tags}>
+                {item.services.length > 0 ? (
+                  item.services.slice(0, 4).map((service) => (
+                    <Tag key={`${item.id}-${service}`} tone="category">
+                      {service}
+                    </Tag>
+                  ))
+                ) : (
+                  <Tag className={styles.tagMuted}>Services non renseignes</Tag>
+                )}
+              </div>
 
-            {item.latest_review_comment ? (
-              <blockquote className={styles.quote}>
-                “{item.latest_review_comment}”
-              </blockquote>
-            ) : null}
+              {item.latest_review_comment ? (
+                <blockquote className={styles.quote}>"{item.latest_review_comment}"</blockquote>
+              ) : null}
+            </CardBody>
 
-            <div className={styles.actions}>
-              <Link href={`/concierges/${item.id}`} className={styles.primaryLink}>
+            <CardFooter className={styles.actions}>
+              <ButtonLink href={`/concierges/${item.id}`} variant="primary" size="sm">
                 Voir le profil
-              </Link>
-              <Link href="/dashboard/owner/concierges" className={styles.secondaryLink}>
+              </ButtonLink>
+              <ButtonLink href="/dashboard/owner/concierges" variant="secondary" size="sm">
                 Trouver un concierge
-              </Link>
-            </div>
-          </article>
+              </ButtonLink>
+            </CardFooter>
+          </Card>
         ))}
       </div>
     </section>

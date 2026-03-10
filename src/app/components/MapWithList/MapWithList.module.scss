@@ -4,7 +4,8 @@
 @use "../../styles/abstracts/variables" as *;
 @use "../../styles/abstracts/mixins" as *;
 
-.mapListContainer {
+.mapListContainer,
+.container {
     display: flex;
     flex-direction: column; // Par défaut, empile les éléments pour les petits écrans
     max-width: 1400px; // Augmente la largeur maximale du conteneur
@@ -31,7 +32,8 @@
     }
 }
 
-.mapContainer {
+.mapContainer,
+.map {
     flex: 2; // La carte prendra 2 parts de l'espace disponible
     min-height: 400px; // Hauteur minimale pour la carte
     background-color: var(--color-bg-light); // Couleur de fond pour le placeholder
@@ -44,7 +46,13 @@
     }
 }
 
-.profilesListColumn {
+.mapCanvas {
+    width: 100%;
+    height: 100%;
+}
+
+.profilesListColumn,
+.list {
     flex: 1; // La liste des profils prendra 1 part de l'espace disponible
     // Pas besoin de styles supplémentaires ici, car .profilesDisplay gère déjà l'apparence.
     // Cependant, on peut ajuster le padding ou la largeur max si besoin

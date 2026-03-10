@@ -1,0 +1,25 @@
+.searchBar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ui-space-3);
+  align-items: end;
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+}
+
+.button {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .searchBar {
+    grid-template-columns: 1fr;
+  }
+
+  .button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,28 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid var(--ui-color-border);
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: var(--ui-color-text-muted);
+  background: var(--ui-color-surface-soft);
+}
+
+.default {
+  background: var(--ui-color-surface-soft);
+}
+
+.category {
+  background: rgba(184, 135, 70, 0.12);
+  border-color: rgba(184, 135, 70, 0.28);
+  color: #6e4c24;
+}
+
+.status {
+  background: rgba(59, 125, 106, 0.13);
+  border-color: rgba(59, 125, 106, 0.3);
+  color: #2e6354;
+}

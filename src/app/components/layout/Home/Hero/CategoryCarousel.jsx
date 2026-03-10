@@ -1,18 +1,9 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import React, { useEffect, useRef, useState } from 'react';
-import styles from './CategoryCarousel.module.scss';
-
-const categoryFilter = {
-  proprietaire: "#b85c48",
-  concierge: "#c6a66b",
-  artisan: "#72825b",
-  commercant: "#72825b",
-  photographe: "#5c89ff",
-  jardinier: "#82a27c",
-  reseaux: "#b85cff",
-};
+import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
+import { Tag } from "@/components/ui";
+import styles from "./CategoryCarousel.module.scss";
 
 export default function CategoryCarousel() {
   const [categories, setCategories] = useState([]);
@@ -50,27 +41,17 @@ export default function CategoryCarousel() {
         {categories.map((category, index) => (
           <div
             key={category.key}
-            className={`${styles.slide} ${styles[category.key] || ''}`}
-            style={{
-              display: index === active ? 'flex' : 'none',
-              "--color-filter": categoryFilter[category.key] || "var(--color-accent)",
-            }}
+            className={`${styles.slide} ${styles[category.key] || ""} ${index === active ? styles.isActive : ""}`}
             aria-hidden={index !== active}
           >
             <div className={styles.imageWrapper}>
-              <Image
-                src={category.image}
-                alt={category.label}
-                className={styles.image}
-                width={640}
-                height={420}
-              />
+              <Image src={category.image} alt={category.label} className={styles.image} width={640} height={420} />
               <div className={styles.legend}>
                 <span>{category.description}</span>
               </div>
-              <div className={styles.badge} style={{ backgroundColor: categoryFilter[category.key] }}>
+              <Tag tone="category" className={styles.badge}>
                 {category.label}
-              </div>
+              </Tag>
             </div>
           </div>
         ))}
@@ -80,7 +61,7 @@ export default function CategoryCarousel() {
         {categories.map((_, index) => (
           <button
             key={index}
-            className={styles.dot + (active === index ? ' ' + styles.active : '')}
+            className={styles.dot + (active === index ? " " + styles.active : "")}
             onClick={() => goTo(index)}
             aria-label={`Aller a la slide ${index + 1}`}
             aria-current={active === index ? "true" : undefined}

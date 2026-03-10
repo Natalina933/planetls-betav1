@@ -9,8 +9,9 @@ import React, {
   JSX,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaTimes, FaSearch } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
+import { SearchBar } from "@/components/ui";
 
 import iconMap from "../../../../lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
@@ -171,10 +172,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   }, []);
 
   const handleSearch = useCallback(
-    (e?: React.FormEvent) => {
-      e?.preventDefault();
-
-      const trimmedLocation = location.trim();
+    (query?: string) => {
+      const trimmedLocation = (query ?? location).trim();
 
       if (!trimmedLocation) {
         toast.warn("Veuillez renseigner une localisation.", {
@@ -189,6 +188,10 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           position: "top-center",
         });
         return;
+      }
+
+      if (trimmedLocation !== location) {
+        setLocation(trimmedLocation);
       }
 
       setShowExperiencePopup(true);
@@ -352,28 +355,21 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                 </div>
               )}
 
-              <form onSubmit={handleSearch} className={styles.searchBar} role="search">
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  placeholder="Où recherchez-vous ?"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  required
-                  aria-label="Localisation de recherche"
-                  autoComplete="off"
-                  spellCheck="false"
-                />
-
-                <button
-                  type="submit"
-                  className={styles.searchButton}
-                  aria-label="Lancer la recherche"
-                  disabled={!location.trim() || !selectedCategory}
-                >
-                  <FaSearch />
-                </button>
-              </form>
+              <SearchBar
+                className={styles.searchBar}
+                defaultValue={location}
+                placeholder="Ou recherchez-vous ?"
+                buttonLabel="Rechercher"
+                inputRef={searchInputRef}
+                onSearch={handleSearch}
+                inputProps={{
+                  type: "search",
+                  required: true,
+                  autoComplete: "off",
+                  spellCheck: "false",
+                  onChange: (event) => setLocation(event.target.value),
+                }}
+              />
             </section>
           </div>
         </div>
@@ -415,3 +411,5 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     </>
   );
 }
+
+
