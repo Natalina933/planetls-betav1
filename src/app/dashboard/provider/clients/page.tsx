@@ -1,11 +1,11 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
 import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import styles from "../ProviderCrudPage.module.scss";
 
 type ProviderClient = {
@@ -344,60 +344,99 @@ function ProviderClientsContent() {
                 title={editingId ? "Modifier un client" : "Ajouter un client"}
               />
               {editingId ? (
-                <button type="button" className={styles.secondaryButton} onClick={resetForm}>
+                <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={resetForm}>
                   Annuler
-                </button>
+                </Button>
               ) : null}
             </div>
 
             <form className={styles.formGrid} onSubmit={handleSubmit}>
               <label>
                 <span>Nom du client</span>
-                <input value={form.client_name} onChange={(event) => updateField("client_name", event.target.value)} placeholder="Nom complet" />
+                <Input
+                  bare
+                  className={styles.fieldInput}
+                  value={form.client_name}
+                  onChange={(event) => updateField("client_name", event.target.value)}
+                  placeholder="Nom complet"
+                />
               </label>
               <label>
                 <span>Société</span>
-                <input value={form.company_name} onChange={(event) => updateField("company_name", event.target.value)} placeholder="Optionnel" />
+                <Input
+                  bare
+                  className={styles.fieldInput}
+                  value={form.company_name}
+                  onChange={(event) => updateField("company_name", event.target.value)}
+                  placeholder="Optionnel"
+                />
               </label>
               <label>
                 <span>Email</span>
-                <input value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="client@exemple.fr" />
+                <Input
+                  bare
+                  className={styles.fieldInput}
+                  value={form.email}
+                  onChange={(event) => updateField("email", event.target.value)}
+                  placeholder="client@exemple.fr"
+                />
               </label>
               <label>
                 <span>Téléphone</span>
-                <input value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="06..." />
+                <Input
+                  bare
+                  className={styles.fieldInput}
+                  value={form.phone}
+                  onChange={(event) => updateField("phone", event.target.value)}
+                  placeholder="06..."
+                />
               </label>
               <label>
                 <span>Ville</span>
-                <input value={form.city} onChange={(event) => updateField("city", event.target.value)} placeholder="Paris" />
+                <Input
+                  bare
+                  className={styles.fieldInput}
+                  value={form.city}
+                  onChange={(event) => updateField("city", event.target.value)}
+                  placeholder="Paris"
+                />
               </label>
               <label>
                 <span>Type</span>
-                <select value={form.client_type} onChange={(event) => updateField("client_type", event.target.value)}>
+                <Select className={styles.fieldSelect} value={form.client_type} onChange={(event) => updateField("client_type", event.target.value)}>
                   <option value="manual">Manuel</option>
                   <option value="owner">Propriétaire</option>
                   <option value="business">Société</option>
-                </select>
+                </Select>
               </label>
               <label>
                 <span>Statut</span>
-                <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
+                <Select className={styles.fieldSelect} value={form.status} onChange={(event) => updateField("status", event.target.value)}>
                   <option value="active">Actif</option>
                   <option value="inactive">Inactif</option>
                   <option value="archived">Archivé</option>
-                </select>
+                </Select>
               </label>
               <label className={styles.fullWidth}>
                 <span>Notes</span>
-                <textarea value={form.notes} onChange={(event) => updateField("notes", event.target.value)} placeholder="Contexte, attentes, détails utiles..." />
+                <Textarea
+                  className={styles.fieldTextarea}
+                  value={form.notes}
+                  onChange={(event) => updateField("notes", event.target.value)}
+                  placeholder="Contexte, attentes, détails utiles..."
+                />
               </label>
               <div className={styles.formActions}>
-                <button type="submit" disabled={!canSubmit || saving}>
+                <Button type="submit" disabled={!canSubmit || saving}>
                   {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
-                </button>
-                <Link href={editingId ? `/dashboard/provider/messages?client=${editingId}` : "/dashboard/provider/messages"} className={styles.linkButton}>
+                </Button>
+                <ButtonLink
+                  href={editingId ? `/dashboard/provider/messages?client=${editingId}` : "/dashboard/provider/messages"}
+                  variant="outline"
+                  className={styles.actionButton}
+                >
                   Voir les messages
-                </Link>
+                </ButtonLink>
               </div>
             </form>
           </section>
@@ -415,29 +454,31 @@ function ProviderClientsContent() {
 
             <div className={styles.toolbar}>
               <div className={styles.toolbarGroup}>
-                <input
+                <Input
+                  bare
+                  className={styles.toolbarInput}
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Rechercher un client"
                 />
               </div>
               <div className={styles.toolbarGroup}>
-                <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <Select className={styles.toolbarSelect} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                   <option value="all">Tous statuts</option>
                   <option value="active">Actifs</option>
                   <option value="inactive">Inactifs</option>
                   <option value="archived">Archivés</option>
-                </select>
-                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                </Select>
+                <Select className={styles.toolbarSelect} value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
                   <option value="recent">Plus récents</option>
                   <option value="name">Nom</option>
                   <option value="city">Ville</option>
-                </select>
-                <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
-                <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
-                <button type="button" className={styles.secondaryButton} onClick={handleExportCsv}>
+                </Select>
+                <Input bare type="date" className={styles.toolbarInput} value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+                <Input bare type="date" className={styles.toolbarInput} value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+                <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={handleExportCsv}>
                   Export CSV
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -459,15 +500,7 @@ function ProviderClientsContent() {
                 {paginatedClients.map((client) => (
                   <article
                     key={client.id}
-                    className={styles.itemCard}
-                    style={
-                      client.id === targetClientId
-                        ? {
-                            border: "1px solid rgba(180, 70, 44, 0.28)",
-                            boxShadow: "0 14px 28px rgba(180, 70, 44, 0.12)",
-                          }
-                        : undefined
-                    }
+                    className={[styles.itemCard, client.id === targetClientId ? styles.itemCardTargeted : ""].filter(Boolean).join(" ")}
                   >
                     <div className={styles.itemHead}>
                       <div>
@@ -483,7 +516,8 @@ function ProviderClientsContent() {
                     </div>
                     {client.notes ? <p className={styles.itemBody}>{client.notes}</p> : null}
                     <div className={styles.cardActions}>
-                      <select
+                      <Select
+                        className={styles.statusSelect}
                         value={client.status ?? "active"}
                         disabled={quickUpdatingId === client.id}
                         onChange={(event) => void handleQuickStatusUpdate(client.id, event.target.value)}
@@ -491,19 +525,25 @@ function ProviderClientsContent() {
                         <option value="active">Actif</option>
                         <option value="inactive">Inactif</option>
                         <option value="archived">Archivé</option>
-                      </select>
-                      <button type="button" className={styles.secondaryButton} onClick={() => {
-                        setEditingId(client.id);
-                        setForm(toFormState(client));
-                      }}>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className={styles.actionButton}
+                        onClick={() => {
+                          setEditingId(client.id);
+                          setForm(toFormState(client));
+                        }}
+                      >
                         Modifier
-                      </button>
-                      <Link href={`/dashboard/provider/messages?client=${client.id}`} className={styles.linkButton}>
+                      </Button>
+                      <ButtonLink href={`/dashboard/provider/messages?client=${client.id}`} variant="outline" size="sm" className={styles.actionButton}>
                         Message
-                      </Link>
-                      <button type="button" className={styles.dangerButton} disabled={deletingId === client.id} onClick={() => void handleDelete(client.id)}>
+                      </ButtonLink>
+                      <Button type="button" variant="outline" size="sm" className={styles.dangerButton} disabled={deletingId === client.id} onClick={() => void handleDelete(client.id)}>
                         {deletingId === client.id ? "Suppression..." : "Supprimer"}
-                      </button>
+                      </Button>
                     </div>
                   </article>
                 ))}
@@ -512,19 +552,29 @@ function ProviderClientsContent() {
 
             {!loading && filteredClients.length > pageSize ? (
               <div className={styles.pagination}>
-                <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className={styles.paginationButton}
+                  disabled={page === 1}
+                  onClick={() => setPage((current) => current - 1)}
+                >
                   Précédent
-                </button>
+                </Button>
                 <span className={styles.counter}>
                   Page {page} / {totalPages}
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
+                  className={styles.paginationButton}
                   disabled={page === totalPages}
                   onClick={() => setPage((current) => current + 1)}
                 >
                   Suivant
-                </button>
+                </Button>
               </div>
             ) : null}
           </section>

@@ -141,11 +141,12 @@
   grid-column: 1 / -1;
 }
 
-.formGrid input,
-.formGrid select,
-.formGrid textarea,
-.toolbar input,
-.toolbar select {
+.fieldInput,
+.fieldSelect,
+.fieldTextarea,
+.toolbarInput,
+.toolbarSelect,
+.statusSelect {
   width: 100%;
   border-radius: 14px;
   border: 1px solid rgba(76, 97, 69, 0.2);
@@ -154,7 +155,7 @@
   color: #172012;
 }
 
-.formGrid textarea {
+.fieldTextarea {
   min-height: 120px;
   resize: vertical;
 }
@@ -175,6 +176,11 @@
   border-radius: 18px;
   border: 1px solid rgba(76, 97, 69, 0.14);
   background: #ffffff;
+}
+
+.itemCardTargeted {
+  border: 1px solid rgba(180, 70, 44, 0.28);
+  box-shadow: 0 14px 28px rgba(180, 70, 44, 0.12);
 }
 
 .itemMeta {
@@ -352,12 +358,10 @@
   color: #556452;
 }
 
-.secondaryButton,
+.actionButton,
 .dangerButton,
-.linkButton,
-.formActions button,
-.pagination button,
-.viewTabs button {
+.paginationButton,
+.viewTabButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -368,38 +372,30 @@
   text-decoration: none;
 }
 
-.formActions button,
+.secondaryButton,
 .linkButton {
-  border: 1px solid rgba(76, 97, 69, 0.28);
-  background: linear-gradient(135deg, #8aa16d, #c4d7a4);
-  color: #172012;
-}
-
-.secondaryButton {
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  background: #ffffff;
-  color: #294027;
-}
-
-.pagination button {
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  background: #ffffff;
-  color: #294027;
+  @extend .actionButton;
 }
 
 .viewTabs button {
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  background: #ffffff;
-  color: #294027;
+  @extend .viewTabButton;
+}
+
+.pagination button {
+  @extend .paginationButton;
 }
 
 .dangerButton {
-  border: 1px solid rgba(185, 28, 28, 0.2);
-  background: rgba(185, 28, 28, 0.08);
-  color: #991b1b;
+  border-color: rgba(185, 28, 28, 0.35) !important;
+  background: rgba(185, 28, 28, 0.08) !important;
+  color: #991b1b !important;
 }
 
-.formActions button:disabled,
+.dangerButton:not(:disabled):hover {
+  transform: none;
+  background: rgba(185, 28, 28, 0.12) !important;
+}
+
 .dangerButton:disabled {
   opacity: 0.6;
 }
