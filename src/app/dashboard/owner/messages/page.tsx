@@ -3,6 +3,7 @@
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import { DashboardSectionShell } from "@/components/dashboard";
 import styles from "./OwnerMessagesPage.module.scss";
 import {
   markOwnerConversationSeen,
@@ -244,7 +245,27 @@ function OwnerMessagesContent() {
   }
 
   return (
-    <section className="dashboard-grid">
+    <DashboardSectionShell
+      persona="owner"
+      title="Suivi des echanges"
+      subtitle="Centralisez vos conversations prioritaires avec vos concierges et gardez une trace claire des decisions."
+      stats={[
+        { label: "Conversations", value: `${conversations.length}` },
+        {
+          label: "Filtrees",
+          value: `${filteredConversations.length}`,
+          hint: "Avec vos filtres actifs",
+        },
+        {
+          label: "Non lues",
+          value: `${conversations.filter((item) => (item.unread_count ?? 0) > 0).length}`,
+        },
+      ]}
+      actions={[
+        { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
+        { label: "Voir le planning", href: "/dashboard/owner/planning" },
+      ]}
+    >
       <div className={styles.page}>
         <header className={styles.header}>
           <h1>Suivi des echanges</h1>
@@ -385,7 +406,7 @@ function OwnerMessagesContent() {
           </section>
         </div>
       </div>
-    </section>
+    </DashboardSectionShell>
   );
 }
 

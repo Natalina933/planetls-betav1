@@ -1,0 +1,86 @@
+.page {
+  display: grid;
+  gap: var(--dash-space-4);
+}
+
+.grid {
+  display: grid;
+  gap: var(--dash-space-4);
+}
+
+.main {
+  display: grid;
+  gap: var(--dash-space-4);
+}
+
+.aside {
+  display: grid;
+  gap: var(--dash-space-4);
+}
+
+.panel {
+  border: 1px solid var(--dash-border);
+}
+
+.panelHeader {
+  h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--dash-text);
+  }
+}
+
+.panelBody {
+  display: grid;
+  gap: var(--dash-space-2);
+}
+
+.notificationItem {
+  display: grid;
+  gap: var(--dash-space-2);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-sm);
+  padding: var(--dash-space-3);
+}
+
+.notificationItem p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--dash-text-muted);
+  line-height: 1.35;
+}
+
+.notificationItem a {
+  text-decoration: none;
+  color: var(--dash-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.shortcutBody {
+  display: grid;
+  gap: var(--dash-space-2);
+}
+
+.shortcut {
+  text-decoration: none;
+  color: var(--dash-text);
+  font-size: 0.88rem;
+  padding: var(--dash-space-2);
+  border-radius: var(--dash-radius-sm);
+  border: 1px solid var(--dash-border);
+  background: color-mix(in srgb, var(--dash-accent) 10%, transparent);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--dash-text-muted);
+}
+
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FiPlus } from "react-icons/fi";
+import { DashboardSectionShell } from "@/components/dashboard";
 import cardStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
 import pageStyles from "@/app/dashboard/owner/OwnerDashboardPages.module.scss";
 
@@ -25,6 +26,7 @@ type HousingListPageProps = {
   title: string;
   addHref: string;
   detailHrefBase?: string;
+  persona?: "owner" | "conciergerie";
 };
 
 function getSafePhoto(photo?: string) {
@@ -42,6 +44,7 @@ export default function HousingListPage({
   title,
   addHref,
   detailHrefBase,
+  persona = "owner",
 }: HousingListPageProps) {
   const [logements, setLogements] = useState<HousingListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +86,20 @@ export default function HousingListPage({
   );
 
   return (
-    <section className="dashboard-grid">
+    <DashboardSectionShell
+      persona={persona}
+      title={title}
+      subtitle="Visualisez l'etat de vos logements, les mouvements et les fiches a finaliser."
+      stats={[
+        { label: "Logements", value: `${stats.total}` },
+        { label: "Prets", value: `${stats.prets}` },
+        { label: "Menage", value: `${stats.menages}` },
+        { label: "Mouvements", value: `${stats.arrivees + stats.departs}` },
+      ]}
+      actions={[
+        { label: "Ajouter un logement", href: addHref },
+      ]}
+    >
       <div className={pageStyles.dashboardFlow}>
         <section className={pageStyles.heroPanel}>
           <div className={pageStyles.sectionHeading}>
@@ -232,6 +248,6 @@ export default function HousingListPage({
           </section>
         ) : null}
       </div>
-    </section>
+    </DashboardSectionShell>
   );
 }

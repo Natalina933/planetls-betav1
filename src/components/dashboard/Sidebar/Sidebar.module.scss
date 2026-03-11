@@ -1,0 +1,38 @@
+.sidebar {
+  position: sticky;
+  top: var(--dash-space-4);
+  border: 1px solid var(--dash-border);
+  background: linear-gradient(180deg, var(--dash-bg-panel), var(--dash-bg-panel-soft));
+}
+
+.header {
+  h2 {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--dash-text);
+  }
+}
+
+.body {
+  padding-top: var(--dash-space-2);
+}
+
+.nav {
+  display: grid;
+  gap: var(--dash-space-2);
+}
+
+.link {
+  display: block;
+  text-decoration: none;
+  color: var(--dash-text);
+  font-size: 0.9rem;
+  padding: var(--dash-space-2) var(--dash-space-3);
+  border-radius: var(--dash-radius-sm);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.link:hover {
+  background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
+  color: var(--dash-accent-strong);
+}

@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import DashboardCalendar, {
   DashboardEvent,
 } from "@/app/components/dashboard/calendar/DashboardCalendar";
+import { DashboardSectionShell } from "@/components/dashboard";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import {
   buildPlanningStatusBreakdown,
@@ -238,6 +239,20 @@ export default function ConciergePlanningPage() {
   );
 
   return (
+    <DashboardSectionShell
+      persona="conciergerie"
+      title="Planning conciergerie"
+      subtitle="Reperez ce qui doit etre traite aujourd'hui, confirme sous 48h ou replanifie."
+      stats={[
+        { label: "Missions", value: `${missions.length}` },
+        { label: "Urgences", value: `${urgentMissions.length}` },
+        { label: "Sans date", value: `${unscheduledMissions.length}` },
+      ]}
+      actions={[
+        { label: "Voir alertes", href: "/dashboard/concierge/alertes" },
+        { label: "Configurer missions", href: "/dashboard/concierge/profile?tab=missions" },
+      ]}
+    >
     <ConciergeWorkspacePage
       eyebrow="Planning"
       title="Planning des missions"
@@ -260,17 +275,17 @@ export default function ConciergePlanningPage() {
         {
           label: "Aujourd'hui",
           value: loading ? "..." : String(todayMissions.length),
-          hint: "Interventions à exécuter dans la journée",
+          hint: "Interventions Ã  exÃ©cuter dans la journÃ©e",
         },
         {
           label: "48 heures",
           value: loading ? "..." : String(nextMissions.length),
-          hint: "Missions à confirmer très vite",
+          hint: "Missions Ã  confirmer trÃ¨s vite",
         },
         {
           label: "En retard",
           value: loading ? "..." : String(overdueMissions.length),
-          hint: "Interventions planifiées mais non clôturées",
+          hint: "Interventions planifiÃ©es mais non clÃ´turÃ©es",
         },
         {
           label: "Sans date",
@@ -283,7 +298,7 @@ export default function ConciergePlanningPage() {
           title: "Aujourd'hui sur le terrain",
           text:
             todayMissions.length > 0
-              ? `${todayMissions.length} intervention(s) sont prévues aujourd'hui. Vérifiez confirmations, accès au logement et créneaux avant exécution.`
+              ? `${todayMissions.length} intervention(s) sont prÃ©vues aujourd'hui. VÃ©rifiez confirmations, accÃ¨s au logement et crÃ©neaux avant exÃ©cution.`
               : loading
                 ? "Chargement de vos interventions du jour."
                 : error || "Aucune intervention n'est prevue aujourd'hui.",
@@ -299,8 +314,8 @@ export default function ConciergePlanningPage() {
           title: "Missions a replanifier",
           text:
             overdueMissions.length > 0
-              ? `${overdueMissions.length} mission(s) semblent en retard ou non mises à jour. Reprenez-les avant qu'elles ne deviennent des irritants client.`
-              : "Aucune mission planifiée en retard. Votre cadence terrain reste propre.",
+              ? `${overdueMissions.length} mission(s) semblent en retard ou non mises Ã  jour. Reprenez-les avant qu'elles ne deviennent des irritants client.`
+              : "Aucune mission planifiÃ©e en retard. Votre cadence terrain reste propre.",
           actions: [
             {
               label: "Traiter les retards",
@@ -342,13 +357,13 @@ export default function ConciergePlanningPage() {
           emptyText:
             loading
               ? "Chargement des missions a venir."
-              : error || "Aucune mission à confirmer dans les 48 prochaines heures.",
+              : error || "Aucune mission Ã  confirmer dans les 48 prochaines heures.",
           items: nextMissions.map((mission) => toPlanningItem(mission, "Confirmer")),
         },
         {
           title: "Missions en retard",
           description:
-            "Interventions déjà planifiées mais encore actives. Ce sont les premières sources de friction à résorber.",
+            "Interventions dÃ©jÃ  planifiÃ©es mais encore actives. Ce sont les premiÃ¨res sources de friction Ã  rÃ©sorber.",
           emptyText:
             loading
               ? "Analyse des missions en retard."
@@ -362,12 +377,12 @@ export default function ConciergePlanningPage() {
           emptyText:
             loading
               ? "Analyse des missions sans date."
-              : error || "Toutes les missions actives ont déjà une date planifiée.",
+              : error || "Toutes les missions actives ont dÃ©jÃ  une date planifiÃ©e.",
           items: unscheduledMissions.slice(0, 6).map((mission) => ({
             title: mission.title || "Mission sans date",
             meta: normalizePlanningStatus(mission.status),
             description:
-              "Cette intervention doit être cadrée avec un créneau précis pour fiabiliser votre planning terrain.",
+              "Cette intervention doit Ãªtre cadrÃ©e avec un crÃ©neau prÃ©cis pour fiabiliser votre planning terrain.",
             href: "/dashboard/concierge/profile?tab=missions",
             actionLabel: "Planifier",
             tone: "warning" as const,
@@ -376,7 +391,7 @@ export default function ConciergePlanningPage() {
         {
           title: "Etat du pipe missions",
           description:
-            "Vue synthétique de vos statuts pour équilibrer exécution, suivi client et clôture des interventions.",
+            "Vue synthÃ©tique de vos statuts pour Ã©quilibrer exÃ©cution, suivi client et clÃ´ture des interventions.",
           emptyText:
             loading
               ? "Analyse des statuts en cours."
@@ -407,8 +422,8 @@ export default function ConciergePlanningPage() {
             ) : (
               <p className={styles.emptyState}>
                 {loading
-                  ? "Analyse des créneaux en cours."
-                  : error || "Aucun créneau exploitable à afficher dans la vue calendrier."}
+                  ? "Analyse des crÃ©neaux en cours."
+                  : error || "Aucun crÃ©neau exploitable Ã  afficher dans la vue calendrier."}
               </p>
             )}
           </div>
@@ -482,12 +497,14 @@ export default function ConciergePlanningPage() {
               <p className={styles.emptyState}>
                 {loading
                   ? "Chargement de la timeline."
-                  : error || "Aucune mission planifiée pour alimenter la timeline."}
+                  : error || "Aucune mission planifiÃ©e pour alimenter la timeline."}
               </p>
             )}
           </div>
         </aside>
       </section>
     </ConciergeWorkspacePage>
+    </DashboardSectionShell>
   );
 }
+

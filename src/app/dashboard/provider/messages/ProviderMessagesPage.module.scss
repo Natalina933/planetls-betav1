@@ -1,6 +1,6 @@
-.page {
+﻿.page {
   display: grid;
-  gap: 1.25rem;
+  gap: var(--dash-space-5);
 }
 
 .header {
@@ -17,33 +17,33 @@
 .header p,
 .threadHeaderText p {
   margin: 0;
-  color: #4c4f46;
+  color: var(--dash-text-muted);
 }
 
 .layout {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: 1rem;
+  gap: var(--dash-space-4);
 }
 
 .sidebar,
 .thread {
   display: grid;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 20px;
-  border: 1px solid rgba(76, 97, 69, 0.18);
-  background: rgba(249, 251, 247, 0.96);
-  box-shadow: 0 10px 24px rgba(30, 41, 25, 0.06);
+  gap: var(--dash-space-4);
+  padding: var(--dash-space-4);
+  border-radius: var(--dash-radius-lg);
+  border: 1px solid var(--dash-border);
+  background: color-mix(in srgb, var(--dash-bg-panel-soft) 96%, transparent);
+  box-shadow: var(--dash-shadow-sm);
 }
 
 .createBox {
   display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 18px;
-  border: 1px solid rgba(76, 97, 69, 0.16);
-  background: rgba(255, 255, 255, 0.88);
+  gap: var(--dash-space-3);
+  padding: var(--dash-space-4);
+  border-radius: var(--dash-radius-lg);
+  border: 1px solid var(--dash-border);
+  background: color-mix(in srgb, var(--dash-bg-panel) 92%, transparent);
 }
 
 .createBox h2 {
@@ -57,40 +57,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--dash-space-3);
 }
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--dash-space-3);
   align-items: center;
   justify-content: space-between;
 }
 
 .toolbar input,
 .toolbar select {
-  border-radius: 14px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.75rem 0.9rem;
-  background: #ffffff;
-  color: #172012;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
 }
 
 .toolbarInput {
-  border-radius: 14px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.75rem 0.9rem;
-  background: #ffffff;
-  color: #172012;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
 }
 
 .toolbarSelect {
-  border-radius: 14px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.75rem 0.9rem;
-  background: #ffffff;
-  color: #172012;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
 }
 
 .counter {
@@ -100,8 +100,8 @@
   min-height: 34px;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: rgba(76, 97, 69, 0.1);
-  color: #355236;
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+  color: var(--dash-accent-strong);
   font-weight: 700;
   font-size: 0.88rem;
 }
@@ -114,7 +114,7 @@
 .conversationList,
 .messageList {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--dash-space-3);
 }
 
 .conversationItem {
@@ -123,9 +123,9 @@
   padding: 0.9rem;
   width: 100%;
   text-align: left;
-  border-radius: 16px;
-  border: 1px solid rgba(76, 97, 69, 0.16);
-  background: #ffffff;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  background: var(--dash-bg-panel);
   box-shadow: none;
 }
 
@@ -134,8 +134,8 @@
 }
 
 .conversationItemActive {
-  border-color: rgba(76, 97, 69, 0.38);
-  box-shadow: 0 10px 24px rgba(30, 41, 25, 0.08);
+  border-color: color-mix(in srgb, var(--dash-accent) 45%, var(--dash-border));
+  box-shadow: var(--dash-shadow-sm);
 }
 
 .conversationHead {
@@ -145,20 +145,20 @@
 .message {
   display: grid;
   gap: 0.45rem;
-  padding: 0.85rem 1rem;
-  border-radius: 16px;
+  padding: var(--dash-space-3) var(--dash-space-4);
+  border-radius: var(--dash-radius-md);
   max-width: 90%;
 }
 
 .messageMine {
   justify-self: end;
-  background: linear-gradient(135deg, #8aa16d, #c4d7a4);
-  color: #172012;
+  background: linear-gradient(135deg, var(--dash-accent), color-mix(in srgb, var(--dash-accent) 65%, white));
+  color: var(--dash-text);
 }
 
 .messageOther {
-  background: #ffffff;
-  border: 1px solid rgba(76, 97, 69, 0.16);
+  background: var(--dash-bg-panel);
+  border: 1px solid var(--dash-border);
 }
 
 .message p,
@@ -171,38 +171,38 @@
 
 .composer {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--dash-space-3);
 }
 
 .composer textarea {
   min-height: 120px;
   resize: vertical;
-  border-radius: 16px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.85rem 1rem;
-  background: #ffffff;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
 }
 
 .createBox select,
 .createBox input,
 .createBox textarea {
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.8rem 0.95rem;
-  background: #ffffff;
-  color: #172012;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
 }
 
 .createSelect,
 .createInput,
 .createTextarea {
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.8rem 0.95rem;
-  background: #ffffff;
-  color: #172012;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
 }
 
 .createTextarea {
@@ -227,9 +227,9 @@
   min-height: 42px;
   padding: 0.7rem 1rem;
   border-radius: 999px;
-  border: 1px solid rgba(76, 97, 69, 0.28);
-  background: linear-gradient(135deg, #8aa16d, #c4d7a4);
-  color: #172012;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 35%, var(--dash-border));
+  background: linear-gradient(135deg, var(--dash-accent), color-mix(in srgb, var(--dash-accent) 65%, white));
+  color: var(--dash-text);
   text-decoration: none;
   font-weight: 700;
 }
@@ -240,10 +240,10 @@
 
 .composerTextarea {
   min-height: 120px;
-  border-radius: 16px;
-  border: 1px solid rgba(76, 97, 69, 0.2);
-  padding: 0.85rem 1rem;
-  background: #ffffff;
+  border-radius: var(--dash-radius-md);
+  border: 1px solid var(--dash-border);
+  padding: var(--dash-space-3) var(--dash-space-4);
+  background: var(--dash-bg-panel);
 }
 
 .createBox button:disabled {
@@ -253,24 +253,24 @@
 .successBox,
 .errorBox,
 .infoBox {
-  padding: 0.85rem 1rem;
-  border-radius: 14px;
+  padding: var(--dash-space-3) var(--dash-space-4);
+  border-radius: var(--dash-radius-md);
   font-weight: 700;
 }
 
 .successBox {
-  background: rgba(22, 163, 74, 0.12);
-  color: #166534;
+  background: color-mix(in srgb, var(--dash-success) 16%, transparent);
+  color: var(--dash-success);
 }
 
 .errorBox {
-  background: rgba(185, 28, 28, 0.1);
-  color: #991b1b;
+  background: color-mix(in srgb, var(--dash-danger) 14%, transparent);
+  color: var(--dash-danger);
 }
 
 .infoBox {
-  background: rgba(76, 97, 69, 0.1);
-  color: #355236;
+  background: color-mix(in srgb, var(--dash-info) 14%, transparent);
+  color: var(--dash-info);
 }
 
 @media (max-width: 900px) {
@@ -278,3 +278,4 @@
     grid-template-columns: 1fr;
   }
 }
+

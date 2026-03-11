@@ -9,6 +9,9 @@ export type { CardProps } from "./Card";
 export { Badge } from "./Badge";
 export type { BadgeProps } from "./Badge";
 
+export { StatsCard } from "./StatsCard";
+export type { StatsCardProps } from "./StatsCard";
+
 export { Tag } from "./Tag";
 export type { TagProps } from "./Tag";
 

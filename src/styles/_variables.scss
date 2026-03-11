@@ -34,6 +34,40 @@
   --ui-avatar-sm: 32px;
   --ui-avatar-md: 48px;
   --ui-avatar-lg: 72px;
+
+  /* Dashboard tokens */
+  --dash-font-heading: "Montserrat", "Segoe UI", sans-serif;
+  --dash-font-body: "Open Sans", "Segoe UI", sans-serif;
+
+  --dash-bg-page: #f7f2e8;
+  --dash-bg-panel: #ffffff;
+  --dash-bg-panel-soft: #fffaf1;
+  --dash-bg-accent-soft: #efe0cb;
+
+  --dash-text: #251c12;
+  --dash-text-muted: #6b5b46;
+  --dash-border: rgba(150, 117, 76, 0.28);
+
+  --dash-accent: #9f6f2d;
+  --dash-accent-strong: #84561f;
+  --dash-info: #255f96;
+  --dash-warning: #8c4b1f;
+  --dash-danger: #9f2d2d;
+  --dash-success: #2f7f46;
+
+  --dash-space-1: 0.25rem;
+  --dash-space-2: 0.5rem;
+  --dash-space-3: 0.75rem;
+  --dash-space-4: 1rem;
+  --dash-space-5: 1.5rem;
+  --dash-space-6: 2rem;
+
+  --dash-radius-sm: 8px;
+  --dash-radius-md: 12px;
+  --dash-radius-lg: 18px;
+
+  --dash-shadow-sm: 0 8px 18px rgba(46, 31, 15, 0.08);
+  --dash-shadow-md: 0 16px 28px rgba(46, 31, 15, 0.12);
 }
 
 [data-theme="dark"] {
@@ -47,4 +81,20 @@
   --ui-color-primary-strong: #be8c43;
   --ui-color-accent: #5db79d;
   --ui-color-danger: #cf6868;
+
+  --dash-bg-page: #19110d;
+  --dash-bg-panel: #241913;
+  --dash-bg-panel-soft: #2b1f18;
+  --dash-bg-accent-soft: #3a2a1f;
+
+  --dash-text: #f2e7da;
+  --dash-text-muted: #c7b39d;
+  --dash-border: rgba(212, 164, 104, 0.28);
+
+  --dash-accent: #c89a60;
+  --dash-accent-strong: #dfb375;
+  --dash-info: #6aa9dd;
+  --dash-warning: #db9c6a;
+  --dash-danger: #df7b7b;
+  --dash-success: #78c08e;
 }

@@ -8,6 +8,7 @@ export default function LogementsPage() {
       title="Mes logements"
       addHref="/dashboard/concierge/logements/create"
       detailHrefBase="/dashboard/concierge/logements"
+      persona="conciergerie"
     />
   );
 }

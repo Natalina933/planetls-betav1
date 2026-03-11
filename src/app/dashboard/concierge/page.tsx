@@ -1,21 +1,18 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
-import styles from "./page.module.scss";
-import {
-  Loader2,
-} from "lucide-react";
-
+import { Loader2 } from "lucide-react";
+import { DashboardLayout } from "@/components/dashboard";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
 import { fetchConciergeMatches, type ConciergeOwnerMatch } from "./dashboardClient";
 import {
-  ConciergeObjectivesSection,
-  DashboardHeader,
-  DashboardMetricsGrid,
-  DashboardPlanningSection,
-  MatchesSection,
-} from "./dashboardSections";
+  CONCIERGERIE_DASHBOARD_CONFIG,
+  CONCIERGERIE_NAV_ITEMS,
+  CONCIERGERIE_QUICK_ACTIONS,
+  CONCIERGERIE_SHORTCUTS,
+} from "@/features/conciergerie-dashboard";
 
 type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
 
@@ -45,6 +42,15 @@ type DashboardMissionRow = {
   scheduled_start: string | null;
   scheduled_end?: string | null;
 };
+
+function formatEventDate(value: Date) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
 
 export default function ConciergeDashboardPage() {
   const { user, loading, isAuthenticated } = useCurrentUser() as {
@@ -80,7 +86,7 @@ export default function ConciergeDashboardPage() {
       }
     };
 
-    fetchMatches();
+    void fetchMatches();
 
     return () => {
       isMounted = false;
@@ -159,7 +165,7 @@ export default function ConciergeDashboardPage() {
       }
     };
 
-    fetchKpis();
+    void fetchKpis();
 
     return () => {
       isMounted = false;
@@ -168,49 +174,92 @@ export default function ConciergeDashboardPage() {
 
   if (loading || !isAuthenticated) {
     return (
-      <div className={styles.dashboardLoadingContainer}>
-        <Loader2 className="animate-spin text-primary" size={48} />
-        <p className="mt-4 text-lg text-gray-600">
-          Chargement de votre espace concierge...
-        </p>
+      <div style={{ display: "grid", placeItems: "center", minHeight: "40vh", gap: "12px" }}>
+        <Loader2 className="animate-spin text-primary" size={40} />
+        <p>Chargement de votre espace conciergerie...</p>
       </div>
     );
   }
 
   const isPro = user?.role === "concierge_pro";
-  const experienceLevel = user?.experience_level ?? null;
-  const yearsExperience = user?.years_experience ?? null;
   const averageRating = typeof kpis?.avg_rating === "number" ? kpis.avg_rating : null;
+  const plannedNow = planningEvents.slice(0, 4);
 
   return (
-    <div className={styles.conciergeDashboardPage}>
-      <DashboardHeader
-        isPro={isPro}
-        experienceLevel={experienceLevel}
-        yearsExperience={yearsExperience}
-        averageRating={averageRating}
-        ratingsCount={typeof kpis?.ratings_count === "number" ? kpis.ratings_count : 0}
-      />
-      <ConciergeObjectivesSection
-        isPro={isPro}
-        matchCount={matches.length}
-        averageRating={averageRating}
-        eventsCount={planningEvents.length}
-      />
-      <DashboardMetricsGrid
-        isPro={isPro}
-        matchCount={matches.length}
-        eventsCount={planningEvents.length}
-        inProgressCount={typeof kpis?.in_progress === "number" ? kpis.in_progress : null}
-        totalMissions={typeof kpis?.total_missions === "number" ? kpis.total_missions : null}
-        avgResponseMinutes={typeof kpis?.avg_response_minutes === "number" ? kpis.avg_response_minutes : null}
-      />
-      <MatchesSection
-        matches={matches}
-        matchesLoading={matchesLoading}
-        matchesError={matchesError}
-      />
-      <DashboardPlanningSection events={planningEvents} />
-    </div>
+    <DashboardLayout
+      persona="conciergerie"
+      title={CONCIERGERIE_DASHBOARD_CONFIG.title}
+      subtitle={CONCIERGERIE_DASHBOARD_CONFIG.subtitle}
+      navTitle={CONCIERGERIE_DASHBOARD_CONFIG.navTitle}
+      navItems={CONCIERGERIE_NAV_ITEMS}
+      stats={[
+        {
+          label: "Missions en cours",
+          value: `${kpis?.in_progress ?? 0}`,
+          hint: `${kpis?.total_missions ?? 0} mission(s) total`,
+        },
+        {
+          label: "Demandes compatibles",
+          value: `${matches.length}`,
+          hint: matchesLoading ? "Analyse en cours" : "Prospects proprietaires",
+        },
+        {
+          label: "Temps de reponse",
+          value:
+            typeof kpis?.avg_response_minutes === "number"
+              ? `${Math.round(kpis.avg_response_minutes)} min`
+              : "--",
+          hint: "Performance operationnelle",
+        },
+        {
+          label: "Satisfaction",
+          value: averageRating ? `${averageRating.toFixed(1)} / 5` : "--",
+          hint: `${kpis?.ratings_count ?? 0} avis`,
+        },
+      ]}
+      actions={CONCIERGERIE_QUICK_ACTIONS}
+      activity={plannedNow.map((event, index) => ({
+        id: `event-${index}`,
+        title: typeof event.title === "string" ? event.title : "Mission planifiee",
+        description: formatEventDate(event.start),
+        href: "/dashboard/concierge/planning",
+      }))}
+      notifications={[
+        {
+          id: "c-n1",
+          title: matchesError || (matchesLoading ? "Recherche de proprietaires en cours..." : `${matches.length} proprietaire(s) compatible(s).`),
+          level: matchesError ? "danger" : "info",
+          href: "/dashboard/concierge/recherche",
+        },
+        {
+          id: "c-n2",
+          title: isPro ? "Fonctionnalites PRO actives." : "Passez en PRO pour le suivi financier avance.",
+          level: isPro ? "info" : "warning",
+          href: isPro ? "/dashboard/concierge/profile?tab=devis" : "/abonnement/concierge-pro",
+        },
+      ]}
+      shortcuts={CONCIERGERIE_SHORTCUTS}
+      profile={{
+        name: user?.firstName || user?.username || "Conciergerie",
+        subtitle: isPro ? "Compte Concierge PRO" : "Compte Concierge Standard",
+        badge: averageRating ? `${averageRating.toFixed(1)} / 5` : undefined,
+      }}
+    >
+      <Card>
+        <CardHeader>
+          <h2>Prospection proprietaires</h2>
+        </CardHeader>
+        <CardBody>
+          {matchesLoading ? <p>Chargement des profils compatibles...</p> : null}
+          {!matchesLoading && matches.length === 0 ? <p>Aucun profil compatible pour le moment.</p> : null}
+          {!matchesLoading && matches.slice(0, 3).map((match) => (
+            <p key={match.id}>
+              {match.title} · {match.city || "Ville non renseignee"} · score {match.compatibility_score}%
+            </p>
+          ))}
+        </CardBody>
+      </Card>
+    </DashboardLayout>
   );
 }
+

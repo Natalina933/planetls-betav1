@@ -1,0 +1,32 @@
+.card {
+  border: 1px solid var(--dash-border);
+}
+
+.header {
+  h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--dash-text);
+  }
+}
+
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dash-space-2);
+}
+
+.action {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--dash-text);
+  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 35%, var(--dash-border));
+  border-radius: var(--dash-radius-sm);
+  padding: var(--dash-space-2) var(--dash-space-3);
+  transition: background-color 0.2s ease;
+}
+
+.action:hover {
+  background: color-mix(in srgb, var(--dash-accent) 24%, transparent);
+}

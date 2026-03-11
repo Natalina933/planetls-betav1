@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import { DashboardSectionShell } from "@/components/dashboard";
 import styles from "./ProviderMessagesPage.module.scss";
 
 type ProviderConversationRow = {
@@ -317,7 +318,20 @@ function ProviderMessagesContent() {
   }
 
   return (
-    <section className="dashboard-grid">
+    <DashboardSectionShell
+      persona="artisan"
+      title="Messages clients"
+      subtitle="Suivez vos echanges clients avec un fil unique par dossier intervention."
+      stats={[
+        { label: "Conversations", value: `${list?.items?.length ?? 0}` },
+        { label: "Filtrees", value: `${filteredConversations.length}` },
+        { label: "Clients", value: `${clients.length}` },
+      ]}
+      actions={[
+        { label: "Voir les clients", href: "/dashboard/provider/clients" },
+        { label: "Voir interventions", href: "/dashboard/provider/interventions" },
+      ]}
+    >
       <div className={styles.page}>
         <header className={styles.header}>
           <h1>Messages</h1>
@@ -514,7 +528,7 @@ function ProviderMessagesContent() {
           </section>
         </div>
       </div>
-    </section>
+    </DashboardSectionShell>
   );
 }
 

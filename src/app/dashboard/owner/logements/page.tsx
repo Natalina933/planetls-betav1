@@ -8,6 +8,7 @@ export default function OwnerLogementsPage() {
       title="Mes logements"
       addHref="/dashboard/owner/logements/create"
       detailHrefBase="/dashboard/owner/logements"
+      persona="owner"
     />
   );
 }

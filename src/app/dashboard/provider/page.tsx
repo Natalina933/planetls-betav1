@@ -1,7 +1,14 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ProviderWorkspacePage from "./_components/ProviderWorkspacePage";
+import { DashboardLayout } from "@/components/dashboard";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import {
+  ARTISAN_DASHBOARD_CONFIG,
+  ARTISAN_NAV_ITEMS,
+  ARTISAN_QUICK_ACTIONS,
+  ARTISAN_SHORTCUTS,
+} from "@/features/artisan-dashboard";
 import {
   buildProviderDisplayName,
   fetchCurrentProviderProfile,
@@ -84,34 +91,6 @@ function formatBudget(amount: number | null, currency: string | null) {
   }).format(amount);
 }
 
-function getInterventionBadge(status: string | null) {
-  switch (status) {
-    case "in_progress":
-      return "En cours";
-    case "pending":
-      return "A confirmer";
-    case "completed":
-      return "Terminee";
-    default:
-      return "A suivre";
-  }
-}
-
-function getClientBadge(status: string | null) {
-  return status === "active" ? "Actif" : "A relancer";
-}
-
-function getAlertBadge(severity: string | null) {
-  switch (severity) {
-    case "urgent":
-      return "Urgente";
-    case "high":
-      return "Elevee";
-    default:
-      return "Standard";
-  }
-}
-
 export default function ProviderDashboardPage() {
   const [workspace, setWorkspace] = useState<ProviderWorkspacePayload | null>(null);
   const [dashboard, setDashboard] = useState<ProviderDashboardState | null>(null);
@@ -189,41 +168,19 @@ export default function ProviderDashboardPage() {
     [dashboard?.alerts],
   );
   const highlightedClients = useMemo(() => (dashboard?.clients ?? []).slice(0, 2), [dashboard?.clients]);
-  const highlightedConversations = useMemo(
-    () => (dashboard?.conversations ?? []).slice(0, 2),
-    [dashboard?.conversations],
-  );
 
   return (
-    <ProviderWorkspacePage
-      eyebrow="Pilotage artisan"
-      title="Atelier prestataire"
-      description={
-        error ||
-        `Une vue compacte de ${displayName}, de vos chantiers ouverts, alertes terrain, relations clients et echanges actifs.`
+    <DashboardLayout
+      persona="artisan"
+      title={ARTISAN_DASHBOARD_CONFIG.title}
+      subtitle={
+        error || `${ARTISAN_DASHBOARD_CONFIG.subtitle} pour ${displayName}.`
       }
-      chips={[
-        profile?.company_name || "Activite artisanale",
-        locationLabel,
-        workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard",
-        `${stats?.inProgress ?? 0} intervention(s) en cours`,
-      ]}
-      actions={[
+      navTitle={ARTISAN_DASHBOARD_CONFIG.navTitle}
+      navItems={ARTISAN_NAV_ITEMS}
+      stats={[
         {
-          label: "Ouvrir les interventions",
-          href: "/dashboard/provider/interventions",
-          variant: "primary",
-        },
-        { label: "Suivre les clients", href: "/dashboard/provider/clients", variant: "secondary" },
-        {
-          label: "Voir devis et factures",
-          href: "/dashboard/provider/devis",
-          variant: "secondary",
-        },
-      ]}
-      metrics={[
-        {
-          label: "Chantiers ouverts",
+          label: "Interventions en cours",
           value: `${stats?.inProgress ?? 0}`,
           hint: `${stats?.interventions ?? 0} intervention(s) suivie(s)`,
         },
@@ -235,112 +192,73 @@ export default function ProviderDashboardPage() {
         {
           label: "Clients actifs",
           value: `${stats?.activeClients ?? 0}`,
-          hint: `${stats?.clients ?? 0} client(s) au total`,
+          hint: `${stats?.clients ?? 0} client(s) total`,
         },
         {
           label: "Conversations",
           value: `${stats?.conversations ?? 0}`,
-          hint: "Echanges a garder vivants",
+          hint: "Suivi relationnel en continu",
         },
       ]}
-      cards={[
+      actions={ARTISAN_QUICK_ACTIONS}
+      activity={[
+        ...highlightedInterventions.map((item) => ({
+          id: `intervention-${item.id}`,
+          title: item.title || item.service_label || "Intervention",
+          description: `${formatDate(item.scheduled_start)} · ${formatBudget(item.budget_amount, item.currency)}`,
+          href: `/dashboard/provider/interventions?intervention=${item.id}`,
+        })),
+        ...highlightedClients.map((item) => ({
+          id: `client-${item.id}`,
+          title: item.client_name || item.company_name || "Client",
+          description: item.city || "Ville non renseignee",
+          href: `/dashboard/provider/clients?client=${item.id}`,
+        })),
+      ]}
+      notifications={[
         {
-          title: "Cadence chantier",
-          text: `${stats?.inProgress ?? 0} intervention(s) sont en cours. La priorite est de tenir delais, confirmations et execution avant d ouvrir du nouveau flux.`,
-          actions: [
-            {
-              label: "Ouvrir les interventions",
-              href: "/dashboard/provider/interventions",
-              variant: "primary",
-            },
-          ],
+          id: "provider-n1",
+          title:
+            (stats?.urgentAlerts ?? 0) > 0
+              ? `${stats?.urgentAlerts ?? 0} alerte(s) urgente(s) a traiter.`
+              : "Aucune alerte urgente.",
+          level: (stats?.urgentAlerts ?? 0) > 0 ? "danger" : "info",
+          href: "/dashboard/provider/alertes",
         },
         {
-          title: "Tensions terrain",
-          text: `${stats?.alerts ?? 0} alerte(s), dont ${stats?.urgentAlerts ?? 0} urgente(s), peuvent ralentir ou brouiller votre execution si elles restent hors champ.`,
-          actions: [
-            {
-              label: "Traiter les alertes",
-              href: "/dashboard/provider/alertes",
-              variant: "secondary",
-            },
-          ],
-        },
-        {
-          title: "Base clients",
-          text: `${stats?.activeClients ?? 0} client(s) actif(s) composent votre socle commercial. Gardez relances, disponibilites et historique dans une lecture propre.`,
-          actions: [
-            {
-              label: "Voir les clients",
-              href: "/dashboard/provider/clients",
-              variant: "secondary",
-            },
-          ],
-        },
-        {
-          title: "Profil et revenus",
-          text: profile
-            ? `${displayName}${profile.email ? ` · ${profile.email}` : ""}${profile.phone ? ` · ${profile.phone}` : ""}`
-            : "Completez votre profil et votre pilotage financier pour gagner en lisibilite commerciale.",
-          actions: [
-            {
-              label: "Ouvrir les parametres",
-              href: "/dashboard/provider/settings",
-              variant: "secondary",
-            },
-            {
-              label: "Voir devis et factures",
-              href: "/dashboard/provider/devis",
-              variant: "secondary",
-            },
-          ],
+          id: "provider-n2",
+          title:
+            (stats?.inProgress ?? 0) > 0
+              ? `${stats?.inProgress ?? 0} intervention(s) en cours aujourd'hui.`
+              : "Aucune intervention active.",
+          level: (stats?.inProgress ?? 0) > 0 ? "warning" : "info",
+          href: "/dashboard/provider/interventions",
         },
       ]}
-      detailSections={[
-        {
-          title: "Chantiers a suivre",
-          description: "Commencez par les missions ouvertes, celles qui approchent ou celles dont le budget reste a verrouiller.",
-          emptyText: "Aucune intervention prioritaire a afficher pour le moment.",
-          items: highlightedInterventions.map((item) => ({
-            title: item.title || item.service_label || "Intervention sans titre",
-            meta: getInterventionBadge(item.status),
-            description: `${formatDate(item.scheduled_start)} · ${item.location_label || "Lieu a confirmer"} · ${formatBudget(item.budget_amount, item.currency)}`,
-            href: `/dashboard/provider/interventions?intervention=${item.id}`,
-            actionLabel: "Suivre",
-            tone: item.status === "in_progress" ? "success" : "warning",
-          })),
-        },
-        {
-          title: "Alertes, clients et echanges",
-          description: "Gardez dans le meme plan de vue les tensions terrain, les clients a relancer et les conversations qui demandent une reponse.",
-          emptyText: "Aucune alerte ni aucun client prioritaire pour le moment.",
-          items: [
-            ...highlightedAlerts.map((item) => ({
-              title: item.title || "Alerte sans titre",
-              meta: getAlertBadge(item.severity),
-              description: item.body || `Statut : ${item.status || "ouvert"}`,
-              href: `/dashboard/provider/alertes?alert=${item.id}`,
-              actionLabel: "Traiter",
-              tone: item.severity === "urgent" || item.severity === "high" ? "warning" : "default",
-            })),
-            ...highlightedClients.map((item) => ({
-              title: item.client_name || item.company_name || "Client sans nom",
-              meta: getClientBadge(item.status),
-              description: item.city || "Ville non renseignee",
-              href: `/dashboard/provider/clients?client=${item.id}`,
-              actionLabel: "Ouvrir",
-              tone: item.status === "active" ? "success" : "default",
-            })),
-            ...highlightedConversations.map((item) => ({
-              title: item.counterpart_name || item.subject || "Conversation",
-              meta: item.status === "open" ? "Ouverte" : "Archivee",
-              description: item.last_message_preview || `Dernier echange : ${formatDate(item.last_message_at)}`,
-              href: `/dashboard/provider/messages?conversation=${item.id}`,
-              actionLabel: "Repondre",
-            })),
-          ].slice(0, 4),
-        },
-      ]}
-    />
+      shortcuts={ARTISAN_SHORTCUTS}
+      profile={{
+        name: displayName,
+        subtitle: locationLabel,
+        badge: workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard",
+      }}
+    >
+      <Card>
+        <CardHeader>
+          <h2>Operations critiques</h2>
+        </CardHeader>
+        <CardBody>
+          {highlightedAlerts.length === 0 ? (
+            <p>Aucune alerte critique en cours.</p>
+          ) : (
+            highlightedAlerts.map((alert) => (
+              <p key={alert.id}>
+                {alert.title || "Alerte"}: {alert.body || "A traiter rapidement."}
+              </p>
+            ))
+          )}
+        </CardBody>
+      </Card>
+    </DashboardLayout>
   );
 }
+

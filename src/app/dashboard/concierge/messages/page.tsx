@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { FiSend } from "react-icons/fi";
+import { DashboardSectionShell } from "@/components/dashboard";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { ConversationDetailResponse, ConversationItem } from "./messagesClient";
 import { useConciergeMessages } from "./useConciergeMessages";
@@ -70,7 +71,7 @@ function ConversationListSidebar({
         <input
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Rechercher un propriétaire ou un sujet"
+          placeholder="Rechercher un propriÃ©taire ou un sujet"
           className={styles.searchField}
         />
         <select
@@ -80,7 +81,7 @@ function ConversationListSidebar({
         >
           <option value="all">Tous statuts</option>
           <option value="open">Ouverts</option>
-          <option value="closed">Fermées</option>
+          <option value="closed">FermÃ©es</option>
         </select>
       </div>
 
@@ -125,7 +126,7 @@ function ConversationThread({
   if (!activeConversationId) {
     return (
       <section className={styles.thread}>
-        <p className={styles.emptyState}>Sélectionnez une conversation.</p>
+        <p className={styles.emptyState}>SÃ©lectionnez une conversation.</p>
       </section>
     );
   }
@@ -178,8 +179,8 @@ function ConversationThread({
         <textarea
           value={draftMessage}
           onChange={(event) => onDraftChange(event.target.value)}
-          placeholder="Écrire votre message..."
-          aria-label="Écrire votre message"
+          placeholder="Ã‰crire votre message..."
+          aria-label="Ã‰crire votre message"
         />
         <button type="button" onClick={onSend} disabled={sending || !canSend}>
           <FiSend size={14} />
@@ -256,10 +257,24 @@ function ConciergeMessagesContent() {
   }
 
   return (
+    <DashboardSectionShell
+      persona="conciergerie"
+      title="Messages proprietaires"
+      subtitle="Centralisez vos echanges, relances et conversations actives dans une vue unique."
+      stats={[
+        { label: "Conversations", value: `${conversations.length}` },
+        { label: "Ouvertes", value: `${openCount}` },
+        { label: "Messages", value: `${activeConversation?.messages.length ?? 0}` },
+      ]}
+      actions={[
+        { label: "Pilotage terrain", href: "/dashboard/concierge/planning" },
+        { label: "Objectifs", href: "/dashboard/concierge/objectifs" },
+      ]}
+    >
     <ConciergeWorkspacePage
-      eyebrow="Relation propriétaires"
+      eyebrow="Relation propriÃ©taires"
       title="Suivi des conversations"
-      description="Centralisez vos échanges propriétaires, vos relances et vos fils actifs depuis une seule vue de pilotage."
+      description="Centralisez vos Ã©changes propriÃ©taires, vos relances et vos fils actifs depuis une seule vue de pilotage."
       chips={[
         `${conversations.length} conversation(s)`,
         `${openCount} ouverte(s)`,
@@ -293,14 +308,14 @@ function ConciergeMessagesContent() {
           title: "Suivi relationnel",
           text:
             openCount > 0
-              ? `${openCount} conversation(s) restent ouvertes avec vos propriétaires. Priorisez celles qui font avancer signature, exécution ou satisfaction.`
+              ? `${openCount} conversation(s) restent ouvertes avec vos propriÃ©taires. Priorisez celles qui font avancer signature, exÃ©cution ou satisfaction.`
               : "Aucune conversation ouverte pour le moment.",
         },
         {
           title: "Conversation active",
           text: activeConversation
             ? `${getConversationTitle(activeConversation.conversation.subject)} - ${activeConversation.messages.length} message(s)`
-            : "Sélectionnez un fil pour voir le détail des échanges.",
+            : "SÃ©lectionnez un fil pour voir le dÃ©tail des Ã©changes.",
         },
       ]}
     >
@@ -331,6 +346,7 @@ function ConciergeMessagesContent() {
         />
       </div>
     </ConciergeWorkspacePage>
+    </DashboardSectionShell>
   );
 }
 
@@ -341,3 +357,4 @@ export default function ConciergeMessagesPage() {
     </Suspense>
   );
 }
+

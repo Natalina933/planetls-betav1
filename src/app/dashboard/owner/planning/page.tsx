@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { DashboardSectionShell } from "@/components/dashboard";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerMissionRow = {
@@ -166,10 +167,33 @@ export default function OwnerPlanningPage() {
   }
 
   return (
-    <section className="dashboard-grid">
+    <DashboardSectionShell
+      persona="owner"
+      title="Planning proprietaire"
+      subtitle="Reperez en priorite ce qui doit etre confirme, execute ou replanifie sur votre parc."
+      stats={[
+        { label: "Interventions", value: loading ? "..." : `${missions.length}` },
+        {
+          label: "A traiter",
+          value: loading
+            ? "..."
+            : `${upcomingMissions.filter((mission) => mission.status !== "completed").length}`,
+        },
+        {
+          label: "Budget suivi",
+          value: loading
+            ? "..."
+            : formatAmount(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0)),
+        },
+      ]}
+      actions={[
+        { label: "Mission urgente", href: "/dashboard/owner/mission-urgente" },
+        { label: "Messages", href: "/dashboard/owner/messages" },
+      ]}
+    >
       <header>
         <h1>Suivi des interventions</h1>
-        <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
+        <p>RepÃ©rez en prioritÃ© ce qui doit Ãªtre confirmÃ©, exÃ©cutÃ© ou replanifiÃ© sur votre parc.</p>
       </header>
 
       <div className="stats-row">
@@ -196,7 +220,7 @@ export default function OwnerPlanningPage() {
           <div className={styles.sectionHeading}>
             <div>
               <p className={styles.eyebrow}>Vue planning</p>
-              <h2>Semaine propriétaire</h2>
+              <h2>Semaine propriÃ©taire</h2>
             </div>
           </div>
 
@@ -210,7 +234,7 @@ export default function OwnerPlanningPage() {
                 <p className={styles.meta}>
                   {bucket.items.length > 0
                     ? `${bucket.items.filter((mission) => mission.priority === "urgent").length} urgente(s) a surveiller.`
-                    : "Aucune intervention planifiée."}
+                    : "Aucune intervention planifiÃ©e."}
                 </p>
               </article>
             ))}
@@ -233,7 +257,7 @@ export default function OwnerPlanningPage() {
             <option value="assigned">Assignees</option>
             <option value="accepted">Acceptees</option>
             <option value="in_progress">En cours</option>
-            <option value="completed">Terminées</option>
+            <option value="completed">TerminÃ©es</option>
           </select>
           <select
             value={viewMode}
@@ -258,7 +282,7 @@ export default function OwnerPlanningPage() {
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune intervention planifiée pour le moment.</p>
+          <p>Aucune intervention planifiÃ©e pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (
@@ -322,6 +346,7 @@ export default function OwnerPlanningPage() {
           )
         ) : null}
       </div>
-    </section>
+    </DashboardSectionShell>
   );
 }
+

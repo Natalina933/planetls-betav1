@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { Button, ButtonLink } from "@/components/ui";
+import { DashboardSectionShell } from "@/components/dashboard";
 import styles from "../ProviderCrudPage.module.scss";
 
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -148,7 +149,20 @@ export default function ProviderPlanningPage() {
   }, [data]);
 
   return (
-    <section className="dashboard-grid">
+    <DashboardSectionShell
+      persona="artisan"
+      title="Planning interventions"
+      subtitle="Visualisez les echeances, urgences et charges a venir avec une lecture priorisee."
+      stats={[
+        { label: "Missions", value: `${data?.summary.total ?? 0}` },
+        { label: "Aujourd'hui", value: `${todayCount}` },
+        { label: "En cours", value: `${data?.summary.in_progress ?? 0}` },
+      ]}
+      actions={[
+        { label: "Voir interventions", href: "/dashboard/provider/interventions" },
+        { label: "Voir alertes", href: "/dashboard/provider/alertes" },
+      ]}
+    >
       <div className={styles.page}>
         <header className={styles.header}>
           <div>
@@ -310,6 +324,6 @@ export default function ProviderPlanningPage() {
           </section>
         </div>
       </div>
-    </section>
+    </DashboardSectionShell>
   );
 }
