@@ -54,14 +54,41 @@
   gap: 0.75rem;
 }
 
+.filtersRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.filtersInput {
+  flex: 1 1 220px;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 139, 74, 0.24);
+  padding: 0.75rem 0.9rem;
+  background: #fff;
+}
+
+.filtersSelect {
+  border-radius: 14px;
+  border: 1px solid rgba(184, 139, 74, 0.24);
+  padding: 0.75rem 0.9rem;
+  background: #fff;
+}
+
 .conversationItem {
   display: grid;
   gap: 0.4rem;
   padding: 0.9rem;
+  width: 100%;
   text-align: left;
   border-radius: 16px;
   border: 1px solid rgba(184, 92, 72, 0.18);
   background: #fffdfa;
+  box-shadow: none;
+}
+
+.conversationItem:hover {
+  transform: none;
 }
 
 .conversationItemActive {
@@ -74,6 +101,21 @@
   justify-content: space-between;
   gap: 0.75rem;
   font-size: 0.9rem;
+}
+
+.conversationMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unreadDot {
+  display: inline-flex;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: #b34832;
+  box-shadow: 0 0 0 4px rgba(179, 72, 50, 0.12);
 }
 
 .message {
@@ -110,6 +152,14 @@
 .composer textarea {
   min-height: 120px;
   resize: vertical;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.24);
+  padding: 0.85rem 1rem;
+  background: #fff;
+}
+
+.composerTextarea {
+  min-height: 120px;
   border-radius: 16px;
   border: 1px solid rgba(184, 92, 72, 0.24);
   padding: 0.85rem 1rem;

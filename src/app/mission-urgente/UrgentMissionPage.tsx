@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import styles from "./UrgentMissionPage.module.scss";
 
 type MissionType = "check-in" | "check-out";
@@ -103,12 +103,12 @@ export default function UrgentMissionPage() {
             verrouillez la mission au premier acceptant.
           </p>
           <div className={styles.heroActions}>
-            <Link href="/dashboard/owner/mission-urgente" className={styles.secondaryLink}>
+            <ButtonLink href="/dashboard/owner/mission-urgente" variant="secondary" className={styles.secondaryLink}>
               Suivre mes urgences
-            </Link>
-            <Link href="/dashboard/concierge/urgences" className={styles.secondaryLink}>
+            </ButtonLink>
+            <ButtonLink href="/dashboard/concierge/urgences" variant="secondary" className={styles.secondaryLink}>
               Voir les opportunites concierge
-            </Link>
+            </ButtonLink>
           </div>
         </div>
 
@@ -128,14 +128,16 @@ export default function UrgentMissionPage() {
             <span className={styles.step}>1. Type de mission</span>
             <div className={styles.toggleRow}>
               {(["check-in", "check-out"] as MissionType[]).map((option) => (
-                <button
+                <Button
                   key={option}
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   className={form.mission_type === option ? styles.toggleActive : styles.toggle}
                   onClick={() => setForm((prev) => ({ ...prev, mission_type: option }))}
                 >
                   {option === "check-in" ? "Check-in" : "Check-out"}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -143,7 +145,8 @@ export default function UrgentMissionPage() {
           <div className={styles.grid}>
             <label className={styles.field}>
               <span>2. Date et heure exacte</span>
-              <input
+              <Input
+                bare
                 type="datetime-local"
                 value={form.scheduled_at}
                 onChange={(event) =>
@@ -155,7 +158,8 @@ export default function UrgentMissionPage() {
 
             <label className={`${styles.field} ${styles.fieldFull}`}>
               <span>3. Adresse</span>
-              <input
+              <Input
+                bare
                 value={form.property_address}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, property_address: event.target.value }))
@@ -167,7 +171,8 @@ export default function UrgentMissionPage() {
 
             <label className={styles.field}>
               <span>4. Nombre de voyageurs</span>
-              <input
+              <Input
+                bare
                 type="number"
                 min="1"
                 value={form.traveler_count}
@@ -179,7 +184,8 @@ export default function UrgentMissionPage() {
 
             <label className={styles.field}>
               <span>Langue parlee</span>
-              <input
+              <Input
+                bare
                 value={form.spoken_language}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, spoken_language: event.target.value }))
@@ -190,7 +196,7 @@ export default function UrgentMissionPage() {
 
             <label className={styles.field}>
               <span>Remise de cles</span>
-              <select
+              <Select
                 value={form.key_handover_type}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, key_handover_type: event.target.value }))
@@ -199,12 +205,12 @@ export default function UrgentMissionPage() {
                 <option value="Boite a cle">Boite a cle</option>
                 <option value="Remise physique">Remise physique</option>
                 <option value="Serrure connectee">Serrure connectee</option>
-              </select>
+              </Select>
             </label>
 
             <label className={`${styles.field} ${styles.fieldFull}`}>
               <span>Instructions particulieres</span>
-              <textarea
+              <Textarea
                 rows={4}
                 value={form.special_instructions}
                 onChange={(event) =>
@@ -216,7 +222,8 @@ export default function UrgentMissionPage() {
 
             <label className={styles.field}>
               <span>5. Telephone</span>
-              <input
+              <Input
+                bare
                 type="tel"
                 value={form.contact_phone}
                 onChange={(event) =>
@@ -229,7 +236,8 @@ export default function UrgentMissionPage() {
 
             <label className={styles.field}>
               <span>Email</span>
-              <input
+              <Input
+                bare
                 type="email"
                 value={form.contact_email}
                 onChange={(event) =>
@@ -240,9 +248,9 @@ export default function UrgentMissionPage() {
             </label>
           </div>
 
-          <button type="submit" className={styles.primaryButton} disabled={loading}>
+          <Button type="submit" variant="primary" size="lg" className={styles.primaryButton} disabled={loading}>
             {loading ? "Recherche des concierges..." : "Lancer la mission urgente"}
-          </button>
+          </Button>
 
           {error ? <p className={styles.errorBox}>{error}</p> : null}
           {success ? <p className={styles.successBox}>{success}</p> : null}
