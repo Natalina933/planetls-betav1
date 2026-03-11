@@ -4,13 +4,18 @@ import styles from "./Input.module.scss";
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   error?: string;
+  bare?: boolean;
 };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { id, label, error, className = "", ...props },
+  { id, label, error, bare = false, className = "", ...props },
   ref,
 ) {
   const classes = [styles.input, error ? styles.error : "", className].filter(Boolean).join(" ");
+
+  if (bare) {
+    return <input ref={ref} id={id} className={classes} aria-invalid={Boolean(error)} {...props} />;
+  }
 
   return (
     <label className={styles.wrapper} htmlFor={id}>

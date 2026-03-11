@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
-import { Button } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -90,7 +90,8 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
         <label htmlFor="email">Email</label>
         <div className={styles.inputWrapper}>
-          <input
+          <Input
+            bare
             suppressHydrationWarning
             id="email"
             name="email"
@@ -117,7 +118,8 @@ export default function LoginPage() {
 
         <label htmlFor="password">Mot de passe</label>
         <div className={styles.passwordInputWrapper}>
-          <input
+          <Input
+            bare
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
