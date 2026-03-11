@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { Button, ButtonLink } from "@/components/ui";
 import styles from "../ProviderCrudPage.module.scss";
 
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -177,12 +178,12 @@ export default function ProviderPlanningPage() {
               </span>
             </div>
             <div className={styles.formActions}>
-              <Link href="/dashboard/provider/interventions" className={styles.linkButton}>
+              <ButtonLink href="/dashboard/provider/interventions" variant="outline" className={styles.actionButton}>
                 Voir les interventions
-              </Link>
-              <Link href="/dashboard/provider/alertes" className={styles.linkButton}>
+              </ButtonLink>
+              <ButtonLink href="/dashboard/provider/alertes" variant="outline" className={styles.actionButton}>
                 Voir les alertes
-              </Link>
+              </ButtonLink>
             </div>
             <div className={styles.spotlightGrid}>
               {weekBuckets.slice(0, 3).map((bucket) => (
@@ -208,15 +209,15 @@ export default function ProviderPlanningPage() {
             </div>
 
             <div className={styles.viewTabs}>
-              <button type="button" onClick={() => setViewMode("list")}>
+              <Button type="button" variant={viewMode === "list" ? "primary" : "secondary"} size="sm" className={styles.viewTabButton} onClick={() => setViewMode("list")}>
                 Prioritaire
-              </button>
-              <button type="button" onClick={() => setViewMode("week")}>
+              </Button>
+              <Button type="button" variant={viewMode === "week" ? "primary" : "secondary"} size="sm" className={styles.viewTabButton} onClick={() => setViewMode("week")}>
                 Semaine
-              </button>
-              <button type="button" onClick={() => setViewMode("month")}>
+              </Button>
+              <Button type="button" variant={viewMode === "month" ? "primary" : "secondary"} size="sm" className={styles.viewTabButton} onClick={() => setViewMode("month")}>
                 Mois
-              </button>
+              </Button>
             </div>
 
             {viewMode === "list" && upcoming.length === 0 ? (
@@ -230,7 +231,9 @@ export default function ProviderPlanningPage() {
                     <div className={styles.itemHead}>
                       <div>
                         <h3>
-                          <Link href="/dashboard/provider/interventions">{item.title}</Link>
+                          <Link href="/dashboard/provider/interventions" className={styles.weekEventTitle}>
+                            {item.title}
+                          </Link>
                         </h3>
                         <p>{item.location_label || "Lieu à confirmer"}</p>
                       </div>

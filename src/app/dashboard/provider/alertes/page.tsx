@@ -1,11 +1,11 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
 import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import styles from "../ProviderCrudPage.module.scss";
 
 type ProviderIntervention = {
@@ -358,62 +358,73 @@ function ProviderAlertesContent() {
                 title={editingId ? "Modifier une alerte" : "Ajouter une alerte"}
               />
               {editingId ? (
-                <button type="button" className={styles.secondaryButton} onClick={resetForm}>
+                <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={resetForm}>
                   Annuler
-                </button>
+                </Button>
               ) : null}
             </div>
 
             <form className={styles.formGrid} onSubmit={handleSubmit}>
               <label>
                 <span>Intervention</span>
-                <select value={form.intervention_id} onChange={(event) => updateField("intervention_id", event.target.value)}>
+                <Select className={styles.fieldSelect} value={form.intervention_id} onChange={(event) => updateField("intervention_id", event.target.value)}>
                   <option value="">Sans intervention</option>
                   {interventions.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}
-                </select>
+                </Select>
               </label>
               <label>
                 <span>Type</span>
-                <select value={form.alert_type} onChange={(event) => updateField("alert_type", event.target.value)}>
+                <Select className={styles.fieldSelect} value={form.alert_type} onChange={(event) => updateField("alert_type", event.target.value)}>
                   <option value="general">Générale</option>
                   <option value="deadline">Échéance</option>
                   <option value="client">Client</option>
                   <option value="payment">Paiement</option>
                   <option value="quality">Qualité</option>
-                </select>
+                </Select>
               </label>
               <label>
                 <span>Sévérité</span>
-                <select value={form.severity} onChange={(event) => updateField("severity", event.target.value)}>
+                <Select className={styles.fieldSelect} value={form.severity} onChange={(event) => updateField("severity", event.target.value)}>
                   <option value="low">Basse</option>
                   <option value="normal">Normale</option>
                   <option value="high">Haute</option>
                   <option value="urgent">Urgente</option>
-                </select>
+                </Select>
               </label>
               <label>
                 <span>Statut</span>
-                <select value={form.status} onChange={(event) => updateField("status", event.target.value)}>
+                <Select className={styles.fieldSelect} value={form.status} onChange={(event) => updateField("status", event.target.value)}>
                   <option value="open">Ouverte</option>
                   <option value="read">Lue</option>
                   <option value="resolved">Résolue</option>
-                </select>
+                </Select>
               </label>
               <label className={styles.fullWidth}>
                 <span>Titre</span>
-                <input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Ex: Intervention retardée" />
+                <Input
+                  bare
+                  className={styles.fieldInput}
+                  value={form.title}
+                  onChange={(event) => updateField("title", event.target.value)}
+                  placeholder="Ex: Intervention retardée"
+                />
               </label>
               <label className={styles.fullWidth}>
                 <span>Détail</span>
-                <textarea value={form.body} onChange={(event) => updateField("body", event.target.value)} placeholder="Expliquez le blocage ou l'action attendue..." />
+                <Textarea
+                  className={styles.fieldTextarea}
+                  value={form.body}
+                  onChange={(event) => updateField("body", event.target.value)}
+                  placeholder="Expliquez le blocage ou l'action attendue..."
+                />
               </label>
               <div className={styles.formActions}>
-                <button type="submit" disabled={!canSubmit || saving}>
+                <Button type="submit" disabled={!canSubmit || saving}>
                   {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
-                </button>
-                <Link href="/dashboard/provider/interventions" className={styles.linkButton}>
+                </Button>
+                <ButtonLink href="/dashboard/provider/interventions" variant="outline" className={styles.actionButton}>
                   Voir les interventions
-                </Link>
+                </ButtonLink>
               </div>
             </form>
           </section>
@@ -431,29 +442,31 @@ function ProviderAlertesContent() {
 
             <div className={styles.toolbar}>
               <div className={styles.toolbarGroup}>
-                <input
+                <Input
+                  bare
+                  className={styles.toolbarInput}
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Rechercher une alerte"
                 />
               </div>
               <div className={styles.toolbarGroup}>
-                <select value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value)}>
+                <Select className={styles.toolbarSelect} value={severityFilter} onChange={(event) => setSeverityFilter(event.target.value)}>
                   <option value="all">Toutes sévérités</option>
                   <option value="urgent">Urgentes</option>
                   <option value="high">Hautes</option>
                   <option value="normal">Normales</option>
                   <option value="low">Basses</option>
-                </select>
-                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                </Select>
+                <Select className={styles.toolbarSelect} value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
                   <option value="recent">Plus récentes</option>
                   <option value="severity">Sévérité</option>
-                </select>
-                <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
-                <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
-                <button type="button" className={styles.secondaryButton} onClick={handleExportCsv}>
+                </Select>
+                <Input bare type="date" className={styles.toolbarInput} value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+                <Input bare type="date" className={styles.toolbarInput} value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+                <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={handleExportCsv}>
                   Export CSV
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -477,15 +490,7 @@ function ProviderAlertesContent() {
                   return (
                     <article
                       key={item.id}
-                      className={styles.itemCard}
-                      style={
-                        item.id === targetAlertId
-                          ? {
-                              border: "1px solid rgba(180, 70, 44, 0.28)",
-                              boxShadow: "0 14px 28px rgba(180, 70, 44, 0.12)",
-                            }
-                          : undefined
-                      }
+                      className={[styles.itemCard, item.id === targetAlertId ? styles.itemCardTargeted : ""].filter(Boolean).join(" ")}
                     >
                       <div className={styles.itemHead}>
                         <div>
@@ -504,7 +509,8 @@ function ProviderAlertesContent() {
                       </div>
                       {item.body ? <p className={styles.itemBody}>{item.body}</p> : null}
                       <div className={styles.cardActions}>
-                        <select
+                        <Select
+                          className={styles.statusSelect}
                           value={item.status ?? "open"}
                           disabled={quickUpdatingId === item.id}
                           onChange={(event) => void handleQuickStatusUpdate(item.id, event.target.value)}
@@ -512,22 +518,30 @@ function ProviderAlertesContent() {
                           <option value="open">Ouverte</option>
                           <option value="read">Lue</option>
                           <option value="resolved">Résolue</option>
-                        </select>
-                        <button type="button" className={styles.secondaryButton} onClick={() => {
-                          setEditingId(item.id);
-                          setForm(toFormState(item));
-                        }}>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className={styles.actionButton}
+                          onClick={() => {
+                            setEditingId(item.id);
+                            setForm(toFormState(item));
+                          }}
+                        >
                           Modifier
-                        </button>
-                        <Link
+                        </Button>
+                        <ButtonLink
                           href={item.intervention_id ? `/dashboard/provider/interventions?intervention=${item.intervention_id}` : "/dashboard/provider/messages"}
-                          className={styles.linkButton}
+                          variant="outline"
+                          size="sm"
+                          className={styles.actionButton}
                         >
                           Ouvrir
-                        </Link>
-                        <button type="button" className={styles.dangerButton} disabled={deletingId === item.id} onClick={() => void handleDelete(item.id)}>
+                        </ButtonLink>
+                        <Button type="button" variant="outline" size="sm" className={styles.dangerButton} disabled={deletingId === item.id} onClick={() => void handleDelete(item.id)}>
                           {deletingId === item.id ? "Suppression..." : "Supprimer"}
-                        </button>
+                        </Button>
                       </div>
                     </article>
                   );
@@ -537,19 +551,29 @@ function ProviderAlertesContent() {
 
             {!loading && filteredItems.length > pageSize ? (
               <div className={styles.pagination}>
-                <button type="button" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className={styles.paginationButton}
+                  disabled={page === 1}
+                  onClick={() => setPage((current) => current - 1)}
+                >
                   Précédent
-                </button>
+                </Button>
                 <span className={styles.counter}>
                   Page {page} / {totalPages}
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
+                  className={styles.paginationButton}
                   disabled={page === totalPages}
                   onClick={() => setPage((current) => current + 1)}
                 >
                   Suivant
-                </button>
+                </Button>
               </div>
             ) : null}
           </section>
