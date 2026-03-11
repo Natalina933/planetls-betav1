@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
+import { Button } from "@/components/ui";
 
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -129,14 +130,16 @@ export default function LoginPage() {
             autoComplete="current-password"
             className={errors.password ? styles.inputError : styles.input}
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
             className={styles.passwordToggle}
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
+          </Button>
         </div>
         {errors.password && (
           <small role="alert" className={styles.errorMsg}>
@@ -145,19 +148,21 @@ export default function LoginPage() {
         )}
 
         {errors.auth && (
-          <div role="alert" className={styles.errorMsg} style={{ marginTop: "1rem" }}>
+          <div role="alert" className={`${styles.errorMsg} ${styles.authError}`}>
             {errors.auth}
           </div>
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="lg"
           disabled={!canSubmit() || loading}
           className={styles.submitButton}
           aria-busy={loading}
         >
           {loading ? "Connexion en cours..." : "Se connecter"}
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -240,6 +240,10 @@ $page-width: 900px;
   margin-top: 0.2rem;
 }
 
+.authError {
+  margin-top: 1rem;
+}
+
 .successMsg {
   color: #2ecc71;
   font-size: 0.85rem;
@@ -272,15 +276,18 @@ $page-width: 900px;
   top: 50%;
   right: 0.6rem;
   transform: translateY(-50%);
-  background: none;
-  border: none;
+  min-height: 0;
+  padding: 0;
   cursor: pointer;
   color: $gold-dark;
   font-size: 1.1rem;
   transition: color 0.3s ease;
+  box-shadow: none !important;
 
   &:hover {
     color: $gold;
+    background: transparent;
+    transform: translateY(-50%);
   }
 }
 
@@ -318,6 +325,7 @@ $page-width: 900px;
   box-shadow: 0 0 8px rgba($gold, 0.25);
   display: block;
   margin: 1.5rem auto 0;
+  min-width: 220px;
 
   &:hover:not(:disabled) {
     background: $gold-light;
