@@ -429,6 +429,16 @@
   font-weight: 600;
 }
 
+.checkboxInput {
+  width: 1rem;
+  height: 1rem;
+}
+
+.checkboxLabel {
+  color: var(--owner-ink);
+  font-weight: 600;
+}
+
 .statsRow {
   position: relative;
   z-index: 1;

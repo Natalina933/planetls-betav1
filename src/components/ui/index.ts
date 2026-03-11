@@ -29,3 +29,12 @@ export type { SearchBarProps } from "./SearchBar";
 
 export { Loader } from "./Loader";
 export type { LoaderProps } from "./Loader";
+
+export { Checkbox } from "./Checkbox";
+export type { CheckboxProps } from "./Checkbox";
+
+export { Select } from "./Select";
+export type { SelectProps } from "./Select";
+
+export { Textarea } from "./Textarea";
+export type { TextareaProps } from "./Textarea";

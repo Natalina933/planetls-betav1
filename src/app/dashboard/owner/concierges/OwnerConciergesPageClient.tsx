@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import FilterSliders from "@/app/components/ui/FilterSliders";
-import { Button, ButtonLink, Input } from "@/components/ui";
+import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import { ConciergeAvatar } from "./ConciergeAvatar";
 import { ConciergeCard } from "./card/ConciergeCard";
@@ -419,7 +419,7 @@ export default function OwnerConciergesPageClient() {
 
         <label className={styles.field}>
           <span>Type de bien</span>
-          <select
+          <Select
             aria-label="Type de bien"
             value={filters.propertyType}
             onChange={(event) => updateFilters("propertyType", event.target.value)}
@@ -430,7 +430,7 @@ export default function OwnerConciergesPageClient() {
                 {option}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <div className={styles.sliderFilters}>
@@ -565,15 +565,14 @@ export default function OwnerConciergesPageClient() {
             )}
           </div>
 
-          <label className={styles.checkboxRow}>
-          <input
+          <Checkbox
             aria-label="Afficher uniquement les concierges PRO"
-            type="checkbox"
             checked={filters.proOnly}
             onChange={(event) => updateFilters("proOnly", event.target.checked)}
+            label="Afficher uniquement les concierges PRO"
+            className={styles.checkboxInput}
+            labelClassName={styles.checkboxLabel}
           />
-          <span>Afficher uniquement les concierges PRO</span>
-        </label>
       </div>
     </>
   );
@@ -881,7 +880,7 @@ export default function OwnerConciergesPageClient() {
                   <div className={styles.fieldGrid}>
                     <label className={styles.field}>
                       <span>Type de demande</span>
-                      <select
+                      <Select
                         value={requestForm.requestType}
                         onChange={(event) =>
                           updateRequestForm("requestType", event.target.value as RequestType)
@@ -890,7 +889,7 @@ export default function OwnerConciergesPageClient() {
                         <option value="ponctuel">Besoin ponctuel</option>
                         <option value="renfort">Remplacement / renfort</option>
                         <option value="durable">Besoin durable</option>
-                      </select>
+                      </Select>
                     </label>
 
                     <div className={styles.field}>
@@ -964,7 +963,7 @@ export default function OwnerConciergesPageClient() {
 
                   <label className={styles.field}>
                     <span>Description</span>
-                    <textarea
+                    <Textarea
                       className={styles.requestTextarea}
                       value={requestForm.description}
                       onChange={(event) => updateRequestForm("description", event.target.value)}
@@ -974,14 +973,13 @@ export default function OwnerConciergesPageClient() {
                   </label>
                 </div>
 
-                <label className={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    checked={requestForm.urgency}
-                    onChange={(event) => updateRequestForm("urgency", event.target.checked)}
-                  />
-                  <span>Cette demande est urgente</span>
-                </label>
+                <Checkbox
+                  checked={requestForm.urgency}
+                  onChange={(event) => updateRequestForm("urgency", event.target.checked)}
+                  label="Cette demande est urgente"
+                  className={styles.checkboxInput}
+                  labelClassName={styles.checkboxLabel}
+                />
               </div>
 
               <div className={styles.actions}>

@@ -1,0 +1,17 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+}
+
+.input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--ui-color-primary);
+}
+
+.label {
+  color: var(--ui-color-text);
+  font-size: 0.9rem;
+}

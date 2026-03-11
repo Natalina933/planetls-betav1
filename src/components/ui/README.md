@@ -11,7 +11,7 @@
 - Badges statuts: `Badge`.
 - Labels/categories: `Tag`.
 - Actions UI: `Button` ou `ButtonLink`.
-- Champs saisie: `Input`.
+- Champs saisie: `Input | Select | Textarea | Checkbox`.
 - Recherche simple: `SearchBar`.
 
 ## Variants autorises
@@ -21,6 +21,9 @@
 - `Tag`: `default | category | status`
 - `Card`: `small | large`
 - `Loader`: `sm | md | lg`
+- `Checkbox`: sans variant (version de base DS)
+- `Select`: sans variant (version de base DS)
+- `Textarea`: sans variant (version de base DS)
 
 ## Interdictions
 
@@ -36,6 +39,9 @@
 - `common/Inputs/Input` -> `ui/Input`
 - `common/Buttons/*` -> `ui/Button` ou `ui/ButtonLink`
 - `common/Loader/*` -> `ui/Loader`
+- `input[type="checkbox"]` local -> `ui/Checkbox`
+- `select` local -> `ui/Select`
+- `textarea` local -> `ui/Textarea`
 
 ## Statut migration (frozen)
 
@@ -61,6 +67,9 @@ import {
   Container,
   Section,
   Input,
+  Select,
+  Textarea,
+  Checkbox,
   SearchBar,
   Loader,
 } from "@/components/ui";

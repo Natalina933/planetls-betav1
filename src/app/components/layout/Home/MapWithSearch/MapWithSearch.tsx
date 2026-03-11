@@ -11,7 +11,7 @@ import React, {
 import { usePathname, useRouter } from "next/navigation";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { SearchBar } from "@/components/ui";
+import { Button, SearchBar } from "@/components/ui";
 
 import iconMap from "../../../../lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
@@ -278,14 +278,16 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
   return (
     <>
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         className={styles.globalCloseButton}
         onClick={onClose}
         aria-label="Fermer"
         type="button"
       >
         <FaTimes />
-      </button>
+      </Button>
       {isMainModalVisible && (
         <div
           className={styles.searchOverlay}
@@ -308,14 +310,16 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
               draggable
             />
 
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               className={styles.closeButton}
               onClick={onClose}
               aria-label="Fermer la fenêtre"
               type="button"
             >
               <FaTimes />
-            </button>
+            </Button>
 
             <section className={styles.categorySearchSection}>
               <h2 id="modal-title">
@@ -332,9 +336,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                   const isActive = selectedCategory === key;
 
                   return (
-                    <button
+                    <Button
                       key={key}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       aria-pressed={isActive}
                       aria-label={`Catégorie ${label}`}
                       className={`${styles.tripleToggleButton} ${
@@ -344,7 +350,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                     >
                       {Icon && <Icon className={styles.toggleIcon} />}
                       <span>{label}</span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

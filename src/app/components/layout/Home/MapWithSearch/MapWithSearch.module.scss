@@ -329,6 +329,8 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   right: $spacing-lg;
   width: 44px;
   height: 44px;
+  min-height: 0;
+  padding: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   border: 1.5px solid rgba($gold-main, 0.25);
@@ -373,6 +375,8 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 
   width: 44px;
   height: 44px;
+  min-height: 0;
+  padding: 0;
   border-radius: 50%;
 
   display: flex;

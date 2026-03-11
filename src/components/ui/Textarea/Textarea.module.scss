@@ -1,0 +1,17 @@
+.textarea {
+  width: 100%;
+  min-height: 110px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.92rem;
+  font-family: var(--ui-font-text);
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid rgba(184, 135, 70, 0.45);
+  outline-offset: 2px;
+}
