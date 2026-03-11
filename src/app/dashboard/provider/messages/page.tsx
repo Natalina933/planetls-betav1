@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import styles from "./ProviderMessagesPage.module.scss";
 
 type ProviderConversationRow = {
@@ -342,9 +342,10 @@ function ProviderMessagesContent() {
                 </p>
               ) : (
                 <>
-                  <select
+                  <Select
                     value={selectedClientId}
                     onChange={(event) => setSelectedClientId(event.target.value)}
+                    className={styles.createSelect}
                   >
                     {clients.map((client) => (
                       <option key={client.id} value={client.id}>
@@ -352,25 +353,30 @@ function ProviderMessagesContent() {
                         {client.city ? ` - ${client.city}` : ""}
                       </option>
                     ))}
-                  </select>
-                  <input
+                  </Select>
+                  <Input
+                    bare
                     type="text"
                     value={newSubject}
                     onChange={(event) => setNewSubject(event.target.value)}
                     placeholder="Objet de la conversation"
+                    className={styles.createInput}
                   />
-                  <textarea
+                  <Textarea
                     value={newMessage}
                     onChange={(event) => setNewMessage(event.target.value)}
                     placeholder="Premier message..."
+                    className={styles.createTextarea}
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
                     disabled={!canCreateConversation || creating}
                     onClick={handleCreateConversation}
+                    className={styles.createButton}
                   >
                     {creating ? "Création..." : "Créer le fil"}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -381,17 +387,23 @@ function ProviderMessagesContent() {
             </div>
 
             <div className={styles.toolbar}>
-              <input
+              <Input
+                bare
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Rechercher un fil"
+                className={styles.toolbarInput}
               />
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <Select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className={styles.toolbarSelect}
+              >
                 <option value="all">Tous statuts</option>
                 <option value="open">Ouverts</option>
                 <option value="archived">Archives</option>
                 <option value="closed">Fermés</option>
-              </select>
+              </Select>
               <span className={styles.counter}>
                 {filteredConversations.filter((item) => (item.status ?? "open") === "open").length} ouverts
               </span>
@@ -402,18 +414,20 @@ function ProviderMessagesContent() {
             {!loading && filteredConversations.length === 0 ? (
               <div className={styles.messageList}>
                 <p className={styles.emptyState}>Aucune conversation disponible pour le moment.</p>
-                <Link href="/dashboard/provider/clients" className={styles.cta}>
+                <ButtonLink href="/dashboard/provider/clients" variant="secondary" className={styles.cta}>
                   Voir les clients
-                </Link>
+                </ButtonLink>
               </div>
             ) : null}
 
             {!loading && filteredConversations.length > 0 ? (
               <div className={styles.conversationList}>
                 {filteredConversations.map((conversation) => (
-                  <button
+                  <Button
                     key={conversation.id}
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className={`${styles.conversationItem} ${
                       activeConversationId === conversation.id ? styles.conversationItemActive : ""
                     }`}
@@ -425,7 +439,7 @@ function ProviderMessagesContent() {
                     </div>
                     <p>{conversation.subject || "Conversation client"}</p>
                     <small>{conversation.last_message_preview || "Aucun message pour le moment."}</small>
-                  </button>
+                  </Button>
                 ))}
               </div>
             ) : null}
@@ -480,14 +494,20 @@ function ProviderMessagesContent() {
                 </div>
 
                 <div className={styles.composer}>
-                  <textarea
+                  <Textarea
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
                     placeholder="Écrivez votre message client..."
+                    className={styles.composerTextarea}
                   />
-                  <button type="button" disabled={!canSend || sending} onClick={handleSendMessage}>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={!canSend || sending}
+                    onClick={handleSendMessage}
+                  >
                     {sending ? "Envoi..." : "Envoyer"}
-                  </button>
+                  </Button>
                 </div>
               </>
             )}

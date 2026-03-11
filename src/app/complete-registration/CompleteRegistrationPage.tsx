@@ -4,6 +4,7 @@ import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "reac
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaEdit } from "react-icons/fa";
+import { Button, Input } from "@/components/ui";
 
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
@@ -296,9 +297,15 @@ export default function CompleteRegistrationPage() {
             <p>Aucune expérience renseignée</p>
           )}
 
-          <button type="button" className={styles.editButton} onClick={() => setShowExperiencePopup(true)}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={styles.editButton}
+            onClick={() => setShowExperiencePopup(true)}
+          >
             <FaEdit /> Modifier mon expérience
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -317,7 +324,8 @@ export default function CompleteRegistrationPage() {
       <form onSubmit={handleSubmit} className={styles.form}>
         <h2>🔐 Création du compte</h2>
 
-        <input
+        <Input
+          bare
           name="username"
           placeholder="Nom d'utilisateur"
           value={form.username}
@@ -327,7 +335,8 @@ export default function CompleteRegistrationPage() {
         />
 
         <div className={styles.passwordWrapper}>
-          <input
+          <Input
+            bare
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Mot de passe"
@@ -336,9 +345,9 @@ export default function CompleteRegistrationPage() {
             autoComplete="new-password"
             required
           />
-          <button type="button" onClick={() => setShowPassword((v) => !v)}>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword((v) => !v)}>
             {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
+          </Button>
         </div>
 
         {errors.password && (
@@ -346,7 +355,8 @@ export default function CompleteRegistrationPage() {
         )}
 
         <div className={styles.passwordWrapper}>
-          <input
+          <Input
+            bare
             type={showConfirmPassword ? "text" : "password"}
             name="confirmPassword"
             placeholder="Confirmation"
@@ -355,9 +365,14 @@ export default function CompleteRegistrationPage() {
             autoComplete="new-password"
             required
           />
-          <button type="button" onClick={() => setShowConfirmPassword((v) => !v)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowConfirmPassword((v) => !v)}
+          >
             {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
+          </Button>
         </div>
 
         {form.confirmPassword && !errors.confirmPassword && (
@@ -368,9 +383,15 @@ export default function CompleteRegistrationPage() {
           <small className={styles.errorMsg}><FaTimesCircle /> {errors.confirmPassword}</small>
         )}
 
-        <button type="submit" disabled={!canSubmit || loading} className={styles.submitButton}>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={!canSubmit || loading}
+          className={styles.submitButton}
+        >
           {loading ? "Inscription..." : "Finaliser mon inscription"}
-        </button>
+        </Button>
       </form>
 
       {/* POPUP EXPERIENCE */}

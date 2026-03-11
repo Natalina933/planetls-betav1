@@ -77,6 +77,22 @@
   color: #172012;
 }
 
+.toolbarInput {
+  border-radius: 14px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.75rem 0.9rem;
+  background: #ffffff;
+  color: #172012;
+}
+
+.toolbarSelect {
+  border-radius: 14px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.75rem 0.9rem;
+  background: #ffffff;
+  color: #172012;
+}
+
 .counter {
   display: inline-flex;
   align-items: center;
@@ -105,10 +121,16 @@
   display: grid;
   gap: 0.4rem;
   padding: 0.9rem;
+  width: 100%;
   text-align: left;
   border-radius: 16px;
   border: 1px solid rgba(76, 97, 69, 0.16);
   background: #ffffff;
+  box-shadow: none;
+}
+
+.conversationItem:hover {
+  transform: none;
 }
 
 .conversationItemActive {
@@ -172,6 +194,25 @@
   color: #172012;
 }
 
+.createSelect,
+.createInput,
+.createTextarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.8rem 0.95rem;
+  background: #ffffff;
+  color: #172012;
+}
+
+.createTextarea {
+  min-height: 96px;
+}
+
+.createButton {
+  min-height: 42px;
+}
+
 .createBox textarea {
   min-height: 96px;
   resize: vertical;
@@ -195,6 +236,14 @@
 
 .composer button:disabled {
   opacity: 0.55;
+}
+
+.composerTextarea {
+  min-height: 120px;
+  border-radius: 16px;
+  border: 1px solid rgba(76, 97, 69, 0.2);
+  padding: 0.85rem 1rem;
+  background: #ffffff;
 }
 
 .createBox button:disabled {

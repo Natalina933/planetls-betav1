@@ -228,11 +228,17 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
     right: 0.8rem;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
-    border: none;
+    min-height: 0;
+    padding: 0;
     cursor: pointer;
     color: $gold-dark;
     font-size: 1.1rem;
+    box-shadow: none !important;
+
+    &:hover {
+      background: transparent;
+      transform: translateY(-50%);
+    }
   }
 }
 
@@ -285,12 +291,9 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
 .submitButton {
   margin-top: 1.6rem;
   width: 100%;
-  padding: 0.9rem;
-  border-radius: 999px;
-  border: none;
+  min-height: 48px;
   font-size: 1rem;
   font-weight: 600;
-  cursor: pointer;
   background: linear-gradient(135deg, $gold, $gold-light);
   color: #fffaf0;
   box-shadow: 0 0 12px rgba($gold, 0.35);
