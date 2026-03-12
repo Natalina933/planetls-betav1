@@ -383,6 +383,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
       {showExperiencePopup && (
         <ExperiencePopup
+          category={selectedCategory || undefined}
           onClose={() => setShowExperiencePopup(false)}
           onValidate={handleExperienceSelect}
         />

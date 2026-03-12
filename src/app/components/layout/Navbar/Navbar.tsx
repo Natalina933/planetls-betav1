@@ -6,6 +6,7 @@ import styles from "./Navbar.module.scss";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useSession, signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
+import { useSearchPopup } from "../../../context/SearchPopupContext";
 
 const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), { ssr: false }),
@@ -25,6 +26,7 @@ export default function Navbar() {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const { data: session, status } = useSession();
   const { userType } = useUserType();
+  const { setSearchOpen } = useSearchPopup();
 
   const [showWarning, setShowWarning] = useState(false);
   const [warningDeadline, setWarningDeadline] = useState<number | null>(null);
@@ -227,6 +229,14 @@ export default function Navbar() {
     router.push("/login");
   };
 
+  const handleRegister = () => {
+    closeMenu();
+    setSearchOpen(true);
+    if (pathname !== "/home") {
+      router.push("/home");
+    }
+  };
+
   return (
     <>
       <nav className={styles.navbar}>
@@ -287,10 +297,7 @@ export default function Navbar() {
           {!isAuthenticated && (
             <li className={styles["auth-inscription"]}>
               <button
-                onClick={() => {
-                  router.push("/complete-registration");
-                  closeMenu();
-                }}
+                onClick={handleRegister}
                 className={`${styles.searchBtn} ${styles.navButton}`}
                 aria-label="Acceder a l'inscription"
               >
