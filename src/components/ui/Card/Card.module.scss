@@ -3,7 +3,7 @@
   gap: var(--ui-space-4);
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-lg);
+  border-radius: var(--ui-card-radius, var(--ui-radius-lg));
   box-shadow: var(--ui-shadow-sm);
   color: var(--ui-color-text);
   animation: ui-fade-in-up 180ms ease-out;

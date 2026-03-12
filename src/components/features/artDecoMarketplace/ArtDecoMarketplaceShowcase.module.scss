@@ -1,0 +1,212 @@
+.theme {
+  --ui-color-bg: #f4f6f8;
+  --ui-color-surface: #ffffff;
+  --ui-color-surface-soft: #ebeff2;
+  --ui-color-border: #d5dbdf;
+  --ui-color-text: #2c3e50;
+  --ui-color-text-muted: #5d6d7e;
+  --ui-color-primary: #d4af37;
+  --ui-color-primary-strong: #b5a642;
+  --ui-color-accent: #1a2530;
+  --ui-button-radius: 3px;
+  --ui-input-radius: 3px;
+  --ui-select-radius: 3px;
+  --ui-card-radius: 4px;
+  --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
+  --ui-shadow-md: 0 12px 24px rgba(44, 62, 80, 0.09);
+
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent 38%),
+    linear-gradient(180deg, #f7f8fa 0%, #f1f4f7 100%);
+  color: var(--ui-color-text);
+  min-height: 100vh;
+  padding: clamp(1rem, 1.8vw, 2rem);
+}
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(1.5rem, 2.4vw, 2.5rem);
+}
+
+.hero,
+.block {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  box-shadow: var(--ui-shadow-sm);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.2rem, 2.2vw, 2rem);
+}
+
+.hero::before,
+.block::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  pointer-events: none;
+}
+
+.hero h1,
+.block h2,
+.block h3 {
+  font-family: var(--font-primary, "Cormorant Garamond", serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.hero h1 {
+  font-size: clamp(1.6rem, 4.2vw, 3rem);
+  color: #1a2530;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 76ch;
+  color: var(--ui-color-text-muted);
+  line-height: 1.65;
+}
+
+.kicker {
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+.heroSearch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+}
+
+.heroTrust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.separator {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(44, 62, 80, 0.35), transparent);
+}
+
+.separator::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #d4af37;
+  background: #ffffff;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.block {
+  display: grid;
+  gap: 1rem;
+}
+
+.categoryGrid,
+.profileGrid,
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.decoCard,
+.profileCard,
+.featureCard,
+.resultCard {
+  height: 100%;
+}
+
+.decoCard h3,
+.profileCard h3,
+.featureCard h3,
+.resultCard h3 {
+  font-size: 1.02rem;
+}
+
+.decoCard p,
+.profileCard p,
+.featureCard p,
+.resultCard p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--ui-color-text-muted);
+}
+
+.decoCard {
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.decoCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ui-shadow-md);
+}
+
+.searchLayout {
+  display: grid;
+  grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.filters {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  background: var(--ui-color-surface-soft);
+  border: 1px solid var(--ui-color-border);
+  padding: 0.9rem;
+}
+
+.filters h3 {
+  font-size: 0.92rem;
+}
+
+.resultsArea {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.mapMock {
+  min-height: 220px;
+  border: 1px solid var(--ui-color-border);
+  background:
+    linear-gradient(45deg, rgba(212, 175, 55, 0.08), transparent 40%),
+    repeating-linear-gradient(90deg, rgba(44, 62, 80, 0.07) 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(0deg, rgba(44, 62, 80, 0.07) 0 1px, transparent 1px 36px),
+    #f8fbff;
+  display: grid;
+  place-items: center;
+  color: #1a2530;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1024px) {
+  .categoryGrid,
+  .profileGrid,
+  .featureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .heroSearch,
+  .searchLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryGrid,
+  .profileGrid,
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}

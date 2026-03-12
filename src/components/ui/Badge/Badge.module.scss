@@ -40,3 +40,24 @@
   border-color: rgba(71, 108, 160, 0.34);
   color: #35507b;
 }
+
+:global([data-theme="art-deco"]) .badge {
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  font-family: var(--font-title);
+}
+
+:global([data-theme="art-deco"]) .success,
+:global([data-theme="art-deco"]) .warning {
+  background: #f9f1d8;
+  border-color: rgba(212, 175, 55, 0.52);
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .success::before,
+:global([data-theme="art-deco"]) .warning::before {
+  content: "◆";
+  font-size: 0.58rem;
+  margin-right: 0.35rem;
+  color: #b5a642;
+}

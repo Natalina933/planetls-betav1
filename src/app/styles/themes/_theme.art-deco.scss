@@ -1,0 +1,65 @@
+// ============================================
+// THEME ART DECO
+// ============================================
+// Theme clair premium, contraste eleve, accents or/laiton.
+
+[data-theme="art-deco"] {
+    // --- COULEURS PRIMAIRES ---
+    --color-primary: #d4af37;
+    --color-primary-rgb: 212, 175, 55;
+    --color-primary-hover: #b5a642;
+    --color-primary-light: #f9f1d8;
+
+    // --- ARRIERE-PLANS ---
+    --background: #f4f6f8;
+    --background-secondary: #ebeff2;
+    --background-tertiary: #dfe5ea;
+    --color-bg: #f4f6f8;
+
+    // --- TEXTE ---
+    --color-text: #2c3e50;
+    --color-text-secondary: #3a4c5f;
+    --color-text-muted: #5d6d7e;
+    --color-text-light: #6b7a88;
+    --color-text-on-light: #1a2530;
+    --color-text-on-dark: #f8f5ef;
+    --color-text-gold: #d4af37;
+
+    // --- BORDURES ---
+    --color-border: #d5dbdf;
+    --color-border-light: #e6eaee;
+    --color-border-dark: #c2cad1;
+
+    // --- ACCENTS ---
+    --color-accent: #d4af37;
+    --color-accent-light: #f9f1d8;
+    --color-success: #2f7f46;
+    --color-error: #a63d3d;
+    --color-warning: #b7791f;
+    --color-info: #2b6cb0;
+
+    // --- OVERLAY & OMBRES ---
+    --color-overlay: rgba(26, 37, 48, 0.45);
+    --color-shadow: rgba(44, 62, 80, 0.1);
+    --color-focus-ring: rgba(212, 175, 55, 0.35);
+
+    // --- BOUTONS ---
+    --button-primary-bg: #1a2530;
+    --button-primary-text: #f9f1d8;
+    --button-primary-hover: #d4af37;
+    --button-secondary-bg: transparent;
+    --button-secondary-border: #d4af37;
+    --button-secondary-text: #1a2530;
+
+    // --- LIENS ---
+    --link-color: #2b6cb0;
+    --link-hover: #1e4f83;
+    --link-visited: #5b4b8a;
+
+    // --- INPUT ---
+    --input-bg: #ffffff;
+    --input-border: #d5dbdf;
+    --input-text: #2c3e50;
+    --input-placeholder: #758594;
+    --input-focus-ring: rgba(212, 175, 55, 0.35);
+}

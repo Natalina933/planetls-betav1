@@ -1,6 +1,6 @@
 "use client";
 
-import { FaSun, FaMoon } from "react-icons/fa";
+import { FaSun, FaMoon, FaGem } from "react-icons/fa";
 import { GiScrollQuill } from "react-icons/gi";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import styles from "./ThemeToggle.module.scss";
@@ -28,6 +28,14 @@ export default function ThemeToggle() {
         title="Mucha Nocturne"
       >
         <FaMoon />
+      </button>
+
+      <button
+        aria-pressed={theme === "art-deco"}
+        onClick={() => setTheme("art-deco")}
+        title="Art Deco"
+      >
+        <FaGem />
       </button>
 
       <button

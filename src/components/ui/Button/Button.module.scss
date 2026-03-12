@@ -4,7 +4,7 @@
   justify-content: center;
   gap: var(--ui-space-2);
   min-height: 42px;
-  border-radius: var(--ui-radius-pill);
+  border-radius: var(--ui-button-radius, var(--ui-radius-pill));
   border: 1px solid transparent;
   padding: 0.6rem 1rem;
   font-family: var(--ui-font-title);
@@ -18,7 +18,7 @@
 }
 
 .button:focus-visible {
-  outline: 2px solid rgba(184, 135, 70, 0.45);
+  outline: 2px solid rgba(212, 175, 55, 0.45);
   outline-offset: 2px;
 }
 

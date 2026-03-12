@@ -25,6 +25,10 @@
   --ui-radius-md: 12px;
   --ui-radius-lg: 18px;
   --ui-radius-pill: 999px;
+  --ui-button-radius: var(--ui-radius-pill);
+  --ui-input-radius: var(--ui-radius-md);
+  --ui-select-radius: var(--ui-radius-md);
+  --ui-card-radius: var(--ui-radius-lg);
 
   --ui-shadow-sm: 0 8px 24px rgba(63, 43, 22, 0.08);
   --ui-shadow-md: 0 16px 36px rgba(63, 43, 22, 0.12);
@@ -68,6 +72,28 @@
 
   --dash-shadow-sm: 0 8px 18px rgba(46, 31, 15, 0.08);
   --dash-shadow-md: 0 16px 28px rgba(46, 31, 15, 0.12);
+}
+
+[data-theme="art-deco"],
+.theme-art-deco {
+  --ui-color-bg: #f4f6f8;
+  --ui-color-surface: #ffffff;
+  --ui-color-surface-soft: #ebeff2;
+  --ui-color-border: #d5dbdf;
+  --ui-color-text: #2c3e50;
+  --ui-color-text-muted: #5d6d7e;
+  --ui-color-primary: #d4af37;
+  --ui-color-primary-strong: #b5a642;
+  --ui-color-accent: #1a2530;
+  --ui-color-danger: #af3f3f;
+
+  --ui-button-radius: 4px;
+  --ui-input-radius: 4px;
+  --ui-select-radius: 4px;
+  --ui-card-radius: 4px;
+
+  --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
+  --ui-shadow-md: 0 10px 26px rgba(44, 62, 80, 0.09);
 }
 
 [data-theme="dark"] {

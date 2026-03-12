@@ -2,18 +2,20 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type Theme = "light" | "sepia" | "mucha-dark";
+export type Theme = "light" | "sepia" | "art-deco" | "mucha-dark";
 type LegacyTheme = "dark";
 
 export const THEMES = {
   LIGHT: "light",
   SEPIA: "sepia",
+  ART_DECO: "art-deco",
   MUCHA_DARK: "mucha-dark",
 } as const;
 
 export const THEME_LABELS: Record<Theme, string> = {
   light: "Mode clair",
   sepia: "Sepia 1900",
+  "art-deco": "Art Deco",
   "mucha-dark": "Mucha Nocturne",
 };
 
@@ -35,7 +37,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const applyTheme = (nextTheme: Theme) => {
     document.documentElement.setAttribute("data-theme", nextTheme);
     document.body.setAttribute("data-theme", nextTheme);
-    document.body.classList.remove("light", "sepia", "mucha-dark");
+    document.body.classList.remove("light", "sepia", "art-deco", "mucha-dark");
     document.body.classList.add(nextTheme);
   };
 
@@ -44,7 +46,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const stored =
       storedRaw === "dark" ? "mucha-dark" : storedRaw;
 
-    if (stored === "light" || stored === "sepia" || stored === "mucha-dark") {
+    if (stored === "light" || stored === "sepia" || stored === "art-deco" || stored === "mucha-dark") {
       setThemeState(stored);
       applyTheme(stored);
       return;

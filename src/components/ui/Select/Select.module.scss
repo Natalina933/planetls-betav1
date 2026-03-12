@@ -1,7 +1,7 @@
 .select {
   width: 100%;
   min-height: 44px;
-  border-radius: var(--ui-radius-md);
+  border-radius: var(--ui-select-radius, var(--ui-radius-md));
   border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
   color: var(--ui-color-text);
@@ -11,6 +11,6 @@
 }
 
 .select:focus-visible {
-  outline: 2px solid rgba(184, 135, 70, 0.45);
+  outline: 2px solid rgba(212, 175, 55, 0.45);
   outline-offset: 2px;
 }

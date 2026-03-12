@@ -26,3 +26,20 @@
   border-color: rgba(59, 125, 106, 0.3);
   color: #2e6354;
 }
+
+:global([data-theme="art-deco"]) .tag {
+  border-radius: 3px;
+  font-family: var(--font-title);
+}
+
+:global([data-theme="art-deco"]) .category {
+  background: #f9f1d8;
+  border-color: rgba(212, 175, 55, 0.44);
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .status {
+  background: #eaf0f6;
+  border-color: rgba(44, 62, 80, 0.26);
+  color: #2c3e50;
+}
