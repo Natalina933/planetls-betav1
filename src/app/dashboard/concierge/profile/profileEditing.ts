@@ -1,4 +1,4 @@
-import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
+﻿import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
 
 export type SectionEditSnapshots = Record<string, string>;
@@ -397,8 +397,8 @@ export function buildMissionProgressSteps(
   return [
     {
       key: "services",
-      label: "Services proposes",
-      hint: "Definissez les prestations que vous acceptez.",
+      label: "Services proposés",
+      hint: "Définissez les prestations que vous acceptez.",
       done: activeMissionServiceCount > 0,
       sectionId: sectionIds.SERVICES,
     },
@@ -411,7 +411,7 @@ export function buildMissionProgressSteps(
     },
     {
       key: "availability",
-      label: "Disponibilites hebdomadaires",
+      label: "Disponibilités hebdomadaires",
       hint: "Renseignez vos jours et plages horaires.",
       done: missionOpenDaysCount > 0 && missionRangesCount > 0,
       sectionId: sectionIds.WEEKLY_AVAILABILITY,
@@ -434,7 +434,7 @@ export function buildTariffReadinessChecks(input: {
     },
     {
       id: "rate",
-      label: "Tarif horaire defini",
+      label: "Tarif horaire défini",
       ready: Number(input.hourlyRate ?? 0) > 0,
     },
     {
@@ -743,7 +743,7 @@ export function validatePricingModalState(
 ): { serviceIdNumber: number | null; parsedAmount: number | null; error: string | null } {
   const serviceIdNumber = Number(pricingModalState.serviceId);
   if (!Number.isFinite(serviceIdNumber) || serviceIdNumber <= 0) {
-    return { serviceIdNumber: null, parsedAmount: null, error: "Selectionnez un service." };
+    return { serviceIdNumber: null, parsedAmount: null, error: "Sélectionnez un service." };
   }
 
   const parsedAmount = Number(pricingModalState.amount);
@@ -751,7 +751,7 @@ export function validatePricingModalState(
     return {
       serviceIdNumber,
       parsedAmount: null,
-      error: "Le tarif doit etre superieur a 0.",
+      error: "Le tarif doit être supérieur à 0.",
     };
   }
 
@@ -759,7 +759,7 @@ export function validatePricingModalState(
     return {
       serviceIdNumber,
       parsedAmount,
-      error: "L'unite est obligatoire.",
+      error: "L'unité est obligatoire.",
     };
   }
 
@@ -1096,11 +1096,11 @@ export async function createQuoteFromMissionRequest(missionId: string): Promise<
     throw new Error(
       typeof result?.error === "string"
         ? result.error
-        : "Erreur creation devis depuis mission",
+        : "Erreur création devis depuis mission",
     );
   }
 
-  return typeof result?.quote_number === "string" ? result.quote_number : "devis cree";
+  return typeof result?.quote_number === "string" ? result.quote_number : "devis créé";
 }
 
 export async function uploadProfileAvatar(
@@ -1143,3 +1143,4 @@ export function buildProfileValidationAlertMessageSafe(): string {
 export function buildProfileSuccessMessageSafe(sectionTitle: string): string {
   return `${sectionTitle} mis à jour avec succès`;
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
@@ -91,9 +91,9 @@ export default function ConciergeStocksPage() {
       title="Stocks et consommables"
       description={
         loading
-          ? "Preparation du pilotage stock..."
+          ? "Préparation du pilotage stock..."
           : error ||
-            "Gardez un repere simple sur le linge, les kits d'accueil et les consommables pour eviter les tensions terrain."
+            "Gardez un repère simple sur le linge, les kits d'accueil et les consommables pour éviter les tensions terrain."
       }
       chips={[
         `${housingCount} logement(s) suivis`,
@@ -108,17 +108,17 @@ export default function ConciergeStocksPage() {
         {
           label: "Kits accueil",
           value: loading ? "..." : String(stockForecast.welcomeKits),
-          hint: "Base minimale recommandee",
+          hint: "Base minimale recommandée",
         },
         {
           label: "Jeux de linge",
           value: loading ? "..." : String(stockForecast.linenSets),
-          hint: "Rotation estimee",
+          hint: "Rotation estimée",
         },
         {
           label: "Réassort ménage",
           value: loading ? "..." : String(stockForecast.cleaningUnits),
-          hint: "Unites a garder en reserve",
+          hint: "Unités à garder en réserve",
         },
         {
           label: "Tampon urgence",
@@ -135,22 +135,22 @@ export default function ConciergeStocksPage() {
           title: "2. Kits voyageurs",
           text:
             urgentMissions.length > 0
-              ? `${urgentMissions.length} mission(s) urgente(s) sont en cours : verifiez gels douche, cafe, papier et consommables d'accueil.`
-              : "Aucune urgence remontee : profitez-en pour standardiser vos kits voyageurs et vos procedures de reapprovisionnement.",
+              ? `${urgentMissions.length} mission(s) urgente(s) sont en cours : vérifiez gels douche, café, papier et consommables d'accueil.`
+              : "Aucune urgence remontée : profitez-en pour standardiser vos kits voyageurs et vos procédures de réapprovisionnement.",
         },
         {
-          title: "3. Biens a fiabiliser",
+          title: "3. Biens à fiabiliser",
           text:
             inactiveHousings.length > 0
-              ? `${inactiveHousings.length} logement(s) restent incomplets ou inactifs : ils faussent votre estimation stock et votre rotation reelle.`
-              : "Tous vos logements sont actifs ou publies, votre base stock est plus simple a piloter.",
+              ? `${inactiveHousings.length} logement(s) restent incomplets ou inactifs : ils faussent votre estimation stock et votre rotation réelle.`
+              : "Tous vos logements sont actifs ou publiés, votre base stock est plus simple à piloter.",
         },
       ]}
       detailSections={[
         {
-          title: "Controle par logement",
+          title: "Contrôle par logement",
           description:
-            "Passez rapidement en revue les biens a reapprovisionner ou a fiabiliser avant les prochains sejours.",
+            "Passez rapidement en revue les biens à réapprovisionner ou à fiabiliser avant les prochains séjours.",
           emptyText:
             loading
               ? "Chargement des logements."
@@ -168,16 +168,17 @@ export default function ConciergeStocksPage() {
           items: urgentMissionItems,
         },
         {
-          title: "Biens a remettre au carre",
+          title: "Biens à remettre au carré",
           description:
-            "Les logements encore inactifs ou incomplets meritent une verification rapide pour eviter les ecarts de stock.",
+            "Les logements encore inactifs ou incomplets méritent une vérification rapide pour éviter les écarts de stock.",
           emptyText:
             loading
               ? "Analyse des logements incomplets."
-              : error || "Aucun logement brouillon a corriger.",
+              : error || "Aucun logement brouillon à corriger.",
           items: inactiveHousingItems,
         },
       ]}
     />
   );
 }
+

@@ -47,6 +47,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
         { label: "Planning", path: "/dashboard/owner/planning", icon: FiCalendar },
         { label: "Alertes", path: "/dashboard/owner/alertes", icon: FiBell },
         { label: "Mission urgente", path: "/dashboard/owner/mission-urgente", icon: FiTool },
+        { label: "Litiges", path: "/dashboard/owner/litiges", icon: FiMessageSquare },
       ],
     },
     {

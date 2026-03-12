@@ -200,21 +200,21 @@ export function validateLogementChanges(logement: LogementTyped | null): Logemen
   ) {
     return {
       isValid: false,
-      message: "Le nombre de chambres doit etre un nombre valide.",
+      message: "Le nombre de chambres doit être un nombre valide.",
     };
   }
 
   if (logement.photo_principale?.trim() && !isAssetUrlLike(logement.photo_principale.trim())) {
     return {
       isValid: false,
-      message: "La photo principale doit etre une URL valide ou un chemin local commencant par '/'.",
+      message: "La photo principale doit être une URL valide ou un chemin local commençant par '/'.",
     };
   }
 
   if (logement.contrat?.fichier_pdf?.trim() && !isAssetUrlLike(logement.contrat.fichier_pdf.trim())) {
     return {
       isValid: false,
-      message: "Le contrat PDF doit etre une URL valide ou un chemin local commencant par '/'.",
+      message: "Le contrat PDF doit être une URL valide ou un chemin local commençant par '/'.",
     };
   }
 
@@ -226,7 +226,7 @@ export function validateLogementChanges(logement: LogementTyped | null): Logemen
   ) {
     return {
       isValid: false,
-      message: "Les montants du logement doivent etre des nombres positifs ou vides.",
+      message: "Les montants du logement doivent être des nombres positifs ou vides.",
     };
   }
 

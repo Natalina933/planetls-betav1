@@ -40,9 +40,9 @@ $themes: (
 .dashboard-root {
   display: flex;
   min-height: 100vh;
-  background: theme(dark, paper);
+  background: var(--background);
   font-family: var.$font-text;
-  color: theme(dark, ink);
+  color: var(--color-text);
   transition: var.$transition;
 }
 
@@ -66,14 +66,10 @@ $themes: (
 }
 
 .dashboard-content {
-  // flex-grow: 1;
   padding: var.$spacing-sm;
-  // max-width: var.$max-content-width;
-  // margin: var.$spacing-xs auto;
-  // width: 95%;
-  background: theme(dark, gold);
-  border: 3px solid theme(dark, ink);
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  background: var(--background-secondary);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 24px var(--color-shadow);
 
   @media (max-width: map.get(var.$breakpoints, sm)) {
     padding: var.$spacing-md;
@@ -88,7 +84,7 @@ $themes: (
 .dashboard-header {
   margin-bottom: var.$spacing-lg;
   padding-bottom: var.$spacing-md;
-  border-bottom: 3px double theme(dark, ink);
+  border-bottom: 1px solid var(--color-border);
 
   h1 {
     font-family: var.$font-elegant;
@@ -100,7 +96,7 @@ $themes: (
   }
 
   .subtitle {
-    color: theme(dark, text);
+    color: var(--color-text-secondary);
     margin-top: var.$spacing-sm;
   }
 }
@@ -124,18 +120,18 @@ $themes: (
 }
 
 .dashboard-card {
-  background: theme(dark, paper);
-  border: 1px solid theme(dark, ink);
+  background: var(--background-secondary);
+  border: 1px solid var(--color-border);
   padding: var.$spacing-lg;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px var(--color-shadow);
   transition: var.$transition;
 
   &:hover {
-    box-shadow: 4px 4px 0 var.$primary-light-color-sass;
+    box-shadow: 0 10px 22px var(--color-shadow);
   }
 
   .card-header {
-    border-bottom: 1px dashed theme(dark, ink);
+    border-bottom: 1px dashed var(--color-border);
     padding-bottom: var.$spacing-sm;
     margin-bottom: var.$spacing-md;
   }
@@ -154,7 +150,7 @@ $themes: (
   }
 
   .card-description {
-    color: theme(dark, text);
+    color: var(--color-text-secondary);
   }
 }
 
@@ -167,28 +163,28 @@ $themes: (
 
   h2 {
     font-family: var.$font-elegant;
-    color: theme(dark, ink);
+    color: var(--color-text);
     margin-bottom: var.$spacing-md;
     text-decoration-color: var.$primary-dark-color-sass;
   }
 }
 
 .table {
-  background: theme(dark, paper);
-  border: 2px solid theme(dark, ink);
+  background: var(--background-secondary);
+  border: 1px solid var(--color-border);
   box-shadow: var.$shadow;
 
   th,
   td {
     padding: var.$spacing-md;
-    border-bottom: 1px dashed theme(dark, text);
+    border-bottom: 1px dashed var(--color-border);
   }
 
   th {
-    background-color: var.$gold-light;
+    background-color: var(--background-tertiary);
     font-family: var.$font-title;
     font-weight: var.$font-weight-bold;
-    color: theme(dark, ink);
+    color: var(--color-text);
   }
 }
 
@@ -226,6 +222,70 @@ body.dark {
   }
 }
 
+[data-theme="mucha-dark"] {
+  .dashboard-root {
+    background:
+      radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 34%),
+      linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    color: #f0f0f0;
+  }
+
+  .dashboard-content {
+    background: #16213e;
+    border: 1px solid #4a4a5e;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .dashboard-header {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+
+    h1 {
+      color: #f0f0f0;
+    }
+
+    .subtitle {
+      color: rgba(240, 240, 240, 0.78);
+    }
+  }
+
+  .dashboard-card {
+    background: #1f2746;
+    border-color: #4a4a5e;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+
+    &:hover {
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
+    }
+
+    .card-header {
+      border-bottom-color: rgba(212, 175, 55, 0.28);
+    }
+
+    .card-value {
+      color: #d4af37;
+    }
+
+    .card-description {
+      color: rgba(240, 240, 240, 0.74);
+    }
+  }
+
+  .table {
+    background: #1f2746;
+    border-color: #4a4a5e;
+
+    th {
+      background: #243357;
+      color: #f0f0f0;
+    }
+
+    th,
+    td {
+      border-bottom-color: rgba(240, 240, 240, 0.16);
+    }
+  }
+}
+
 [data-theme="art-deco"] {
   --dash-artdeco-heading-font: var(--font-primary);
   --dash-artdeco-heading-ls: 0.045em;
@@ -236,15 +296,21 @@ body.dark {
 
   .dashboard-root {
     background:
-      radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 35%),
+      radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 38%),
+      repeating-linear-gradient(
+        90deg,
+        rgba(212, 175, 55, 0.03) 0 2px,
+        transparent 2px 14px
+      ),
       linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
     color: #2c3e50;
   }
 
   .dashboard-content {
-    background: #f7f9fc;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 249, 252, 0.98));
     border: 1px solid #d5dbdf;
-    box-shadow: 0 14px 28px rgba(44, 62, 80, 0.08);
+    box-shadow: 0 16px 34px rgba(44, 62, 80, 0.11);
   }
 
   .dashboard-header {
@@ -266,6 +332,7 @@ body.dark {
   .dashboard-card {
     background: #ffffff;
     border: 1px solid #d5dbdf;
+    border-radius: 4px;
     box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
 
     &:hover {
@@ -288,6 +355,7 @@ body.dark {
   .table {
     background: #ffffff;
     border: 1px solid #d5dbdf;
+    border-radius: 4px;
 
     th {
       background: #f9f1d8;

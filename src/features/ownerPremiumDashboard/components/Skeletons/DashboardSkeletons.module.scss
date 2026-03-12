@@ -1,0 +1,46 @@
+.skeletonLayout {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.bodyGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 0.9rem;
+}
+
+.side {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.block,
+.large {
+  border-radius: 16px;
+  border: 1px solid #e2e8f1;
+  background: linear-gradient(100deg, #f4f7fb 20%, #ffffff 50%, #f4f7fb 80%);
+  background-size: 220% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+.block { min-height: 90px; }
+.large { min-height: 440px; }
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -40% 0; }
+}
+
+@media (max-width: 1200px) {
+  .bodyGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .statsRow { grid-template-columns: 1fr 1fr; }
+}

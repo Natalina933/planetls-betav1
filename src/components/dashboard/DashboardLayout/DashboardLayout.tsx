@@ -67,7 +67,11 @@ export function DashboardLayout({
         <div className={styles.main}>
           <StatsWidget items={stats} />
           <QuickActions actions={actions} />
-          {children}
+          {children ? (
+            <Card className={styles.mainContentCard}>
+              <CardBody className={styles.mainContentBody}>{children}</CardBody>
+            </Card>
+          ) : null}
         </div>
 
         <aside className={styles.aside}>
@@ -94,7 +98,7 @@ export function DashboardLayout({
           </Card>
           <Card className={styles.panel}>
             <CardHeader className={styles.panelHeader}>
-              <h2>Acces rapides</h2>
+              <h2>Accès rapides</h2>
             </CardHeader>
             <CardBody className={styles.shortcutBody}>
               {shortcuts.map((item) => (

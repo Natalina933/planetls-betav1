@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
@@ -151,7 +151,7 @@ export default function ConciergeAlertesPage() {
         {
           label: "Brouillons",
           value: loading ? "..." : String(draftHousings.length),
-          hint: "Biens ou profils a finaliser",
+          hint: "Biens ou profils à finaliser",
         },
         {
           label: "Levier PRO",
@@ -248,7 +248,7 @@ export default function ConciergeAlertesPage() {
             "Biens encore inactifs ou incomplets qui méritent une vérification rapide avant mise en avant.",
           emptyText:
             loading
-              ? "Verification des logements en cours."
+              ? "Vérification des logements en cours."
               : error || "Tous vos logements sont déjà actifs ou publiés.",
           items: draftHousingItems,
         },

@@ -1,0 +1,73 @@
+.card {
+  border: 1px solid var(--owner-premium-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--owner-premium-surface), #fff);
+  box-shadow: var(--owner-premium-shadow-sm);
+  padding: 0.9rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.7rem;
+
+  h2 {
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  span {
+    color: var(--owner-premium-text-muted);
+    font-size: 0.78rem;
+  }
+}
+
+.weekDays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin-bottom: 0.35rem;
+
+  span {
+    text-align: center;
+    color: var(--owner-premium-text-muted);
+    font-size: 0.72rem;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.32rem;
+}
+
+.day {
+  min-height: 52px;
+  border: 1px solid #e6ecf5;
+  border-radius: 10px;
+  padding: 0.28rem;
+  display: grid;
+  align-content: start;
+  gap: 0.18rem;
+  background: #fff;
+
+  strong {
+    font-size: 0.72rem;
+  }
+
+  small {
+    font-size: 0.66rem;
+    color: #5b6a7f;
+    line-height: 1.1;
+  }
+}
+
+.empty {
+  opacity: 0.4;
+}
+
+.booked {
+  border-color: rgba(200, 167, 91, 0.55);
+  background: linear-gradient(180deg, rgba(244, 232, 200, 0.52), rgba(255, 255, 255, 0.96));
+}

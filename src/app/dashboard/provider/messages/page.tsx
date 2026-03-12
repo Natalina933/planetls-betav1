@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -321,10 +321,10 @@ function ProviderMessagesContent() {
     <DashboardSectionShell
       persona="artisan"
       title="Messages clients"
-      subtitle="Suivez vos echanges clients avec un fil unique par dossier intervention."
+      subtitle="Suivez vos échanges clients avec un fil unique par dossier intervention."
       stats={[
         { label: "Conversations", value: `${list?.items?.length ?? 0}` },
-        { label: "Filtrees", value: `${filteredConversations.length}` },
+        { label: "Filtrées", value: `${filteredConversations.length}` },
         { label: "Clients", value: `${clients.length}` },
       ]}
       actions={[
@@ -539,3 +539,4 @@ export default function ProviderMessagesPage() {
     </Suspense>
   );
 }
+

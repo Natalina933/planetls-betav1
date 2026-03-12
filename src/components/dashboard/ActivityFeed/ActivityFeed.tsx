@@ -8,14 +8,14 @@ interface ActivityFeedProps {
   title?: string;
 }
 
-export function ActivityFeed({ items, title = "Activite recente" }: ActivityFeedProps) {
+export function ActivityFeed({ items, title = "Activité récente" }: ActivityFeedProps) {
   return (
     <Card className={styles.card}>
       <CardHeader className={styles.header}>
         <h2>{title}</h2>
       </CardHeader>
       <CardBody className={styles.body}>
-        {items.length === 0 ? <p className={styles.empty}>Aucune activite pour le moment.</p> : null}
+        {items.length === 0 ? <p className={styles.empty}>Aucune activité pour le moment.</p> : null}
         {items.map((item) => (
           <article key={item.id} className={styles.item}>
             <div>

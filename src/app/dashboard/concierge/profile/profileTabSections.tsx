@@ -1583,7 +1583,7 @@ export function MissionsTabLayout({
             </div>
           </button>
           <p className={styles.missionsHeroProgressHint}>
-            {missionProgressDoneCount}/{missionProgressTotal} etapes completees
+            {missionProgressDoneCount}/{missionProgressTotal} étapes complétées
           </p>
         </div>
         <div className={styles.missionsHeroStats}>
@@ -2133,9 +2133,9 @@ export function TariffWorkflowSection({
 }: TariffWorkflowSectionProps) {
   const getReadinessTargetLabel = (checkId: string) => {
     if (checkId === "rate") return "Tarifs > Configuration";
-    if (checkId === "services") return "Missions > Services proposes";
+    if (checkId === "services") return "Missions > Services proposés";
     if (checkId === "zone") return "Missions > Zone d'intervention";
-    if (checkId === "missions") return "Missions > Disponibilites";
+    if (checkId === "missions") return "Missions > Disponibilités";
     return "Configuration";
   };
 

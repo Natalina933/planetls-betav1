@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/Input";
+﻿import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import styles from "./Topbar.module.scss";
 import type { DashboardPersona } from "../types";
@@ -10,9 +10,9 @@ interface TopbarProps {
 }
 
 const personaLabel: Record<DashboardPersona, string> = {
-  owner: "Proprietaire",
+  owner: "Propriétaire",
   conciergerie: "Conciergerie",
-  artisan: "Artisan / commercant",
+  artisan: "Artisan / commerçant",
 };
 
 export function Topbar({ persona, title, subtitle }: TopbarProps) {

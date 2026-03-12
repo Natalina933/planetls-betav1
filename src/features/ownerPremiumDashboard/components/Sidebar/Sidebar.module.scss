@@ -1,0 +1,98 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(18, 29, 44, 0.96), rgba(24, 38, 57, 0.98)),
+    radial-gradient(circle at 10% 10%, rgba(200, 167, 91, 0.12), transparent 45%);
+  border-right: 1px solid rgba(200, 167, 91, 0.25);
+  color: #e7edf7;
+  padding: 1rem;
+  transition: width 220ms ease;
+  width: 272px;
+  z-index: 4;
+}
+
+.collapsed {
+  width: 84px;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.brandMark {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: linear-gradient(145deg, #d8bc79, #ad8c43);
+  color: #182233;
+}
+
+.brandText {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(200, 167, 91, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f6e8c0;
+  cursor: pointer;
+}
+
+.nav {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.navItem {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #d9e3f1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.64rem 0.65rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 160ms ease;
+
+  &:hover {
+    background: rgba(200, 167, 91, 0.14);
+    border-color: rgba(200, 167, 91, 0.35);
+    transform: translateX(2px);
+  }
+}
+
+.icon {
+  width: 22px;
+  text-align: center;
+  color: #d8bc79;
+}
+
+@media (max-width: 980px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(200, 167, 91, 0.25);
+  }
+
+  .collapsed {
+    width: 100%;
+  }
+}

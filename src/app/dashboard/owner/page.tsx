@@ -2,8 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { DashboardLayout } from "@/components/dashboard";
+import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import {
   OWNER_DASHBOARD_CONFIG,
   OWNER_NAV_ITEMS,
@@ -59,6 +61,11 @@ type OwnerConversationRow = {
   unread_count?: number;
 };
 
+interface OwnerUser {
+  firstName?: string | null;
+  username?: string | null;
+}
+
 function getStatusLabel(status: string | null) {
   switch (status) {
     case "active":
@@ -80,7 +87,7 @@ function isOngoingMission(status: string | null) {
 }
 
 function formatMissionDate(value: string | null) {
-  if (!value) return "A planifier";
+  if (!value) return "À planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -93,10 +100,15 @@ function formatMissionDate(value: string | null) {
 }
 
 function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non defini";
+  return typeof value === "number" ? `${value.toFixed(0)} EUR` : "Montant non défini";
 }
 
 export default function OwnerDashboardPage() {
+  const { user, loading: userLoading, isAuthenticated } = useCurrentUser() as {
+    user: OwnerUser | null;
+    loading: boolean;
+    isAuthenticated: boolean;
+  };
   const [properties, setProperties] = useState<OwnerHousingRow[]>([]);
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
@@ -107,6 +119,8 @@ export default function OwnerDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     async function fetchOwnerDashboard() {
       try {
         setLoading(true);
@@ -162,7 +176,7 @@ export default function OwnerDashboardPage() {
         setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Impossible de charger votre espace proprietaire.",
+          err instanceof Error ? err.message : "Impossible de charger votre espace propriétaire.",
         );
       } finally {
         setLoading(false);
@@ -170,7 +184,7 @@ export default function OwnerDashboardPage() {
     }
 
     void fetchOwnerDashboard();
-  }, []);
+  }, [isAuthenticated]);
 
   const activeCount = useMemo(
     () => properties.filter((property) => isActiveHousingStatus(property.statut)).length,
@@ -205,12 +219,12 @@ export default function OwnerDashboardPage() {
   );
 
   const activityItems = [
-    ...properties.slice(0, 2).map((property) => ({
-      id: `property-${property.id}`,
-      title: property.nom_logement || "Logement sans nom",
-      description: `${property.ville || "Ville non renseignee"} · ${getStatusLabel(property.statut)}`,
-      href: `/dashboard/owner/logements/${property.id}`,
-    })),
+      ...properties.slice(0, 2).map((property) => ({
+        id: `property-${property.id}`,
+        title: property.nom_logement || "Logement sans nom",
+        description: `${property.ville || "Ville non renseignée"} · ${getStatusLabel(property.statut)}`,
+        href: `/dashboard/owner/logements/${property.id}`,
+      })),
     ...ongoingMissions.slice(0, 2).map((mission) => ({
       id: `mission-${mission.id}`,
       title: mission.title || "Mission sans titre",
@@ -218,6 +232,15 @@ export default function OwnerDashboardPage() {
       href: "/dashboard/owner/planning",
     })),
   ];
+
+  if (userLoading || !isAuthenticated) {
+    return (
+      <div style={{ display: "grid", placeItems: "center", minHeight: "40vh", gap: "12px" }}>
+        <Loader2 className="animate-spin text-primary" size={40} />
+        <p>Chargement de votre espace propriétaire...</p>
+      </div>
+    );
+  }
 
   return (
     <DashboardLayout
@@ -232,15 +255,15 @@ export default function OwnerDashboardPage() {
         {
           label: "Logements actifs",
           value: `${activeCount}/${properties.length}`,
-          hint: draftCount > 0 ? `${draftCount} fiche(s) a finaliser` : "Parc operationnel",
+          hint: draftCount > 0 ? `${draftCount} fiche(s) à finaliser` : "Parc opérationnel",
         },
         {
-          label: "Operations ouvertes",
+          label: "Opérations ouvertes",
           value: `${ongoingMissions.length}`,
-          hint: `${completedMissions.length} intervention(s) terminee(s)`,
+          hint: `${completedMissions.length} intervention(s) terminée(s)`,
         },
         {
-          label: "Factures a regler",
+          label: "Factures à régler",
           value: `${pendingInvoices.length}`,
           hint: `${invoices.length} facture(s) suivie(s)`,
         },
@@ -257,7 +280,7 @@ export default function OwnerDashboardPage() {
           id: "n1",
           title:
             pendingInvoices.length > 0
-              ? `${pendingInvoices.length} facture(s) en attente de verification.`
+              ? `${pendingInvoices.length} facture(s) en attente de vérification.`
               : "Aucune facture urgente.",
           level: pendingInvoices.length > 0 ? "warning" : "info",
           href: "/dashboard/owner/factures",
@@ -274,31 +297,40 @@ export default function OwnerDashboardPage() {
       ]}
       shortcuts={OWNER_SHORTCUTS}
       profile={{
-        name: OWNER_DASHBOARD_CONFIG.profileName,
+        name: user?.firstName || user?.username || OWNER_DASHBOARD_CONFIG.profileName,
         subtitle: loading ? "Chargement..." : `${properties.length} bien(s) suivi(s)`,
         badge: averageRating ? `${averageRating.toFixed(1)} / 5` : "Profil actif",
       }}
     >
       <Card>
         <CardHeader>
-          <h2>Points de vigilance</h2>
+          <h2>Pilotage propriétaire</h2>
         </CardHeader>
         <CardBody>
+          {loading ? <p>Chargement des indicateurs...</p> : null}
           {latestInvoices.length > 0 ? (
             <p>
-              Derniere facture: {latestInvoices[0].invoice_number || "sans numero"} · solde{" "}
+              Dernière facture: {latestInvoices[0].invoice_number || "sans numéro"} · solde{" "}
               {formatAmount(latestInvoices[0].balance_amount)}.
             </p>
           ) : (
-            <p>Aucune facture recente.</p>
+            <p>Aucune facture récente.</p>
           )}
           {latestQuotes.length > 0 ? (
             <p>
-              Dernier devis: {latestQuotes[0].quote_number || "sans numero"} ·{" "}
+              Dernier devis: {latestQuotes[0].quote_number || "sans numéro"} ·{" "}
               {formatAmount(latestQuotes[0].total_amount)}.
             </p>
           ) : (
-            <p>Aucun devis recent.</p>
+            <p>Aucun devis récent.</p>
+          )}
+          {ongoingMissions.length > 0 ? (
+            <p>
+              Intervention prioritaire: {ongoingMissions[0].title || "Mission sans titre"} ·{" "}
+              {formatMissionDate(ongoingMissions[0].scheduled_start)}.
+            </p>
+          ) : (
+            <p>Aucune intervention ouverte pour le moment.</p>
           )}
           <Link href="/dashboard/owner/factures">Ouvrir le suivi financier</Link>
         </CardBody>

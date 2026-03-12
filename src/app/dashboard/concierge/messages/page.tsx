@@ -259,8 +259,8 @@ function ConciergeMessagesContent() {
   return (
     <DashboardSectionShell
       persona="conciergerie"
-      title="Messages proprietaires"
-      subtitle="Centralisez vos echanges, relances et conversations actives dans une vue unique."
+      title="Messages propriétaires"
+      subtitle="Centralisez vos échanges, relances et conversations actives dans une vue unique."
       stats={[
         { label: "Conversations", value: `${conversations.length}` },
         { label: "Ouvertes", value: `${openCount}` },

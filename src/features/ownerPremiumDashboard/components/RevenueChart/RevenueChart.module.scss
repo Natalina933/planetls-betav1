@@ -1,0 +1,62 @@
+.card {
+  border: 1px solid var(--owner-premium-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--owner-premium-surface), #fff);
+  box-shadow: var(--owner-premium-shadow-sm);
+  padding: 0.95rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+    font-size: 0.98rem;
+  }
+
+  span {
+    font-size: 0.76rem;
+    color: var(--owner-premium-text-muted);
+  }
+}
+
+.canvasWrap {
+  border: 1px solid #e8eef8;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fafdff, #ffffff);
+  padding: 0.5rem;
+}
+
+.canvasWrap svg {
+  width: 100%;
+  height: 230px;
+}
+
+.path {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 8px 10px rgba(200, 167, 91, 0.2));
+}
+
+.point {
+  fill: #fff;
+  stroke: #c8a75b;
+  stroke-width: 2;
+}
+
+.labels {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.2rem;
+
+  span {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--owner-premium-text-muted);
+  }
+}

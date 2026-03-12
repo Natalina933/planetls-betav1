@@ -1818,7 +1818,7 @@ export default function ConciergeProfilePage() {
       pushTransientMessage("success", "Segment ajouté.");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur creation segment.";
+        error instanceof Error ? error.message : "Erreur création segment.";
       pushTransientMessage("error", message);
     } finally {
       setSegmentsBusyId(null);
@@ -1896,7 +1896,7 @@ export default function ConciergeProfilePage() {
       pushTransientMessage("success", "Règle ajoutée.");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur creation regle.";
+        error instanceof Error ? error.message : "Erreur création règle.";
       pushTransientMessage("error", message);
     } finally {
       setPropertyRulesBusyId(null);

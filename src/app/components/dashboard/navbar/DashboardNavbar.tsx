@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Bell, User, CheckCircle } from "lucide-react";
+import { Menu, Bell, User, CheckCircle, Palette } from "lucide-react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
@@ -42,8 +43,8 @@ interface ProviderNotificationRow {
 }
 
 const ROLE_LABELS = {
-  owner: "Proprietaire",
-  owner_pro: "Proprietaire PRO",
+  owner: "Propriétaire",
+  owner_pro: "Propriétaire PRO",
   concierge: "Concierge",
   concierge_pro: "Concierge PRO",
   provider: "Artisan",
@@ -66,7 +67,7 @@ const getRoleLabel = (role?: string | null): string => {
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon apres-midi";
+  if (hour < 18) return "Bon après-midi";
   return "Bonsoir";
 };
 
@@ -93,7 +94,7 @@ const getNotificationsPageHref = (role?: string | null) => {
 };
 
 const PAGE_LABELS: Record<string, string> = {
-  owner: "Espace proprietaire",
+  owner: "Espace propriétaire",
   concierge: "Espace concierge",
   provider: "Espace artisan",
   messages: "Messages",
@@ -107,7 +108,7 @@ const PAGE_LABELS: Record<string, string> = {
   recherche: "Recherche",
   demandes: "Demandes",
   objectifs: "Objectifs",
-  settings: "Parametres",
+  settings: "Paramètres",
   profile: "Profil",
   clients: "Clients",
   interventions: "Interventions",
@@ -131,7 +132,10 @@ export default function DashboardNavbar({
   const [notificationItems, setNotificationItems] = useState<NotificationItem[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState<NotificationFilter>("all");
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement | null>(null);
+  const themeMenuRef = useRef<HTMLDivElement | null>(null);
+  const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
 
   const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
   const roleLabel = useMemo(() => getRoleLabel(user?.role), [user?.role]);
@@ -234,7 +238,7 @@ export default function DashboardNavbar({
                 title: item.counterpart_name || item.subject || "Nouveau message",
                 description:
                   item.last_message_preview ||
-                  "Un proprietaire a repondu ou envoye un nouveau message.",
+                  "Un propriétaire a répondu ou envoyé un nouveau message.",
                 href: `/dashboard/concierge/messages?conversation=${item.id}`,
                 count: Number(item.unread_count ?? 0),
                 kind:
@@ -319,6 +323,19 @@ export default function DashboardNavbar({
     };
   }, [isNotificationsOpen]);
 
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+        setThemeMenuOpen(false);
+      }
+    };
+
+    if (themeMenuOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }
+  }, [themeMenuOpen]);
+
   const filteredNotificationItems = useMemo(() => {
     if (notificationFilter === "all") return notificationItems;
     return notificationItems.filter((item) => item.kind === notificationFilter);
@@ -361,6 +378,38 @@ export default function DashboardNavbar({
       </div>
 
       <div className={styles.rightSection}>
+        <div className={styles.themeSwitcher} ref={themeMenuRef}>
+          <button
+            className={styles.themeTrigger}
+            onClick={() => setThemeMenuOpen((prev) => !prev)}
+            title="Changer de theme"
+            aria-label="Changer de theme"
+            type="button"
+          >
+            <Palette size={18} />
+            <span className={styles.themeLabel}>{getCurrentLabel()}</span>
+          </button>
+
+          {themeMenuOpen && (
+            <div className={styles.themeDropdown}>
+              {Object.entries(themes).map(([key, value]) => (
+                <button
+                  key={key}
+                  className={`${styles.themeOption} ${theme === value ? styles.active : ""}`}
+                  onClick={() => {
+                    changeTheme(value as Theme);
+                    setThemeMenuOpen(false);
+                  }}
+                  aria-label={`Selectionner theme ${labels[value as Theme]}`}
+                  type="button"
+                >
+                  {labels[value as Theme]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {isAuthenticated && (
           <div className={styles.rightInfoBlock}>
             <div className={styles.greetingBlock}>
@@ -456,7 +505,7 @@ export default function DashboardNavbar({
                     ))
                   ) : (
                     <div className={styles.notificationEmpty}>
-                      <strong>Rien d'immediat</strong>
+                      <strong>Rien d&apos;immediat</strong>
                       <p>Les nouveaux messages, reponses et alertes apparaitront ici.</p>
                     </div>
                   )}

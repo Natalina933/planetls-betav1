@@ -446,3 +446,60 @@ $provider-accent-soft: #e3e8d8;
 :global([data-theme="art-deco"]) .logout {
     color: #2c3e50;
 }
+
+:global([data-theme="mucha-dark"]) .sidebar {
+    background:
+        radial-gradient(circle at top right, rgba(212, 175, 55, 0.13), transparent 36%),
+        linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    color: #f0f0f0;
+    border-right-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme="mucha-dark"]) .header {
+    border-bottom-color: rgba(212, 175, 55, 0.34);
+    background: rgba(22, 33, 62, 0.68);
+}
+
+:global([data-theme="mucha-dark"]) .title,
+:global([data-theme="mucha-dark"]) .logout,
+:global([data-theme="mucha-dark"]) .logout .icon {
+    color: #f5d76e;
+}
+
+:global([data-theme="mucha-dark"]) .link,
+:global([data-theme="mucha-dark"]) .sublink {
+    color: rgba(240, 240, 240, 0.9);
+}
+
+:global([data-theme="mucha-dark"]) .link .icon,
+:global([data-theme="mucha-dark"]) .sublink .icon,
+:global([data-theme="mucha-dark"]) .chevron {
+    color: #d4af37;
+}
+
+:global([data-theme="mucha-dark"]) .link:hover,
+:global([data-theme="mucha-dark"]) .link:focus-visible,
+:global([data-theme="mucha-dark"]) .sublink:hover,
+:global([data-theme="mucha-dark"]) .sublink:focus-visible {
+    background: rgba(212, 175, 55, 0.16);
+    color: #f5d76e;
+    border-left-color: #d4af37;
+}
+
+:global([data-theme="mucha-dark"]) .link.active,
+:global([data-theme="mucha-dark"]) .sublink.active {
+    background: linear-gradient(135deg, #d4af37, #b99b2e);
+    color: #1a1a2e;
+    border-left-color: #feca53;
+}
+
+:global([data-theme="mucha-dark"]) .submenu {
+    background: rgba(22, 33, 62, 0.9);
+    border-left-color: rgba(212, 175, 55, 0.3);
+}
+
+:global([data-theme="mucha-dark"]) .footer {
+    border-top-color: rgba(212, 175, 55, 0.3);
+    background: rgba(22, 33, 62, 0.72);
+}

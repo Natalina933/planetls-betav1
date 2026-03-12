@@ -44,7 +44,7 @@ type OwnerConversationRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date non renseignee";
+  if (!value) return "Date non renseignée";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -189,24 +189,24 @@ export default function OwnerAlertesPage() {
       description={
         error
           ? error
-          : "Concentrez ici les urgences d'execution, les soldes a regler, les validations a trancher et les nouveaux retours recus."
+          : "Concentrez ici les urgences d'exécution, les soldes à régler, les validations à trancher et les nouveaux retours reçus."
       }
       chips={[
         `${urgentMissions.length} mission(s) prioritaires`,
-        `${pendingInvoices.length} facture(s) a suivre`,
-        `${pendingQuotes.length} devis a valider`,
+        `${pendingInvoices.length} facture(s) à suivre`,
+        `${pendingQuotes.length} devis à valider`,
         `${unreadConversationCount} nouveau(x) retour(s)`,
       ]}
       metrics={[
         {
-          label: "Priorites execution",
+          label: "Priorités exécution",
           value: String(urgentMissions.length),
-          hint: "Interventions qui peuvent creer une friction immediate",
+          hint: "Interventions qui peuvent créer une friction immédiate",
         },
         {
           label: "Alertes finance",
           value: String(pendingInvoices.length),
-          hint: "Factures qui demandent un suivi ou un reglement",
+          hint: "Factures qui demandent un suivi ou un règlement",
         },
         {
           label: "Decisions en attente",
@@ -216,7 +216,7 @@ export default function OwnerAlertesPage() {
         {
           label: "Nouveaux retours",
           value: String(unreadConversationCount),
-          hint: "Messages et reponses recues a ouvrir",
+          hint: "Messages et réponses reçues à ouvrir",
         },
       ]}
       actions={[
@@ -231,7 +231,7 @@ export default function OwnerAlertesPage() {
       ]}
       cards={[
         {
-          title: "Priorites execution",
+          title: "Priorités exécution",
           text:
             urgentMissions.length > 0
               ? urgentMissions
@@ -252,10 +252,10 @@ export default function OwnerAlertesPage() {
                   .slice(0, 3)
                   .map(
                     (invoice) =>
-                      `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - echeance ${formatDate(invoice.due_date)}`,
+                      `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - échéance ${formatDate(invoice.due_date)}`,
                   )
                   .join(" | ")
-              : "Aucune facture en attente de reglement.",
+              : "Aucune facture en attente de règlement.",
         },
         {
           title: "Validations en attente",
@@ -275,8 +275,8 @@ export default function OwnerAlertesPage() {
           title: "Retours et reponses",
           text:
             unreadConversationCount > 0
-              ? `${unreadConversationCount} nouveau(x) retour(s) sont arrives dans vos echanges. Ouvrez d abord les fils qui debloquent une mission, un devis ou une recherche concierge.`
-              : "Aucun nouveau message a traiter pour le moment.",
+              ? `${unreadConversationCount} nouveau(x) retour(s) sont arrivés dans vos échanges. Ouvrez d'abord les fils qui débloquent une mission, un devis ou une recherche concierge.`
+              : "Aucun nouveau message à traiter pour le moment.",
           notificationCount: unreadConversationCount,
           actions: [
             {
@@ -290,12 +290,12 @@ export default function OwnerAlertesPage() {
       ]}
       detailSections={[
         {
-          title: "Actions a lancer maintenant",
+          title: "Actions à lancer maintenant",
           description:
-            "Les alertes utiles sont celles qui debloquent une decision ou evitent un retard. Commencez par ces leviers.",
+            "Les alertes utiles sont celles qui débloquent une décision ou évitent un retard. Commencez par ces leviers.",
           items: [
             {
-              title: "Verifier les interventions prioritaires",
+              title: "Vérifier les interventions prioritaires",
               meta: `${urgentMissions.length} priorite(s)`,
               description: "Confirmer statut, date et niveau d'urgence sur les missions ouvertes.",
               href: "/dashboard/owner/planning",
@@ -306,7 +306,7 @@ export default function OwnerAlertesPage() {
             {
               title: "Traiter les factures ouvertes",
               meta: `${pendingInvoices.length} facture(s)`,
-              description: "Eviter les echeances ratees et garder une vision propre du solde en cours.",
+              description: "Éviter les échéances ratées et garder une vision propre du solde en cours.",
               href: pendingInvoices[0]
                 ? `/dashboard/owner/factures?invoice=${pendingInvoices[0].id}`
                 : "/dashboard/owner/factures",
@@ -316,7 +316,7 @@ export default function OwnerAlertesPage() {
             {
               title: "Arbitrer les devis en attente",
               meta: `${pendingQuotes.length} devis`,
-              description: "Valider ou repousser les propositions qui influencent votre execution et votre budget.",
+              description: "Valider ou repousser les propositions qui influencent votre exécution et votre budget.",
               href: pendingQuotes[0]
                 ? `/dashboard/owner/devis?quote=${pendingQuotes[0].id}`
                 : "/dashboard/owner/devis",
@@ -328,8 +328,8 @@ export default function OwnerAlertesPage() {
               meta: `${unreadConversationCount} nouveau(x) message(s)`,
               description:
                 unreadConversationCount > 0
-                  ? "Des reponses sont arrivees sur vos demandes, devis ou recherches. Ouvrez les plus recentes d abord."
-                  : "Aucune nouvelle reponse en attente dans votre messagerie.",
+                  ? "Des réponses sont arrivées sur vos demandes, devis ou recherches. Ouvrez les plus récentes d'abord."
+                  : "Aucune nouvelle réponse en attente dans votre messagerie.",
               href: latestUnreadConversations[0]
                 ? `/dashboard/owner/messages?conversation=${latestUnreadConversations[0].id}`
                 : "/dashboard/owner/messages",
@@ -342,18 +342,18 @@ export default function OwnerAlertesPage() {
         {
           title: "Alertes de recherche concierge",
           description:
-            "Ces alertes sont creees quand aucune conciergerie n'est disponible dans la zone recherchee.",
+            "Ces alertes sont créées quand aucune conciergerie n'est disponible dans la zone recherchée.",
           emptyText: "Aucune alerte concierge active.",
           items: searchAlerts.map((alert) => ({
             id: alert.id,
-            title: [alert.city, alert.postalCode].filter(Boolean).join(" ") || "Zone non definie",
+            title: [alert.city, alert.postalCode].filter(Boolean).join(" ") || "Zone non définie",
             meta: "Alerte active",
-            description: `Creee le ${formatDate(alert.createdAt)}.`,
+            description: `Créée le ${formatDate(alert.createdAt)}.`,
             facts: [
               alert.budgetMax ? `Budget max : ${alert.budgetMax} EUR/h` : "Budget : sans limite",
               alert.radiusKm ? `Rayon : ${alert.radiusKm} km` : "Rayon : sans limite",
-              unreadSearchReplies > 0 ? `${unreadSearchReplies} reponse(s) nouvelle(s)` : "Aucune reponse nouvelle",
-              unreadManualReplies > 0 ? `${unreadManualReplies} echange(s) direct(s) nouveau(x)` : "Aucun echange direct nouveau",
+              unreadSearchReplies > 0 ? `${unreadSearchReplies} réponse(s) nouvelle(s)` : "Aucune réponse nouvelle",
+              unreadManualReplies > 0 ? `${unreadManualReplies} échange(s) direct(s) nouveau(x)` : "Aucun échange direct nouveau",
             ],
             href: `${buildSearchHref(alert)}&alertId=${encodeURIComponent(alert.id)}`,
             actionLabel: "Modifier l'alerte",

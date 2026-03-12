@@ -55,7 +55,7 @@ type ConversationDetailPayload = {
 };
 
 function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activite";
+  if (!value) return "Aucune activité";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
 
@@ -179,7 +179,7 @@ function OwnerMessagesContent() {
 
   useEffect(() => {
     if (!createdConversationId) return;
-    setSuccess("La conversation a bien ete creee. Vous pouvez maintenant poursuivre ici.");
+    setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
   }, [createdConversationId]);
 
   useEffect(() => {
@@ -236,7 +236,7 @@ function OwnerMessagesContent() {
       await loadConversations(activeConversationId);
       markOwnerConversationSeen(activeConversationId);
       setSeenVersion((current) => current + 1);
-      setSuccess("Message envoye.");
+      setSuccess("Message envoyé.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
     } finally {
@@ -247,12 +247,12 @@ function OwnerMessagesContent() {
   return (
     <DashboardSectionShell
       persona="owner"
-      title="Suivi des echanges"
-      subtitle="Centralisez vos conversations prioritaires avec vos concierges et gardez une trace claire des decisions."
+      title="Suivi des échanges"
+      subtitle="Centralisez vos conversations prioritaires avec vos concierges et gardez une trace claire des décisions."
       stats={[
         { label: "Conversations", value: `${conversations.length}` },
         {
-          label: "Filtrees",
+          label: "Filtrées",
           value: `${filteredConversations.length}`,
           hint: "Avec vos filtres actifs",
         },
@@ -268,7 +268,7 @@ function OwnerMessagesContent() {
     >
       <div className={styles.page}>
         <header className={styles.header}>
-          <h1>Suivi des echanges</h1>
+          <h1>Suivi des échanges</h1>
           <p>
             Centralisez vos conversations prioritaires avec vos concierges et poursuivez chaque
             suivi depuis un seul espace.
@@ -290,7 +290,7 @@ function OwnerMessagesContent() {
                 bare
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Rechercher un echange"
+                placeholder="Rechercher un échange"
                 className={styles.filtersInput}
               />
               <Select
@@ -300,7 +300,7 @@ function OwnerMessagesContent() {
               >
                 <option value="all">Tous statuts</option>
                 <option value="open">Ouverts</option>
-                <option value="closed">Fermes</option>
+                <option value="closed">Fermées</option>
               </Select>
             </div>
 
@@ -341,7 +341,7 @@ function OwnerMessagesContent() {
                         </div>
                       </div>
                       <p>{conversation.subject || "Conversation directe"}</p>
-                      <small>{conversation.last_message_preview || "Aucun apercu"}</small>
+                      <small>{conversation.last_message_preview || "Aucun aperçu"}</small>
                     </Button>
                   );
                 })}
@@ -351,7 +351,7 @@ function OwnerMessagesContent() {
 
           <section className={styles.thread}>
             {!activeConversationId ? (
-              <p className={styles.emptyState}>Selectionnez une conversation pour lire et repondre.</p>
+              <p className={styles.emptyState}>Sélectionnez une conversation pour lire et répondre.</p>
             ) : detailLoading ? (
               <p className={styles.emptyState}>Chargement de la conversation...</p>
             ) : !detail ? (
@@ -393,8 +393,8 @@ function OwnerMessagesContent() {
                   <Textarea
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
-                    placeholder="Ecrivez votre message au concierge..."
-                    aria-label="Ecrivez votre message au concierge"
+                    placeholder="Écrivez votre message au concierge..."
+                    aria-label="Écrivez votre message au concierge"
                     className={styles.composerTextarea}
                   />
                   <Button type="button" variant="primary" onClick={handleSendMessage} disabled={sending || !canSend}>

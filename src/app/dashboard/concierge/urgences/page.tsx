@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -36,12 +36,12 @@ export default function ConciergeUrgencesPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger les opportunites urgentes.");
+        throw new Error(payload?.error || "Impossible de charger les opportunités urgentes.");
       }
       setItems(Array.isArray(payload?.items) ? payload.items : []);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de charger les opportunites urgentes.",
+        err instanceof Error ? err.message : "Impossible de charger les opportunités urgentes.",
       );
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ export default function ConciergeUrgencesPage() {
       if (!response.ok) {
         throw new Error(payload?.error || "Impossible d'accepter cette mission.");
       }
-      setActionMessage("Mission verrouillee. Le proprietaire est notifie et le chat peut etre ouvert.");
+      setActionMessage("Mission verrouillée. Le propriétaire est notifié et le chat peut être ouvert.");
       await loadItems();
     } catch (err) {
       setActionMessage(
@@ -80,14 +80,14 @@ export default function ConciergeUrgencesPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Opportunités urgentes"
-      title="Missions urgentes a capter"
+      title="Missions urgentes à capter"
       description={
         loading
-          ? "Chargement des opportunites..."
+          ? "Chargement des opportunités..."
           : error ||
             "Recevez les demandes critiques du jour, acceptez en un clic et verrouillez la mission avant les autres."
       }
-      chips={[`${items.length} opportunite(s)`, `${availableNowCount} disponible(s) maintenant`]}
+      chips={[`${items.length} opportunité(s)`, `${availableNowCount} disponible(s) maintenant`]}
       metrics={[
         {
           label: "Aujourd'hui",
@@ -97,7 +97,7 @@ export default function ConciergeUrgencesPage() {
         {
           label: "Disponibles",
           value: loading ? "..." : String(availableNowCount),
-          hint: "Profils immediats sur ce flux",
+          hint: "Profils immédiats sur ce flux",
         },
       ]}
       actions={[
@@ -107,22 +107,22 @@ export default function ConciergeUrgencesPage() {
       cards={[
         {
           title: "1. Notification prioritaire",
-          text: "Le module prepare le support push, email et dashboard avec resume distance + horaire mission.",
+          text: "Le module prépare le support push, email et dashboard avec résumé distance + horaire mission.",
         },
         {
-          title: "2. Acceptation immediate",
-          text: "Premier concierge a accepter gagne la mission. Le verrouillage evite les doublons.",
+          title: "2. Acceptation immédiate",
+          text: "Premier concierge à accepter gagne la mission. Le verrouillage évite les doublons.",
         },
         {
-          title: "3. Paiement securise",
-          text: "Le statut de paiement passe en autorisation des acceptation pour preparer l'encaissement securise.",
+          title: "3. Paiement sécurisé",
+          text: "Le statut de paiement passe en autorisation des acceptations pour préparer l'encaissement sécurisé.",
         },
       ]}
     >
       <div className={styles.page}>
         <div className={styles.actions}>
           <Link href="/dashboard/concierge/profile?tab=missions" className={styles.actionLink}>
-            Activer ma disponibilite urgente
+            Activer ma disponibilité urgente
           </Link>
           <Link href="/dashboard/concierge/messages" className={styles.actionLink}>
             Ouvrir la messagerie
@@ -149,9 +149,9 @@ export default function ConciergeUrgencesPage() {
 
               <div className={styles.stats}>
                 <span>{item.mission_type === "check-in" ? "Check-in" : "Check-out"}</span>
-                <span>{item.own_match.estimated_intervention_minutes} min estimees</span>
+                <span>{item.own_match.estimated_intervention_minutes} min estimées</span>
                 <span>{item.own_match.distance_km.toFixed(0)} km</span>
-                <span>{typeof item.own_match.estimated_price === "number" ? `${item.own_match.estimated_price} EUR` : "Prix a valider"}</span>
+                <span>{typeof item.own_match.estimated_price === "number" ? `${item.own_match.estimated_price} EUR` : "Prix à valider"}</span>
               </div>
 
               <button

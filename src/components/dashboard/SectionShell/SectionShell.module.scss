@@ -7,3 +7,22 @@
   display: grid;
   gap: var(--dash-space-3);
 }
+
+.contentCard {
+  width: 100%;
+  max-width: none;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-bg-panel);
+}
+
+.contentBody {
+  display: grid;
+  gap: var(--dash-space-3);
+  padding: var(--dash-space-4);
+}
+
+:global([data-theme="art-deco"]) .contentCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  box-shadow: 0 12px 26px rgba(44, 62, 80, 0.1);
+}

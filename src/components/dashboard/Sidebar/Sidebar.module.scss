@@ -1,8 +1,12 @@
 .sidebar {
   position: sticky;
   top: var(--dash-space-4);
+  align-self: start;
+  width: 100%;
+  max-width: none;
   border: 1px solid var(--dash-border);
   background: linear-gradient(180deg, var(--dash-bg-panel), var(--dash-bg-panel-soft));
+  z-index: 2;
 }
 
 .header {
@@ -20,6 +24,14 @@
 .nav {
   display: grid;
   gap: var(--dash-space-2);
+}
+
+@media (min-width: 1100px) {
+  .sidebar {
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
 }
 
 .link {

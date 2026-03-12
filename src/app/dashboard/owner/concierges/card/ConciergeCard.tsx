@@ -87,7 +87,7 @@ function ConciergeCardComponent({ item, index, isSelected, onToggle }: Concierge
           <strong>
             {typeof item.years_experience === "number"
               ? `${item.years_experience} ans`
-              : item.experience_level || "Non renseignee"}
+              : item.experience_level || "Non renseignée"}
           </strong>
         </div>
         <div className={styles.kpiCard}>

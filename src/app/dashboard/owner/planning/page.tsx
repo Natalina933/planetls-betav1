@@ -16,7 +16,7 @@ type OwnerMissionRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "A planifier";
+  if (!value) return "À planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -169,12 +169,12 @@ export default function OwnerPlanningPage() {
   return (
     <DashboardSectionShell
       persona="owner"
-      title="Planning proprietaire"
-      subtitle="Reperez en priorite ce qui doit etre confirme, execute ou replanifie sur votre parc."
+      title="Planning propriétaire"
+      subtitle="Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc."
       stats={[
         { label: "Interventions", value: loading ? "..." : `${missions.length}` },
         {
-          label: "A traiter",
+          label: "À traiter",
           value: loading
             ? "..."
             : `${upcomingMissions.filter((mission) => mission.status !== "completed").length}`,
@@ -193,7 +193,7 @@ export default function OwnerPlanningPage() {
     >
       <header>
         <h1>Suivi des interventions</h1>
-        <p>RepÃ©rez en prioritÃ© ce qui doit Ãªtre confirmÃ©, exÃ©cutÃ© ou replanifiÃ© sur votre parc.</p>
+        <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
       </header>
 
       <div className="stats-row">
@@ -202,7 +202,7 @@ export default function OwnerPlanningPage() {
           <p>{loading ? "..." : missions.length}</p>
         </div>
         <div className="stat-card">
-          <h3>A traiter</h3>
+          <h3>À traiter</h3>
           <p>{loading ? "..." : upcomingMissions.filter((mission) => mission.status !== "completed").length}</p>
         </div>
         <div className="stat-card">
@@ -220,7 +220,7 @@ export default function OwnerPlanningPage() {
           <div className={styles.sectionHeading}>
             <div>
               <p className={styles.eyebrow}>Vue planning</p>
-              <h2>Semaine propriÃ©taire</h2>
+              <h2>Semaine propriétaire</h2>
             </div>
           </div>
 
@@ -233,8 +233,8 @@ export default function OwnerPlanningPage() {
                 <strong className={styles.cardValue}>{bucket.items.length}</strong>
                 <p className={styles.meta}>
                   {bucket.items.length > 0
-                    ? `${bucket.items.filter((mission) => mission.priority === "urgent").length} urgente(s) a surveiller.`
-                    : "Aucune intervention planifiÃ©e."}
+                    ? `${bucket.items.filter((mission) => mission.priority === "urgent").length} urgente(s) à surveiller.`
+                    : "Aucune intervention planifiée."}
                 </p>
               </article>
             ))}
@@ -254,10 +254,10 @@ export default function OwnerPlanningPage() {
             className={styles.select}
           >
             <option value="all">Tous statuts</option>
-            <option value="assigned">Assignees</option>
-            <option value="accepted">Acceptees</option>
+            <option value="assigned">Assignées</option>
+            <option value="accepted">Acceptées</option>
             <option value="in_progress">En cours</option>
-            <option value="completed">TerminÃ©es</option>
+            <option value="completed">Terminées</option>
           </select>
           <select
             value={viewMode}
@@ -282,7 +282,7 @@ export default function OwnerPlanningPage() {
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune intervention planifiÃ©e pour le moment.</p>
+          <p>Aucune intervention planifiée pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (
@@ -292,9 +292,9 @@ export default function OwnerPlanningPage() {
                 <li key={mission.id} className={styles.listItem}>
                   <strong>{mission.title || "Mission sans titre"}</strong>
                   <br />
-                  Debut : {formatDate(mission.scheduled_start)} | Fin : {formatDate(mission.scheduled_end)}
+                  Début : {formatDate(mission.scheduled_start)} | Fin : {formatDate(mission.scheduled_end)}
                   <br />
-                  Statut : {mission.status || "-"} | Priorite : {mission.priority || "-"} | Budget :{" "}
+                  Statut : {mission.status || "-"} | Priorité : {mission.priority || "-"} | Budget :{" "}
                   {formatAmount(mission.amount)}
                 </li>
               ))}

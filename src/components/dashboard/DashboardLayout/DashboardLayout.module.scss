@@ -13,6 +13,19 @@
   gap: var(--dash-space-4);
 }
 
+.mainContentCard {
+  width: 100%;
+  max-width: none;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-bg-panel);
+}
+
+.mainContentBody {
+  display: grid;
+  gap: var(--dash-space-3);
+  padding: var(--dash-space-4);
+}
+
 .aside {
   display: grid;
   gap: var(--dash-space-4);
@@ -83,4 +96,10 @@
     grid-template-columns: minmax(0, 1fr) 340px;
     align-items: start;
   }
+}
+
+:global([data-theme="art-deco"]) .mainContentCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  box-shadow: 0 12px 26px rgba(44, 62, 80, 0.1);
 }

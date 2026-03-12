@@ -201,7 +201,7 @@ export default function ConciergeDashboardPage() {
         {
           label: "Demandes compatibles",
           value: `${matches.length}`,
-          hint: matchesLoading ? "Analyse en cours" : "Prospects proprietaires",
+          hint: matchesLoading ? "Analyse en cours" : "Prospects propriétaires",
         },
         {
           label: "Temps de reponse",
@@ -209,7 +209,7 @@ export default function ConciergeDashboardPage() {
             typeof kpis?.avg_response_minutes === "number"
               ? `${Math.round(kpis.avg_response_minutes)} min`
               : "--",
-          hint: "Performance operationnelle",
+          hint: "Performance opérationnelle",
         },
         {
           label: "Satisfaction",
@@ -220,20 +220,20 @@ export default function ConciergeDashboardPage() {
       actions={CONCIERGERIE_QUICK_ACTIONS}
       activity={plannedNow.map((event, index) => ({
         id: `event-${index}`,
-        title: typeof event.title === "string" ? event.title : "Mission planifiee",
+        title: typeof event.title === "string" ? event.title : "Mission planifiée",
         description: formatEventDate(event.start),
         href: "/dashboard/concierge/planning",
       }))}
       notifications={[
         {
           id: "c-n1",
-          title: matchesError || (matchesLoading ? "Recherche de proprietaires en cours..." : `${matches.length} proprietaire(s) compatible(s).`),
+          title: matchesError || (matchesLoading ? "Recherche de propriétaires en cours..." : `${matches.length} propriétaire(s) compatible(s).`),
           level: matchesError ? "danger" : "info",
           href: "/dashboard/concierge/recherche",
         },
         {
           id: "c-n2",
-          title: isPro ? "Fonctionnalites PRO actives." : "Passez en PRO pour le suivi financier avance.",
+          title: isPro ? "Fonctionnalités PRO actives." : "Passez en PRO pour le suivi financier avancé.",
           level: isPro ? "info" : "warning",
           href: isPro ? "/dashboard/concierge/profile?tab=devis" : "/abonnement/concierge-pro",
         },
@@ -247,14 +247,14 @@ export default function ConciergeDashboardPage() {
     >
       <Card>
         <CardHeader>
-          <h2>Prospection proprietaires</h2>
+          <h2>Prospection propriétaires</h2>
         </CardHeader>
         <CardBody>
           {matchesLoading ? <p>Chargement des profils compatibles...</p> : null}
           {!matchesLoading && matches.length === 0 ? <p>Aucun profil compatible pour le moment.</p> : null}
           {!matchesLoading && matches.slice(0, 3).map((match) => (
             <p key={match.id}>
-              {match.title} · {match.city || "Ville non renseignee"} · score {match.compatibility_score}%
+              {match.title} · {match.city || "Ville non renseignée"} · score {match.compatibility_score}%
             </p>
           ))}
         </CardBody>

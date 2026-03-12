@@ -70,7 +70,7 @@ type ProviderDashboardState = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "A planifier";
+  if (!value) return "À planifier";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
@@ -82,7 +82,7 @@ function formatDate(value: string | null) {
 }
 
 function formatBudget(amount: number | null, currency: string | null) {
-  if (typeof amount !== "number") return "Budget a confirmer";
+  if (typeof amount !== "number") return "Budget à confirmer";
 
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -148,7 +148,7 @@ export default function ProviderDashboardPage() {
   const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
   const locationLabel = useMemo(
-    () => workspace?.summary.location || "Localisation a completer",
+    () => workspace?.summary.location || "Localisation à compléter",
     [workspace],
   );
   const stats = dashboard?.summary;
@@ -211,7 +211,7 @@ export default function ProviderDashboardPage() {
         ...highlightedClients.map((item) => ({
           id: `client-${item.id}`,
           title: item.client_name || item.company_name || "Client",
-          description: item.city || "Ville non renseignee",
+          description: item.city || "Ville non renseignée",
           href: `/dashboard/provider/clients?client=${item.id}`,
         })),
       ]}
@@ -220,7 +220,7 @@ export default function ProviderDashboardPage() {
           id: "provider-n1",
           title:
             (stats?.urgentAlerts ?? 0) > 0
-              ? `${stats?.urgentAlerts ?? 0} alerte(s) urgente(s) a traiter.`
+              ? `${stats?.urgentAlerts ?? 0} alerte(s) urgente(s) à traiter.`
               : "Aucune alerte urgente.",
           level: (stats?.urgentAlerts ?? 0) > 0 ? "danger" : "info",
           href: "/dashboard/provider/alertes",
@@ -244,7 +244,7 @@ export default function ProviderDashboardPage() {
     >
       <Card>
         <CardHeader>
-          <h2>Operations critiques</h2>
+          <h2>Opérations critiques</h2>
         </CardHeader>
         <CardBody>
           {highlightedAlerts.length === 0 ? (
@@ -252,7 +252,7 @@ export default function ProviderDashboardPage() {
           ) : (
             highlightedAlerts.map((alert) => (
               <p key={alert.id}>
-                {alert.title || "Alerte"}: {alert.body || "A traiter rapidement."}
+                {alert.title || "Alerte"}: {alert.body || "À traiter rapidement."}
               </p>
             ))
           )}

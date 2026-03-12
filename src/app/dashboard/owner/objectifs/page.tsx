@@ -1,4 +1,4 @@
-import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
+﻿import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 
 export default function OwnerObjectifsPage() {
   return (
@@ -67,7 +67,7 @@ export default function OwnerObjectifsPage() {
               actionLabel: "Voir ma conciergerie",
             },
             {
-              title: "Aligner budget et execution",
+              title: "Aligner budget et exécution",
               meta: "Finance",
               description: "Croiser devis, factures et interventions pour arbitrer sans angle mort.",
               href: "/dashboard/owner/factures",
@@ -79,3 +79,4 @@ export default function OwnerObjectifsPage() {
     />
   );
 }
+

@@ -242,7 +242,7 @@ export default function ConciergePlanningPage() {
     <DashboardSectionShell
       persona="conciergerie"
       title="Planning conciergerie"
-      subtitle="Reperez ce qui doit etre traite aujourd'hui, confirme sous 48h ou replanifie."
+      subtitle="Repérez ce qui doit être traité aujourd'hui, confirmé sous 48 h ou replanifié."
       stats={[
         { label: "Missions", value: `${missions.length}` },
         { label: "Urgences", value: `${urgentMissions.length}` },
@@ -258,12 +258,12 @@ export default function ConciergePlanningPage() {
       title="Planning des missions"
       description={
         loading
-          ? "Preparation de votre planning..."
+          ? "Préparation de votre planning..."
           : error ||
-            "Reperez immediatement ce qui doit etre traite aujourd'hui, confirme sous 48 h ou replanifie sans delai."
+            "Repérez immédiatement ce qui doit être traité aujourd'hui, confirmé sous 48 h ou replanifié sans délai."
       }
       chips={[
-        `${missions.length} mission(s) chargee(s)`,
+        `${missions.length} mission(s) chargée(s)`,
         `${urgentMissions.length} urgence(s)`,
         `${unscheduledMissions.length} mission(s) sans date`,
       ]}
@@ -290,7 +290,7 @@ export default function ConciergePlanningPage() {
         {
           label: "Sans date",
           value: loading ? "..." : String(unscheduledMissions.length),
-          hint: "Angles morts a securiser",
+          hint: "Angles morts à sécuriser",
         },
       ]}
       cards={[
@@ -311,7 +311,7 @@ export default function ConciergePlanningPage() {
           ],
         },
         {
-          title: "Missions a replanifier",
+          title: "Missions à replanifier",
           text:
             overdueMissions.length > 0
               ? `${overdueMissions.length} mission(s) semblent en retard ou non mises à jour. Reprenez-les avant qu'elles ne deviennent des irritants client.`
@@ -325,10 +325,10 @@ export default function ConciergePlanningPage() {
           ],
         },
         {
-          title: "Urgences et imprevus",
+          title: "Urgences et imprévus",
           text:
             urgentMissions.length > 0
-              ? `${urgentMissions.length} mission(s) urgentes demandent une verification immediate du planning, du stock et de la disponibilite.`
+              ? `${urgentMissions.length} mission(s) urgentes demandent une vérification immédiate du planning, du stock et de la disponibilité.`
               : "Aucune urgence active pour le moment. Profitez-en pour assainir vos missions sans date.",
           actions: [
             {
@@ -341,22 +341,22 @@ export default function ConciergePlanningPage() {
       ]}
       detailSections={[
         {
-          title: "A traiter aujourd'hui",
+          title: "À traiter aujourd'hui",
           description:
-            "Le coeur de votre journee terrain : ce qui doit etre confirme, execute ou clos avant ce soir.",
+            "Le cœur de votre journée terrain : ce qui doit être confirmé, exécuté ou clos avant ce soir.",
           emptyText:
             loading
               ? "Chargement des interventions du jour."
-              : error || "Aucune intervention prevue aujourd'hui.",
+              : error || "Aucune intervention prévue aujourd'hui.",
           items: todayMissions.map((mission) => toPlanningItem(mission, "Ouvrir")),
         },
         {
-          title: "A confirmer sous 48 h",
+          title: "À confirmer sous 48 h",
           description:
-            "Les prochaines interventions qui demandent une validation rapide avec le proprietaire ou l'equipe terrain.",
+            "Les prochaines interventions qui demandent une validation rapide avec le propriétaire ou l'équipe terrain.",
           emptyText:
             loading
-              ? "Chargement des missions a venir."
+              ? "Chargement des missions à venir."
               : error || "Aucune mission à confirmer dans les 48 prochaines heures.",
           items: nextMissions.map((mission) => toPlanningItem(mission, "Confirmer")),
         },
@@ -373,7 +373,7 @@ export default function ConciergePlanningPage() {
         {
           title: "Missions sans date",
           description:
-            "Liste des interventions encore non positionnees dans le temps pour eviter les angles morts operationnels.",
+            "Liste des interventions encore non positionnées dans le temps pour éviter les angles morts opérationnels.",
           emptyText:
             loading
               ? "Analyse des missions sans date."
@@ -389,13 +389,13 @@ export default function ConciergePlanningPage() {
           })),
         },
         {
-          title: "Etat du pipe missions",
+          title: "État du pipe missions",
           description:
             "Vue synthétique de vos statuts pour équilibrer exécution, suivi client et clôture des interventions.",
           emptyText:
             loading
               ? "Analyse des statuts en cours."
-              : error || "Aucune mission disponible pour etablir un etat des lieux.",
+              : error || "Aucune mission disponible pour établir un état des lieux.",
           items: statusBreakdown,
         },
       ]}
@@ -407,7 +407,7 @@ export default function ConciergePlanningPage() {
               <p className={styles.sectionEyebrow}>Vue planning</p>
               <h2 className={styles.sectionTitle}>Lecture visuelle de la charge</h2>
             </div>
-            <span className={styles.overviewBadge}>{occupancyRate}% planifie</span>
+            <span className={styles.overviewBadge}>{occupancyRate}% planifié</span>
           </div>
 
           <div className={styles.loadStrip}>
@@ -467,9 +467,9 @@ export default function ConciergePlanningPage() {
         <aside className={styles.timelinePanel}>
           <div className={styles.timelineHeader}>
             <p className={styles.sectionEyebrow}>Cadence</p>
-            <h2 className={styles.sectionTitle}>Prochaines etapes</h2>
+            <h2 className={styles.sectionTitle}>Prochaines étapes</h2>
             <p className={styles.timelineText}>
-              Une timeline courte pour reperer ce qui arrive vite et ce qui glisse.
+              Une timeline courte pour repérer ce qui arrive vite et ce qui glisse.
             </p>
           </div>
 
