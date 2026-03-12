@@ -3,6 +3,7 @@ import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { setConversationSeenAt } from "../shared";
+import { z } from "zod";
 
 interface SendMessageBody {
   body?: string;
@@ -39,17 +40,28 @@ const canAccessConversation = (userId: string, conversation: {
   owner_profile_id: string;
 }) => conversation.concierge_profile_id === userId || conversation.owner_profile_id === userId;
 
+const isUuidLike = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+const sendMessageSchema = z.object({
+  body: z.string().trim().min(1).max(5000),
+  metadata: z.record(z.string(), z.unknown()).optional().nullable(),
+});
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { userId } = await getApiAuthContext(req);
-    if (!userId) {
+    if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { id } = await params;
+    if (!isUuidLike(id)) {
+      return NextResponse.json({ error: "Conversation invalide" }, { status: 400 });
+    }
     const { data: conversation, error: conversationError } = await db
       .from("contact_conversations")
       .select(conversationSelect)
@@ -131,16 +143,22 @@ export async function POST(
 ) {
   try {
     const { userId } = await getApiAuthContext(req);
-    if (!userId) {
+    if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { id } = await params;
-    const body: SendMessageBody = await req.json();
-    const content = (body.body ?? "").trim();
-    if (!content) {
-      return NextResponse.json({ error: "Message vide" }, { status: 400 });
+    if (!isUuidLike(id)) {
+      return NextResponse.json({ error: "Conversation invalide" }, { status: 400 });
     }
+
+    const rawBody: unknown = await req.json();
+    const parsedBody = sendMessageSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Message vide ou invalide" }, { status: 400 });
+    }
+    const body = parsedBody.data;
+    const content = body.body.trim();
 
     const { data: conversation, error: conversationError } = await db
       .from("contact_conversations")

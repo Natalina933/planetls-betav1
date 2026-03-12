@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { Json } from "@/types/supabase";
+import { z } from "zod";
 
 type ServiceRequestType = "ponctuel" | "renfort" | "durable";
 type ServiceRequestStatus =
@@ -40,6 +41,25 @@ interface CreateServiceRequestBody {
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 const VALID_REQUEST_TYPES: ServiceRequestType[] = ["ponctuel", "renfort", "durable"];
+
+const isUuidLike = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+const createServiceRequestSchema = z.object({
+  property_id: z.string().uuid().optional().nullable(),
+  request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
+  title: z.string().trim().min(1).max(180),
+  description: z.string().trim().max(5000).optional().nullable(),
+  requested_services: z.array(z.string().trim().min(1).max(120)).max(50).optional(),
+  region: z.string().trim().max(120).optional().nullable(),
+  city: z.string().trim().max(120).optional().nullable(),
+  postal_code: z.string().trim().max(20).optional().nullable(),
+  desired_date: z.string().trim().max(40).optional().nullable(),
+  urgency: z.boolean().optional(),
+  budget_max: z.coerce.number().nonnegative().max(100000000).optional().nullable(),
+  currency: z.string().trim().length(3).optional().nullable(),
+  recipient_ids: z.array(z.string().uuid()).min(1).max(100),
+});
 
 type ServiceRequestRecipientRow = {
   id: string;
@@ -379,14 +399,19 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 export async function POST(req: NextRequest) {
   try {
     const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
+    if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
     if (!OWNER_ROLES.has(role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
-    const body = (await req.json()) as CreateServiceRequestBody;
+    const rawBody: unknown = await req.json();
+    const parsedBody = createServiceRequestSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
+    }
+    const body = parsedBody.data as CreateServiceRequestBody;
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
       return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
@@ -545,12 +570,15 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
+    if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const url = new URL(req.url);
     const view = url.searchParams.get("view") ?? "";
+    if (view !== "" && view !== "owner" && view !== "concierge") {
+      return NextResponse.json({ error: "view invalide" }, { status: 400 });
+    }
     const limit = parseLimit(url.searchParams.get("limit"), 20);
 
     if (OWNER_ROLES.has(role) && view !== "concierge") {

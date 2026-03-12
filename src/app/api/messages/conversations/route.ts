@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { z } from "zod";
 import {
   getConversationSeenAt,
   resolveConversationParticipants,
@@ -36,6 +37,19 @@ const ALLOWED_CONVERSATION_CREATOR_ROLES = new Set([
   "owner_pro",
 ]);
 
+const isUuidLike = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+const createConversationSchema = z.object({
+  owner_profile_id: z.string().uuid().optional(),
+  concierge_profile_id: z.string().uuid().optional(),
+  source: z.enum(VALID_SOURCES).optional(),
+  source_reference: z.string().trim().max(120).optional().nullable(),
+  subject: z.string().trim().max(180).optional().nullable(),
+  prefill_message: z.string().trim().max(5000).optional().nullable(),
+  metadata: z.record(z.string(), z.unknown()).optional().nullable(),
+});
+
 const conversationSelect = `
   id,
   concierge_profile_id,
@@ -54,12 +68,15 @@ const conversationSelect = `
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await getApiAuthContext(req);
-    if (!userId) {
+    if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const url = new URL(req.url);
     const roleHint = url.searchParams.get("role") ?? "concierge";
+    if (roleHint !== "concierge" && roleHint !== "owner") {
+      return NextResponse.json({ error: "role invalide" }, { status: 400 });
+    }
     const limitRaw = Number(url.searchParams.get("limit") ?? "40");
     const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 150) : 40;
 
@@ -191,14 +208,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
+    if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
     if (!ALLOWED_CONVERSATION_CREATOR_ROLES.has(role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
-    const body: CreateConversationBody = await req.json();
+    const rawBody: unknown = await req.json();
+    const parsedBody = createConversationSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
+    }
+    const body = parsedBody.data;
     const { ownerProfileId, conciergeProfileId } = resolveConversationParticipants({
       role,
       userId,
