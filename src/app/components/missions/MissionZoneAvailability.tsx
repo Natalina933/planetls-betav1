@@ -111,18 +111,18 @@ export default function MissionZoneAvailability({
               )}
             </div>
 
-            {isEditing && (
-              <input
-                id="radius-input"
-                type="range"
-                min={1}
-                max={100}
-                value={state.radiusKm}
-                onChange={(e) => updateRadius(Number(e.target.value))}
-                className={styles.radiusSlider}
-                aria-label="Ajuster le rayon de couverture en kilomètres"
-              />
-            )}
+            <input
+              id="radius-input"
+              type="range"
+              min={1}
+              max={100}
+              value={state.radiusKm}
+              onChange={(e) => updateRadius(Number(e.target.value))}
+              className={styles.radiusSlider}
+              aria-label="Ajuster le rayon de couverture en kilomètres"
+              disabled={!isEditing}
+              aria-disabled={!isEditing}
+            />
           </div>
 
           {/* Zones sélectionnées */}
