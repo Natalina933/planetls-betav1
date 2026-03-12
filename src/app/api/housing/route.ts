@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { z } from "zod";
+import type { Database, Json } from "@/types/supabase";
 
 type HousingOwner = {
   id?: string;
@@ -10,6 +12,51 @@ type HousingOwner = {
   owner_id?: string;
   proprietaire_id?: string;
 } | null;
+
+const createHousingSchema = z
+  .object({
+    external_id: z
+      .preprocess((value) => {
+        if (value === null || value === undefined || value === "") return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : value;
+      }, z.number().int().nonnegative().nullable())
+      .optional(),
+    statut: z.string().trim().max(40).optional().nullable(),
+    photo_principale: z.string().trim().max(2048).optional().nullable(),
+    proprietaire: z
+      .object({
+        id: z.string().uuid().optional(),
+        userId: z.string().uuid().optional(),
+        profile_id: z.string().uuid().optional(),
+        owner_id: z.string().uuid().optional(),
+        proprietaire_id: z.string().uuid().optional(),
+      })
+      .passthrough()
+      .optional()
+      .nullable(),
+    infos: z
+      .object({
+        nomLogement: z.string().trim().min(1).max(120),
+        adresse: z.string().trim().max(255).optional().nullable(),
+        photos: z.array(z.string().trim().max(2048)).max(20).optional(),
+      })
+      .passthrough()
+      .optional(),
+    location: z
+      .object({
+        city: z.string().trim().max(120).optional().nullable(),
+        plateformePrincipale: z.string().trim().max(80).optional().nullable(),
+      })
+      .passthrough()
+      .optional()
+      .nullable(),
+    menage: z.unknown().optional().nullable(),
+    planning: z.unknown().optional().nullable(),
+    documents: z.unknown().optional().nullable(),
+    notes: z.unknown().optional().nullable(),
+  })
+  .passthrough();
 
 function normalizeOwnerPayload(proprietaire: unknown, userId: string) {
   const owner =
@@ -61,9 +108,14 @@ export async function GET(req: NextRequest) {
     const searchParams = url.searchParams;
 
     // filtres optionnels (ex: ?proprietaireId=P001 ou ?ville=Bordeaux)
-    const proprietaireId = searchParams.get("proprietaireId");
-    const ville = searchParams.get("ville");
-    const platform = searchParams.get("plateforme");
+    const proprietaireIdRaw = searchParams.get("proprietaireId");
+    const proprietaireId = proprietaireIdRaw ? proprietaireIdRaw.trim() : "";
+    const ville = (searchParams.get("ville") ?? "").trim();
+    const platform = (searchParams.get("plateforme") ?? "").trim();
+
+    if (proprietaireId && !isUuidLike(proprietaireId)) {
+      return NextResponse.json({ error: "proprietaireId invalide" }, { status: 400 });
+    }
 
     let query = db.from("housing").select("*");
 
@@ -112,7 +164,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsedBody = createHousingSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
+    }
+    const body = parsedBody.data;
     const proprietaireId =
       typeof body?.proprietaire?.id === "string"
         ? body.proprietaire.id
@@ -123,7 +180,6 @@ export async function POST(req: NextRequest) {
         : null;
     const normalizedOwner = normalizeOwnerPayload(body?.proprietaire, userId);
 
-    // Ici tu peux effectuer des validations basiques
     if (!body.infos?.nomLogement) {
       return NextResponse.json(
         { error: "Champs requis manquants" },
@@ -136,31 +192,33 @@ export async function POST(req: NextRequest) {
     }
 
     // Insère. Utilise returning/select pour renvoyer l'enregistrement inséré
+    const insertPayload: Database["public"]["Tables"]["housing"]["Insert"] = {
+      external_id: body.external_id ?? null,
+      nom_logement: body.infos?.nomLogement ?? null,
+      ville:
+        body.infos?.adresse?.split(",").pop()?.trim() ??
+        body.location?.city ??
+        null,
+      adresse: body.infos?.adresse ?? null,
+      plateforme: body.location?.plateformePrincipale ?? null,
+      statut: body.statut ?? "draft",
+      photo_principale:
+        (body.infos?.photos && body.infos.photos[0]) ??
+        body.photo_principale ??
+        null,
+      infos: (body.infos ?? null) as Json | null,
+      proprietaire: (normalizedOwner ?? null) as Json | null,
+      location: (body.location ?? null) as Json | null,
+      menage: (body.menage ?? null) as Json | null,
+      planning: (body.planning ?? null) as Json | null,
+      documents: (body.documents ?? null) as Json | null,
+      notes: (body.notes ?? null) as Json | null,
+      // created_at/updated_at are managed by the DB.
+    };
+
     const { data, error } = await db
       .from("housing")
-      .insert({
-        external_id: body.external_id ?? null,
-        nom_logement: body.infos?.nomLogement ?? null,
-        ville:
-          body.infos?.adresse?.split(",").pop()?.trim() ??
-          body.location?.city ??
-          null,
-        adresse: body.infos?.adresse ?? null,
-        plateforme: body.location?.plateformePrincipale ?? null,
-        statut: body.statut ?? "draft",
-        photo_principale:
-          (body.infos?.photos && body.infos.photos[0]) ??
-          body.photo_principale ??
-          null,
-        infos: body.infos ?? null,
-        proprietaire: normalizedOwner,
-        location: body.location ?? null,
-        menage: body.menage ?? null,
-        planning: body.planning ?? null,
-        documents: body.documents ?? null,
-        notes: body.notes ?? null,
-        // created_at/updated_at sont gérés par la DB
-      })
+      .insert(insertPayload)
       .select()
       .maybeSingle();
 
@@ -175,5 +233,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
 
 

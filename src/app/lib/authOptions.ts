@@ -26,6 +26,8 @@ const VALID_ROLES: UserRole[] = [
 const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const isProduction = process.env.NODE_ENV === "production";
+const sessionMaxAgeSeconds = 60 * 60 * 8;
 
 // Type for our custom user fields passed through JWT
 interface CustomUser {
@@ -135,8 +137,21 @@ if (googleClientId && googleClientSecret) {
 }
 
 export const authOptions: NextAuthConfig = {
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: sessionMaxAgeSeconds, updateAge: 60 * 30 },
+  jwt: { maxAge: sessionMaxAgeSeconds },
+  useSecureCookies: isProduction,
   providers,
+  cookies: {
+    sessionToken: {
+      name: isProduction ? "__Secure-authjs.session-token" : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isProduction,
+      },
+    },
+  },
 
   callbacks: {
     async jwt({ token, user }) {

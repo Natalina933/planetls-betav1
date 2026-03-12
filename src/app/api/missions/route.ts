@@ -45,6 +45,9 @@ const CONCIERGE_MISSION_ROLES = new Set([
   "concierge_pro",
 ]);
 
+const isUuidLike = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
 const mapMissionInsertError = (error: {
   code?: string;
   message?: string;
@@ -95,7 +98,7 @@ const mapMissionInsertError = (error: {
 export async function GET(req: NextRequest) {
   try {
     const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
+    if (!auth.userId || !isUuidLike(auth.userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
@@ -145,7 +148,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
+    if (!auth.userId || !isUuidLike(auth.userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
