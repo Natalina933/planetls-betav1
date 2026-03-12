@@ -3,10 +3,6 @@
 import React, { useState } from "react";
 import styles from "./AccessPopup.module.scss";
 
-// -----------------------------------------------------------------------------
-// TYPES
-// -----------------------------------------------------------------------------
-
 export interface FormData {
   firstName: string;
   lastName: string;
@@ -29,9 +25,39 @@ interface AccessPopupProps {
   onValidate: (data: FormData) => void;
 }
 
-// -----------------------------------------------------------------------------
-// COMPONENT
-// -----------------------------------------------------------------------------
+type ProfileKey = "proprietaire" | "concierge" | "artisan";
+
+const PROFILE_COPY: Record<
+  ProfileKey,
+  {
+    title: string;
+    needLabel: string;
+    targetLabel: string;
+  }
+> = {
+  proprietaire: {
+    title: "Acces proprietaire",
+    needLabel: "Votre besoin",
+    targetLabel: "Vous recherchez",
+  },
+  concierge: {
+    title: "Acces concierge",
+    needLabel: "Vos services",
+    targetLabel: "Vous souhaitez collaborer avec",
+  },
+  artisan: {
+    title: "Acces artisan",
+    needLabel: "Votre specialite",
+    targetLabel: "Vous souhaitez collaborer avec",
+  },
+};
+
+const getProfileKey = (category: string): ProfileKey => {
+  if (category === "proprietaire" || category === "artisan" || category === "concierge") {
+    return category;
+  }
+  return "concierge";
+};
 
 export default function AccessPopup({
   selectedOptions,
@@ -48,13 +74,10 @@ export default function AccessPopup({
     additionalInfo: "",
   });
 
-  // ---------------------------------------------------------------------------
-  // HANDLERS
-  // ---------------------------------------------------------------------------
+  const profileKey = getProfileKey(recap.category);
+  const copy = PROFILE_COPY[profileKey];
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -70,110 +93,66 @@ export default function AccessPopup({
     onValidate(form);
   };
 
-  // ---------------------------------------------------------------------------
-  // RENDER
-  // ---------------------------------------------------------------------------
-
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={styles.popup}>
-        <button
-          className={styles.close}
-          onClick={onClose}
-          aria-label="Fermer la fenêtre"
-          type="button"
-        >
-          ✕
+        <button className={styles.close} onClick={onClose} aria-label="Fermer la fenetre" type="button">
+          X
         </button>
 
-        <h2>Accès aux annonces</h2>
+        <h2>{copy.title}</h2>
 
-        {/* ------------------------------------------------------------------ */}
-        {/* RÉCAP */}
-        {/* ------------------------------------------------------------------ */}
         <section className={styles.recapBox}>
-          <h3>Récapitulatif</h3>
+          <h3>Recapitulatif</h3>
 
           <ul>
             <li>
-              <strong>Catégorie :</strong> {recap.category}
+              <strong>Categorie :</strong> {recap.category}
             </li>
             <li>
-              <strong>Recherche :</strong> {recap.searchTarget}
+              <strong>{copy.targetLabel} :</strong> {recap.searchTarget}
             </li>
             <li>
               <strong>Localisation :</strong> {recap.location}
             </li>
             <li>
-              <strong>Expérience :</strong>{" "}
-              {recap.yearsExperience} – {recap.experienceLevel}
+              <strong>Experience :</strong> {recap.yearsExperience} - {recap.experienceLevel}
             </li>
             <li>
-              <strong>Options :</strong> {selectedOptions.join(" — ")}
+              <strong>Options :</strong> {selectedOptions.length ? selectedOptions.join(" - ") : "Aucune"}
             </li>
           </ul>
         </section>
 
-        {/* ------------------------------------------------------------------ */}
-        {/* FORMULAIRE */}
-        {/* ------------------------------------------------------------------ */}
         <form className={styles.form} onSubmit={handleSubmit}>
           <label>
-            Prénom *
-            <input
-              name="firstName"
-              value={form.firstName}
-              onChange={handleChange}
-              required
-            />
+            Prenom *
+            <input name="firstName" value={form.firstName} onChange={handleChange} required />
           </label>
 
           <label>
             Nom *
-            <input
-              name="lastName"
-              value={form.lastName}
-              onChange={handleChange}
-              required
-            />
+            <input name="lastName" value={form.lastName} onChange={handleChange} required />
           </label>
 
           <label>
             Email *
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
+            <input name="email" type="email" value={form.email} onChange={handleChange} required />
           </label>
 
           <label>
-            Téléphone
-            <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-            />
+            Telephone
+            <input name="phone" value={form.phone} onChange={handleChange} />
           </label>
 
           <label>
-            Votre besoin
-            <textarea
-              name="additionalInfo"
-              value={form.additionalInfo}
-              onChange={handleChange}
-            />
+            {copy.needLabel}
+            <textarea name="additionalInfo" value={form.additionalInfo} onChange={handleChange} />
           </label>
 
           <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onBack}
-            >
-              ← Retour
+            <button type="button" className={styles.secondaryButton} onClick={onBack}>
+              Retour
             </button>
 
             <button type="submit" className={styles.primaryButton}>
