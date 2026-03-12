@@ -1,0 +1,223 @@
+@mixin popupAnimations {
+  @keyframes popupFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes popupPopIn {
+    from {
+      transform: translateY(15px) scale(0.98);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes popupSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}
+
+@mixin overlay($z-index: 50) {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(10, 10, 20, 0.55);
+  backdrop-filter: blur(10px);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overflow: hidden;
+  z-index: $z-index;
+  animation: popupFadeIn 0.25s ease forwards;
+}
+
+@mixin container($max-width: 520px, $padding: 1.4rem) {
+  position: relative;
+  width: min(90%, $max-width);
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #ffffff, #f9f9fb);
+  border-radius: 20px;
+  padding: $padding;
+  overflow: hidden;
+  animation: popupPopIn 0.35s ease-out;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #1e222a, #23272f);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(0, 0, 0, 0.4) inset;
+  }
+}
+
+@mixin mobileOverlay {
+  @media (max-width: 600px) {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+@mixin mobileBottomSheet($padding: 1.2rem) {
+  @media (max-width: 600px) {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    height: calc(100dvh - env(safe-area-inset-top));
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    padding: $padding;
+    animation: popupSlideUp 0.35s ease-out;
+  }
+}
+
+@mixin title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  font-weight: 700;
+  background: linear-gradient(90deg, #b89226, #d4af37, #e2c874);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@mixin optionCard($check-shape: "round") {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.72rem 0.82rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid #ddd;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: #fff9e6;
+    border-color: #d4af37;
+  }
+
+  input {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d4af37;
+    border-radius: if($check-shape == "square", 4px, 999px);
+    display: grid;
+    place-content: center;
+    margin: 0;
+
+    &::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      background: linear-gradient(135deg, #d4af37, #e7c65a);
+      border-radius: if($check-shape == "square", 2px, 999px);
+      transform: scale(0);
+      transition: transform 0.15s ease;
+    }
+
+    &:checked::before {
+      transform: scale(1);
+    }
+  }
+
+  &:has(input:checked) {
+    border-color: #c89f2d;
+    background: #fff7dd;
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1a1f2b;
+    border-color: #3a4254;
+
+    &:hover {
+      background: #252c3b;
+      border-color: #f0cd67;
+    }
+
+    &:has(input:checked) {
+      background: #252a39;
+      border-color: #f0cd67;
+      box-shadow: 0 6px 18px rgba(240, 205, 103, 0.2);
+    }
+  }
+}
+
+@mixin actionsBar {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  position: sticky;
+  bottom: 0;
+  background: inherit;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    button {
+      width: 100%;
+    }
+  }
+}
+
+@mixin actionButtonBase {
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.62rem 1.15rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+@mixin secondaryButton {
+  background: #f2f2f2;
+  color: #555;
+
+  &:hover {
+    background: #e0e0e0;
+    color: #222;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2d37;
+    color: #f5f5f5;
+  }
+}
+
+@mixin primaryButton {
+  background: linear-gradient(90deg, #d4af37, #e7c65a);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.35);
+
+  &:hover {
+    background: linear-gradient(90deg, #e7c65a, #d4af37);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.45);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+

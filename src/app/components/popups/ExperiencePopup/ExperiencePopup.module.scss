@@ -1,228 +1,123 @@
-@use "app/styles/abstracts/variables" as *;
-@use "app/styles/abstracts/mixins" as *;
-/* ===============================
-   OVERLAY
-================================ */
+@use "../popupCommon" as common;
+
+@include common.popupAnimations;
+
 .popupOverlay {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100dvh;
-    width: 100vw;
-    background: rgba(10, 10, 20, 0.55);
-    backdrop-filter: blur(8px);
-
-    padding: env(safe-area-inset-top) 1rem env(safe-area-inset-bottom);
-    overflow: hidden;
-
-    animation: fadeIn 0.25s ease forwards;
+  @include common.overlay(50);
+  @include common.mobileOverlay;
 }
 
-/* ===============================
-   POPUP CONTAINER
-================================ */
 .popupContent {
-    width: min(520px, 100%);
-    max-height: 90dvh;
-    display: flex;
-    flex-direction: column;
+  @include common.container(520px, 1.1rem);
+  @include common.mobileBottomSheet(1rem);
 
-    background: linear-gradient(135deg, #ffffff, #f9f9fb);
-    box-shadow:
-        0 8px 30px rgba(0, 0, 0, 0.18),
-        0 0 0 1px rgba(255, 255, 255, 0.4) inset;
-
-    padding: clamp(1.2rem, 4vw, 2.2rem);
-    overflow: hidden;
-
-    animation: popIn 0.35s ease-out;
-
-    @media (prefers-color-scheme: dark) {
-        background: #23272f;
-        box-shadow:
-            0 8px 30px rgba(0, 0, 0, 0.4),
-            0 0 0 1px rgba(0, 0, 0, 0.3) inset;
-    }
+  h3 {
+    @include common.title;
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.02rem, 2vw, 1.18rem);
+  }
 }
 
-/* ===============================
-   CONTENT SCROLL AREA
-================================ */
-.content {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    flex: 1;
-    padding-right: 0.25rem;
-}
-
-/* ===============================
-   OPTIONS
-================================ */
 .optionList {
-    list-style: none;
-    padding: 0;
-    margin: 1.2rem 0 0;
-    display: grid;
-    gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.52rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .optionLabel {
+  @include common.optionCard("round");
+  align-items: flex-start;
+  min-height: 52px;
+  font-size: 0.89rem;
+
+  input {
+    margin-top: 0.2rem;
+  }
+
+  span {
     display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-
-    padding: 1rem;
-    border-radius: 14px;
-    border: 1.5px solid #ddd;
-
-    background: #fff;
-    cursor: pointer;
-    transition: all 0.25s ease;
-
-    min-height: 64px;
-    font-size: 0.95rem;
-
-    @media (prefers-color-scheme: dark) {
-        background: #161922;
-        border-color: #333;
-        color: #f5f5f5;
-    }
-
-    input {
-        margin-top: 0.25rem;
-        accent-color: #d4af37;
-    }
-
-    span {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.4;
-    }
-
-    &:hover {
-        background: #fff9e6;
-        border-color: #d4af37;
-        transform: translateY(-1px);
-
-        @media (prefers-color-scheme: dark) {
-            background: #1d2030;
-        }
-    }
+    flex-direction: column;
+    line-height: 1.2;
+  }
 }
 
-/* ===============================
-   ACTIONS (STICKY FOOTER)
-================================ */
+.optionLabel strong {
+  color: #161922;
+  font-size: 0.92rem;
+}
+
+.years {
+  display: inline-block;
+  margin-top: 0.08rem;
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #8f6a00;
+}
+
+.optionLabel p {
+  margin: 0.18rem 0 0;
+  color: #303642;
+  font-size: 0.81rem;
+}
+
+.optionLabel input:checked + span {
+  color: #0f1522;
+}
+
+.optionLabel input:checked + span strong {
+  color: #8f6a00;
+}
+
 .actions {
-    position: sticky;
-    bottom: 0;
+  @include common.actionsBar;
 
-    display: flex;
-    gap: 0.75rem;
-
-    padding-top: 1rem;
-    margin-top: 1rem;
-
-    background: inherit;
-
-    button {
-        flex: 1;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        padding: 0.75rem 1.4rem;
-        cursor: pointer;
-        transition: all 0.25s ease;
-    }
+  button {
+    @include common.actionButtonBase;
+    flex: 1;
+  }
 }
 
-.closeButton {
-    background: #f2f2f2;
-    color: #444;
-
-    &:hover {
-        background: #e0e0e0;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        background: #2a2d37;
-        color: #f5f5f5;
-    }
+.actions button:first-child {
+  @include common.secondaryButton;
 }
 
-.actions button:not(.closeButton) {
-    background: linear-gradient(90deg, #d4af37, #e7c65a);
-    color: #fff;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+.actions button:last-child {
+  @include common.primaryButton;
 
-    &:hover {
-        transform: translateY(-1px);
-    }
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        box-shadow: none;
-    }
-}
-
-/* ===============================
-   MOBILE — FULL SCREEN BOTTOM SHEET
-================================ */
-@media (max-width: 600px) {
-    .popupOverlay {
-        align-items: flex-end;
-        padding: 0;
-    }
-
-    .popupContent {
-        width: 100%;
-        height: 100dvh;
-        max-height: 100dvh;
-        animation: slideUp 0.35s ease-out;
-    }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 }
 
 .optionLabel:focus-within {
-    outline: 2px solid #d4af37;
-    outline-offset: 2px;
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
 }
 
-/* ===============================
-   ANIMATIONS
-================================ */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
+@media (prefers-color-scheme: dark) {
+  .optionLabel strong {
+    color: #f7f8fb;
+  }
 
-    to {
-        opacity: 1;
-    }
-}
+  .years {
+    color: #f0cd67;
+  }
 
-@keyframes popIn {
-    from {
-        transform: scale(0.96);
-        opacity: 0;
-    }
+  .optionLabel p {
+    color: #cfd6e4;
+  }
 
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-    }
-
-    to {
-        transform: translateY(0);
-    }
+  .optionLabel input:checked + span strong {
+    color: #f0cd67;
+  }
 }

@@ -1,208 +1,162 @@
-@use "sass:color";
-// -----------------------------------------------------------------------------
-// VARIABLES ART NOUVEAU
-// -----------------------------------------------------------------------------
-$gold-antique: #b4975a;
-$green-deep: #2d4a3e;
-$cream-paper: #f9f4e8;
-$text-ink: #1a1a1a;
-$border-soft: #d1c7b1;
+@use "../popupCommon" as common;
 
-// -----------------------------------------------------------------------------
-// STYLES
-// -----------------------------------------------------------------------------
+@include common.popupAnimations;
+
 .overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+  @include common.overlay(50);
+  @include common.mobileOverlay;
 }
 
 .popup {
-  position: relative;
-  background-color: $cream-paper;
-  background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png"); // Effet papier ancien
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 40px;
-  border-radius: 5px;
-  border: 2px solid $gold-antique;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  color: $text-ink;
-
-  // Ornement de coin typique 1900
-  &::before {
-    content: "❧";
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: $gold-antique;
-    font-size: 24px;
-    opacity: 0.6;
-  }
+  @include common.container(520px, 1.25rem);
+  @include common.mobileBottomSheet(1.1rem);
 
   h2 {
-    font-family:
-      "Playfair Display", serif; // À importer ou utiliser une cursive élégante
-    text-align: center;
-    color: $green-deep;
-    font-size: 2rem;
-    margin-bottom: 30px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    border-bottom: 1px double $gold-antique;
-    padding-bottom: 10px;
+    @include common.title;
+    margin-bottom: 0.8rem;
   }
 }
 
 .close {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: transparent;
-  border: 1px solid $border-soft;
-  color: $gold-antique;
-  font-size: 1.2rem;
+  top: 0.55rem;
+  right: 0.6rem;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d8dbe2;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #333b49;
   cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 5px 10px;
-  border-radius: 50%;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: $gold-antique;
-    color: white;
-    transform: rotate(90deg);
+    background: #f6f8fb;
+    border-color: #c2c8d3;
+    transform: translateY(-1px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a3243;
+    border-color: #495267;
+    color: #f4f6fa;
   }
 }
 
-// -----------------------------------------------------------------------------
-// RÉCAPITULATIF (Section ornementée)
-// -----------------------------------------------------------------------------
 .recapBox {
-  background: rgba(180, 151, 90, 0.1);
-  border: 1px solid $border-soft;
-  padding: 20px;
-  margin-bottom: 30px;
-  border-radius: 8px;
+  background: #fff;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  padding: 0.72rem 0.82rem;
+  margin-bottom: 0.6rem;
+  overflow-y: auto;
+  max-height: 27dvh;
 
   h3 {
-    font-size: 1rem;
-    color: $green-deep;
-    margin-bottom: 15px;
-    text-decoration: underline wavy $gold-antique;
+    margin: 0 0 0.45rem;
+    font-size: 0.94rem;
+    color: #202532;
+    font-weight: 700;
+    text-align: left;
   }
 
   ul {
     list-style: none;
+    margin: 0;
     padding: 0;
+    display: grid;
+    gap: 0.3rem;
 
     li {
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-      line-height: 1.4;
+      font-size: 0.83rem;
+      line-height: 1.25;
+      color: #2a3140;
 
       strong {
-        color: $green-deep;
-        font-variant: small-caps;
+        color: #111827;
       }
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #1a1f2b;
+    border-color: #3a4254;
+
+    h3,
+    ul li,
+    ul li strong {
+      color: #f4f6fa;
     }
   }
 }
 
-// -----------------------------------------------------------------------------
-// FORMULAIRE
-// -----------------------------------------------------------------------------
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0.45rem;
+  overflow-y: auto;
+  min-height: 0;
 
   label {
-    display: flex;
-    flex-direction: column;
-    font-family: "Georgia", serif;
-    font-size: 0.95rem;
-    color: $green-deep;
-    font-style: italic;
-    gap: 8px;
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.83rem;
+    color: #202532;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    border: 1.5px solid #d5d9e2;
+    background: #ffffff;
+    border-radius: 10px;
+    color: #161922;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.65rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    }
+  }
+
+  textarea {
+    min-height: 64px;
+    resize: vertical;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    label {
+      color: #e8edf8;
+    }
 
     input,
     textarea {
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid $border-soft;
-      padding: 10px 5px;
-      font-family: "Times New Roman", serif;
-      font-size: 1rem;
-      color: $text-ink;
-      transition: border-color 0.3s;
-
-      &:focus {
-        outline: none;
-        border-bottom: 2px solid $gold-antique;
-        background: rgba(255, 255, 255, 0.5);
-      }
-    }
-
-    textarea {
-      min-height: 80px;
-      border: 1px solid $border-soft;
-      border-radius: 4px;
+      background: #171c28;
+      border-color: #3a4254;
+      color: #f4f6fa;
     }
   }
 }
 
-// -----------------------------------------------------------------------------
-// ACTIONS & BOUTONS
-// -----------------------------------------------------------------------------
 .actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  gap: 15px;
+  @include common.actionsBar;
+  justify-content: flex-end;
 }
 
 .primaryButton,
 .secondaryButton {
-  padding: 12px 25px;
-  font-family: "Playfair Display", serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s;
-  border-radius: 2px;
-}
-
-.primaryButton {
-  background-color: $green-deep;
-  color: $cream-paper;
-  border: 1px solid $green-deep;
-  flex: 2;
-
-  &:hover {
-    background-color: color.adjust($green-deep, $lightness: 5%);
-    box-shadow: 0 4px 12px rgba(45, 74, 62, 0.3);
-  }
+  @include common.actionButtonBase;
 }
 
 .secondaryButton {
-  background-color: transparent;
-  color: $gold-antique;
-  border: 1px solid $gold-antique;
-  flex: 1;
+  @include common.secondaryButton;
+}
 
-  &:hover {
-    background-color: $gold-antique;
-    color: white;
-  }
+.primaryButton {
+  @include common.primaryButton;
 }
