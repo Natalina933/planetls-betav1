@@ -478,6 +478,8 @@ interface MissionsTabLayoutProps {
   missionOpenDaysCount: number;
   missionRangesCount: number;
   missionZonesCount: number;
+  missionProgressSteps: MissionProgressStepItem[];
+  openMissionSectionForEdit: (sectionId: string) => void;
   children: React.ReactNode;
   secondaryContent: React.ReactNode;
 }
@@ -662,6 +664,7 @@ interface TariffWorkflowSectionProps {
   configuredPricingCount: number;
   tariffReadinessPercent: number;
   pendingChecksCount: number;
+  pendingChecks: Array<{ id: string; label: string }>;
   onScrollConfig: () => void;
   onScrollBilling: () => void;
   onGoToMissions: () => void;
@@ -1527,9 +1530,32 @@ export function MissionsTabLayout({
   missionOpenDaysCount,
   missionRangesCount,
   missionZonesCount,
+  missionProgressSteps,
+  openMissionSectionForEdit,
   children,
   secondaryContent,
 }: MissionsTabLayoutProps) {
+  const servicesStep = missionProgressSteps.find((step) => step.key === "services");
+  const zoneStep = missionProgressSteps.find((step) => step.key === "zone");
+  const availabilityStep = missionProgressSteps.find((step) => step.key === "availability");
+
+  const renderMissionStatBadge = (step: MissionProgressStepItem | undefined, metricDone: boolean) => {
+    const isPending = !metricDone || (step ? !step.done : false);
+    if (!isPending || !step?.sectionId) return null;
+
+    return (
+      <button
+        type="button"
+        className={styles.missionPendingBadge}
+        onClick={() => openMissionSectionForEdit(step.sectionId!)}
+        title={`Completer: ${step.label}`}
+      >
+        <span className={styles.missionPendingDot} aria-hidden="true" />
+        A completer
+      </button>
+    );
+  };
+
   return (
     <div className={styles.missionsLayout}>
       <div className={styles.missionsHero}>
@@ -1562,7 +1588,10 @@ export function MissionsTabLayout({
         </div>
         <div className={styles.missionsHeroStats}>
           <div className={styles.missionStat}>
-            <span className={styles.missionStatLabel}>Services actifs</span>
+            <div className={styles.missionStatTop}>
+              <span className={styles.missionStatLabel}>Services actifs</span>
+              {renderMissionStatBadge(servicesStep, activeMissionRawLabelsCount > 0)}
+            </div>
             <strong>{activeMissionRawLabelsCount}</strong>
             {unrecognizedActiveMissionLabelsCount > 0 && (
               <small className={styles.missionStatSub}>
@@ -1571,15 +1600,24 @@ export function MissionsTabLayout({
             )}
           </div>
           <div className={styles.missionStat}>
-            <span className={styles.missionStatLabel}>Jours ouverts</span>
+            <div className={styles.missionStatTop}>
+              <span className={styles.missionStatLabel}>Jours ouverts</span>
+              {renderMissionStatBadge(availabilityStep, missionOpenDaysCount > 0)}
+            </div>
             <strong>{missionOpenDaysCount}/7</strong>
           </div>
           <div className={styles.missionStat}>
-            <span className={styles.missionStatLabel}>Plages horaires</span>
+            <div className={styles.missionStatTop}>
+              <span className={styles.missionStatLabel}>Plages horaires</span>
+              {renderMissionStatBadge(availabilityStep, missionRangesCount > 0)}
+            </div>
             <strong>{missionRangesCount}</strong>
           </div>
           <div className={styles.missionStat}>
-            <span className={styles.missionStatLabel}>Zones couvertes</span>
+            <div className={styles.missionStatTop}>
+              <span className={styles.missionStatLabel}>Zones couvertes</span>
+              {renderMissionStatBadge(zoneStep, missionZonesCount > 0)}
+            </div>
             <strong>{missionZonesCount}</strong>
           </div>
         </div>
@@ -1790,6 +1828,8 @@ export function MissionZoneRulesSection({
         }
       />
     </>,
+    true,
+    sectionId,
   );
 }
 
@@ -2026,6 +2066,8 @@ export function ConciergeMissionsTabContent({
       missionOpenDaysCount={missionOverviewStats.missionOpenDaysCount}
       missionRangesCount={missionOverviewStats.missionRangesCount}
       missionZonesCount={missionOverviewStats.missionAvailability?.zones.length ?? 0}
+      missionProgressSteps={missionProgressControls.missionProgressSteps}
+      openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
       secondaryContent={
         <MissionsSecondaryPanels
           styles={styles}
@@ -2084,10 +2126,33 @@ export function TariffWorkflowSection({
   configuredPricingCount,
   tariffReadinessPercent,
   pendingChecksCount,
+  pendingChecks,
   onScrollConfig,
   onScrollBilling,
   onGoToMissions,
 }: TariffWorkflowSectionProps) {
+  const getReadinessTargetLabel = (checkId: string) => {
+    if (checkId === "rate") return "Tarifs > Configuration";
+    if (checkId === "services") return "Missions > Services proposes";
+    if (checkId === "zone") return "Missions > Zone d'intervention";
+    if (checkId === "missions") return "Missions > Disponibilites";
+    return "Configuration";
+  };
+
+  const goToReadinessCheck = (checkId: string) => {
+    if (checkId === "rate") {
+      onScrollConfig();
+      return;
+    }
+
+    if (checkId === "services" || checkId === "zone" || checkId === "missions") {
+      onGoToMissions();
+      return;
+    }
+
+    onScrollConfig();
+  };
+
   return (
     <div className={`${styles.financeCard} ${styles.financeCardFull} ${styles.tariffPanelCard}`}>
       {renderSection(
@@ -2140,34 +2205,48 @@ export function TariffWorkflowSection({
                 <strong className={styles.tariffReadyScore}>{tariffReadinessPercent}%</strong>
                 <p>
                   {pendingChecksCount > 0
-                    ? `${pendingChecksCount} point(s) à compléter.`
+                    ? `${pendingChecksCount} point(s) à completer. Voir les bulles rouges ci-dessous.`
                     : "Configuration complète. Vous pouvez envoyer vos devis."}
                 </p>
+                {pendingChecksCount > 0 ? (
+                  <span className={styles.tariffPendingCount} aria-hidden>
+                    {pendingChecksCount}
+                  </span>
+                ) : null}
               </article>
             </div>
           </div>
 
-          <div className={styles.tariffQuickActions}>
-            <button
-              type="button"
-              className={`${styles.tariffNavBtn} ${styles.tariffNavBtnPrimary}`}
-              onClick={onScrollConfig}
-            >
+          <div className={styles.tariffSectionNav}>
+            <button type="button" className={styles.tariffSectionLink} onClick={onScrollConfig}>
               Configurer les tarifs
             </button>
-            <button type="button" className={styles.tariffNavBtnLink} onClick={onGoToMissions}>
-              Gérer mes missions
+            <button type="button" className={styles.tariffSectionLink} onClick={onScrollBilling}>
+              Generer devis/factures
             </button>
           </div>
 
-          <div className={styles.tariffSectionNav}>
-            <button type="button" className={styles.tariffSectionLink} onClick={onScrollConfig}>
-              1. Configurer les tarifs
-            </button>
-            <button type="button" className={styles.tariffSectionLink} onClick={onScrollBilling}>
-              2. Générer devis/factures
-            </button>
-          </div>
+          {pendingChecksCount > 0 ? (
+            <div className={styles.tariffPendingList}>
+              {pendingChecks.map((check, index) => (
+                <button
+                  key={check.id}
+                  type="button"
+                  className={styles.tariffPendingBtn}
+                  onClick={() => goToReadinessCheck(check.id)}
+                >
+                  <span className={styles.tariffPendingItemCount} aria-hidden>
+                    {index + 1}
+                  </span>
+                  <span className={styles.tariffPendingDot} aria-hidden />
+                  <span>{check.label}</span>
+                  <small className={styles.tariffPendingTarget}>
+                    {getReadinessTargetLabel(check.id)}
+                  </small>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>,
         false,
         sectionId,
@@ -3384,6 +3463,7 @@ export function ConciergeTariffsTabContent({
         configuredPricingCount={tariffOverviewControls.configuredPricingCount}
         tariffReadinessPercent={tariffOverviewControls.tariffReadinessPercent}
         pendingChecksCount={tariffOverviewControls.pendingTariffReadinessChecks.length}
+        pendingChecks={tariffOverviewControls.pendingTariffReadinessChecks}
         onScrollConfig={() => tariffOverviewControls.scrollToTariffSection("tariffs-config")}
         onScrollBilling={() => tariffOverviewControls.scrollToTariffSection("tariffs-billing-desk")}
         onGoToMissions={() => tariffOverviewControls.handleTabChange("missions")}

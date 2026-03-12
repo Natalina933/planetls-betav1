@@ -505,3 +505,60 @@
   50% { opacity: 1; }
   100% { opacity: 0.6; }
 }
+
+:global([data-theme="art-deco"]) .dashNavbar {
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.16), transparent 36%),
+    linear-gradient(180deg, #f7f9fc 0%, #eef2f6 100%);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 8px 18px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .menuButton,
+:global([data-theme="art-deco"]) .iconButton,
+:global([data-theme="art-deco"]) .userProfile {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .menuButton {
+  background: #f9f1d8;
+  border-color: rgba(212, 175, 55, 0.52);
+}
+
+:global([data-theme="art-deco"]) .pageTitle,
+:global([data-theme="art-deco"]) .logoText,
+:global([data-theme="art-deco"]) .companyName {
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .userNameInline,
+:global([data-theme="art-deco"]) .greeting {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .userRole,
+:global([data-theme="art-deco"]) .proBadge,
+:global([data-theme="art-deco"]) .notificationKind {
+  border-radius: 3px;
+  background: #f9f1d8;
+  border-color: rgba(212, 175, 55, 0.5);
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .notificationsPanel {
+  border-radius: 4px;
+  background: #ffffff;
+  border-color: #d5dbdf;
+  box-shadow: 0 14px 28px rgba(44, 62, 80, 0.12);
+}
+
+:global([data-theme="art-deco"]) .notificationItem {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  background: #f7f9fc;
+}
+
+:global([data-theme="art-deco"]) .notificationItem strong,
+:global([data-theme="art-deco"]) .notificationsPanelHeader strong {
+  color: #1a2530;
+}

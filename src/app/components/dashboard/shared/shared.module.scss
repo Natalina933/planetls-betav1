@@ -76,3 +76,39 @@
     width: 100%;
   }
 }
+
+:global([data-theme="art-deco"]) .eyebrow {
+  color: #1a2530;
+  letter-spacing: 0.08em;
+}
+
+:global([data-theme="art-deco"]) .description {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .actionLink,
+:global([data-theme="art-deco"]) .primaryAction,
+:global([data-theme="art-deco"]) .secondaryAction {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .actionLink,
+:global([data-theme="art-deco"]) .secondaryAction {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .primaryAction {
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .actionPanel {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.15), transparent 34%),
+    linear-gradient(180deg, #ffffff, #f4f7fb);
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}

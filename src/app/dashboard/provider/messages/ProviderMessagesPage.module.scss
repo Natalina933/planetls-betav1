@@ -279,3 +279,71 @@
   }
 }
 
+:global([data-theme="art-deco"]) .header p,
+:global([data-theme="art-deco"]) .threadHeaderText p,
+:global([data-theme="art-deco"]) .conversationHead,
+:global([data-theme="art-deco"]) .messageMeta,
+:global([data-theme="art-deco"]) .emptyState {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .threadHeader h2,
+:global([data-theme="art-deco"]) .sidebarHeader h2,
+:global([data-theme="art-deco"]) .createBox h2 {
+  font-family: var(--dash-artdeco-heading-font);
+  font-size: var(--dash-artdeco-h2-size);
+  font-weight: var(--dash-artdeco-h2-weight);
+  letter-spacing: var(--dash-artdeco-heading-ls);
+  text-transform: uppercase;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .sidebar,
+:global([data-theme="art-deco"]) .thread,
+:global([data-theme="art-deco"]) .createBox,
+:global([data-theme="art-deco"]) .conversationItem,
+:global([data-theme="art-deco"]) .messageOther {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .counter {
+  border-radius: 3px;
+  background: #f9f1d8;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .toolbar input,
+:global([data-theme="art-deco"]) .toolbar select,
+:global([data-theme="art-deco"]) .toolbarInput,
+:global([data-theme="art-deco"]) .toolbarSelect,
+:global([data-theme="art-deco"]) .composer textarea,
+:global([data-theme="art-deco"]) .createBox select,
+:global([data-theme="art-deco"]) .createBox input,
+:global([data-theme="art-deco"]) .createBox textarea,
+:global([data-theme="art-deco"]) .createSelect,
+:global([data-theme="art-deco"]) .createInput,
+:global([data-theme="art-deco"]) .createTextarea,
+:global([data-theme="art-deco"]) .composerTextarea {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}
+
+:global([data-theme="art-deco"]) .composer button,
+:global([data-theme="art-deco"]) .cta,
+:global([data-theme="art-deco"]) .createBox button {
+  border-radius: 4px;
+  border-color: rgba(212, 175, 55, 0.45);
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .messageMine {
+  border-radius: 4px;
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+

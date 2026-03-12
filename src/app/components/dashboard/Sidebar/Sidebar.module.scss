@@ -385,3 +385,64 @@ $provider-accent-soft: #e3e8d8;
 .providerTheme {
     @include sidebar-theme($provider-accent, $provider-accent-soft);
 }
+
+:global([data-theme="art-deco"]) .sidebar {
+    background:
+        radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 38%),
+        linear-gradient(180deg, #f7f9fc 0%, #edf2f7 100%);
+    color: #2c3e50;
+    border-right: 1px solid #d5dbdf;
+    box-shadow: 0 16px 32px rgba(44, 62, 80, 0.12);
+}
+
+:global([data-theme="art-deco"]) .header {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+    background: transparent;
+}
+
+:global([data-theme="art-deco"]) .title {
+    color: #1a2530;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+:global([data-theme="art-deco"]) .link,
+:global([data-theme="art-deco"]) .sublink {
+    border-radius: 4px;
+    color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .link .icon,
+:global([data-theme="art-deco"]) .sublink .icon {
+    color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .link:hover,
+:global([data-theme="art-deco"]) .link:focus-visible,
+:global([data-theme="art-deco"]) .sublink:hover,
+:global([data-theme="art-deco"]) .sublink:focus-visible {
+    background: #f9f1d8;
+    color: #1a2530;
+    border-left-color: #d4af37;
+}
+
+:global([data-theme="art-deco"]) .link.active,
+:global([data-theme="art-deco"]) .sublink.active {
+    background: linear-gradient(125deg, #1a2530, #2c3e50);
+    border-left-color: #d4af37;
+    color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .submenu {
+    background: #f4f7fb;
+    border-left-color: rgba(212, 175, 55, 0.4);
+}
+
+:global([data-theme="art-deco"]) .footer {
+    border-top: 1px solid rgba(212, 175, 55, 0.45);
+    background: #f7f9fc;
+}
+
+:global([data-theme="art-deco"]) .logout {
+    color: #2c3e50;
+}

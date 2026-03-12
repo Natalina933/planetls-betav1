@@ -423,3 +423,75 @@
     grid-template-columns: 1fr;
   }
 }
+
+:global([data-theme="art-deco"]) .page {
+  gap: 1rem;
+}
+
+:global([data-theme="art-deco"]) .eyebrow {
+  color: #1a2530;
+  letter-spacing: 0.08em;
+}
+
+:global([data-theme="art-deco"]) .metrics span,
+:global([data-theme="art-deco"]) .badge,
+:global([data-theme="art-deco"]) .counter {
+  border-radius: 3px;
+  background: #f9f1d8;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .panel,
+:global([data-theme="art-deco"]) .itemCard,
+:global([data-theme="art-deco"]) .spotlightCard,
+:global([data-theme="art-deco"]) .weekColumn,
+:global([data-theme="art-deco"]) .calendarCell,
+:global([data-theme="art-deco"]) .jobDetails {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .fieldInput,
+:global([data-theme="art-deco"]) .fieldSelect,
+:global([data-theme="art-deco"]) .fieldTextarea,
+:global([data-theme="art-deco"]) .toolbarInput,
+:global([data-theme="art-deco"]) .toolbarSelect,
+:global([data-theme="art-deco"]) .statusSelect {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}
+
+:global([data-theme="art-deco"]) .actionButton,
+:global([data-theme="art-deco"]) .dangerButton,
+:global([data-theme="art-deco"]) .paginationButton,
+:global([data-theme="art-deco"]) .viewTabButton {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .itemHead h3,
+:global([data-theme="art-deco"]) .panelHeader h2 {
+  color: #1a2530;
+  font-family: var(--dash-artdeco-heading-font);
+  text-transform: uppercase;
+  letter-spacing: var(--dash-artdeco-heading-ls);
+}
+
+:global([data-theme="art-deco"]) .panelHeader h2 {
+  font-size: var(--dash-artdeco-h2-size);
+  font-weight: var(--dash-artdeco-h2-weight);
+}
+
+:global([data-theme="art-deco"]) .itemHead h3 {
+  font-size: var(--dash-artdeco-h3-size);
+  font-weight: var(--dash-artdeco-h3-weight);
+}
+
+:global([data-theme="art-deco"]) .itemHead p,
+:global([data-theme="art-deco"]) .itemMeta,
+:global([data-theme="art-deco"]) .itemBody,
+:global([data-theme="art-deco"]) .emptyState,
+:global([data-theme="art-deco"]) .weekEmpty {
+  color: #5d6d7e;
+}

@@ -576,3 +576,77 @@ $concierge-accent-soft: #f3ead8;
     border-color: $mucha-ink;
   }
 }
+
+:global([data-theme="art-deco"]) .conciergeDashboardPage {
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 34%),
+    linear-gradient(180deg, #f7f9fc 0%, #edf2f7 100%);
+  border: 1px solid #d5dbdf;
+  border-radius: 6px;
+  box-shadow: 0 14px 28px rgba(44, 62, 80, 0.1);
+}
+
+:global([data-theme="art-deco"]) .dashboardHeader {
+  border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+:global([data-theme="art-deco"]) .dashboardHeader h1,
+:global([data-theme="art-deco"]) .heroTitleBlock h1,
+:global([data-theme="art-deco"]) .matchesHeader h2,
+:global([data-theme="art-deco"]) .dashboardSection h2 {
+  color: #1a2530;
+  font-family: var(--font-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--dash-artdeco-heading-ls);
+  font-size: var(--dash-artdeco-h2-size);
+  font-weight: var(--dash-artdeco-h2-weight);
+}
+
+:global([data-theme="art-deco"]) .priorityCard h3,
+:global([data-theme="art-deco"]) .matchCardHead h3 {
+  font-family: var(--dash-artdeco-heading-font);
+  font-size: var(--dash-artdeco-h3-size);
+  font-weight: var(--dash-artdeco-h3-weight);
+  letter-spacing: 0.03em;
+}
+
+:global([data-theme="art-deco"]) .subtitle,
+:global([data-theme="art-deco"]) .heroLead,
+:global([data-theme="art-deco"]) .metricDescription,
+:global([data-theme="art-deco"]) .matchesInfo,
+:global([data-theme="art-deco"]) .matchMeta,
+:global([data-theme="art-deco"]) .priorityCard p,
+:global([data-theme="art-deco"]) .focusText {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .dashboardHero,
+:global([data-theme="art-deco"]) .metricCard,
+:global([data-theme="art-deco"]) .priorityCard,
+:global([data-theme="art-deco"]) .focusCard,
+:global([data-theme="art-deco"]) .matchesSection,
+:global([data-theme="art-deco"]) .matchCard,
+:global([data-theme="art-deco"]) .dashboardSection {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .proBadge,
+:global([data-theme="art-deco"]) .standardBadge,
+:global([data-theme="art-deco"]) .matchScore,
+:global([data-theme="art-deco"]) .metricLock {
+  border-radius: 3px;
+  background: #f9f1d8;
+  border-color: rgba(212, 175, 55, 0.45);
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .sectionAction,
+:global([data-theme="art-deco"]) .matchesHeaderAction {
+  border-radius: 4px;
+  border-color: rgba(212, 175, 55, 0.45);
+  background: #ffffff;
+  color: #2c3e50;
+}

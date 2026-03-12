@@ -47,12 +47,10 @@ interface ConciergeNotificationsProps {
 export function ConciergePageHeader({ styles, title }: ConciergePageHeaderProps) {
   return (
     <header className={styles.pageHeader}>
-      <div className={styles.pageHeaderLeft}>
-        <div className={styles.logo}>
-          <Shield size={22} />
-        </div>
-        <h1 className={styles.pageTitle}>{title}</h1>
+      <div className={styles.logo}>
+        <Shield size={22} />
       </div>
+      <h1 className={styles.pageTitle}>{title}</h1>
     </header>
   );
 }
@@ -93,8 +91,6 @@ export function ConciergeProfileShell({
 }: ConciergeProfileShellProps) {
   return (
     <div className={styles.page}>
-      <ConciergePageHeader styles={styles} title={title} />
-
       <main className={styles.main}>
         <ConciergeNotifications
           styles={styles}

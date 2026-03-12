@@ -348,3 +348,72 @@
     font-size: 1.5rem;
   }
 }
+
+:global([data-theme="art-deco"]) .dashboard {
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 34%),
+    linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
+}
+
+:global([data-theme="art-deco"]) .header h1 {
+  color: #1a2530;
+  font-family: var(--font-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:global([data-theme="art-deco"]) .header p,
+:global([data-theme="art-deco"]) .jobDescription,
+:global([data-theme="art-deco"]) .jobDetail {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .statCard,
+:global([data-theme="art-deco"]) .jobCard,
+:global([data-theme="art-deco"]) .jobDetails {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .statValue,
+:global([data-theme="art-deco"]) .jobHeader h3,
+:global([data-theme="art-deco"]) .jobDetail strong {
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .filters button,
+:global([data-theme="art-deco"]) .sortSelect,
+:global([data-theme="art-deco"]) .jobActions button {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .filters button {
+  border-color: rgba(212, 175, 55, 0.44);
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .filterActive {
+  background: #f9f1d8 !important;
+  color: #1a2530 !important;
+  border-color: rgba(212, 175, 55, 0.6) !important;
+}
+
+:global([data-theme="art-deco"]) .sortSelect {
+  border-color: #d5dbdf;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .btnAccept,
+:global([data-theme="art-deco"]) .btnStart,
+:global([data-theme="art-deco"]) .btnComplete {
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .btnDetails {
+  border-color: rgba(212, 175, 55, 0.46);
+  color: #2c3e50;
+  background: #ffffff;
+}

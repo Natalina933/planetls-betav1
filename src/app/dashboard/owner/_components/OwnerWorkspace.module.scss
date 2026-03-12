@@ -176,3 +176,68 @@
   text-decoration: none;
   font-weight: 700;
 }
+
+:global([data-theme="art-deco"]) .page {
+  --workspace-accent: #d4af37;
+  --workspace-accent-soft: #f9f1d8;
+  --workspace-accent-text: #1a2530;
+  --workspace-surface: rgba(255, 255, 255, 0.97);
+  --workspace-surface-strong: rgba(246, 249, 252, 0.96);
+  --workspace-shadow: rgba(44, 62, 80, 0.1);
+}
+
+:global([data-theme="art-deco"]) .hero,
+:global([data-theme="art-deco"]) .card,
+:global([data-theme="art-deco"]) .detailSection {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}
+
+:global([data-theme="art-deco"]) .hero,
+:global([data-theme="art-deco"]) .card,
+:global([data-theme="art-deco"]) .detailSection,
+:global([data-theme="art-deco"]) .detailItem {
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .title,
+:global([data-theme="art-deco"]) .cardTitle,
+:global([data-theme="art-deco"]) .detailTitle,
+:global([data-theme="art-deco"]) .detailItemTitle {
+  text-transform: uppercase;
+  letter-spacing: var(--dash-artdeco-heading-ls);
+  font-family: var(--dash-artdeco-heading-font);
+}
+
+:global([data-theme="art-deco"]) .title,
+:global([data-theme="art-deco"]) .detailTitle {
+  font-size: var(--dash-artdeco-h2-size);
+  font-weight: var(--dash-artdeco-h2-weight);
+}
+
+:global([data-theme="art-deco"]) .cardTitle,
+:global([data-theme="art-deco"]) .detailItemTitle {
+  font-size: var(--dash-artdeco-h3-size);
+  font-weight: var(--dash-artdeco-h3-weight);
+}
+
+:global([data-theme="art-deco"]) .chip,
+:global([data-theme="art-deco"]) .detailBadge {
+  border-radius: 3px;
+  background: #f9f1d8;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+}
+
+:global([data-theme="art-deco"]) .cardActionPrimary {
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .cardActionSecondary,
+:global([data-theme="art-deco"]) .actionLink,
+:global([data-theme="art-deco"]) .detailItemAction {
+  border-radius: 4px;
+  border-color: rgba(212, 175, 55, 0.45);
+  background: #ffffff;
+  color: #2c3e50;
+}

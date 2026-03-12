@@ -807,3 +807,94 @@
   }
 }
 
+:global([data-theme="art-deco"]) .toolbar {
+  gap: 0.65rem;
+}
+
+:global([data-theme="art-deco"]) .field,
+:global([data-theme="art-deco"]) .select,
+:global([data-theme="art-deco"]) .textarea {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .buttonPrimary,
+:global([data-theme="art-deco"]) .buttonSecondary,
+:global([data-theme="art-deco"]) .linkButton,
+:global([data-theme="art-deco"]) .iconButton,
+:global([data-theme="art-deco"]) .avatarUploadButton {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .buttonPrimary {
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .buttonSecondary,
+:global([data-theme="art-deco"]) .linkButton,
+:global([data-theme="art-deco"]) .avatarUploadButton {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .panel,
+:global([data-theme="art-deco"]) .heroPanel,
+:global([data-theme="art-deco"]) .priorityCard,
+:global([data-theme="art-deco"]) .listItem,
+:global([data-theme="art-deco"]) .weekColumn,
+:global([data-theme="art-deco"]) .reviewCard,
+:global([data-theme="art-deco"]) .conciergeKpiCard,
+:global([data-theme="art-deco"]) .conciergeTimelinePanel,
+:global([data-theme="art-deco"]) .conciergeSpotlightCard,
+:global([data-theme="art-deco"]) .conciergeRequestCard,
+:global([data-theme="art-deco"]) .conciergeFactCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .terracottaTitle,
+:global([data-theme="art-deco"]) .terracottaSectionTitle,
+:global([data-theme="art-deco"]) .conciergeSectionTitle,
+:global([data-theme="art-deco"]) .cardLabel,
+:global([data-theme="art-deco"]) .conciergeSectionEyebrow,
+:global([data-theme="art-deco"]) .conciergeKpiLabel {
+  color: #1a2530;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+:global([data-theme="art-deco"]) .terracottaSectionTitle,
+:global([data-theme="art-deco"]) .conciergeSectionTitle {
+  font-family: var(--dash-artdeco-heading-font);
+  font-size: var(--dash-artdeco-h2-size);
+  font-weight: var(--dash-artdeco-h2-weight);
+  letter-spacing: var(--dash-artdeco-heading-ls);
+}
+
+:global([data-theme="art-deco"]) .reviewEmptyCopy h3,
+:global([data-theme="art-deco"]) .conciergeRequestHeading h3 {
+  font-family: var(--dash-artdeco-heading-font);
+  font-size: var(--dash-artdeco-h3-size);
+  font-weight: var(--dash-artdeco-h3-weight);
+  letter-spacing: 0.03em;
+}
+
+:global([data-theme="art-deco"]) .meta,
+:global([data-theme="art-deco"]) .conciergeKpiHint,
+:global([data-theme="art-deco"]) .conciergeRequestDescription,
+:global([data-theme="art-deco"]) .conciergeRequestHeading p,
+:global([data-theme="art-deco"]) .conciergeSnapshotRow {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .reviewBadge,
+:global([data-theme="art-deco"]) .reviewBadgeMuted,
+:global([data-theme="art-deco"]) .conciergeRecipientChip,
+:global([data-theme="art-deco"]) .conciergeStatusPill {
+  border-radius: 3px;
+}
+

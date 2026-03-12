@@ -70,6 +70,9 @@ $transition-slow: 380ms $easing-soft;
 // ============================================
 
 .pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   background: $color-bg-card;
   border-bottom: 1px solid $color-border-light;
   padding: 1.25rem 2rem;
@@ -79,12 +82,6 @@ $transition-slow: 380ms $easing-soft;
   z-index: 100;
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.95);
-}
-
-.pageHeaderLeft {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 .logo {
@@ -1139,6 +1136,13 @@ $transition-slow: 380ms $easing-soft;
   }
 }
 
+.missionStatTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
 .missionStatSub {
   font-size: 0.7rem;
   color: $color-text-secondary;
@@ -1151,6 +1155,37 @@ $transition-slow: 380ms $easing-soft;
   letter-spacing: 0.04em;
   color: $color-text-secondary;
   font-weight: 700;
+}
+
+.missionPendingBadge {
+  border: 1px solid rgba($color-error, 0.5);
+  background: rgba($color-error, 0.12);
+  color: color.scale($color-error, $lightness: -12%);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  padding: 0.14rem 0.42rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform $transition-fast, background-color $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    background: rgba($color-error, 0.18);
+  }
+}
+
+.missionPendingDot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: $color-error;
+  box-shadow: 0 0 0 2px rgba($color-error, 0.18);
 }
 
 .missionsColumns {
@@ -1884,6 +1919,7 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .tariffReadyCard {
+  position: relative;
   border-radius: 12px;
   border: 1px solid rgba(17, 24, 39, 0.18);
   background: linear-gradient(165deg, rgba(17, 24, 39, 0.94), rgba(31, 41, 55, 0.96));
@@ -1912,6 +1948,25 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.78rem;
   line-height: 1.35;
   color: #d1d5db;
+}
+
+.tariffPendingCount {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 0.42rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dc2626;
+  color: #fff;
+  border: 2px solid #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  box-shadow: 0 8px 16px rgba(#dc2626, 0.3);
 }
 
 .tariffMetric {
@@ -2127,13 +2182,6 @@ $transition-slow: 380ms $easing-soft;
   }
 }
 
-.tariffQuickActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  padding-top: 0.2rem;
-}
-
 .tariffNavBtn {
   display: inline-flex;
   align-items: center;
@@ -2152,24 +2200,6 @@ $transition-slow: 380ms $easing-soft;
   &:hover {
     background: rgba($color-primary, 0.14);
     box-shadow: $shadow-sm;
-    transform: translateY(-1px);
-  }
-}
-
-.tariffNavBtnLink {
-  border: none;
-  background: transparent;
-  color: $color-primary-dark;
-  font-size: 0.82rem;
-  font-weight: 700;
-  padding: 0.45rem 0.2rem;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color $transition-base, transform $transition-fast;
-
-  &:hover {
-    color: color.scale($color-primary-dark, $lightness: -10%);
     transform: translateY(-1px);
   }
 }
@@ -2199,30 +2229,92 @@ $transition-slow: 380ms $easing-soft;
 
 .tariffSectionNav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 0.45rem;
   padding-top: 0.2rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .tariffSectionLink {
-  border: 1px solid rgba($color-border, 0.95);
-  background: rgba($color-bg-card, 0.96);
-  color: $color-text-secondary;
-  border-radius: 999px;
-  padding: 0.28rem 0.62rem;
-  font-size: 0.76rem;
+  border: 1px solid rgba($color-primary, 0.35);
+  background: rgba($color-primary, 0.08);
+  color: $color-primary-dark;
+  border-radius: 8px;
+  padding: 0.5rem 0.82rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
   transition: transform $transition-fast, border-color $transition-base,
     color $transition-base, box-shadow $transition-base, background $transition-base;
 
   &:hover {
     border-color: rgba($color-primary, 0.35);
     color: $color-primary-dark;
-    background: rgba($color-primary, 0.08);
+    background: rgba($color-primary, 0.14);
     box-shadow: $shadow-sm;
     transform: translateY(-1px);
   }
+}
+
+.tariffPendingList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.2rem;
+}
+
+.tariffPendingBtn {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.42rem;
+  border: 1px solid rgba(#dc2626, 0.26);
+  background: rgba(#dc2626, 0.08);
+  color: color.scale($color-text-primary, $lightness: -4%);
+  border-radius: 8px;
+  padding: 0.38rem 0.62rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform $transition-fast, box-shadow $transition-base, border-color $transition-base;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(#dc2626, 0.45);
+    box-shadow: $shadow-sm;
+  }
+}
+
+.tariffPendingItemCount {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.tariffPendingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #dc2626;
+}
+
+.tariffPendingTarget {
+  grid-column: 3;
+  color: color.scale($color-text-secondary, $lightness: -8%);
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .tariffCardIntro {
