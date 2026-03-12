@@ -1,18 +1,13 @@
+import styles from "./Footer.module.scss";
+
 export default function Footer() {
-    return (
-        <footer id="contact" style={{
-            background: '#222',
-            color: '#fff',
-            padding: '1rem 2rem',
-            textAlign: 'center',
-            marginTop: '2rem'
-        }}>
-            <p>&copy; {new Date().getFullYear()} PlanetLs. All rights reserved.</p>
-            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                <a href="/about" style={{ color: '#fff', marginRight: '1rem' }}>A propos</a>
-                <a href="/contact" style={{ color: '#fff' }}>Contact</a>
-            </p>
-            
-        </footer>
-    );
+  return (
+    <footer id="contact" className={styles.footer}>
+      <p>&copy; {new Date().getFullYear()} PlanetLs. All rights reserved.</p>
+      <p className={styles.links}>
+        <a href="/about">A propos</a>
+        <a href="/contact">Contact</a>
+      </p>
+    </footer>
+  );
 }

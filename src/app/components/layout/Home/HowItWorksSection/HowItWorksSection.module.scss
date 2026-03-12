@@ -60,6 +60,92 @@
   }
 }
 
+:global([data-theme="art-deco"]) .howItWorks {
+  background:
+    linear-gradient(180deg, #f7f9fb 0%, #ebeff2 100%);
+  color: #2c3e50;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.42);
+  border-top: 1px solid rgba(212, 175, 55, 0.42);
+}
+
+:global([data-theme="art-deco"]) .howItWorks h2 {
+  border-width: 1px;
+  border-radius: 4px;
+  background: #ffffff;
+  border-color: #d5dbdf;
+  color: #1a2530;
+  font-family: var(--font-primary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow:
+    0 10px 20px rgba(44, 62, 80, 0.08),
+    inset 0 0 0 1px rgba(212, 175, 55, 0.34);
+}
+
+:global([data-theme="art-deco"]) .tabsList {
+  background: #ffffff;
+  border: 1px solid #d5dbdf;
+  border-radius: 4px;
+  box-shadow: 0 8px 18px rgba(44, 62, 80, 0.08);
+}
+
+:global([data-theme="art-deco"]) .tabTrigger {
+  border-radius: 3px;
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .tabTrigger:hover {
+  background: #f9f1d8;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .tabTrigger[data-state="active"] {
+  background: linear-gradient(125deg, #d4af37, #b5a642);
+  color: #1a2530;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.28);
+}
+
+:global([data-theme="art-deco"]) .step {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(44, 62, 80, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+:global([data-theme="art-deco"]) .step::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  pointer-events: none;
+}
+
+:global([data-theme="art-deco"]) .step h3 {
+  font-family: var(--font-primary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .step p {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .icon {
+  border-color: #d4af37;
+  background-color: #f9f1d8;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .cta {
+  border-radius: 4px;
+  background: linear-gradient(135deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+}
+
   .tabTrigger {
   flex: 1;
   width: 200px;

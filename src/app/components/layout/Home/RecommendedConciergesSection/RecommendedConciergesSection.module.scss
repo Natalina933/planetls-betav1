@@ -97,3 +97,80 @@
   color: #463728;
   line-height: 1.55;
 }
+
+:global([data-theme="art-deco"]) .section {
+  gap: 1.8rem;
+  background:
+    linear-gradient(180deg, rgba(244, 246, 248, 0.95), rgba(235, 239, 242, 0.86));
+  border-top: 1px solid rgba(212, 175, 55, 0.34);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.34);
+  position: relative;
+}
+
+:global([data-theme="art-deco"]) .section::before,
+:global([data-theme="art-deco"]) .section::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #d4af37;
+  background: #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+:global([data-theme="art-deco"]) .section::before {
+  top: -5px;
+}
+
+:global([data-theme="art-deco"]) .section::after {
+  bottom: -5px;
+}
+
+:global([data-theme="art-deco"]) .header h2 {
+  font-family: var(--font-primary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .header p,
+:global([data-theme="art-deco"]) .info {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .card {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+:global([data-theme="art-deco"]) .card::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  pointer-events: none;
+}
+
+:global([data-theme="art-deco"]) .cardHead h3 {
+  font-family: var(--font-primary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .cardHead p,
+:global([data-theme="art-deco"]) .meta span,
+:global([data-theme="art-deco"]) .pricing span {
+  color: #425467;
+}
+
+:global([data-theme="art-deco"]) .quote {
+  border-radius: 4px;
+  border-left-color: rgba(212, 175, 55, 0.68);
+  background: #f9f1d8;
+  color: #2c3e50;
+}

@@ -88,3 +88,43 @@
     top: 18px;
   }
 }
+
+:global([data-theme="art-deco"]) .section {
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(244, 246, 248, 0.98), rgba(235, 239, 242, 0.95));
+  border: 1px solid #d5dbdf;
+  border-radius: 6px;
+  color: #2c3e50;
+  box-shadow:
+    0 20px 40px rgba(44, 62, 80, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.78);
+}
+
+:global([data-theme="art-deco"]) .section::before,
+:global([data-theme="art-deco"]) .section::after {
+  width: 62px;
+  height: 1px;
+  top: 20px;
+  background: linear-gradient(to right, transparent, #d4af37, transparent);
+}
+
+:global([data-theme="art-deco"]) .sectionTitle {
+  color: #1a2530;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:global([data-theme="art-deco"]) .sectionTitle::after {
+  height: 2px;
+  border-radius: 0;
+  background: linear-gradient(to right, #b5a642, #d4af37, #b5a642);
+}
+
+:global([data-theme="art-deco"]) .sectionSubtitle {
+  color: #46586a;
+}
+
+:global([data-theme="art-deco"]) .sectionDescription {
+  color: #5d6d7e;
+}

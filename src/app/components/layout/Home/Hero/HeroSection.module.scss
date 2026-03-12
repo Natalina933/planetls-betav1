@@ -133,3 +133,61 @@
     max-width: 100%;
   }
 }
+
+:global([data-theme="art-deco"]) .hero {
+  color: #f7f7f7;
+}
+
+:global([data-theme="art-deco"]) .hero::before {
+  content: "";
+  position: absolute;
+  inset: 26px;
+  border: 1px solid rgba(212, 175, 55, 0.42);
+  pointer-events: none;
+  z-index: 1;
+}
+
+:global([data-theme="art-deco"]) .hero::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.9);
+  background: #f4f6f8;
+  transform: translateX(-50%) rotate(45deg);
+  z-index: 2;
+}
+
+:global([data-theme="art-deco"]) .overlay {
+  background:
+    linear-gradient(108deg, rgba(14, 23, 35, 0.84) 0%, rgba(17, 28, 41, 0.66) 48%, rgba(17, 28, 41, 0.5) 100%),
+    radial-gradient(circle at 88% 14%, rgba(212, 175, 55, 0.28), transparent 34%);
+}
+
+:global([data-theme="art-deco"]) .content h1 {
+  font-family: var(--font-primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.04;
+}
+
+:global([data-theme="art-deco"]) .highlight {
+  color: #f2cc5d;
+}
+
+:global([data-theme="art-deco"]) .subHeadline {
+  color: rgba(248, 242, 232, 0.95);
+}
+
+:global([data-theme="art-deco"]) .valueProp {
+  color: rgba(231, 236, 242, 0.9);
+}
+
+:global([data-theme="art-deco"]) .carouselWrapper {
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  box-shadow: 0 14px 30px rgba(9, 15, 24, 0.34);
+}

@@ -1,0 +1,35 @@
+.footer {
+  margin-top: 2rem;
+  padding: 1.1rem 2rem;
+  text-align: center;
+  background: #222;
+  color: #fff;
+}
+
+.links {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  display: inline-flex;
+  gap: 1rem;
+}
+
+.links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+:global([data-theme="art-deco"]) .footer {
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 36%),
+    linear-gradient(160deg, #1a2530, #243241);
+  color: #f9f1d8;
+  border-top: 1px solid rgba(212, 175, 55, 0.42);
+}
+
+:global([data-theme="art-deco"]) .links a {
+  color: #f9f1d8;
+}

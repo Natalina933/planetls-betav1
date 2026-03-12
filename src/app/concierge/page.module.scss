@@ -301,3 +301,126 @@
     grid-template-columns: 1fr;
   }
 }
+
+:global([data-theme="art-deco"]) .page {
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 34%),
+    linear-gradient(180deg, #f4f6f8 0%, #f8fafc 44%, #ebeff2 100%);
+}
+
+:global([data-theme="art-deco"]) .heroCopy,
+:global([data-theme="art-deco"]) .heroPanel,
+:global([data-theme="art-deco"]) .stepCard,
+:global([data-theme="art-deco"]) .actionCard,
+:global([data-theme="art-deco"]) .highlightCard,
+:global([data-theme="art-deco"]) .bottomCta {
+  border: 1px solid #d5dbdf;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 14px 30px rgba(44, 62, 80, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+:global([data-theme="art-deco"]) .heroCopy::before,
+:global([data-theme="art-deco"]) .heroPanel::before,
+:global([data-theme="art-deco"]) .stepCard::before,
+:global([data-theme="art-deco"]) .actionCard::before,
+:global([data-theme="art-deco"]) .highlightCard::before,
+:global([data-theme="art-deco"]) .bottomCta::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.34);
+  pointer-events: none;
+}
+
+:global([data-theme="art-deco"]) .kicker,
+:global([data-theme="art-deco"]) .sectionKicker,
+:global([data-theme="art-deco"]) .panelEyebrow {
+  background: #f9f1d8;
+  color: #1a2530;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+}
+
+:global([data-theme="art-deco"]) .heroCopy h1,
+:global([data-theme="art-deco"]) .sectionHeading h2,
+:global([data-theme="art-deco"]) .highlightCard h2,
+:global([data-theme="art-deco"]) .bottomCta h2,
+:global([data-theme="art-deco"]) .heroPanel h2 {
+  color: #1a2530;
+  font-family: var(--font-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:global([data-theme="art-deco"]) .lead,
+:global([data-theme="art-deco"]) .sectionHeading p,
+:global([data-theme="art-deco"]) .panelLead,
+:global([data-theme="art-deco"]) .highlightCard p,
+:global([data-theme="art-deco"]) .bottomCta p,
+:global([data-theme="art-deco"]) .stepCard p,
+:global([data-theme="art-deco"]) .actionCard p {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .stepCard h3,
+:global([data-theme="art-deco"]) .actionCard h3 {
+  color: #1a2530;
+  font-family: var(--font-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+:global([data-theme="art-deco"]) .primaryCta,
+:global([data-theme="art-deco"]) .secondaryCta {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .primaryCta {
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+  box-shadow: 0 10px 22px rgba(26, 37, 48, 0.2);
+}
+
+:global([data-theme="art-deco"]) .secondaryCta {
+  border-color: rgba(212, 175, 55, 0.42);
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .actionIcon {
+  border-radius: 3px;
+  background: #f9f1d8;
+  color: #1a2530;
+  border: 1px solid rgba(212, 175, 55, 0.46);
+}
+
+:global([data-theme="art-deco"]) .inlineLink {
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .highlightFlow {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  background: #f9f1d8;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .proofList li,
+:global([data-theme="art-deco"]) .trustRow span,
+:global([data-theme="art-deco"]) .panelMetrics span {
+  color: #425467;
+}
+
+:global([data-theme="art-deco"]) .panelMetrics article {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  background: #ffffff;
+}
+
+:global([data-theme="art-deco"]) .panelMetrics strong {
+  color: #1a2530;
+}

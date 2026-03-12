@@ -64,3 +64,46 @@
   transform: translateY(-2px);
   box-shadow: 0 16px 30px rgba(117, 86, 36, 0.24);
 }
+
+:global([data-theme="art-deco"]) .shop {
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 30%),
+    linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
+  border: 1px solid #d5dbdf;
+  box-shadow: 0 18px 38px rgba(44, 62, 80, 0.08);
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .shop h2 {
+  color: #1a2530;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:global([data-theme="art-deco"]) .shopContent {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
+  position: relative;
+}
+
+:global([data-theme="art-deco"]) .shopContent::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  pointer-events: none;
+}
+
+:global([data-theme="art-deco"]) .shopContent p {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .shopButton {
+  border-radius: 4px;
+  background: linear-gradient(125deg, #1a2530, #2c3e50);
+  color: #f9f1d8;
+  box-shadow: 0 10px 22px rgba(26, 37, 48, 0.2);
+}

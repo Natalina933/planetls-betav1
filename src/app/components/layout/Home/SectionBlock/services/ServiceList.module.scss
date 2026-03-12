@@ -244,3 +244,101 @@ $radius: 1.2rem;
     color: #3e342b;
   }
 }
+
+:global([data-theme="art-deco"]) .platformHeader {
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .platformHeader .sectionIntro {
+  color: #415466;
+}
+
+:global([data-theme="art-deco"]) .platformHeader .highlightText {
+  background: linear-gradient(120deg, #d4af37, #b5a642);
+  background-clip: text;
+}
+
+:global([data-theme="art-deco"]) .platformHeader .userCategory {
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .keyPoints--chips .keyPointChip {
+  border-color: rgba(212, 175, 55, 0.8);
+  border-radius: 4px;
+  color: #2c3e50;
+  background: #ffffff;
+}
+
+:global([data-theme="art-deco"]) .keyPoints--chips .keyPointChip:hover,
+:global([data-theme="art-deco"]) .keyPoints--chips .keyPointChip.isActive {
+  color: #1a2530;
+  background: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .serviceGrid {
+  background-color: #f7f9fb;
+  background-image:
+    linear-gradient(45deg, rgba(212, 175, 55, 0.06), transparent 34%);
+  border: 1px solid #d5dbdf;
+  border-radius: 6px;
+  box-shadow:
+    0 18px 34px rgba(44, 62, 80, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.76);
+}
+
+:global([data-theme="art-deco"]) .serviceGrid::before {
+  border-color: rgba(212, 175, 55, 0.36);
+  border-radius: 3px;
+}
+
+:global([data-theme="art-deco"]) .serviceGrid::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.9);
+  background: #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+:global([data-theme="art-deco"]) .flippable {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  box-shadow: 0 8px 18px rgba(44, 62, 80, 0.09);
+}
+
+:global([data-theme="art-deco"]) .cardFront {
+  background: #ffffff;
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .cardFront .serviceCardTitle {
+  font-family: var(--font-primary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .cardFront .serviceCardDesc {
+  color: #5d6d7e;
+}
+
+:global([data-theme="art-deco"]) .cardBack {
+  background: linear-gradient(140deg, #1a2530, #2c3e50);
+}
+
+:global([data-theme="art-deco"]) .cardBack .cardQuote {
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .CTAButton {
+  border-radius: 4px;
+  background: linear-gradient(120deg, #1a2530, #2f4155);
+  color: #f9f1d8;
+}
+
+:global([data-theme="art-deco"]) .ctaSub {
+  color: #5d6d7e;
+}

@@ -69,3 +69,49 @@
     }
   }
 }
+
+:global([data-theme="art-deco"]) .trust {
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 30%),
+    linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
+  border: 1px solid #d5dbdf;
+  color: #2c3e50;
+  box-shadow: 0 18px 38px rgba(44, 62, 80, 0.08);
+  position: relative;
+}
+
+:global([data-theme="art-deco"]) .trust::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.34);
+  pointer-events: none;
+}
+
+:global([data-theme="art-deco"]) .trust h2 {
+  color: #1a2530;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:global([data-theme="art-deco"]) .trustItems div {
+  border-radius: 4px;
+  border: 1px solid #d5dbdf;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 250, 253, 0.92)),
+    linear-gradient(135deg, rgba(212, 175, 55, 0.1), transparent 44%);
+  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.07);
+}
+
+:global([data-theme="art-deco"]) .trustItems div:hover {
+  border-color: rgba(212, 175, 55, 0.46);
+}
+
+:global([data-theme="art-deco"]) .trustItems div h3 {
+  color: #1a2530;
+}
+
+:global([data-theme="art-deco"]) .trustItems div p {
+  color: #5d6d7e;
+}
