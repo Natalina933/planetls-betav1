@@ -209,7 +209,7 @@ export default function CompleteRegistrationPage() {
         search_target: profile.searchTarget,
         option: profile.option,
         location: profile.location,
-        experienceLevel: profile.experienceLevel,
+        experienceLevel: profile.experienceLevel === "peu_importe" ? null : profile.experienceLevel,
         yearsExperience: profile.yearsExperience,
       }),
     });
@@ -397,6 +397,7 @@ export default function CompleteRegistrationPage() {
       {/* POPUP EXPERIENCE */}
       {showExperiencePopup && (
         <ExperiencePopup
+          category={profile.category}
           onClose={() => setShowExperiencePopup(false)}
           onValidate={handleExperienceValidate}
         />
@@ -404,3 +405,4 @@ export default function CompleteRegistrationPage() {
     </div>
   );
 }
+

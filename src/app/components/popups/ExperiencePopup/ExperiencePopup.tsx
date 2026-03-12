@@ -1,12 +1,14 @@
-// components/popups/ExperiencePopup/ExperiencePopup.tsx
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./ExperiencePopup.module.scss";
 
-export type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
+export type ExperienceLevel = "debutant" | "intermediaire" | "experimente" | "peu_importe";
+
+type ProfileKey = "proprietaire" | "concierge" | "artisan";
 
 interface ExperiencePopupProps {
+  category?: string;
   onClose: () => void;
   onValidate: (level: ExperienceLevel, years: string) => void;
 }
@@ -15,33 +17,78 @@ const EXPERIENCE_LEVELS: {
   label: string;
   value: ExperienceLevel;
   years: string;
-  description: string;
 }[] = [
   {
-    label: "Débutant",
+    label: "Debutant",
     value: "debutant",
     years: "0-1 an",
-    description: "Je découvre la conciergerie ou un domaine similaire.",
   },
   {
-    label: "Intermédiaire",
+    label: "Intermediaire",
     value: "intermediaire",
     years: "1-3 ans",
-    description: "J’ai déjà une première expérience.",
   },
   {
-    label: "Expérimenté",
+    label: "Experimente",
     value: "experimente",
     years: "+3 ans",
-    description: "J’ai une expérience solide et régulière.",
+  },
+  {
+    label: "Peu importe",
+    value: "peu_importe",
+    years: "Tous niveaux",
   },
 ];
 
-export default function ExperiencePopup({ onClose, onValidate }: ExperiencePopupProps) {
+const PROFILE_CONTENT: Record<
+  ProfileKey,
+  {
+    title: string;
+    descriptions: Record<ExperienceLevel, string>;
+  }
+> = {
+  proprietaire: {
+    title: "Quel niveau d'experience recherchez-vous ?",
+    descriptions: {
+      debutant: "Vous acceptez un partenaire qui debute.",
+      intermediaire: "Vous visez un partenaire avec une experience confirmee.",
+      experimente: "Vous recherchez un partenaire tres experimente.",
+      peu_importe: "Le niveau d'experience n'est pas un critere bloquant.",
+    },
+  },
+  concierge: {
+    title: "Quel est votre niveau d'experience en conciergerie ?",
+    descriptions: {
+      debutant: "Je decouvre la conciergerie ou un domaine similaire.",
+      intermediaire: "J'ai deja une premiere experience operationnelle.",
+      experimente: "J'ai une experience solide et reguliere avec des clients.",
+      peu_importe: "Je suis ouvert a toutes les opportunites.",
+    },
+  },
+  artisan: {
+    title: "Quel est votre niveau d'experience dans votre metier ?",
+    descriptions: {
+      debutant: "Je debute mon activite ou je viens de me lancer.",
+      intermediaire: "Je realise des chantiers reguliers depuis plusieurs mois.",
+      experimente: "J'interviens depuis plusieurs annees avec une expertise confirmee.",
+      peu_importe: "Je suis flexible selon les besoins.",
+    },
+  },
+};
+
+const getProfileKey = (category?: string): ProfileKey => {
+  if (category === "proprietaire" || category === "artisan" || category === "concierge") {
+    return category;
+  }
+  return "concierge";
+};
+
+export default function ExperiencePopup({ category, onClose, onValidate }: ExperiencePopupProps) {
   const [selected, setSelected] = useState<ExperienceLevel | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const profileKey = getProfileKey(category);
+  const profileContent = PROFILE_CONTENT[profileKey];
 
-  // Bloquer le scroll arrière-plan
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -49,7 +96,6 @@ export default function ExperiencePopup({ onClose, onValidate }: ExperiencePopup
     };
   }, []);
 
-  // Fermer en cliquant en dehors
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
@@ -76,19 +122,22 @@ export default function ExperiencePopup({ onClose, onValidate }: ExperiencePopup
   return (
     <div className={styles.popupOverlay} role="dialog" aria-modal="true">
       <div className={styles.popupContent} ref={popupRef}>
-        <h3>Quel est votre niveau d’expérience ?</h3>
+        <h3>{profileContent.title}</h3>
 
         <ul className={styles.optionList}>
           {EXPERIENCE_LEVELS.map((opt) => (
             <li key={opt.value}>
-              <label>
+              <label className={styles.optionLabel}>
                 <input
                   type="radio"
                   checked={selected === opt.value}
                   onChange={() => setSelected(opt.value)}
                 />
-                <strong>{opt.label}</strong> ({opt.years})
-                <p>{opt.description}</p>
+                <span>
+                  <strong>{opt.label}</strong>
+                  <small className={styles.years}>{opt.years}</small>
+                  <p>{profileContent.descriptions[opt.value]}</p>
+                </span>
               </label>
             </li>
           ))}
