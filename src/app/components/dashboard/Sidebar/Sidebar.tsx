@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
         <div className={styles.footer}>
           <button
-            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className={styles.logout}
             aria-label="Se deconnecter"
           >

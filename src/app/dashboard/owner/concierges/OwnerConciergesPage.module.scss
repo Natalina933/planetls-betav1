@@ -109,7 +109,7 @@
   line-height: 0.95;
   letter-spacing: 0.01em;
   color: var(--owner-ink);
-  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 .description {
