@@ -257,6 +257,23 @@ $provider-accent-soft: #e3e8d8;
     }
 }
 
+.itemBadge {
+    margin-left: auto;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: #b2332d;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 6px 14px rgba(178, 51, 45, 0.2);
+}
+
 /* rotation du chevron (class appliquée sur l’icône, pas à l’intérieur) */
 .rotate {
     transform: rotate(180deg);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import styles from "./DemandesPage.module.scss";
@@ -54,7 +54,37 @@ export default function ConciergeDemandesPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [busyRecipientId, setBusyRecipientId] = useState<string | null>(null);
 
-  async function loadRequests() {
+  const markRequestsAsViewed = useCallback(async (rows: ConciergeRequestRow[]) => {
+    const pendingRows = rows.filter((item) => item.recipient_status === "sent");
+    if (pendingRows.length === 0) return rows;
+
+    const results = await Promise.allSettled(
+      pendingRows.map((item) =>
+        fetch(`/api/service-request-recipients/${item.recipient_id}/respond`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "viewed" }),
+        }),
+      ),
+    );
+
+    const viewedRecipientIds = new Set<string>();
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled" && result.value.ok) {
+        viewedRecipientIds.add(pendingRows[index].recipient_id);
+      }
+    });
+
+    if (viewedRecipientIds.size === 0) return rows;
+
+    return rows.map((item) =>
+      viewedRecipientIds.has(item.recipient_id)
+        ? { ...item, recipient_status: "viewed" }
+        : item,
+    );
+  }, []);
+
+  const loadRequests = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -65,17 +95,19 @@ export default function ConciergeDemandesPage() {
       if (!response.ok) {
         throw new Error(payload?.error || "Impossible de charger les demandes.");
       }
-      setItems(Array.isArray(payload?.items) ? payload.items : []);
+      const nextItems = Array.isArray(payload?.items) ? payload.items : [];
+      const hydratedItems = await markRequestsAsViewed(nextItems);
+      setItems(hydratedItems);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger les demandes.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [markRequestsAsViewed]);
 
   useEffect(() => {
     void loadRequests();
-  }, []);
+  }, [loadRequests]);
 
   const urgentCount = useMemo(() => items.filter((item) => item.urgency).length, [items]);
   const openCount = useMemo(

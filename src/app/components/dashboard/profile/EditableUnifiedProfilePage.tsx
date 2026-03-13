@@ -16,9 +16,9 @@ import {
   EditableProfileSection,
 } from "@/app/dashboard/concierge/profile/profileTabSections";
 import {
-  ConciergeNotifications,
-  ConciergePageHeader,
-} from "@/app/dashboard/concierge/profile/profileShellSections";
+  ProfilePageShell,
+  type ProfileShellTab,
+} from "@/app/components/dashboard/profile/ProfilePageShell";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 
@@ -58,6 +58,13 @@ type EditableUnifiedProfilePageProps = {
   requireCompanyForVerified?: boolean;
 };
 
+type UnifiedProfileTabId =
+  | "overview"
+  | "account"
+  | "address"
+  | "socials"
+  | "presentation";
+
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 const noop = () => {};
 
@@ -70,18 +77,19 @@ const SECTION_IDS = {
   PRESENTATION: "presentation",
 } as const;
 
+const UNIFIED_PROFILE_TABS: Array<ProfileShellTab<UnifiedProfileTabId>> = [
+  { id: "overview", label: "Vue d'ensemble", icon: FiBarChart },
+  { id: "account", label: "Compte", icon: FiUser },
+  { id: "address", label: "Adresse", icon: FiMapPin },
+  { id: "socials", label: "Reseaux", icon: FiGlobe },
+  { id: "presentation", label: "Presentation", icon: FiFileText },
+];
+
 const SECTION_FIELDS: Record<string, Array<keyof UnifiedProfileForm>> = {
   [SECTION_IDS.ACCOUNT]: ["first_name", "last_name", "username", "phone", "company_name"],
   [SECTION_IDS.ADDRESS]: ["street_address", "postal_code", "city", "country"],
-  [SECTION_IDS.SOCIALS]: [
-    "website",
-    "linkedin",
-    "facebook",
-    "instagram",
-  ],
-  [SECTION_IDS.PRESENTATION]: [
-    "additional_info",
-  ],
+  [SECTION_IDS.SOCIALS]: ["website", "linkedin", "facebook", "instagram"],
+  [SECTION_IDS.PRESENTATION]: ["additional_info"],
 };
 
 const emptyForm: UnifiedProfileForm = {
@@ -130,6 +138,7 @@ export default function EditableUnifiedProfilePage({
   const [success, setSuccess] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [sectionSnapshot, setSectionSnapshot] = useState<UnifiedProfileForm | null>(null);
+  const [activeTab, setActiveTab] = useState<UnifiedProfileTabId>("overview");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.SUMMARY]: true,
     [SECTION_IDS.ACCOUNT]: true,
@@ -183,7 +192,6 @@ export default function EditableUnifiedProfilePage({
         setInitialForm(nextForm);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger votre profil.");
-      } finally {
       }
     }
 
@@ -282,13 +290,20 @@ export default function EditableUnifiedProfilePage({
         ...form,
         created_at: toFormValue(result.created_at) || form.created_at,
         avatar_url: toFormValue(result.avatar_url) || form.avatar_url,
-        avatar_scale: typeof result.avatar_scale === "number" ? result.avatar_scale : form.avatar_scale,
+        avatar_scale:
+          typeof result.avatar_scale === "number" ? result.avatar_scale : form.avatar_scale,
         avatar_offset_x:
-          typeof result.avatar_offset_x === "number" ? result.avatar_offset_x : form.avatar_offset_x,
+          typeof result.avatar_offset_x === "number"
+            ? result.avatar_offset_x
+            : form.avatar_offset_x,
         avatar_offset_y:
-          typeof result.avatar_offset_y === "number" ? result.avatar_offset_y : form.avatar_offset_y,
+          typeof result.avatar_offset_y === "number"
+            ? result.avatar_offset_y
+            : form.avatar_offset_y,
         avatar_rotation:
-          typeof result.avatar_rotation === "number" ? result.avatar_rotation : form.avatar_rotation,
+          typeof result.avatar_rotation === "number"
+            ? result.avatar_rotation
+            : form.avatar_rotation,
         first_name: toFormValue(result.first_name),
         last_name: toFormValue(result.last_name),
         username: toFormValue(result.username),
@@ -346,248 +361,272 @@ export default function EditableUnifiedProfilePage({
       );
     }
 
-    return (SECTION_FIELDS[sectionId] ?? []).some((field) => form[field] !== sectionSnapshot[field]);
+    return (SECTION_FIELDS[sectionId] ?? []).some(
+      (field) => form[field] !== sectionSnapshot[field],
+    );
   };
 
   const displayName = preferCompanyName
-    ? `${form.first_name} ${form.last_name}`.trim() || form.company_name || form.username || emptyDisplayName
-    : `${form.first_name} ${form.last_name}`.trim() || form.username || form.company_name || emptyDisplayName;
+    ? `${form.first_name} ${form.last_name}`.trim() ||
+      form.company_name ||
+      form.username ||
+      emptyDisplayName
+    : `${form.first_name} ${form.last_name}`.trim() ||
+      form.username ||
+      form.company_name ||
+      emptyDisplayName;
   const currentAvatar = form.avatar_url || DEFAULT_AVATAR;
   const isVerified = Boolean(
     form.email && form.phone && form.city && (!requireCompanyForVerified || form.company_name),
   );
 
+  const renderAccountSection = () => (
+    <EditableProfileSection
+      styles={conciergeStyles}
+      title="Informations du compte"
+      icon={<FiUser />}
+      canEdit
+      collapsible
+      isOpen={openSections[SECTION_IDS.ACCOUNT]}
+      isEditing={editingSection === SECTION_IDS.ACCOUNT}
+      isDirty={isSectionDirty(SECTION_IDS.ACCOUNT)}
+      isLoading={saving}
+      onToggle={() => toggleSection(SECTION_IDS.ACCOUNT)}
+      onHeaderKeyDown={handleHeaderKeyDown}
+      onBeginEdit={() => beginEditSection(SECTION_IDS.ACCOUNT)}
+      onSave={() => void saveSection(SECTION_IDS.ACCOUNT)}
+      onCancel={cancelEditSection}
+    >
+      <div className={conciergeStyles.fieldsGrid}>
+        <EditableProfileField styles={conciergeStyles} label="Prenom" name="first_name" value={form.first_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Nom" name="last_name" value={form.last_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Nom utilisateur" name="username" value={form.username} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Email" name="email" value={form.email} isEditing={false} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Telephone" name="phone" value={form.phone} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Entreprise" name="company_name" value={form.company_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+      </div>
+    </EditableProfileSection>
+  );
+
+  const renderAddressSection = () => (
+    <EditableProfileSection
+      styles={conciergeStyles}
+      title="Adresse et presence locale"
+      icon={<FiMapPin />}
+      canEdit
+      collapsible
+      isOpen={openSections[SECTION_IDS.ADDRESS]}
+      isEditing={editingSection === SECTION_IDS.ADDRESS}
+      isDirty={isSectionDirty(SECTION_IDS.ADDRESS)}
+      isLoading={saving}
+      onToggle={() => toggleSection(SECTION_IDS.ADDRESS)}
+      onHeaderKeyDown={handleHeaderKeyDown}
+      onBeginEdit={() => beginEditSection(SECTION_IDS.ADDRESS)}
+      onSave={() => void saveSection(SECTION_IDS.ADDRESS)}
+      onCancel={cancelEditSection}
+    >
+      <div className={conciergeStyles.fieldsGrid}>
+        <EditableProfileField styles={conciergeStyles} label="Adresse" name="street_address" value={form.street_address} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Code postal" name="postal_code" value={form.postal_code} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Ville" name="city" value={form.city} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Pays" name="country" value={form.country} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
+      </div>
+    </EditableProfileSection>
+  );
+
+  const renderSocialsSection = () => (
+    <EditableProfileSection
+      styles={conciergeStyles}
+      title="Site et reseaux sociaux"
+      icon={<FiGlobe />}
+      canEdit
+      collapsible
+      isOpen={openSections[SECTION_IDS.SOCIALS]}
+      isEditing={editingSection === SECTION_IDS.SOCIALS}
+      isDirty={isSectionDirty(SECTION_IDS.SOCIALS)}
+      isLoading={saving}
+      onToggle={() => toggleSection(SECTION_IDS.SOCIALS)}
+      onHeaderKeyDown={handleHeaderKeyDown}
+      onBeginEdit={() => beginEditSection(SECTION_IDS.SOCIALS)}
+      onSave={() => void saveSection(SECTION_IDS.SOCIALS)}
+      onCancel={cancelEditSection}
+    >
+      <p className={conciergeStyles.sectionIntroText}>
+        Centralisez vos liens publics et vos reseaux sociaux.
+      </p>
+      <div className={conciergeStyles.fieldsGrid}>
+        <EditableProfileField styles={conciergeStyles} label="Site web" name="website" value={form.website} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="LinkedIn" name="linkedin" value={form.linkedin} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Facebook" name="facebook" value={form.facebook} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Instagram" name="instagram" value={form.instagram} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
+      </div>
+    </EditableProfileSection>
+  );
+
+  const renderPresentationSection = () => (
+    <EditableProfileSection
+      styles={conciergeStyles}
+      title="Presentation"
+      icon={<FiFileText />}
+      canEdit
+      collapsible
+      isOpen={openSections[SECTION_IDS.PRESENTATION]}
+      isEditing={editingSection === SECTION_IDS.PRESENTATION}
+      isDirty={isSectionDirty(SECTION_IDS.PRESENTATION)}
+      isLoading={saving}
+      onToggle={() => toggleSection(SECTION_IDS.PRESENTATION)}
+      onHeaderKeyDown={handleHeaderKeyDown}
+      onBeginEdit={() => beginEditSection(SECTION_IDS.PRESENTATION)}
+      onSave={() => void saveSection(SECTION_IDS.PRESENTATION)}
+      onCancel={cancelEditSection}
+    >
+      <p className={conciergeStyles.sectionIntroText}>{presentationIntro}</p>
+      <EditableProfileField
+        styles={conciergeStyles}
+        label="Presentation"
+        name="additional_info"
+        value={form.additional_info}
+        isEditing={editingSection === SECTION_IDS.PRESENTATION}
+        isTextarea
+        onChange={handleChange}
+      />
+    </EditableProfileSection>
+  );
+
   return (
-    <div className={conciergeStyles.page}>
-      <ConciergePageHeader styles={conciergeStyles} title="Mon profil" />
+    <ProfilePageShell<UnifiedProfileTabId>
+      styles={conciergeStyles}
+      title="Mon profil"
+      successMsg={success}
+      errorMsg={error}
+      tabs={UNIFIED_PROFILE_TABS}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    >
+      <div className={conciergeStyles.grid}>
+        <aside className={conciergeStyles.leftColumn}>
+          <article className={conciergeStyles.profileCard}>
+            <ProfileIdentity
+              fullName={displayName}
+              roleLabel={roleLabel}
+              email={form.email}
+              phone={form.phone}
+              location={form.city || "Ville non renseignee"}
+              isEditing={editingSection === SECTION_IDS.AVATAR}
+              avatarFile={avatarFile}
+              existingAvatarUrl={currentAvatar}
+              existingScale={form.avatar_scale}
+              existingOffsetX={form.avatar_offset_x}
+              existingOffsetY={form.avatar_offset_y}
+              existingRotation={form.avatar_rotation}
+              onAvatarChange={setAvatarFile}
+              onAvatarScaleChange={(value) =>
+                setForm((current) => ({ ...current, avatar_scale: value }))
+              }
+              onAvatarOffsetChange={(x, y) =>
+                setForm((current) => ({
+                  ...current,
+                  avatar_offset_x: x,
+                  avatar_offset_y: y,
+                }))
+              }
+              onAvatarRotationChange={(value) =>
+                setForm((current) => ({ ...current, avatar_rotation: value }))
+              }
+              onAvatarSave={() => {
+                if (editingSection !== SECTION_IDS.AVATAR) {
+                  beginEditSection(SECTION_IDS.AVATAR);
+                }
+                void saveSection(SECTION_IDS.AVATAR);
+              }}
+              onAvatarRemove={() =>
+                setForm((current) => ({
+                  ...current,
+                  avatar_url: "",
+                  avatar_scale: 1,
+                  avatar_offset_x: 0,
+                  avatar_offset_y: 0,
+                  avatar_rotation: 0,
+                }))
+              }
+              onEditAvatarClick={() => beginEditSection(SECTION_IDS.AVATAR)}
+            />
 
-      <main className={conciergeStyles.main}>
-        <ConciergeNotifications
-          styles={conciergeStyles}
-          successMsg={success}
-          errorMsg={error}
-        />
+            <p className={conciergeStyles.sectionIntroText}>{identityIntro}</p>
 
-        <div className={conciergeStyles.tabContent}>
-          <div className={conciergeStyles.tabPane}>
-            <div className={conciergeStyles.grid}>
-              <aside className={conciergeStyles.leftColumn}>
-                <article className={conciergeStyles.profileCard}>
-                  <ProfileIdentity
-                    fullName={displayName}
-                    roleLabel={roleLabel}
-                    email={form.email}
-                    phone={form.phone}
-                    location={form.city || "Ville non renseignée"}
-                    isEditing={editingSection === SECTION_IDS.AVATAR}
-                    avatarFile={avatarFile}
-                    existingAvatarUrl={currentAvatar}
-                    existingScale={form.avatar_scale}
-                    existingOffsetX={form.avatar_offset_x}
-                    existingOffsetY={form.avatar_offset_y}
-                    existingRotation={form.avatar_rotation}
-                    onAvatarChange={setAvatarFile}
-                    onAvatarScaleChange={(value) =>
-                      setForm((current) => ({ ...current, avatar_scale: value }))
-                    }
-                    onAvatarOffsetChange={(x, y) =>
-                      setForm((current) => ({
-                        ...current,
-                        avatar_offset_x: x,
-                        avatar_offset_y: y,
-                      }))
-                    }
-                    onAvatarRotationChange={(value) =>
-                      setForm((current) => ({ ...current, avatar_rotation: value }))
-                    }
-                    onAvatarSave={() => {
-                      if (editingSection !== SECTION_IDS.AVATAR) {
-                        beginEditSection(SECTION_IDS.AVATAR);
-                      }
-                      void saveSection(SECTION_IDS.AVATAR);
-                    }}
-                    onAvatarRemove={() =>
-                      setForm((current) => ({
-                        ...current,
-                        avatar_url: "",
-                        avatar_scale: 1,
-                        avatar_offset_x: 0,
-                        avatar_offset_y: 0,
-                        avatar_rotation: 0,
-                      }))
-                    }
-                    onEditAvatarClick={() => beginEditSection(SECTION_IDS.AVATAR)}
-                  />
-
-                  <p className={conciergeStyles.sectionIntroText}>{identityIntro}</p>
-
-                  <div className={conciergeStyles.profileStats}>
-                    <div className={conciergeStyles.profileStatItem}>
-                      <p className={conciergeStyles.profileStatLabel}>Ville</p>
-                      <div className={conciergeStyles.profileStatValue}>{form.city || "-"}</div>
-                    </div>
-                    <div className={conciergeStyles.profileStatItem}>
-                      <p className={conciergeStyles.profileStatLabel}>Structure</p>
-                      <div className={conciergeStyles.profileStatValue}>{form.company_name || "-"}</div>
-                    </div>
-                  </div>
-                </article>
-
-                <div className={conciergeStyles.badgeCard}>
-                  <h4 className={conciergeStyles.badgeTitle}>
-                    <FiShield />
-                    {isVerified ? "Badge vérifié" : "Vérification en attente"}
-                  </h4>
-                  <p className={conciergeStyles.badgeText}>
-                    {isVerified ? verifiedCompleteText : verifiedPendingText}
-                  </p>
-                </div>
-
-                <EditableProfileSection
-                  styles={conciergeStyles}
-                  title="Résumé du profil"
-                  icon={<FiBarChart />}
-                  canEdit={false}
-                  collapsible
-                  isOpen={openSections[SECTION_IDS.SUMMARY]}
-                  isEditing={false}
-                  isDirty={false}
-                  isLoading={false}
-                  onToggle={() => toggleSection(SECTION_IDS.SUMMARY)}
-                  onHeaderKeyDown={handleHeaderKeyDown}
-                  onBeginEdit={noop}
-                  onSave={noop}
-                  onCancel={noop}
-                >
-                  <ProfileSummary
-                    profile={{
-                      company_name: form.company_name,
-                      created_at: form.created_at || new Date().toISOString(),
-                      first_name: form.first_name,
-                      last_name: form.last_name,
-                      email: form.email,
-                      phone: form.phone,
-                      street_address: form.street_address,
-                      postal_code: form.postal_code,
-                      city: form.city,
-                    }}
-                    onEdit={() => beginEditSection(SECTION_IDS.ACCOUNT)}
-                  />
-                </EditableProfileSection>
-              </aside>
-
-              <div className={conciergeStyles.rightColumn}>
-                <EditableProfileSection
-                  styles={conciergeStyles}
-                  title="Informations du compte"
-                  icon={<FiUser />}
-                  canEdit
-                  collapsible
-                  isOpen={openSections[SECTION_IDS.ACCOUNT]}
-                  isEditing={editingSection === SECTION_IDS.ACCOUNT}
-                  isDirty={isSectionDirty(SECTION_IDS.ACCOUNT)}
-                  isLoading={saving}
-                  onToggle={() => toggleSection(SECTION_IDS.ACCOUNT)}
-                  onHeaderKeyDown={handleHeaderKeyDown}
-                  onBeginEdit={() => beginEditSection(SECTION_IDS.ACCOUNT)}
-                  onSave={() => void saveSection(SECTION_IDS.ACCOUNT)}
-                  onCancel={cancelEditSection}
-                >
-                  <div className={conciergeStyles.fieldsGrid}>
-                    <EditableProfileField styles={conciergeStyles} label="Prenom" name="first_name" value={form.first_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Nom" name="last_name" value={form.last_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Nom utilisateur" name="username" value={form.username} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Email" name="email" value={form.email} isEditing={false} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Telephone" name="phone" value={form.phone} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Entreprise" name="company_name" value={form.company_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
-                  </div>
-                </EditableProfileSection>
-
-                <EditableProfileSection
-                  styles={conciergeStyles}
-                  title="Adresse et présence locale"
-                  icon={<FiMapPin />}
-                  canEdit
-                  collapsible
-                  isOpen={openSections[SECTION_IDS.ADDRESS]}
-                  isEditing={editingSection === SECTION_IDS.ADDRESS}
-                  isDirty={isSectionDirty(SECTION_IDS.ADDRESS)}
-                  isLoading={saving}
-                  onToggle={() => toggleSection(SECTION_IDS.ADDRESS)}
-                  onHeaderKeyDown={handleHeaderKeyDown}
-                  onBeginEdit={() => beginEditSection(SECTION_IDS.ADDRESS)}
-                  onSave={() => void saveSection(SECTION_IDS.ADDRESS)}
-                  onCancel={cancelEditSection}
-                >
-                  <div className={conciergeStyles.fieldsGrid}>
-                    <EditableProfileField styles={conciergeStyles} label="Adresse" name="street_address" value={form.street_address} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Code postal" name="postal_code" value={form.postal_code} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Ville" name="city" value={form.city} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Pays" name="country" value={form.country} isEditing={editingSection === SECTION_IDS.ADDRESS} onChange={handleChange} />
-                  </div>
-                </EditableProfileSection>
-
-                <EditableProfileSection
-                  styles={conciergeStyles}
-                  title="Site et réseaux sociaux"
-                  icon={<FiGlobe />}
-                  canEdit
-                  collapsible
-                  isOpen={openSections[SECTION_IDS.SOCIALS]}
-                  isEditing={editingSection === SECTION_IDS.SOCIALS}
-                  isDirty={isSectionDirty(SECTION_IDS.SOCIALS)}
-                  isLoading={saving}
-                  onToggle={() => toggleSection(SECTION_IDS.SOCIALS)}
-                  onHeaderKeyDown={handleHeaderKeyDown}
-                  onBeginEdit={() => beginEditSection(SECTION_IDS.SOCIALS)}
-                  onSave={() => void saveSection(SECTION_IDS.SOCIALS)}
-                  onCancel={cancelEditSection}
-                >
-                  <p className={conciergeStyles.sectionIntroText}>
-                    Centralisez vos liens publics et vos réseaux sociaux.
-                  </p>
-                  <div className={conciergeStyles.fieldsGrid}>
-                    <EditableProfileField styles={conciergeStyles} label="Site web" name="website" value={form.website} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="LinkedIn" name="linkedin" value={form.linkedin} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Facebook" name="facebook" value={form.facebook} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
-                    <EditableProfileField styles={conciergeStyles} label="Instagram" name="instagram" value={form.instagram} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
-                  </div>
-                </EditableProfileSection>
-
-                <EditableProfileSection
-                  styles={conciergeStyles}
-                  title="Présentation"
-                  icon={<FiFileText />}
-                  canEdit
-                  collapsible
-                  isOpen={openSections[SECTION_IDS.PRESENTATION]}
-                  isEditing={editingSection === SECTION_IDS.PRESENTATION}
-                  isDirty={isSectionDirty(SECTION_IDS.PRESENTATION)}
-                  isLoading={saving}
-                  onToggle={() => toggleSection(SECTION_IDS.PRESENTATION)}
-                  onHeaderKeyDown={handleHeaderKeyDown}
-                  onBeginEdit={() => beginEditSection(SECTION_IDS.PRESENTATION)}
-                  onSave={() => void saveSection(SECTION_IDS.PRESENTATION)}
-                  onCancel={cancelEditSection}
-                >
-                  <p className={conciergeStyles.sectionIntroText}>
-                    {presentationIntro}
-                  </p>
-                  <EditableProfileField
-                    styles={conciergeStyles}
-                    label="Présentation"
-                    name="additional_info"
-                    value={form.additional_info}
-                    isEditing={editingSection === SECTION_IDS.PRESENTATION}
-                    isTextarea
-                    onChange={handleChange}
-                  />
-                </EditableProfileSection>
+            <div className={conciergeStyles.profileStats}>
+              <div className={conciergeStyles.profileStatItem}>
+                <p className={conciergeStyles.profileStatLabel}>Ville</p>
+                <div className={conciergeStyles.profileStatValue}>{form.city || "-"}</div>
+              </div>
+              <div className={conciergeStyles.profileStatItem}>
+                <p className={conciergeStyles.profileStatLabel}>Structure</p>
+                <div className={conciergeStyles.profileStatValue}>{form.company_name || "-"}</div>
               </div>
             </div>
+          </article>
+
+          <div className={conciergeStyles.badgeCard}>
+            <h4 className={conciergeStyles.badgeTitle}>
+              <FiShield />
+              {isVerified ? "Badge verifie" : "Verification en attente"}
+            </h4>
+            <p className={conciergeStyles.badgeText}>
+              {isVerified ? verifiedCompleteText : verifiedPendingText}
+            </p>
           </div>
+
+          <EditableProfileSection
+            styles={conciergeStyles}
+            title="Resume du profil"
+            icon={<FiBarChart />}
+            canEdit={false}
+            collapsible
+            isOpen={openSections[SECTION_IDS.SUMMARY]}
+            isEditing={false}
+            isDirty={false}
+            isLoading={false}
+            onToggle={() => toggleSection(SECTION_IDS.SUMMARY)}
+            onHeaderKeyDown={handleHeaderKeyDown}
+            onBeginEdit={noop}
+            onSave={noop}
+            onCancel={noop}
+          >
+            <ProfileSummary
+              profile={{
+                company_name: form.company_name,
+                created_at: form.created_at || new Date().toISOString(),
+                first_name: form.first_name,
+                last_name: form.last_name,
+                email: form.email,
+                phone: form.phone,
+                street_address: form.street_address,
+                postal_code: form.postal_code,
+                city: form.city,
+              }}
+              onEdit={() => {
+                setActiveTab("account");
+                beginEditSection(SECTION_IDS.ACCOUNT);
+              }}
+            />
+          </EditableProfileSection>
+        </aside>
+
+        <div className={conciergeStyles.rightColumn}>
+          {activeTab === "overview" ? (
+            <>
+              {renderAccountSection()}
+              {renderAddressSection()}
+              {renderSocialsSection()}
+              {renderPresentationSection()}
+            </>
+          ) : null}
+          {activeTab === "account" ? renderAccountSection() : null}
+          {activeTab === "address" ? renderAddressSection() : null}
+          {activeTab === "socials" ? renderSocialsSection() : null}
+          {activeTab === "presentation" ? renderPresentationSection() : null}
         </div>
-      </main>
-    </div>
+      </div>
+    </ProfilePageShell>
   );
 }

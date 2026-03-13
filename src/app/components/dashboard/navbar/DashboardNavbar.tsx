@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -20,10 +20,10 @@ interface NotificationItem {
   description: string;
   href: string;
   count: number;
-  kind: "mission" | "quote" | "search" | "message" | "alert";
+  kind: "mission" | "quote" | "search" | "message" | "alert" | "request";
 }
 
-type NotificationFilter = "all" | "mission" | "quote" | "search" | "message";
+type NotificationFilter = "all" | "mission" | "quote" | "search" | "message" | "request";
 
 interface MessageNotificationRow {
   id: string;
@@ -42,9 +42,18 @@ interface ProviderNotificationRow {
   unread?: number;
 }
 
+interface ConciergeServiceRequestRow {
+  id: string;
+  title?: string | null;
+  description?: string | null;
+  owner_name?: string | null;
+  recipient_id: string;
+  recipient_status?: string | null;
+}
+
 const ROLE_LABELS = {
-  owner: "Propriétaire",
-  owner_pro: "Propriétaire PRO",
+  owner: "PropriÃ©taire",
+  owner_pro: "PropriÃ©taire PRO",
   concierge: "Concierge",
   concierge_pro: "Concierge PRO",
   provider: "Artisan",
@@ -67,7 +76,7 @@ const getRoleLabel = (role?: string | null): string => {
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon après-midi";
+  if (hour < 18) return "Bon aprÃ¨s-midi";
   return "Bonsoir";
 };
 
@@ -75,6 +84,7 @@ const getNotificationKindLabel = (kind: NotificationItem["kind"]) => {
   if (kind === "mission") return "Mission";
   if (kind === "quote") return "Devis";
   if (kind === "search") return "Recherche";
+  if (kind === "request") return "Demande";
   if (kind === "alert") return "Alerte";
   return "Message";
 };
@@ -94,7 +104,7 @@ const getNotificationsPageHref = (role?: string | null) => {
 };
 
 const PAGE_LABELS: Record<string, string> = {
-  owner: "Espace propriétaire",
+  owner: "Espace propriÃ©taire",
   concierge: "Espace concierge",
   provider: "Espace artisan",
   messages: "Messages",
@@ -108,7 +118,7 @@ const PAGE_LABELS: Record<string, string> = {
   recherche: "Recherche",
   demandes: "Demandes",
   objectifs: "Objectifs",
-  settings: "Paramètres",
+  settings: "ParamÃ¨tres",
   profile: "Profil",
   clients: "Clients",
   interventions: "Interventions",
@@ -223,34 +233,82 @@ export default function DashboardNavbar({
               }));
           }
         } else if (userRole === "concierge" || userRole === "concierge_pro") {
-          const response = await fetch("/api/messages/conversations?role=concierge&limit=40", {
-            cache: "no-store",
-          });
-          const payload = await response.json();
-          if (response.ok) {
-            nextCount = Number(payload?.summary?.unread ?? 0);
-            const rows: MessageNotificationRow[] = Array.isArray(payload?.items) ? payload.items : [];
-            nextItems = rows
-              .filter((item) => Number(item?.unread_count ?? 0) > 0)
-              .slice(0, 6)
-              .map((item) => ({
-                id: item.id,
-                title: item.counterpart_name || item.subject || "Nouveau message",
-                description:
-                  item.last_message_preview ||
-                  "Un propriétaire a répondu ou envoyé un nouveau message.",
-                href: `/dashboard/concierge/messages?conversation=${item.id}`,
-                count: Number(item.unread_count ?? 0),
-                kind:
-                  item.source === "mission"
-                    ? "mission"
-                    : item.source === "quote"
-                      ? "quote"
-                      : item.source === "search"
-                        ? "search"
-                        : "message",
-              }));
+          const [messageResponse, requestResponse] = await Promise.all([
+            fetch("/api/messages/conversations?role=concierge&limit=40", {
+              cache: "no-store",
+            }),
+            fetch("/api/service-requests?view=concierge&limit=20", {
+              cache: "no-store",
+            }),
+          ]);
+
+          const [messagePayload, requestPayload] = await Promise.all([
+            messageResponse.json(),
+            requestResponse.json(),
+          ]);
+
+          const messageItems: NotificationItem[] = [];
+          const requestItems: NotificationItem[] = [];
+          let messageCount = 0;
+          let requestCount = 0;
+
+          if (messageResponse.ok) {
+            messageCount = Number(messagePayload?.summary?.unread ?? 0);
+            const rows: MessageNotificationRow[] = Array.isArray(messagePayload?.items)
+              ? messagePayload.items
+              : [];
+            messageItems.push(
+              ...rows
+                .filter((item) => Number(item?.unread_count ?? 0) > 0)
+                .slice(0, 6)
+                .map((item) => ({
+                  id: item.id,
+                  title: item.counterpart_name || item.subject || "Nouveau message",
+                  description:
+                    item.last_message_preview ||
+                    "Un propriétaire a répondu ou envoyé un nouveau message.",
+                  href: `/dashboard/concierge/messages?conversation=${item.id}`,
+                  count: Number(item.unread_count ?? 0),
+                  kind:
+                    item.source === "mission"
+                      ? "mission"
+                      : item.source === "quote"
+                        ? "quote"
+                        : item.source === "search"
+                          ? "search"
+                          : "message",
+                })),
+            );
           }
+
+          if (requestResponse.ok) {
+            const rows: ConciergeServiceRequestRow[] = Array.isArray(requestPayload?.items)
+              ? requestPayload.items
+              : [];
+            const pendingRequests = rows.filter(
+              (item) => item.recipient_status === "sent" || item.recipient_status === "viewed",
+            );
+
+            requestCount = pendingRequests.length;
+            requestItems.push(
+              ...pendingRequests.slice(0, 6).map((item) => ({
+                id: item.recipient_id,
+                title: item.owner_name || item.title || "Nouvelle demande",
+                description:
+                  item.title ||
+                  item.description ||
+                  "Un propriétaire vous a envoyé une nouvelle demande.",
+                href: "/dashboard/concierge/demandes",
+                count: 1,
+                kind: "request",
+              })),
+            );
+          }
+
+          nextCount = messageCount + requestCount;
+          nextItems = [...requestItems, ...messageItems]
+            .sort((left, right) => right.count - left.count)
+            .slice(0, 6);
         } else if (
           userRole === "provider" ||
           userRole === "provider_pro" ||
@@ -467,6 +525,7 @@ export default function DashboardNavbar({
                   <div className={styles.notificationFilters}>
                     {([
                       ["all", "Tout"],
+                      ["request", "Demandes"],
                       ["mission", "Missions"],
                       ["quote", "Devis"],
                       ["message", "Messages"],

@@ -7,6 +7,8 @@
 
 .dashNavbar {
   width: 100%;
+  position: relative;
+  z-index: 1200;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -17,6 +19,7 @@
   border-bottom: 2px solid var.$profile-border;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   top: 0;
+  overflow: visible;
 }
 
 .leftSection {
@@ -327,6 +330,7 @@
 
 .notificationsWrapper {
   position: relative;
+  z-index: 1300;
 }
 
 .iconButton:has(.notificationCount) {
@@ -363,7 +367,7 @@
   background: var.$mucha-paper;
   border: 1px solid var.$profile-border;
   box-shadow: 0 18px 40px rgba(41, 28, 13, 0.16);
-  z-index: 30;
+  z-index: 4000;
   transform-origin: top right;
   animation: notificationPanelEnter 160ms ease-out;
 }

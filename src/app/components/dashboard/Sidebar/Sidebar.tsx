@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
 import { signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
@@ -27,11 +27,39 @@ const roleThemeClasses: Record<string, string> = {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { userType } = useUserType();
+  const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
 
   const menuItems =
     userType && sidebarConfig[userType as keyof typeof sidebarConfig]
       ? sidebarConfig[userType as keyof typeof sidebarConfig]
       : [];
+
+  const loadNotificationCounts = useCallback(async () => {
+    if (userType !== "concierge") {
+      setNotificationCounts({});
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/service-requests?view=concierge&limit=30", {
+        cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de charger les notifications.");
+      }
+
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      const pendingCount = items.filter(
+        (item: { recipient_status?: string | null }) =>
+          item.recipient_status === "sent" || item.recipient_status === "viewed",
+      ).length;
+
+      setNotificationCounts({ "concierge-requests": pendingCount });
+    } catch {
+      setNotificationCounts({});
+    }
+  }, [userType]);
 
   useEffect(() => {
     if (isOpen) {
@@ -53,6 +81,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, toggleSidebar]);
+
+  useEffect(() => {
+    void loadNotificationCounts();
+
+    if (userType !== "concierge") return;
+    const interval = window.setInterval(() => {
+      void loadNotificationCounts();
+    }, 30000);
+
+    return () => window.clearInterval(interval);
+  }, [loadNotificationCounts, userType]);
 
   return (
     <>
@@ -98,7 +137,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             <p>Aucun menu disponible</p>
           ) : (
             menuItems.map((item) => (
-              <SidebarItem key={item.label} item={item} toggleSidebar={toggleSidebar} />
+              <SidebarItem
+                key={item.label}
+                item={item}
+                toggleSidebar={toggleSidebar}
+                notificationCounts={notificationCounts}
+              />
             ))
           )}
         </nav>

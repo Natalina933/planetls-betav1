@@ -21,6 +21,7 @@ export interface SidebarItem {
   path: string;
   icon?: IconType;
   children?: SidebarItem[];
+  notificationKey?: string;
 }
 
 export type UserType = "owner" | "concierge" | "provider";
@@ -89,7 +90,12 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       icon: FiCalendar,
       children: [
         { label: "Vue missions", path: "/dashboard/concierge/planning", icon: FiCalendar },
-        { label: "Demandes reçues", path: "/dashboard/concierge/demandes", icon: FiMessageSquare },
+        {
+          label: "Demandes reçues",
+          path: "/dashboard/concierge/demandes",
+          icon: FiMessageSquare,
+          notificationKey: "concierge-requests",
+        },
         { label: "Urgences", path: "/dashboard/concierge/urgences", icon: FiBell },
         { label: "Configuration missions", path: "/dashboard/concierge/profile?tab=missions", icon: FiClipboard },
       ],

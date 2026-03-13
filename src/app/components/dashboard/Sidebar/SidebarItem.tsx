@@ -10,9 +10,10 @@ import styles from "./Sidebar.module.scss";
 interface Props {
   item: SidebarItemType;
   toggleSidebar: () => void;
+  notificationCounts?: Record<string, number>;
 }
 
-const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
+const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts = {} }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +24,14 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
     item.children?.some((child) => child.path === currentPath || child.path === pathname),
   );
   const isActive = item.path === currentPath || item.path === pathname || hasActiveChild;
+  const currentItemCount = item.notificationKey ? notificationCounts[item.notificationKey] ?? 0 : 0;
+  const childCount =
+    item.children?.reduce((sum, child) => {
+      if (!child.notificationKey) return sum;
+      return sum + (notificationCounts[child.notificationKey] ?? 0);
+    }, 0) ?? 0;
+  const badgeCount = currentItemCount || childCount;
+  const badgeLabel = badgeCount > 9 ? "9+" : String(badgeCount);
 
   useEffect(() => {
     const saved = localStorage.getItem(`sidebar-${item.label}`);
@@ -45,6 +54,11 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
         <div className={`${styles.link} ${isActive ? styles.active : ""}`} onClick={handleParentClick}>
           {item.icon && <item.icon className={styles.icon} />}
           <span>{item.label}</span>
+          {badgeCount > 0 ? (
+            <span className={styles.itemBadge} aria-label={`${badgeCount} notification(s)`}>
+              {badgeLabel}
+            </span>
+          ) : null}
           <FiChevronDown className={`${styles.chevron} ${isOpen ? styles.rotate : ""}`} />
         </div>
       ) : (
@@ -55,6 +69,11 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
         >
           {item.icon && <item.icon className={styles.icon} />}
           <span>{item.label}</span>
+          {badgeCount > 0 ? (
+            <span className={styles.itemBadge} aria-label={`${badgeCount} notification(s)`}>
+              {badgeLabel}
+            </span>
+          ) : null}
         </Link>
       )}
 
@@ -71,6 +90,16 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar }) => {
               >
                 {child.icon && <child.icon className={styles.icon} />}
                 <span>{child.label}</span>
+                {child.notificationKey && (notificationCounts[child.notificationKey] ?? 0) > 0 ? (
+                  <span
+                    className={styles.itemBadge}
+                    aria-label={`${notificationCounts[child.notificationKey]} notification(s)`}
+                  >
+                    {(notificationCounts[child.notificationKey] ?? 0) > 9
+                      ? "9+"
+                      : String(notificationCounts[child.notificationKey])}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
