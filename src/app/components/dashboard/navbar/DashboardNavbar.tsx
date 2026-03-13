@@ -51,6 +51,16 @@ interface ConciergeServiceRequestRow {
   recipient_status?: string | null;
 }
 
+interface OwnerServiceRequestRow {
+  id: string;
+  title?: string | null;
+  city?: string | null;
+  recipients?: Array<{
+    status?: string | null;
+    concierge_name?: string | null;
+  }>;
+}
+
 const ROLE_LABELS = {
   owner: "PropriÃ©taire",
   owner_pro: "PropriÃ©taire PRO",
@@ -204,34 +214,100 @@ export default function DashboardNavbar({
         let nextItems: NotificationItem[] = [];
 
         if (userRole === "owner" || userRole === "owner_pro") {
-          const response = await fetch("/api/messages/conversations?role=owner&limit=40", {
-            cache: "no-store",
-          });
-          const payload = await response.json();
-          if (response.ok) {
-            nextCount = Number(payload?.summary?.unread ?? 0);
-            const rows: MessageNotificationRow[] = Array.isArray(payload?.items) ? payload.items : [];
-            nextItems = rows
-              .filter((item) => Number(item?.unread_count ?? 0) > 0)
-              .slice(0, 6)
-              .map((item) => ({
-                id: item.id,
-                title: item.counterpart_name || item.subject || "Nouvelle reponse",
-                description:
-                  item.last_message_preview ||
-                  "Une reponse est arrivee dans cette conversation.",
-                href: `/dashboard/owner/messages?conversation=${item.id}`,
-                count: Number(item.unread_count ?? 0),
-                kind:
-                  item.source === "mission"
-                    ? "mission"
-                    : item.source === "quote"
-                      ? "quote"
-                      : item.source === "search"
-                        ? "search"
-                        : "message",
-              }));
+          const [messageResponse, requestResponse] = await Promise.all([
+            fetch("/api/messages/conversations?role=owner&limit=40", {
+              cache: "no-store",
+            }),
+            fetch("/api/service-requests?limit=20", {
+              cache: "no-store",
+            }),
+          ]);
+          const [messagePayload, requestPayload] = await Promise.all([
+            messageResponse.json(),
+            requestResponse.json(),
+          ]);
+
+          const messageItems: NotificationItem[] = [];
+          const requestItems: NotificationItem[] = [];
+          let messageCount = 0;
+          let requestCount = 0;
+
+          if (messageResponse.ok) {
+            messageCount = Number(messagePayload?.summary?.unread ?? 0);
+            const rows: MessageNotificationRow[] = Array.isArray(messagePayload?.items)
+              ? messagePayload.items
+              : [];
+            messageItems.push(
+              ...rows
+                .filter((item) => Number(item?.unread_count ?? 0) > 0)
+                .slice(0, 6)
+                .map((item) => ({
+                  id: item.id,
+                  title: item.counterpart_name || item.subject || "Nouvelle reponse",
+                  description:
+                    item.last_message_preview ||
+                    "Une reponse est arrivee dans cette conversation.",
+                  href: `/dashboard/owner/messages?conversation=${item.id}`,
+                  count: Number(item.unread_count ?? 0),
+                  kind:
+                    item.source === "mission"
+                      ? "mission"
+                      : item.source === "quote"
+                        ? "quote"
+                        : item.source === "search"
+                          ? "search"
+                          : "message",
+                })),
+            );
           }
+
+          if (requestResponse.ok) {
+            const rows: OwnerServiceRequestRow[] = Array.isArray(requestPayload?.items)
+              ? requestPayload.items
+              : [];
+            const repliedRequests = rows.filter(
+              (item) =>
+                Array.isArray(item.recipients) &&
+                item.recipients.some(
+                  (recipient) =>
+                    recipient.status === "interested" ||
+                    recipient.status === "quoted" ||
+                    recipient.status === "declined",
+                ),
+            );
+
+            requestCount = repliedRequests.length;
+            requestItems.push(
+              ...repliedRequests.slice(0, 6).map((item) => {
+                const repliedRecipient = item.recipients?.find(
+                  (recipient) =>
+                    recipient.status === "quoted" ||
+                    recipient.status === "interested" ||
+                    recipient.status === "declined",
+                );
+                const responseLabel =
+                  repliedRecipient?.status === "quoted"
+                    ? "Devis recu"
+                    : repliedRecipient?.status === "declined"
+                      ? "Refus recu"
+                      : "Reponse recue";
+
+                return {
+                  id: item.id,
+                  title: repliedRecipient?.concierge_name || item.title || "Reponse concierge",
+                  description: `${responseLabel}${item.city ? ` • ${item.city}` : ""}`,
+                  href: "/dashboard/owner/conciergerie",
+                  count: 1,
+                  kind: repliedRecipient?.status === "quoted" ? "quote" : "request",
+                } satisfies NotificationItem;
+              }),
+            );
+          }
+
+          nextCount = messageCount + requestCount;
+          nextItems = [...requestItems, ...messageItems]
+            .sort((left, right) => right.count - left.count)
+            .slice(0, 6);
         } else if (userRole === "concierge" || userRole === "concierge_pro") {
           const [messageResponse, requestResponse] = await Promise.all([
             fetch("/api/messages/conversations?role=concierge&limit=40", {

@@ -56,7 +56,12 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       path: "/dashboard/owner/conciergerie",
       icon: FiUsers,
       children: [
-        { label: "Suivi concierge", path: "/dashboard/owner/conciergerie", icon: FiUsers },
+        {
+          label: "Suivi concierge",
+          path: "/dashboard/owner/conciergerie",
+          icon: FiUsers,
+          notificationKey: "owner-service-replies",
+        },
         { label: "Trouver un concierge", path: "/dashboard/owner/concierges", icon: FiSearch },
         { label: "Messages", path: "/dashboard/owner/messages", icon: FiMessageSquare },
       ],

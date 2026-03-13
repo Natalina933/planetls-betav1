@@ -35,27 +35,45 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       : [];
 
   const loadNotificationCounts = useCallback(async () => {
-    if (userType !== "concierge") {
+    if (userType !== "concierge" && userType !== "owner") {
       setNotificationCounts({});
       return;
     }
 
     try {
-      const response = await fetch("/api/service-requests?view=concierge&limit=30", {
-        cache: "no-store",
-      });
+      const endpoint =
+        userType === "concierge"
+          ? "/api/service-requests?view=concierge&limit=30"
+          : "/api/service-requests?limit=30";
+      const response = await fetch(endpoint, { cache: "no-store" });
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload?.error || "Impossible de charger les notifications.");
       }
 
       const items = Array.isArray(payload?.items) ? payload.items : [];
-      const pendingCount = items.filter(
-        (item: { recipient_status?: string | null }) =>
-          item.recipient_status === "sent" || item.recipient_status === "viewed",
+      if (userType === "concierge") {
+        const pendingCount = items.filter(
+          (item: { recipient_status?: string | null }) =>
+            item.recipient_status === "sent" || item.recipient_status === "viewed",
+        ).length;
+
+        setNotificationCounts({ "concierge-requests": pendingCount });
+        return;
+      }
+
+      const replyCount = items.filter(
+        (item: { recipients?: Array<{ status?: string | null }> }) =>
+          Array.isArray(item.recipients) &&
+          item.recipients.some(
+            (recipient) =>
+              recipient.status === "interested" ||
+              recipient.status === "quoted" ||
+              recipient.status === "declined",
+          ),
       ).length;
 
-      setNotificationCounts({ "concierge-requests": pendingCount });
+      setNotificationCounts({ "owner-service-replies": replyCount });
     } catch {
       setNotificationCounts({});
     }
@@ -85,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   useEffect(() => {
     void loadNotificationCounts();
 
-    if (userType !== "concierge") return;
+    if (userType !== "concierge" && userType !== "owner") return;
     const interval = window.setInterval(() => {
       void loadNotificationCounts();
     }, 30000);
