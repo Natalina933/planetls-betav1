@@ -6,6 +6,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, Bell, User, CheckCircle, Palette } from "lucide-react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import {
+  getOwnerReplySignature,
+  getSeenOwnerReplySignatures,
+  isOwnerReplyStatus,
+  OWNER_SERVICE_REPLY_SEEN_EVENT,
+} from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import styles from "./DashboardNavbar.module.scss";
 
@@ -56,6 +62,7 @@ interface OwnerServiceRequestRow {
   title?: string | null;
   city?: string | null;
   recipients?: Array<{
+    id?: string | null;
     status?: string | null;
     concierge_name?: string | null;
   }>;
@@ -97,6 +104,13 @@ const getNotificationKindLabel = (kind: NotificationItem["kind"]) => {
   if (kind === "request") return "Demande";
   if (kind === "alert") return "Alerte";
   return "Message";
+};
+
+const getMessageNotificationKind = (source?: string | null): NotificationItem["kind"] => {
+  if (source === "mission") return "mission";
+  if (source === "quote") return "quote";
+  if (source === "search") return "search";
+  return "message";
 };
 
 const getNotificationsPageHref = (role?: string | null) => {
@@ -153,6 +167,7 @@ export default function DashboardNavbar({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState<NotificationFilter>("all");
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
   const notificationRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
@@ -249,14 +264,7 @@ export default function DashboardNavbar({
                     "Une reponse est arrivee dans cette conversation.",
                   href: `/dashboard/owner/messages?conversation=${item.id}`,
                   count: Number(item.unread_count ?? 0),
-                  kind:
-                    item.source === "mission"
-                      ? "mission"
-                      : item.source === "quote"
-                        ? "quote"
-                        : item.source === "search"
-                          ? "search"
-                          : "message",
+                  kind: getMessageNotificationKind(item.source),
                 })),
             );
           }
@@ -265,16 +273,14 @@ export default function DashboardNavbar({
             const rows: OwnerServiceRequestRow[] = Array.isArray(requestPayload?.items)
               ? requestPayload.items
               : [];
+            const seenReplySignatures = getSeenOwnerReplySignatures();
             const repliedRequests = rows.filter(
               (item) =>
                 Array.isArray(item.recipients) &&
                 item.recipients.some(
-                  (recipient) =>
-                    recipient.status === "interested" ||
-                    recipient.status === "quoted" ||
-                    recipient.status === "declined",
+                  (recipient) => isOwnerReplyStatus(recipient.status),
                 ),
-            );
+            ).filter((item) => !seenReplySignatures.has(getOwnerReplySignature(item)));
 
             requestCount = repliedRequests.length;
             requestItems.push(
@@ -345,14 +351,7 @@ export default function DashboardNavbar({
                     "Un propriétaire a répondu ou envoyé un nouveau message.",
                   href: `/dashboard/concierge/messages?conversation=${item.id}`,
                   count: Number(item.unread_count ?? 0),
-                  kind:
-                    item.source === "mission"
-                      ? "mission"
-                      : item.source === "quote"
-                        ? "quote"
-                        : item.source === "search"
-                          ? "search"
-                          : "message",
+                  kind: getMessageNotificationKind(item.source),
                 })),
             );
           }
@@ -376,7 +375,7 @@ export default function DashboardNavbar({
                   "Un propriétaire vous a envoyé une nouvelle demande.",
                 href: "/dashboard/concierge/demandes",
                 count: 1,
-                kind: "request",
+                kind: "request" as const,
               })),
             );
           }
@@ -406,7 +405,7 @@ export default function DashboardNavbar({
                   item.last_message_preview || "Un client vous a repondu dans ce fil.",
                 href: `/dashboard/provider/messages?conversation=${item.id}`,
                 count: Number(item.unread ?? 0),
-                kind: "message",
+                kind: "message" as const,
               }));
           }
         }
@@ -432,7 +431,20 @@ export default function DashboardNavbar({
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [isAuthenticated, notificationCount, userRole]);
+  }, [isAuthenticated, notificationCount, refreshTick, userRole]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleOwnerRepliesSeen = () => {
+      setRefreshTick((current) => current + 1);
+    };
+
+    window.addEventListener(OWNER_SERVICE_REPLY_SEEN_EVENT, handleOwnerRepliesSeen);
+    return () => {
+      window.removeEventListener(OWNER_SERVICE_REPLY_SEEN_EVENT, handleOwnerRepliesSeen);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isNotificationsOpen) return;

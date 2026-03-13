@@ -4,6 +4,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FiLogOut } from "react-icons/fi";
 import { signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
+import {
+  getOwnerReplySignature,
+  getSeenOwnerReplySignatures,
+  isOwnerReplyStatus,
+  OWNER_SERVICE_REPLY_SEEN_EVENT,
+} from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import { sidebarConfig } from "./sidebarconfig";
 import SidebarItem from "./SidebarItem";
 import styles from "./Sidebar.module.scss";
@@ -28,6 +34,7 @@ const roleThemeClasses: Record<string, string> = {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { userType } = useUserType();
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
+  const [refreshTick, setRefreshTick] = useState(0);
 
   const menuItems =
     userType && sidebarConfig[userType as keyof typeof sidebarConfig]
@@ -63,15 +70,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       }
 
       const replyCount = items.filter(
-        (item: { recipients?: Array<{ status?: string | null }> }) =>
+        (item: { id: string; recipients?: Array<{ id?: string | null; status?: string | null }> }) =>
           Array.isArray(item.recipients) &&
           item.recipients.some(
-            (recipient) =>
-              recipient.status === "interested" ||
-              recipient.status === "quoted" ||
-              recipient.status === "declined",
+            (recipient) => isOwnerReplyStatus(recipient.status),
           ),
-      ).length;
+      ).filter((item: { id: string; recipients?: Array<{ id?: string | null; status?: string | null }> }) => {
+        const seenReplySignatures = getSeenOwnerReplySignatures();
+        return !seenReplySignatures.has(getOwnerReplySignature(item));
+      }).length;
 
       setNotificationCounts({ "owner-service-replies": replyCount });
     } catch {
@@ -109,7 +116,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     }, 30000);
 
     return () => window.clearInterval(interval);
-  }, [loadNotificationCounts, userType]);
+  }, [loadNotificationCounts, refreshTick, userType]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleOwnerRepliesSeen = () => {
+      setRefreshTick((current) => current + 1);
+    };
+
+    window.addEventListener(OWNER_SERVICE_REPLY_SEEN_EVENT, handleOwnerRepliesSeen);
+    return () => {
+      window.removeEventListener(OWNER_SERVICE_REPLY_SEEN_EVENT, handleOwnerRepliesSeen);
+    };
+  }, []);
 
   return (
     <>

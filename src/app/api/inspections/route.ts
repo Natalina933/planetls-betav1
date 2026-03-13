@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     const limit = parseLimit(url.searchParams.get("limit"), 30);
 
     const housingId = housingIdRaw ? Number(housingIdRaw) : null;
-    if (housingIdRaw && (!Number.isFinite(housingId) || housingId <= 0)) {
+    if (housingIdRaw && (housingId === null || !Number.isFinite(housingId) || housingId <= 0)) {
       return NextResponse.json({ error: "housingId invalide" }, { status: 400 });
     }
 

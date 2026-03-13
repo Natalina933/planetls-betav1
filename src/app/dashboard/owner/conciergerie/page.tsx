@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
+import {
+  getOwnerReplySignature,
+  isOwnerReplyStatus,
+  markOwnerReplySignaturesAsSeen,
+} from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
 import pageStyles from "../OwnerDashboardPages.module.scss";
@@ -121,6 +126,16 @@ function getStatusTone(status: string, urgent?: boolean) {
   return pageStyles.statusPending;
 }
 
+function collectReplySignatures(rows: OwnerServiceRequestRow[]) {
+  return rows
+    .filter(
+      (request) =>
+        Array.isArray(request.recipients) &&
+        request.recipients.some((recipient) => isOwnerReplyStatus(recipient.status)),
+    )
+    .map((request) => getOwnerReplySignature(request));
+}
+
 export default function OwnerConciergeriePage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
@@ -168,7 +183,9 @@ export default function OwnerConciergeriePage() {
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
         setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
-        setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
+        const nextRequests = Array.isArray(requestsPayload?.items) ? requestsPayload.items : [];
+        setRequests(nextRequests);
+        markOwnerReplySignaturesAsSeen(collectReplySignatures(nextRequests));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger la conciergerie.");
       }
@@ -384,7 +401,7 @@ export default function OwnerConciergeriePage() {
             title: "Badge concierge",
             text: spotlightProfile
               ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` | ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
-              : "Le statut PRO et la note du concierge apparaîtront ici dès qu'un profil sera associé.",
+              : "Le statut PRO et la note du concierge apparaîtront ici dès qu&apos;un profil sera associé.",
           },
         ]}
       />
@@ -520,7 +537,7 @@ export default function OwnerConciergeriePage() {
 
             <section className={pageStyles.conciergeSpotlightCard}>
               <p className={pageStyles.eyebrow}>Relation</p>
-              <h2 className={pageStyles.conciergeSectionTitle}>Vue d'ensemble concierge</h2>
+              <h2 className={pageStyles.conciergeSectionTitle}>Vue d&apos;ensemble concierge</h2>
               <div className={pageStyles.conciergeSnapshotList}>
                 <div className={pageStyles.conciergeSnapshotRow}>
                   <span>Badge</span>
