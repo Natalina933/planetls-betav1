@@ -14,7 +14,7 @@ export default function ProviderOutilsPage() {
       cards={[
         {
           title: "Boîte à outils",
-          text: "Cette zone pourra regrouper vos modèles, checklists, documents type et raccourcis du quotidien.",
+          text: "Cette zone pourra regrouper vos modèles, checklists, documents types et raccourcis du quotidien.",
         },
         {
           title: "Automatismes",

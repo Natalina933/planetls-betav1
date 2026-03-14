@@ -35,7 +35,7 @@ export default function ProviderObjectifsPage() {
         },
         {
           title: "2. Objectifs financiers",
-          text: "Cette zone servira à suivre vos montants signés, factures et encaissements.",
+          text: "Cette zone servira à suivre vos montants signés, vos factures et vos encaissements.",
         },
         {
           title: "3. Qualité de service",
