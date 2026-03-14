@@ -2860,6 +2860,8 @@ export function TariffSegmentsSection({
       <div className={styles.pricingSegmentsDraft}>
         <input
           type="text"
+          aria-label="Nom du segment propriétaire"
+          title="Nom du segment propriétaire"
           placeholder="Nom du segment (ex: Grands comptes)"
           value={segmentDraft.name}
           disabled={!canEditTariffConfig}
@@ -2868,6 +2870,8 @@ export function TariffSegmentsSection({
         <input
           type="number"
           step="0.1"
+          aria-label="Variation de commission du segment en pourcentage"
+          title="Variation de commission du segment en pourcentage"
           placeholder="Delta commission %"
           value={segmentDraft.commission_delta_pct}
           disabled={!canEditTariffConfig}
@@ -2881,6 +2885,8 @@ export function TariffSegmentsSection({
         <input
           type="number"
           step="0.1"
+          aria-label="Variation des frais de set-up du segment en pourcentage"
+          title="Variation des frais de set-up du segment en pourcentage"
           placeholder="Delta set-up %"
           value={segmentDraft.setup_fee_delta_pct}
           disabled={!canEditTariffConfig}
