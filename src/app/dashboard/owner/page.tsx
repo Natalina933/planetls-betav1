@@ -2,9 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import { AsyncState } from "@/components/ui";
-import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import { getOwnerHousingStatusLabel, useOwnerDashboardData } from "./useOwnerDashboardData";
@@ -61,12 +60,7 @@ export default function OwnerDashboardPage() {
   ];
 
   if (userLoading || !isAuthenticated) {
-    return (
-      <div style={{ display: "grid", placeItems: "center", minHeight: "40vh", gap: "12px" }}>
-        <Loader2 className="animate-spin text-primary" size={40} />
-        <p>Chargement de votre espace propriétaire...</p>
-      </div>
-    );
+    return <DashboardLoadingScreen label="Chargement de votre espace propriétaire..." />;
   }
 
   return (

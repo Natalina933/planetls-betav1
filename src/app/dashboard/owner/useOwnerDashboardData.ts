@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { averageBy, fetchJsonOrThrow, sumBy, takeFirst } from "../shared";
 
 type OwnerHousingRow = {
   id: number;
@@ -88,47 +89,24 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
         setLoading(true);
         setError(null);
 
-        const [
-          housingResponse,
-          missionsResponse,
-          quotesResponse,
-          invoicesResponse,
-          reviewsResponse,
-          conversationsResponse,
-        ] = await Promise.all([
-          fetch("/api/housing", { cache: "no-store" }),
-          fetch("/api/missions?scope=owner&limit=12", { cache: "no-store" }),
-          fetch("/api/quotes?limit=8", { cache: "no-store" }),
-          fetch("/api/invoices?limit=8", { cache: "no-store" }),
-          fetch("/api/reviews?limit=6", { cache: "no-store" }),
-          fetch("/api/messages/conversations?role=owner&limit=20", { cache: "no-store" }),
-        ]);
-
-        const housingPayload = await housingResponse.json();
-        const missionsPayload = await missionsResponse.json();
-        const quotesPayload = await quotesResponse.json();
-        const invoicesPayload = await invoicesResponse.json();
-        const reviewsPayload = await reviewsResponse.json();
-        const conversationsPayload = await conversationsResponse.json();
-
-        if (!housingResponse.ok) {
-          throw new Error(housingPayload?.error || "Impossible de charger vos logements.");
-        }
-        if (!missionsResponse.ok) {
-          throw new Error(missionsPayload?.error || "Impossible de charger vos missions.");
-        }
-        if (!quotesResponse.ok) {
-          throw new Error(quotesPayload?.error || "Impossible de charger vos devis.");
-        }
-        if (!invoicesResponse.ok) {
-          throw new Error(invoicesPayload?.error || "Impossible de charger vos factures.");
-        }
-        if (!reviewsResponse.ok) {
-          throw new Error(reviewsPayload?.error || "Impossible de charger vos avis.");
-        }
-        if (!conversationsResponse.ok) {
-          throw new Error(conversationsPayload?.error || "Impossible de charger vos messages.");
-        }
+        const [housingPayload, missionsPayload, quotesPayload, invoicesPayload, reviewsPayload, conversationsPayload] =
+          await Promise.all([
+            fetchJsonOrThrow<OwnerHousingRow[]>("/api/housing", "Impossible de charger vos logements."),
+            fetchJsonOrThrow<OwnerMissionRow[]>(
+              "/api/missions?scope=owner&limit=12",
+              "Impossible de charger vos missions.",
+            ),
+            fetchJsonOrThrow<OwnerQuoteRow[]>("/api/quotes?limit=8", "Impossible de charger vos devis."),
+            fetchJsonOrThrow<OwnerInvoiceRow[]>(
+              "/api/invoices?limit=8",
+              "Impossible de charger vos factures.",
+            ),
+            fetchJsonOrThrow<OwnerReviewRow[]>("/api/reviews?limit=6", "Impossible de charger vos avis."),
+            fetchJsonOrThrow<{ items?: OwnerConversationRow[] }>(
+              "/api/messages/conversations?role=owner&limit=20",
+              "Impossible de charger vos messages.",
+            ),
+          ]);
 
         setProperties(Array.isArray(housingPayload) ? housingPayload : []);
         setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
@@ -165,18 +143,11 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
     () => invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "canceled"),
     [invoices],
   );
-  const latestQuotes = useMemo(() => quotes.slice(0, 3), [quotes]);
-  const latestInvoices = useMemo(() => invoices.slice(0, 3), [invoices]);
-  const averageRating = useMemo(() => {
-    const ratings = reviews
-      .map((review) => review.rating)
-      .filter((rating): rating is number => typeof rating === "number" && Number.isFinite(rating));
-
-    if (ratings.length === 0) return null;
-    return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
-  }, [reviews]);
+  const latestQuotes = useMemo(() => takeFirst(quotes, 3), [quotes]);
+  const latestInvoices = useMemo(() => takeFirst(invoices, 3), [invoices]);
+  const averageRating = useMemo(() => averageBy(reviews, (review) => review.rating), [reviews]);
   const unreadConversationCount = useMemo(
-    () => conversations.reduce((sum, conversation) => sum + (conversation.unread_count ?? 0), 0),
+    () => sumBy(conversations, (conversation) => conversation.unread_count ?? 0),
     [conversations],
   );
 

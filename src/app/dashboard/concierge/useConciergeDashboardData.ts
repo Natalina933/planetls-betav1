@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
+import { fetchJsonOrFallback, takeFirst } from "../shared";
 import { fetchConciergeMatches, type ConciergeOwnerMatch } from "./dashboardClient";
 
 type ConciergeKpis = {
@@ -63,9 +64,11 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
 
     const fetchPlanning = async () => {
       try {
-        const response = await fetch("/api/missions?scope=all&limit=20", { cache: "no-store" });
-        const payload = (await response.json()) as DashboardMissionRow[] | { error?: string };
-        if (!response.ok || !Array.isArray(payload)) {
+        const payload = await fetchJsonOrFallback<DashboardMissionRow[] | { error?: string }>(
+          "/api/missions?scope=all&limit=20",
+          [],
+        );
+        if (!Array.isArray(payload)) {
           if (isMounted) setPlanningEvents([]);
           return;
         }
@@ -115,9 +118,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
 
     const fetchKpis = async () => {
       try {
-        const response = await fetch("/api/missions/kpis", { cache: "no-store" });
-        const payload = await response.json();
-        if (!response.ok) return;
+        const payload = await fetchJsonOrFallback<ConciergeKpis | null>("/api/missions/kpis", null);
         if (isMounted) {
           setKpis(payload);
         }
@@ -139,7 +140,7 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
     () => (typeof kpis?.avg_rating === "number" ? kpis.avg_rating : null),
     [kpis?.avg_rating],
   );
-  const plannedNow = useMemo(() => planningEvents.slice(0, 4), [planningEvents]);
+  const plannedNow = useMemo(() => takeFirst(planningEvents, 4), [planningEvents]);
 
   return {
     matches,

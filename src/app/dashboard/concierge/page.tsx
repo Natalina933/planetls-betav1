@@ -1,8 +1,7 @@
 ﻿"use client";
 
 import React from "react";
-import { Loader2 } from "lucide-react";
-import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue } from "@/app/utils/formatters";
@@ -34,12 +33,7 @@ export default function ConciergeDashboardPage() {
     useConciergeDashboardData(isAuthenticated);
 
   if (loading || !isAuthenticated) {
-    return (
-      <div style={{ display: "grid", placeItems: "center", minHeight: "40vh", gap: "12px" }}>
-        <Loader2 className="animate-spin text-primary" size={40} />
-        <p>Chargement de votre espace conciergerie...</p>
-      </div>
-    );
+    return <DashboardLoadingScreen label="Chargement de votre espace conciergerie..." />;
   }
 
   const isPro = user?.role === "concierge_pro";
