@@ -30,7 +30,7 @@
   "src/components/ui/Loader/Loader.tsx": "6ad0d932f073824dac5608d013f2bc05101d039906b1959fa8f251fa505fc1e8",
   "src/components/ui/SearchBar/index.ts": "551078d548b1d9d7d1dc0949d09b1729a2b483b22167eb0bc750b414ca9de8db",
   "src/components/ui/SearchBar/SearchBar.module.scss": "3522f65c0dffa007dd3bfab24f8398ae905ab04e3af97fc4297f3f1fcc377006",
-  "src/components/ui/SearchBar/SearchBar.tsx": "3e960251353332544dc6c629147c4d46ca479ee24a829742bd55a9d0353049a1",
+  "src/components/ui/SearchBar/SearchBar.tsx": "6adc971970e9d3e0571cdf5f1d123053f1254567f88681fed9b811c3a75256e2",
   "src/components/ui/Section/index.ts": "64891775884a65832abe8f038bdf5b2c890777c8413efd31935f7abe2054351a",
   "src/components/ui/Section/Section.module.scss": "4bbc0bde88a4a84606a7be776eb4387defe6cb6e189c68857d0c258f7c80087d",
   "src/components/ui/Section/Section.tsx": "b9a1f210cc68c1f1215e08a2038a6d078c70bc70f02b731367cf6df389ba133b",
