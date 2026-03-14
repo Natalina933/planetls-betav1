@@ -29,6 +29,7 @@ export type UserType = "owner" | "concierge" | "provider";
 export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   owner: [
     { label: "Tableau de bord", path: "/dashboard/owner", icon: FiHome },
+    { label: "Planning", path: "/dashboard/owner/planning", icon: FiCalendar },
     {
       label: "Logements",
       path: "/dashboard/owner/logements",
@@ -89,6 +90,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
 
   concierge: [
     { label: "Tableau de bord", path: "/dashboard/concierge", icon: FiHome },
+    { label: "Planning", path: "/dashboard/concierge/planning", icon: FiCalendar },
     {
       label: "Missions",
       path: "/dashboard/concierge/planning",
@@ -149,6 +151,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
 
   provider: [
     { label: "Tableau de bord", path: "/dashboard/provider", icon: FiHome },
+    { label: "Planning", path: "/dashboard/provider/planning", icon: FiCalendar },
     {
       label: "Interventions",
       path: "/dashboard/provider/interventions",

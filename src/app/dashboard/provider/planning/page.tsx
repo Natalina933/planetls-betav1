@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { formatDateValue } from "@/app/utils/formatters";
 import { Button, ButtonLink } from "@/components/ui";
 import { DashboardSectionShell } from "@/components/dashboard";
+import { takeFirst } from "../../shared";
 import styles from "../ProviderCrudPage.module.scss";
 
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -29,29 +31,6 @@ type ProviderInterventionsPayload = {
   };
   note: string | null;
 };
-
-function formatDateTime(value: string | null) {
-  if (!value) return "Non planifié";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function formatShortTime(value: string | null) {
-  if (!value) return "--:--";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "--:--";
-  return new Intl.DateTimeFormat("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 export default function ProviderPlanningPage() {
   const [data, setData] = useState<ProviderInterventionsPayload | null>(null);
@@ -87,13 +66,15 @@ export default function ProviderPlanningPage() {
 
   const upcoming = useMemo(() => {
     const rows = data?.items ?? [];
-    return [...rows]
-      .filter((item) => item.scheduled_start)
-      .sort(
-        (a, b) =>
-          new Date(a.scheduled_start ?? 0).getTime() - new Date(b.scheduled_start ?? 0).getTime(),
-      )
-      .slice(0, 10);
+    return takeFirst(
+      [...rows]
+        .filter((item) => item.scheduled_start)
+        .sort(
+          (a, b) =>
+            new Date(a.scheduled_start ?? 0).getTime() - new Date(b.scheduled_start ?? 0).getTime(),
+        ),
+      10,
+    );
   }, [data]);
 
   const todayCount = useMemo(() => {
@@ -152,7 +133,7 @@ export default function ProviderPlanningPage() {
     <DashboardSectionShell
       persona="artisan"
       title="Planning interventions"
-      subtitle="Visualisez les echeances, urgences et charges a venir avec une lecture priorisee."
+      subtitle="Visualisez les échéances, urgences et charges à venir avec une lecture priorisée."
       stats={[
         { label: "Missions", value: `${data?.summary.total ?? 0}` },
         { label: "Aujourd'hui", value: `${todayCount}` },
@@ -168,7 +149,11 @@ export default function ProviderPlanningPage() {
           <div>
             <p className={styles.eyebrow}>Planning</p>
             <h1>Suivi des interventions</h1>
-            <p>{error || data?.note || "Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée."}</p>
+            <p>
+              {error ||
+                data?.note ||
+                "Visualisez les prochaines interventions et les charges à venir avec une lecture priorisée."}
+            </p>
           </div>
           <div className={styles.metrics}>
             <span>{data?.summary.total ?? 0} missions</span>
@@ -200,7 +185,7 @@ export default function ProviderPlanningPage() {
               </ButtonLink>
             </div>
             <div className={styles.spotlightGrid}>
-              {weekBuckets.slice(0, 3).map((bucket) => (
+              {takeFirst(weekBuckets, 3).map((bucket) => (
                 <article key={bucket.label} className={styles.spotlightCard}>
                   <div className={styles.spotlightHeader}>
                     <span className={styles.badge}>{bucket.label}</span>
@@ -254,8 +239,27 @@ export default function ProviderPlanningPage() {
                       <WorkflowStatusBadge value={item.status || "pending"} />
                     </div>
                     <div className={styles.itemMeta}>
-                      <span>{formatDateTime(item.scheduled_start)}</span>
-                      <span>Fin: {formatDateTime(item.scheduled_end)}</span>
+                      <span>
+                        {formatDateValue(item.scheduled_start, {
+                          emptyLabel: "Non planifié",
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      <span>
+                        Fin:{" "}
+                        {formatDateValue(item.scheduled_end, {
+                          emptyLabel: "Non planifié",
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                       <WorkflowStatusBadge value={item.priority || "normal"} />
                     </div>
                   </article>
@@ -277,7 +281,13 @@ export default function ProviderPlanningPage() {
                       bucket.events.map((item) => (
                         <article key={item.id} className={styles.weekEventCard}>
                           <div className={styles.weekEventHead}>
-                            <strong>{formatShortTime(item.scheduled_start)}</strong>
+                            <strong>
+                              {formatDateValue(item.scheduled_start, {
+                                emptyLabel: "--:--",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </strong>
                             <WorkflowStatusBadge value={item.priority || "normal"} />
                           </div>
                           <Link href="/dashboard/provider/interventions" className={styles.weekEventTitle}>
@@ -308,7 +318,7 @@ export default function ProviderPlanningPage() {
                     className={`${styles.calendarCell} ${!cell.inMonth ? styles.calendarCellMuted : ""}`}
                   >
                     <div className={styles.calendarDay}>{cell.day}</div>
-                    {cell.events.slice(0, 2).map((item) => (
+                    {takeFirst(cell.events, 2).map((item) => (
                       <Link
                         key={item.id}
                         href="/dashboard/provider/interventions"

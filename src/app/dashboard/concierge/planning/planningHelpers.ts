@@ -17,6 +17,10 @@ export type PlanningItem = {
   tone?: WorkspaceTone;
 };
 
+function takeFirst<T>(items: T[], count: number) {
+  return items.slice(0, count);
+}
+
 export function toTimestamp(value: string | null) {
   if (!value) return 0;
   const date = new Date(value);
@@ -25,8 +29,10 @@ export function toTimestamp(value: string | null) {
 
 export function formatPlanningDate(value: string | null) {
   if (!value) return "À planifier";
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
+
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
@@ -77,21 +83,20 @@ export function buildPlanningStatusBreakdown(missions: MissionRow[]): PlanningIt
     groups.set(key, (groups.get(key) || 0) + 1);
   });
 
-  return Array.from(groups.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([status, count]) => ({
-      title: normalizePlanningStatus(status),
-      meta: `${count} mission(s)`,
-      description: "Répartition actuelle de votre pipe opérationnel.",
-      href: "/dashboard/concierge/profile?tab=missions",
-      actionLabel: "Voir les missions",
-      tone:
-        status === "completed"
-          ? "success"
-          : status === "canceled"
-            ? "warning"
-            : "default",
-    }));
+  return takeFirst(
+    Array.from(groups.entries()).sort((a, b) => b[1] - a[1]),
+    5,
+  ).map(([status, count]) => ({
+    title: normalizePlanningStatus(status),
+    meta: `${count} mission(s)`,
+    description: "Répartition actuelle de votre pipe opérationnel.",
+    href: "/dashboard/concierge/profile?tab=missions",
+    actionLabel: "Voir les missions",
+    tone:
+      status === "completed"
+        ? "success"
+        : status === "canceled"
+          ? "warning"
+          : "default",
+  }));
 }
-

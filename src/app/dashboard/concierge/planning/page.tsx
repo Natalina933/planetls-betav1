@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import DashboardCalendar, {
   DashboardEvent,
 } from "@/app/components/dashboard/calendar/DashboardCalendar";
-import { DashboardSectionShell } from "@/components/dashboard";
+import { formatDateValue } from "@/app/utils/formatters";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import { takeFirst } from "../../shared";
 import {
   buildPlanningStatusBreakdown,
   formatPlanningDate,
@@ -37,16 +38,12 @@ function getEndOfToday() {
 }
 
 function getWeekdayLabel(value: string | null) {
-  if (!value) return "Sans date";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-
-  return new Intl.DateTimeFormat("fr-FR", {
+  return formatDateValue(value, {
+    emptyLabel: "Sans date",
     weekday: "long",
     day: "2-digit",
     month: "short",
-  }).format(date);
+  });
 }
 
 function getShortTime(value: string | null) {
@@ -148,29 +145,31 @@ export default function ConciergePlanningPage() {
 
   const todayMissions = useMemo(
     () =>
-      plannedActiveMissions
-        .filter((mission) => {
+      takeFirst(
+        plannedActiveMissions.filter((mission) => {
           const ts = toTimestamp(mission.scheduled_start);
           return ts >= todayStart && ts <= todayEnd;
-        })
-        .slice(0, 6),
+        }),
+        6,
+      ),
     [plannedActiveMissions, todayEnd, todayStart],
   );
 
   const nextMissions = useMemo(
     () =>
-      plannedActiveMissions
-        .filter((mission) => {
+      takeFirst(
+        plannedActiveMissions.filter((mission) => {
           const ts = toTimestamp(mission.scheduled_start);
           return ts > now && ts <= next48h;
-        })
-        .slice(0, 6),
+        }),
+        6,
+      ),
     [next48h, now, plannedActiveMissions],
   );
 
   const overdueMissions = useMemo(
     () =>
-      plannedActiveMissions.filter((mission) => toTimestamp(mission.scheduled_start) < now).slice(0, 6),
+      takeFirst(plannedActiveMissions.filter((mission) => toTimestamp(mission.scheduled_start) < now), 6),
     [now, plannedActiveMissions],
   );
 
@@ -200,9 +199,10 @@ export default function ConciergePlanningPage() {
       buckets.set(key, (buckets.get(key) || 0) + 1);
     });
 
-    return Array.from(buckets.entries())
-      .map(([label, count]) => ({ label, count }))
-      .slice(0, 5);
+    return takeFirst(
+      Array.from(buckets.entries()).map(([label, count]) => ({ label, count })),
+      5,
+    );
   }, [plannedActiveMissions]);
 
   const visualEvents = useMemo<DashboardEvent[]>(
@@ -223,7 +223,7 @@ export default function ConciergePlanningPage() {
 
   const timeline = useMemo(
     () =>
-      plannedActiveMissions.slice(0, 8).map((mission) => ({
+      takeFirst(plannedActiveMissions, 8).map((mission) => ({
         id: mission.id,
         title: mission.title || "Mission sans titre",
         meta: formatPlanningDate(mission.scheduled_start),
@@ -239,23 +239,9 @@ export default function ConciergePlanningPage() {
   );
 
   return (
-    <DashboardSectionShell
-      persona="conciergerie"
-      title="Planning conciergerie"
-      subtitle="Repérez ce qui doit être traité aujourd'hui, confirmé sous 48 h ou replanifié."
-      stats={[
-        { label: "Missions", value: `${missions.length}` },
-        { label: "Urgences", value: `${urgentMissions.length}` },
-        { label: "Sans date", value: `${unscheduledMissions.length}` },
-      ]}
-      actions={[
-        { label: "Voir alertes", href: "/dashboard/concierge/alertes" },
-        { label: "Configurer missions", href: "/dashboard/concierge/profile?tab=missions" },
-      ]}
-    >
     <ConciergeWorkspacePage
       eyebrow="Planning"
-      title="Planning des missions"
+      title="Planning conciergerie"
       description={
         loading
           ? "Préparation de votre planning..."
@@ -270,6 +256,7 @@ export default function ConciergePlanningPage() {
       actions={[
         { label: "Revenir au tableau de bord", href: "/dashboard/concierge" },
         { label: "Ouvrir les missions", href: "/dashboard/concierge/profile?tab=missions" },
+        { label: "Voir alertes", href: "/dashboard/concierge/alertes" },
       ]}
       metrics={[
         {
@@ -378,7 +365,7 @@ export default function ConciergePlanningPage() {
             loading
               ? "Analyse des missions sans date."
               : error || "Toutes les missions actives ont déjà une date planifiée.",
-          items: unscheduledMissions.slice(0, 6).map((mission) => ({
+          items: takeFirst(unscheduledMissions, 6).map((mission) => ({
             title: mission.title || "Mission sans date",
             meta: normalizePlanningStatus(mission.status),
             description:
@@ -440,7 +427,7 @@ export default function ConciergePlanningPage() {
                 </div>
                 <div className={styles.weekColumnBody}>
                   {bucket.items.length > 0 ? (
-                    bucket.items.slice(0, 3).map((mission) => (
+                    takeFirst(bucket.items, 3).map((mission) => (
                       <div key={mission.id} className={styles.weekEvent}>
                         <span className={styles.weekEventTime}>{getShortTime(mission.scheduled_start)}</span>
                         <div className={styles.weekEventContent}>
@@ -504,7 +491,6 @@ export default function ConciergePlanningPage() {
         </aside>
       </section>
     </ConciergeWorkspacePage>
-    </DashboardSectionShell>
   );
 }
 

@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { FiSend } from "react-icons/fi";
-import { DashboardSectionShell } from "@/components/dashboard";
+import { ConversationFilters } from "@/components/dashboard";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { ConversationDetailResponse, ConversationItem } from "./messagesClient";
 import { useConciergeMessages } from "./useConciergeMessages";
@@ -67,23 +67,23 @@ function ConversationListSidebar({
         {listLoading && <span>MAJ...</span>}
       </div>
 
-      <div className={styles.toolbar}>
-        <input
-          value={searchTerm}
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Rechercher un propriétaire ou un sujet"
-          className={styles.searchField}
-        />
-        <select
-          value={statusFilter}
-          onChange={(event) => onStatusChange(event.target.value)}
-          className={styles.filterSelect}
-        >
-          <option value="all">Tous statuts</option>
-          <option value="open">Ouverts</option>
-          <option value="closed">Fermées</option>
-        </select>
-      </div>
+      <ConversationFilters
+        searchValue={searchTerm}
+        onSearchChange={onSearchChange}
+        searchPlaceholder="Rechercher un propriétaire ou un sujet"
+        searchLabel="Rechercher une conversation propriétaire"
+        statusValue={statusFilter}
+        onStatusChange={onStatusChange}
+        statusLabel="Filtrer les conversations propriétaire par statut"
+        statusOptions={[
+          { value: "all", label: "Tous statuts" },
+          { value: "open", label: "Ouverts" },
+          { value: "closed", label: "Fermés" },
+        ]}
+        containerClassName={styles.toolbar}
+        searchClassName={styles.searchField}
+        selectClassName={styles.filterSelect}
+      />
 
       {conversations.length === 0 ? (
         <p className={styles.emptyState}>Aucune conversation pour le moment.</p>
@@ -257,23 +257,9 @@ function ConciergeMessagesContent() {
   }
 
   return (
-    <DashboardSectionShell
-      persona="conciergerie"
-      title="Messages propriétaires"
-      subtitle="Centralisez vos échanges, relances et conversations actives dans une vue unique."
-      stats={[
-        { label: "Conversations", value: `${conversations.length}` },
-        { label: "Ouvertes", value: `${openCount}` },
-        { label: "Messages", value: `${activeConversation?.messages.length ?? 0}` },
-      ]}
-      actions={[
-        { label: "Pilotage terrain", href: "/dashboard/concierge/planning" },
-        { label: "Objectifs", href: "/dashboard/concierge/objectifs" },
-      ]}
-    >
     <ConciergeWorkspacePage
       eyebrow="Relation propriétaires"
-      title="Suivi des conversations"
+      title="Messages propriétaires"
       description="Centralisez vos échanges propriétaires, vos relances et vos fils actifs depuis une seule vue de pilotage."
       chips={[
         `${conversations.length} conversation(s)`,
@@ -346,7 +332,6 @@ function ConciergeMessagesContent() {
         />
       </div>
     </ConciergeWorkspacePage>
-    </DashboardSectionShell>
   );
 }
 

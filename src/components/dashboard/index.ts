@@ -7,6 +7,7 @@ export { ProfileSummary } from "./ProfileSummary";
 export { DashboardPanel } from "./DashboardPanel";
 export { DashboardLoadingScreen } from "./DashboardLoadingScreen";
 export { DashboardSectionShell } from "./SectionShell";
+export { ConversationFilters } from "./ConversationFilters";
 export type {
   DashboardActivityItem,
   DashboardNavItem,

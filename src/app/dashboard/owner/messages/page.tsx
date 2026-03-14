@@ -2,12 +2,11 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
-import { DashboardSectionShell } from "@/components/dashboard";
+import { formatDateValue } from "@/app/utils/formatters";
+import { ConversationFilters, DashboardSectionShell } from "@/components/dashboard";
+import { Button, ButtonLink, Textarea } from "@/components/ui";
 import styles from "./OwnerMessagesPage.module.scss";
-import {
-  markOwnerConversationSeen,
-} from "../messageActivity";
+import { markOwnerConversationSeen } from "../messageActivity";
 
 type OwnerConversationRow = {
   id: string;
@@ -53,20 +52,6 @@ type ConversationDetailPayload = {
   }>;
   current_user_id: string;
 };
-
-function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activité";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: withTime ? undefined : "numeric",
-    hour: withTime ? "2-digit" : undefined,
-    minute: withTime ? "2-digit" : undefined,
-  }).format(date);
-}
 
 function getParticipantName(
   participants: ConversationDetailPayload["participants"],
@@ -174,6 +159,7 @@ function OwnerMessagesContent() {
       setDetail(null);
       return;
     }
+
     void loadConversationDetail(activeConversationId);
   }, [activeConversationId]);
 
@@ -200,6 +186,7 @@ function OwnerMessagesContent() {
         statusFilter === "all" || (conversation.status ?? "open") === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
+
       const haystack = [
         conversation.counterpart_name,
         conversation.subject,
@@ -208,6 +195,7 @@ function OwnerMessagesContent() {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
+
       return haystack.includes(normalizedSearch);
     });
   }, [conversations, searchTerm, statusFilter]);
@@ -267,16 +255,8 @@ function OwnerMessagesContent() {
       ]}
     >
       <div className={styles.page}>
-        <header className={styles.header}>
-          <h1>Suivi des échanges</h1>
-          <p>
-            Centralisez vos conversations prioritaires avec vos concierges et poursuivez chaque
-            suivi depuis un seul espace.
-          </p>
-        </header>
-
-        {success ? <p className={styles.successBox}>{success}</p> : null}
-        {error ? <p className={styles.errorBox}>{error}</p> : null}
+        {success ? <p className={styles.successBox} role="status">{success}</p> : null}
+        {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
 
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -285,24 +265,23 @@ function OwnerMessagesContent() {
               <span>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
             </div>
 
-            <div className={styles.filtersRow}>
-              <Input
-                bare
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Rechercher un échange"
-                className={styles.filtersInput}
-              />
-              <Select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                className={styles.filtersSelect}
-              >
-                <option value="all">Tous statuts</option>
-                <option value="open">Ouverts</option>
-                <option value="closed">Fermées</option>
-              </Select>
-            </div>
+            <ConversationFilters
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Rechercher un échange"
+              searchLabel="Rechercher une conversation propriétaire"
+              statusValue={statusFilter}
+              onStatusChange={setStatusFilter}
+              statusLabel="Filtrer les conversations par statut"
+              statusOptions={[
+                { value: "all", label: "Tous statuts" },
+                { value: "open", label: "Ouverts" },
+                { value: "closed", label: "Fermés" },
+              ]}
+              containerClassName={styles.filtersRow}
+              searchClassName={styles.filtersInput}
+              selectClassName={styles.filtersSelect}
+            />
 
             {loading ? <p>Chargement des conversations...</p> : null}
 
@@ -337,7 +316,15 @@ function OwnerMessagesContent() {
                           {unread ? (
                             <span className={styles.unreadDot} aria-label="Nouveau message" />
                           ) : null}
-                          <span>{formatDate(conversation.last_message_at)}</span>
+                          <span>
+                            {formatDateValue(conversation.last_message_at, {
+                              emptyLabel: "Aucune activité",
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </div>
                       </div>
                       <p>{conversation.subject || "Conversation directe"}</p>
@@ -380,7 +367,15 @@ function OwnerMessagesContent() {
                             <strong>
                               {getParticipantName(detail.participants, message.sender_profile_id)}
                             </strong>
-                            <span>{formatDate(message.created_at)}</span>
+                            <span>
+                              {formatDateValue(message.created_at, {
+                                emptyLabel: "Aucune activité",
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
                           </div>
                           <p>{message.body}</p>
                         </article>
@@ -395,6 +390,7 @@ function OwnerMessagesContent() {
                     onChange={(event) => setDraftMessage(event.target.value)}
                     placeholder="Écrivez votre message au concierge..."
                     aria-label="Écrivez votre message au concierge"
+                    title="Écrivez votre message au concierge"
                     className={styles.composerTextarea}
                   />
                   <Button type="button" variant="primary" onClick={handleSendMessage} disabled={sending || !canSend}>

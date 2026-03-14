@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { formatDateValue } from "@/app/utils/formatters";
+import { ConversationFilters, DashboardSectionShell } from "@/components/dashboard";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
-import { DashboardSectionShell } from "@/components/dashboard";
 import styles from "./ProviderMessagesPage.module.scss";
 
 type ProviderConversationRow = {
@@ -62,20 +63,6 @@ type ProviderClientOption = {
 type ProviderClientsPayload = {
   items: ProviderClientOption[];
 };
-
-function formatDate(value: string | null, withTime = true) {
-  if (!value) return "Aucune activité";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: withTime ? undefined : "numeric",
-    hour: withTime ? "2-digit" : undefined,
-    minute: withTime ? "2-digit" : undefined,
-  }).format(date);
-}
 
 function getParticipantName(
   participants: ProviderConversationDetail["participants"],
@@ -222,6 +209,7 @@ function ProviderMessagesContent() {
     () => activeConversationId.trim().length > 0 && draftMessage.trim().length > 0,
     [activeConversationId, draftMessage],
   );
+
   const filteredConversations = useMemo(() => {
     const conversations = list?.items ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -230,6 +218,7 @@ function ProviderMessagesContent() {
         statusFilter === "all" || (conversation.status ?? "open") === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
+
       const haystack = [
         conversation.counterpart_name,
         conversation.subject,
@@ -238,6 +227,7 @@ function ProviderMessagesContent() {
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
+
       return haystack.includes(normalizedSearch);
     });
   }, [list?.items, searchTerm, statusFilter]);
@@ -333,18 +323,10 @@ function ProviderMessagesContent() {
       ]}
     >
       <div className={styles.page}>
-        <header className={styles.header}>
-          <h1>Messages</h1>
-          <p>
-            Suivez vos échanges clients depuis l&apos;espace artisan, avec un fil unique par
-            dossier.
-          </p>
-        </header>
-
-        {success ? <p className={styles.successBox}>{success}</p> : null}
-        {error ? <p className={styles.errorBox}>{error}</p> : null}
-        {!error && list?.note ? <p className={styles.infoBox}>{list.note}</p> : null}
-        {targetClientId ? <p className={styles.infoBox}>Focus sur le client sélectionné.</p> : null}
+        {success ? <p className={styles.successBox} role="status">{success}</p> : null}
+        {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
+        {!error && list?.note ? <p className={styles.infoBox} role="status">{list.note}</p> : null}
+        {targetClientId ? <p className={styles.infoBox} role="status">Focus sur le client sélectionné.</p> : null}
 
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -360,6 +342,8 @@ function ProviderMessagesContent() {
                     value={selectedClientId}
                     onChange={(event) => setSelectedClientId(event.target.value)}
                     className={styles.createSelect}
+                    aria-label="Choisir le client de la conversation"
+                    title="Choisir le client de la conversation"
                   >
                     {clients.map((client) => (
                       <option key={client.id} value={client.id}>
@@ -374,12 +358,15 @@ function ProviderMessagesContent() {
                     value={newSubject}
                     onChange={(event) => setNewSubject(event.target.value)}
                     placeholder="Objet de la conversation"
+                    aria-label="Objet de la conversation"
                     className={styles.createInput}
                   />
                   <Textarea
                     value={newMessage}
                     onChange={(event) => setNewMessage(event.target.value)}
                     placeholder="Premier message..."
+                    aria-label="Premier message"
+                    title="Premier message"
                     className={styles.createTextarea}
                   />
                   <Button
@@ -400,28 +387,28 @@ function ProviderMessagesContent() {
               <span>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
             </div>
 
-            <div className={styles.toolbar}>
-              <Input
-                bare
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Rechercher un fil"
-                className={styles.toolbarInput}
-              />
-              <Select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                className={styles.toolbarSelect}
-              >
-                <option value="all">Tous statuts</option>
-                <option value="open">Ouverts</option>
-                <option value="archived">Archives</option>
-                <option value="closed">Fermés</option>
-              </Select>
+            <ConversationFilters
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Rechercher un fil"
+              searchLabel="Rechercher une conversation client"
+              statusValue={statusFilter}
+              onStatusChange={setStatusFilter}
+              statusLabel="Filtrer les conversations client par statut"
+              statusOptions={[
+                { value: "all", label: "Tous statuts" },
+                { value: "open", label: "Ouverts" },
+                { value: "archived", label: "Archives" },
+                { value: "closed", label: "Fermés" },
+              ]}
+              containerClassName={styles.toolbar}
+              searchClassName={styles.toolbarInput}
+              selectClassName={styles.toolbarSelect}
+            >
               <span className={styles.counter}>
                 {filteredConversations.filter((item) => (item.status ?? "open") === "open").length} ouverts
               </span>
-            </div>
+            </ConversationFilters>
 
             {loading ? <p>Chargement des conversations...</p> : null}
 
@@ -449,7 +436,15 @@ function ProviderMessagesContent() {
                   >
                     <div className={styles.conversationHead}>
                       <strong>{conversation.counterpart_name || "Client"}</strong>
-                      <span>{formatDate(conversation.last_message_at)}</span>
+                      <span>
+                        {formatDateValue(conversation.last_message_at, {
+                          emptyLabel: "Aucune activité",
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </div>
                     <p>{conversation.subject || "Conversation client"}</p>
                     <small>{conversation.last_message_preview || "Aucun message pour le moment."}</small>
@@ -498,7 +493,15 @@ function ProviderMessagesContent() {
                             <strong>
                               {getParticipantName(detail.participants, message.sender_profile_id)}
                             </strong>
-                            <span>{formatDate(message.created_at)}</span>
+                            <span>
+                              {formatDateValue(message.created_at, {
+                                emptyLabel: "Aucune activité",
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
                           </div>
                           <p>{message.body}</p>
                         </article>
@@ -512,6 +515,8 @@ function ProviderMessagesContent() {
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
                     placeholder="Écrivez votre message client..."
+                    aria-label="Écrivez votre message client"
+                    title="Écrivez votre message client"
                     className={styles.composerTextarea}
                   />
                   <Button
@@ -539,4 +544,3 @@ export default function ProviderMessagesPage() {
     </Suspense>
   );
 }
-

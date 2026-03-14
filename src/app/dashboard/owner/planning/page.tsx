@@ -1,8 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { DashboardSectionShell } from "@/components/dashboard";
+import { takeFirst } from "../../shared";
+import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerMissionRow = {
@@ -14,25 +16,6 @@ type OwnerMissionRow = {
   scheduled_start: string | null;
   scheduled_end: string | null;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "À planifier";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(2)} EUR` : "-";
-}
 
 function formatShortTime(value: string | null) {
   if (!value) return "--:--";
@@ -134,7 +117,7 @@ export default function OwnerPlanningPage() {
   }, [upcomingMissions, searchTerm, statusFilter]);
 
   const visibleMissions = useMemo(
-    () => filteredMissions.slice(0, viewMode === "list" ? 30 : 12),
+    () => takeFirst(filteredMissions, viewMode === "list" ? 30 : 12),
     [filteredMissions, viewMode],
   );
 
@@ -183,7 +166,7 @@ export default function OwnerPlanningPage() {
           label: "Budget suivi",
           value: loading
             ? "..."
-            : formatAmount(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0)),
+            : formatEuroAmountLabel(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0), "-"),
         },
       ]}
       actions={[
@@ -210,7 +193,7 @@ export default function OwnerPlanningPage() {
           <p>
             {loading
               ? "..."
-              : formatAmount(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0))}
+              : formatEuroAmountLabel(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0), "-")}
           </p>
         </div>
       </div>
@@ -252,6 +235,8 @@ export default function OwnerPlanningPage() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
             className={styles.select}
+            aria-label="Filtrer les interventions par statut"
+            title="Filtrer les interventions par statut"
           >
             <option value="all">Tous statuts</option>
             <option value="assigned">Assignées</option>
@@ -263,6 +248,8 @@ export default function OwnerPlanningPage() {
             value={viewMode}
             onChange={(event) => setViewMode(event.target.value as "list" | "week" | "month")}
             className={styles.select}
+            aria-label="Choisir le mode d'affichage du planning"
+            title="Choisir le mode d'affichage du planning"
           >
             <option value="list">Vue prioritaire</option>
             <option value="week">Vue semaine</option>
@@ -292,10 +279,10 @@ export default function OwnerPlanningPage() {
                 <li key={mission.id} className={styles.listItem}>
                   <strong>{mission.title || "Mission sans titre"}</strong>
                   <br />
-                  Début : {formatDate(mission.scheduled_start)} | Fin : {formatDate(mission.scheduled_end)}
+                  Début : {formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} | Fin : {formatDateValue(mission.scheduled_end, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   <br />
                   Statut : {mission.status || "-"} | Priorité : {mission.priority || "-"} | Budget :{" "}
-                  {formatAmount(mission.amount)}
+                  {formatEuroAmountLabel(mission.amount, "-")}
                 </li>
               ))}
             </ul>
@@ -319,7 +306,7 @@ export default function OwnerPlanningPage() {
                           <WorkflowStatusBadge value={mission.priority || "normal"} />
                         </div>
                         <span className={styles.meta}>
-                          {mission.status || "-"} | {formatAmount(mission.amount)}
+                          {mission.status || "-"} | {formatEuroAmountLabel(mission.amount, "-")}
                         </span>
                       </article>
                     ))
@@ -334,12 +321,12 @@ export default function OwnerPlanningPage() {
               {visibleMissions.map((mission) => (
                 <article key={mission.id} className={styles.panel}>
                   <strong>{mission.title || "Mission sans titre"}</strong>
-                  <span>{formatDate(mission.scheduled_start)}</span>
+                  <span>{formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                   <div className={styles.inlineActions}>
                     <WorkflowStatusBadge value={mission.status || "pending"} />
                     <WorkflowStatusBadge value={mission.priority || "normal"} />
                   </div>
-                  <span>Budget: {formatAmount(mission.amount)}</span>
+                  <span>Budget: {formatEuroAmountLabel(mission.amount, "-")}</span>
                 </article>
               ))}
             </div>
