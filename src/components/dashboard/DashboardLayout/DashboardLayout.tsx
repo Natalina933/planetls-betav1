@@ -1,9 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { ReactNode } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Sidebar } from "../Sidebar/Sidebar";
-import { Topbar } from "../Topbar/Topbar";
 import { StatsWidget } from "../StatsWidget/StatsWidget";
 import { QuickActions } from "../QuickActions/QuickActions";
 import { ActivityFeed } from "../ActivityFeed/ActivityFeed";
@@ -61,10 +59,13 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <div className={styles.page}>
-      <Topbar persona={persona} title={title} subtitle={subtitle} />
-
       <div className={styles.grid}>
         <div className={styles.main}>
+          <section className={styles.intro}>
+            <p className={styles.eyebrow}>{persona}</p>
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+          </section>
           <StatsWidget items={stats} />
           <QuickActions actions={actions} />
           {children ? (
@@ -75,7 +76,6 @@ export function DashboardLayout({
         </div>
 
         <aside className={styles.aside}>
-          <Sidebar title={navTitle} items={navItems} />
           <ProfileSummary {...profile} />
           <ActivityFeed items={activity} />
           <Card className={styles.panel}>

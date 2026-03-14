@@ -37,7 +37,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
         { label: "Tous les logements", path: "/dashboard/owner/logements", icon: FiClipboard },
         { label: "Ajouter un logement", path: "/dashboard/owner/logements/create", icon: FiHome },
         { label: "Documents", path: "/dashboard/owner/documents", icon: FiFileText },
-        { label: "Stocks & équipements", path: "/dashboard/owner/stocks", icon: FiBox },
+        { label: "Stocks & \u00e9quipements", path: "/dashboard/owner/stocks", icon: FiBox },
       ],
     },
     {
@@ -73,11 +73,11 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       children: [
         { label: "Factures", path: "/dashboard/owner/factures", icon: FiCreditCard },
         { label: "Devis", path: "/dashboard/owner/devis", icon: FiFileText },
-        { label: "Règlements", path: "/dashboard/owner/reglement", icon: FiSettings },
+        { label: "R\u00e8glements", path: "/dashboard/owner/reglement", icon: FiSettings },
       ],
     },
     {
-      label: "Paramètres",
+      label: "Param\u00e8tres",
       path: "/dashboard/owner/settings",
       icon: FiSettings,
       children: [
@@ -96,7 +96,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       children: [
         { label: "Vue missions", path: "/dashboard/concierge/planning", icon: FiCalendar },
         {
-          label: "Demandes reçues",
+          label: "Demandes re\u00e7ues",
           path: "/dashboard/concierge/demandes",
           icon: FiMessageSquare,
           notificationKey: "concierge-requests",
@@ -112,11 +112,11 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       children: [
         { label: "Tous les logements", path: "/dashboard/concierge/logements", icon: FiClipboard },
         { label: "Ajouter un logement", path: "/dashboard/concierge/logements/create", icon: FiHome },
-        { label: "Stocks & équipements", path: "/dashboard/concierge/stocks", icon: FiBox },
+        { label: "Stocks & \u00e9quipements", path: "/dashboard/concierge/stocks", icon: FiBox },
       ],
     },
     {
-      label: "Propriétaires",
+      label: "Propri\u00e9taires",
       path: "/dashboard/concierge/contacts",
       icon: FiUsers,
       children: [
@@ -136,12 +136,12 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       ],
     },
     {
-      label: "Paramètres",
+      label: "Param\u00e8tres",
       path: "/dashboard/concierge/profile?tab=fiche",
       icon: FiSettings,
       children: [
         { label: "Fiche & Infos", path: "/dashboard/concierge/profile?tab=fiche", icon: FiClipboard },
-        { label: "Équipe & Zones", path: "/dashboard/concierge/profile?tab=equipe", icon: FiMapPin },
+        { label: "\u00c9quipe & Zones", path: "/dashboard/concierge/profile?tab=equipe", icon: FiMapPin },
         { label: "Documents & Avis", path: "/dashboard/concierge/profile?tab=documents", icon: FiFileText },
       ],
     },
@@ -177,7 +177,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       ],
     },
     {
-      label: "Paramètres",
+      label: "Param\u00e8tres",
       path: "/dashboard/provider/settings",
       icon: FiSettings,
       children: [

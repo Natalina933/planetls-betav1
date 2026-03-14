@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -69,8 +69,8 @@ interface OwnerServiceRequestRow {
 }
 
 const ROLE_LABELS = {
-  owner: "PropriÃ©taire",
-  owner_pro: "PropriÃ©taire PRO",
+  owner: "Propriétaire",
+  owner_pro: "Propriétaire PRO",
   concierge: "Concierge",
   concierge_pro: "Concierge PRO",
   provider: "Artisan",
@@ -93,7 +93,7 @@ const getRoleLabel = (role?: string | null): string => {
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon aprÃ¨s-midi";
+  if (hour < 18) return "Bon après-midi";
   return "Bonsoir";
 };
 
@@ -128,7 +128,7 @@ const getNotificationsPageHref = (role?: string | null) => {
 };
 
 const PAGE_LABELS: Record<string, string> = {
-  owner: "Espace propriÃ©taire",
+  owner: "Espace propriétaire",
   concierge: "Espace concierge",
   provider: "Espace artisan",
   messages: "Messages",
@@ -142,7 +142,7 @@ const PAGE_LABELS: Record<string, string> = {
   recherche: "Recherche",
   demandes: "Demandes",
   objectifs: "Objectifs",
-  settings: "ParamÃ¨tres",
+  settings: "Paramètres",
   profile: "Profil",
   clients: "Clients",
   interventions: "Interventions",
@@ -258,10 +258,10 @@ export default function DashboardNavbar({
                 .slice(0, 6)
                 .map((item) => ({
                   id: item.id,
-                  title: item.counterpart_name || item.subject || "Nouvelle reponse",
+                  title: item.counterpart_name || item.subject || "Nouvelle réponse",
                   description:
                     item.last_message_preview ||
-                    "Une reponse est arrivee dans cette conversation.",
+                    "Une réponse est arrivée dans cette conversation.",
                   href: `/dashboard/owner/messages?conversation=${item.id}`,
                   count: Number(item.unread_count ?? 0),
                   kind: getMessageNotificationKind(item.source),
@@ -293,14 +293,14 @@ export default function DashboardNavbar({
                 );
                 const responseLabel =
                   repliedRecipient?.status === "quoted"
-                    ? "Devis recu"
+                    ? "Devis reçu"
                     : repliedRecipient?.status === "declined"
-                      ? "Refus recu"
-                      : "Reponse recue";
+                      ? "Refus reçu"
+                      : "Réponse reçue";
 
                 return {
                   id: item.id,
-                  title: repliedRecipient?.concierge_name || item.title || "Reponse concierge",
+                  title: repliedRecipient?.concierge_name || item.title || "Réponse concierge",
                   description: `${responseLabel}${item.city ? ` • ${item.city}` : ""}`,
                   href: "/dashboard/owner/conciergerie",
                   count: 1,
@@ -402,7 +402,7 @@ export default function DashboardNavbar({
                 id: item.id,
                 title: item.counterpart_name || item.subject || "Nouveau message",
                 description:
-                  item.last_message_preview || "Un client vous a repondu dans ce fil.",
+                  item.last_message_preview || "Un client vous a répondu dans ce fil.",
                 href: `/dashboard/provider/messages?conversation=${item.id}`,
                 count: Number(item.unread ?? 0),
                 kind: "message" as const,
@@ -528,8 +528,8 @@ export default function DashboardNavbar({
           <button
             className={styles.themeTrigger}
             onClick={() => setThemeMenuOpen((prev) => !prev)}
-            title="Changer de theme"
-            aria-label="Changer de theme"
+            title="Changer de thème"
+            aria-label="Changer de thème"
             type="button"
           >
             <Palette size={18} />
@@ -546,7 +546,7 @@ export default function DashboardNavbar({
                     changeTheme(value as Theme);
                     setThemeMenuOpen(false);
                   }}
-                  aria-label={`Selectionner theme ${labels[value as Theme]}`}
+                  aria-label={`Sélectionner thème ${labels[value as Theme]}`}
                   type="button"
                 >
                   {labels[value as Theme]}
@@ -597,7 +597,7 @@ export default function DashboardNavbar({
                 <div className={styles.notificationsPanelHeader}>
                   <div>
                     <strong>Notifications</strong>
-                    <p>{hasNotifications ? `${liveNotificationCount} retour(s) a traiter` : "Aucun nouveau retour"}</p>
+                    <p>{hasNotifications ? `${liveNotificationCount} retour(s) à traiter` : "Aucun nouveau retour"}</p>
                   </div>
                   <button
                     type="button"
@@ -652,8 +652,8 @@ export default function DashboardNavbar({
                     ))
                   ) : (
                     <div className={styles.notificationEmpty}>
-                      <strong>Rien d&apos;immediat</strong>
-                      <p>Les nouveaux messages, reponses et alertes apparaitront ici.</p>
+                      <strong>Rien d&apos;immédiat</strong>
+                      <p>Les nouveaux messages, réponses et alertes apparaîtront ici.</p>
                     </div>
                   )}
 
@@ -696,7 +696,7 @@ export default function DashboardNavbar({
               />
             </div>
           ) : (
-            <div className={styles.avatarPlaceholder} aria-label="Non connecte">
+            <div className={styles.avatarPlaceholder} aria-label="Non connecté">
               <User size={22} aria-hidden="true" />
             </div>
           )}
