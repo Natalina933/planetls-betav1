@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { useUserType } from "@/app/context/UserTypeContext";
-import DashboardWorkspace, {
-  type DashboardWorkspaceAction as WorkspaceAction,
-  type DashboardWorkspaceCard as InfoCard,
-  type DashboardWorkspaceDetailSection as WorkspaceDetailSection,
-  type DashboardWorkspaceMetric as WorkspaceMetric,
+import WorkspacePageShell from "../../_components/WorkspacePageShell";
+import type {
+  DashboardWorkspaceAction as WorkspaceAction,
+  DashboardWorkspaceCard as InfoCard,
+  DashboardWorkspaceDetailSection as WorkspaceDetailSection,
+  DashboardWorkspaceMetric as WorkspaceMetric,
 } from "../../_components/DashboardWorkspace";
 
 interface OwnerWorkspacePageProps {
@@ -18,6 +18,7 @@ interface OwnerWorkspacePageProps {
   chips?: string[];
   actions?: WorkspaceAction[];
   detailSections?: WorkspaceDetailSection[];
+  children?: React.ReactNode;
 }
 
 export default function OwnerWorkspacePage({
@@ -29,13 +30,10 @@ export default function OwnerWorkspacePage({
   chips,
   actions,
   detailSections,
+  children,
 }: OwnerWorkspacePageProps) {
-  const { userType } = useUserType();
-  const tone =
-    userType === "provider" ? "provider" : userType === "concierge" ? "concierge" : "owner";
-
   return (
-    <DashboardWorkspace
+    <WorkspacePageShell
       eyebrow={eyebrow}
       title={title}
       description={description}
@@ -44,7 +42,9 @@ export default function OwnerWorkspacePage({
       chips={chips}
       actions={actions}
       detailSections={detailSections}
-      tone={tone}
-    />
+      fallbackTone="owner"
+    >
+      {children}
+    </WorkspacePageShell>
   );
 }

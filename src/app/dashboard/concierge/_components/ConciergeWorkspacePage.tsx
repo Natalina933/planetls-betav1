@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { useUserType } from "@/app/context/UserTypeContext";
-import DashboardWorkspace, {
-  type DashboardWorkspaceAction as ConciergeWorkspaceAction,
-  type DashboardWorkspaceCard as ConciergeCard,
-  type DashboardWorkspaceDetailSection as ConciergeDetailSection,
-  type DashboardWorkspaceMetric as ConciergeMetric,
+import WorkspacePageShell from "../../_components/WorkspacePageShell";
+import type {
+  DashboardWorkspaceAction as ConciergeWorkspaceAction,
+  DashboardWorkspaceCard as ConciergeCard,
+  DashboardWorkspaceDetailSection as ConciergeDetailSection,
+  DashboardWorkspaceMetric as ConciergeMetric,
 } from "../../_components/DashboardWorkspace";
 
 interface ConciergeWorkspacePageProps {
@@ -32,12 +32,8 @@ export default function ConciergeWorkspacePage({
   detailSections,
   children,
 }: ConciergeWorkspacePageProps) {
-  const { userType } = useUserType();
-  const tone =
-    userType === "owner" ? "owner" : userType === "provider" ? "provider" : "concierge";
-
   return (
-    <DashboardWorkspace
+    <WorkspacePageShell
       eyebrow={eyebrow}
       title={title}
       description={description}
@@ -46,9 +42,9 @@ export default function ConciergeWorkspacePage({
       chips={chips}
       actions={actions}
       detailSections={detailSections}
-      tone={tone}
+      fallbackTone="concierge"
     >
       {children}
-    </DashboardWorkspace>
+    </WorkspacePageShell>
   );
 }

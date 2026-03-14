@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { useUserType } from "@/app/context/UserTypeContext";
-import DashboardWorkspace, {
-  type DashboardWorkspaceAction as ProviderWorkspaceAction,
-  type DashboardWorkspaceCard as ProviderCard,
-  type DashboardWorkspaceDetailSection as ProviderDetailSection,
-  type DashboardWorkspaceMetric as ProviderMetric,
+import WorkspacePageShell from "../../_components/WorkspacePageShell";
+import type {
+  DashboardWorkspaceAction as ProviderWorkspaceAction,
+  DashboardWorkspaceCard as ProviderCard,
+  DashboardWorkspaceDetailSection as ProviderDetailSection,
+  DashboardWorkspaceMetric as ProviderMetric,
 } from "../../_components/DashboardWorkspace";
 
 interface ProviderWorkspacePageProps {
@@ -32,12 +32,8 @@ export default function ProviderWorkspacePage({
   detailSections,
   children,
 }: ProviderWorkspacePageProps) {
-  const { userType } = useUserType();
-  const tone =
-    userType === "owner" ? "owner" : userType === "concierge" ? "concierge" : "provider";
-
   return (
-    <DashboardWorkspace
+    <WorkspacePageShell
       eyebrow={eyebrow}
       title={title}
       description={description}
@@ -46,9 +42,9 @@ export default function ProviderWorkspacePage({
       chips={chips}
       actions={actions}
       detailSections={detailSections}
-      tone={tone}
+      fallbackTone="provider"
     >
       {children}
-    </DashboardWorkspace>
+    </WorkspacePageShell>
   );
 }
