@@ -1,4 +1,4 @@
-export interface ConciergeOwnerMatch {
+﻿export interface ConciergeOwnerMatch {
   id: string;
   listing_id: string;
   listing_source: "property" | "housing";

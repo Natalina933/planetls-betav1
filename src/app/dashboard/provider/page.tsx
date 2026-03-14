@@ -1,8 +1,9 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { AsyncState } from "@/components/ui";
+import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import {
   ARTISAN_DASHBOARD_CONFIG,
   ARTISAN_NAV_ITEMS,
@@ -69,28 +70,6 @@ type ProviderDashboardState = {
   conversations: ProviderConversationItem[];
 };
 
-function formatDate(value: string | null) {
-  if (!value) return "À planifier";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-  }).format(date);
-}
-
-function formatBudget(amount: number | null, currency: string | null) {
-  if (typeof amount !== "number") return "Budget à confirmer";
-
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: currency || "EUR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 export default function ProviderDashboardPage() {
   const [workspace, setWorkspace] = useState<ProviderWorkspacePayload | null>(null);
   const [dashboard, setDashboard] = useState<ProviderDashboardState | null>(null);
@@ -146,6 +125,7 @@ export default function ProviderDashboardPage() {
   }, []);
 
   const profile: ProviderCurrentProfile | null = workspace?.profile ?? null;
+  const isLoading = !dashboard && !error;
   const displayName = useMemo(() => buildProviderDisplayName(profile), [profile]);
   const locationLabel = useMemo(
     () => workspace?.summary.location || "Localisation à compléter",
@@ -205,7 +185,10 @@ export default function ProviderDashboardPage() {
         ...highlightedInterventions.map((item) => ({
           id: `intervention-${item.id}`,
           title: item.title || item.service_label || "Intervention",
-          description: `${formatDate(item.scheduled_start)} · ${formatBudget(item.budget_amount, item.currency)}`,
+          description: `${formatDateValue(item.scheduled_start)} · ${formatCurrencyAmount(item.budget_amount, {
+            currency: item.currency || "EUR",
+            emptyLabel: "Budget à confirmer",
+          })}`,
           href: `/dashboard/provider/interventions?intervention=${item.id}`,
         })),
         ...highlightedClients.map((item) => ({
@@ -242,22 +225,21 @@ export default function ProviderDashboardPage() {
         badge: workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard",
       }}
     >
-      <Card>
-        <CardHeader>
-          <h2>Opérations critiques</h2>
-        </CardHeader>
-        <CardBody>
-          {highlightedAlerts.length === 0 ? (
-            <p>Aucune alerte critique en cours.</p>
-          ) : (
-            highlightedAlerts.map((alert) => (
+      <DashboardPanel title="Opérations critiques">
+          <AsyncState
+            loading={isLoading}
+            error={error}
+            isEmpty={!isLoading && highlightedAlerts.length === 0}
+            loadingLabel="Chargement des alertes critiques..."
+            emptyLabel="Aucune alerte critique en cours."
+          >
+            {highlightedAlerts.map((alert) => (
               <p key={alert.id}>
                 {alert.title || "Alerte"}: {alert.body || "À traiter rapidement."}
               </p>
-            ))
-          )}
-        </CardBody>
-      </Card>
+            ))}
+          </AsyncState>
+      </DashboardPanel>
     </DashboardLayout>
   );
 }
