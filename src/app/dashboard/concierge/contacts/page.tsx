@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { takeFirst } from "../../shared/collections.ts";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import {
   formatContactDate,
@@ -53,13 +54,13 @@ export default function ConciergeContactsPage() {
     () => items.filter((item) => item.status !== "closed"),
     [items],
   );
-  const recentContacts = useMemo(() => activeConversations.slice(0, 4), [activeConversations]);
+  const recentContacts = useMemo(() => takeFirst(activeConversations, 4), [activeConversations]);
   const dormantConversations = useMemo(
-    () => activeConversations.filter((item) => isOlderThanDays(item.last_message_at, 5)).slice(0, 6),
+    () => takeFirst(activeConversations.filter((item) => isOlderThanDays(item.last_message_at, 5)), 6),
     [activeConversations],
   );
   const freshOpportunities = useMemo(
-    () => activeConversations.filter((item) => !isOlderThanDays(item.last_message_at, 2)).slice(0, 6),
+    () => takeFirst(activeConversations.filter((item) => !isOlderThanDays(item.last_message_at, 2)), 6),
     [activeConversations],
   );
   const closedConversations = useMemo(
@@ -149,7 +150,7 @@ export default function ConciergeContactsPage() {
             loading
               ? "Chargement des conversations en cours."
               : error || "Aucun contact actif à suivre pour le moment.",
-          items: activeConversations.slice(0, 8).map((conversation) =>
+          items: takeFirst(activeConversations, 8).map((conversation) =>
             toConversationItem(
               conversation,
               normalizeContactStatus(conversation.status),

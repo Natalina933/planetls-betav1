@@ -1,3 +1,5 @@
+import { formatConversationDate } from "../../shared/conversations.ts";
+
 type ContactConversation = {
   id: string;
   counterpart_name: string | null;
@@ -19,14 +21,7 @@ export type ContactItem = {
 };
 
 export function formatContactDate(value: string | null) {
-  if (!value) return "Aucun message récent";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
+  return value ? formatConversationDate(value) : "Aucun message récent";
 }
 
 export function isOlderThanDays(value: string | null, days: number) {
@@ -55,4 +50,3 @@ export function toConversationItem(
     tone,
   };
 }
-

@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { takeFirst } from "../../shared/collections.ts";
+import {
+  getConversationSummary,
+  getConversationTitle,
+} from "../../shared/conversations.ts";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 
 type ContactConversation = {
@@ -11,19 +16,6 @@ type ContactConversation = {
   last_message_at?: string | null;
   status?: string | null;
 };
-
-function formatDate(value?: string | null) {
-  if (!value) return "Date non renseignée";
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return parsed.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 export default function OwnerContactsPage() {
   const [conversations, setConversations] = useState<ContactConversation[]>([]);
@@ -102,9 +94,13 @@ export default function OwnerContactsPage() {
       ]}
       cards={
         conversations.length > 0
-          ? conversations.slice(0, 6).map((conversation) => ({
-              title: conversation.counterpart_name || "Contact",
-              text: `${conversation.subject || "Sans sujet"} - ${conversation.last_message_preview || "Aucun aperçu"} - ${conversation.status || "ouvert"} - ${formatDate(conversation.last_message_at)}`,
+          ? takeFirst(conversations, 6).map((conversation) => ({
+              title: getConversationTitle(conversation, "Contact"),
+              text: getConversationSummary(conversation, {
+                fallbackSubject: "Sans sujet",
+                fallbackPreview: "Aucun aperçu",
+                fallbackStatus: "ouvert",
+              }),
               actions: [
                 { label: "Ouvrir la conversation", href: "/dashboard/owner/messages", variant: "primary" as const },
               ],

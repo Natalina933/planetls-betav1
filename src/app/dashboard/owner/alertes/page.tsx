@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
+import { takeFirst } from "../../shared/collections.ts";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import {
   deleteOwnerConciergeSearchAlert,
@@ -44,18 +46,19 @@ type OwnerConversationRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date non renseignée";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Date invalide";
-  return new Intl.DateTimeFormat("fr-FR", {
+  return formatDateValue(value, {
+    emptyLabel: "Date non renseignée",
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(date);
+  });
 }
 
 function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(2)} EUR` : "-";
+  return formatCurrencyAmount(value, {
+    emptyLabel: "-",
+    maximumFractionDigits: 2,
+  });
 }
 
 function buildSearchHref(alert: OwnerConciergeSearchAlert) {
@@ -125,10 +128,7 @@ export default function OwnerAlertesPage() {
   }, []);
 
   const urgentMissions = useMemo(
-    () =>
-      missions.filter(
-        (mission) => mission.priority === "high" || mission.status === "in_progress",
-      ),
+    () => missions.filter((mission) => mission.priority === "high" || mission.status === "in_progress"),
     [missions],
   );
 
@@ -147,38 +147,23 @@ export default function OwnerAlertesPage() {
     [conversations],
   );
   const unreadMissionReplies = useMemo(
-    () =>
-      conversations
-        .filter((item) => item.source === "mission")
-        .reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
+    () => conversations.filter((item) => item.source === "mission").reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
     [conversations],
   );
   const unreadQuoteReplies = useMemo(
-    () =>
-      conversations
-        .filter((item) => item.source === "quote")
-        .reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
+    () => conversations.filter((item) => item.source === "quote").reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
     [conversations],
   );
   const unreadSearchReplies = useMemo(
-    () =>
-      conversations
-        .filter((item) => item.source === "search")
-        .reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
+    () => conversations.filter((item) => item.source === "search").reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
     [conversations],
   );
   const unreadManualReplies = useMemo(
-    () =>
-      conversations
-        .filter((item) => !item.source || item.source === "manual")
-        .reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
+    () => conversations.filter((item) => !item.source || item.source === "manual").reduce((sum, item) => sum + (item.unread_count ?? 0), 0),
     [conversations],
   );
   const latestUnreadConversations = useMemo(
-    () =>
-      conversations
-        .filter((conversation) => (conversation.unread_count ?? 0) > 0)
-        .slice(0, 3),
+    () => takeFirst(conversations.filter((conversation) => (conversation.unread_count ?? 0) > 0), 3),
     [conversations],
   );
 
@@ -209,9 +194,9 @@ export default function OwnerAlertesPage() {
           hint: "Factures qui demandent un suivi ou un règlement",
         },
         {
-          label: "Decisions en attente",
+          label: "Décisions en attente",
           value: String(pendingQuotes.length),
-          hint: "Devis a arbitrer rapidement",
+          hint: "Devis à arbitrer rapidement",
         },
         {
           label: "Nouveaux retours",
@@ -234,22 +219,20 @@ export default function OwnerAlertesPage() {
           title: "Priorités exécution",
           text:
             urgentMissions.length > 0
-              ? urgentMissions
-                  .slice(0, 3)
+              ? takeFirst(urgentMissions, 3)
                   .map(
                     (mission) =>
                       `${mission.title || "Mission"} - ${mission.status || "-"} - ${formatDate(mission.scheduled_start)}`,
                   )
                   .join(" | ")
-              : "Aucune intervention prioritaire a signaler pour le moment.",
+              : "Aucune intervention prioritaire à signaler pour le moment.",
           notificationCount: unreadMissionReplies,
         },
         {
           title: "Suivi financier",
           text:
             pendingInvoices.length > 0
-              ? pendingInvoices
-                  .slice(0, 3)
+              ? takeFirst(pendingInvoices, 3)
                   .map(
                     (invoice) =>
                       `${invoice.invoice_number || "Facture"} - solde ${formatAmount(invoice.balance_amount)} - échéance ${formatDate(invoice.due_date)}`,
@@ -261,8 +244,7 @@ export default function OwnerAlertesPage() {
           title: "Validations en attente",
           text:
             pendingQuotes.length > 0
-              ? pendingQuotes
-                  .slice(0, 3)
+              ? takeFirst(pendingQuotes, 3)
                   .map(
                     (quote) =>
                       `${quote.quote_number || "Devis"} - ${quote.status || "-"} - valide jusqu'au ${formatDate(quote.valid_until)}`,
@@ -272,7 +254,7 @@ export default function OwnerAlertesPage() {
           notificationCount: unreadQuoteReplies,
         },
         {
-          title: "Retours et reponses",
+          title: "Retours et réponses",
           text:
             unreadConversationCount > 0
               ? `${unreadConversationCount} nouveau(x) retour(s) sont arrivés dans vos échanges. Ouvrez d'abord les fils qui débloquent une mission, un devis ou une recherche concierge.`
