@@ -40,9 +40,6 @@ export async function proxy(req: NextRequest) {
 
   if (!token) {
     if (pathname.startsWith("/dashboard")) {
-      if (sessionCookiePresent) {
-        return NextResponse.next();
-      }
       return NextResponse.redirect(new URL("/login", req.url));
     }
     return NextResponse.next();
@@ -53,9 +50,6 @@ export async function proxy(req: NextRequest) {
 
   if (!targetFolder) {
     console.error("[PROXY] Role inconnu:", role);
-    if (sessionCookiePresent) {
-      return NextResponse.next();
-    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

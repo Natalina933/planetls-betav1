@@ -167,7 +167,7 @@ test("validateLogementChanges rejects invalid media urls and negative amounts", 
   assert.equal(validateLogementChanges(logement).isValid, false);
   assert.equal(
     validateLogementChanges(logement).message,
-    "La photo principale doit etre une URL valide ou un chemin local commencant par '/'.",
+    "La photo principale doit être une URL valide ou un chemin local commençant par '/'.",
   );
 });
 

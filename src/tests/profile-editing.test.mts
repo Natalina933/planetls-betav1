@@ -589,7 +589,7 @@ test("service price helpers validate, build payloads and compute request metadat
     {
       serviceIdNumber: null,
       parsedAmount: null,
-      error: "Selectionnez un service.",
+      error: "Sélectionnez un service.",
     },
   );
 
@@ -604,7 +604,7 @@ test("service price helpers validate, build payloads and compute request metadat
     {
       serviceIdNumber: 2,
       parsedAmount: null,
-      error: "Le tarif doit etre superieur a 0.",
+      error: "Le tarif doit être supérieur à 0.",
     },
   );
 
