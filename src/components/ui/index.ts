@@ -33,6 +33,9 @@ export type { SearchBarProps } from "./SearchBar";
 export { Loader } from "./Loader";
 export type { LoaderProps } from "./Loader";
 
+export { AsyncState } from "./AsyncState";
+export type { AsyncStateProps } from "./AsyncState";
+
 export { Checkbox } from "./Checkbox";
 export type { CheckboxProps } from "./Checkbox";
 

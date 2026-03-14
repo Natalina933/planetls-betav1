@@ -5,6 +5,7 @@ export { StatsWidget } from "./StatsWidget";
 export { ActivityFeed } from "./ActivityFeed";
 export { QuickActions } from "./QuickActions";
 export { ProfileSummary } from "./ProfileSummary";
+export { DashboardPanel } from "./DashboardPanel";
 export { DashboardSectionShell } from "./SectionShell";
 export type {
   DashboardActivityItem,

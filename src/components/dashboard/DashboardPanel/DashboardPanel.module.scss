@@ -1,0 +1,19 @@
+.panel {
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+}
+
+.body {
+  display: grid;
+  gap: 12px;
+}
