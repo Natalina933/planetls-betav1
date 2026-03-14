@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
+import { formatCurrencyAmount } from "@/app/utils/formatters";
 import { formatMissionWhen } from "@/app/lib/urgentMissions";
+import { takeFirst } from "../../shared/collections.ts";
+import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 
 type UrgentMissionRow = {
   id: string;
@@ -103,10 +105,10 @@ export default function OwnerUrgentMissionDashboardPage() {
             loading
               ? "Chargement des demandes."
               : error || "Aucune mission urgente enregistrée pour le moment.",
-          items: items.map((item) => ({
+          items: takeFirst(items, 8).map((item) => ({
             title: item.title || "Mission urgente",
             meta: item.status === "accepted" ? "Acceptée" : item.status === "open" ? "Ouverte" : item.status,
-            description: `${formatMissionWhen(item.scheduled_at)} - ${item.property_address} - ${item.price ? `${item.price} EUR` : "Prix à confirmer"} - paiement ${item.payment_status}`,
+            description: `${formatMissionWhen(item.scheduled_at)} - ${item.property_address} - ${formatCurrencyAmount(item.price, { emptyLabel: "Prix à confirmer" })} - paiement ${item.payment_status}`,
             href: "/mission-urgente",
             actionLabel: item.status === "open" ? "Relancer une urgence" : "Voir le module",
             tone: item.status === "accepted" ? "success" : item.status === "open" ? "warning" : "default",

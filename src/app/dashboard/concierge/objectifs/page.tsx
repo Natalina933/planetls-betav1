@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { formatCurrencyAmount } from "@/app/utils/formatters";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import {
   buildCompletedMissionHighlights,
@@ -66,10 +67,7 @@ export default function ConciergeObjectifsPage() {
     [missions],
   );
   const activeMissions = useMemo(
-    () =>
-      missions.filter((mission) =>
-        ["assigned", "accepted", "in_progress"].includes(mission.status || ""),
-      ),
+    () => missions.filter((mission) => ["assigned", "accepted", "in_progress"].includes(mission.status || "")),
     [missions],
   );
   const trackedRevenue = useMemo(() => sumTrackedRevenue(missions), [missions]);
@@ -131,12 +129,17 @@ export default function ConciergeObjectifsPage() {
         },
         {
           label: "Revenus tracés",
-          value: loading ? "..." : `${trackedRevenue.toFixed(0)} EUR`,
+          value: loading ? "..." : formatCurrencyAmount(trackedRevenue, { maximumFractionDigits: 0 }),
           hint: "Montants consolidés",
         },
         {
           label: "Panier moyen",
-          value: loading ? "..." : averageRevenue > 0 ? `${averageRevenue.toFixed(0)} EUR` : "-",
+          value:
+            loading
+              ? "..."
+              : averageRevenue > 0
+                ? formatCurrencyAmount(averageRevenue, { maximumFractionDigits: 0 })
+                : "-",
           hint: "Revenu moyen par mission terminée",
         },
       ]}

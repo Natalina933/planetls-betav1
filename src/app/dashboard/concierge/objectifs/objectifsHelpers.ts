@@ -1,3 +1,6 @@
+import { formatCurrencyAmount } from "../../../utils/formatters.ts";
+import { takeFirst } from "../../shared/collections.ts";
+
 type MissionRow = {
   id: string;
   status: string | null;
@@ -72,7 +75,10 @@ export function buildObjectiveChecklist(input: {
     },
     {
       title: "Valoriser votre revenu moyen",
-      meta: input.averageRevenue > 0 ? `${input.averageRevenue.toFixed(0)} EUR / mission` : "Aucun historique",
+      meta:
+        input.averageRevenue > 0
+          ? `${formatCurrencyAmount(input.averageRevenue, { maximumFractionDigits: 0 })} / mission`
+          : "Aucun historique",
       description:
         input.averageRevenue > 0
           ? "Analysez vos prix et vos forfaits pour protéger la marge sur chaque intervention."
@@ -95,11 +101,11 @@ export function buildObjectiveChecklist(input: {
 }
 
 export function buildCompletedMissionHighlights(completedMissions: MissionRow[]): ObjectifItem[] {
-  return completedMissions.slice(0, 6).map((mission) => ({
+  return takeFirst(completedMissions, 6).map((mission) => ({
     title: mission.title || `Mission ${mission.id.slice(0, 8)}`,
     meta:
       typeof mission.amount === "number"
-        ? `${mission.amount.toFixed(0)} EUR`
+        ? formatCurrencyAmount(mission.amount, { maximumFractionDigits: 0 })
         : "Montant non renseigné",
     description:
       "Mission clôturée. Utilisez ces données pour évaluer votre rythme de livraison et votre rentabilité.",
@@ -108,4 +114,3 @@ export function buildCompletedMissionHighlights(completedMissions: MissionRow[])
     tone: "success",
   }));
 }
-

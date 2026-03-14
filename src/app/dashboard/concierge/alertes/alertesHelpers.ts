@@ -1,3 +1,5 @@
+import { takeFirst } from "../../shared/collections.ts";
+
 type MissionRow = {
   id: string;
   title: string | null;
@@ -44,7 +46,7 @@ export function olderThanThreeDays(value: string | null) {
 }
 
 export function buildUrgentMissionAlerts(urgentMissions: MissionRow[]): AlertItem[] {
-  return urgentMissions.slice(0, 5).map((mission) => ({
+  return takeFirst(urgentMissions, 5).map((mission) => ({
     title: mission.title || "Mission urgente",
     meta: mission.status || "Statut non renseigné",
     description: "Intervention prioritaire à confirmer ou traiter rapidement.",
@@ -55,7 +57,7 @@ export function buildUrgentMissionAlerts(urgentMissions: MissionRow[]): AlertIte
 }
 
 export function buildStalledConversationAlerts(stalledConversations: ConversationRow[]): AlertItem[] {
-  return stalledConversations.slice(0, 5).map((conversation) => ({
+  return takeFirst(stalledConversations, 5).map((conversation) => ({
     title: conversation.counterpart_name || "Propriétaire",
     meta: conversation.last_message_at ? "Plus de 3 jours sans réponse" : "Aucune date récente",
     description: "Une relance rapide peut aider à garder la relation commerciale active.",
@@ -66,7 +68,7 @@ export function buildStalledConversationAlerts(stalledConversations: Conversatio
 }
 
 export function buildDraftHousingAlerts(draftHousings: HousingRow[]): AlertItem[] {
-  return draftHousings.slice(0, 5).map((housing) => ({
+  return takeFirst(draftHousings, 5).map((housing) => ({
     title: housing.nom || `Logement #${housing.id}`,
     meta: housing.statut || "brouillon",
     description: "Compléter les informations ou activer ce bien pour ne pas freiner l'acquisition.",
@@ -115,4 +117,3 @@ export function buildProfileSetupAlerts(profile: CurrentProfile | null): AlertIt
 
   return items;
 }
-
