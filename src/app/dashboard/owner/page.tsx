@@ -5,6 +5,8 @@ import Link from "next/link";
 import { AsyncState } from "@/components/ui";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { takeFirst } from "../shared";
+import type { DashboardUserIdentity } from "../shared";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import { getOwnerHousingStatusLabel, useOwnerDashboardData } from "./useOwnerDashboardData";
 import {
@@ -14,14 +16,9 @@ import {
   OWNER_SHORTCUTS,
 } from "@/features/owner-dashboard";
 
-interface OwnerUser {
-  firstName?: string | null;
-  username?: string | null;
-}
-
 export default function OwnerDashboardPage() {
   const { user, loading: userLoading, isAuthenticated } = useCurrentUser() as {
-    user: OwnerUser | null;
+    user: DashboardUserIdentity | null;
     loading: boolean;
     isAuthenticated: boolean;
   };
@@ -41,13 +38,13 @@ export default function OwnerDashboardPage() {
   } = useOwnerDashboardData(isAuthenticated);
 
   const activityItems = [
-    ...properties.slice(0, 2).map((property) => ({
+    ...takeFirst(properties, 2).map((property) => ({
       id: `property-${property.id}`,
       title: property.nom_logement || "Logement sans nom",
       description: `${property.ville || "Ville non renseignée"} · ${getOwnerHousingStatusLabel(property.statut)}`,
       href: `/dashboard/owner/logements/${property.id}`,
     })),
-    ...ongoingMissions.slice(0, 2).map((mission) => ({
+    ...takeFirst(ongoingMissions, 2).map((mission) => ({
       id: `mission-${mission.id}`,
       title: mission.title || "Mission sans titre",
       description: `${formatDateValue(mission.scheduled_start, {

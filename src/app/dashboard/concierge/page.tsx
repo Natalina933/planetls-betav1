@@ -4,6 +4,8 @@ import React from "react";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { takeFirst } from "../shared";
+import type { DashboardUserIdentity, ExperienceLevel } from "../shared";
 import { formatDateValue } from "@/app/utils/formatters";
 import { useConciergeDashboardData } from "./useConciergeDashboardData";
 import {
@@ -13,12 +15,7 @@ import {
   CONCIERGERIE_SHORTCUTS,
 } from "@/features/conciergerie-dashboard";
 
-type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
-
-interface ConciergeUser {
-  role?: string | null;
-  firstName?: string | null;
-  username?: string | null;
+interface ConciergeUser extends DashboardUserIdentity {
   experience_level?: ExperienceLevel | null;
   years_experience?: number | null;
 }
@@ -117,7 +114,7 @@ export default function ConciergeDashboardPage() {
           loadingLabel="Chargement des profils compatibles..."
           emptyLabel="Aucun profil compatible pour le moment."
         >
-          {matches.slice(0, 3).map((match) => (
+          {takeFirst(matches, 3).map((match) => (
             <p key={match.id}>
               {match.title} · {match.city || "Ville non renseignée"} · score {match.compatibility_score}%
             </p>

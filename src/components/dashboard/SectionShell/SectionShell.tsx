@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Topbar } from "../Topbar";
 import { StatsWidget } from "../StatsWidget";
 import { QuickActions } from "../QuickActions";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -25,7 +24,11 @@ export function DashboardSectionShell({
 }: DashboardSectionShellProps) {
   return (
     <div className={styles.shell}>
-      <Topbar persona={persona} title={title} subtitle={subtitle} />
+      <section className={styles.intro}>
+        <p className={styles.eyebrow}>{persona}</p>
+        <h1 className={styles.title}>{title}</h1>
+        <p className={styles.subtitle}>{subtitle}</p>
+      </section>
       {stats && stats.length > 0 ? <StatsWidget items={stats} /> : null}
       {actions && actions.length > 0 ? <QuickActions actions={actions} /> : null}
       <section className={styles.content}>
