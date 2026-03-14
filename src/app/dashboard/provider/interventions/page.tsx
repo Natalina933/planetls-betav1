@@ -383,8 +383,8 @@ function ProviderInterventionsContent() {
           </div>
         </header>
 
-        {success ? <p className={styles.successBox}>{success}</p> : null}
-        {error ? <p className={styles.errorBox}>{error}</p> : null}
+        {success ? <p className={styles.successBox} role="status">{success}</p> : null}
+        {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
         {!error && data?.note ? <p className={styles.infoBox}>{data.note}</p> : null}
         {targetedIntervention ? (
           <p className={styles.infoBox}>
@@ -538,10 +538,18 @@ function ProviderInterventionsContent() {
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   placeholder="Rechercher une intervention"
+                  aria-label="Rechercher une intervention"
+                  title="Rechercher une intervention"
                 />
               </div>
               <div className={styles.toolbarGroup}>
-                <Select className={styles.toolbarSelect} value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <Select
+                  className={styles.toolbarSelect}
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  aria-label="Filtrer les interventions par statut"
+                  title="Filtrer les interventions par statut"
+                >
                   <option value="all">Tous statuts</option>
                   <option value="pending">En attente</option>
                   <option value="accepted">Acceptées</option>
@@ -549,13 +557,35 @@ function ProviderInterventionsContent() {
                   <option value="completed">Terminées</option>
                   <option value="cancelled">Annulées</option>
                 </Select>
-                <Select className={styles.toolbarSelect} value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                <Select
+                  className={styles.toolbarSelect}
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value)}
+                  aria-label="Trier les interventions"
+                  title="Trier les interventions"
+                >
                   <option value="recent">Plus récentes</option>
                   <option value="schedule">Planning</option>
                   <option value="priority">Priorité</option>
                 </Select>
-                <Input bare type="date" className={styles.toolbarInput} value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
-                <Input bare type="date" className={styles.toolbarInput} value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
+                <Input
+                  bare
+                  type="date"
+                  className={styles.toolbarInput}
+                  value={dateFrom}
+                  onChange={(event) => setDateFrom(event.target.value)}
+                  aria-label="Date de début du filtre"
+                  title="Date de début du filtre"
+                />
+                <Input
+                  bare
+                  type="date"
+                  className={styles.toolbarInput}
+                  value={dateTo}
+                  onChange={(event) => setDateTo(event.target.value)}
+                  aria-label="Date de fin du filtre"
+                  title="Date de fin du filtre"
+                />
                 <Button type="button" variant="secondary" size="sm" className={styles.actionButton} onClick={handleExportCsv}>
                   Export CSV
                 </Button>
@@ -604,6 +634,8 @@ function ProviderInterventionsContent() {
                           value={item.status ?? "pending"}
                           disabled={quickUpdatingId === item.id}
                           onChange={(event) => void handleQuickStatusUpdate(item.id, event.target.value)}
+                          aria-label={`Mettre à jour le statut de l'intervention ${item.title}`}
+                          title={`Mettre à jour le statut de l'intervention ${item.title}`}
                         >
                           <option value="pending">En attente</option>
                           <option value="accepted">Acceptée</option>
