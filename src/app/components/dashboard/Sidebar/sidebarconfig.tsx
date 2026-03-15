@@ -98,7 +98,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       icon: FiCalendar,
       children: [
         { label: "Vue d'ensemble", path: "/dashboard/concierge/missions/overview", icon: FiHome },
-        { label: "Vue missions", path: "/dashboard/concierge/planning", icon: FiCalendar },
+        { label: "Planning", path: "/dashboard/concierge/planning", icon: FiCalendar },
         {
           label: "Demandes reçues",
           path: "/dashboard/concierge/demandes",
@@ -200,3 +200,4 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
     },
   ],
 };
+

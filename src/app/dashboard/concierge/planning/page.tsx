@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import DashboardCalendar, {
@@ -8,7 +8,6 @@ import { formatDateValue } from "@/app/utils/formatters";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { takeFirst } from "../../shared";
 import {
-  buildPlanningStatusBreakdown,
   formatPlanningDate,
   isPlanningDone,
   normalizePlanningStatus,
@@ -168,8 +167,7 @@ export default function ConciergePlanningPage() {
   );
 
   const overdueMissions = useMemo(
-    () =>
-      takeFirst(plannedActiveMissions.filter((mission) => toTimestamp(mission.scheduled_start) < now), 6),
+    () => takeFirst(plannedActiveMissions.filter((mission) => toTimestamp(mission.scheduled_start) < now), 6),
     [now, plannedActiveMissions],
   );
 
@@ -182,8 +180,6 @@ export default function ConciergePlanningPage() {
     () => missions.filter((mission) => !mission.scheduled_start && !isPlanningDone(mission.status)),
     [missions],
   );
-
-  const statusBreakdown = useMemo(() => buildPlanningStatusBreakdown(missions), [missions]);
 
   const occupancyRate = useMemo(() => {
     const totalTracked = plannedActiveMissions.length + unscheduledMissions.length;
@@ -233,10 +229,7 @@ export default function ConciergePlanningPage() {
     [now, plannedActiveMissions],
   );
 
-  const weekBuckets = useMemo(
-    () => buildWeekBuckets(plannedActiveMissions),
-    [plannedActiveMissions],
-  );
+  const weekBuckets = useMemo(() => buildWeekBuckets(plannedActiveMissions), [plannedActiveMissions]);
 
   return (
     <ConciergeWorkspacePage
@@ -246,7 +239,7 @@ export default function ConciergePlanningPage() {
         loading
           ? "Préparation de votre planning..."
           : error ||
-            "Repérez immédiatement ce qui doit être traité aujourd'hui, confirmé sous 48 h ou replanifié sans délai."
+            "Repérez immédiatement ce qui doit être traité aujourd'hui, confirmé sous 48 h ou cadré avant de créer un trou dans la semaine."
       }
       chips={[
         `${missions.length} mission(s) chargée(s)`,
@@ -255,8 +248,8 @@ export default function ConciergePlanningPage() {
       ]}
       actions={[
         { label: "Revenir au tableau de bord", href: "/dashboard/concierge" },
-        { label: "Ouvrir les missions", href: "/dashboard/concierge/profile?tab=missions" },
-        { label: "Voir alertes", href: "/dashboard/concierge/alertes" },
+        { label: "Voir les demandes", href: "/dashboard/concierge/demandes" },
+        { label: "Voir les urgences", href: "/dashboard/concierge/urgences" },
       ]}
       metrics={[
         {
@@ -270,11 +263,6 @@ export default function ConciergePlanningPage() {
           hint: "Missions à confirmer très vite",
         },
         {
-          label: "En retard",
-          value: loading ? "..." : String(overdueMissions.length),
-          hint: "Interventions planifiées mais non clôturées",
-        },
-        {
           label: "Sans date",
           value: loading ? "..." : String(unscheduledMissions.length),
           hint: "Angles morts à sécuriser",
@@ -282,45 +270,31 @@ export default function ConciergePlanningPage() {
       ]}
       cards={[
         {
-          title: "Aujourd'hui sur le terrain",
+          title: "Point de charge",
           text:
-            todayMissions.length > 0
-              ? `${todayMissions.length} intervention(s) sont prévues aujourd'hui. Vérifiez confirmations, accès au logement et créneaux avant exécution.`
+            todayMissions.length > 0 || nextMissions.length > 0
+              ? `${todayMissions.length} intervention(s) aujourd'hui et ${nextMissions.length} dans les 48 heures. C'est le bon niveau de lecture pour sécuriser confirmations, accès et passage de relais.`
               : loading
-                ? "Chargement de vos interventions du jour."
-                : error || "Aucune intervention n'est prevue aujourd'hui.",
+                ? "Chargement de votre cadence terrain."
+                : error || "Aucune intervention imminente. Vous pouvez assainir le reste du pipe.",
           actions: [
             {
-              label: "Voir les missions du jour",
-              href: "/dashboard/concierge/profile?tab=missions",
+              label: "Ouvrir le calendrier",
+              href: "/dashboard/concierge/planning",
               variant: "primary",
             },
           ],
         },
         {
-          title: "Missions à replanifier",
+          title: "Points à cadrer",
           text:
-            overdueMissions.length > 0
-              ? `${overdueMissions.length} mission(s) semblent en retard ou non mises à jour. Reprenez-les avant qu'elles ne deviennent des irritants client.`
-              : "Aucune mission planifiée en retard. Votre cadence terrain reste propre.",
+            urgentMissions.length > 0 || overdueMissions.length > 0 || unscheduledMissions.length > 0
+              ? `${urgentMissions.length} urgence(s), ${overdueMissions.length} retard(s) et ${unscheduledMissions.length} mission(s) sans date restent à verrouiller pour garder un planning fiable.`
+              : "Aucun retard ni mission sans date. Le planning est propre et peut rester centré sur l'exécution.",
           actions: [
             {
-              label: "Traiter les retards",
-              href: "/dashboard/concierge/profile?tab=missions",
-              variant: "secondary",
-            },
-          ],
-        },
-        {
-          title: "Urgences et imprévus",
-          text:
-            urgentMissions.length > 0
-              ? `${urgentMissions.length} mission(s) urgentes demandent une vérification immédiate du planning, du stock et de la disponibilité.`
-              : "Aucune urgence active pour le moment. Profitez-en pour assainir vos missions sans date.",
-          actions: [
-            {
-              label: "Voir le pilotage urgent",
-              href: "/dashboard/concierge/alertes",
+              label: "Traiter les urgences",
+              href: "/dashboard/concierge/urgences",
               variant: "secondary",
             },
           ],
@@ -330,7 +304,7 @@ export default function ConciergePlanningPage() {
         {
           title: "À traiter aujourd'hui",
           description:
-            "Le cœur de votre journée terrain : ce qui doit être confirmé, exécuté ou clos avant ce soir.",
+            "Le coeur de votre journée terrain : ce qui doit être confirmé, exécuté ou clos avant ce soir.",
           emptyText:
             loading
               ? "Chargement des interventions du jour."
@@ -348,42 +322,25 @@ export default function ConciergePlanningPage() {
           items: nextMissions.map((mission) => toPlanningItem(mission, "Confirmer")),
         },
         {
-          title: "Missions en retard",
+          title: "Retards et missions sans date",
           description:
-            "Interventions déjà planifiées mais encore actives. Ce sont les premières sources de friction à résorber.",
+            "Le stock à fiabiliser en priorité : retards de suivi et interventions encore non positionnées dans le temps.",
           emptyText:
             loading
-              ? "Analyse des missions en retard."
-              : error || "Aucune mission en retard detectee.",
-          items: overdueMissions.map((mission) => toPlanningItem(mission, "Replanifier", "warning")),
-        },
-        {
-          title: "Missions sans date",
-          description:
-            "Liste des interventions encore non positionnées dans le temps pour éviter les angles morts opérationnels.",
-          emptyText:
-            loading
-              ? "Analyse des missions sans date."
-              : error || "Toutes les missions actives ont déjà une date planifiée.",
-          items: takeFirst(unscheduledMissions, 6).map((mission) => ({
-            title: mission.title || "Mission sans date",
-            meta: normalizePlanningStatus(mission.status),
-            description:
-              "Cette intervention doit être cadrée avec un créneau précis pour fiabiliser votre planning terrain.",
-            href: "/dashboard/concierge/profile?tab=missions",
-            actionLabel: "Planifier",
-            tone: "warning" as const,
-          })),
-        },
-        {
-          title: "État du pipe missions",
-          description:
-            "Vue synthétique de vos statuts pour équilibrer exécution, suivi client et clôture des interventions.",
-          emptyText:
-            loading
-              ? "Analyse des statuts en cours."
-              : error || "Aucune mission disponible pour établir un état des lieux.",
-          items: statusBreakdown,
+              ? "Analyse des points à cadrer."
+              : error || "Aucun retard ni mission sans date à afficher.",
+          items: [
+            ...overdueMissions.map((mission) => toPlanningItem(mission, "Replanifier", "warning")),
+            ...takeFirst(unscheduledMissions, 6).map((mission) => ({
+              title: mission.title || "Mission sans date",
+              meta: normalizePlanningStatus(mission.status),
+              description:
+                "Cette intervention doit être calée sur un créneau précis pour fiabiliser votre semaine.",
+              href: "/dashboard/concierge/profile?tab=missions",
+              actionLabel: "Planifier",
+              tone: "warning" as const,
+            })),
+          ].slice(0, 6),
         },
       ]}
     >
@@ -391,7 +348,7 @@ export default function ConciergePlanningPage() {
         <div className={styles.overviewCard}>
           <div className={styles.overviewHeader}>
             <div>
-              <p className={styles.sectionEyebrow}>Vue planning</p>
+              <p className={styles.sectionEyebrow}>Semaine en cours</p>
               <h2 className={styles.sectionTitle}>Lecture visuelle de la charge</h2>
             </div>
             <span className={styles.overviewBadge}>{occupancyRate}% planifié</span>
@@ -493,4 +450,3 @@ export default function ConciergePlanningPage() {
     </ConciergeWorkspacePage>
   );
 }
-

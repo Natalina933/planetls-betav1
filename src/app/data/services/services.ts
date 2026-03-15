@@ -25,13 +25,13 @@ export interface Service {
 
 export const services: Service[] = [
   {
-    title: "Tableau de bord centralise",
+    title: "Tableau de bord centralisé",
     description:
-      "Pilotez toutes vos activites en un coup d'oeil et prenez des decisions eclairees.",
+      "Pilotez toutes vos activités en un coup d'œil et prenez des décisions éclairées.",
     icon: CalendarCheck,
     keyPoint: "Gain de temps",
     quote:
-      "Ce que l'on concoit bien s'enonce clairement, et les decisions s'eclairent d'un simple regard.",
+      "Ce que l'on conçoit bien s'énonce clairement, et les décisions s'éclairent d'un simple regard.",
     posterLabel: "Pilotage",
     posterTone: "gold",
     posterLayout: "classic",
@@ -39,45 +39,45 @@ export const services: Service[] = [
   {
     title: "Pilotage intelligent & automatisation",
     description:
-      "Planification intelligente, rappels, taches recurrentes : tout est synchronise.",
+      "Planification intelligente, rappels, tâches récurrentes : tout est synchronisé.",
     icon: Zap,
     keyPoint: "Automatisation",
     quote:
-      "Automatise ce qui est repetitif, pour te consacrer a ce qui compte.",
+      "Automatise ce qui est répétitif, pour te consacrer à ce qui compte.",
     posterLabel: "Automatiser",
     posterTone: "navy",
     posterLayout: "sunrise",
   },
   {
-    title: "Securite renforcee & gestion documentaire",
+    title: "Sécurité renforcée & gestion documentaire",
     description:
-      "Contrats, factures, acces securises : tout est chiffre et centralise.",
+      "Contrats, factures, accès sécurisés : tout est chiffré et centralisé.",
     icon: Shield,
-    keyPoint: "Acces securise",
+    keyPoint: "Accès sécurisé",
     quote:
-      "La confiance nait la ou la securite est invisible mais omnipresente.",
+      "La confiance naît là où la sécurité est invisible mais omniprésente.",
     posterLabel: "Securiser",
     posterTone: "emerald",
     posterLayout: "gallery",
   },
   {
-    title: "Espace membre & support dedie",
+    title: "Espace membre & support dédié",
     description:
-      "Assistance reactive, espace prive, gestion de profil et historique des missions.",
+      "Assistance réactive, espace privé, gestion de profil et historique des missions.",
     icon: UserCheck,
-    keyPoint: "Support dedie",
-    quote: "Etre entoure, c'est deja avancer.",
+    keyPoint: "Support dédié",
+    quote: "Être entouré, c'est déjà avancer.",
     posterLabel: "Accompagner",
     posterTone: "plum",
     posterLayout: "ornate",
   },
   {
-    title: "Plateforme adaptable a tous",
+    title: "Plateforme adaptable à tous",
     description:
-      "Fonctionnalites adaptees aux proprietaires, concierges et artisans.",
+      "Fonctionnalités adaptées aux propriétaires, concierges et artisans.",
     icon: FileText,
     keyPoint: "Pour tous les profils",
-    quote: "Chaque metier merite ses outils, chaque profil son espace.",
+    quote: "Chaque métier mérite ses outils, chaque profil son espace.",
     posterLabel: "Adapter",
     posterTone: "copper",
     posterLayout: "gallery",
@@ -85,7 +85,7 @@ export const services: Service[] = [
   {
     title: "Apprentissage et savoir-faire",
     description:
-      "Partage d'expertise, tutoriels, echanges de bonnes pratiques : developpez vos competences.",
+      "Partage d'expertise, tutoriels, échanges de bonnes pratiques : développez vos compétences.",
     icon: GraduationCap,
     keyPoint: "Valorisation du savoir",
     quote: "Le savoir se multiplie lorsqu'on le partage.",
@@ -94,13 +94,13 @@ export const services: Service[] = [
     posterLayout: "sunrise",
   },
   {
-    title: "Collaboration locale et ethique",
+    title: "Collaboration locale et éthique",
     description:
-      "Favorisez les echanges de proximite, soutenez l'economie locale et collaborez en toute confiance.",
+      "Favorisez les échanges de proximité, soutenez l'économie locale et collaborez en toute confiance.",
     icon: Leaf,
     keyPoint: "Collaboration locale",
     quote:
-      "Ce qui est proche est precieux. Ensemble, nous faisons vivre le territoire.",
+      "Ce qui est proche est précieux. Ensemble, nous faisons vivre le territoire.",
     posterLabel: "Relier",
     posterTone: "emerald",
     posterLayout: "ornate",
@@ -108,11 +108,11 @@ export const services: Service[] = [
   {
     title: "Boutique PlanetLS",
     description:
-      "Accedez a nos packs premium pour booster votre activite : outils avances, support prioritaire et offres exclusives.",
+      "Accédez à nos packs premium pour booster votre activité : outils avancés, support prioritaire et offres exclusives.",
     icon: ShoppingCart,
     keyPoint: "Offres premium",
     quote:
-      "Investir dans les bons outils, c'est accelerer votre reussite.",
+      "Investir dans les bons outils, c'est accélérer votre réussite.",
     posterLabel: "Elever",
     posterTone: "copper",
     posterLayout: "classic",
