@@ -1,81 +1,52 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
-import { CompletionStatusCard } from "@/components/dashboard";
+import CategoryOverviewCompletion from "@/app/dashboard/_components/CategoryOverviewCompletion";
 import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 import { buildConciergeHousingCompletion } from "@/app/dashboard/shared";
 import { useConciergeOverviewData } from "../../useConciergeOverviewData";
 
 export default function ConciergeHousingOverviewPage() {
   const { housings } = useConciergeOverviewData();
-  const completion = useMemo(() => buildConciergeHousingCompletion(housings), [housings]);
+  const completion = useMemo(
+    () => buildConciergeHousingCompletion(housings as Record<string, unknown>[]),
+    [housings],
+  );
 
   return (
     <CategoryOverviewPage
       tone="concierge"
-      eyebrow="Parc logements"
+      eyebrow="Pilotage des logements"
       title="Vue d'ensemble des logements"
-      description="Accédez rapidement à la vue globale de votre parc, puis basculez vers le catalogue, la création ou les stocks selon votre besoin."
-      chips={["Vue synthèse", "Catalogue logements", "Stocks & équipements"]}
+      description="Retrouvez ici l'état de votre parc, avant d'ouvrir les fiches, les stocks ou l'ajout de nouveaux biens."
+      chips={["Vue synthèse", "Parc géré", "Fiches & équipements"]}
       actions={[
-        { label: "Voir tous les logements", href: "/dashboard/concierge/logements", variant: "primary" },
-        { label: "Ajouter un logement", href: "/dashboard/concierge/logements/create", variant: "secondary" },
+        { label: "Voir les logements", href: "/dashboard/concierge/logements", variant: "primary" },
       ]}
       metrics={[
-        { label: "Biens suivis", value: String(housings.length), hint: "Logements dans votre parc" },
+        { label: "Logements", value: String(housings.length), hint: "Biens visibles dans votre espace" },
         {
           label: "Complétion",
           value: `${completion.percentage}%`,
-          hint: `${completion.completedCount}/${completion.totalCount} repères renseignés`,
+          hint: `${completion.completedCount}/${completion.totalCount} repères validés`,
         },
       ]}
       cards={[
         {
-          title: "Tous les logements",
-          text: "Consultez l'ensemble des logements gérés et ouvrez chaque fiche opérationnelle.",
-          actions: [{ label: "Ouvrir le catalogue", href: "/dashboard/concierge/logements", variant: "primary" }],
+          title: "Parc géré",
+          text: "Retrouvez les logements suivis, leur état de préparation et les points à compléter.",
+          actions: [{ label: "Ouvrir les logements", href: "/dashboard/concierge/logements", variant: "primary" }],
         },
         {
-          title: "Ajouter un logement",
-          text: "Créez une nouvelle fiche logement pour préparer un onboarding propre et exploitable.",
-          actions: [{ label: "Créer un logement", href: "/dashboard/concierge/logements/create", variant: "secondary" }],
-        },
-        {
-          title: "Stocks & équipements",
-          text: "Gardez une vue claire sur les équipements, consommables et besoins de réassort.",
-          actions: [{ label: "Voir les stocks", href: "/dashboard/concierge/stocks", variant: "secondary" }],
-        },
-      ]}
-      detailSections={[
-        {
-          title: "Accès rapides",
-          description: "Les trois points d'entrée utiles pour gérer un bien de bout en bout.",
-          items: [
-            {
-              title: "Catalogue des logements",
-              description: "Liste complète, consultation et accès aux fiches détaillées.",
-              href: "/dashboard/concierge/logements",
-              actionLabel: "Ouvrir",
-            },
-            {
-              title: "Création de logement",
-              description: "Ajout guidé d'un nouveau bien dans votre espace conciergerie.",
-              href: "/dashboard/concierge/logements/create",
-              actionLabel: "Créer",
-            },
-            {
-              title: "Stocks & équipements",
-              description: "Suivi des équipements et éléments à maintenir disponibles.",
-              href: "/dashboard/concierge/stocks",
-              actionLabel: "Ouvrir",
-            },
-          ],
+          title: "Équipements & documents",
+          text: "Centralisez les éléments utiles à l'exploitation sans quitter la catégorie logements.",
+          actions: [{ label: "Voir les fiches", href: "/dashboard/concierge/logements", variant: "secondary" }],
         },
       ]}
     >
-      <CompletionStatusCard
+      <CategoryOverviewCompletion
         title="Logements"
-        description="Complétez cette catégorie pour rendre votre parc exploitable et maintenir chaque bien opérationnel."
+        description="Complétez cette catégorie pour disposer d'un parc exploitable, documenté et bien préparé."
         percentage={completion.percentage}
         completedCount={completion.completedCount}
         totalCount={completion.totalCount}

@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
-import { CompletionStatusCard } from "@/components/dashboard";
+import CategoryOverviewCompletion from "@/app/dashboard/_components/CategoryOverviewCompletion";
 import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 import { buildConciergeFinancesCompletion } from "@/app/dashboard/shared";
 import { useConciergeOverviewData } from "../../useConciergeOverviewData";
@@ -55,34 +55,8 @@ export default function ConciergeFinancesOverviewPage() {
           actions: [{ label: "Ouvrir les packs", href: "/dashboard/concierge/services-packages", variant: "secondary" }],
         },
       ]}
-      detailSections={[
-        {
-          title: "Sous-rubriques disponibles",
-          description: "Trois vues complémentaires pour piloter la monétisation de votre activité.",
-          items: [
-            {
-              title: "Devis & factures",
-              description: "Historique, abonnement PRO et événements de facturation.",
-              href: "/dashboard/concierge/billing",
-              actionLabel: "Ouvrir",
-            },
-            {
-              title: "Tarifs",
-              description: "Grille tarifaire, commissions et règles de prix.",
-              href: "/dashboard/concierge/pricing",
-              actionLabel: "Configurer",
-            },
-            {
-              title: "Packs",
-              description: "Offres groupées, services associés et modèles de contrat.",
-              href: "/dashboard/concierge/services-packages",
-              actionLabel: "Ouvrir",
-            },
-          ],
-        },
-      ]}
     >
-      <CompletionStatusCard
+      <CategoryOverviewCompletion
         title="Finances"
         description="Complétez cette catégorie pour structurer vos revenus, vos tarifs et vos offres commercialisables."
         percentage={completion.percentage}

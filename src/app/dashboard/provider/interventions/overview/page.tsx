@@ -1,9 +1,9 @@
 ﻿"use client";
 
-import { CompletionStatusCard } from "@/components/dashboard";
+import CategoryOverviewCompletion from "@/app/dashboard/_components/CategoryOverviewCompletion";
+import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 import { buildProviderInterventionsCompletion } from "@/app/dashboard/shared";
 import { useProviderDashboardData } from "../../useProviderDashboardData";
-import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 
 export default function ProviderInterventionsOverviewPage() {
   const { dashboard } = useProviderDashboardData();
@@ -21,26 +21,36 @@ export default function ProviderInterventionsOverviewPage() {
       tone="provider"
       eyebrow="Pilotage terrain"
       title="Vue d'ensemble des interventions"
-      description="Gardez vos interventions, alertes et messages alignés avant d'ouvrir les écrans de gestion détaillée."
+      description="Gardez ici l'essentiel de vos interventions avant d'ouvrir le planning, les alertes ou les messages associés."
       chips={["Vue synthèse", "Planning", "Alertes & messages"]}
       actions={[
         { label: "Voir les interventions", href: "/dashboard/provider/interventions", variant: "primary" },
-        { label: "Voir le planning", href: "/dashboard/provider/planning", variant: "secondary" },
       ]}
       metrics={[
-        { label: "Interventions", value: String(interventions.length), hint: "Volume global" },
-        { label: "Alertes", value: String(alerts.length), hint: "Points de vigilance" },
-        { label: "Complétion", value: `${completion.percentage}%`, hint: `${completion.completedCount}/${completion.totalCount} repères validés` },
+        { label: "Interventions", value: String(interventions.length), hint: "Volume total" },
+        { label: "Alertes", value: String(alerts.length), hint: "Points à surveiller" },
+        {
+          label: "Complétion",
+          value: `${completion.percentage}%`,
+          hint: `${completion.completedCount}/${completion.totalCount} repères validés`,
+        },
       ]}
       cards={[
-        { title: "Toutes les interventions", text: "Consultez et gérez vos interventions depuis la vue principale.", actions: [{ label: "Ouvrir", href: "/dashboard/provider/interventions", variant: "primary" }] },
-        { title: "Planning", text: "Gardez une lecture calendaire claire des créneaux et des interventions planifiées.", actions: [{ label: "Voir le planning", href: "/dashboard/provider/planning", variant: "secondary" }] },
-        { title: "Alertes et messages", text: "Restez réactif sur les priorités terrain et les échanges clients.", actions: [{ label: "Voir les alertes", href: "/dashboard/provider/alertes", variant: "secondary" }, { label: "Voir les messages", href: "/dashboard/provider/messages", variant: "secondary" }] },
+        {
+          title: "Planning d'intervention",
+          text: "Retrouvez le déroulé des interventions et les points à surveiller au quotidien.",
+          actions: [{ label: "Ouvrir", href: "/dashboard/provider/interventions", variant: "primary" }],
+        },
+        {
+          title: "Messages",
+          text: "Gardez les échanges liés aux interventions accessibles depuis cette catégorie.",
+          actions: [{ label: "Voir les messages", href: "/dashboard/provider/messages", variant: "secondary" }],
+        },
       ]}
     >
-      <CompletionStatusCard
+      <CategoryOverviewCompletion
         title="Interventions"
-        description="Complétez cette catégorie pour piloter vos missions terrain avec une vision claire des alertes et des échanges."
+        description="Complétez cette catégorie pour structurer votre organisation terrain et suivre vos missions sans zone floue."
         percentage={completion.percentage}
         completedCount={completion.completedCount}
         totalCount={completion.totalCount}

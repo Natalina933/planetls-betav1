@@ -1,9 +1,9 @@
 ﻿"use client";
 
-import { CompletionStatusCard } from "@/components/dashboard";
+import CategoryOverviewCompletion from "@/app/dashboard/_components/CategoryOverviewCompletion";
+import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 import { buildProviderClientsCompletion } from "@/app/dashboard/shared";
 import { useProviderDashboardData } from "../../useProviderDashboardData";
-import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 
 export default function ProviderClientsOverviewPage() {
   const { dashboard } = useProviderDashboardData();
@@ -17,27 +17,38 @@ export default function ProviderClientsOverviewPage() {
   return (
     <CategoryOverviewPage
       tone="provider"
-      eyebrow="Relation client"
+      eyebrow="Relations clients"
       title="Vue d'ensemble des clients"
-      description="Regroupez vos clients et leurs conversations avant d'ouvrir la gestion détaillée du portefeuille."
+      description="Gardez un point d'entrée clair sur vos clients, leurs échanges et les suivis à maintenir."
       chips={["Vue synthèse", "Suivi clients", "Conversations"]}
       actions={[
         { label: "Voir les clients", href: "/dashboard/provider/clients", variant: "primary" },
-        { label: "Ouvrir les messages", href: "/dashboard/provider/messages", variant: "secondary" },
       ]}
       metrics={[
-        { label: "Clients", value: String(clients.length), hint: "Portefeuille actuel" },
-        { label: "Messages", value: String(conversations.length), hint: "Échanges disponibles" },
-        { label: "Complétion", value: `${completion.percentage}%`, hint: `${completion.completedCount}/${completion.totalCount} repères validés` },
+        { label: "Clients", value: String(clients.length), hint: "Base suivie" },
+        { label: "Conversations", value: String(conversations.length), hint: "Échanges disponibles" },
+        {
+          label: "Complétion",
+          value: `${completion.percentage}%`,
+          hint: `${completion.completedCount}/${completion.totalCount} repères validés`,
+        },
       ]}
       cards={[
-        { title: "Suivi clients", text: "Gérez les fiches clients et gardez les informations importantes bien organisées.", actions: [{ label: "Ouvrir les clients", href: "/dashboard/provider/clients", variant: "primary" }] },
-        { title: "Conversations clients", text: "Reprenez les échanges clients depuis la messagerie dédiée au provider.", actions: [{ label: "Ouvrir les messages", href: "/dashboard/provider/messages", variant: "secondary" }] },
+        {
+          title: "Suivi clients",
+          text: "Retrouvez les clients actifs et les informations utiles à la relation quotidienne.",
+          actions: [{ label: "Ouvrir", href: "/dashboard/provider/clients", variant: "primary" }],
+        },
+        {
+          title: "Conversations clients",
+          text: "Gardez les échanges opérationnels accessibles depuis cette catégorie.",
+          actions: [{ label: "Voir les messages", href: "/dashboard/provider/messages", variant: "secondary" }],
+        },
       ]}
     >
-      <CompletionStatusCard
+      <CategoryOverviewCompletion
         title="Clients"
-        description="Complétez cette catégorie pour structurer votre portefeuille client et garder les échanges accessibles."
+        description="Complétez cette catégorie pour disposer d'un suivi client structuré et facilement exploitable."
         percentage={completion.percentage}
         completedCount={completion.completedCount}
         totalCount={completion.totalCount}

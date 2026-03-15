@@ -1,90 +1,58 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
-import { CompletionStatusCard } from "@/components/dashboard";
+import CategoryOverviewCompletion from "@/app/dashboard/_components/CategoryOverviewCompletion";
 import CategoryOverviewPage from "@/app/dashboard/_components/CategoryOverviewPage";
 import { buildConciergeOwnersCompletion } from "@/app/dashboard/shared";
 import { useConciergeOverviewData } from "../../useConciergeOverviewData";
 
 export default function ConciergeOwnersOverviewPage() {
   const { conversations } = useConciergeOverviewData();
-  const completion = useMemo(() => buildConciergeOwnersCompletion(conversations), [conversations]);
+  const completion = useMemo(
+    () => buildConciergeOwnersCompletion(conversations as Record<string, unknown>[]),
+    [conversations],
+  );
 
   return (
     <CategoryOverviewPage
       tone="concierge"
       eyebrow="Relations propriétaires"
       title="Vue d'ensemble des propriétaires"
-      description="Centralisez ici la relation commerciale et le suivi des conversations avant d'entrer dans le pipeline ou la messagerie."
+      description="Suivez ici la relation commerciale et opérationnelle avant d'ouvrir le pipeline ou les conversations dédiées."
       chips={["Vue synthèse", "Relations actives", "Pipeline & messages"]}
       actions={[
-        { label: "Voir les relations actives", href: "/dashboard/concierge/contacts", variant: "primary" },
-        { label: "Ouvrir le pipeline", href: "/dashboard/concierge/recherche", variant: "secondary" },
+        { label: "Voir les contacts", href: "/dashboard/concierge/contacts", variant: "primary" },
       ]}
       metrics={[
-        {
-          label: "Conversations",
-          value: String(conversations.length),
-          hint: "Échanges propriétaires recensés",
-        },
+        { label: "Conversations", value: String(conversations.length), hint: "Fils disponibles" },
+        { label: "Propriétaires", value: String(conversations.length), hint: "Relations actives identifiées" },
         {
           label: "Complétion",
           value: `${completion.percentage}%`,
-          hint: `${completion.completedCount}/${completion.totalCount} repères activés`,
+          hint: `${completion.completedCount}/${completion.totalCount} repères validés`,
         },
       ]}
       cards={[
         {
           title: "Relations actives",
-          text: "Suivez les propriétaires déjà engagés et reprenez les conversations importantes rapidement.",
+          text: "Gardez un suivi clair des propriétaires déjà engagés avec votre conciergerie.",
           actions: [{ label: "Ouvrir les relations", href: "/dashboard/concierge/contacts", variant: "primary" }],
         },
         {
-          title: "Pipeline",
-          text: "Travaillez votre acquisition propriétaire et gardez les opportunités chaudes visibles.",
-          actions: [{ label: "Voir le pipeline", href: "/dashboard/concierge/recherche", variant: "secondary" }],
-        },
-        {
           title: "Messages propriétaires",
-          text: "Accédez à la messagerie dédiée pour traiter rapidement les échanges prioritaires.",
-          actions: [{ label: "Ouvrir les messages", href: "/dashboard/concierge/messages", variant: "secondary" }],
-        },
-      ]}
-      detailSections={[
-        {
-          title: "Sous-rubriques disponibles",
-          description: "Chaque entrée correspond à une étape différente de la relation propriétaire.",
-          items: [
-            {
-              title: "Relations actives",
-              description: "Suivi des propriétaires déjà en contact ou en collaboration.",
-              href: "/dashboard/concierge/contacts",
-              actionLabel: "Ouvrir",
-            },
-            {
-              title: "Pipeline",
-              description: "Recherche, prospection et suivi des pistes commerciales.",
-              href: "/dashboard/concierge/recherche",
-              actionLabel: "Explorer",
-            },
-            {
-              title: "Messages propriétaires",
-              description: "Messagerie centralisée pour reprendre les échanges sans friction.",
-              href: "/dashboard/concierge/messages",
-              actionLabel: "Ouvrir",
-            },
-          ],
+          text: "Accédez rapidement aux échanges utiles sans sortir de cette catégorie.",
+          actions: [{ label: "Voir les messages", href: "/dashboard/concierge/messages", variant: "secondary" }],
         },
       ]}
     >
-      <CompletionStatusCard
+      <CategoryOverviewCompletion
         title="Propriétaires"
-        description="Complétez cette catégorie pour structurer votre relation commerciale et garder vos échanges visibles."
+        description="Complétez cette catégorie pour structurer vos relations, votre pipeline et vos échanges commerciaux."
         percentage={completion.percentage}
         completedCount={completion.completedCount}
         totalCount={completion.totalCount}
         missingItems={completion.missingItems}
-        actionLabel="Ouvrir les relations"
+        actionLabel="Voir les contacts"
         actionHref="/dashboard/concierge/contacts"
       />
     </CategoryOverviewPage>
