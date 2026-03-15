@@ -170,37 +170,36 @@ $border-radius: 20px;
 
 .quote {
   position: absolute;
-  right: 1.35rem;
-  bottom: 1.35rem;
+  left: 1.15rem;
+  bottom: 1.15rem;
   z-index: 1;
-  width: min(68%, 19rem);
   margin: 0;
-  padding: 0.8rem 0.95rem 0.9rem;
-  border: 1px solid rgba(255, 236, 197, 0.22);
+  padding: 1rem 1rem 1rem 2.4rem;
+  border: 0;
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(18, 11, 4, 0.3), rgba(18, 11, 4, 0.56)),
-    rgba(255, 248, 234, 0.12);
+    linear-gradient(180deg, rgba(18, 11, 4, 0.16), rgba(18, 11, 4, 0.44)),
+    rgba(255, 248, 234, 0.08);
   color: rgba(255, 244, 220, 0.96);
   font-family: "Cormorant Garamond", serif;
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-style: italic;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.42;
   text-align: left;
   text-wrap: balance;
   box-shadow:
-    0 14px 24px rgba(18, 10, 3, 0.18),
-    inset 0 0 0 1px rgba(255, 236, 197, 0.08);
-  backdrop-filter: blur(8px);
+    0 10px 20px rgba(18, 10, 3, 0.14);
+  backdrop-filter: blur(5px);
 
   &::before {
     content: "\201C";
-    display: block;
-    margin-bottom: 0.15rem;
+    position: absolute;
+    top: 1rem;
+    left: 0.9rem;
     color: rgba(255, 224, 164, 0.72);
-    font-size: 2rem;
-    line-height: 0.7;
+    font-size: 2.2rem;
+    line-height: 1;
   }
 }
 
@@ -217,19 +216,19 @@ $border-radius: 20px;
   text-transform: uppercase;
 }
 
-.small {
-  grid-column: span 3;
-  min-height: 280px;
-}
-
-.medium {
+.standard {
   grid-column: span 3;
   min-height: 340px;
 }
 
-.large {
-  grid-column: span 6;
+.wide {
+  grid-column: span 4;
   min-height: 360px;
+}
+
+.heroWide {
+  grid-column: span 6;
+  min-height: 420px;
 }
 
 .tall {
@@ -262,14 +261,11 @@ $border-radius: 20px;
 }
 
 :global([data-theme="art-deco"]) .quote {
-  border-color: rgba(140, 104, 48, 0.22);
   background:
-    linear-gradient(180deg, rgba(255, 251, 243, 0.78), rgba(248, 239, 223, 0.92)),
-    rgba(255, 255, 255, 0.18);
+    linear-gradient(180deg, rgba(255, 251, 243, 0.72), rgba(248, 239, 223, 0.86)),
+    rgba(255, 255, 255, 0.12);
   color: #3b2a1b;
-  box-shadow:
-    0 12px 24px rgba(73, 50, 24, 0.12),
-    inset 0 0 0 1px rgba(140, 104, 48, 0.1);
+  box-shadow: 0 10px 22px rgba(73, 50, 24, 0.1);
 
   &::before {
     color: rgba(140, 104, 48, 0.68);
@@ -277,10 +273,9 @@ $border-radius: 20px;
 }
 
 :global([data-theme="mucha-dark"]) .quote {
-  border-color: rgba(215, 178, 91, 0.26);
   background:
-    linear-gradient(180deg, rgba(11, 17, 25, 0.72), rgba(10, 15, 22, 0.9)),
-    rgba(255, 248, 234, 0.08);
+    linear-gradient(180deg, rgba(11, 17, 25, 0.58), rgba(10, 15, 22, 0.82)),
+    rgba(255, 248, 234, 0.05);
   color: rgba(255, 245, 229, 0.98);
 
   &::before {
@@ -289,21 +284,21 @@ $border-radius: 20px;
 }
 
 @media (max-width: 1200px) {
-  .small,
-  .medium,
+  .standard,
   .tall {
     grid-column: span 6;
   }
 
-  .large {
-    grid-column: span 12;
+  .wide,
+  .heroWide {
+    grid-column: span 6;
   }
 }
 
 @media (max-width: 900px) {
-  .small,
-  .medium,
-  .large,
+  .standard,
+  .wide,
+  .heroWide,
   .tall {
     grid-column: span 1;
     min-height: 320px;
@@ -315,10 +310,16 @@ $border-radius: 20px;
   }
 
   .quote {
-    right: 1rem;
+    left: 1rem;
     bottom: 1rem;
-    width: min(78%, 16rem);
-    font-size: 0.95rem;
+    padding-left: 2.1rem;
+    font-size: 1.14rem;
+
+    &::before {
+      top: 0.9rem;
+      left: 0.75rem;
+      font-size: 1.95rem;
+    }
   }
 }
 

@@ -11,6 +11,16 @@ import { services } from "../../../../../data/services/services";
 
 export default function ServiceList() {
   const [flippedCards, setFlippedCards] = useState<string[]>([]);
+  const cardLayouts = [
+    "heroWide",
+    "standard",
+    "standard",
+    "wide",
+    "wide",
+    "wide",
+    "tall",
+    "heroWide",
+  ] as const;
 
   const keyPoints = [...new Set(services.map((s) => s.keyPoint).filter(Boolean))];
 
@@ -20,18 +30,13 @@ export default function ServiceList() {
     );
   };
 
-  const getCardSize = (index: number) => {
-    if (index === services.length - 1) return "tall";
-    if (index % 5 === 0) return "large";
-    if (index % 2 === 0) return "medium";
-    return "small";
-  };
+  const getCardSize = (index: number) => cardLayouts[index] ?? "standard";
 
   const getCardAccentClass = (index: number, size: ReturnType<typeof getCardSize>) => {
-    if (size === "large" && index % 2 === 0) return styles.cardDriftDown;
-    if (size === "large") return styles.cardDriftUp;
+    if (size === "heroWide" && index % 2 === 0) return styles.cardDriftDown;
+    if (size === "heroWide") return styles.cardDriftUp;
+    if (size === "wide" && index % 2 === 1) return styles.cardInset;
     if (size === "tall") return styles.cardAnchor;
-    if (size === "medium" && index % 4 === 0) return styles.cardInset;
     return "";
   };
 

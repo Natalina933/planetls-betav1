@@ -4,7 +4,7 @@ import React from "react";
 import clsx from "clsx";
 import styles from "./ShowcaseFlipCard.module.scss";
 
-export type ShowcaseFlipCardSize = "small" | "medium" | "large" | "tall";
+export type ShowcaseFlipCardSize = "standard" | "wide" | "heroWide" | "tall";
 export type ShowcaseFlipCardPosterTone = "gold" | "navy" | "emerald" | "plum" | "copper";
 export type ShowcaseFlipCardPosterLayout = "classic" | "sunrise" | "gallery" | "ornate";
 type ShowcasePosterTheme = "default" | "art-deco" | "mucha-dark";
@@ -430,7 +430,7 @@ export function ShowcaseFlipCard({
   icon: Icon,
   isFlipped,
   onToggle,
-  size = "medium",
+  size = "standard",
   className,
 }: ShowcaseFlipCardProps) {
   const [theme, setTheme] = React.useState<ShowcasePosterTheme>("default");
