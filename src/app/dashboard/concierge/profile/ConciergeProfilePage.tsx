@@ -965,7 +965,7 @@ export default function ConciergeProfilePage() {
 
   const tabFromUrl = useMemo(() => {
     const tab = searchParams.get("tab") as TabId;
-    return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "fiche";
+    return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "overview";
   }, [searchParams]);
 
   const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
@@ -1286,7 +1286,7 @@ export default function ConciergeProfilePage() {
   }, [tabFromUrl, activeTab]);
 
   const activeTabLabel = useMemo(
-    () => CONCIERGE_TABS.find((tab) => tab.id === activeTab)?.label ?? "Fiche & Infos",
+    () => CONCIERGE_TABS.find((tab) => tab.id === activeTab)?.label ?? "Vue d'ensemble",
     [activeTab],
   );
 

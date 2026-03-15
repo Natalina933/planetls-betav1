@@ -1,34 +1,31 @@
 import { IconType } from "react-icons";
 import {
-  FiUser,
-  FiTarget,
+  FiHome,
+  FiClipboard,
   FiFileText,
-  FiUsers,
-  FiDollarSign,
-  FiPackage,
 } from "react-icons/fi";
 
-export type ConciergeTabId =
-  | "fiche"
+export type ConciergeVisibleTabId = "overview" | "fiche" | "documents";
+
+export type ConciergeHiddenTabId =
   | "missions"
   | "packs"
   | "tarifs"
   | "devis"
-  | "equipe"
-  | "documents";
+  | "equipe";
+
+export type ConciergeTabId =
+  | ConciergeVisibleTabId
+  | ConciergeHiddenTabId;
 
 export interface ConciergeTab {
-  id: ConciergeTabId;
+  id: ConciergeVisibleTabId;
   label: string;
   icon: IconType;
 }
 
 export const CONCIERGE_TABS: ConciergeTab[] = [
-  { id: "fiche", label: "Fiche & Infos", icon: FiUser },
-  { id: "equipe", label: "Equipe & Zones", icon: FiUsers },
+  { id: "overview", label: "Vue d'ensemble", icon: FiHome },
+  { id: "fiche", label: "Fiche & Infos", icon: FiClipboard },
   { id: "documents", label: "Documents & Avis", icon: FiFileText },
-  { id: "missions", label: "Missions", icon: FiTarget },
-  { id: "tarifs", label: "Grille tarifaire", icon: FiDollarSign },
-  { id: "packs", label: "Mes Packs", icon: FiPackage },
-  { id: "devis", label: "Devis & factures", icon: FiFileText },
 ];
