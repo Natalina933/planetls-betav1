@@ -1,4 +1,4 @@
-export type CompletionRequirement = {
+﻿export type CompletionRequirement = {
   label: string;
   complete: boolean;
 };
@@ -58,3 +58,4 @@ export function buildBasicProfileCompletion(
     { label: "Présentation", complete: Boolean(input.presentation.trim()) },
   ]);
 }
+

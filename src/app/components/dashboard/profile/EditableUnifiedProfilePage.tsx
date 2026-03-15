@@ -22,7 +22,7 @@ import {
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 import { buildBasicProfileCompletion } from "@/app/components/dashboard/profile/completion";
-import { ProfileOverviewContent } from "@/app/components/dashboard/profile/ProfileOverviewContent";
+import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
 import {
   UNIFIED_PROFILE_TABS,
   type UnifiedProfileTabId,
@@ -634,41 +634,30 @@ export default function EditableUnifiedProfilePage({
         <div className={conciergeStyles.rightColumn}>
           {activeTab === "overview" ? (
             <>
-              <EditableProfileSection
-                styles={conciergeStyles}
-                title="Vue d'ensemble"
-                icon={<FiHome />}
-                canEdit={false}
-                collapsible={false}
-                isOpen
-                isEditing={false}
-                isDirty={false}
-                isLoading={false}
-                onToggle={noop}
-                onHeaderKeyDown={handleHeaderKeyDown}
-                onBeginEdit={noop}
-                onSave={noop}
-                onCancel={noop}
-              >
-                <ProfileOverviewContent
-                  intro="Cette vue rassemble uniquement l'état de votre profil. Les autres onglets servent ensuite à compléter chaque partie sans doublon."
-                  introClassName={conciergeStyles.sectionIntroText}
-                  card={{
-                    title: "Profil",
-                    description:
-                      "Complétez votre profil pour améliorer sa visibilité et finaliser sa validation.",
-                    percentage: profileCompletion.percentage,
-                    completedCount: profileCompletion.completedCount,
-                    totalCount: profileCompletion.totalCount,
-                    missingItems: profileCompletion.missingItems,
-                    actionLabel: "Compléter mon compte",
-                    onAction: () => {
-                      handleTabChange("account");
-                      beginEditSection(SECTION_IDS.ACCOUNT);
-                    },
-                  }}
-                />
-              </EditableProfileSection>
+              <ProfileOverviewWorkspace
+                tone={roleLabel.toLowerCase().includes("prestataire") ? "provider" : "owner"}
+                eyebrow="Pilotage du profil"
+                title="Vue d'ensemble du profil"
+                description="Cette vue rassemble uniquement l'état de votre profil. Les autres onglets servent ensuite à compléter votre identité, vos coordonnées et votre présentation, sans redondance."
+                chips={["Vue synthèse", "Profil", "Fiche visible"]}
+                actions={[
+                  { label: "Compte", href: "?tab=account", variant: "primary" },
+                  { label: "Adresse", href: "?tab=address", variant: "secondary" },
+                  { label: "Réseaux", href: "?tab=socials", variant: "secondary" },
+                  { label: "Présentation", href: "?tab=presentation", variant: "secondary" },
+                ]}
+                card={{
+                  title: "Profil",
+                  description:
+                    "Complétez votre fiche pour renforcer votre visibilité et débloquer les étapes de vérification.",
+                  percentage: profileCompletion.percentage,
+                  completedCount: profileCompletion.completedCount,
+                  totalCount: profileCompletion.totalCount,
+                  missingItems: profileCompletion.missingItems,
+                  actionLabel: "Compléter mon compte",
+                  actionHref: "?tab=account",
+                }}
+              />
             </>
           ) : null}
           {activeTab === "account" ? renderAccountSection() : null}

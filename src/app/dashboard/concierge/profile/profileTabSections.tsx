@@ -27,7 +27,7 @@ import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/
 import { CompletionStatusCard } from "@/components/dashboard";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
-import { ProfileOverviewContent } from "@/app/components/dashboard/profile/ProfileOverviewContent";
+import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
 import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
@@ -1000,28 +1000,39 @@ export function ConciergeProfileActiveTabContent({
   if (!ficheControls?.profile || !profileEditorControls?.editProfile) return null;
 
   const profileCompletion = buildConciergeProfileCompletion(ficheControls.profile);
-
   switch (activeTab) {
     case "overview":
       return (
-        <section className={styles.tariffSimpleCard}>
-          <h3 className={styles.tariffSimpleTitle}>Vue d&apos;ensemble</h3>
-          <ProfileOverviewContent
-            intro="Cette vue rassemble uniquement l'état de votre profil concierge. Les autres onglets servent à compléter votre fiche, vos justificatifs et votre présence publique."
-            introClassName={styles.tariffHint}
-            card={{
-              title: "Profil",
-              description:
-                "Complétez votre fiche pour renforcer votre visibilité et débloquer les étapes de vérification.",
-              percentage: profileCompletion.percentage,
-              completedCount: profileCompletion.completedCount,
-              totalCount: profileCompletion.totalCount,
-              missingItems: profileCompletion.missingItems,
-              actionLabel: "Compléter ma fiche",
-              onAction: () => tariffOverviewControls.handleTabChange("fiche"),
-            }}
-          />
-        </section>
+        <ProfileOverviewWorkspace
+          tone="concierge"
+          eyebrow="Pilotage du profil"
+          title="Vue d'ensemble du profil"
+          description="Cette vue rassemble uniquement l'état de votre profil concierge. Les autres onglets servent à compléter votre fiche, vos justificatifs et votre présence publique."
+          chips={["Vue synthèse", "Profil", "Fiche visible"]}
+          actions={[
+            {
+              label: "Fiche & Infos",
+              href: "/dashboard/concierge/profile?tab=fiche",
+              variant: "primary",
+            },
+            {
+              label: "Documents & Avis",
+              href: "/dashboard/concierge/profile?tab=documents",
+              variant: "secondary",
+            },
+          ]}
+          card={{
+            title: "Profil",
+            description:
+              "Complétez votre fiche pour renforcer votre visibilité et débloquer les étapes de vérification.",
+            percentage: profileCompletion.percentage,
+            completedCount: profileCompletion.completedCount,
+            totalCount: profileCompletion.totalCount,
+            missingItems: profileCompletion.missingItems,
+            actionLabel: "Compléter ma fiche",
+            actionHref: "/dashboard/concierge/profile?tab=fiche",
+          }}
+        />
       );
     case "fiche":
       return (
