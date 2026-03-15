@@ -1,13 +1,16 @@
 import {
   CalendarCheck,
-  Shield,
   FileText,
-  UserCheck,
-  Zap,
   GraduationCap,
   Leaf,
+  Shield,
   ShoppingCart,
+  UserCheck,
+  Zap,
 } from "lucide-react";
+
+export type ServicePosterTone = "gold" | "navy" | "emerald" | "plum" | "copper";
+export type ServicePosterLayout = "classic" | "sunrise" | "gallery" | "ornate";
 
 export interface Service {
   title: string;
@@ -15,76 +18,103 @@ export interface Service {
   icon: React.ElementType;
   keyPoint: string;
   quote: string;
+  posterLabel: string;
+  posterTone: ServicePosterTone;
+  posterLayout: ServicePosterLayout;
 }
 
 export const services: Service[] = [
   {
-    title: "Tableau de bord centralisé",
+    title: "Tableau de bord centralise",
     description:
-      "Pilotez toutes vos activités en un coup d'œil et prenez des décisions éclairées.",
+      "Pilotez toutes vos activites en un coup d'oeil et prenez des decisions eclairees.",
     icon: CalendarCheck,
     keyPoint: "Gain de temps",
     quote:
-      "Ce que l'on conçoit bien s’énonce clairement, et les décisions s’éclairent d’un simple regard.",
+      "Ce que l'on concoit bien s'enonce clairement, et les decisions s'eclairent d'un simple regard.",
+    posterLabel: "Pilotage",
+    posterTone: "gold",
+    posterLayout: "classic",
   },
   {
     title: "Pilotage intelligent & automatisation",
     description:
-      "Planification intelligente, rappels, tâches récurrentes — tout est synchronisé.",
+      "Planification intelligente, rappels, taches recurrentes : tout est synchronise.",
     icon: Zap,
     keyPoint: "Automatisation",
     quote:
-      "Automatise ce qui est répétitif, pour te consacrer à ce qui compte.",
+      "Automatise ce qui est repetitif, pour te consacrer a ce qui compte.",
+    posterLabel: "Automatiser",
+    posterTone: "navy",
+    posterLayout: "sunrise",
   },
   {
-    title: "Sécurité renforcée & gestion documentaire",
+    title: "Securite renforcee & gestion documentaire",
     description:
-      "Contrats, factures, accès sécurisés : tout est chiffré et centralisé.",
+      "Contrats, factures, acces securises : tout est chiffre et centralise.",
     icon: Shield,
-    keyPoint: "Accès sécurisé",
+    keyPoint: "Acces securise",
     quote:
-      "La confiance naît là où la sécurité est invisible mais omniprésente.",
+      "La confiance nait la ou la securite est invisible mais omnipresente.",
+    posterLabel: "Securiser",
+    posterTone: "emerald",
+    posterLayout: "gallery",
   },
   {
-    title: "Espace membre & support dédié",
+    title: "Espace membre & support dedie",
     description:
-      "Assistance réactive, espace privé, gestion de profil et historique des missions.",
+      "Assistance reactive, espace prive, gestion de profil et historique des missions.",
     icon: UserCheck,
-    keyPoint: "Support dédié",
-    quote: "Être entouré, c’est déjà avancer.",
+    keyPoint: "Support dedie",
+    quote: "Etre entoure, c'est deja avancer.",
+    posterLabel: "Accompagner",
+    posterTone: "plum",
+    posterLayout: "ornate",
   },
   {
-    title: "Plateforme adaptable à tous",
+    title: "Plateforme adaptable a tous",
     description:
-      "Fonctionnalités adaptées propriétaires, concierges et artisans.",
+      "Fonctionnalites adaptees aux proprietaires, concierges et artisans.",
     icon: FileText,
     keyPoint: "Pour tous les profils",
-    quote: "Chaque métier mérite ses outils, chaque profil son espace.",
+    quote: "Chaque metier merite ses outils, chaque profil son espace.",
+    posterLabel: "Adapter",
+    posterTone: "copper",
+    posterLayout: "gallery",
   },
   {
     title: "Apprentissage et savoir-faire",
     description:
-      "Partage d’expertise, tutoriels, échanges de bonnes pratiques : développez vos compétences.",
+      "Partage d'expertise, tutoriels, echanges de bonnes pratiques : developpez vos competences.",
     icon: GraduationCap,
     keyPoint: "Valorisation du savoir",
-    quote: "Le savoir se multiplie lorsqu’on le partage.",
+    quote: "Le savoir se multiplie lorsqu'on le partage.",
+    posterLabel: "Transmettre",
+    posterTone: "gold",
+    posterLayout: "sunrise",
   },
   {
-    title: "Collaboration locale et éthique",
+    title: "Collaboration locale et ethique",
     description:
-      "Favorisez les échanges de proximité, soutenez l'économie locale et collaborez en toute confiance.",
+      "Favorisez les echanges de proximite, soutenez l'economie locale et collaborez en toute confiance.",
     icon: Leaf,
     keyPoint: "Collaboration locale",
     quote:
-      "Ce qui est proche est précieux. Ensemble, nous faisons vivre le territoire.",
+      "Ce qui est proche est precieux. Ensemble, nous faisons vivre le territoire.",
+    posterLabel: "Relier",
+    posterTone: "emerald",
+    posterLayout: "ornate",
   },
   {
     title: "Boutique PlanetLS",
     description:
-      "Accédez à nos packs premium pour booster votre activité : outils avancés, support prioritaire, et offres exclusives.",
+      "Accedez a nos packs premium pour booster votre activite : outils avances, support prioritaire et offres exclusives.",
     icon: ShoppingCart,
     keyPoint: "Offres premium",
     quote:
-      "Investir dans les bons outils, c’est accélérer votre réussite.",
+      "Investir dans les bons outils, c'est accelerer votre reussite.",
+    posterLabel: "Elever",
+    posterTone: "copper",
+    posterLayout: "classic",
   },
 ];

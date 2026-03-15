@@ -404,115 +404,84 @@ function ProviderInterventionsContent() {
             </div>
 
             <form className={styles.formGrid} onSubmit={handleSubmit}>
-              <label>
-                <span>Client</span>
-                <Select
-                  className={styles.fieldSelect}
-                  value={form.client_id}
-                  onChange={(event) => updateField("client_id", event.target.value)}
-                >
-                  <option value="">Sans client</option>
-                  {clients.map((client) => <option key={client.id} value={client.id}>{client.client_name}</option>)}
-                </Select>
-              </label>
-              <label>
-                <span>Titre</span>
-                <Input
-                  bare
-                  className={styles.fieldInput}
-                  value={form.title}
-                  onChange={(event) => updateField("title", event.target.value)}
-                  placeholder="Ex: Réparation serrure"
-                />
-              </label>
-              <label>
-                <span>Service</span>
-                <Input
-                  bare
-                  className={styles.fieldInput}
-                  value={form.service_label}
-                  onChange={(event) => updateField("service_label", event.target.value)}
-                  placeholder="Plomberie, électricité..."
-                />
-              </label>
-              <label>
-                <span>Statut</span>
-                <Select className={styles.fieldSelect} value={form.status} onChange={(event) => updateField("status", event.target.value)}>
-                  <option value="pending">En attente</option>
-                  <option value="accepted">Acceptée</option>
-                  <option value="in_progress">En cours</option>
-                  <option value="completed">Terminée</option>
-                  <option value="cancelled">Annulée</option>
-                </Select>
-              </label>
-              <label>
-                <span>Priorité</span>
-                <Select className={styles.fieldSelect} value={form.priority} onChange={(event) => updateField("priority", event.target.value)}>
-                  <option value="low">Basse</option>
-                  <option value="normal">Normale</option>
-                  <option value="high">Haute</option>
-                  <option value="urgent">Urgente</option>
-                </Select>
-              </label>
-              <label>
-                <span>Budget</span>
-                <Input
-                  bare
-                  className={styles.fieldInput}
-                  value={form.budget_amount}
-                  onChange={(event) => updateField("budget_amount", event.target.value)}
-                  placeholder="0.00"
-                />
-              </label>
-              <label>
-                <span>Devise</span>
-                <Input
-                  bare
-                  className={styles.fieldInput}
-                  value={form.currency}
-                  onChange={(event) => updateField("currency", event.target.value)}
-                  placeholder="EUR"
-                />
-              </label>
-              <label>
-                <span>Lieu</span>
-                <Input
-                  bare
-                  className={styles.fieldInput}
-                  value={form.location_label}
-                  onChange={(event) => updateField("location_label", event.target.value)}
-                  placeholder="Adresse ou zone"
-                />
-              </label>
-              <label>
-                <span>Début prévu</span>
-                <Input
-                  bare
-                  type="datetime-local"
-                  className={styles.fieldInput}
-                  value={form.scheduled_start}
-                  onChange={(event) => updateField("scheduled_start", event.target.value)}
-                />
-              </label>
-              <label>
-                <span>Fin prévue</span>
-                <Input
-                  bare
-                  type="datetime-local"
-                  className={styles.fieldInput}
-                  value={form.scheduled_end}
-                  onChange={(event) => updateField("scheduled_end", event.target.value)}
-                />
-              </label>
-              <label className={styles.fullWidth}>
-                <span>Description</span>
-                <Textarea
-                  className={styles.fieldTextarea}
-                  value={form.description}
-                  onChange={(event) => updateField("description", event.target.value)}
-                  placeholder="Travaux à effectuer, contexte client, consignes..."
-                />
-              </label>
+              <Select
+                label="Client"
+                className={styles.fieldSelect}
+                value={form.client_id}
+                onChange={(event) => updateField("client_id", event.target.value)}
+              >
+                <option value="">Sans client</option>
+                {clients.map((client) => <option key={client.id} value={client.id}>{client.client_name}</option>)}
+              </Select>
+              <Input
+                label="Titre"
+                className={styles.fieldInput}
+                value={form.title}
+                onChange={(event) => updateField("title", event.target.value)}
+                placeholder="Ex: Réparation serrure"
+              />
+              <Input
+                label="Service"
+                className={styles.fieldInput}
+                value={form.service_label}
+                onChange={(event) => updateField("service_label", event.target.value)}
+                placeholder="Plomberie, électricité..."
+              />
+              <Select label="Statut" className={styles.fieldSelect} value={form.status} onChange={(event) => updateField("status", event.target.value)}>
+                <option value="pending">En attente</option>
+                <option value="accepted">Acceptée</option>
+                <option value="in_progress">En cours</option>
+                <option value="completed">Terminée</option>
+                <option value="cancelled">Annulée</option>
+              </Select>
+              <Select label="Priorité" className={styles.fieldSelect} value={form.priority} onChange={(event) => updateField("priority", event.target.value)}>
+                <option value="low">Basse</option>
+                <option value="normal">Normale</option>
+                <option value="high">Haute</option>
+                <option value="urgent">Urgente</option>
+              </Select>
+              <Input
+                label="Budget"
+                className={styles.fieldInput}
+                value={form.budget_amount}
+                onChange={(event) => updateField("budget_amount", event.target.value)}
+                placeholder="0.00"
+              />
+              <Input
+                label="Devise"
+                className={styles.fieldInput}
+                value={form.currency}
+                onChange={(event) => updateField("currency", event.target.value)}
+                placeholder="EUR"
+              />
+              <Input
+                label="Lieu"
+                className={styles.fieldInput}
+                value={form.location_label}
+                onChange={(event) => updateField("location_label", event.target.value)}
+                placeholder="Adresse ou zone"
+              />
+              <Input
+                label="Début prévu"
+                type="datetime-local"
+                className={styles.fieldInput}
+                value={form.scheduled_start}
+                onChange={(event) => updateField("scheduled_start", event.target.value)}
+              />
+              <Input
+                label="Fin prévue"
+                type="datetime-local"
+                className={styles.fieldInput}
+                value={form.scheduled_end}
+                onChange={(event) => updateField("scheduled_end", event.target.value)}
+              />
+              <Textarea
+                label="Description"
+                className={[styles.fieldTextarea, styles.fullWidth].join(" ")}
+                value={form.description}
+                onChange={(event) => updateField("description", event.target.value)}
+                placeholder="Travaux à effectuer, contexte client, consignes..."
+              />
               <div className={styles.formActions}>
                 <Button type="submit" disabled={!canSubmit || saving}>
                   {saving ? "Enregistrement..." : editingId ? "Mettre à jour" : "Ajouter"}
@@ -721,3 +690,4 @@ export default function ProviderInterventionsPage() {
     </Suspense>
   );
 }
+

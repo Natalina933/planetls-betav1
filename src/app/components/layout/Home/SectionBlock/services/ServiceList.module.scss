@@ -54,19 +54,11 @@ $radius: 1.2rem;
 
   &--chips {
     .keyPointChip {
-      border: 1px solid $gold;
-      border-radius: 50px;
-      padding: 0.5rem 1rem;
-      background-color: transparent;
-      color: $gold;
       font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
 
       &:hover,
       &.isActive {
-        background-color: $gold;
-        color: $text-light;
+        color: $text-dark;
       }
     }
   }
@@ -74,14 +66,15 @@ $radius: 1.2rem;
 
 .serviceGrid {
   display: grid;
-  gap: 1.35rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  perspective: 1500px;
+  gap: clamp(1rem, 2vw, 1.65rem);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  align-items: stretch;
   background-color: rgba(255, 255, 255, 0.88);
   background-image: url("/textures/mucha-background-pattern.png");
   background-blend-mode: lighten;
   background-attachment: local;
-  padding: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
   border: 2.5px solid #b88b4a;
   border-radius: 28px;
   box-shadow:
@@ -100,101 +93,20 @@ $radius: 1.2rem;
   }
 }
 
-.flippable {
-  @include card-shadow;
-  border-radius: $radius;
-  background-color: $bg-light;
-  transform-style: preserve-3d;
-  transition: transform $transition-speed ease-in-out;
-  cursor: pointer;
-
-  &:focus {
-    outline: 2px solid $gold;
-  }
-
-  &.flipped {
-    transform: rotateY(180deg);
-  }
-
-  &.card-size--small {
-    min-height: 320px;
-  }
-
-  &.card-size--medium {
-    min-height: 380px;
-  }
-
-  &.card-size--large {
-    min-height: 400px;
-  }
-
-  &.card-size--tall {
-    min-height: 520px;
-  }
+.cardDriftUp {
+  margin-top: -0.4rem;
 }
 
-.cardInner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
+.cardDriftDown {
+  margin-top: 0.55rem;
 }
 
-.cardFront,
-.cardBack {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  border-radius: $radius;
-  padding: 1.5rem;
+.cardAnchor {
+  margin-top: 0.25rem;
 }
 
-.cardFront {
-  background-color: $bg-light;
-  text-align: center;
-  color: $text-dark;
-
-  .serviceCardIconWrap {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-
-    .goldenIcon {
-      color: $gold;
-      font-size: 2.5rem;
-    }
-  }
-
-  .serviceCardTitle {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 0.8rem;
-    color: $text-dark;
-  }
-
-  .serviceCardDesc {
-    font-size: 0.95rem;
-    color: #4a4037;
-    line-height: 1.5;
-  }
-}
-
-.cardBack {
-  transform: rotateY(180deg);
-  @include golden-gradient;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .cardQuote {
-    font-style: italic;
-    color: $text-light;
-    font-size: 1.1rem;
-    text-align: center;
-    line-height: 1.5;
-    max-width: 90%;
-  }
+.cardInset {
+  margin-top: 0.35rem;
 }
 
 .serviceList {
@@ -202,6 +114,19 @@ $radius: 1.2rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
   padding: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .serviceGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .cardDriftUp,
+  .cardDriftDown,
+  .cardAnchor,
+  .cardInset {
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 900px) {
@@ -213,10 +138,6 @@ $radius: 1.2rem;
   .serviceGrid::before {
     inset: 10px;
   }
-
-  .flippable {
-    min-height: 320px;
-  }
 }
 
 .ctaZone {
@@ -224,12 +145,7 @@ $radius: 1.2rem;
   margin-top: 3rem;
 
   .CTAButton {
-    @include golden-gradient;
-    color: $text-light;
-    padding: 0.8rem 1.6rem;
-    border-radius: 50px;
     font-size: 1.1rem;
-    font-weight: bold;
     transition: transform 0.3s ease;
 
     &:hover {
@@ -263,16 +179,18 @@ $radius: 1.2rem;
 }
 
 :global([data-theme="art-deco"]) .keyPoints--chips .keyPointChip {
-  border-color: rgba(212, 175, 55, 0.8);
   border-radius: 4px;
   color: #2c3e50;
-  background: #ffffff;
 }
 
 :global([data-theme="art-deco"]) .keyPoints--chips .keyPointChip:hover,
 :global([data-theme="art-deco"]) .keyPoints--chips .keyPointChip.isActive {
   color: #1a2530;
-  background: #f9f1d8;
+}
+
+:global([data-theme="mucha-dark"]) .keyPoints--chips .keyPointChip:hover,
+:global([data-theme="mucha-dark"]) .keyPoints--chips .keyPointChip.isActive {
+  color: #ffffff;
 }
 
 :global([data-theme="art-deco"]) .serviceGrid {
@@ -303,39 +221,7 @@ $radius: 1.2rem;
   transform: translateX(-50%) rotate(45deg);
 }
 
-:global([data-theme="art-deco"]) .flippable {
-  border-radius: 4px;
-  border: 1px solid #d5dbdf;
-  box-shadow: 0 8px 18px rgba(44, 62, 80, 0.09);
-}
-
-:global([data-theme="art-deco"]) .cardFront {
-  background: #ffffff;
-  color: #2c3e50;
-}
-
-:global([data-theme="art-deco"]) .cardFront .serviceCardTitle {
-  font-family: var(--font-primary);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #1a2530;
-}
-
-:global([data-theme="art-deco"]) .cardFront .serviceCardDesc {
-  color: #5d6d7e;
-}
-
-:global([data-theme="art-deco"]) .cardBack {
-  background: linear-gradient(140deg, #1a2530, #2c3e50);
-}
-
-:global([data-theme="art-deco"]) .cardBack .cardQuote {
-  color: #f9f1d8;
-}
-
 :global([data-theme="art-deco"]) .CTAButton {
-  border-radius: 4px;
-  background: linear-gradient(120deg, #1a2530, #2f4155);
   color: #f9f1d8;
 }
 

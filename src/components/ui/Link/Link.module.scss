@@ -1,0 +1,94 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.link:focus-visible {
+  outline: 2px solid rgba(212, 175, 55, 0.45);
+  outline-offset: 2px;
+}
+
+.inline {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.nav {
+  font-family: var(--ds-font-ui);
+  font-weight: 700;
+}
+
+.buttonLike {
+  position: relative;
+  isolation: isolate;
+  min-height: 42px;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ds-radius-pill);
+  font-family: var(--ds-font-ui);
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: var(--ds-color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.buttonLike:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ds-shadow-md);
+}
+
+.accent {
+  color: var(--ds-color-gold-strong);
+}
+
+.accent:hover {
+  color: var(--ds-color-brown-strong);
+}
+
+.subtle {
+  color: var(--ds-color-text-soft);
+}
+
+.subtle:hover {
+  color: var(--ds-color-text);
+}
+
+.neutral {
+  color: var(--ds-color-brown);
+}
+
+.neutral:hover {
+  color: var(--ds-color-brown-strong);
+}
+
+.inverse {
+  color: var(--ds-color-text-inverse);
+}
+
+.inverse:hover {
+  color: #ffffff;
+}
+
+:global([data-theme="art-deco"]) .buttonLike,
+:global([data-theme="mucha-dark"]) .buttonLike {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .buttonLike::after,
+:global([data-theme="mucha-dark"]) .buttonLike::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  pointer-events: none;
+}

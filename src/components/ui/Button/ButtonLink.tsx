@@ -2,7 +2,7 @@ import Link, { LinkProps } from "next/link";
 import { AnchorHTMLAttributes } from "react";
 import styles from "./Button.module.scss";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "paper" | "dark";
 type ButtonSize = "sm" | "md" | "lg";
 
 export type ButtonLinkProps = LinkProps &

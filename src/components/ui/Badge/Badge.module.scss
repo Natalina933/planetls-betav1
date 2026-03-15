@@ -3,61 +3,81 @@
   align-items: center;
   min-height: 24px;
   padding: 0.2rem 0.55rem;
-  border-radius: var(--ui-radius-pill);
+  border-radius: var(--ds-radius-pill);
   border: 1px solid transparent;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-family: var(--ds-font-ui);
 }
 
 .neutral {
-  background: #efe8dc;
-  border-color: #e2d6c5;
-  color: #5f5042;
+  background: var(--ds-color-surface-soft);
+  border-color: var(--ds-color-border-soft);
+  color: var(--ds-color-text-soft);
+}
+
+.gold {
+  background: color-mix(in srgb, var(--ds-color-gold-soft) 68%, white);
+  border-color: color-mix(in srgb, var(--ds-color-gold) 52%, transparent);
+  color: var(--ds-color-brown-strong);
+}
+
+.dark {
+  background: linear-gradient(135deg, var(--ds-color-dark-soft), var(--ds-color-dark));
+  border-color: color-mix(in srgb, var(--ds-color-gold) 46%, transparent);
+  color: var(--ds-color-text-inverse);
 }
 
 .success {
-  background: rgba(59, 125, 106, 0.14);
-  border-color: rgba(59, 125, 106, 0.35);
+  background: color-mix(in srgb, var(--ds-color-success) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ds-color-success) 35%, transparent);
   color: #245e4e;
 }
 
 .warning {
-  background: rgba(184, 135, 70, 0.16);
-  border-color: rgba(184, 135, 70, 0.36);
+  background: color-mix(in srgb, var(--ds-color-warning) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ds-color-warning) 36%, transparent);
   color: #7a5221;
 }
 
 .danger {
-  background: rgba(175, 63, 63, 0.14);
-  border-color: rgba(175, 63, 63, 0.34);
+  background: color-mix(in srgb, var(--ds-color-danger) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ds-color-danger) 34%, transparent);
   color: #7f2d2d;
 }
 
 .info {
-  background: rgba(71, 108, 160, 0.14);
-  border-color: rgba(71, 108, 160, 0.34);
+  background: color-mix(in srgb, var(--ds-color-info) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ds-color-info) 34%, transparent);
   color: #35507b;
 }
 
 :global([data-theme="art-deco"]) .badge {
   border-radius: 3px;
   letter-spacing: 0.08em;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-ui);
 }
 
 :global([data-theme="art-deco"]) .success,
-:global([data-theme="art-deco"]) .warning {
+:global([data-theme="art-deco"]) .warning,
+:global([data-theme="art-deco"]) .gold {
   background: #f9f1d8;
   border-color: rgba(212, 175, 55, 0.52);
   color: #1a2530;
 }
 
 :global([data-theme="art-deco"]) .success::before,
-:global([data-theme="art-deco"]) .warning::before {
-  content: "◆";
+:global([data-theme="art-deco"]) .warning::before,
+:global([data-theme="art-deco"]) .gold::before {
+  content: "?";
   font-size: 0.58rem;
   margin-right: 0.35rem;
   color: #b5a642;
+}
+
+:global([data-theme="mucha-dark"]) .gold,
+:global([data-theme="mucha-dark"]) .dark {
+  border-color: rgba(198, 167, 92, 0.62);
 }

@@ -1,7 +1,7 @@
 import { HTMLAttributes } from "react";
 import styles from "./Badge.module.scss";
 
-type BadgeVariant = "neutral" | "success" | "warning" | "danger" | "info";
+type BadgeVariant = "neutral" | "gold" | "dark" | "success" | "warning" | "danger" | "info";
 
 export type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
   variant?: BadgeVariant;

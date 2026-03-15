@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Badge, ButtonLink, Card, CardBody, CardFooter, CardHeader, Tag } from "@/components/ui";
+import { Badge, ButtonLink, Card, CardBody, CardFooter, CardHeader, SectionIntro, Tag } from "@/components/ui";
 import styles from "./RecommendedConciergesSection.module.scss";
 
 type RecommendedConcierge = {
@@ -67,12 +67,11 @@ export default function RecommendedConciergesSection() {
   return (
     <section id="concierges-recommandes" className={styles.section}>
       <div className={styles.header}>
-        <span className={styles.eyebrow}>Selection premium</span>
-        <h2>Concierges recommandes</h2>
-        <p>
-          Une premiere vitrine de profils visibles publiquement, notes par leurs clients et prets
-          pour la mise en relation.
-        </p>
+        <SectionIntro
+          eyebrow="Selection premium"
+          title="Concierges recommandes"
+          description="Une premiere vitrine de profils visibles publiquement, notes par leurs clients et prets pour la mise en relation."
+        />
       </div>
 
       {loading ? <p className={styles.info}>Chargement des recommandations...</p> : null}

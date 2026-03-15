@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
+import { ButtonLink, ShowcaseFlipCard, TabButton } from "@/components/ui";
 
 import ServicesBlock from "../ServicesBlock";
-import FlippableCard from "./FlippableCard";
 import styles from "./ServiceList.module.scss";
 import { services } from "../../../../../data/services/services";
 
@@ -20,11 +20,19 @@ export default function ServiceList() {
     );
   };
 
-  const getCardSizeClass = (index: number) => {
-    if (index === services.length - 1) return "card-size--tall";
-    if (index % 3 === 0) return "card-size--large";
-    if (index % 3 === 1) return "card-size--medium";
-    return "card-size--small";
+  const getCardSize = (index: number) => {
+    if (index === services.length - 1) return "tall";
+    if (index % 5 === 0) return "large";
+    if (index % 2 === 0) return "medium";
+    return "small";
+  };
+
+  const getCardAccentClass = (index: number, size: ReturnType<typeof getCardSize>) => {
+    if (size === "large" && index % 2 === 0) return styles.cardDriftDown;
+    if (size === "large") return styles.cardDriftUp;
+    if (size === "tall") return styles.cardAnchor;
+    if (size === "medium" && index % 4 === 0) return styles.cardInset;
+    return "";
   };
 
   return (
@@ -32,64 +40,65 @@ export default function ServiceList() {
       <ServicesBlock
         title={
           <>
-            Découvrir notre Plateforme <br />
+            Decouvrir notre Plateforme <br />
             de gestion tout-en-un
           </>
         }
-        subtitle="La solution en ligne pour l'ensemble des acteurs de la location saisonnière"
-        description="Une application et une plateforme entièrement sécurisées, pensées pour automatiser la gestion, fluidifier la communication, et vous assister à chaque étape, que vous soyez propriétaire, professionnel, ou en quête de solutions fiables."
+        subtitle="La solution en ligne pour l'ensemble des acteurs de la location saisonniere"
+        description="Une application et une plateforme entierement securisees, pensees pour automatiser la gestion, fluidifier la communication, et vous assister a chaque etape, que vous soyez proprietaire, professionnel, ou en quete de solutions fiables."
       >
         <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
-            Conçue pour{" "}
-            <span className={styles.highlightText}>
-              simplifier la vie de toutes les catégories professionnelles
-            </span>
-            , notre plateforme centralise vos outils, automatise vos tâches et sécurise vos
-            données. Que vous soyez{" "}
-            <strong className={styles.userCategory}>propriétaire, concierge ou artisan</strong>,
-            gagnez en efficacité et en sérénité.
+            Concue pour <span className={styles.highlightText}>simplifier la vie de toutes les categories professionnelles</span>,
+            notre plateforme centralise vos outils, automatise vos taches et securise vos donnees. Que vous soyez <strong className={styles.userCategory}>proprietaire, concierge ou artisan</strong>,
+            gagnez en efficacite et en serenite.
           </p>
 
-          <a href="#contact" className={styles.CTAButton}>
-            Découvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
-          </a>
+          <ButtonLink href="#contact" variant="primary" className={styles.CTAButton}>
+            Decouvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
+          </ButtonLink>
         </header>
 
         <ul
           className={clsx(styles.keyPoints, styles["keyPoints--chips"])}
-          aria-label="Points clés de la plateforme"
+          aria-label="Points cles de la plateforme"
         >
           {keyPoints.map((point) => (
             <li key={point} className={styles.keyPointChipWrapper}>
-              <button
+              <TabButton
                 onClick={() => handleKeyPointClick(point)}
                 className={clsx(styles.keyPointChip, {
                   [styles.isActive]: flippedCards.includes(point),
                 })}
+                active={flippedCards.includes(point)}
                 aria-pressed={flippedCards.includes(point)}
               >
                 {point}
-              </button>
+              </TabButton>
             </li>
           ))}
         </ul>
 
         <div className={styles.serviceGrid}>
-          {services.map(({ title, description, quote, icon, keyPoint }, index) => {
+          {services.map(({ title, description, quote, icon, keyPoint, posterLabel, posterTone, posterLayout }, index) => {
             const safeKeyPoint = keyPoint?.trim() || `fallback-${index}`;
             const isFlipped = flippedCards.includes(safeKeyPoint);
+            const size = getCardSize(index);
 
             return (
-              <FlippableCard
+              <ShowcaseFlipCard
                 key={`${title}-${index}`}
                 title={title}
                 description={description}
                 quote={quote}
+                posterLabel={posterLabel}
+                posterTone={posterTone}
+                posterLayout={posterLayout}
                 icon={icon}
                 isFlipped={isFlipped}
                 onToggle={() => handleKeyPointClick(safeKeyPoint)}
-                sizeClass={getCardSizeClass(index)}
+                size={size}
+                className={getCardAccentClass(index, size)}
               />
             );
           })}
@@ -97,14 +106,14 @@ export default function ServiceList() {
       </ServicesBlock>
 
       <div className={styles.ctaZone}>
-        <a
+        <ButtonLink
           className={styles.CTAButton}
           href="/complete-registration"
           aria-label="Essayer la plateforme gratuitement"
         >
           Essayer gratuitement
-        </a>
-        <span className={styles.ctaSub}>Assistance personnalisée et offres sans commission.</span>
+        </ButtonLink>
+        <span className={styles.ctaSub}>Assistance personnalisee et offres sans commission.</span>
       </div>
     </>
   );

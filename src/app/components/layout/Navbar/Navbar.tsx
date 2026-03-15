@@ -287,7 +287,7 @@ export default function Navbar() {
                 router.push("/map-list?filter=concierge");
                 closeMenu();
               }}
-              className={`${styles.searchBtn} ${styles.navButton}`}
+              className={styles.navButton}
               aria-label="Ouvrir la recherche de profils"
             >
               <Icons.FaSearch size={18} /> Recherche
@@ -298,7 +298,7 @@ export default function Navbar() {
             <li className={styles["auth-inscription"]}>
               <button
                 onClick={handleRegister}
-                className={`${styles.searchBtn} ${styles.navButton}`}
+                className={styles.navButton}
                 aria-label="Acceder a l'inscription"
               >
                 S&apos;inscrire

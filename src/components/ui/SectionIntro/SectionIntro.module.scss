@@ -1,0 +1,104 @@
+.sectionIntro {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 auto 2.25rem;
+  color: #2f2418;
+}
+
+.center {
+  justify-items: center;
+  text-align: center;
+}
+
+.left {
+  justify-items: start;
+  text-align: left;
+}
+
+.eyebrow {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a7a3b;
+}
+
+.title {
+  margin: 0;
+  display: inline-block;
+  max-width: min(100%, 740px);
+  padding: 0.55rem 1.5rem;
+  border: 3px solid #b88b4a;
+  border-radius: 2rem;
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(244, 233, 211, 0.96));
+  box-shadow:
+    0 12px 28px rgba(57, 41, 21, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  font-family: var(--font-title, "Montserrat", sans-serif);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+  color: #2f2418;
+}
+
+.subtitle,
+.description {
+  margin: 0;
+  max-width: 760px;
+  line-height: 1.7;
+}
+
+.subtitle {
+  font-weight: 700;
+  color: #7a5a28;
+}
+
+.description {
+  color: #4a3a2a;
+}
+
+:global([data-theme="art-deco"]) .sectionIntro {
+  color: #2c3e50;
+}
+
+:global([data-theme="art-deco"]) .title {
+  border-width: 1px;
+  border-radius: 4px;
+  background: #ffffff;
+  border-color: #d5dbdf;
+  color: #1a2530;
+  font-family: var(--font-primary, "Cormorant Garamond", serif);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow:
+    0 10px 20px rgba(44, 62, 80, 0.08),
+    inset 0 0 0 1px rgba(212, 175, 55, 0.34);
+}
+
+:global([data-theme="art-deco"]) .subtitle,
+:global([data-theme="art-deco"]) .description {
+  color: #5d6d7e;
+}
+
+:global([data-theme="mucha-dark"]) .sectionIntro {
+  color: #f5f2ea;
+}
+
+:global([data-theme="mucha-dark"]) .title {
+  border-width: 1px;
+  border-radius: 4px;
+  border-color: rgba(198, 167, 92, 0.72);
+  background: linear-gradient(135deg, rgba(22, 27, 38, 0.96), rgba(33, 40, 57, 0.96));
+  color: #f8f5ef;
+  box-shadow:
+    0 12px 28px rgba(7, 9, 14, 0.3),
+    inset 0 0 0 1px rgba(198, 167, 92, 0.28);
+}
+
+:global([data-theme="mucha-dark"]) .eyebrow {
+  color: #d6c17b;
+}
+
+:global([data-theme="mucha-dark"]) .subtitle,
+:global([data-theme="mucha-dark"]) .description {
+  color: rgba(245, 242, 234, 0.88);
+}

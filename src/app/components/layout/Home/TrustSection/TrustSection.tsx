@@ -1,11 +1,15 @@
 import { ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { SectionIntro } from "@/components/ui";
 import styles from "./TrustSection.module.scss";
 
 export function TrustSection() {
   return (
     <section className={styles.trust}>
-      <h2>Pourquoi nous faire confiance ?</h2>
+      <SectionIntro
+        title="Pourquoi nous faire confiance ?"
+        description="Une base plus rassurante, plus lisible et plus professionnelle pour la location saisonniere."
+      />
       <div className={styles.trustItems}>
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.2 }}>
           <ShieldCheck size={32} />

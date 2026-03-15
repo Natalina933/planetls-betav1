@@ -6,24 +6,24 @@
 - Card `large`: largeur max 520px, usage profils/resultats detailles.
 - Avatars: `sm` 32px, `md` 48px, `lg` 72px.
 - Loader: `sm` 20px, `md` 32px, `lg` 48px.
-- Espacements: utiliser uniquement `--ui-space-*`.
+- Espacements: utiliser uniquement `--ui-space-*` ou `--ds-space-*`.
 - Layout page: `Container` pour la largeur, `Section` pour le rythme vertical.
 - Badges statuts: `Badge`.
 - Labels/categories: `Tag`.
-- Actions UI: `Button` ou `ButtonLink`.
+- Actions UI: `Button`, `ButtonLink` ou `UILink`.
 - Champs saisie: `Input | Select | Textarea | Checkbox`.
 - Recherche simple: `SearchBar`.
 
 ## Variants autorises
 
-- `Button`: `primary | secondary | outline | ghost`
-- `Badge`: `neutral | success | warning | danger | info`
+- `Button`: `primary | secondary | outline | ghost | paper | dark`
+- `Badge`: `neutral | gold | dark | success | warning | danger | info`
 - `Tag`: `default | category | status`
-- `Card`: `small | large`
+- `Card`: sizes `small | large`, tones `elevated | outlined | soft | dark`
+- `Tabs`: `Tabs | TabsList | TabsTrigger | TabsContent`
 - `Loader`: `sm | md | lg`
+- `Input | Select | Textarea`: `default | soft | dark`
 - `Checkbox`: sans variant (version de base DS)
-- `Select`: sans variant (version de base DS)
-- `Textarea`: sans variant (version de base DS)
 
 ## Interdictions
 
@@ -57,6 +57,7 @@
 import {
   Button,
   ButtonLink,
+  UILink,
   Card,
   CardHeader,
   CardBody,
@@ -72,5 +73,9 @@ import {
   Checkbox,
   SearchBar,
   Loader,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
 } from "@/components/ui";
 ```

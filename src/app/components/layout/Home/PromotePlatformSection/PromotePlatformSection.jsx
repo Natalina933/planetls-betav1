@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
+import { ButtonLink } from "@/components/ui";
 import ServicesBlock from "../SectionBlock/ServicesBlock";
 import styles from "./PromotePlatformSection.module.scss";
 
@@ -25,12 +25,12 @@ export default function PromotePlatformSection() {
             outil pensé pour la location saisonnière.
           </p>
           <div className={styles.heroActions}>
-            <Link href="/abonnement/concierge-pro" className={styles.heroButton}>
+            <ButtonLink href="/abonnement/concierge-pro" variant="primary" className={styles.heroButton}>
               Voir l&apos;offre PRO <Icons.ChevronRight size={18} />
-            </Link>
-            <Link href="/dashboard/owner/concierges" className={styles.secondaryButton}>
+            </ButtonLink>
+            <ButtonLink href="/dashboard/owner/concierges" variant="secondary" className={styles.secondaryButton}>
               Voir les profils visibles
-            </Link>
+            </ButtonLink>
           </div>
         </div>
 

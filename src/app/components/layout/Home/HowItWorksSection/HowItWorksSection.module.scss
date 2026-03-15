@@ -37,29 +37,6 @@
     @include no-select;
   }
 
-.tabsList {
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: center;
-  gap: 1rem;
-  width: 700px;
-  margin: 0 auto 2.5rem;
-  position: relative;
-  padding: 0.4rem;
-  background: #fff8e1;
-  border: 2px solid $gold;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
-  @include mq(sm) {
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.2rem;
-  }
-}
-
 :global([data-theme="art-deco"]) .howItWorks {
   background:
     linear-gradient(180deg, #f7f9fb 0%, #ebeff2 100%);
@@ -80,30 +57,6 @@
   box-shadow:
     0 10px 20px rgba(44, 62, 80, 0.08),
     inset 0 0 0 1px rgba(212, 175, 55, 0.34);
-}
-
-:global([data-theme="art-deco"]) .tabsList {
-  background: #ffffff;
-  border: 1px solid #d5dbdf;
-  border-radius: 4px;
-  box-shadow: 0 8px 18px rgba(44, 62, 80, 0.08);
-}
-
-:global([data-theme="art-deco"]) .tabTrigger {
-  border-radius: 3px;
-  background: #ffffff;
-  color: #2c3e50;
-}
-
-:global([data-theme="art-deco"]) .tabTrigger:hover {
-  background: #f9f1d8;
-  color: #1a2530;
-}
-
-:global([data-theme="art-deco"]) .tabTrigger[data-state="active"] {
-  background: linear-gradient(125deg, #d4af37, #b5a642);
-  color: #1a2530;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.28);
 }
 
 :global([data-theme="art-deco"]) .step {
@@ -146,56 +99,20 @@
   color: #f9f1d8;
 }
 
-  .tabTrigger {
-  flex: 1;
-  width: 200px;
-  padding: 0.6rem 1.2rem;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  color: #46361e;
-  background: #fff8e1;
-  border: none;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  &:hover {
-    color: #5a430c;
-    background: rgba(255, 224, 155, 0.3);
-  }
-
-  &[data-state="active"] {
-    padding-left: 0.8rem;
-    padding-right: 0.8rem;
-    background: linear-gradient(to right, $gold, $gold-alt);
-    color: #111111;
-    box-shadow: 0 0 0 3px rgba(184, 139, 74, 0.3);
-    z-index: 2;
-
-    .tabIcon {
-      color: #111111;
-      transform: scale(1.1);
-    }
-  }
-
-  .tabIcon {
-    color: $gold;
-    transition: transform 0.3s ease, color 0.3s ease;
-    flex-shrink: 0;
-  }
-
-  @include mq(sm) {
-    font-size: 0.95rem;
-    padding: 0.5rem 0.7rem;
-    width: 100%;
-  }
+.tabIcon {
+  color: $gold;
+  transition: transform 0.3s ease, color 0.3s ease;
+  flex-shrink: 0;
 }
+
+  :global(button[data-state="active"]) .tabIcon {
+    color: #4f3b0e;
+    transform: scale(1.1);
+  }
+
+  :global([data-theme="mucha-dark"] button[data-state="active"]) .tabIcon {
+    color: #ffffff;
+  }
 
 
   .steps {
@@ -282,44 +199,15 @@
     }
   }
 
-  .cta,
-  .ctaAlt {
-    display: block;
-    max-width: 320px;
-    margin: 2.5rem auto 0;
-    padding: 1rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.125rem;
-    font-weight: 700;
-    cursor: pointer;
-    @include no-select;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  .ctaWrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 2.5rem;
   }
 
   .cta {
-    background-color: $gold;
-    color: #111111;
-
-    &:hover,
-    &:focus-visible {
-      background-color: color.scale($gold, $lightness: -8%);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-      outline: none;
-    }
-  }
-
-  .ctaAlt {
-    background-color: #00a86b;
-    color: #fff;
-
-    &:hover,
-    &:focus-visible {
-      background-color: color.scale(#00a86b, $lightness: -8%);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-      outline: none;
-    }
+    min-width: min(100%, 320px);
+    @include no-select;
   }
 
   @media (max-width: 600px) {
@@ -332,16 +220,6 @@
       border-width: 4px;
       border-radius: 1.5rem;
       margin-bottom: 2rem;
-    }
-
-    .tabsList {
-      max-width: 100%;
-      border-radius: 6px;
-    }
-
-    .tabTrigger {
-      font-size: 1rem;
-      padding: 0.8rem 0;
     }
 
     .steps {
@@ -366,13 +244,12 @@
       }
     }
 
-    .cta,
-    .ctaAlt {
-      max-width: 100%;
-      font-size: 1rem;
-      padding: 0.9rem 0;
-      border-radius: 6px;
+    .ctaWrap {
       margin-top: 2rem;
+    }
+
+    .cta {
+      min-width: 100%;
     }
   }
 }

@@ -3,43 +3,88 @@
   align-items: center;
   min-height: 28px;
   padding: 0.25rem 0.7rem;
-  border-radius: var(--ui-radius-pill);
-  border: 1px solid var(--ui-color-border);
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--ds-radius-pill);
+  border: 1px solid var(--ds-color-border);
   font-size: 0.79rem;
   font-weight: 600;
-  color: var(--ui-color-text-muted);
-  background: var(--ui-color-surface-soft);
+  color: var(--ds-color-text-soft);
+  background: var(--ds-color-surface-soft);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.tag::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .default {
-  background: var(--ui-color-surface-soft);
+  background: var(--ds-color-surface-soft);
+}
+
+.neutral {
+  background: var(--ds-color-surface);
+  border-color: var(--ds-color-border-soft);
+  color: var(--ds-color-text-soft);
+}
+
+.gold {
+  background: color-mix(in srgb, var(--ds-color-gold-soft) 56%, var(--ds-color-surface) 44%);
+  border-color: color-mix(in srgb, var(--ds-color-gold) 42%, transparent);
+  color: var(--ds-color-brown-strong);
+}
+
+.dark {
+  background: linear-gradient(135deg, var(--ds-color-dark-soft), var(--ds-color-dark));
+  border-color: color-mix(in srgb, var(--ds-color-gold) 36%, transparent);
+  color: var(--ds-color-text-inverse);
 }
 
 .category {
-  background: rgba(184, 135, 70, 0.12);
-  border-color: rgba(184, 135, 70, 0.28);
-  color: #6e4c24;
+  background: color-mix(in srgb, var(--ds-color-gold-soft) 36%, var(--ds-color-surface) 64%);
+  border-color: color-mix(in srgb, var(--ds-color-gold) 28%, transparent);
+  color: var(--ds-color-brown);
 }
 
 .status {
-  background: rgba(59, 125, 106, 0.13);
-  border-color: rgba(59, 125, 106, 0.3);
-  color: #2e6354;
+  background: color-mix(in srgb, var(--ds-color-success) 14%, var(--ds-color-surface) 86%);
+  border-color: color-mix(in srgb, var(--ds-color-success) 32%, transparent);
+  color: var(--ds-color-success);
 }
 
 :global([data-theme="art-deco"]) .tag {
   border-radius: 3px;
-  font-family: var(--font-title);
+  font-family: var(--ds-font-ui);
+}
+
+:global([data-theme="art-deco"]) .tag::after,
+:global([data-theme="mucha-dark"]) .tag::after {
+  border-color: color-mix(in srgb, var(--ds-color-gold) 30%, transparent);
 }
 
 :global([data-theme="art-deco"]) .category {
-  background: #f9f1d8;
-  border-color: rgba(212, 175, 55, 0.44);
   color: #1a2530;
 }
 
 :global([data-theme="art-deco"]) .status {
-  background: #eaf0f6;
-  border-color: rgba(44, 62, 80, 0.26);
   color: #2c3e50;
+}
+
+:global([data-theme="mucha-dark"]) .default,
+:global([data-theme="mucha-dark"]) .neutral {
+  background: rgba(27, 34, 49, 0.92);
+  border-color: rgba(198, 167, 92, 0.44);
+  color: #f5f2ea;
+}
+
+:global([data-theme="mucha-dark"]) .gold {
+  color: #fff7de;
 }

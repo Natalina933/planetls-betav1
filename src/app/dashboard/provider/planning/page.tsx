@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { formatDateValue } from "@/app/utils/formatters";
-import { Button, ButtonLink } from "@/components/ui";
+import { ButtonLink, TabButton } from "@/components/ui";
 import { DashboardSectionShell } from "@/components/dashboard";
 import { takeFirst } from "../../shared";
 import styles from "../ProviderCrudPage.module.scss";
@@ -208,15 +208,15 @@ export default function ProviderPlanningPage() {
             </div>
 
             <div className={styles.viewTabs}>
-              <Button type="button" variant={viewMode === "list" ? "primary" : "secondary"} size="sm" className={styles.viewTabButton} onClick={() => setViewMode("list")}>
+              <TabButton className={styles.viewTabButton} active={viewMode === "list"} onClick={() => setViewMode("list")}>
                 Prioritaire
-              </Button>
-              <Button type="button" variant={viewMode === "week" ? "primary" : "secondary"} size="sm" className={styles.viewTabButton} onClick={() => setViewMode("week")}>
+              </TabButton>
+              <TabButton className={styles.viewTabButton} active={viewMode === "week"} onClick={() => setViewMode("week")}>
                 Semaine
-              </Button>
-              <Button type="button" variant={viewMode === "month" ? "primary" : "secondary"} size="sm" className={styles.viewTabButton} onClick={() => setViewMode("month")}>
+              </TabButton>
+              <TabButton className={styles.viewTabButton} active={viewMode === "month"} onClick={() => setViewMode("month")}>
                 Mois
-              </Button>
+              </TabButton>
             </div>
 
             {viewMode === "list" && upcoming.length === 0 ? (

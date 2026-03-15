@@ -1,7 +1,7 @@
 import { HTMLAttributes } from "react";
 import styles from "./Tag.module.scss";
 
-type TagTone = "default" | "category" | "status";
+type TagTone = "default" | "category" | "status" | "neutral" | "gold" | "dark";
 
 export type TagProps = HTMLAttributes<HTMLSpanElement> & {
   tone?: TagTone;

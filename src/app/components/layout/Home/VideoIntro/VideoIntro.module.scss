@@ -16,21 +16,8 @@
   color: #2b241b;
 
   // Heading
-  .videoHeading {
-    font-size: 2.5rem;
-    font-family: $font-title;
-    font-weight: 700;
-    color: var(--color-text);
-    margin-bottom: 1.5rem;
-    @include no-select;
-  }
-
-  // Description
-  .videoDescription {
-    font-size: 1.14rem;
-    color: #4b3f31;
+  .videoIntroHeader {
     margin-bottom: 1.25rem;
-    line-height: 1.6;
   }
 
   // Video wrapper
@@ -131,30 +118,15 @@
 
   // CTA button
   .CTAButton {
-    background: linear-gradient(90deg, $gold, $gold-alt);
-    color: #fff;
-    font-weight: 700;
     font-size: 1.18rem;
-    padding: 1.1rem 2.4rem;
-    border-radius: var(--radius-pill);
-    text-decoration: none;
     box-shadow: 0 8px 20px rgba($gold, 0.21);
     margin: 0.6rem auto 1.2rem;
-    transition: background 0.25s, transform 0.18s, box-shadow 0.18s;
-    display: inline-block;
     letter-spacing: 0.01em;
     @include no-select;
 
     &:hover,
     &:focus-visible {
-      background: linear-gradient(90deg, $gold-alt, $gold);
       box-shadow: 0 16px 36px rgba($gold, 0.28);
-      transform: translateY(-2px) scale(1.04);
-      outline: none;
-    }
-
-    &:focus-visible {
-      border: 2px solid #fff;
     }
   }
 
@@ -169,14 +141,6 @@
   // Responsive
   @media (max-width: 700px) {
     padding: 2.5rem 1rem;
-
-    .videoHeading {
-      font-size: 1.6rem;
-    }
-
-    .videoDescription {
-      font-size: 1rem;
-    }
 
     .featureItem {
       font-size: 0.94rem;

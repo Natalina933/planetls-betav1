@@ -1,12 +1,34 @@
 .card {
   display: grid;
   gap: var(--ui-space-4);
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-card-radius, var(--ui-radius-lg));
-  box-shadow: var(--ui-shadow-sm);
-  color: var(--ui-color-text);
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--ds-color-border);
+  border-radius: var(--ui-card-radius, var(--ds-radius-lg));
+  box-shadow: var(--ds-shadow-sm);
+  color: var(--ds-color-text);
   animation: ui-fade-in-up 180ms ease-out;
+}
+
+.elevated {
+  background: var(--ds-color-surface);
+}
+
+.outlined {
+  background: transparent;
+  border-color: var(--ds-color-border-strong);
+  box-shadow: none;
+}
+
+.soft {
+  background: linear-gradient(180deg, var(--ds-color-surface), var(--ds-color-surface-soft));
+}
+
+.dark {
+  background: linear-gradient(145deg, var(--ds-color-dark-soft), var(--ds-color-dark));
+  border-color: color-mix(in srgb, var(--ds-color-gold) 42%, transparent);
+  color: var(--ds-color-text-inverse);
+  box-shadow: var(--ds-shadow-md);
 }
 
 .small {
@@ -26,7 +48,7 @@
 
 .interactive:hover {
   transform: translateY(-2px);
-  box-shadow: var(--ui-shadow-md);
+  box-shadow: var(--ds-shadow-md);
 }
 
 .header {
@@ -46,6 +68,21 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--ui-space-3);
+}
+
+:global([data-theme="art-deco"]) .card::after,
+:global([data-theme="mucha-dark"]) .card::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid color-mix(in srgb, var(--ds-color-gold) 42%, transparent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+:global([data-theme="art-deco"]) .card,
+:global([data-theme="mucha-dark"]) .card {
+  border-radius: 4px;
 }
 
 @media (max-width: 768px) {

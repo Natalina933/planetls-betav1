@@ -25,7 +25,7 @@ const HeroSection = () => {
     <section className={styles.hero}>
       <Image
         src="/images/hero-warmv2.jpg"
-        alt="Plateforme de location saisonniere"
+        alt="Plateforme de location saisonnière"
         fill
         priority
         style={{ objectFit: "cover" }}
@@ -40,10 +40,10 @@ const HeroSection = () => {
 
         <div className={styles.content}>
           <h1>
-            Simplifiez la <span className={styles.highlight}>location saisonniere</span>
+            Simplifiez la <span className={styles.highlight}>location saisonnière</span>
           </h1>
           <p className={styles.subHeadline}>
-            PlanetLS connecte <strong>proprietaires</strong>, <strong>concierges</strong> et{" "}
+            PlanetLS connecte <strong>propriétaires</strong>, <strong>concierges</strong> et{" "}
             <strong>prestataires locaux</strong> de confiance.
           </p>
 
@@ -55,7 +55,7 @@ const HeroSection = () => {
           <div className={styles.buttonsRow}>
             <ButtonLink
               href="/mission-urgente"
-              variant="outline"
+              variant="paper"
               size="lg"
               className={styles.heroButton}
             >
@@ -64,20 +64,20 @@ const HeroSection = () => {
 
             <ButtonLink
               href="/login"
-              variant="primary"
+              variant="paper"
               size="lg"
               className={styles.heroButton}
             >
-              Creer mon compte
+              Créer mon compte
             </ButtonLink>
 
             <Button
-              variant="secondary"
+              variant="paper"
               size="lg"
               className={styles.heroButton}
               onClick={scrollToHowItWorks}
             >
-              Decouvrir comment ca marche
+              Découvrir comment ça marche
             </Button>
           </div>
 

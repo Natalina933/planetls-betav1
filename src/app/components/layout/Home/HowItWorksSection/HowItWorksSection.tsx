@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import * as Tabs from "@radix-ui/react-tabs";
 import type { LucideIcon } from "lucide-react";
 import { Briefcase, Handshake, Lightbulb, User, Users } from "lucide-react";
+import { ButtonLink, SectionIntro, Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import styles from "./HowItWorksSection.module.scss";
 
 interface Step {
@@ -24,7 +24,7 @@ interface StepCategory {
 
 const stepsByCategory: Record<string, StepCategory> = {
   proprietaires: {
-    label: "Propriétaires",
+    label: "Proprietaires",
     icon: Users,
     ctaLabel: "Trouver une conciergerie",
     ctaLink: "/dashboard/owner/concierges",
@@ -32,7 +32,7 @@ const stepsByCategory: Record<string, StepCategory> = {
       {
         Icon: Lightbulb,
         title: "Publiez votre besoin",
-        description: "Décrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
+        description: "Decrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
         link: "/login",
       },
       {
@@ -43,8 +43,8 @@ const stepsByCategory: Record<string, StepCategory> = {
       },
       {
         Icon: Handshake,
-        title: "Pilotez vos priorités",
-        description: "Suivez devis, factures, missions et messages dans un espace unique orienté action.",
+        title: "Pilotez vos priorites",
+        description: "Suivez devis, factures, missions et messages dans un espace unique oriente action.",
         link: "/dashboard/owner",
       },
     ],
@@ -52,25 +52,25 @@ const stepsByCategory: Record<string, StepCategory> = {
   concierges: {
     label: "Concierges",
     icon: User,
-    ctaLabel: "Démarrer ma conciergerie",
+    ctaLabel: "Demarrer ma conciergerie",
     ctaLink: "/abonnement/concierge-pro",
     steps: [
       {
         Icon: Lightbulb,
         title: "Structurez votre offre",
-        description: "Créez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
+        description: "Creez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
         link: "/dashboard/concierge/profile?tab=fiche",
       },
       {
         Icon: Users,
-        title: "Prospectez les propriétaires",
+        title: "Prospectez les proprietaires",
         description: "Activez la recherche, ouvrez des conversations et transformez vos prises de contact.",
         link: "/dashboard/concierge/recherche",
       },
       {
         Icon: Handshake,
-        title: "Pilotez l'opérationnel",
-        description: "Gérez logements, missions, planning, documents et suivi financier depuis le dashboard.",
+        title: "Pilotez l'operationnel",
+        description: "Gerez logements, missions, planning, documents et suivi financier depuis le dashboard.",
         link: "/dashboard/concierge",
       },
     ],
@@ -83,20 +83,20 @@ const stepsByCategory: Record<string, StepCategory> = {
     steps: [
       {
         Icon: Users,
-        title: "Accédez au réseau local",
-        description: "Positionnez votre savoir-faire auprès des concierges et propriétaires actifs.",
+        title: "Accedez au reseau local",
+        description: "Positionnez votre savoir-faire aupres des concierges et proprietaires actifs.",
         link: "/home",
       },
       {
         Icon: Lightbulb,
-        title: "Recevez des missions ciblées",
+        title: "Recevez des missions ciblees",
         description: "Travaillez avec des demandes plus lisibles et un cadre plus professionnel.",
         link: "/home",
       },
       {
         Icon: Handshake,
-        title: "Renforcez votre visibilité",
-        description: "Capitalisez sur la recommandation, les avis et la qualité d'exécution.",
+        title: "Renforcez votre visibilite",
+        description: "Capitalisez sur la recommandation, les avis et la qualite d'execution.",
         link: "/home",
       },
     ],
@@ -127,46 +127,46 @@ const StepCard = ({ step, index }: { step: Step; index: number }) => {
 };
 
 export function HowItWorksSection() {
-  const router = useRouter();
-
   return (
     <section id="how-it-works" className={styles.howItWorks}>
-      <motion.h2
+      <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
+        className={styles.intro}
       >
-        Comment ça marche ?
-      </motion.h2>
+        <SectionIntro title="Comment ca marche ?" />
+      </motion.div>
 
-      <Tabs.Root defaultValue="concierges" className={styles.tabs}>
-        <Tabs.List className={styles.tabsList}>
+      <Tabs defaultValue="concierges">
+        <TabsList variant="showcase">
           {Object.entries(stepsByCategory).map(([key, category]) => (
-            <Tabs.Trigger key={key} className={styles.tabTrigger} value={key}>
+            <TabsTrigger key={key} variant="showcase" value={key}>
               <category.icon className={styles.tabIcon} size={20} strokeWidth={2} />
               {category.label}
-            </Tabs.Trigger>
+            </TabsTrigger>
           ))}
-        </Tabs.List>
+        </TabsList>
 
         {Object.entries(stepsByCategory).map(([key, category]) => (
-          <Tabs.Content key={key} value={key} className={styles.tabContent}>
+          <TabsContent key={key} value={key} variant="showcase">
             <div className={styles.steps}>
               {category.steps.map((step, index) => (
                 <StepCard key={`${key}-${index}`} step={step} index={index} />
               ))}
             </div>
-            <motion.button
-              className={styles.cta}
+            <motion.div
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push(category.ctaLink)}
+              className={styles.ctaWrap}
             >
-              {category.ctaLabel}
-            </motion.button>
-          </Tabs.Content>
+              <ButtonLink href={category.ctaLink} variant="paper" size="lg" className={styles.cta}>
+                {category.ctaLabel}
+              </ButtonLink>
+            </motion.div>
+          </TabsContent>
         ))}
-      </Tabs.Root>
+      </Tabs>
     </section>
   );
 }

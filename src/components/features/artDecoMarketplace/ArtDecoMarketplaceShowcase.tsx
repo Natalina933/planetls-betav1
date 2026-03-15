@@ -1,9 +1,4 @@
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Card, CardBody, CardFooter, CardHeader } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Tag } from "@/components/ui/Tag";
+import { Badge, Button, Card, CardBody, CardFooter, CardHeader, Input, SectionIntro, Select, Tag } from "@/components/ui";
 import styles from "./ArtDecoMarketplaceShowcase.module.scss";
 
 const categories = [
@@ -68,7 +63,12 @@ export function ArtDecoMarketplaceShowcase() {
         <div className={styles.separator} aria-hidden />
 
         <section className={styles.block}>
-          <h2>Category Cards</h2>
+          <SectionIntro
+            align="left"
+            eyebrow="Structure"
+            title="Category Cards"
+            description="Des cartes premium et cohérentes pour présenter chaque famille d'acteurs de la plateforme."
+          />
           <div className={styles.categoryGrid}>
             {categories.map((item) => (
               <Card key={item.title} interactive className={styles.decoCard}>
@@ -91,22 +91,27 @@ export function ArtDecoMarketplaceShowcase() {
         <div className={styles.separator} aria-hidden />
 
         <section className={styles.block}>
-          <h2>Search & Map Interface</h2>
+          <SectionIntro
+            align="left"
+            eyebrow="Recherche"
+            title="Search & Map Interface"
+            description="Exemple de filtres et de navigation sur une recherche métier avec même langage UI."
+          />
           <div className={styles.searchLayout}>
             <aside className={styles.filters}>
               <h3>Filtres</h3>
-              <Select defaultValue="all" aria-label="Type de profil">
+              <Select defaultValue="all" aria-label="Type de profil" tone="soft">
                 <option value="all">Tous les profils</option>
                 <option value="concierge">Concierges</option>
                 <option value="artisan">Artisans</option>
                 <option value="owner">Proprietaires</option>
               </Select>
-              <Select defaultValue="any" aria-label="Delai d'intervention">
+              <Select defaultValue="any" aria-label="Delai d'intervention" tone="soft">
                 <option value="any">Delai: indifferente</option>
                 <option value="24h">Intervention sous 24h</option>
                 <option value="48h">Intervention sous 48h</option>
               </Select>
-              <Input bare placeholder="Budget max mensuel" aria-label="Budget maximum" />
+              <Input bare tone="soft" placeholder="Budget max mensuel" aria-label="Budget maximum" />
               <Button variant="secondary">Appliquer</Button>
             </aside>
             <div className={styles.resultsArea}>
@@ -138,7 +143,12 @@ export function ArtDecoMarketplaceShowcase() {
         <div className={styles.separator} aria-hidden />
 
         <section className={styles.block}>
-          <h2>Profile Cards</h2>
+          <SectionIntro
+            align="left"
+            eyebrow="Profils"
+            title="Profile Cards"
+            description="Le même système visuel doit pouvoir présenter des profils, des statuts et des actions sans rupture."
+          />
           <div className={styles.profileGrid}>
             {profiles.map((profile) => (
               <Card key={profile.name} interactive className={styles.profileCard}>
@@ -166,7 +176,12 @@ export function ArtDecoMarketplaceShowcase() {
         <div className={styles.separator} aria-hidden />
 
         <section className={styles.block}>
-          <h2>Platform Feature Cards</h2>
+          <SectionIntro
+            align="left"
+            eyebrow="Fonctionnalités"
+            title="Platform Feature Cards"
+            description="Même grammaire visuelle pour les blocs d'information, les cartes et les outils de pilotage."
+          />
           <div className={styles.featureGrid}>
             {features.map((feature) => (
               <Card key={feature.title} className={styles.featureCard}>

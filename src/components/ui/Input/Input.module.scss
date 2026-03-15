@@ -7,28 +7,42 @@
 .label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--ui-color-text-muted);
+  color: var(--ds-color-text-soft);
 }
 
 .input {
   width: 100%;
   min-height: 44px;
-  border-radius: var(--ui-input-radius, var(--ui-radius-md));
-  border: 1px solid var(--ui-color-border);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text);
+  border-radius: var(--ui-input-radius, var(--ds-radius-md));
+  border: 1px solid var(--ds-color-border);
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text);
   padding: 0.6rem 0.75rem;
   font-size: 0.92rem;
-  font-family: var(--ui-font-text);
+  font-family: var(--ds-font-body);
 }
 
 .input::placeholder {
-  color: #9f9183;
+  color: var(--ds-color-text-muted);
 }
 
 .input:focus-visible {
   outline: 2px solid rgba(212, 175, 55, 0.45);
   outline-offset: 2px;
+}
+
+.soft {
+  background: var(--ds-color-surface-soft);
+}
+
+.dark {
+  background: linear-gradient(135deg, var(--ds-color-dark-soft), var(--ds-color-dark));
+  border-color: color-mix(in srgb, var(--ds-color-gold) 40%, transparent);
+  color: var(--ds-color-text-inverse);
+}
+
+.dark::placeholder {
+  color: rgba(245, 242, 234, 0.62);
 }
 
 .error {
@@ -37,5 +51,5 @@
 
 .errorText {
   font-size: 0.78rem;
-  color: var(--ui-color-danger);
+  color: var(--ds-color-danger);
 }
