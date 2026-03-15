@@ -1,13 +1,14 @@
-"use client";
+﻿"use client";
 
 import React, { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
-  FiBarChart,
+  FiClipboard,
   FiFileText,
-  FiGlobe,
+  FiHome,
   FiMapPin,
+  FiMessageSquare,
   FiShield,
-  FiUser,
 } from "react-icons/fi";
 import { useSession } from "next-auth/react";
 import conciergeStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
@@ -17,10 +18,15 @@ import {
 } from "@/app/dashboard/concierge/profile/profileTabSections";
 import {
   ProfilePageShell,
-  type ProfileShellTab,
 } from "@/app/components/dashboard/profile/ProfilePageShell";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
+import { buildBasicProfileCompletion } from "@/app/components/dashboard/profile/completion";
+import { ProfileOverviewContent } from "@/app/components/dashboard/profile/ProfileOverviewContent";
+import {
+  UNIFIED_PROFILE_TABS,
+  type UnifiedProfileTabId,
+} from "@/app/components/dashboard/profile/unifiedProfileTabsConfig";
 
 export type UnifiedProfileForm = {
   id: string;
@@ -58,13 +64,6 @@ type EditableUnifiedProfilePageProps = {
   requireCompanyForVerified?: boolean;
 };
 
-type UnifiedProfileTabId =
-  | "overview"
-  | "account"
-  | "address"
-  | "socials"
-  | "presentation";
-
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 const noop = () => {};
 
@@ -77,13 +76,6 @@ const SECTION_IDS = {
   PRESENTATION: "presentation",
 } as const;
 
-const UNIFIED_PROFILE_TABS: Array<ProfileShellTab<UnifiedProfileTabId>> = [
-  { id: "overview", label: "Vue d'ensemble", icon: FiBarChart },
-  { id: "account", label: "Compte", icon: FiUser },
-  { id: "address", label: "Adresse", icon: FiMapPin },
-  { id: "socials", label: "Reseaux", icon: FiGlobe },
-  { id: "presentation", label: "Presentation", icon: FiFileText },
-];
 
 const SECTION_FIELDS: Record<string, Array<keyof UnifiedProfileForm>> = {
   [SECTION_IDS.ACCOUNT]: ["first_name", "last_name", "username", "phone", "company_name"],
@@ -130,6 +122,12 @@ export default function EditableUnifiedProfilePage({
   requireCompanyForVerified = false,
 }: EditableUnifiedProfilePageProps) {
   const { update } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") as UnifiedProfileTabId | null;
+  const resolvedInitialTab = UNIFIED_PROFILE_TABS.some((tab) => tab.id === tabFromUrl)
+    ? (tabFromUrl as UnifiedProfileTabId)
+    : "overview";
   const [form, setForm] = useState<UnifiedProfileForm>(emptyForm);
   const [initialForm, setInitialForm] = useState<UnifiedProfileForm>(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -138,7 +136,7 @@ export default function EditableUnifiedProfilePage({
   const [success, setSuccess] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [sectionSnapshot, setSectionSnapshot] = useState<UnifiedProfileForm | null>(null);
-  const [activeTab, setActiveTab] = useState<UnifiedProfileTabId>("overview");
+  const [activeTab, setActiveTab] = useState<UnifiedProfileTabId>(resolvedInitialTab);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     [SECTION_IDS.SUMMARY]: true,
     [SECTION_IDS.ACCOUNT]: true,
@@ -197,6 +195,12 @@ export default function EditableUnifiedProfilePage({
 
     void loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (resolvedInitialTab !== activeTab) {
+      setActiveTab(resolvedInitialTab);
+    }
+  }, [resolvedInitialTab, activeTab]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
@@ -379,12 +383,24 @@ export default function EditableUnifiedProfilePage({
   const isVerified = Boolean(
     form.email && form.phone && form.city && (!requireCompanyForVerified || form.company_name),
   );
+  const profileCompletion = buildBasicProfileCompletion({
+    firstName: form.first_name,
+    lastName: form.last_name,
+    email: form.email,
+    phone: form.phone,
+    companyName: form.company_name,
+    requireCompany: requireCompanyForVerified,
+    streetAddress: form.street_address,
+    postalCode: form.postal_code,
+    city: form.city,
+    presentation: form.additional_info,
+  });
 
   const renderAccountSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
       title="Informations du compte"
-      icon={<FiUser />}
+      icon={<FiClipboard />}
       canEdit
       collapsible
       isOpen={openSections[SECTION_IDS.ACCOUNT]}
@@ -398,11 +414,11 @@ export default function EditableUnifiedProfilePage({
       onCancel={cancelEditSection}
     >
       <div className={conciergeStyles.fieldsGrid}>
-        <EditableProfileField styles={conciergeStyles} label="Prenom" name="first_name" value={form.first_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Prénom" name="first_name" value={form.first_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Nom" name="last_name" value={form.last_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Nom utilisateur" name="username" value={form.username} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Email" name="email" value={form.email} isEditing={false} onChange={handleChange} />
-        <EditableProfileField styles={conciergeStyles} label="Telephone" name="phone" value={form.phone} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
+        <EditableProfileField styles={conciergeStyles} label="Téléphone" name="phone" value={form.phone} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
         <EditableProfileField styles={conciergeStyles} label="Entreprise" name="company_name" value={form.company_name} isEditing={editingSection === SECTION_IDS.ACCOUNT} onChange={handleChange} />
       </div>
     </EditableProfileSection>
@@ -411,7 +427,7 @@ export default function EditableUnifiedProfilePage({
   const renderAddressSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Adresse et presence locale"
+      title="Adresse et présence locale"
       icon={<FiMapPin />}
       canEdit
       collapsible
@@ -437,8 +453,8 @@ export default function EditableUnifiedProfilePage({
   const renderSocialsSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Site et reseaux sociaux"
-      icon={<FiGlobe />}
+      title="Site et réseaux sociaux"
+      icon={<FiMessageSquare />}
       canEdit
       collapsible
       isOpen={openSections[SECTION_IDS.SOCIALS]}
@@ -452,7 +468,7 @@ export default function EditableUnifiedProfilePage({
       onCancel={cancelEditSection}
     >
       <p className={conciergeStyles.sectionIntroText}>
-        Centralisez vos liens publics et vos reseaux sociaux.
+        Centralisez vos liens publics et vos réseaux sociaux.
       </p>
       <div className={conciergeStyles.fieldsGrid}>
         <EditableProfileField styles={conciergeStyles} label="Site web" name="website" value={form.website} isEditing={editingSection === SECTION_IDS.SOCIALS} onChange={handleChange} />
@@ -466,7 +482,7 @@ export default function EditableUnifiedProfilePage({
   const renderPresentationSection = () => (
     <EditableProfileSection
       styles={conciergeStyles}
-      title="Presentation"
+      title="Présentation"
       icon={<FiFileText />}
       canEdit
       collapsible
@@ -483,7 +499,7 @@ export default function EditableUnifiedProfilePage({
       <p className={conciergeStyles.sectionIntroText}>{presentationIntro}</p>
       <EditableProfileField
         styles={conciergeStyles}
-        label="Presentation"
+        label="Présentation"
         name="additional_info"
         value={form.additional_info}
         isEditing={editingSection === SECTION_IDS.PRESENTATION}
@@ -493,6 +509,12 @@ export default function EditableUnifiedProfilePage({
     </EditableProfileSection>
   );
 
+  const handleTabChange = (tabId: UnifiedProfileTabId) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    router.push(`?tab=${tabId}`, { scroll: false });
+  };
+
   return (
     <ProfilePageShell<UnifiedProfileTabId>
       styles={conciergeStyles}
@@ -501,7 +523,7 @@ export default function EditableUnifiedProfilePage({
       errorMsg={error}
       tabs={UNIFIED_PROFILE_TABS}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
     >
       <div className={conciergeStyles.grid}>
         <aside className={conciergeStyles.leftColumn}>
@@ -511,7 +533,7 @@ export default function EditableUnifiedProfilePage({
               roleLabel={roleLabel}
               email={form.email}
               phone={form.phone}
-              location={form.city || "Ville non renseignee"}
+              location={form.city || "Ville non renseignée"}
               isEditing={editingSection === SECTION_IDS.AVATAR}
               avatarFile={avatarFile}
               existingAvatarUrl={currentAvatar}
@@ -567,10 +589,10 @@ export default function EditableUnifiedProfilePage({
           </article>
 
           <div className={conciergeStyles.badgeCard}>
-            <h4 className={conciergeStyles.badgeTitle}>
-              <FiShield />
-              {isVerified ? "Badge verifie" : "Verification en attente"}
-            </h4>
+              <h4 className={conciergeStyles.badgeTitle}>
+                <FiShield />
+                {isVerified ? "Badge vérifié" : "Vérification en attente"}
+              </h4>
             <p className={conciergeStyles.badgeText}>
               {isVerified ? verifiedCompleteText : verifiedPendingText}
             </p>
@@ -578,8 +600,8 @@ export default function EditableUnifiedProfilePage({
 
           <EditableProfileSection
             styles={conciergeStyles}
-            title="Resume du profil"
-            icon={<FiBarChart />}
+            title="Résumé du profil"
+            icon={<FiHome />}
             canEdit={false}
             collapsible
             isOpen={openSections[SECTION_IDS.SUMMARY]}
@@ -604,21 +626,49 @@ export default function EditableUnifiedProfilePage({
                 postal_code: form.postal_code,
                 city: form.city,
               }}
-              onEdit={() => {
-                setActiveTab("account");
-                beginEditSection(SECTION_IDS.ACCOUNT);
-              }}
             />
           </EditableProfileSection>
+
         </aside>
 
         <div className={conciergeStyles.rightColumn}>
           {activeTab === "overview" ? (
             <>
-              {renderAccountSection()}
-              {renderAddressSection()}
-              {renderSocialsSection()}
-              {renderPresentationSection()}
+              <EditableProfileSection
+                styles={conciergeStyles}
+                title="Vue d'ensemble"
+                icon={<FiHome />}
+                canEdit={false}
+                collapsible={false}
+                isOpen
+                isEditing={false}
+                isDirty={false}
+                isLoading={false}
+                onToggle={noop}
+                onHeaderKeyDown={handleHeaderKeyDown}
+                onBeginEdit={noop}
+                onSave={noop}
+                onCancel={noop}
+              >
+                <ProfileOverviewContent
+                  intro="Cette vue rassemble uniquement l'état de votre profil. Les autres onglets servent ensuite à compléter chaque partie sans doublon."
+                  introClassName={conciergeStyles.sectionIntroText}
+                  card={{
+                    title: "Profil",
+                    description:
+                      "Complétez votre profil pour améliorer sa visibilité et finaliser sa validation.",
+                    percentage: profileCompletion.percentage,
+                    completedCount: profileCompletion.completedCount,
+                    totalCount: profileCompletion.totalCount,
+                    missingItems: profileCompletion.missingItems,
+                    actionLabel: "Compléter mon compte",
+                    onAction: () => {
+                      handleTabChange("account");
+                      beginEditSection(SECTION_IDS.ACCOUNT);
+                    },
+                  }}
+                />
+              </EditableProfileSection>
             </>
           ) : null}
           {activeTab === "account" ? renderAccountSection() : null}

@@ -1,23 +1,8 @@
 @use "sass:color";
 
-/* ======================================================
-   PALETTE HARMONISÉE DASHBOARD CONCIERGE
-====================================================== */
 $bg-soft: #f8f7f4;
-$card-bg: #ffffff;
-$text-main: #1f2933;
 $text-muted: #6b7280;
 
-$accent-gold: #c9a24d;
-$accent-green: #6b8f71;
-$accent-warning: #d6a64f;
-
-$border-soft: rgba(0, 0, 0, 0.08);
-$shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.06);
-
-/* ======================================================
-   CONTAINER
-====================================================== */
 .container {
   background: $bg-soft;
   padding: 2rem;
@@ -25,12 +10,8 @@ $shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  color: $text-main;
 }
 
-/* ======================================================
-   LOADING / EMPTY
-====================================================== */
 .loadingState,
 .emptyState {
   display: flex;
@@ -45,203 +26,14 @@ $shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.06);
     width: 2.5rem;
     height: 2.5rem;
     border: 3px solid color.adjust($bg-soft, $lightness: -5%);
-    border-top-color: $accent-gold;
+    border-top-color: #c9a24d;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-}
-
-/* ======================================================
-   COMPLETION CARD
-====================================================== */
-.completionCard {
-  background: $card-bg;
-  border: 1px solid $border-soft;
-  border-left: 4px solid $accent-gold;
-  border-radius: 1.25rem;
-  padding: 1.75rem;
-  box-shadow: $shadow-soft;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-/* ======================================================
-   HEADER
-====================================================== */
-.completionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.completionTitleRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.completionIcon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    rgba(201, 162, 77, 0.25),
-    rgba(201, 162, 77, 0.05)
-  );
-  color: $accent-gold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.completionInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.completionTitle {
-  font-size: 1.15rem;
-  font-weight: 600;
-}
-
-.completionMessage {
-  font-size: 0.85rem;
-  color: $text-muted;
-}
-
-/* ======================================================
-   POURCENTAGE
-====================================================== */
-.completionPercentage {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: $accent-gold;
-
-  .percentageSymbol {
-    font-size: 1rem;
-    margin-left: 0.15rem;
-  }
-}
-
-/* ======================================================
-   PROGRESS BAR
-====================================================== */
-.progressBarWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.progressBar {
-  height: 0.65rem;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    $accent-gold,
-    color.adjust($accent-gold, $lightness: 12%)
-  );
-  transition: width 0.5s ease;
-}
-
-.progressLabel {
-  font-size: 0.75rem;
-  color: $text-muted;
-}
-
-/* ======================================================
-   MISSING FIELDS
-====================================================== */
-.missingFieldsSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-top: 0.75rem;
-}
-
-.missingFieldsHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 600;
-  color: $accent-warning;
-  font-size: 0.85rem;
-}
-
-.missingFieldsList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.missingFieldTag {
-  background: rgba(201, 162, 77, 0.12);
-  color: $accent-gold;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-
-/* ======================================================
-   CTA
-====================================================== */
-.completeProfileButton {
-  margin-top: 0.75rem;
-  align-self: flex-start;
-  background: $accent-gold;
-  color: #1f2933;
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.25s ease;
-
-  &:hover {
-    background: color.adjust($accent-gold, $lightness: 8%);
-    transform: translateY(-1px);
-  }
-}
-
-/* ======================================================
-   SUCCESS STATE
-====================================================== */
-.successMessage {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: $accent-green;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-/* ======================================================
-   RESPONSIVE
-====================================================== */
-@media (max-width: 768px) {
-  .completionHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .completionPercentage {
-    margin-top: 0.5rem;
+    to {
+      transform: rotate(360deg);
+    }
   }
 }

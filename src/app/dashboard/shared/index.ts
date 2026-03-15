@@ -1,5 +1,19 @@
 export { averageBy, sumBy, takeFirst } from "./collections";
 export {
+  buildConciergeFinancesCompletion,
+  buildConciergeHousingCompletion,
+  buildConciergeMissionsCompletion,
+  buildConciergeOwnersCompletion,
+  buildConciergeProfileCompletion,
+  buildOwnerConciergeCompletion,
+  buildOwnerFinancesCompletion,
+  buildOwnerHousingCompletion,
+  buildOwnerMissionsCompletion,
+  buildProviderClientsCompletion,
+  buildProviderFinancesCompletion,
+  buildProviderInterventionsCompletion,
+} from "./categoryCompletion";
+export {
   formatConversationDate,
   getConversationSummary,
   getConversationTitle,

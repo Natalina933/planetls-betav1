@@ -24,14 +24,17 @@ import {
 import { ChevronDown, Edit2, LucideUser, Save, Shield, Star, X as LucideX } from "lucide-react";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
+import { CompletionStatusCard } from "@/components/dashboard";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
+import { ProfileOverviewContent } from "@/app/components/dashboard/profile/ProfileOverviewContent";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
 import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
 import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
 import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 import type { ConciergeTabId } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+import { buildConciergeProfileCompletion } from "@/app/dashboard/shared";
 import type { MissionAvailability } from "@/app/components/missions/types";
 import { ConciergeProfileShell } from "./profileShellSections";
 
@@ -78,6 +81,13 @@ type EditProfileStateLike = {
   availability_hours?: string | null;
   [key: string]: unknown;
 } | null;
+type TariffOverviewControlsLike = {
+  configuredPricingCount: number;
+  tariffReadinessPercent: number;
+  pendingTariffReadinessChecks: Array<{ id: string; label: string }>;
+  scrollToTariffSection: (sectionId: string) => void;
+  handleTabChange: (tabId: ConciergeTabId) => void;
+};
 type SetEditProfile = React.Dispatch<React.SetStateAction<EditProfileStateLike>>;
 type PricingModalState = {
   id?: string;
@@ -630,7 +640,7 @@ interface ConciergeProfileActiveTabContentProps {
     activeMissionServiceCatalogIds: string[];
     activeMissionServiceLabels: string[];
   };
-  tariffOverviewControls: unknown;
+  tariffOverviewControls: TariffOverviewControlsLike;
   tariffFoundationControls: unknown;
   tariffConfigControls: unknown;
   pricingCatalogRows: unknown;
@@ -989,7 +999,30 @@ export function ConciergeProfileActiveTabContent({
 }: ConciergeProfileActiveTabContentProps) {
   if (!ficheControls?.profile || !profileEditorControls?.editProfile) return null;
 
+  const profileCompletion = buildConciergeProfileCompletion(ficheControls.profile);
+
   switch (activeTab) {
+    case "overview":
+      return (
+        <section className={styles.tariffSimpleCard}>
+          <h3 className={styles.tariffSimpleTitle}>Vue d&apos;ensemble</h3>
+          <ProfileOverviewContent
+            intro="Cette vue rassemble uniquement l'état de votre profil concierge. Les autres onglets servent à compléter votre fiche, vos justificatifs et votre présence publique."
+            introClassName={styles.tariffHint}
+            card={{
+              title: "Profil",
+              description:
+                "Complétez votre fiche pour renforcer votre visibilité et débloquer les étapes de vérification.",
+              percentage: profileCompletion.percentage,
+              completedCount: profileCompletion.completedCount,
+              totalCount: profileCompletion.totalCount,
+              missingItems: profileCompletion.missingItems,
+              actionLabel: "Compléter ma fiche",
+              onAction: () => tariffOverviewControls.handleTabChange("fiche"),
+            }}
+          />
+        </section>
+      );
     case "fiche":
       return (
         <ConciergeFicheTabContent
@@ -1177,7 +1210,7 @@ function FicheSidebarCard({
             <p className={styles.profileStatValue}>
               {profile.years_experience != null
                 ? `${profile.years_experience} ans`
-                : "Non renseigne"}
+                : "Non renseigné"}
             </p>
           </div>
         </div>
@@ -1207,7 +1240,7 @@ function FichePresentationSection({
             <div className={styles.presentationExample}>
               <strong>Exemple</strong>
               <p>
-                Conciergerie locale a Paris, disponible 7j/7, specialisee en accueil
+                Conciergerie locale à Paris, disponible 7j/7, spécialisée en accueil
                 voyageurs, ménage et intendance.
               </p>
             </div>
@@ -1389,7 +1422,7 @@ function FicheInsuranceSection({ renderSection, renderField }: FicheSimpleSectio
         "Assurance___Certifications",
         true,
         false,
-        "Qualité, Labels...",
+        "Qualité, labels...",
       )}
     </>,
   );
@@ -1551,7 +1584,7 @@ export function MissionsTabLayout({
         title={`Completer: ${step.label}`}
       >
         <span className={styles.missionPendingDot} aria-hidden="true" />
-        A completer
+        À compléter
       </button>
     );
   };
@@ -1622,6 +1655,17 @@ export function MissionsTabLayout({
           </div>
         </div>
       </div>
+
+      <CompletionStatusCard
+        title="Missions"
+        description="Vérifiez en un coup d’œil ce qu'il reste à configurer pour recevoir des demandes qualifiées."
+        percentage={missionProgressPercent}
+        completedCount={missionProgressDoneCount}
+        totalCount={missionProgressTotal}
+        missingItems={missionProgressSteps.filter((step) => !step.done).map((step) => step.label)}
+        actionLabel="Afficher les points à compléter"
+        onAction={onTogglePendingSteps}
+      />
 
       <div className={styles.missionsColumns}>
         <div className={styles.missionsPrimary}>{children}</div>
@@ -1986,7 +2030,7 @@ export function MissionQuickQuoteSection({
             disabled={!selectedMissionQuoteId || missionQuoteBusy}
             onClick={createQuoteFromMission}
           >
-            {missionQuoteBusy ? "Generation..." : "Creer devis"}
+            {missionQuoteBusy ? "Génération..." : "Créer devis"}
           </button>
         </div>
       </div>
@@ -2193,7 +2237,7 @@ export function TariffWorkflowSection({
                 </article>
                 <article className={styles.tariffMetric}>
                   <span>Tarif horaire</span>
-                  <strong>{hourlyRate > 0 ? `${hourlyRate} EUR/h` : "A définir"}</strong>
+                  <strong>{hourlyRate > 0 ? `${hourlyRate} EUR/h` : "À définir"}</strong>
                 </article>
                 <article className={styles.tariffMetric}>
                   <span>Services avec tarif</span>
@@ -2205,7 +2249,7 @@ export function TariffWorkflowSection({
                 <strong className={styles.tariffReadyScore}>{tariffReadinessPercent}%</strong>
                 <p>
                   {pendingChecksCount > 0
-                    ? `${pendingChecksCount} point(s) à completer. Voir les bulles rouges ci-dessous.`
+                    ? `${pendingChecksCount} point(s) à compléter. Voir les bulles rouges ci-dessous.`
                     : "Configuration complète. Vous pouvez envoyer vos devis."}
                 </p>
                 {pendingChecksCount > 0 ? (
@@ -2276,7 +2320,7 @@ export function TariffPillarsSection({
         <p>Socle commun applique a vos prestations.</p>
         <div className={styles.tariffPillarStats}>
           <span>
-            Horaire: <strong>{hourlyRate > 0 ? `${hourlyRate} EUR/h` : "A definir"}</strong>
+            Horaire: <strong>{hourlyRate > 0 ? `${hourlyRate} EUR/h` : "À définir"}</strong>
           </span>
           <span>
             Deplacement: <strong>{travelFee} EUR</strong>
@@ -3024,8 +3068,8 @@ export function TariffPropertyRulesSection({
       <p className={styles.tariffHint}>Créez des modulateurs par type de bien et surface.</p>
       <div className={styles.pricingSegmentsDraft}>
         <select
-          aria-label="Service optionnel pour la regle de bien"
-          title="Service optionnel pour la regle de bien"
+          aria-label="Service optionnel pour la règle de bien"
+          title="Service optionnel pour la règle de bien"
           value={propertyRuleDraft.service_id}
           disabled={!canEditTariffConfig}
           onChange={(e) =>
@@ -3043,7 +3087,7 @@ export function TariffPropertyRulesSection({
           ))}
         </select>
         <input
-          aria-label="Type de bien pour la nouvelle regle"
+          aria-label="Type de bien pour la nouvelle règle"
           type="text"
           placeholder="Type de bien (ex: villa)"
           value={propertyRuleDraft.property_type}
@@ -3056,7 +3100,7 @@ export function TariffPropertyRulesSection({
           }
         />
         <input
-          aria-label="Surface minimale pour la nouvelle regle"
+          aria-label="Surface minimale pour la nouvelle règle"
           type="number"
           placeholder="Surface min m²"
           value={propertyRuleDraft.min_surface_m2}
@@ -3069,7 +3113,7 @@ export function TariffPropertyRulesSection({
           }
         />
         <input
-          aria-label="Surface maximale pour la nouvelle regle"
+          aria-label="Surface maximale pour la nouvelle règle"
           type="number"
           placeholder="Surface max m²"
           value={propertyRuleDraft.max_surface_m2}
@@ -3082,7 +3126,7 @@ export function TariffPropertyRulesSection({
           }
         />
         <input
-          aria-label="Variation en pourcentage pour la nouvelle regle"
+          aria-label="Variation en pourcentage pour la nouvelle règle"
           type="number"
           step="0.1"
           placeholder="Variation %"
@@ -3101,19 +3145,19 @@ export function TariffPropertyRulesSection({
           disabled={!canEditTariffConfig || propertyRulesBusyId === "create"}
           onClick={createPricingPropertyRule}
         >
-          Ajouter regle
+          Ajouter règle
         </button>
       </div>
       {propertyRulesLoading ? (
         <p className={styles.tariffHint}>Chargement des règles...</p>
       ) : propertyRules.length === 0 ? (
-        <p className={styles.tariffHint}>Aucune regle definie.</p>
+        <p className={styles.tariffHint}>Aucune règle définie.</p>
       ) : (
         <div className={styles.pricingSegmentsList}>
           {propertyRules.map((rule) => (
             <article key={rule.id} className={styles.pricingSegmentRow}>
               <input
-                aria-label={`Type de bien pour la regle ${rule.id}`}
+                aria-label={`Type de bien pour la règle ${rule.id}`}
                 type="text"
                 value={rule.property_type ?? ""}
                 disabled={!canEditTariffConfig || propertyRulesBusyId === rule.id}
@@ -3126,7 +3170,7 @@ export function TariffPropertyRulesSection({
                 }
               />
               <input
-                aria-label={`Surface minimale pour la regle ${rule.id}`}
+                aria-label={`Surface minimale pour la règle ${rule.id}`}
                 type="number"
                 placeholder="min"
                 value={rule.min_surface_m2 ?? ""}
@@ -3142,7 +3186,7 @@ export function TariffPropertyRulesSection({
                 }
               />
               <input
-                aria-label={`Surface maximale pour la regle ${rule.id}`}
+                aria-label={`Surface maximale pour la règle ${rule.id}`}
                 type="number"
                 placeholder="max"
                 value={rule.max_surface_m2 ?? ""}
@@ -3158,7 +3202,7 @@ export function TariffPropertyRulesSection({
                 }
               />
               <input
-                aria-label={`Variation en pourcentage pour la regle ${rule.id}`}
+                aria-label={`Variation en pourcentage pour la règle ${rule.id}`}
                 type="number"
                 step="0.1"
                 value={rule.delta_pct}
@@ -3222,14 +3266,14 @@ export function TariffStrategySection({
 }: TariffStrategySectionProps) {
   return (
     <section className={styles.tariffSimpleCard}>
-      <h3 className={styles.tariffSimpleTitle}>G. Simulateur strategique</h3>
+      <h3 className={styles.tariffSimpleTitle}>G. Simulateur stratégique</h3>
       <p className={styles.tariffHint}>
         Testez un scénario commercial puis injectez-le dans Devis & factures.
       </p>
       <div className={styles.pricingSegmentsDraft}>
         <select
-          aria-label="Segment pour la simulation strategique"
-          title="Segment pour la simulation strategique"
+          aria-label="Segment pour la simulation stratégique"
+          title="Segment pour la simulation stratégique"
           value={strategySim.segmentId}
           onChange={(e) => setStrategySim((prev) => ({ ...prev, segmentId: e.target.value }))}
         >
@@ -3241,8 +3285,8 @@ export function TariffStrategySection({
           ))}
         </select>
         <select
-          aria-label="Service acte pour la simulation strategique"
-          title="Service acte pour la simulation strategique"
+          aria-label="Service acte pour la simulation stratégique"
+          title="Service acte pour la simulation stratégique"
           value={strategySim.serviceId}
           onChange={(e) => setStrategySim((prev) => ({ ...prev, serviceId: e.target.value }))}
         >
@@ -3254,8 +3298,8 @@ export function TariffStrategySection({
           ))}
         </select>
         <select
-          aria-label="Type de bien pour la simulation strategique"
-          title="Type de bien pour la simulation strategique"
+          aria-label="Type de bien pour la simulation stratégique"
+          title="Type de bien pour la simulation stratégique"
           value={strategySim.propertyType}
           onChange={(e) => setStrategySim((prev) => ({ ...prev, propertyType: e.target.value }))}
         >
@@ -3266,7 +3310,7 @@ export function TariffStrategySection({
           ))}
         </select>
         <input
-          aria-label="Surface du bien pour la simulation strategique"
+          aria-label="Surface du bien pour la simulation stratégique"
           type="number"
           min={0}
           step={1}
@@ -3275,7 +3319,7 @@ export function TariffStrategySection({
           placeholder="Surface m2"
         />
         <input
-          aria-label="Revenus mensuels estimes pour la simulation strategique"
+          aria-label="Revenus mensuels estimés pour la simulation stratégique"
           type="number"
           min={0}
           step={100}
@@ -3284,7 +3328,7 @@ export function TariffStrategySection({
           placeholder="Revenus mensuels EUR"
         />
         <input
-          aria-label="Nombre de nouveaux logements par mois pour la simulation strategique"
+          aria-label="Nombre de nouveaux logements par mois pour la simulation stratégique"
           type="number"
           min={0}
           step={1}
@@ -3295,7 +3339,7 @@ export function TariffStrategySection({
       </div>
       <div className={styles.pricingSegmentsDraft}>
         <input
-          aria-label="Nombre de services a l'acte par mois pour la simulation strategique"
+          aria-label="Nombre de services à l'acte par mois pour la simulation stratégique"
           type="number"
           min={0}
           step={1}

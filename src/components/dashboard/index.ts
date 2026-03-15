@@ -8,6 +8,8 @@ export { DashboardPanel } from "./DashboardPanel";
 export { DashboardLoadingScreen } from "./DashboardLoadingScreen";
 export { DashboardSectionShell } from "./SectionShell";
 export { ConversationFilters } from "./ConversationFilters";
+export { CompletionStatusCard } from "./CompletionStatusCard";
+export type { CompletionStatusCardProps } from "./CompletionStatusCard";
 export type {
   DashboardActivityItem,
   DashboardNavItem,

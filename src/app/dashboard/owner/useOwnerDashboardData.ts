@@ -153,6 +153,10 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
 
   return {
     properties,
+    missions,
+    quotes,
+    invoices,
+    conversations,
     loading,
     error,
     activeCount,
