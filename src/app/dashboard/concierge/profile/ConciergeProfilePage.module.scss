@@ -66,52 +66,6 @@ $transition-slow: 380ms $easing-soft;
 }
 
 // ============================================
-// HEADER
-// ============================================
-
-.pageHeader {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: $color-bg-card;
-  border-bottom: 1px solid $color-border-light;
-  padding: 1.25rem 2rem;
-  box-shadow: $shadow-sm;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.logo {
-  width: 42px;
-  height: 42px;
-  background: linear-gradient(135deg, $color-primary-dark, $color-primary-light);
-  border-radius: $radius-md;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 12px rgba($color-primary, 0.3);
-  transition: transform $transition-base, box-shadow $transition-base, filter $transition-base;
-
-  &:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 18px rgba($color-primary, 0.35);
-    filter: saturate(1.05);
-  }
-}
-
-.pageTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: $color-text-primary;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-// ============================================
 // TABS NAVIGATION
 // ============================================
 
@@ -236,7 +190,7 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .tabContent {
-  margin-top: 6rem;
+  margin-top: 1rem;
   animation: contentFadeIn 360ms $easing-soft both;
 }
 
@@ -3294,10 +3248,6 @@ $transition-slow: 380ms $easing-soft;
 // ============================================
 
 @media (max-width: 1024px) {
-  .pageHeader {
-    padding: 1rem 1.5rem;
-  }
-
   .tabs {
     padding: 1rem 1.5rem 0;
   }
@@ -3336,10 +3286,6 @@ $transition-slow: 380ms $easing-soft;
   .tabs {
     padding: 0.75rem 0.75rem 0;
     gap: 0.35rem;
-  }
-
-  .pageTitle {
-    font-size: 1.25rem;
   }
 
   .tab {
@@ -3413,7 +3359,6 @@ $transition-slow: 380ms $easing-soft;
   .cancelBtn,
   .sectionContent,
   .notification,
-  .logo,
   .tabContent,
   .tabPane,
   .financeCard {

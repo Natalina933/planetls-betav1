@@ -1285,10 +1285,6 @@ export default function ConciergeProfilePage() {
     }
   }, [tabFromUrl, activeTab]);
 
-  const activeTabLabel = useMemo(
-    () => CONCIERGE_TABS.find((tab) => tab.id === activeTab)?.label ?? "Vue d'ensemble",
-    [activeTab],
-  );
 
   // Charger le profil au montage
   useEffect(() => {
@@ -2973,7 +2969,6 @@ export default function ConciergeProfilePage() {
   return (
     <ConciergeProfileShell
       styles={styles}
-      title={activeTabLabel}
       successMsg={successMsg}
       errorMsg={errorMsg}
       tabs={CONCIERGE_TABS}

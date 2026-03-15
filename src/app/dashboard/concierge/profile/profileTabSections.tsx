@@ -1006,7 +1006,7 @@ export function ConciergeProfileActiveTabContent({
         <ProfileOverviewWorkspace
           tone="concierge"
           eyebrow="Pilotage du profil"
-          title="Vue d'ensemble du profil"
+          title="Profil"
           description="Cette vue rassemble uniquement l'état de votre profil concierge. Les autres onglets servent à compléter votre fiche, vos justificatifs et votre présence publique."
           chips={["Vue synthèse", "Profil", "Fiche visible"]}
           actions={[

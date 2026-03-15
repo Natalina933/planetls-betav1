@@ -518,9 +518,9 @@ export default function EditableUnifiedProfilePage({
   return (
     <ProfilePageShell<UnifiedProfileTabId>
       styles={conciergeStyles}
-      title="Mon profil"
       successMsg={success}
       errorMsg={error}
+      showTabs={false}
       tabs={UNIFIED_PROFILE_TABS}
       activeTab={activeTab}
       onTabChange={handleTabChange}
@@ -637,7 +637,7 @@ export default function EditableUnifiedProfilePage({
               <ProfileOverviewWorkspace
                 tone={roleLabel.toLowerCase().includes("prestataire") ? "provider" : "owner"}
                 eyebrow="Pilotage du profil"
-                title="Vue d'ensemble du profil"
+                title="Profil"
                 description="Cette vue rassemble uniquement l'état de votre profil. Les autres onglets servent ensuite à compléter votre identité, vos coordonnées et votre présentation, sans redondance."
                 chips={["Vue synthèse", "Profil", "Fiche visible"]}
                 actions={[

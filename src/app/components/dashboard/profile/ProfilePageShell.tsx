@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FiCheckCircle as FiCheckCircleOutline } from "react-icons/fi";
-import { Shield, X as LucideX } from "lucide-react";
+import { X as LucideX } from "lucide-react";
 
 type TabIconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
 
@@ -10,11 +10,6 @@ export interface ProfileShellTab<TTabId extends string> {
   id: TTabId;
   label: string;
   icon: TabIconComponent;
-}
-
-interface ProfilePageHeaderProps {
-  styles: Record<string, string>;
-  title: string;
 }
 
 interface ProfileNotificationsProps {
@@ -32,24 +27,13 @@ interface ProfileTabNavigationProps<TTabId extends string> {
 
 interface ProfilePageShellProps<TTabId extends string> {
   styles: Record<string, string>;
-  title: string;
   successMsg: string | null;
   errorMsg: string | null;
+  showTabs?: boolean;
   tabs?: Array<ProfileShellTab<TTabId>>;
   activeTab?: TTabId;
   onTabChange?: (tabId: TTabId) => void;
   children: React.ReactNode;
-}
-
-export function ProfilePageHeader({ styles, title }: ProfilePageHeaderProps) {
-  return (
-    <header className={styles.pageHeader}>
-      <div className={styles.logo}>
-        <Shield size={22} />
-      </div>
-      <h1 className={styles.pageTitle}>{title}</h1>
-    </header>
-  );
 }
 
 export function ProfileNotifications({
@@ -109,20 +93,18 @@ export function ProfileTabNavigation<TTabId extends string>({
 
 export function ProfilePageShell<TTabId extends string>({
   styles,
-  title,
   successMsg,
   errorMsg,
+  showTabs = true,
   tabs,
   activeTab,
   onTabChange,
   children,
 }: ProfilePageShellProps<TTabId>) {
-  const shouldRenderTabs = Boolean(tabs && tabs.length > 0 && activeTab && onTabChange);
+  const shouldRenderTabs = Boolean(showTabs && tabs && tabs.length > 0 && activeTab && onTabChange);
 
   return (
     <div className={styles.page}>
-      <ProfilePageHeader styles={styles} title={title} />
-
       <main className={styles.main}>
         <ProfileNotifications
           styles={styles}

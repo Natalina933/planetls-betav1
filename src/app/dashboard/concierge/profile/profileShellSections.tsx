@@ -4,7 +4,6 @@ import React from "react";
 import type { ConciergeTabId } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import {
   ProfileNotifications as ConciergeNotifications,
-  ProfilePageHeader as ConciergePageHeader,
   ProfilePageShell,
   type ProfileShellTab,
 } from "@/app/components/dashboard/profile/ProfilePageShell";
@@ -13,7 +12,6 @@ type TabIconComponent = React.ComponentType<{ size?: number | string; className?
 
 interface ConciergeProfileShellProps {
   styles: Record<string, string>;
-  title: string;
   successMsg: string | null;
   errorMsg: string | null;
   tabs: Array<{
@@ -26,11 +24,10 @@ interface ConciergeProfileShellProps {
   onTabChange: (tabId: ConciergeTabId) => void;
 }
 
-export { ConciergeNotifications, ConciergePageHeader };
+export { ConciergeNotifications };
 
 export function ConciergeProfileShell({
   styles,
-  title,
   successMsg,
   errorMsg,
   tabs,
@@ -41,9 +38,9 @@ export function ConciergeProfileShell({
   return (
     <ProfilePageShell<ConciergeTabId>
       styles={styles}
-      title={title}
       successMsg={successMsg}
       errorMsg={errorMsg}
+      showTabs={false}
       tabs={tabs as Array<ProfileShellTab<ConciergeTabId>>}
       activeTab={activeTab}
       onTabChange={onTabChange}
