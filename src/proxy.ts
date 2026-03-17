@@ -32,18 +32,28 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  const sessionCookiePresent = hasSessionCookie(req);
+const token = await getToken({
+  req,
+  secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
+});
+const sessionCookiePresent = hasSessionCookie(req);
 
-  if (!token) {
-    if (pathname.startsWith("/dashboard")) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    return NextResponse.next();
+if (!token) {
+  // Cookie présent mais token invalide → on nettoie / on force login
+  if (sessionCookiePresent) {
+    const res = NextResponse.redirect(new URL("/login", req.url));
+    // Exemple : nettoyage éventuel (si tu gères des cookies custom)
+    // res.cookies.set("next-auth.session-token", "", { maxAge: 0 });
+    return res;
   }
+
+  // Pas de token et pas de cookie → juste non connecté
+  if (pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  return NextResponse.next();
+}
+
 
   const role = (token.role as string | undefined)?.toLowerCase();
   const targetFolder = role ? ROLE_FOLDER_MAP[role] : null;
