@@ -15,21 +15,19 @@ import VideoIntro from "../components/layout/Home/VideoIntro/VideoIntro";
 
 export default function HomePage() {
   return (
-    <div>
-      <main>
-        <FirstVisit />
-        <HeroSection />
-        <HowItWorksSection />
-        <ServiceList />
-        <VideoIntro />
-        <ForWhomSection />
-        <PromotePlatformSection />
-        <RecommendedConciergesSection />
-        <TrustSection />
-        <BlogNewsSection />
-        <ShopSection />
-        <Footer />
-      </main>
-    </div>
+    <main>
+      <FirstVisit />
+      <HeroSection />
+      <HowItWorksSection />
+      <ServiceList />
+      <VideoIntro />
+      <ForWhomSection />
+      <PromotePlatformSection />
+      <RecommendedConciergesSection />
+      <TrustSection />
+      <BlogNewsSection />
+      <ShopSection />
+      <Footer />
+    </main>
   );
 }

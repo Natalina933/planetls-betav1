@@ -23,9 +23,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return (
-    <main>
-      <HomeContent />
-    </main>
-  );
+  return <HomeContent />;
 }

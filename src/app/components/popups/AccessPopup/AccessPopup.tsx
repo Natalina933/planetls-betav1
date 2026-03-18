@@ -73,12 +73,14 @@ export default function AccessPopup({
     phone: "",
     additionalInfo: "",
   });
+  const [error, setError] = useState<string | null>(null);
 
   const profileKey = getProfileKey(recap.category);
   const copy = PROFILE_COPY[profileKey];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setError(null);
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -86,7 +88,7 @@ export default function AccessPopup({
     e.preventDefault();
 
     if (!form.firstName || !form.lastName || !form.email) {
-      alert("Veuillez remplir tous les champs obligatoires");
+      setError("Veuillez remplir tous les champs obligatoires.");
       return;
     }
 
@@ -94,15 +96,21 @@ export default function AccessPopup({
   };
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
+    <div
+      className={styles.overlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="access-popup-title"
+      aria-describedby="access-popup-recap"
+    >
       <div className={styles.popup}>
         <button className={styles.close} onClick={onClose} aria-label="Fermer la fenetre" type="button">
           X
         </button>
 
-        <h2>{copy.title}</h2>
+        <h2 id="access-popup-title">{copy.title}</h2>
 
-        <section className={styles.recapBox}>
+        <section id="access-popup-recap" className={styles.recapBox}>
           <h3>Recapitulatif</h3>
 
           <ul>
@@ -124,24 +132,46 @@ export default function AccessPopup({
           </ul>
         </section>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <label>
-            Prenom *
-            <input name="firstName" value={form.firstName} onChange={handleChange} required />
+            Prénom *
+            <input
+              name="firstName"
+              value={form.firstName}
+              onChange={handleChange}
+              required
+              aria-invalid={Boolean(error && !form.firstName)}
+              aria-describedby={error && !form.firstName ? "access-popup-error" : undefined}
+            />
           </label>
 
           <label>
             Nom *
-            <input name="lastName" value={form.lastName} onChange={handleChange} required />
+            <input
+              name="lastName"
+              value={form.lastName}
+              onChange={handleChange}
+              required
+              aria-invalid={Boolean(error && !form.lastName)}
+              aria-describedby={error && !form.lastName ? "access-popup-error" : undefined}
+            />
           </label>
 
           <label>
             Email *
-            <input name="email" type="email" value={form.email} onChange={handleChange} required />
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              aria-invalid={Boolean(error && !form.email)}
+              aria-describedby={error && !form.email ? "access-popup-error" : undefined}
+            />
           </label>
 
           <label>
-            Telephone
+            Téléphone
             <input name="phone" value={form.phone} onChange={handleChange} />
           </label>
 
@@ -149,6 +179,12 @@ export default function AccessPopup({
             {copy.needLabel}
             <textarea name="additionalInfo" value={form.additionalInfo} onChange={handleChange} />
           </label>
+
+          {error ? (
+            <p id="access-popup-error" className={styles.errorMsg} role="alert" aria-live="assertive">
+              {error}
+            </p>
+          ) : null}
 
           <div className={styles.actions}>
             <button type="button" className={styles.secondaryButton} onClick={onBack}>

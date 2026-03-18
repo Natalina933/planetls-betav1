@@ -10,6 +10,11 @@ import { Button, Input } from "@/components/ui";
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+const EMAIL_ERROR_ID = "login-email-error";
+const PASSWORD_ERROR_ID = "login-password-error";
+const PASSWORD_HELP_ID = "login-password-help";
+const AUTH_ERROR_ID = "login-auth-error";
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -100,6 +105,8 @@ export default function LoginPage() {
             onChange={handleChange}
             placeholder="you@example.com"
             aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? EMAIL_ERROR_ID : undefined}
+            aria-errormessage={errors.email ? EMAIL_ERROR_ID : undefined}
             required
             autoComplete="email"
             className={errors.email ? styles.inputError : styles.input}
@@ -110,7 +117,7 @@ export default function LoginPage() {
             </span>
           )}
           {errors.email && (
-            <small role="alert" className={styles.errorMsg}>
+            <small id={EMAIL_ERROR_ID} role="alert" className={styles.errorMsg}>
               {errors.email}
             </small>
           )}
@@ -127,6 +134,10 @@ export default function LoginPage() {
             onChange={handleChange}
             placeholder="Votre mot de passe"
             aria-invalid={!!errors.password}
+            aria-describedby={
+              errors.password ? `${PASSWORD_HELP_ID} ${PASSWORD_ERROR_ID}` : PASSWORD_HELP_ID
+            }
+            aria-errormessage={errors.password ? PASSWORD_ERROR_ID : undefined}
             required
             minLength={8}
             autoComplete="current-password"
@@ -143,14 +154,22 @@ export default function LoginPage() {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </Button>
         </div>
+        <small id={PASSWORD_HELP_ID} className={styles.helperText}>
+          Minimum 8 caractères.
+        </small>
         {errors.password && (
-          <small role="alert" className={styles.errorMsg}>
+          <small id={PASSWORD_ERROR_ID} role="alert" className={styles.errorMsg}>
             {errors.password}
           </small>
         )}
 
         {errors.auth && (
-          <div role="alert" className={`${styles.errorMsg} ${styles.authError}`}>
+          <div
+            id={AUTH_ERROR_ID}
+            role="alert"
+            aria-live="assertive"
+            className={`${styles.errorMsg} ${styles.authError}`}
+          >
             {errors.auth}
           </div>
         )}

@@ -240,6 +240,13 @@ $page-width: 900px;
   margin-top: 0.2rem;
 }
 
+.helperText {
+  display: block;
+  color: rgba(0, 0, 0, 0.68);
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
 .authError {
   margin-top: 1rem;
 }

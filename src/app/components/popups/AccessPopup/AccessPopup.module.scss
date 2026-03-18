@@ -143,6 +143,13 @@
   }
 }
 
+.errorMsg {
+  margin: 0.2rem 0 0.1rem;
+  color: #b42318;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .actions {
   @include common.actionsBar;
   justify-content: flex-end;

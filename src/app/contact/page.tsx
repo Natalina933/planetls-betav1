@@ -8,15 +8,15 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1rem" }}>
+    <section style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1rem" }}>
       <h1>Contact</h1>
       <p>Vous pouvez nous ecrire pour une question produit ou un accompagnement.</p>
       <p>
         Email: <a href="mailto:contact@planetls.fr">contact@planetls.fr</a>
       </p>
       <p>
-        <Link href="/home">Retour a l'accueil</Link>
+        <Link href="/home">Retour a l&apos;accueil</Link>
       </p>
-    </main>
+    </section>
   );
 }

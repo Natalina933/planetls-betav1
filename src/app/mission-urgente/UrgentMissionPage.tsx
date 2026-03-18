@@ -123,10 +123,15 @@ export default function UrgentMissionPage() {
       </section>
 
       <section className={styles.layout}>
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form className={styles.form} onSubmit={handleSubmit} noValidate aria-labelledby="urgent-mission-form-title">
+          <h2 id="urgent-mission-form-title" className={styles.formTitle}>
+            Détailler la mission urgente
+          </h2>
           <div className={styles.section}>
             <span className={styles.step}>1. Type de mission</span>
-            <div className={styles.toggleRow}>
+            <fieldset className={styles.toggleGroup}>
+              <legend className={styles.visuallyHidden}>Type de mission</legend>
+              <div className={styles.toggleRow}>
               {(["check-in", "check-out"] as MissionType[]).map((option) => (
                 <Button
                   key={option}
@@ -135,11 +140,13 @@ export default function UrgentMissionPage() {
                   size="sm"
                   className={form.mission_type === option ? styles.toggleActive : styles.toggle}
                   onClick={() => setForm((prev) => ({ ...prev, mission_type: option }))}
+                  aria-pressed={form.mission_type === option}
                 >
                   {option === "check-in" ? "Check-in" : "Check-out"}
                 </Button>
               ))}
-            </div>
+              </div>
+            </fieldset>
           </div>
 
           <div className={styles.grid}>
@@ -147,6 +154,7 @@ export default function UrgentMissionPage() {
               <span>2. Date et heure exacte</span>
               <Input
                 bare
+                id="urgent-scheduled-at"
                 type="datetime-local"
                 value={form.scheduled_at}
                 onChange={(event) =>
@@ -160,6 +168,7 @@ export default function UrgentMissionPage() {
               <span>3. Adresse</span>
               <Input
                 bare
+                id="urgent-property-address"
                 value={form.property_address}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, property_address: event.target.value }))
@@ -173,6 +182,7 @@ export default function UrgentMissionPage() {
               <span>4. Nombre de voyageurs</span>
               <Input
                 bare
+                id="urgent-traveler-count"
                 type="number"
                 min="1"
                 value={form.traveler_count}
@@ -186,6 +196,7 @@ export default function UrgentMissionPage() {
               <span>Langue parlee</span>
               <Input
                 bare
+                id="urgent-spoken-language"
                 value={form.spoken_language}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, spoken_language: event.target.value }))
@@ -197,6 +208,7 @@ export default function UrgentMissionPage() {
             <label className={styles.field}>
               <span>Remise de cles</span>
               <Select
+                id="urgent-key-handover"
                 value={form.key_handover_type}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, key_handover_type: event.target.value }))
@@ -211,6 +223,7 @@ export default function UrgentMissionPage() {
             <label className={`${styles.field} ${styles.fieldFull}`}>
               <span>Instructions particulieres</span>
               <Textarea
+                id="urgent-special-instructions"
                 rows={4}
                 value={form.special_instructions}
                 onChange={(event) =>
@@ -224,6 +237,7 @@ export default function UrgentMissionPage() {
               <span>5. Telephone</span>
               <Input
                 bare
+                id="urgent-contact-phone"
                 type="tel"
                 value={form.contact_phone}
                 onChange={(event) =>
@@ -238,6 +252,7 @@ export default function UrgentMissionPage() {
               <span>Email</span>
               <Input
                 bare
+                id="urgent-contact-email"
                 type="email"
                 value={form.contact_email}
                 onChange={(event) =>
@@ -252,8 +267,16 @@ export default function UrgentMissionPage() {
             {loading ? "Recherche des concierges..." : "Lancer la mission urgente"}
           </Button>
 
-          {error ? <p className={styles.errorBox}>{error}</p> : null}
-          {success ? <p className={styles.successBox}>{success}</p> : null}
+          {error ? (
+            <p className={styles.errorBox} role="alert" aria-live="assertive">
+              {error}
+            </p>
+          ) : null}
+          {success ? (
+            <p className={styles.successBox} role="status" aria-live="polite">
+              {success}
+            </p>
+          ) : null}
         </form>
 
         <aside className={styles.results}>
