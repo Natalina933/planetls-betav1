@@ -5,11 +5,6 @@ import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { setConversationSeenAt } from "../shared";
 import { z } from "zod";
 
-interface SendMessageBody {
-  body?: string;
-  metadata?: Json | null;
-}
-
 const conversationSelect = `
   id,
   concierge_profile_id,

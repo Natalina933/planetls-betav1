@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { DEFAULT_CONCIERGE_AVATAR } from "./conciergeSearchUtils";
 
@@ -19,12 +20,13 @@ export function ConciergeAvatar({ src, alt, className, width, height }: Concierg
   }, [src]);
 
   return (
-    <img
+    <Image
       src={currentSrc}
       alt={alt}
       className={className}
       width={width}
       height={height}
+      unoptimized={currentSrc === DEFAULT_CONCIERGE_AVATAR}
       onError={() => {
         if (currentSrc !== DEFAULT_CONCIERGE_AVATAR) {
           setCurrentSrc(DEFAULT_CONCIERGE_AVATAR);

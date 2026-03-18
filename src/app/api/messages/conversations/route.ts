@@ -11,16 +11,6 @@ import {
 
 type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
 
-interface CreateConversationBody {
-  owner_profile_id?: string;
-  concierge_profile_id?: string;
-  source?: ConversationSource;
-  source_reference?: string | null;
-  subject?: string | null;
-  prefill_message?: string | null;
-  metadata?: Json | null;
-}
-
 const VALID_SOURCES: ConversationSource[] = [
   "manual",
   "search",

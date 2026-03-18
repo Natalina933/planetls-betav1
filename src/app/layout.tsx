@@ -1,41 +1,10 @@
-﻿import type { Metadata, Viewport } from "next";
-import {
-  Inter,
-  Montserrat,
-  Cormorant_Garamond,
-  Open_Sans,
-} from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./styles/main.scss";
 
 import Providers from "./context/Providers";
 import AppChrome from "./components/layout/AppChrome/AppChrome";
 import { SearchPopupProvider } from "./context/SearchPopupContext";
 import { ThemeProvider } from "./providers/ThemeProvider";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-title",
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-primary",
-  display: "swap",
-});
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  variable: "--font-text",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -67,17 +36,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="fr"
-      className={`${inter.variable} ${montserrat.variable} ${cormorant.variable} ${openSans.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="fr" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Providers>
           <ThemeProvider>
             <SearchPopupProvider>
               <AppChrome />
-              <main>{children}</main>
+              {children}
             </SearchPopupProvider>
           </ThemeProvider>
         </Providers>
@@ -85,4 +50,3 @@ export default function RootLayout({
     </html>
   );
 }
-

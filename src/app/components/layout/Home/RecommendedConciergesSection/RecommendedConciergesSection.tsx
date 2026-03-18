@@ -127,7 +127,9 @@ export default function RecommendedConciergesSection() {
               </div>
 
               {item.latest_review_comment ? (
-                <blockquote className={styles.quote}>"{item.latest_review_comment}"</blockquote>
+                <blockquote className={styles.quote}>
+                  &quot;{item.latest_review_comment}&quot;
+                </blockquote>
               ) : null}
             </CardBody>
 

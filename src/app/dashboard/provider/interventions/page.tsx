@@ -307,7 +307,7 @@ function ProviderInterventionsContent() {
       );
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result?.error || "Impossible d'enregistrer l'intervention.");
+        throw new Error(result?.error || "Impossible d’enregistrer l’intervention.");
       }
 
       resetForm();
@@ -495,7 +495,7 @@ function ProviderInterventionsContent() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <h2>Planning d'interventions</h2>
+              <h2>Planning d’interventions</h2>
               <span>{loading ? "..." : `${filteredItems.length} mission(s)`}</span>
             </div>
 

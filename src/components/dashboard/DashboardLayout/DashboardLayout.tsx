@@ -8,7 +8,6 @@ import { ActivityFeed } from "../ActivityFeed/ActivityFeed";
 import { ProfileSummary } from "../ProfileSummary/ProfileSummary";
 import type {
   DashboardActivityItem,
-  DashboardNavItem,
   DashboardNotificationItem,
   DashboardPersona,
   DashboardQuickAction,
@@ -21,8 +20,6 @@ interface DashboardLayoutProps {
   persona: DashboardPersona;
   title: string;
   subtitle: string;
-  navTitle: string;
-  navItems: DashboardNavItem[];
   stats: DashboardStatItem[];
   actions: DashboardQuickAction[];
   activity: DashboardActivityItem[];
@@ -47,8 +44,6 @@ export function DashboardLayout({
   persona,
   title,
   subtitle,
-  navTitle,
-  navItems,
   stats,
   actions,
   activity,

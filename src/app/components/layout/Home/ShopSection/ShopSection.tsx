@@ -18,7 +18,7 @@ export function ShopSection() {
       >
         <ShoppingBag size={48} />
         <p>
-          Decouvrez nos kits d'accueil, objets deco et produits artisanaux concus pour les acteurs
+          Decouvrez nos kits d&apos;accueil, objets deco et produits artisanaux concus pour les acteurs
           de la location saisonniere.
         </p>
         <ButtonLink href="/shop" variant="paper" className={styles.shopButton}>
