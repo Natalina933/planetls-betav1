@@ -23,22 +23,6 @@ interface InvoiceItemInput {
   metadata?: Json | null;
 }
 
-interface CreateInvoiceBody {
-  quote_id?: string | null;
-  owner_profile_id?: string | null;
-  mission_id?: string | null;
-  status?: InvoiceStatus;
-  issue_date?: string | null;
-  due_date?: string | null;
-  currency?: string | null;
-  discount_amount?: number | null;
-  tax_rate?: number | null;
-  paid_amount?: number | null;
-  notes?: string | null;
-  metadata?: Json | null;
-  items?: InvoiceItemInput[];
-}
-
 interface DbErrorLike {
   code?: string;
   message?: string;
@@ -67,6 +51,12 @@ const ALLOWED_BILLING_ROLES = new Set([
 ]);
 
 const OWNER_BILLING_ROLES = new Set(["owner", "owner_pro"]);
+const INVOICE_CREATOR_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+]);
 
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -283,6 +273,12 @@ export async function POST(req: NextRequest) {
     if (!ALLOWED_BILLING_ROLES.has(role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
+    if (!INVOICE_CREATOR_ROLES.has(role)) {
+      return NextResponse.json(
+        { error: "Seuls les concierges et administrateurs peuvent creer une facture." },
+        { status: 403 },
+      );
+    }
 
     const rawBody: unknown = await req.json();
     const parsedBody = createInvoiceBodySchema.safeParse(rawBody);
@@ -308,6 +304,34 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(paidAmount) || paidAmount < 0) {
       return NextResponse.json({ error: "paid_amount invalide" }, { status: 400 });
     }
+    if (!body.owner_profile_id || !isUuidLike(body.owner_profile_id)) {
+      return NextResponse.json({ error: "owner_profile_id requis" }, { status: 400 });
+    }
+
+    const { data: ownerProfile, error: ownerProfileError } = await db
+      .from("profiles")
+      .select("id, role, category")
+      .eq("id", body.owner_profile_id)
+      .maybeSingle();
+
+    if (ownerProfileError) {
+      console.error("[POST /api/invoices] owner profile error:", ownerProfileError);
+      return NextResponse.json({ error: "Erreur verification proprietaire" }, { status: 500 });
+    }
+    if (!ownerProfile) {
+      return NextResponse.json({ error: "Proprietaire introuvable" }, { status: 404 });
+    }
+
+    const ownerRoleValue = (ownerProfile.role ?? "").toLowerCase();
+    const ownerCategoryValue = (ownerProfile.category ?? "").toLowerCase();
+    const isOwnerTarget =
+      ownerRoleValue === "owner" ||
+      ownerRoleValue === "owner_pro" ||
+      ownerCategoryValue.startsWith("proprietaire");
+
+    if (!isOwnerTarget) {
+      return NextResponse.json({ error: "owner_profile_id invalide" }, { status: 400 });
+    }
 
     const { data: conciergeBranding } = await db
       .from("profiles")
@@ -332,7 +356,7 @@ export async function POST(req: NextRequest) {
       .insert({
         quote_id: body.quote_id ?? null,
         concierge_profile_id: userId,
-        owner_profile_id: body.owner_profile_id ?? null,
+        owner_profile_id: body.owner_profile_id,
         mission_id: body.mission_id ?? null,
         status,
         issue_date: body.issue_date ?? new Date().toISOString().slice(0, 10),
