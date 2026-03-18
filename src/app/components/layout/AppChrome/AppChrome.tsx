@@ -8,7 +8,7 @@ const MapPopup = dynamic(() => import("../MapPopup/MapPopup"), { ssr: false });
 
 function shouldHideChrome(pathname: string | null) {
   if (!pathname) return false;
-  return pathname.startsWith("/dashboard") || pathname.startsWith("/login");
+  return pathname.startsWith("/dashboard");
 }
 
 export default function AppChrome() {

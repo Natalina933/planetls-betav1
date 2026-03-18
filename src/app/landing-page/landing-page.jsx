@@ -25,9 +25,20 @@ export default function ComingSoonPage() {
           Notre plateforme arrive très bientôt. Soyez les premiers informés !
         </motion.p>
 
-        <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
-          <input type="email" placeholder="Votre adresse email" required />
-          <button type="submit">Prévenir moi</button>
+        <form
+          className={styles.form}
+          onSubmit={(e) => e.preventDefault()}
+          noValidate
+          aria-labelledby="landing-subscribe-title"
+        >
+          <h2 id="landing-subscribe-title" className={styles.visuallyHidden}>
+            Être informé du lancement
+          </h2>
+          <label htmlFor="landing-email" className={styles.visuallyHidden}>
+            Votre adresse email
+          </label>
+          <input id="landing-email" type="email" placeholder="Votre adresse email" required />
+          <button type="submit">Prévenez-moi</button>
         </form>
 
         <div className={styles.socials}>

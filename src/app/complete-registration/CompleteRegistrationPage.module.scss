@@ -60,7 +60,8 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
 
 .section,
 .recapSection,
-.form {
+.form,
+.successPanel {
   background: $bg-card;
   border-radius: $radius-lg;
   padding: 2rem;
@@ -276,12 +277,80 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
   margin-bottom: 0.6rem;
 }
 
+.helperText {
+  display: block;
+  color: rgba(0, 0, 0, 0.68);
+  font-size: 0.85rem;
+  margin: -0.25rem 0 0.75rem;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .errorMsg {
   color: #e74c3c;
 }
 
 .successMsg {
   color: #2ecc71;
+}
+
+.successPanel {
+  text-align: center;
+}
+
+.successLead {
+  max-width: 640px;
+  margin: 0 auto 1.2rem;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.successChecklist {
+  background: $bg-page;
+  border: 1px solid rgba($gold, 0.15);
+  border-radius: $radius-md;
+  padding: 1.2rem;
+  margin: 0 auto 1.4rem;
+  max-width: 640px;
+
+  p {
+    margin: 0.35rem 0;
+  }
+}
+
+.successActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.secondaryButton {
+  width: 100%;
+}
+
+.captchaBlock {
+  margin-top: 1rem;
+}
+
+.captchaWidget {
+  min-height: 65px;
+}
+
+.captchaHint {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.65);
 }
 
 /* ============================================================================
