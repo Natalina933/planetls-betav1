@@ -1,23 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { z } from "zod";
-import {
-  getConversationSeenAt,
-  resolveConversationParticipants,
-  setConversationSeenAt,
-} from "./shared";
+import { getConversationSeenAt, resolveConversationParticipants, setConversationSeenAt } from "./shared";
+import { requireActor } from "@/app/lib/apiSecurity";
 
 type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
 
-const VALID_SOURCES: ConversationSource[] = [
-  "manual",
-  "search",
-  "mission",
-  "quote",
-  "invoice",
-];
+const VALID_SOURCES: ConversationSource[] = ["manual", "search", "mission", "quote", "invoice"];
+const OWNER_ROLES = new Set(["owner", "owner_pro"]);
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
 const ALLOWED_CONVERSATION_CREATOR_ROLES = new Set([
   "admin",
   "super_admin",
@@ -55,28 +47,51 @@ const conversationSelect = `
   updated_at
 `;
 
+function getRoleView(role: string, requestedRoleHint: string | null): "owner" | "concierge" | null {
+  if (OWNER_ROLES.has(role)) return "owner";
+  if (CONCIERGE_ROLES.has(role)) return "concierge";
+  if (role === "admin" || role === "super_admin") {
+    if (requestedRoleHint === "owner" || requestedRoleHint === "concierge") {
+      return requestedRoleHint;
+    }
+    return "concierge";
+  }
+  return null;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
+    const actorResult = await requireActor(req, {
+      logLabel: "messages conversations auth",
+      actionLabel: "accéder à la messagerie",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
+    }
+
+    if (!isUuidLike(actorResult.actor.userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const url = new URL(req.url);
-    const roleHint = url.searchParams.get("role") ?? "concierge";
-    if (roleHint !== "concierge" && roleHint !== "owner") {
+    const requestedRoleHint = url.searchParams.get("role");
+    if (requestedRoleHint && requestedRoleHint !== "concierge" && requestedRoleHint !== "owner") {
       return NextResponse.json({ error: "role invalide" }, { status: 400 });
     }
+
+    const roleView = getRoleView(actorResult.actor.role, requestedRoleHint);
+    if (!roleView) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const limitRaw = Number(url.searchParams.get("limit") ?? "40");
     const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 150) : 40;
-
-    const filterColumn =
-      roleHint === "owner" ? "owner_profile_id" : "concierge_profile_id";
+    const filterColumn = roleView === "owner" ? "owner_profile_id" : "concierge_profile_id";
 
     const { data: conversations, error } = await db
       .from("contact_conversations")
       .select(conversationSelect)
-      .eq(filterColumn, userId)
+      .eq(filterColumn, actorResult.actor.userId)
       .order("last_message_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -90,7 +105,7 @@ export async function GET(req: NextRequest) {
     const counterpartIds = new Set<string>();
     rows.forEach((conversation) => {
       const counterpartId =
-        conversation.concierge_profile_id === userId
+        conversation.concierge_profile_id === actorResult.actor.userId
           ? conversation.owner_profile_id
           : conversation.concierge_profile_id;
       if (counterpartId) counterpartIds.add(counterpartId);
@@ -129,7 +144,7 @@ export async function GET(req: NextRequest) {
 
     const hydrated = rows.map((conversation) => {
       const counterpartId =
-        conversation.concierge_profile_id === userId
+        conversation.concierge_profile_id === actorResult.actor.userId
           ? conversation.owner_profile_id
           : conversation.concierge_profile_id;
       const counterpart = counterpartId ? profilesById.get(counterpartId) : null;
@@ -155,13 +170,12 @@ export async function GET(req: NextRequest) {
         .from("contact_messages")
         .select("conversation_id, sender_profile_id, created_at")
         .in("conversation_id", conversationIds)
-        .neq("sender_profile_id", userId)
+        .neq("sender_profile_id", actorResult.actor.userId)
         .order("created_at", { ascending: false });
 
       if (messagesError) {
         console.error("[GET /api/messages/conversations] messages error:", messagesError);
       } else {
-        const roleView = roleHint === "owner" ? "owner" : "concierge";
         for (const conversation of hydrated) {
           const seenAt = getConversationSeenAt(conversation.metadata, roleView);
           const seenTime = seenAt ? new Date(seenAt).getTime() : 0;
@@ -197,12 +211,17 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "messages conversations auth",
+      allowedRoles: ALLOWED_CONVERSATION_CREATOR_ROLES,
+      actionLabel: "créer une conversation",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
-    if (!ALLOWED_CONVERSATION_CREATOR_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+
+    if (!isUuidLike(actorResult.actor.userId)) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const rawBody: unknown = await req.json();
@@ -212,8 +231,8 @@ export async function POST(req: NextRequest) {
     }
     const body = parsedBody.data;
     const { ownerProfileId, conciergeProfileId } = resolveConversationParticipants({
-      role,
-      userId,
+      role: actorResult.actor.role,
+      userId: actorResult.actor.userId,
       ownerProfileId: body.owner_profile_id,
       conciergeProfileId: body.concierge_profile_id,
     });
@@ -232,9 +251,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!actorResult.actor.isAdmin) {
+      const isOwnerActor = OWNER_ROLES.has(actorResult.actor.role) && ownerProfileId === actorResult.actor.userId;
+      const isConciergeActor =
+        CONCIERGE_ROLES.has(actorResult.actor.role) && conciergeProfileId === actorResult.actor.userId;
+
+      if (!isOwnerActor && !isConciergeActor) {
+        return NextResponse.json(
+          { error: "Vous ne pouvez creer une conversation qu'en votre nom." },
+          { status: 403 },
+        );
+      }
+    }
+
     const { data: ownerProfile, error: ownerProfileError } = await db
       .from("profiles")
-      .select("id, role, category")
+      .select("id, role, category, status")
       .eq("id", ownerProfileId)
       .maybeSingle();
 
@@ -245,13 +277,14 @@ export async function POST(req: NextRequest) {
     if (!ownerProfile) {
       return NextResponse.json({ error: "Destinataire introuvable" }, { status: 404 });
     }
+    if (ownerProfile.status === "suspended" || ownerProfile.status === "deleted") {
+      return NextResponse.json({ error: "Destinataire indisponible" }, { status: 403 });
+    }
 
     const roleValue = (ownerProfile.role ?? "").toLowerCase();
     const categoryValue = (ownerProfile.category ?? "").toLowerCase();
     const isOwnerTarget =
-      roleValue === "owner" ||
-      roleValue === "owner_pro" ||
-      categoryValue.startsWith("proprietaire");
+      roleValue === "owner" || roleValue === "owner_pro" || categoryValue.startsWith("proprietaire");
 
     if (!isOwnerTarget) {
       return NextResponse.json({ error: "Destinataire invalide" }, { status: 400 });
@@ -259,7 +292,7 @@ export async function POST(req: NextRequest) {
 
     const { data: conciergeProfile, error: conciergeProfileError } = await db
       .from("profiles")
-      .select("id, role, category")
+      .select("id, role, category, status")
       .eq("id", conciergeProfileId)
       .maybeSingle();
 
@@ -272,6 +305,9 @@ export async function POST(req: NextRequest) {
     }
     if (!conciergeProfile) {
       return NextResponse.json({ error: "Concierge introuvable" }, { status: 404 });
+    }
+    if (conciergeProfile.status === "suspended" || conciergeProfile.status === "deleted") {
+      return NextResponse.json({ error: "Concierge indisponible" }, { status: 403 });
     }
 
     const conciergeRoleValue = (conciergeProfile.role ?? "").toLowerCase();
@@ -347,7 +383,7 @@ export async function POST(req: NextRequest) {
 
     const { error: messageError } = await db.from("contact_messages").insert({
       conversation_id: createdConversation.id,
-      sender_profile_id: userId,
+      sender_profile_id: actorResult.actor.userId,
       message_type: "text",
       body: prefillBody,
       metadata: {
@@ -358,13 +394,15 @@ export async function POST(req: NextRequest) {
     });
 
     if (messageError) {
-      console.error("[POST /api/messages/conversations] prefill message error:", messageError);
+      console.error("[POST /api/messages/conversations] prefill error:", messageError);
+      await db.from("contact_conversations").delete().eq("id", createdConversation.id);
+      return NextResponse.json({ error: "Erreur creation message" }, { status: 500 });
     }
 
-    const creatorRoleView = role === "owner" || role === "owner_pro" ? "owner" : "concierge";
+    const roleView = ownerProfileId === actorResult.actor.userId ? "owner" : "concierge";
     const nextMetadata = setConversationSeenAt(
       createdConversation.metadata,
-      creatorRoleView,
+      roleView,
       new Date().toISOString(),
     );
 

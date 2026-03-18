@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import type { Json } from "@/types/supabase";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { setConversationSeenAt } from "../shared";
 import { z } from "zod";
+import { canAccessParticipantResource, requireActor } from "@/app/lib/apiSecurity";
 
 const conversationSelect = `
   id,
@@ -30,11 +30,6 @@ const messageSelect = `
   created_at
 `;
 
-const canAccessConversation = (userId: string, conversation: {
-  concierge_profile_id: string;
-  owner_profile_id: string;
-}) => conversation.concierge_profile_id === userId || conversation.owner_profile_id === userId;
-
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
@@ -48,15 +43,19 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "messages conversation auth",
+      actionLabel: "accéder à cette conversation",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
     const { id } = await params;
     if (!isUuidLike(id)) {
       return NextResponse.json({ error: "Conversation invalide" }, { status: 400 });
     }
+
     const { data: conversation, error: conversationError } = await db
       .from("contact_conversations")
       .select(conversationSelect)
@@ -70,11 +69,12 @@ export async function GET(
     if (!conversation) {
       return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
     }
-    if (!canAccessConversation(userId, conversation)) {
+
+    if (!canAccessParticipantResource(actorResult.actor, conversation)) {
       return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
-    const roleView = conversation.owner_profile_id === userId ? "owner" : "concierge";
+    const roleView = conversation.owner_profile_id === actorResult.actor.userId ? "owner" : "concierge";
     const lastSeenAt = conversation.last_message_at || new Date().toISOString();
     const nextMetadata = setConversationSeenAt(conversation.metadata, roleView, lastSeenAt);
 
@@ -124,7 +124,7 @@ export async function GET(
       conversation,
       messages: messages ?? [],
       participants: participantsById.size > 0 ? Array.from(participantsById.values()) : [],
-      current_user_id: userId,
+      current_user_id: actorResult.actor.userId,
     });
   } catch (err) {
     console.error("[GET /api/messages/conversations/:id] ERROR:", err);
@@ -137,9 +137,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "messages conversation auth",
+      actionLabel: "envoyer un message",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
     const { id } = await params;
@@ -168,7 +171,8 @@ export async function POST(
     if (!conversation) {
       return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
     }
-    if (!canAccessConversation(userId, conversation)) {
+
+    if (!canAccessParticipantResource(actorResult.actor, conversation)) {
       return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
     if (conversation.status === "closed") {
@@ -184,7 +188,7 @@ export async function POST(
       .from("contact_messages")
       .insert({
         conversation_id: id,
-        sender_profile_id: userId,
+        sender_profile_id: actorResult.actor.userId,
         message_type: "text",
         body: content,
         metadata: safeMetadata,
@@ -197,7 +201,7 @@ export async function POST(
       return NextResponse.json({ error: "Erreur envoi message" }, { status: 500 });
     }
 
-    const roleView = conversation.owner_profile_id === userId ? "owner" : "concierge";
+    const roleView = conversation.owner_profile_id === actorResult.actor.userId ? "owner" : "concierge";
     const { data: currentConversation } = await db
       .from("contact_conversations")
       .select("metadata")

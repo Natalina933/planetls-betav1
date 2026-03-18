@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActor } from "@/app/lib/apiSecurity";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 type InvoiceStatus =
   | "draft"
@@ -9,6 +9,18 @@ type InvoiceStatus =
   | "paid"
   | "overdue"
   | "canceled";
+
+type InvoiceRecord = {
+  id: string;
+  status: InvoiceStatus;
+  total_amount: number | null;
+  paid_amount: number | null;
+  concierge_profile_id: string | null;
+  owner_profile_id: string | null;
+  issued_at: string | null;
+  paid_at: string | null;
+  canceled_at: string | null;
+};
 
 interface UpdateInvoiceStatusBody {
   status?: InvoiceStatus;
@@ -25,25 +37,54 @@ const VALID_INVOICE_STATUS: InvoiceStatus[] = [
 ];
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
 
-const ALLOWED_BILLING_ROLES = new Set([
-  "admin",
-  "super_admin",
-  "concierge",
-  "concierge_pro",
+const CONCIERGE_ALLOWED_TRANSITIONS = new Map<InvoiceStatus, InvoiceStatus[]>([
+  ["draft", ["issued", "canceled"]],
+  ["issued", ["partially_paid", "paid", "overdue", "canceled"]],
+  ["partially_paid", ["paid", "overdue", "canceled"]],
+  ["paid", []],
+  ["overdue", ["partially_paid", "paid", "canceled"]],
+  ["canceled", []],
 ]);
+
+async function loadInvoice(invoiceId: string): Promise<InvoiceRecord | null> {
+  const { data, error } = await db
+    .from("invoices")
+    .select(
+      "id, status, total_amount, paid_amount, concierge_profile_id, owner_profile_id, issued_at, paid_at, canceled_at",
+    )
+    .eq("id", invoiceId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[invoice status auth] invoice lookup error:", error);
+    throw new Error("INVOICE_LOOKUP_FAILED");
+  }
+
+  return data as InvoiceRecord | null;
+}
+
+function canTransition(currentStatus: InvoiceStatus, nextStatus: InvoiceStatus, isAdmin: boolean): boolean {
+  if (isAdmin) {
+    return currentStatus !== nextStatus;
+  }
+
+  return CONCIERGE_ALLOWED_TRANSITIONS.get(currentStatus)?.includes(nextStatus) ?? false;
+}
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!ALLOWED_BILLING_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    const actorResult = await requireActor(req, {
+      logLabel: "invoice status auth",
+      allowedRoles: CONCIERGE_ROLES,
+      actionLabel: "modifier une facture",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
     const { id } = await params;
@@ -54,23 +95,30 @@ export async function PATCH(
       return NextResponse.json({ error: "Statut facture invalide" }, { status: 400 });
     }
 
-    const { data: existing, error: existingError } = await db
-      .from("invoices")
-      .select("id, status, total_amount, paid_amount, issued_at, paid_at, canceled_at")
-      .eq("id", id)
-      .eq("concierge_profile_id", userId)
-      .maybeSingle();
-
-    if (existingError) {
-      console.error("[PATCH /api/invoices/:id/status] read error:", existingError);
-      return NextResponse.json({ error: "Erreur lecture facture" }, { status: 500 });
-    }
+    const existing = await loadInvoice(id);
     if (!existing) {
       return NextResponse.json({ error: "Facture introuvable" }, { status: 404 });
     }
 
+    if (!actorResult.actor.isAdmin && existing.concierge_profile_id !== actorResult.actor.userId) {
+      return NextResponse.json(
+        { error: "Vous n'êtes pas autorisé à modifier cette facture." },
+        { status: 403 },
+      );
+    }
+
+    if (!canTransition(existing.status, nextStatus, actorResult.actor.isAdmin)) {
+      return NextResponse.json(
+        {
+          error: `La transition '${existing.status}' -> '${nextStatus}' n'est pas autorisée.`,
+        },
+        { status: 403 },
+      );
+    }
+
     const totalAmount = Number(existing.total_amount ?? 0);
     let nextPaidAmount = Number(existing.paid_amount ?? 0);
+
     if (body.paid_amount !== null && body.paid_amount !== undefined) {
       const candidate = Number(body.paid_amount);
       if (!Number.isFinite(candidate) || candidate < 0) {
@@ -78,8 +126,16 @@ export async function PATCH(
       }
       nextPaidAmount = candidate;
     }
+
     if (nextStatus === "paid" && (body.paid_amount === null || body.paid_amount === undefined)) {
       nextPaidAmount = totalAmount;
+    }
+
+    if (nextPaidAmount > totalAmount && !actorResult.actor.isAdmin) {
+      return NextResponse.json(
+        { error: "Le montant payé ne peut pas dépasser le montant total de la facture." },
+        { status: 403 },
+      );
     }
 
     const nowIso = new Date().toISOString();
@@ -87,6 +143,7 @@ export async function PATCH(
       status: nextStatus,
       paid_amount: round2(nextPaidAmount),
       balance_amount: round2(Math.max(totalAmount - nextPaidAmount, 0)),
+      updated_at: nowIso,
     };
 
     if (nextStatus === "issued" && !existing.issued_at) {
@@ -98,10 +155,6 @@ export async function PATCH(
     if (nextStatus === "canceled" && !existing.canceled_at) {
       updatePayload.canceled_at = nowIso;
     }
-    if (nextStatus !== "canceled") {
-      updatePayload.canceled_at = existing.canceled_at;
-    }
-
     if (nextStatus === "paid") {
       updatePayload.balance_amount = 0;
     }
@@ -110,18 +163,14 @@ export async function PATCH(
       .from("invoices")
       .update(updatePayload)
       .eq("id", id)
-      .eq("concierge_profile_id", userId)
       .select(
-        "id, invoice_number, status, quote_id, owner_profile_id, mission_id, issue_date, due_date, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, paid_amount, balance_amount, issued_at, paid_at, canceled_at, created_at, updated_at",
+        "id, invoice_number, status, quote_id, owner_profile_id, concierge_profile_id, mission_id, issue_date, due_date, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, paid_amount, balance_amount, issued_at, paid_at, canceled_at, created_at, updated_at",
       )
       .single();
 
     if (updateError || !updated) {
       console.error("[PATCH /api/invoices/:id/status] update error:", updateError);
-      return NextResponse.json(
-        { error: "Erreur mise a jour statut facture" },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: "Erreur mise a jour statut facture" }, { status: 500 });
     }
 
     const eventType =
@@ -135,14 +184,16 @@ export async function PATCH(
 
     const { error: eventError } = await db.from("invoice_events").insert({
       invoice_id: id,
-      actor_profile_id: userId,
+      actor_profile_id: actorResult.actor.userId,
       event_type: eventType,
       payload: {
         from: existing.status,
         to: nextStatus,
         paid_amount: round2(nextPaidAmount),
+        actor_role: actorResult.actor.role,
       },
     });
+
     if (eventError) {
       console.error("[PATCH /api/invoices/:id/status] event error:", eventError);
     }

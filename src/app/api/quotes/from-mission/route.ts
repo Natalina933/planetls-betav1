@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireActor } from "@/app/lib/apiSecurity";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
 
 interface CreateQuoteFromMissionBody {
   mission_id?: string;
@@ -13,15 +13,9 @@ interface DbErrorLike {
 }
 
 const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205", "PGRST204"]);
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
 
 const round2 = (value: number): number => Math.round(value * 100) / 100;
-
-const ALLOWED_BILLING_ROLES = new Set([
-  "admin",
-  "super_admin",
-  "concierge",
-  "concierge_pro",
-]);
 
 const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string => {
   const code = error?.code ?? "";
@@ -89,12 +83,13 @@ const quoteSelect = `
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!ALLOWED_BILLING_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    const actorResult = await requireActor(req, {
+      logLabel: "POST /api/quotes/from-mission",
+      allowedRoles: CONCIERGE_ROLES,
+      actionLabel: "créer un devis depuis une mission",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
     const body: CreateQuoteFromMissionBody = await req.json();
@@ -114,7 +109,6 @@ export async function POST(req: NextRequest) {
         "id, concierge_profile_id, owner_profile_id, service_id, title, description, amount, currency, status",
       )
       .eq("id", missionId)
-      .eq("concierge_profile_id", userId)
       .maybeSingle();
 
     if (missionError) {
@@ -128,14 +122,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mission introuvable" }, { status: 404 });
     }
 
+    if (!actorResult.actor.isAdmin && mission.concierge_profile_id !== actorResult.actor.userId) {
+      return NextResponse.json(
+        { error: "Vous n'êtes pas autorisé à créer un devis depuis cette mission." },
+        { status: 403 },
+      );
+    }
+
     let unitPrice = Number(mission.amount ?? 0);
     let pricingId: string | null = null;
+
+    const pricingProfileId = actorResult.actor.isAdmin
+      ? (mission.concierge_profile_id ?? actorResult.actor.userId)
+      : actorResult.actor.userId;
 
     if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
       let pricingQuery = db
         .from("services_pricing")
         .select("id, amount")
-        .eq("profile_id", userId)
+        .eq("profile_id", pricingProfileId)
         .order("created_at", { ascending: true })
         .limit(1);
 
@@ -165,18 +170,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const brandingProfileId = actorResult.actor.isAdmin
+      ? (mission.concierge_profile_id ?? actorResult.actor.userId)
+      : actorResult.actor.userId;
+
     const { data: conciergeBranding } = await db
       .from("profiles")
       .select(
         "company_name, legal_form, first_name, last_name, email, phone, street_address, postal_code, city, country, siret, vat_number",
       )
-      .eq("id", userId)
+      .eq("id", brandingProfileId)
       .maybeSingle();
 
     const { data: createdQuote, error: quoteError } = await db
       .from("quotes")
       .insert({
-        concierge_profile_id: userId,
+        concierge_profile_id: mission.concierge_profile_id ?? actorResult.actor.userId,
         owner_profile_id: mission.owner_profile_id ?? null,
         mission_id: mission.id,
         status: "draft",
@@ -231,11 +240,12 @@ export async function POST(req: NextRequest) {
 
     const { error: eventError } = await db.from("quote_events").insert({
       quote_id: createdQuote.id,
-      actor_profile_id: userId,
+      actor_profile_id: actorResult.actor.userId,
       event_type: "created",
       payload: {
         source: "mission",
         mission_id: mission.id,
+        actor_role: actorResult.actor.role,
       },
     });
     if (eventError) {

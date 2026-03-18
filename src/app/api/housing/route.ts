@@ -1,7 +1,6 @@
-// src/app/api/housing/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import { z } from "zod";
 import type { Database, Json } from "@/types/supabase";
 
@@ -12,6 +11,8 @@ type HousingOwner = {
   owner_id?: string;
   proprietaire_id?: string;
 } | null;
+
+const HOUSING_OWNER_ROLES = new Set(["owner", "owner_pro"]);
 
 const createHousingSchema = z
   .object({
@@ -58,20 +59,6 @@ const createHousingSchema = z
   })
   .passthrough();
 
-function normalizeOwnerPayload(proprietaire: unknown, userId: string) {
-  const owner =
-    proprietaire && typeof proprietaire === "object"
-      ? { ...(proprietaire as Record<string, unknown>) }
-      : {};
-
-  const normalizedOwnerId = extractOwnerId(owner);
-
-  return {
-    ...owner,
-    id: normalizedOwnerId ?? userId,
-  };
-}
-
 function isUuidLike(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value,
@@ -93,21 +80,59 @@ function extractOwnerId(proprietaire: unknown): string | null {
   return ownerId && isUuidLike(ownerId) ? ownerId : null;
 }
 
-// GET  /api/housing       -> list des logements (filtrage possible via query)
-// POST /api/housing       -> créer un logement (auth requis)
-//
+function normalizeOwnerPayload(proprietaire: unknown, userId: string) {
+  const owner =
+    proprietaire && typeof proprietaire === "object"
+      ? { ...(proprietaire as Record<string, unknown>) }
+      : {};
+
+  const normalizedOwnerId = extractOwnerId(owner);
+
+  return {
+    ...owner,
+    id: normalizedOwnerId ?? userId,
+  };
+}
+
+async function requireHousingCollectionAccess(req: NextRequest): Promise<
+  | {
+      ok: true;
+      context: {
+        userId: string;
+        role: string;
+        isAdmin: boolean;
+      };
+    }
+  | { ok: false; response: NextResponse }
+> {
+  const actorResult = await requireActor(req, {
+    logLabel: "housing collection auth",
+    allowedRoles: HOUSING_OWNER_ROLES,
+    actionLabel: "gérer des logements",
+  });
+  if (!actorResult.ok) {
+    return actorResult;
+  }
+
+  return {
+    ok: true,
+    context: {
+      userId: actorResult.actor.userId,
+      role: actorResult.actor.role,
+      isAdmin: actorResult.actor.isAdmin,
+    },
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const access = await requireHousingCollectionAccess(req);
+    if (!access.ok) {
+      return access.response;
     }
 
     const url = new URL(req.url);
     const searchParams = url.searchParams;
-
-    // filtres optionnels (ex: ?proprietaireId=P001 ou ?ville=Bordeaux)
     const proprietaireIdRaw = searchParams.get("proprietaireId");
     const proprietaireId = proprietaireIdRaw ? proprietaireIdRaw.trim() : "";
     const ville = (searchParams.get("ville") ?? "").trim();
@@ -115,6 +140,13 @@ export async function GET(req: NextRequest) {
 
     if (proprietaireId && !isUuidLike(proprietaireId)) {
       return NextResponse.json({ error: "proprietaireId invalide" }, { status: 400 });
+    }
+
+    if (!access.context.isAdmin && proprietaireId && proprietaireId !== access.context.userId) {
+      return NextResponse.json(
+        { error: "Vous ne pouvez consulter que vos propres logements." },
+        { status: 403 },
+      );
     }
 
     let query = db.from("housing").select("*");
@@ -135,14 +167,13 @@ export async function GET(req: NextRequest) {
       console.error("[GET /api/housing] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
-    const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
     const rows = data ?? [];
-    const visibleRows = isAdmin
+    const visibleRows = access.context.isAdmin
       ? rows
-      : rows.filter((item) => extractOwnerId(item.proprietaire) === userId);
+      : rows.filter((item) => extractOwnerId(item.proprietaire) === access.context.userId);
 
-    // Ajout automatique de l'image par défaut
+    const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
     const safeData = visibleRows.map((item) => ({
       ...item,
       photo_principale:
@@ -157,11 +188,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const access = await requireHousingCollectionAccess(req);
+    if (!access.ok) {
+      return access.response;
     }
 
     const rawBody = await req.json();
@@ -169,43 +201,71 @@ export async function POST(req: NextRequest) {
     if (!parsedBody.success) {
       return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
     }
-    const body = parsedBody.data;
-    const proprietaireId =
-      typeof body?.proprietaire?.id === "string"
-        ? body.proprietaire.id
-        : typeof body?.proprietaire?.userId === "string"
-        ? body.proprietaire.userId
-        : typeof body?.proprietaire?.profile_id === "string"
-        ? body.proprietaire.profile_id
-        : null;
-    const normalizedOwner = normalizeOwnerPayload(body?.proprietaire, userId);
 
+    const body = parsedBody.data;
     if (!body.infos?.nomLogement) {
+      return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
+    }
+
+    const requestedOwnerId = extractOwnerId(body.proprietaire ?? null);
+    const effectiveOwnerId = requestedOwnerId ?? access.context.userId;
+
+    if (!access.context.isAdmin && effectiveOwnerId !== access.context.userId) {
       return NextResponse.json(
-        { error: "Champs requis manquants" },
-        { status: 400 }
+        { error: "Vous ne pouvez créer un logement que pour votre propre profil." },
+        { status: 403 },
       );
     }
 
-    if (proprietaireId && proprietaireId !== userId) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!isUuidLike(effectiveOwnerId)) {
+      return NextResponse.json({ error: "Propriétaire invalide." }, { status: 400 });
     }
 
-    // Insère. Utilise returning/select pour renvoyer l'enregistrement inséré
+    const { data: ownerProfile, error: ownerError } = await db
+      .from("profiles")
+      .select("id, role, status")
+      .eq("id", effectiveOwnerId)
+      .maybeSingle();
+
+    if (ownerError) {
+      console.error("[POST /api/housing] owner lookup error:", ownerError);
+      return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
+    }
+
+    if (!ownerProfile) {
+      return NextResponse.json({ error: "Profil propriétaire introuvable." }, { status: 404 });
+    }
+
+    if (ownerProfile.status === "suspended" || ownerProfile.status === "deleted") {
+      return NextResponse.json(
+        { error: "Le profil propriétaire ciblé ne peut pas recevoir de logement." },
+        { status: 403 },
+      );
+    }
+
+    if (
+      ownerProfile.role !== "owner" &&
+      ownerProfile.role !== "owner_pro" &&
+      ownerProfile.role !== "admin" &&
+      ownerProfile.role !== "super_admin"
+    ) {
+      return NextResponse.json(
+        { error: "Le profil ciblé n'est pas autorisé à posséder un logement." },
+        { status: 403 },
+      );
+    }
+
+    const normalizedOwner = normalizeOwnerPayload(body.proprietaire, effectiveOwnerId);
+
     const insertPayload: Database["public"]["Tables"]["housing"]["Insert"] = {
       external_id: body.external_id ?? null,
       nom_logement: body.infos?.nomLogement ?? null,
-      ville:
-        body.infos?.adresse?.split(",").pop()?.trim() ??
-        body.location?.city ??
-        null,
+      ville: body.infos?.adresse?.split(",").pop()?.trim() ?? body.location?.city ?? null,
       adresse: body.infos?.adresse ?? null,
       plateforme: body.location?.plateformePrincipale ?? null,
       statut: body.statut ?? "draft",
       photo_principale:
-        (body.infos?.photos && body.infos.photos[0]) ??
-        body.photo_principale ??
-        null,
+        (body.infos?.photos && body.infos.photos[0]) ?? body.photo_principale ?? null,
       infos: (body.infos ?? null) as Json | null,
       proprietaire: (normalizedOwner ?? null) as Json | null,
       location: (body.location ?? null) as Json | null,
@@ -213,7 +273,6 @@ export async function POST(req: NextRequest) {
       planning: (body.planning ?? null) as Json | null,
       documents: (body.documents ?? null) as Json | null,
       notes: (body.notes ?? null) as Json | null,
-      // created_at/updated_at are managed by the DB.
     };
 
     const { data, error } = await db
@@ -233,6 +292,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-
-

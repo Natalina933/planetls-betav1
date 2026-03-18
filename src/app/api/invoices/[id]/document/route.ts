@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { db } from "@/app/lib/dbServer";
+import { canAccessParticipantResource, requireActor } from "@/app/lib/apiSecurity";
 
 const escapeHtml = (value: string): string =>
   value
@@ -29,22 +29,17 @@ const formatDate = (value?: string | null): string => {
   }).format(date);
 };
 
-const getUserId = async (req: NextRequest): Promise<string | null> => {
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  });
-  return typeof token?.sub === "string" ? token.sub : null;
-};
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
-      return new Response("Non authentifie", { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "invoice document auth",
+      actionLabel: "accéder à ce document",
+    });
+    if (!actorResult.ok) {
+      return new Response("Authentification requise", { status: 401 });
     }
 
     const { id } = await params;
@@ -63,8 +58,8 @@ export async function GET(
       return new Response("Facture introuvable", { status: 404 });
     }
 
-    if (invoice.concierge_profile_id !== userId && invoice.owner_profile_id !== userId) {
-      return new Response("Acces refuse", { status: 403 });
+    if (!canAccessParticipantResource(actorResult.actor, invoice)) {
+      return new Response("Accès refusé", { status: 403 });
     }
 
     const [{ data: concierge }, { data: owner }] = await Promise.all([
