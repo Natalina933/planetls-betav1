@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./ConciergeProPage.module.scss";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 
 const features = [
   "Tableau de bord pro plus lisible pour piloter logements, missions et revenus",

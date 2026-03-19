@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import type { ConciergeTabId } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+import type { ConciergeTabId } from "@/components/dashboard/concierge/conciergeTabsConfig";
 import {
   ProfileNotifications as ConciergeNotifications,
   ProfilePageShell,
   type ProfileShellTab,
-} from "@/app/components/dashboard/profile/ProfilePageShell";
+} from "@/components/dashboard/profile/ProfilePageShell";
 
 type TabIconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
 

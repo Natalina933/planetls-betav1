@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import EditableUnifiedProfilePage from "@/app/components/dashboard/profile/EditableUnifiedProfilePage";
+import EditableUnifiedProfilePage from "@/components/dashboard/profile/EditableUnifiedProfilePage";
 
 function ProviderSettingsPageContent() {
   return (

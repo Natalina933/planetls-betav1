@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
 import { AsyncState } from "@/components/ui";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 import { takeFirst } from "../shared";
 import type { DashboardUserIdentity } from "../shared";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";

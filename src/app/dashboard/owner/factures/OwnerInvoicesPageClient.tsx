@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerInvoiceRow = {

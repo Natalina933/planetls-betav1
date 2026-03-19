@@ -6,14 +6,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaEdit } from "react-icons/fa";
 import { Button, Input } from "@/components/ui";
 
-import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
-import ExperiencePopup, { ExperienceLevel } from "../components/popups/ExperiencePopup/ExperiencePopup";
+import AvatarUpload from "@/components/ui/AvatarUpload/AvatarUpload";
+import ExperiencePopup, { ExperienceLevel } from "@/components/popups/ExperiencePopup/ExperiencePopup";
 
 import styles from "./CompleteRegistrationPage.module.scss";
 
 const DEFAULT_AVATAR_URL = "/icons/account-svgrepo-com.svg";
 const TURNSTILE_SCRIPT_ID = "cloudflare-turnstile-script";
-const Confetti = dynamic(() => import("../components/ui/Confetti/Confetti"), { ssr: false });
+const Confetti = dynamic(() => import("@/components/ui/Confetti/Confetti"), { ssr: false });
 
 declare global {
   interface Window {

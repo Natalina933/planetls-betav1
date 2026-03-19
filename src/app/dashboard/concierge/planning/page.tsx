@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import DashboardCalendar, {
   DashboardEvent,
-} from "@/app/components/dashboard/calendar/DashboardCalendar";
+} from "@/components/dashboard/calendar/DashboardCalendar";
 import { formatDateValue } from "@/app/utils/formatters";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { takeFirst } from "../../shared";

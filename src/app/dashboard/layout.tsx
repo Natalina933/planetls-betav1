@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useState } from "react";
-import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
-import Navbar from "@/app/components/dashboard/navbar/DashboardNavbar";
+import Sidebar from "@/components/dashboard/Sidebar/Sidebar";
+import Navbar from "@/components/dashboard/navbar/DashboardNavbar";
 import "@/app/styles/abstracts/_dashboards.scss";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

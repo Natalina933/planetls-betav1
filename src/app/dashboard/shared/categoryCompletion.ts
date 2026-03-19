@@ -1,7 +1,7 @@
-﻿import {
+import {
   buildCompletionState,
   type CompletionState,
-} from "@/app/components/dashboard/profile/completion";
+} from "@/components/dashboard/profile/completion";
 
 export type GenericRecord = Record<string, unknown>;
 

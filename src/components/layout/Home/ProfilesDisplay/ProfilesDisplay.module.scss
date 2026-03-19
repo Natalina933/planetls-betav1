@@ -1,0 +1,136 @@
+@use "sass:color";
+@use "../../../../app/styles/abstracts/variables" as *;
+
+.profilesDisplay {
+  background: linear-gradient(135deg, $mucha-paper 0%, color.scale($cream, $lightness: 20%) 100%);
+  font-family: $font-elegant;
+  padding: $spacing-lg;
+  border: 2px solid $gold;
+  border-radius: $radius-2xl;
+  box-shadow: 0 8px 24px rgba($gold-dark, 0.15);
+  color: $mucha-ink;
+}
+
+.profileList {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $spacing-lg;
+  padding: 0;
+  margin: 0;
+}
+
+.profileItem {
+  display: block;
+}
+
+.profileCard {
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+}
+
+.cardHeader {
+  align-items: center;
+}
+
+.profileDetails {
+  h4 {
+    font-family: $font-title;
+    font-size: 1.2rem;
+    font-weight: $font-weight-bold;
+    color: $gold;
+  }
+}
+
+.categoryLabel {
+  font-size: 0.9rem;
+  font-weight: $font-weight-normal;
+  color: $color-text-light;
+}
+
+.categoryDescription {
+  font-family: $font-text;
+  font-size: 0.9rem;
+  color: $text-light;
+}
+
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.serviceTag {
+  font-size: 0.8rem;
+}
+
+.more {
+  background: $gold-dark;
+  color: #fff;
+}
+
+.serviceNone {
+  font-style: italic;
+  color: $text-light;
+}
+
+.location {
+  font-size: 0.9rem;
+  color: $text-dark;
+}
+
+.experience {
+  font-size: 0.85rem;
+  color: $color-text-light;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: center;
+}
+
+.noResultAlert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 2rem;
+  font-style: italic;
+  color: color.scale($gold-dark, $lightness: -10%);
+  border: 1px solid $gold-dark;
+  border-radius: $radius-lg;
+  background-color: $gold-soft;
+  font-weight: $font-weight-bold;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.proprietaire {
+  border-top: 3px solid $gold;
+}
+
+.concierge {
+  border-top: 3px solid $gold-accent;
+}
+
+.artisan {
+  border-top: 3px solid $gold-light;
+}
+
+@media (max-width: 600px) {
+  .profilesDisplay {
+    padding: $spacing-md;
+  }
+
+  .profileList {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}

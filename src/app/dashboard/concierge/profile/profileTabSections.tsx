@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import React from "react";
@@ -22,20 +22,20 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { ChevronDown, Edit2, LucideUser, Save, Shield, Star, X as LucideX } from "lucide-react";
-import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
-import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
+import ServicePackageManager from "@/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
+import ProfileSummary from "@/components/dashboard/concierge/ProfileSummary/ProfileSummary";
 import { CompletionStatusCard } from "@/components/dashboard";
-import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
-import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
-import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
-import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
-import MissionZoneAvailability from "@/app/components/missions/MissionZoneAvailability";
-import AvailabilityEditor from "@/app/components/missions/AvailabilityEditor";
-import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
-import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
-import type { ConciergeTabId } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
+import SocialLinksManager from "@/components/dashboard/SocialLinksManager/SocialLinksManager";
+import { ProfileIdentity } from "@/components/dashboard/concierge/ProfileSummary/profileIdentity";
+import { ProfileOverviewWorkspace } from "@/components/dashboard/profile/ProfileOverviewWorkspace";
+import MissionDetails from "@/components/dashboard/concierge/MissionDetails/MissionDetails";
+import MissionZoneAvailability from "@/components/missions/MissionZoneAvailability";
+import AvailabilityEditor from "@/components/missions/AvailabilityEditor";
+import TariffBillingDesk from "@/components/tariffs/TariffBillingDesk";
+import InputWithValidation from "@/components/ui/InputWithValidation/InputWithValidation";
+import type { ConciergeTabId } from "@/components/dashboard/concierge/conciergeTabsConfig";
 import { buildConciergeProfileCompletion } from "@/app/dashboard/shared";
-import type { MissionAvailability } from "@/app/components/missions/types";
+import type { MissionAvailability } from "@/components/missions/types";
 import { ConciergeProfileShell } from "./profileShellSections";
 
 type RenderSection = (
@@ -757,6 +757,10 @@ interface TariffBillingDeskSectionProps {
     presetMonthlyRevenueEstimate: number;
     presetNewListingsEstimate: number;
     presetActServicesEstimate: number;
+    ownerProfileId?: string | null;
+    ownerLabel?: string | null;
+    conversationId?: string | null;
+    missionId?: string | null;
   };
 }
 

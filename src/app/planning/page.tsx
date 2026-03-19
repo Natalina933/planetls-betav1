@@ -1,5 +1,5 @@
 // 🎯 PlanningPage.tsx (CORRIGÉ)
-import DashboardCalendar, { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
+import DashboardCalendar, { DashboardEvent } from "@/components/dashboard/calendar/DashboardCalendar";
 // Note : Assurez-vous d'avoir bien exporté l'interface DashboardEvent dans le fichier DashboardCalendar.tsx.
 
 // ✅ CORRECTION APPLIQUÉE : Typage explicite du tableau.

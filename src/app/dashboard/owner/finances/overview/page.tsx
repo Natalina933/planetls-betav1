@@ -1,7 +1,7 @@
 "use client";
 
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 import { buildOwnerFinancesCompletion } from "@/app/dashboard/shared";
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";
 

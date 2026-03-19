@@ -1,6 +1,6 @@
 "use client";
 
-import HousingListPage from "@/app/components/dashboard/housing/HousingListPage";
+import HousingListPage from "@/components/dashboard/housing/HousingListPage";
 
 export default function OwnerLogementsPage() {
   return (

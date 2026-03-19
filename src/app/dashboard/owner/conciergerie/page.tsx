@@ -6,7 +6,7 @@ import {
   getOwnerReplySignature,
   isOwnerReplyStatus,
   markOwnerReplySignaturesAsSeen,
-} from "@/app/components/dashboard/notifications/serviceRequestNotifications";
+} from "@/components/dashboard/notifications/serviceRequestNotifications";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
 import pageStyles from "../OwnerDashboardPages.module.scss";

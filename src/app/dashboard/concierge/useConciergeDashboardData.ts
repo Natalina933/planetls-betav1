@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
+import type { DashboardEvent } from "@/components/dashboard/calendar/DashboardCalendar";
 import { fetchJsonOrFallback, takeFirst } from "../shared";
 import { fetchConciergeMatches, type ConciergeOwnerMatch } from "./dashboardClient";
 

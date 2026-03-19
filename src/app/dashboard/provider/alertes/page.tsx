@@ -2,9 +2,9 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import ActionPanel from "@/app/components/dashboard/shared/ActionPanel";
-import SectionHeader from "@/app/components/dashboard/shared/SectionHeader";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import ActionPanel from "@/components/dashboard/shared/ActionPanel";
+import SectionHeader from "@/components/dashboard/shared/SectionHeader";
+import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import styles from "../ProviderCrudPage.module.scss";
 

@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import DashboardCalendar, {
   type DashboardEvent,
-} from "@/app/components/dashboard/calendar/DashboardCalendar";
-import ProfileExperienceBadge from "@/app/components/ui/ProfileExperienceBadge/ProfileExperienceBadge";
+} from "@/components/dashboard/calendar/DashboardCalendar";
+import ProfileExperienceBadge from "@/components/ui/ProfileExperienceBadge/ProfileExperienceBadge";
 import type { ConciergeOwnerMatch } from "./dashboardClient";
 import styles from "./page.module.scss";
 

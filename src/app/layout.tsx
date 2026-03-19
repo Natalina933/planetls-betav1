@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./styles/main.scss";
 
 import Providers from "./context/Providers";
-import AppChrome from "./components/layout/AppChrome/AppChrome";
+import AppChrome from "@/components/layout/AppChrome/AppChrome";
 import { SearchPopupProvider } from "./context/SearchPopupContext";
 import { ThemeProvider } from "./providers/ThemeProvider";
 

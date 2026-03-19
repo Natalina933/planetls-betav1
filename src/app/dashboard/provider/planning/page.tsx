@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { formatDateValue } from "@/app/utils/formatters";
 import { ButtonLink, TabButton } from "@/components/ui";
 import { DashboardSectionShell } from "@/components/dashboard";

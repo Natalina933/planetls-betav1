@@ -1,5 +1,5 @@
 import { normalizeAreaLabel } from "../../../lib/profileLocation.ts";
-import type { MissionAvailability } from "../../../components/missions/types.ts";
+import type { MissionAvailability } from "@/components/missions/types.ts";
 
 interface MissionCatalogItemLike {
   id: string;

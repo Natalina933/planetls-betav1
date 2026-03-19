@@ -4,7 +4,7 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
-const MapWithList = dynamic(() => import("../components/MapWithList/MapWithList"), {
+const MapWithList = dynamic(() => import("@/components/MapWithList/MapWithList"), {
   ssr: false, // ⛔ désactive le rendu côté serveur
 });
 

@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import FilterSliders from "@/app/components/ui/FilterSliders";
+import FilterSliders from "@/components/ui/FilterSliders";
 import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import { ConciergeAvatar } from "./ConciergeAvatar";
@@ -312,6 +312,18 @@ export default function OwnerConciergesPageClient() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer l'alerte.");
     }
+  }
+
+  function handleExpandRadius(nextRadiusKm: number) {
+    const nextFilters = {
+      ...filters,
+      radiusKm: String(nextRadiusKm),
+    };
+
+    setFilters(nextFilters);
+    setFeedback(`Recherche relancée avec un rayon de ${nextRadiusKm} km.`);
+    setHasSubmittedSearch(true);
+    void search(nextFilters);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -730,11 +742,30 @@ export default function OwnerConciergesPageClient() {
                 </p>
                 {(filters.region.trim() || filters.city.trim()) && (
                   <div className={styles.emptyStateActions}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className={styles.secondaryBtn}
+                      onClick={() => handleExpandRadius(30)}
+                    >
+                      Elargir à 30 km
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className={styles.secondaryBtn}
+                      onClick={() => handleExpandRadius(50)}
+                    >
+                      Elargir à 50 km
+                    </Button>
                     <Button type="button" variant="primary" className={styles.primaryBtn} onClick={handleCreateAlert}>
                       Créer une alerte pour cette zone
                     </Button>
                     <ButtonLink href="/dashboard/owner/alertes" variant="secondary" className={styles.secondaryBtn}>
                       Voir mes alertes
+                    </ButtonLink>
+                    <ButtonLink href="/contact" variant="secondary" className={styles.secondaryBtn}>
+                      Demander une alternative artisan
                     </ButtonLink>
                   </div>
                 )}

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import {
-  getServiceAuthContext,
-  isAllowedServiceRole,
-  serviceAuthError,
+  requireServiceAuthContext,
 } from "@/app/api/services/_shared";
 
 interface ContractBody {
@@ -16,14 +14,11 @@ interface ContractBody {
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const url = new URL(req.url);
     const searchParams = url.searchParams;
@@ -55,14 +50,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const body: ContractBody = await req.json();
     if (!body.title || !body.start_date) {

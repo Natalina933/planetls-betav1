@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { DashboardSectionShell } from "@/components/dashboard";
 import { takeFirst } from "../../shared";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";

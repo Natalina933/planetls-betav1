@@ -33,7 +33,13 @@ export interface DashboardWorkspaceDetailItem {
   href?: string;
   actionLabel?: string;
   secondaryActionLabel?: string;
+  secondaryActionHref?: string;
   onSecondaryAction?: () => void;
+  extraActions?: Array<{
+    label: string;
+    href?: string;
+    onClick?: () => void;
+  }>;
   tone?: "default" | "warning" | "success";
   notificationCount?: number;
 }
@@ -284,7 +290,15 @@ export default function DashboardWorkspace({
                               <Link href={item.href} className={styles.detailItemAction}>
                                 {item.actionLabel}
                               </Link>
-                              {item.onSecondaryAction && item.secondaryActionLabel ? (
+                              {item.secondaryActionHref && item.secondaryActionLabel ? (
+                                <Link
+                                  href={item.secondaryActionHref}
+                                  className={styles.detailItemActionSecondary}
+                                >
+                                  {item.secondaryActionLabel}
+                                </Link>
+                              ) : null}
+                              {item.onSecondaryAction && item.secondaryActionLabel && !item.secondaryActionHref ? (
                                 <button
                                   type="button"
                                   className={styles.detailItemActionSecondary}
@@ -293,6 +307,26 @@ export default function DashboardWorkspace({
                                   {item.secondaryActionLabel}
                                 </button>
                               ) : null}
+                              {item.extraActions?.map((action) =>
+                                action.href ? (
+                                  <Link
+                                    key={`${item.title}-${action.label}-${action.href}`}
+                                    href={action.href}
+                                    className={styles.detailItemActionSecondary}
+                                  >
+                                    {action.label}
+                                  </Link>
+                                ) : action.onClick ? (
+                                  <button
+                                    key={`${item.title}-${action.label}`}
+                                    type="button"
+                                    className={styles.detailItemActionSecondary}
+                                    onClick={action.onClick}
+                                  >
+                                    {action.label}
+                                  </button>
+                                ) : null,
+                              )}
                             </div>
                           ) : item.onSecondaryAction && item.secondaryActionLabel ? (
                             <div className={styles.detailItemActions}>
@@ -303,6 +337,49 @@ export default function DashboardWorkspace({
                               >
                                 {item.secondaryActionLabel}
                               </button>
+                              {item.extraActions?.map((action) =>
+                                action.href ? (
+                                  <Link
+                                    key={`${item.title}-${action.label}-${action.href}`}
+                                    href={action.href}
+                                    className={styles.detailItemActionSecondary}
+                                  >
+                                    {action.label}
+                                  </Link>
+                                ) : action.onClick ? (
+                                  <button
+                                    key={`${item.title}-${action.label}`}
+                                    type="button"
+                                    className={styles.detailItemActionSecondary}
+                                    onClick={action.onClick}
+                                  >
+                                    {action.label}
+                                  </button>
+                                ) : null,
+                              )}
+                            </div>
+                          ) : item.extraActions && item.extraActions.length > 0 ? (
+                            <div className={styles.detailItemActions}>
+                              {item.extraActions.map((action) =>
+                                action.href ? (
+                                  <Link
+                                    key={`${item.title}-${action.label}-${action.href}`}
+                                    href={action.href}
+                                    className={styles.detailItemActionSecondary}
+                                  >
+                                    {action.label}
+                                  </Link>
+                                ) : action.onClick ? (
+                                  <button
+                                    key={`${item.title}-${action.label}`}
+                                    type="button"
+                                    className={styles.detailItemActionSecondary}
+                                    onClick={action.onClick}
+                                  >
+                                    {action.label}
+                                  </button>
+                                ) : null,
+                              )}
                             </div>
                           ) : null}
                         </article>

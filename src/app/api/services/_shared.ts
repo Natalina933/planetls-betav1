@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 
 export { isAllowedServiceRole } from "@/app/api/services/pure";
+import { isAllowedServiceRole } from "@/app/api/services/pure";
 
 export type ServiceAuthContext = {
   userId: string;
@@ -10,16 +11,53 @@ export type ServiceAuthContext = {
   isAdmin: boolean;
 };
 
+const SERVICE_ALLOWED_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
+]);
+
 export async function getServiceAuthContext(req: NextRequest): Promise<ServiceAuthContext | null> {
-  const auth = await getApiAuthContext(req);
-  if (!auth.userId) {
+  const result = await requireServiceAuthContext(req);
+  if (!result.ok) {
     return null;
   }
 
+  return result.auth;
+}
+
+export async function requireServiceAuthContext(
+  req: NextRequest,
+): Promise<{ ok: true; auth: ServiceAuthContext } | { ok: false; response: NextResponse }> {
+  const actorResult = await requireActor(req, {
+    logLabel: "services auth",
+    allowedRoles: SERVICE_ALLOWED_ROLES,
+    actionLabel: "gerer vos services",
+  });
+
+  if (!actorResult.ok) {
+    return actorResult;
+  }
+
+  if (!isAllowedServiceRole(actorResult.actor.role) && !actorResult.actor.isAdmin) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Non autorise" }, { status: 403 }),
+    };
+  }
+
   return {
-    userId: auth.userId,
-    role: auth.role,
-    isAdmin: auth.isAdmin,
+    ok: true,
+    auth: {
+      userId: actorResult.actor.userId,
+      role: actorResult.actor.role,
+      isAdmin: actorResult.actor.isAdmin,
+    },
   };
 }
 

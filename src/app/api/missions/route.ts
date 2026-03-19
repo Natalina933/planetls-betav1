@@ -159,6 +159,7 @@ export async function GET(req: NextRequest) {
     const { actor } = actorResult;
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
+    const ownerProfileId = url.searchParams.get("ownerProfileId");
     const limitParam = Number(url.searchParams.get("limit") ?? "50");
     const requestedScope = url.searchParams.get("scope") ?? "concierge";
     const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 200) : 50;
@@ -169,6 +170,10 @@ export async function GET(req: NextRequest) {
       requestedScope === "all" || requestedScope === "owner" || requestedScope === "concierge"
         ? requestedScope
         : "concierge";
+
+    if (ownerProfileId && !isUuidLike(ownerProfileId)) {
+      return NextResponse.json({ error: "ownerProfileId invalide" }, { status: 400 });
+    }
 
     if (!actor.isAdmin) {
       if (scope === "owner" && !actorIsOwner) {
@@ -181,6 +186,13 @@ export async function GET(req: NextRequest) {
       if ((scope === "concierge" || scope === "all") && !actorIsConcierge) {
         return NextResponse.json(
           { error: "Seuls les concierges peuvent consulter cette vue." },
+          { status: 403 },
+        );
+      }
+
+      if (scope === "owner" && ownerProfileId && ownerProfileId !== actor.userId) {
+        return NextResponse.json(
+          { error: "Vous ne pouvez consulter que vos propres missions." },
           { status: 403 },
         );
       }
@@ -209,6 +221,9 @@ export async function GET(req: NextRequest) {
 
     if (status && VALID_STATUS.includes(status as MissionStatus)) {
       query = query.eq("status", status);
+    }
+    if (ownerProfileId) {
+      query = query.eq("owner_profile_id", ownerProfileId);
     }
 
     const { data, error } = await query;

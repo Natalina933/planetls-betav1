@@ -1,5 +1,5 @@
 import Link from "next/link";
-import ContractTemplateManager from "@/app/components/dashboard/concierge/ContractTemplateManager/ContractTemplateManager";
+import ContractTemplateManager from "@/components/dashboard/concierge/ContractTemplateManager/ContractTemplateManager";
 
 interface PageProps {
   searchParams?: {

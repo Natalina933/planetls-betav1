@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import {
   findOwnedServicePackage,
-  getServiceAuthContext,
-  isAllowedServiceRole,
-  serviceAuthError,
+  requireServiceAuthContext,
 } from "@/app/api/services/_shared";
 
 type PricingType = "hourly" | "fixed" | "monthly" | "custom";
@@ -19,14 +17,11 @@ interface PricingPackageBody {
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const url = new URL(req.url);
     const packageId = url.searchParams.get("packageId");
@@ -63,14 +58,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const body: PricingPackageBody = await req.json();
     if (!body.package_id || !body.label || typeof body.amount !== "number") {

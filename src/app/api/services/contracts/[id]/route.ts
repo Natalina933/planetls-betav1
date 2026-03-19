@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import {
-  getServiceAuthContext,
-  isAllowedServiceRole,
-  serviceAuthError,
+  requireServiceAuthContext,
 } from "@/app/api/services/_shared";
 
 interface ContractUpdateBody {
@@ -19,14 +17,11 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const { id } = await context.params;
 
@@ -57,14 +52,11 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const { id } = await context.params;
     const rawBody: ContractUpdateBody = await req.json();
@@ -107,14 +99,11 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getServiceAuthContext(req);
-    if (!auth) {
-      return serviceAuthError(401);
+    const authResult = await requireServiceAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-
-    if (!isAllowedServiceRole(auth.role)) {
-      return serviceAuthError(403);
-    }
+    const auth = authResult.auth;
 
     const { id } = await context.params;
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, {
   useState,
@@ -80,16 +80,16 @@ import { ConciergeProfileShell } from "./profileShellSections";
 import {
   CONCIERGE_TABS,
   ConciergeTabId,
-} from "@/app/components/dashboard/concierge/conciergeTabsConfig";
-import { parsePricingV2FromAvailabilityHours } from "@/app/components/tariffs/pricingEngine";
+} from "@/components/dashboard/concierge/conciergeTabsConfig";
+import { parsePricingV2FromAvailabilityHours } from "@/components/tariffs/pricingEngine";
 import type {
   ConciergeMissionProfile,
   MissionAvailability,
   MissionCatalogItem,
   MissionPreferences,
   WeekDay,
-} from "@/app/components/missions/types";
-import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+} from "@/components/missions/types";
+import type { PricingV2Config, SeasonalPricingConfig } from "@/components/tariffs/types";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
@@ -967,6 +967,15 @@ export default function ConciergeProfilePage() {
     const tab = searchParams.get("tab") as TabId;
     return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "overview";
   }, [searchParams]);
+  const billingDeskContext = useMemo(
+    () => ({
+      ownerProfileId: searchParams.get("ownerProfileId"),
+      ownerLabel: searchParams.get("ownerLabel"),
+      conversationId: searchParams.get("conversationId"),
+      missionId: searchParams.get("missionId"),
+    }),
+    [searchParams],
+  );
 
   const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -1517,8 +1526,10 @@ export default function ConciergeProfilePage() {
     }
 
     setActiveTab(tabId);
-    router.push(`?tab=${tabId}`, { scroll: false });
-  }, [activeTab, confirmDiscardIfNeeded, editingSection, profile, router]);
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.set("tab", tabId);
+    router.push(`?${nextParams.toString()}`, { scroll: false });
+  }, [activeTab, confirmDiscardIfNeeded, editingSection, profile, router, searchParams]);
 
   const applyPricingV2 = useCallback((next: PricingV2Config) => {
     setEditProfile((prev) =>
@@ -2225,9 +2236,15 @@ export default function ConciergeProfilePage() {
   const billingDeskSectionProps = useMemo(
     () => ({
       missionRowsCount: missionRows.length,
-      deskProps: billingDeskProps,
+      deskProps: {
+        ...billingDeskProps,
+        ownerProfileId: billingDeskContext.ownerProfileId,
+        ownerLabel: billingDeskContext.ownerLabel,
+        conversationId: billingDeskContext.conversationId,
+        missionId: billingDeskContext.missionId,
+      },
     }),
-    [missionRows.length, billingDeskProps],
+    [missionRows.length, billingDeskContext, billingDeskProps],
   );
   const resetAllServicePrices = useCallback(async () => {
     if (!canEditTariffConfig || servicePrices.length === 0) return;

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FiMapPin, FiRefreshCw, FiSearch, FiSliders, FiTarget, FiUsers } from "react-icons/fi";
-import FilterSliders from "@/app/components/ui/FilterSliders";
+import FilterSliders from "@/components/ui/FilterSliders";
 import styles from "./RecherchePage.module.scss";
 
 type ListingSource = "property" | "housing";

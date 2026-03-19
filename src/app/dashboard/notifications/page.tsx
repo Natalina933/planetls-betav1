@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 
 function getNotificationsPageHref(role?: string | null) {
   if (role === "owner" || role === "owner_pro") return "/dashboard/owner/alertes";

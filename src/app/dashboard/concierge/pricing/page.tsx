@@ -1,5 +1,5 @@
 import Link from "next/link";
-import PricingGridManager from "@/app/components/dashboard/concierge/PricingGridManager/PricingGridManager";
+import PricingGridManager from "@/components/dashboard/concierge/PricingGridManager/PricingGridManager";
 
 interface PageProps {
   searchParams?:

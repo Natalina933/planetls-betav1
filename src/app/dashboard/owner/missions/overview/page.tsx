@@ -1,7 +1,7 @@
 "use client";
 
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 // 1. Importe le type GenericRecord depuis ton fichier partagé
 import { buildOwnerMissionsCompletion, type GenericRecord } from "@/app/dashboard/shared"; 
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";

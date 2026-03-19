@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
-import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
+import { useCurrentUser } from "@/components/hooks/useCurrentUser";
 import { takeFirst } from "../shared";
 import type { DashboardUserIdentity, ExperienceLevel } from "../shared";
 import { formatDateValue } from "@/app/utils/formatters";

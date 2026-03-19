@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerQuoteRow = {
@@ -42,29 +42,32 @@ function OwnerQuotesContent() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busyQuoteId, setBusyQuoteId] = useState<string | null>(null);
   const targetQuoteId = searchParams.get("quote");
 
-  useEffect(() => {
-    async function loadQuotes() {
-      try {
-        setLoading(true);
-        setError(null);
+  async function loadQuotes() {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await fetch("/api/quotes?limit=30", { cache: "no-store" });
-        const payload = await response.json();
+      const response = await fetch("/api/quotes?limit=30", { cache: "no-store" });
+      const payload = await response.json();
 
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger vos devis.");
-        }
-
-        setQuotes(Array.isArray(payload) ? payload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos devis.");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de charger vos devis.");
       }
-    }
 
+      setQuotes(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de charger vos devis.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     void loadQuotes();
   }, []);
 
@@ -95,6 +98,36 @@ function OwnerQuotesContent() {
     [quotes, targetQuoteId],
   );
 
+  async function updateQuoteStatus(quoteId: string, status: "accepted" | "rejected") {
+    try {
+      setBusyQuoteId(quoteId);
+      setActionError(null);
+      setFeedback(null);
+
+      const response = await fetch(`/api/quotes/${quoteId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de mettre a jour ce devis.");
+      }
+
+      setFeedback(
+        status === "accepted"
+          ? "Devis accepte. La mission et le rattachement au concierge ont ete crees automatiquement."
+          : "Devis refuse.",
+      );
+      await loadQuotes();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Impossible de mettre a jour ce devis.");
+    } finally {
+      setBusyQuoteId(null);
+    }
+  }
+
   function exportQuotesCsv() {
     const rows = [
       ["Numero", "Statut", "Total", "Valide jusqu'au", "Cree le"],
@@ -124,7 +157,7 @@ function OwnerQuotesContent() {
     <section className="dashboard-grid">
       <header>
         <h1>Suivi des devis</h1>
-        <p>Retrouvez les propositions reçues pour vos biens et priorisez celles qui demandent une décision.</p>
+        <p>Retrouvez les propositions recues pour vos biens et priorisez celles qui demandent une decision.</p>
       </header>
 
       <div className="stats-row">
@@ -133,7 +166,7 @@ function OwnerQuotesContent() {
           <p>{loading ? "..." : quotes.length}</p>
         </div>
         <div className="stat-card">
-          <h3>À arbitrer</h3>
+          <h3>A arbitrer</h3>
           <p>{loading ? "..." : pendingQuotes.length}</p>
         </div>
         <div className="stat-card">
@@ -157,9 +190,9 @@ function OwnerQuotesContent() {
           >
             <option value="all">Tous statuts</option>
             <option value="draft">Brouillons</option>
-            <option value="sent">Envoyés</option>
-            <option value="accepted">Acceptés</option>
-            <option value="rejected">Refusés</option>
+            <option value="sent">Envoyes</option>
+            <option value="accepted">Acceptes</option>
+            <option value="rejected">Refuses</option>
           </select>
           <button
             type="button"
@@ -173,9 +206,11 @@ function OwnerQuotesContent() {
 
         {loading ? <p>Chargement des devis...</p> : null}
         {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
+        {feedback ? <p style={{ color: "#166534", fontWeight: 600 }}>{feedback}</p> : null}
+        {actionError ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{actionError}</p> : null}
         {targetedQuote ? (
           <p style={{ color: "#7b5b23", fontWeight: 600 }}>
-            Focus sur {targetedQuote.quote_number || "le devis sélectionné"}.
+            Focus sur {targetedQuote.quote_number || "le devis selectionne"}.
           </p>
         ) : null}
 
@@ -205,8 +240,7 @@ function OwnerQuotesContent() {
                     <span>Statut :</span>
                     <WorkflowStatusBadge value={quote.status || "-"} />
                   </span>{" "}
-                  | Total : {formatAmount(quote.total_amount)} | Valide jusqu&apos;au{" "}
-                  {formatDate(quote.valid_until)}
+                  | Total : {formatAmount(quote.total_amount)} | Valide jusqu&apos;au {formatDate(quote.valid_until)}
                   <br />
                   Lignes : {quote.quote_items?.length ?? 0}
                   <br />
@@ -218,6 +252,29 @@ function OwnerQuotesContent() {
                   >
                     Apercu PDF
                   </a>
+                  {quote.status === "sent" ? (
+                    <>
+                      <br />
+                      <button
+                        type="button"
+                        onClick={() => void updateQuoteStatus(quote.id, "accepted")}
+                        disabled={busyQuoteId === quote.id}
+                        className={styles.buttonSecondary}
+                        style={{ marginTop: "0.75rem" }}
+                      >
+                        {busyQuoteId === quote.id ? "Validation..." : "Accepter et creer la mission"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void updateQuoteStatus(quote.id, "rejected")}
+                        disabled={busyQuoteId === quote.id}
+                        className={styles.buttonSecondary}
+                        style={{ marginTop: "0.75rem", marginLeft: "0.5rem" }}
+                      >
+                        Refuser
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </li>
             ))}

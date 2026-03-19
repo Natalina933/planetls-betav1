@@ -1,5 +1,5 @@
-﻿import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
-import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+import type { PricingFallbackInput } from "@/components/tariffs/pricingEngine";
+import type { PricingV2Config, SeasonalPricingConfig } from "@/components/tariffs/types";
 
 export type SectionEditSnapshots = Record<string, string>;
 export type OpenSectionsState = Record<string, boolean>;
