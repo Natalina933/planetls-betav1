@@ -1,8 +1,96 @@
-﻿.showcase {
+.showcase {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(300px, 0.95fr);
   gap: 1rem;
   align-items: start;
+}
+
+.reschedulePanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 26px;
+  border: 1px solid rgba(198, 166, 107, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(198, 166, 107, 0.1), transparent 30%),
+    linear-gradient(160deg, rgba(255, 253, 248, 0.98), rgba(250, 243, 229, 0.92));
+  box-shadow: 0 18px 42px rgba(111, 87, 40, 0.08);
+}
+
+.rescheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rescheduleField {
+  display: grid;
+  gap: 0.3rem;
+
+  span {
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #7b5b23;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 14px;
+    border: 1px solid rgba(198, 166, 107, 0.22);
+    background: rgba(255, 255, 255, 0.88);
+    padding: 0.75rem 0.85rem;
+    color: #2f2415;
+  }
+}
+
+.rescheduleButton {
+  align-self: end;
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7b5b23, #c79a4f);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(111, 87, 40, 0.18);
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.rescheduleActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.rescheduleGhostButton {
+  align-self: end;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(198, 166, 107, 0.22);
+  background: rgba(255, 255, 255, 0.88);
+  color: #2f2415;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0 1rem;
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 }
 
 .overviewCard,
@@ -248,4 +336,3 @@
     grid-template-columns: 1fr;
   }
 }
-

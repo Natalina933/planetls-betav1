@@ -201,6 +201,17 @@ export default function OwnerAlertesPage() {
     () => notifications.filter((item) => !item.read_at),
     [notifications],
   );
+  const rescheduleNotifications = useMemo(
+    () =>
+      notifications.filter((item) =>
+        [
+          "mission_reschedule_requested",
+          "mission_reschedule_accepted",
+          "mission_reschedule_rejected",
+        ].includes(item.notification_type ?? ""),
+      ),
+    [notifications],
+  );
 
   return (
     <OwnerWorkspacePage
@@ -213,6 +224,7 @@ export default function OwnerAlertesPage() {
       }
       chips={[
         `${urgentMissions.length} mission(s) prioritaires`,
+        `${rescheduleNotifications.length} reprogrammation(s)`,
         `${pendingInvoices.length} facture(s) a suivre`,
         `${pendingQuotes.length} devis a valider`,
         `${unreadWorkflowNotifications.length} notification(s) persistante(s)`,
@@ -229,9 +241,9 @@ export default function OwnerAlertesPage() {
           hint: "Factures qui demandent un suivi ou un reglement",
         },
         {
-          label: "Decisions en attente",
-          value: String(pendingQuotes.length),
-          hint: "Devis a arbitrer rapidement",
+          label: "Reprogrammations",
+          value: String(rescheduleNotifications.length),
+          hint: "Demandes et retours sur les creneaux",
         },
         {
           label: "Notifications",
@@ -277,6 +289,18 @@ export default function OwnerAlertesPage() {
           notificationCount: unreadMissionReplies,
         },
         {
+          title: "Reprogrammations",
+          text:
+            rescheduleNotifications.length > 0
+              ? takeFirst(rescheduleNotifications, 3)
+                  .map(
+                    (item) =>
+                      `${item.title || "Reprogrammation"} - ${formatWorkflowNotificationDate(item.created_at)}`,
+                  )
+                  .join(" | ")
+              : "Aucune demande ou reponse de reprogrammation pour le moment.",
+        },
+        {
           title: "Suivi financier",
           text:
             pendingInvoices.length > 0
@@ -318,6 +342,22 @@ export default function OwnerAlertesPage() {
                     void handleMarkAllNotificationsRead();
                   }
                 : undefined,
+            tone: getWorkflowNotificationTone(item.notification_type, item.entity_type),
+            notificationCount: item.read_at ? undefined : 1,
+          })),
+        },
+        {
+          title: "Demandes de reprogrammation",
+          description:
+            "Suivez ici les propositions de nouveau creneau et les retours du concierge sur ces demandes.",
+          emptyText: "Aucune reprogrammation a suivre pour le moment.",
+          items: rescheduleNotifications.map((item) => ({
+            id: item.id,
+            title: item.title || "Reprogrammation",
+            meta: `${getWorkflowNotificationMeta(item)} - ${formatWorkflowNotificationDate(item.created_at)}`,
+            description: item.body || "Aucun detail supplementaire.",
+            href: getWorkflowNotificationHref(item, "/dashboard/owner/planning"),
+            actionLabel: "Voir le planning",
             tone: getWorkflowNotificationTone(item.notification_type, item.entity_type),
             notificationCount: item.read_at ? undefined : 1,
           })),

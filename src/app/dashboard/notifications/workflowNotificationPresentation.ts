@@ -47,6 +47,9 @@ export function getWorkflowNotificationMeta(item: WorkflowNotificationItem) {
   if (type === "quote_accepted" || type === "quote_accepted_confirmation") return "Devis accepte";
   if (type === "quote_rejected") return "Devis refuse";
   if (type === "mission_created") return "Mission";
+  if (type === "mission_reschedule_requested") return "Reprogrammation demandee";
+  if (type === "mission_reschedule_accepted") return "Reprogrammation acceptee";
+  if (type === "mission_reschedule_rejected") return "Reprogrammation refusee";
   if (type === "quote_expired") return "Devis expire";
   if (type === "quote_canceled") return "Devis annule";
   if (item.entity_type === "mission") return "Mission";

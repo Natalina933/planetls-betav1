@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardCalendar, {
   DashboardEvent,
 } from "@/components/dashboard/calendar/DashboardCalendar";
@@ -22,7 +22,27 @@ type MissionRow = {
   status: string | null;
   priority: string | null;
   scheduled_start: string | null;
+  scheduled_end?: string | null;
+  metadata?: {
+    owner_requested_schedule_start?: string | null;
+    owner_requested_schedule_end?: string | null;
+    owner_requested_schedule_status?: string | null;
+    [key: string]: unknown;
+  } | null;
 };
+
+function toDateTimeLocalValue(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
 function getStartOfToday() {
   const date = new Date();
@@ -103,31 +123,36 @@ export default function ConciergePlanningPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMissionId, setSelectedMissionId] = useState("");
+  const [rescheduleStart, setRescheduleStart] = useState("");
+  const [rescheduleEnd, setRescheduleEnd] = useState("");
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const loadPlanning = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/missions?scope=all&limit=80", {
+        cache: "no-store",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de charger votre planning.");
+      }
+
+      setMissions(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de charger votre planning.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadPlanning() {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch("/api/missions?scope=all&limit=80", {
-          cache: "no-store",
-        });
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger votre planning.");
-        }
-
-        setMissions(Array.isArray(payload) ? payload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger votre planning.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     void loadPlanning();
-  }, []);
+  }, [loadPlanning]);
 
   const now = Date.now();
   const todayStart = getStartOfToday();
@@ -230,6 +255,112 @@ export default function ConciergePlanningPage() {
   );
 
   const weekBuckets = useMemo(() => buildWeekBuckets(plannedActiveMissions), [plannedActiveMissions]);
+  const selectableMissions = useMemo(
+    () => missions.filter((mission) => !isPlanningDone(mission.status)),
+    [missions],
+  );
+  const selectedMission = useMemo(
+    () => selectableMissions.find((mission) => mission.id === selectedMissionId) ?? null,
+    [selectableMissions, selectedMissionId],
+  );
+  const pendingRescheduleMissions = useMemo(
+    () =>
+      missions.filter((mission) => {
+        const status = mission.metadata?.owner_requested_schedule_status;
+        const requestedStart = mission.metadata?.owner_requested_schedule_start;
+        return Boolean(requestedStart) && status !== "accepted" && status !== "rejected";
+      }),
+    [missions],
+  );
+
+  useEffect(() => {
+    if (!selectedMissionId && selectableMissions.length > 0) {
+      setSelectedMissionId(selectableMissions[0].id);
+    }
+  }, [selectedMissionId, selectableMissions]);
+
+  useEffect(() => {
+    if (!selectedMission) {
+      setRescheduleStart("");
+      setRescheduleEnd("");
+      return;
+    }
+
+    setRescheduleStart(toDateTimeLocalValue(selectedMission.scheduled_start));
+    setRescheduleEnd(toDateTimeLocalValue(selectedMission.scheduled_end));
+  }, [selectedMission]);
+
+  const saveReschedule = useCallback(async () => {
+    if (!selectedMissionId || !rescheduleStart) {
+      setError("Choisissez une mission et une date de debut.");
+      return;
+    }
+
+    try {
+      setSaveBusy(true);
+      setFeedback(null);
+      setError(null);
+
+      const response = await fetch(`/api/missions/${encodeURIComponent(selectedMissionId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scheduled_start: new Date(rescheduleStart).toISOString(),
+          scheduled_end: rescheduleEnd ? new Date(rescheduleEnd).toISOString() : null,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de reprogrammer la mission.");
+      }
+
+      setFeedback("Mission reprogrammee dans le planning.");
+      await loadPlanning();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de reprogrammer la mission.");
+    } finally {
+      setSaveBusy(false);
+    }
+  }, [loadPlanning, rescheduleEnd, rescheduleStart, selectedMissionId]);
+
+  const reviewOwnerReschedule = useCallback(
+    async (missionId: string, decision: "accept" | "reject") => {
+      try {
+        setSaveBusy(true);
+        setError(null);
+        setFeedback(null);
+
+        const response = await fetch(`/api/missions/${encodeURIComponent(missionId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accept_reschedule: decision === "accept",
+            reject_reschedule: decision === "reject",
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(payload?.error || "Impossible de traiter la demande de reprogrammation.");
+        }
+
+        setFeedback(
+          decision === "accept"
+            ? "Le nouveau creneau propose par le proprietaire a ete accepte."
+            : "La demande de reprogrammation a ete refusee.",
+        );
+        await loadPlanning();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Impossible de traiter la demande de reprogrammation.",
+        );
+      } finally {
+        setSaveBusy(false);
+      }
+    },
+    [loadPlanning],
+  );
 
   return (
     <ConciergeWorkspacePage
@@ -239,6 +370,7 @@ export default function ConciergePlanningPage() {
         loading
           ? "Préparation de votre planning..."
           : error ||
+            feedback ||
             "Repérez immédiatement ce qui doit être traité aujourd'hui, confirmé sous 48 h ou cadré avant de créer un trou dans la semaine."
       }
       chips={[
@@ -447,6 +579,119 @@ export default function ConciergePlanningPage() {
           </div>
         </aside>
       </section>
+
+      <section className={styles.reschedulePanel}>
+        <div className={styles.overviewHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Reprogrammation</p>
+            <h2 className={styles.sectionTitle}>Deplacer une mission</h2>
+          </div>
+          <span className={styles.overviewBadge}>
+            {selectableMissions.length} mission(s) modifiable(s)
+          </span>
+        </div>
+
+        <div className={styles.rescheduleGrid}>
+          <label className={styles.rescheduleField}>
+            <span>Mission</span>
+            <select
+              value={selectedMissionId}
+              onChange={(event) => setSelectedMissionId(event.target.value)}
+            >
+              {selectableMissions.length === 0 ? (
+                <option value="">Aucune mission disponible</option>
+              ) : null}
+              {selectableMissions.map((mission) => (
+                <option key={mission.id} value={mission.id}>
+                  {mission.title || "Mission sans titre"} - {normalizePlanningStatus(mission.status)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className={styles.rescheduleField}>
+            <span>Debut</span>
+            <input
+              type="datetime-local"
+              value={rescheduleStart}
+              onChange={(event) => setRescheduleStart(event.target.value)}
+            />
+          </label>
+
+          <label className={styles.rescheduleField}>
+            <span>Fin</span>
+            <input
+              type="datetime-local"
+              value={rescheduleEnd}
+              onChange={(event) => setRescheduleEnd(event.target.value)}
+            />
+          </label>
+
+          <button
+            type="button"
+            className={styles.rescheduleButton}
+            onClick={saveReschedule}
+            disabled={saveBusy || !selectedMissionId || !rescheduleStart}
+          >
+            {saveBusy ? "Enregistrement..." : "Enregistrer dans le planning"}
+          </button>
+        </div>
+      </section>
+
+      {pendingRescheduleMissions.length > 0 ? (
+        <section className={styles.reschedulePanel}>
+          <div className={styles.overviewHeader}>
+            <div>
+              <p className={styles.sectionEyebrow}>Demandes proprietaire</p>
+              <h2 className={styles.sectionTitle}>Reprogrammations a valider</h2>
+            </div>
+            <span className={styles.overviewBadge}>
+              {pendingRescheduleMissions.length} demande(s)
+            </span>
+          </div>
+
+          <div className={styles.timelineList}>
+            {pendingRescheduleMissions.map((mission) => (
+              <article key={mission.id} className={styles.timelineItem}>
+                <div className={styles.timelineContent}>
+                  <p className={styles.timelineMeta}>
+                    Propose: {formatDateValue(mission.metadata?.owner_requested_schedule_start ?? null, {
+                      emptyLabel: "Non renseigne",
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                  <h3 className={styles.timelineTitle}>{mission.title || "Mission sans titre"}</h3>
+                  <p className={styles.timelineStatus}>
+                    Actuel: {formatPlanningDate(mission.scheduled_start)}
+                  </p>
+                </div>
+                <div className={styles.rescheduleActions}>
+                  <button
+                    type="button"
+                    className={styles.rescheduleButton}
+                    onClick={() => void reviewOwnerReschedule(mission.id, "accept")}
+                    disabled={saveBusy}
+                  >
+                    Accepter
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.rescheduleGhostButton}
+                    onClick={() => void reviewOwnerReschedule(mission.id, "reject")}
+                    disabled={saveBusy}
+                  >
+                    Refuser
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </ConciergeWorkspacePage>
   );
 }

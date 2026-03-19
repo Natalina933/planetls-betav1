@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import WorkflowStatusBadge from "@/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { DashboardSectionShell } from "@/components/dashboard";
 import { takeFirst } from "../../shared";
@@ -16,6 +16,19 @@ type OwnerMissionRow = {
   scheduled_start: string | null;
   scheduled_end: string | null;
 };
+
+function toDateTimeLocalValue(value: string | null | undefined) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
 function formatShortTime(value: string | null) {
   if (!value) return "--:--";
@@ -61,33 +74,38 @@ export default function OwnerPlanningPage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "week" | "month">("list");
+  const [selectedMissionId, setSelectedMissionId] = useState("");
+  const [requestedStart, setRequestedStart] = useState("");
+  const [requestedEnd, setRequestedEnd] = useState("");
+  const [requestBusy, setRequestBusy] = useState(false);
+
+  const loadPlanning = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch("/api/missions?scope=owner&limit=30", { cache: "no-store" });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de charger votre planning.");
+      }
+
+      setMissions(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de charger votre planning.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadPlanning() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch("/api/missions?scope=owner&limit=30", { cache: "no-store" });
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger votre planning.");
-        }
-
-        setMissions(Array.isArray(payload) ? payload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger votre planning.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
     void loadPlanning();
-  }, []);
+  }, [loadPlanning]);
 
   const upcomingMissions = useMemo(
     () =>
@@ -122,6 +140,67 @@ export default function OwnerPlanningPage() {
   );
 
   const weekBuckets = useMemo(() => buildWeekBuckets(filteredMissions), [filteredMissions]);
+  const schedulableMissions = useMemo(
+    () => missions.filter((mission) => mission.status !== "completed" && mission.status !== "canceled"),
+    [missions],
+  );
+  const selectedMission = useMemo(
+    () => schedulableMissions.find((mission) => mission.id === selectedMissionId) ?? null,
+    [schedulableMissions, selectedMissionId],
+  );
+
+  useEffect(() => {
+    if (!selectedMissionId && schedulableMissions.length > 0) {
+      setSelectedMissionId(schedulableMissions[0].id);
+    }
+  }, [schedulableMissions, selectedMissionId]);
+
+  useEffect(() => {
+    if (!selectedMission) {
+      setRequestedStart("");
+      setRequestedEnd("");
+      return;
+    }
+
+    setRequestedStart(toDateTimeLocalValue(selectedMission.scheduled_start));
+    setRequestedEnd(toDateTimeLocalValue(selectedMission.scheduled_end));
+  }, [selectedMission]);
+
+  const requestReschedule = useCallback(async () => {
+    if (!selectedMissionId || !requestedStart) {
+      setError("Choisissez une mission et un nouveau debut.");
+      return;
+    }
+
+    try {
+      setRequestBusy(true);
+      setError(null);
+      setFeedback(null);
+
+      const response = await fetch(`/api/missions/${encodeURIComponent(selectedMissionId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          request_reschedule: true,
+          scheduled_start: new Date(requestedStart).toISOString(),
+          scheduled_end: requestedEnd ? new Date(requestedEnd).toISOString() : null,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible d'envoyer la demande de reprogrammation.");
+      }
+
+      setFeedback("Votre demande de reprogrammation a ete transmise au concierge.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Impossible d'envoyer la demande de reprogrammation.",
+      );
+    } finally {
+      setRequestBusy(false);
+    }
+  }, [requestedEnd, requestedStart, selectedMissionId]);
 
   function exportPlanningCsv() {
     const rows = [
@@ -178,6 +257,8 @@ export default function OwnerPlanningPage() {
         <h1>Suivi des interventions</h1>
         <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
       </header>
+
+      {feedback ? <p className={`${styles.message} ${styles.messageSuccess}`}>{feedback}</p> : null}
 
       <div className="stats-row">
         <div className="stat-card">
@@ -332,6 +413,73 @@ export default function OwnerPlanningPage() {
             </div>
           )
         ) : null}
+
+        <section className={styles.panel}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Demande de reprogrammation</p>
+              <h2 className={styles.terracottaSectionTitle}>Proposer un nouveau creneau</h2>
+            </div>
+          </div>
+
+          <div className={styles.toolbar}>
+            <select
+              value={selectedMissionId}
+              onChange={(event) => setSelectedMissionId(event.target.value)}
+              className={styles.select}
+            >
+              {schedulableMissions.length === 0 ? (
+                <option value="">Aucune mission disponible</option>
+              ) : null}
+              {schedulableMissions.map((mission) => (
+                <option key={mission.id} value={mission.id}>
+                  {mission.title || "Mission sans titre"} - {mission.status || "-"}
+                </option>
+              ))}
+            </select>
+            <input
+              type="datetime-local"
+              value={requestedStart}
+              onChange={(event) => setRequestedStart(event.target.value)}
+              className={styles.field}
+            />
+            <input
+              type="datetime-local"
+              value={requestedEnd}
+              onChange={(event) => setRequestedEnd(event.target.value)}
+              className={styles.field}
+            />
+            <button
+              type="button"
+              onClick={requestReschedule}
+              disabled={requestBusy || !selectedMissionId || !requestedStart}
+              className={styles.buttonPrimary}
+            >
+              {requestBusy ? "Envoi..." : "Demander une reprogrammation"}
+            </button>
+          </div>
+
+          {selectedMission ? (
+            <p className={styles.meta}>
+              Creneau actuel: {formatDateValue(selectedMission.scheduled_start, {
+                emptyLabel: "Non planifie",
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}{" "}
+              | Fin: {formatDateValue(selectedMission.scheduled_end, {
+                emptyLabel: "Non planifiee",
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          ) : null}
+        </section>
       </div>
     </DashboardSectionShell>
   );

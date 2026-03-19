@@ -22,6 +22,13 @@ type MissionRow = {
   title: string | null;
   priority: string | null;
   status: string | null;
+  scheduled_start?: string | null;
+  metadata?: {
+    owner_requested_schedule_start?: string | null;
+    owner_requested_schedule_end?: string | null;
+    owner_requested_schedule_status?: string | null;
+    [key: string]: unknown;
+  } | null;
 };
 
 type ConversationRow = {
@@ -139,6 +146,15 @@ export default function ConciergeAlertesPage() {
     () => notifications.filter((item) => !item.read_at),
     [notifications],
   );
+  const pendingRescheduleMissions = useMemo(
+    () =>
+      missions.filter((mission) => {
+        const requestedStart = mission.metadata?.owner_requested_schedule_start;
+        const requestStatus = mission.metadata?.owner_requested_schedule_status;
+        return Boolean(requestedStart) && requestStatus !== "accepted" && requestStatus !== "rejected";
+      }),
+    [missions],
+  );
 
   const urgentMissionItems = useMemo(
     () => buildUrgentMissionAlerts(urgentMissions),
@@ -166,6 +182,7 @@ export default function ConciergeAlertesPage() {
       }
       chips={[
         `${urgentMissions.length} urgence(s)`,
+        `${pendingRescheduleMissions.length} reprogrammation(s)`,
         `${stalledConversations.length} relance(s) a faire`,
         `${draftHousings.length} fiche(s) a fiabiliser`,
         `${unreadWorkflowNotifications.length} notification(s) persistante(s)`,
@@ -182,9 +199,9 @@ export default function ConciergeAlertesPage() {
           hint: "Conversations qui refroidissent",
         },
         {
-          label: "Brouillons",
-          value: loading ? "..." : String(draftHousings.length),
-          hint: "Biens ou profils a finaliser",
+          label: "Reprogrammations",
+          value: loading ? "..." : String(pendingRescheduleMissions.length),
+          hint: "Demandes proprietaire en attente",
         },
         {
           label: "Notifications",
@@ -221,6 +238,20 @@ export default function ConciergeAlertesPage() {
             {
               label: "Voir les missions",
               href: "/dashboard/concierge/profile?tab=missions",
+              variant: "primary",
+            },
+          ],
+        },
+        {
+          title: "Demandes de reprogrammation",
+          text:
+            pendingRescheduleMissions.length > 0
+              ? `${pendingRescheduleMissions.length} mission(s) attendent une validation de nouveau creneau.`
+              : "Aucune demande de reprogrammation en attente.",
+          actions: [
+            {
+              label: "Ouvrir le planning",
+              href: "/dashboard/concierge/planning",
               variant: "primary",
             },
           ],
@@ -281,6 +312,27 @@ export default function ConciergeAlertesPage() {
               ? "Chargement des urgences."
               : error || "Aucune urgence terrain detectee.",
           items: urgentMissionItems,
+        },
+        {
+          title: "Demandes de reprogrammation",
+          description:
+            "Les proprietaires ont propose un nouveau creneau. Validez ou refusez depuis le planning concierge.",
+          emptyText:
+            loading
+              ? "Analyse des demandes de reprogrammation."
+              : error || "Aucune demande de reprogrammation en attente.",
+          items: pendingRescheduleMissions.map((mission) => ({
+            id: mission.id,
+            title: mission.title || "Mission sans titre",
+            meta: "En attente de validation",
+            description:
+              mission.metadata?.owner_requested_schedule_start
+                ? `Creneau propose: ${formatWorkflowNotificationDate(mission.metadata.owner_requested_schedule_start)}`
+                : "Nouveau creneau propose par le proprietaire.",
+            href: "/dashboard/concierge/planning",
+            actionLabel: "Ouvrir le planning",
+            tone: "warning" as const,
+          })),
         },
         {
           title: "A suivre - relances proprietaires",
