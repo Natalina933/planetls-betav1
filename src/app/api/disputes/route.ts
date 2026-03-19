@@ -1,8 +1,8 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import type { Json } from "@/types/supabase";
-import { DISPUTE_TYPES, dbAny, isMissingRelationError, isUuidLike, parseLimit } from "../inspections/shared";
+import { DISPUTE_TYPES, dbAny, isMissingRelationError, parseLimit } from "../inspections/shared";
 
 const createDisputeSchema = z.object({
   inspectionId: z.string().uuid(),
@@ -25,10 +25,14 @@ function toUnique(values: string[] | undefined): string[] {
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "disputes list auth",
+      actionLabel: "consulter les litiges",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const url = new URL(req.url);
     const limit = parseLimit(url.searchParams.get("limit"), 30);
@@ -127,10 +131,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "disputes create auth",
+      actionLabel: "ouvrir un litige",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const rawBody: unknown = await req.json();
     const parsedBody = createDisputeSchema.safeParse(rawBody);

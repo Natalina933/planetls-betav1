@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import { normalizeProfileLocationFields } from "../../lib/profileLocation.ts";
 
 const VALID_PROFILE_ROLES = new Set([
@@ -57,11 +57,14 @@ const assignBoolean = (
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "profiles update auth",
+      actionLabel: "modifier votre profil",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const body = await req.json();
     if (!isRecord(body)) {

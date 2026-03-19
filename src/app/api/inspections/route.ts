@@ -1,13 +1,12 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import type { Json } from "@/types/supabase";
 import {
   INSPECTION_STATUSES,
   dbAny,
   extractOwnerIdFromHousingProprietaire,
   isMissingRelationError,
-  isUuidLike,
   parseLimit,
 } from "./shared";
 
@@ -24,10 +23,14 @@ const allowedStatusValues = new Set<string>(INSPECTION_STATUSES);
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "inspections collection auth",
+      actionLabel: "consulter les inspections",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const url = new URL(req.url);
     const housingIdRaw = url.searchParams.get("housingId");
@@ -87,10 +90,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "inspections create auth",
+      actionLabel: "creer une inspection",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const rawBody: unknown = await req.json();
     const parsed = createInspectionSchema.safeParse(rawBody);

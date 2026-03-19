@@ -1,5 +1,5 @@
 ﻿import { NextRequest } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import { db } from "@/app/lib/dbServer";
 import { isUuidLike } from "@/app/api/inspections/shared";
 
@@ -42,10 +42,17 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return new Response("Non authentifie", { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "dispute export auth",
+      actionLabel: "exporter un litige",
+    });
+    if (!actorResult.ok) {
+      const payload = await actorResult.response.json().catch(() => null);
+      const message =
+        payload && typeof payload.error === "string" ? payload.error : "Acces refuse";
+      return new Response(message, { status: actorResult.response.status });
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const { id } = await params;
     if (!isUuidLike(id)) {

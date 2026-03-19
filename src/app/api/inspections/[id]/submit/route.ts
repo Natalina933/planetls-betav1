@@ -1,6 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import type { Json } from "@/types/supabase";
 import { canAccessInspection, dbAny, isUuidLike } from "../../shared";
 
@@ -18,10 +18,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "inspection submit auth",
+      actionLabel: "soumettre une inspection",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const { id } = await params;
     if (!isUuidLike(id)) {

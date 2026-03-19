@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import type { Json } from "@/types/supabase";
 import { db } from "@/app/lib/dbServer";
 import { dbAny, isUuidLike } from "../../../shared";
@@ -9,10 +9,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; mediaId: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "inspection media delete auth",
+      actionLabel: "supprimer un media d'inspection",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
+    const { userId, isAdmin } = actorResult.actor;
 
     const { id, mediaId } = await params;
     if (!isUuidLike(id) || !isUuidLike(mediaId)) {
