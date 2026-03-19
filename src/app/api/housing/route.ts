@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
 
     const { data: ownerProfile, error: ownerError } = await db
       .from("profiles")
-      .select("id, role, status")
+      .select("*")
       .eq("id", effectiveOwnerId)
       .maybeSingle();
 
@@ -236,7 +236,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Profil propriétaire introuvable." }, { status: 404 });
     }
 
-    if (ownerProfile.status === "suspended" || ownerProfile.status === "deleted") {
+    const ownerStatus = (ownerProfile as { status?: string | null }).status ?? null;
+
+    if (ownerStatus === "suspended" || ownerStatus === "deleted") {
       return NextResponse.json(
         { error: "Le profil propriétaire ciblé ne peut pas recevoir de logement." },
         { status: 403 },

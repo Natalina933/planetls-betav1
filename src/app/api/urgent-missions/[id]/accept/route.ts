@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 // Legacy Supabase typing is incomplete on urgent mission tables in this project.
@@ -12,14 +12,16 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!CONCIERGE_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    const actorResult = await requireActor(req, {
+      logLabel: "urgent mission accept auth",
+      allowedRoles: CONCIERGE_ROLES,
+      actionLabel: "accepter une mission urgente",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
+    const { actor } = actorResult;
     const { id } = await params;
     const { data: mission, error: readError } = await dbAny
       .from("urgent_missions")
@@ -34,12 +36,23 @@ export async function POST(
       return NextResponse.json({ error: "Cette mission est deja verrouillee" }, { status: 409 });
     }
 
+    if (
+      !actor.isAdmin &&
+      mission.accepted_by &&
+      mission.accepted_by !== actor.userId
+    ) {
+      return NextResponse.json(
+        { error: "Cette mission vient d'etre prise par un autre concierge." },
+        { status: 409 },
+      );
+    }
+
     const acceptedAt = new Date().toISOString();
     const { data: updatedMission, error: updateError } = await dbAny
       .from("urgent_missions")
       .update({
         status: "accepted",
-        accepted_by: auth.userId,
+        accepted_by: actor.userId,
         accepted_at: acceptedAt,
         payment_status: mission.payment_status === "pending" ? "authorized" : mission.payment_status,
       })
@@ -60,7 +73,7 @@ export async function POST(
         .from("contact_conversations")
         .select("id")
         .eq("owner_profile_id", mission.owner_id)
-        .eq("concierge_profile_id", auth.userId)
+        .eq("concierge_profile_id", actor.userId)
         .eq("source", "mission")
         .eq("source_reference", mission.id)
         .limit(1);
@@ -72,7 +85,7 @@ export async function POST(
           .from("contact_conversations")
           .insert({
             owner_profile_id: mission.owner_id,
-            concierge_profile_id: auth.userId,
+            concierge_profile_id: actor.userId,
             source: "mission",
             source_reference: mission.id,
             subject: mission.title,
@@ -90,7 +103,7 @@ export async function POST(
       if (conversationId) {
         await dbAny.from("contact_messages").insert({
           conversation_id: conversationId,
-          sender_profile_id: auth.userId,
+          sender_profile_id: actor.userId,
           message_type: "text",
           body: "Mission urgente acceptee. Je suis disponible pour intervenir et echanger sur les details.",
           metadata: {

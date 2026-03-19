@@ -3,7 +3,7 @@
   type CompletionState,
 } from "@/app/components/dashboard/profile/completion";
 
-type GenericRecord = Record<string, unknown>;
+export type GenericRecord = Record<string, unknown>;
 
 function parseStringList(value: unknown): string[] {
   if (Array.isArray(value)) {

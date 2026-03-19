@@ -8,6 +8,7 @@ import { ActivityFeed } from "../ActivityFeed/ActivityFeed";
 import { ProfileSummary } from "../ProfileSummary/ProfileSummary";
 import type {
   DashboardActivityItem,
+  DashboardNavItem,
   DashboardNotificationItem,
   DashboardPersona,
   DashboardQuickAction,
@@ -20,6 +21,8 @@ interface DashboardLayoutProps {
   persona: DashboardPersona;
   title: string;
   subtitle: string;
+  navTitle?: string;
+  navItems?: DashboardNavItem[];
   stats: DashboardStatItem[];
   actions: DashboardQuickAction[];
   activity: DashboardActivityItem[];
@@ -44,6 +47,8 @@ export function DashboardLayout({
   persona,
   title,
   subtitle,
+  navTitle,
+  navItems = [],
   stats,
   actions,
   activity,
@@ -93,16 +98,36 @@ export function DashboardLayout({
           </Card>
           <Card className={styles.panel}>
             <CardHeader className={styles.panelHeader}>
-              <h2>Accès rapides</h2>
+              <h2>{navTitle ?? "Accès rapides"}</h2>
             </CardHeader>
             <CardBody className={styles.shortcutBody}>
-              {shortcuts.map((item) => (
-                <Link key={item.href} href={item.href} className={styles.shortcut}>
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.length > 0
+                ? navItems.map((item) => (
+                    <Link key={item.href} href={item.href} className={styles.shortcut}>
+                      {item.label}
+                    </Link>
+                  ))
+                : shortcuts.map((item) => (
+                    <Link key={item.href} href={item.href} className={styles.shortcut}>
+                      {item.label}
+                    </Link>
+                  ))}
             </CardBody>
           </Card>
+          {navItems.length > 0 && shortcuts.length > 0 ? (
+            <Card className={styles.panel}>
+              <CardHeader className={styles.panelHeader}>
+                <h2>Accès rapides</h2>
+              </CardHeader>
+              <CardBody className={styles.shortcutBody}>
+                {shortcuts.map((item) => (
+                  <Link key={item.href} href={item.href} className={styles.shortcut}>
+                    {item.label}
+                  </Link>
+                ))}
+              </CardBody>
+            </Card>
+          ) : null}
         </aside>
       </div>
     </div>

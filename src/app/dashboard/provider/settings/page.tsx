@@ -1,8 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import EditableUnifiedProfilePage from "@/app/components/dashboard/profile/EditableUnifiedProfilePage";
 
-export default function ProviderSettingsPage() {
+function ProviderSettingsPageContent() {
   return (
     <EditableUnifiedProfilePage
       roleLabel="Provider partenaire"
@@ -14,5 +15,13 @@ export default function ProviderSettingsPage() {
       preferCompanyName
       requireCompanyForVerified
     />
+  );
+}
+
+export default function ProviderSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProviderSettingsPageContent />
+    </Suspense>
   );
 }

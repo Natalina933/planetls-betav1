@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 
 type RecipientStatus =
   | "viewed"
@@ -21,10 +21,16 @@ interface RespondBody {
   response_message?: string | null;
 }
 
+type ServiceRequestRow = {
+  id: string;
+  owner_profile_id: string | null;
+  selected_concierge_profile_id: string | null;
+  status: string | null;
+};
+
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 const VALID_STATUSES: RecipientStatus[] = ["viewed", "interested", "quoted", "declined"];
 // Legacy Supabase typing is incomplete on these tables in this project.
-// Keep the cast local instead of spreading `any` through the whole handler.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dbAny = db as any;
 
@@ -39,14 +45,16 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!CONCIERGE_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    const actorResult = await requireActor(req, {
+      logLabel: "service request recipient respond auth",
+      allowedRoles: CONCIERGE_ROLES,
+      actionLabel: "repondre a une demande de service",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
+    const { actor } = actorResult;
     const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: "Recipient introuvable." }, { status: 400 });
@@ -63,9 +71,8 @@ export async function POST(
 
     const { data: recipient, error: recipientError } = await dbAny
       .from("service_request_recipients")
-      .select("*")
+      .select("id, service_request_id, concierge_profile_id, status, viewed_at, responded_at")
       .eq("id", id)
-      .eq("concierge_profile_id", userId)
       .maybeSingle();
 
     if (recipientError) {
@@ -77,12 +84,47 @@ export async function POST(
       return NextResponse.json({ error: "Demande destinataire introuvable." }, { status: 404 });
     }
 
+    if (!actor.isAdmin && recipient.concierge_profile_id !== actor.userId) {
+      return NextResponse.json(
+        { error: "Vous n'etes pas autorise a repondre a cette demande." },
+        { status: 403 },
+      );
+    }
+
+    const { data: serviceRequest, error: requestError } = await dbAny
+      .from("service_requests")
+      .select("id, owner_profile_id, selected_concierge_profile_id, status")
+      .eq("id", recipient.service_request_id)
+      .maybeSingle();
+
+    if (requestError) {
+      console.error(
+        "[POST /api/service-request-recipients/[id]/respond] request lookup error:",
+        requestError,
+      );
+      return NextResponse.json({ error: "Impossible de charger la demande source." }, { status: 500 });
+    }
+
+    if (!serviceRequest) {
+      return NextResponse.json({ error: "Demande source introuvable." }, { status: 404 });
+    }
+
+    if (serviceRequest.status === "closed" || serviceRequest.status === "cancelled") {
+      return NextResponse.json(
+        { error: "Cette demande n'accepte plus de reponse." },
+        { status: 409 },
+      );
+    }
+
     const nowIso = new Date().toISOString();
     const updatePayload: Record<string, unknown> = {
       status: nextStatus,
       response_message:
         typeof body.response_message === "string" ? body.response_message.trim() || null : null,
-      responded_at: nextStatus === "interested" || nextStatus === "quoted" || nextStatus === "declined" ? nowIso : recipient.responded_at,
+      responded_at:
+        nextStatus === "interested" || nextStatus === "quoted" || nextStatus === "declined"
+          ? nowIso
+          : recipient.responded_at,
       viewed_at: nextStatus === "viewed" || recipient.viewed_at ? recipient.viewed_at ?? nowIso : null,
     };
 
@@ -117,7 +159,10 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({ recipient: updatedRecipient });
+    return NextResponse.json({
+      recipient: updatedRecipient,
+      request: serviceRequest as ServiceRequestRow,
+    });
   } catch (err) {
     console.error("[POST /api/service-request-recipients/[id]/respond] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });

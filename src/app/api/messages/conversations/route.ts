@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
 
     const { data: ownerProfile, error: ownerProfileError } = await db
       .from("profiles")
-      .select("id, role, category, status")
+      .select("*")
       .eq("id", ownerProfileId)
       .maybeSingle();
 
@@ -277,7 +277,9 @@ export async function POST(req: NextRequest) {
     if (!ownerProfile) {
       return NextResponse.json({ error: "Destinataire introuvable" }, { status: 404 });
     }
-    if (ownerProfile.status === "suspended" || ownerProfile.status === "deleted") {
+    const ownerStatus = (ownerProfile as { status?: string | null }).status ?? null;
+
+    if (ownerStatus === "suspended" || ownerStatus === "deleted") {
       return NextResponse.json({ error: "Destinataire indisponible" }, { status: 403 });
     }
 
@@ -292,7 +294,7 @@ export async function POST(req: NextRequest) {
 
     const { data: conciergeProfile, error: conciergeProfileError } = await db
       .from("profiles")
-      .select("id, role, category, status")
+      .select("*")
       .eq("id", conciergeProfileId)
       .maybeSingle();
 
@@ -306,7 +308,9 @@ export async function POST(req: NextRequest) {
     if (!conciergeProfile) {
       return NextResponse.json({ error: "Concierge introuvable" }, { status: 404 });
     }
-    if (conciergeProfile.status === "suspended" || conciergeProfile.status === "deleted") {
+    const conciergeStatus = (conciergeProfile as { status?: string | null }).status ?? null;
+
+    if (conciergeStatus === "suspended" || conciergeStatus === "deleted") {
       return NextResponse.json({ error: "Concierge indisponible" }, { status: 403 });
     }
 

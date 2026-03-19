@@ -87,7 +87,9 @@ const providers: NextAuthConfig["providers"] = [
           return null;
         }
 
-        if (profile.status === "suspended" || profile.status === "deleted") {
+        const profileStatus = (profile as { status?: string | null }).status ?? null;
+
+        if (profileStatus === "suspended" || profileStatus === "deleted") {
           console.warn(`[AUTH] User suspended or deleted: ${userId}`);
           return null;
         }
@@ -116,7 +118,7 @@ const providers: NextAuthConfig["providers"] = [
           option: profile.option || null,
           search_target: profile.search_target || null,
           company_name: profile.company_name || null,
-          status: profile.status ?? "active",
+          status: profileStatus ?? "active",
         } satisfies CustomUser;
       } catch (error) {
         console.error("[AUTH] Authorize error:", error);

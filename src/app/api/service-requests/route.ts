@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
 
@@ -38,29 +38,6 @@ interface CreateServiceRequestBody {
   recipient_ids?: string[];
 }
 
-const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
-const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
-const VALID_REQUEST_TYPES: ServiceRequestType[] = ["ponctuel", "renfort", "durable"];
-
-const isUuidLike = (value: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-
-const createServiceRequestSchema = z.object({
-  property_id: z.string().uuid().optional().nullable(),
-  request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
-  title: z.string().trim().min(1).max(180),
-  description: z.string().trim().max(5000).optional().nullable(),
-  requested_services: z.array(z.string().trim().min(1).max(120)).max(50).optional(),
-  region: z.string().trim().max(120).optional().nullable(),
-  city: z.string().trim().max(120).optional().nullable(),
-  postal_code: z.string().trim().max(20).optional().nullable(),
-  desired_date: z.string().trim().max(40).optional().nullable(),
-  urgency: z.boolean().optional(),
-  budget_max: z.coerce.number().nonnegative().max(100000000).optional().nullable(),
-  currency: z.string().trim().length(3).optional().nullable(),
-  recipient_ids: z.array(z.string().uuid()).min(1).max(100),
-});
-
 type ServiceRequestRecipientRow = {
   id: string;
   service_request_id: string;
@@ -86,6 +63,33 @@ type ContactConversationRow = {
   concierge_profile_id: string;
   owner_profile_id: string;
 };
+
+type PropertyRow = {
+  id: string;
+  owner_id: string | null;
+  status: string | null;
+};
+
+const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
+const OWNER_ONLY_ROLES = new Set(["owner", "owner_pro"]);
+const VALID_REQUEST_TYPES: ServiceRequestType[] = ["ponctuel", "renfort", "durable"];
+
+const createServiceRequestSchema = z.object({
+  property_id: z.string().uuid().optional().nullable(),
+  request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
+  title: z.string().trim().min(1).max(180),
+  description: z.string().trim().max(5000).optional().nullable(),
+  requested_services: z.array(z.string().trim().min(1).max(120)).max(50).optional(),
+  region: z.string().trim().max(120).optional().nullable(),
+  city: z.string().trim().max(120).optional().nullable(),
+  postal_code: z.string().trim().max(20).optional().nullable(),
+  desired_date: z.string().trim().max(40).optional().nullable(),
+  urgency: z.boolean().optional(),
+  budget_max: z.coerce.number().nonnegative().max(100000000).optional().nullable(),
+  currency: z.string().trim().length(3).optional().nullable(),
+  recipient_ids: z.array(z.string().uuid()).min(1).max(100),
+});
 
 // Legacy Supabase typing is incomplete on these tables in this project.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,7 +140,9 @@ function buildRequestPrefillMessage(body: CreateServiceRequestBody, requestedSer
     requestedServices.length > 0
       ? `Services recherches : ${requestedServices.join(", ")}`
       : null,
-    typeof body.budget_max === "number" ? `Budget max : ${body.budget_max} ${normalizeCurrency(body.currency)}` : null,
+    typeof body.budget_max === "number"
+      ? `Budget max : ${body.budget_max} ${normalizeCurrency(body.currency)}`
+      : null,
     body.urgency === true ? "Urgence : oui" : null,
     typeof body.description === "string" && body.description.trim()
       ? `Details : ${body.description.trim()}`
@@ -144,6 +150,21 @@ function buildRequestPrefillMessage(body: CreateServiceRequestBody, requestedSer
   ];
 
   return lines.filter((line): line is string => typeof line === "string" && line.length > 0).join("\n");
+}
+
+async function loadProperty(propertyId: string): Promise<PropertyRow | null> {
+  const { data, error } = await db
+    .from("properties")
+    .select("id, owner_id, status")
+    .eq("id", propertyId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[service-requests property lookup] DB error:", error);
+    throw new Error("PROPERTY_LOOKUP_FAILED");
+  }
+
+  return data;
 }
 
 async function ensureContactConversations(params: {
@@ -398,19 +419,22 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!OWNER_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    const actorResult = await requireActor(req, {
+      logLabel: "service requests create auth",
+      allowedRoles: OWNER_ONLY_ROLES,
+      actionLabel: "creer une demande de service",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
+    const { actor } = actorResult;
     const rawBody: unknown = await req.json();
     const parsedBody = createServiceRequestSchema.safeParse(rawBody);
     if (!parsedBody.success) {
       return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
     }
+
     const body = parsedBody.data as CreateServiceRequestBody;
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
@@ -423,6 +447,20 @@ export async function POST(req: NextRequest) {
         { error: "Selectionnez au moins un concierge destinataire." },
         { status: 400 },
       );
+    }
+
+    if (body.property_id) {
+      const property = await loadProperty(body.property_id);
+      if (!property) {
+        return NextResponse.json({ error: "property_id introuvable." }, { status: 404 });
+      }
+
+      if (property.owner_id !== actor.userId) {
+        return NextResponse.json(
+          { error: "Vous ne pouvez creer une demande que pour votre propre logement." },
+          { status: 403 },
+        );
+      }
     }
 
     const requestType: ServiceRequestType = VALID_REQUEST_TYPES.includes(body.request_type as ServiceRequestType)
@@ -439,7 +477,7 @@ export async function POST(req: NextRequest) {
 
     const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
       .from("profiles")
-      .select("id, role, category")
+      .select("id, role, category, status")
       .in("id", recipientIds);
 
     if (conciergeProfilesError) {
@@ -448,14 +486,16 @@ export async function POST(req: NextRequest) {
     }
 
     const validRecipientIds = (conciergeProfiles ?? [])
-      .filter((profile: { role?: string | null; category?: string | null }) => {
+      .filter((profile: { role?: string | null; category?: string | null; status?: string | null }) => {
         const roleValue = (profile.role ?? "").toLowerCase();
         const categoryValue = (profile.category ?? "").toLowerCase();
-        return (
+        const statusValue = (profile.status ?? "").toLowerCase();
+        const isConcierge =
           roleValue === "concierge" ||
           roleValue === "concierge_pro" ||
-          categoryValue.startsWith("concierge")
-        );
+          categoryValue.startsWith("concierge");
+
+        return isConcierge && statusValue !== "suspended" && statusValue !== "deleted";
       })
       .map((profile: { id: string }) => profile.id);
 
@@ -464,7 +504,7 @@ export async function POST(req: NextRequest) {
     }
 
     const insertPayload = {
-      owner_profile_id: userId,
+      owner_profile_id: actor.userId,
       property_id: body.property_id ?? null,
       request_type: requestType,
       status: "sent" as ServiceRequestStatus,
@@ -492,7 +532,7 @@ export async function POST(req: NextRequest) {
     if (requestError || !createdRequest) {
       if (isMissingRelationError(requestError)) {
         const conversations = await ensureContactConversations({
-          ownerProfileId: userId,
+          ownerProfileId: actor.userId,
           conciergeIds: validRecipientIds,
           subject: requestSubject,
           prefillMessage,
@@ -542,7 +582,7 @@ export async function POST(req: NextRequest) {
     }
 
     const conversations = await ensureContactConversations({
-      ownerProfileId: userId,
+      ownerProfileId: actor.userId,
       conciergeIds: validRecipientIds,
       subject: requestSubject,
       prefillMessage,
@@ -569,11 +609,15 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId || !isUuidLike(userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "service requests read auth",
+      actionLabel: "consulter les demandes de service",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
+    const { actor } = actorResult;
     const url = new URL(req.url);
     const view = url.searchParams.get("view") ?? "";
     if (view !== "" && view !== "owner" && view !== "concierge") {
@@ -581,13 +625,13 @@ export async function GET(req: NextRequest) {
     }
     const limit = parseLimit(url.searchParams.get("limit"), 20);
 
-    if (OWNER_ROLES.has(role) && view !== "concierge") {
-      const items = await hydrateOwnerRequests(userId, limit);
+    if ((OWNER_ROLES.has(actor.role) || actor.isAdmin) && view !== "concierge") {
+      const items = await hydrateOwnerRequests(actor.userId, limit);
       return NextResponse.json({ items, scope: "owner" });
     }
 
-    if (CONCIERGE_ROLES.has(role)) {
-      const items = await hydrateConciergeRequests(userId, limit);
+    if (CONCIERGE_ROLES.has(actor.role) || actor.isAdmin) {
+      const items = await hydrateConciergeRequests(actor.userId, limit);
       return NextResponse.json({ items, scope: "concierge" });
     }
 

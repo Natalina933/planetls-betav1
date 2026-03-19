@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import type { Json } from "@/types/supabase";
 
 type MissionStatus =
@@ -28,6 +28,18 @@ interface CreateMissionBody {
   metadata?: Json | null;
 }
 
+type OwnerProfileRow = {
+  id: string;
+  role: string | null;
+  status: string | null;
+};
+
+type PropertyRow = {
+  id: string;
+  owner_id: string | null;
+  status: string | null;
+};
+
 const VALID_STATUS: MissionStatus[] = [
   "draft",
   "assigned",
@@ -44,6 +56,7 @@ const CONCIERGE_MISSION_ROLES = new Set([
   "concierge",
   "concierge_pro",
 ]);
+const OWNER_MISSION_ROLES = new Set(["owner", "owner_pro"]);
 
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -95,18 +108,83 @@ const mapMissionInsertError = (error: {
   };
 };
 
+async function loadOwnerProfile(ownerProfileId: string): Promise<OwnerProfileRow | null> {
+  const { data, error } = await db
+    .from("profiles")
+    .select("*")
+    .eq("id", ownerProfileId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[missions owner lookup] DB error:", error);
+    throw new Error("OWNER_LOOKUP_FAILED");
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    role: data.role,
+    status: (data as { status?: string | null }).status ?? null,
+  };
+}
+
+async function loadProperty(propertyId: string): Promise<PropertyRow | null> {
+  const { data, error } = await db
+    .from("properties")
+    .select("id, owner_id, status")
+    .eq("id", propertyId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[missions property lookup] DB error:", error);
+    throw new Error("PROPERTY_LOOKUP_FAILED");
+  }
+
+  return data;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId || !isUuidLike(auth.userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "missions collection auth",
+      actionLabel: "consulter les missions",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
+    const { actor } = actorResult;
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
     const limitParam = Number(url.searchParams.get("limit") ?? "50");
-    const scopeParam = url.searchParams.get("scope") ?? "concierge";
+    const requestedScope = url.searchParams.get("scope") ?? "concierge";
     const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 200) : 50;
+
+    const actorIsConcierge = CONCIERGE_MISSION_ROLES.has(actor.role);
+    const actorIsOwner = OWNER_MISSION_ROLES.has(actor.role);
+    const scope =
+      requestedScope === "all" || requestedScope === "owner" || requestedScope === "concierge"
+        ? requestedScope
+        : "concierge";
+
+    if (!actor.isAdmin) {
+      if (scope === "owner" && !actorIsOwner) {
+        return NextResponse.json(
+          { error: "Seuls les proprietaires peuvent consulter cette vue." },
+          { status: 403 },
+        );
+      }
+
+      if ((scope === "concierge" || scope === "all") && !actorIsConcierge) {
+        return NextResponse.json(
+          { error: "Seuls les concierges peuvent consulter cette vue." },
+          { status: 403 },
+        );
+      }
+    }
 
     let query = db
       .from("missions")
@@ -114,18 +192,19 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    if (scopeParam === "owner") {
-      query = query.eq("owner_profile_id", auth.userId);
-    } else if (scopeParam === "all") {
-      if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
+    if (scope === "owner") {
+      query = query.eq("owner_profile_id", actor.userId);
+    } else if (scope === "all") {
+      if (!actor.isAdmin && !actorIsConcierge) {
         return NextResponse.json({ error: "Non autorise" }, { status: 403 });
       }
-      query = query.or(`concierge_profile_id.eq.${auth.userId},owner_profile_id.eq.${auth.userId}`);
+      query = actor.isAdmin
+        ? query
+        : query.or(
+            `concierge_profile_id.eq.${actor.userId},owner_profile_id.eq.${actor.userId}`,
+          );
     } else {
-      if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
-        return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-      }
-      query = query.eq("concierge_profile_id", auth.userId);
+      query = actor.isAdmin ? query : query.eq("concierge_profile_id", actor.userId);
     }
 
     if (status && VALID_STATUS.includes(status as MissionStatus)) {
@@ -147,19 +226,81 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId || !isUuidLike(auth.userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "missions create auth",
+      allowedRoles: CONCIERGE_MISSION_ROLES,
+      actionLabel: "creer une mission",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
-    if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
-    }
-
+    const { actor } = actorResult;
     const body: CreateMissionBody = await req.json();
     const title = (body.title ?? "").trim();
     if (!title) {
       return NextResponse.json({ error: "Le titre est requis" }, { status: 400 });
+    }
+
+    const requestedOwnerId = typeof body.owner_profile_id === "string" ? body.owner_profile_id : null;
+    const requestedPropertyId = typeof body.property_id === "string" ? body.property_id : null;
+
+    if (requestedOwnerId && !isUuidLike(requestedOwnerId)) {
+      return NextResponse.json({ error: "owner_profile_id invalide" }, { status: 400 });
+    }
+
+    if (requestedPropertyId && !isUuidLike(requestedPropertyId)) {
+      return NextResponse.json({ error: "property_id invalide" }, { status: 400 });
+    }
+
+    let ownerProfile: OwnerProfileRow | null = null;
+    if (requestedOwnerId) {
+      ownerProfile = await loadOwnerProfile(requestedOwnerId);
+      if (!ownerProfile) {
+        return NextResponse.json({ error: "owner_profile_id introuvable" }, { status: 404 });
+      }
+
+      const ownerRole = typeof ownerProfile.role === "string" ? ownerProfile.role : "";
+      if (!actor.isAdmin && ownerProfile.status !== "active") {
+        return NextResponse.json(
+          { error: "Le proprietaire cible ne peut pas recevoir de mission." },
+          { status: 403 },
+        );
+      }
+
+      if (!OWNER_MISSION_ROLES.has(ownerRole)) {
+        return NextResponse.json({ error: "owner_profile_id invalide" }, { status: 400 });
+      }
+    }
+
+    let property: PropertyRow | null = null;
+    if (requestedPropertyId) {
+      property = await loadProperty(requestedPropertyId);
+      if (!property) {
+        return NextResponse.json({ error: "property_id introuvable" }, { status: 404 });
+      }
+
+      if (!actor.isAdmin && property.status && property.status !== "active") {
+        return NextResponse.json(
+          { error: "Le logement cible ne peut pas recevoir de mission." },
+          { status: 403 },
+        );
+      }
+
+      if (requestedOwnerId && property.owner_id && property.owner_id !== requestedOwnerId) {
+        return NextResponse.json(
+          { error: "Le logement cible n'appartient pas au proprietaire selectionne." },
+          { status: 403 },
+        );
+      }
+    }
+
+    const effectiveOwnerId = requestedOwnerId ?? property?.owner_id ?? null;
+    if (requestedPropertyId && !effectiveOwnerId) {
+      return NextResponse.json(
+        { error: "Impossible de determiner le proprietaire du logement cible." },
+        { status: 400 },
+      );
     }
 
     const status: MissionStatus = VALID_STATUS.includes(body.status as MissionStatus)
@@ -172,9 +313,9 @@ export async function POST(req: NextRequest) {
     const { data, error } = await db
       .from("missions")
       .insert({
-        concierge_profile_id: auth.userId,
-        owner_profile_id: body.owner_profile_id ?? null,
-        property_id: body.property_id ?? null,
+        concierge_profile_id: actor.userId,
+        owner_profile_id: effectiveOwnerId,
+        property_id: requestedPropertyId,
         service_id: body.service_id ?? null,
         title,
         description: body.description ?? null,
@@ -199,7 +340,7 @@ export async function POST(req: NextRequest) {
 
     const { error: eventError } = await db.from("mission_events").insert({
       mission_id: data.id,
-      actor_profile_id: auth.userId,
+      actor_profile_id: actor.userId,
       event_type: "created",
       payload: {
         status: data.status,

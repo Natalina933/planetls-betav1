@@ -2,38 +2,40 @@
 
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
-import { buildOwnerMissionsCompletion } from "@/app/dashboard/shared";
+// 1. Importe le type GenericRecord depuis ton fichier partagé
+import { buildOwnerMissionsCompletion, type GenericRecord } from "@/app/dashboard/shared"; 
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";
 
 export default function OwnerMissionsOverviewPage() {
   const { isAuthenticated } = useCurrentUser();
   const { missions, conversations } = useOwnerDashboardData(isAuthenticated);
-  const completion = buildOwnerMissionsCompletion({
-    missions: missions as Record<string, unknown>[],
-    conversations: conversations as Record<string, unknown>[],
+
+  // 2. On utilise GenericRecord[] au lieu de Mission[] ou any[]
+  // Cela garantit que buildOwnerMissionsCompletion recevra exactement ce qu'il attend.
+  const completionData = buildOwnerMissionsCompletion({
+    missions: (missions || []) as GenericRecord[],
+    conversations: (conversations || []) as GenericRecord[],
   });
+
+  const PLANNING_HREF = "/dashboard/owner/planning";
 
   return (
     <SimpleOverviewWorkspace
       tone="owner"
-      eyebrow="Pilotage des missions"
-      title="Vue d'ensemble des missions"
-      description="Cette vue rassemble uniquement l'état de vos missions. Les sous-rubriques servent ensuite à suivre le planning, les alertes et les échanges liés aux interventions, sans redondance."
-      chips={["Vue synthèse", "Planning", "Alertes & messages"]}
+      eyebrow="Pilotage"
+      title="Missions"
+      description="Synthèse de vos interventions, planning et messages."
+      chips={["Synthèse", "Planning", "Alertes"]}
       actions={[
-        { label: "Voir le planning", href: "/dashboard/owner/planning", variant: "primary" },
-        { label: "Ouvrir les messages", href: "/dashboard/owner/messages", variant: "secondary" },
+        { label: "Voir le planning", href: PLANNING_HREF, variant: "primary" },
+        { label: "Messages", href: "/dashboard/owner/messages", variant: "secondary" },
       ]}
       completion={{
-        title: "Missions",
-        description:
-          "Complétez cette catégorie pour garder un pilotage clair de vos interventions et de vos échanges.",
-        percentage: completion.percentage,
-        completedCount: completion.completedCount,
-        totalCount: completion.totalCount,
-        missingItems: completion.missingItems,
-        actionLabel: "Voir le planning",
-        actionHref: "/dashboard/owner/planning",
+        ...completionData,
+        title: "État d'avancement",
+        description: "Suivez le pilotage de vos interventions.",
+        actionLabel: "Accéder au planning",
+        actionHref: PLANNING_HREF,
       }}
     />
   );

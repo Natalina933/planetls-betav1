@@ -12,6 +12,7 @@ export {
   buildProviderClientsCompletion,
   buildProviderFinancesCompletion,
   buildProviderInterventionsCompletion,
+  type GenericRecord,
 } from "./categoryCompletion";
 export {
   formatConversationDate,
@@ -19,4 +20,4 @@ export {
   getConversationTitle,
 } from "./conversations";
 export { fetchJsonOrFallback, fetchJsonOrThrow } from "./http";
-export type { DashboardUserIdentity, ExperienceLevel } from "./types";
+export type { DashboardUserIdentity, ExperienceLevel} from "./types";

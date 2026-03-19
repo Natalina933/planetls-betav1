@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireActor } from "@/app/lib/apiSecurity";
 import {
   type ConciergeMatchCandidate,
   buildUrgentMissionMatches,
@@ -21,6 +21,8 @@ const dbAny = db as any;
 type UrgentMissionRow = {
   property_address: string;
   mission_type: string;
+  owner_id?: string | null;
+  accepted_by?: string | null;
   [key: string]: unknown;
 };
 
@@ -31,9 +33,10 @@ async function loadConciergeMatches(
   const { data: profiles, error: profilesError } = await dbAny
     .from("profiles")
     .select(
-      "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, emergency_service, is_available_for_urgent, max_radius_km, response_time_avg, availability_hours, role",
+      "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, emergency_service, is_available_for_urgent, max_radius_km, response_time_avg, availability_hours, role, status",
     )
-    .in("role", ["concierge", "concierge_pro"]);
+    .in("role", ["concierge", "concierge_pro"])
+    .eq("status", "active");
 
   if (profilesError) {
     throw new Error("Impossible de charger les concierges compatibles.");
@@ -62,27 +65,31 @@ async function loadConciergeMatches(
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const actorResult = await requireActor(req, {
+      logLabel: "urgent missions auth",
+      actionLabel: "consulter les missions urgentes",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
     }
 
+    const { actor } = actorResult;
     const url = new URL(req.url);
     const scope = url.searchParams.get("scope") ?? "owner";
     const horizon = url.searchParams.get("horizon") ?? "today";
     const radiusFilter = Number(url.searchParams.get("radius") ?? "0");
 
     if (scope === "opportunities") {
-      if (!CONCIERGE_ROLES.has(auth.role)) {
+      if (!actor.isAdmin && !CONCIERGE_ROLES.has(actor.role)) {
         return NextResponse.json({ error: "Non autorise" }, { status: 403 });
       }
 
       const { data: conciergeProfile, error: conciergeError } = await dbAny
         .from("profiles")
         .select(
-          "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, emergency_service, is_available_for_urgent, max_radius_km, response_time_avg, availability_hours, role",
+          "id, first_name, last_name, username, company_name, city, country, service_area, service_radius_km, hourly_rate, emergency_service, is_available_for_urgent, max_radius_km, response_time_avg, availability_hours, role, status",
         )
-        .eq("id", auth.userId)
+        .eq("id", actor.userId)
         .single();
 
       if (conciergeError || !conciergeProfile) {
@@ -127,17 +134,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ items });
     }
 
-    if (!OWNER_ROLES.has(auth.role) && !CONCIERGE_ROLES.has(auth.role)) {
+    if (!actor.isAdmin && !OWNER_ROLES.has(actor.role) && !CONCIERGE_ROLES.has(actor.role)) {
       return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const column = scope === "concierge" ? "accepted_by" : "owner_id";
-    const { data, error } = await dbAny
+    const query = dbAny
       .from("urgent_missions")
       .select("*")
-      .eq(column, auth.userId)
       .order("created_at", { ascending: false })
       .limit(30);
+
+    const { data, error } = await (actor.isAdmin ? query : query.eq(column, actor.userId));
 
     if (error) {
       return NextResponse.json({ error: "Erreur chargement missions urgentes" }, { status: 500 });
@@ -152,7 +160,23 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
+    const authHeader = req.headers.get("authorization");
+    const hasSessionHint =
+      Boolean(authHeader) || Boolean(req.cookies.get("next-auth.session-token")) || Boolean(req.cookies.get("__Secure-next-auth.session-token"));
+
+    let actorUserId: string | null = null;
+    if (hasSessionHint) {
+      const actorResult = await requireActor(req, {
+        logLabel: "urgent missions create auth",
+        allowedRoles: OWNER_ROLES,
+        actionLabel: "creer une mission urgente",
+      });
+      if (!actorResult.ok) {
+        return actorResult.response;
+      }
+      actorUserId = actorResult.actor.userId;
+    }
+
     const body = await req.json();
     const payload = sanitizeUrgentMissionPayload(body);
     const matches: ConciergeMatchCandidate[] = await loadConciergeMatches(
@@ -173,7 +197,7 @@ export async function POST(req: NextRequest) {
 
     const metadata = buildUrgentMissionMetadata({
       matches,
-      ownerAuthenticated: Boolean(auth.userId),
+      ownerAuthenticated: Boolean(actorUserId),
     });
 
     const { data: createdMission, error: createError } = await dbAny
@@ -183,7 +207,7 @@ export async function POST(req: NextRequest) {
         property_address: payload.property_address,
         mission_type: payload.mission_type,
         scheduled_at: payload.scheduled_at,
-        owner_id: auth.userId ?? null,
+        owner_id: actorUserId,
         status: "open",
         accepted_by: null,
         price: estimatedPrice,

@@ -25,7 +25,7 @@ const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 export async function loadActorProfile(userId: string, logLabel: string): Promise<ActorProfile | null> {
   const { data, error } = await db
     .from("profiles")
-    .select("id, role, status")
+    .select("*")
     .eq("id", userId)
     .maybeSingle();
 
@@ -34,7 +34,15 @@ export async function loadActorProfile(userId: string, logLabel: string): Promis
     throw new Error("PROFILE_LOOKUP_FAILED");
   }
 
-  return data;
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    role: data.role,
+    status: (data as { status?: string | null }).status ?? null,
+  };
 }
 
 export async function requireActor(
