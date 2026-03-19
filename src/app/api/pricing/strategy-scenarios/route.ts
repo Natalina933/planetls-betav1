@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { ALLOWED_PRICING_ROLES, getAuthContext } from "@/app/api/pricing/_shared";
+import { requirePricingAuthContext } from "@/app/api/pricing/_shared";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getAuthContext(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const authResult = await requirePricingAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
-    }
+    const auth = authResult.auth;
 
     const { data, error } = await db
       .from("pricing_strategy_scenarios")
@@ -35,13 +33,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getAuthContext(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const authResult = await requirePricingAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
-    }
+    const auth = authResult.auth;
 
     const body = await req.json();
     const name = typeof body?.name === "string" ? body.name.trim() : "";

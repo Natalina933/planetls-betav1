@@ -1,6 +1,6 @@
-import { NextRequest } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
+import { requireActor } from "@/app/lib/apiSecurity";
 import {
   ALLOWED_PRICING_ROLES,
   isAllowedPricingRole,
@@ -18,14 +18,41 @@ export interface AuthContext {
 }
 
 export async function getAuthContext(req: NextRequest): Promise<AuthContext | null> {
-  const auth = await getApiAuthContext(req);
-  const userId = auth.userId ?? "";
-  if (!userId) return null;
+  const result = await requirePricingAuthContext(req);
+  if (!result.ok) {
+    return null;
+  }
+
+  return result.auth;
+}
+
+export async function requirePricingAuthContext(
+  req: NextRequest,
+): Promise<{ ok: true; auth: AuthContext } | { ok: false; response: NextResponse }> {
+  const actorResult = await requireActor(req, {
+    logLabel: "pricing auth",
+    allowedRoles: ALLOWED_PRICING_ROLES,
+    actionLabel: "gerer votre configuration tarifaire",
+  });
+
+  if (!actorResult.ok) {
+    return actorResult;
+  }
+
+  if (!isAllowedPricingRole(actorResult.actor.role) && !actorResult.actor.isAdmin) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Acces refuse" }, { status: 403 }),
+    };
+  }
 
   return {
-    userId,
-    role: auth.role,
-    isAdmin: auth.isAdmin,
+    ok: true,
+    auth: {
+      userId: actorResult.actor.userId,
+      role: actorResult.actor.role,
+      isAdmin: actorResult.actor.isAdmin,
+    },
   };
 }
 
@@ -66,4 +93,3 @@ export async function fetchPricingList(options: PricingListOptions) {
   const result = await query.order("created_at", { ascending: false });
   return { data: result.data ?? [], error: result.error, status: 200 as const };
 }
-

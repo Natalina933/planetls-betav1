@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { ALLOWED_PRICING_ROLES, getAuthContext } from "@/app/api/pricing/_shared";
+import { requirePricingAuthContext } from "@/app/api/pricing/_shared";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -10,13 +10,11 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getAuthContext(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const authResult = await requirePricingAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
-    }
+    const auth = authResult.auth;
 
     const { id } = await context.params;
     const { data: existing, error: fetchError } = await db
@@ -74,13 +72,11 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getAuthContext(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const authResult = await requirePricingAuthContext(req);
+    if (!authResult.ok) {
+      return authResult.response;
     }
-    if (!ALLOWED_PRICING_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
-    }
+    const auth = authResult.auth;
 
     const { id } = await context.params;
     const { data: existing, error: fetchError } = await db
