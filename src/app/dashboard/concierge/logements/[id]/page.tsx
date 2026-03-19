@@ -18,6 +18,9 @@ import {
   type LogementTyped,
   buildEditableLogement,
   buildLogementPatchPayload,
+  getOwnerContactPhone,
+  getOwnerDisplayName,
+  getOwnerSourceLabel,
   hasPendingLogementChanges,
   parseHousingRow,
   validateLogementChanges,
@@ -443,6 +446,9 @@ export default function FicheLogementPage() {
   const documentCount = Array.isArray(editableLogement.documents) ? editableLogement.documents.length : 0;
   const notesCount = Array.isArray(editableLogement.notes) ? editableLogement.notes.length : 0;
   const canSubmitInspection = Boolean(inspectionId && inspectionStatus === "draft");
+  const ownerDisplayName = getOwnerDisplayName(editableLogement.proprietaire);
+  const ownerPhone = getOwnerContactPhone(editableLogement.proprietaire);
+  const ownerSourceLabel = getOwnerSourceLabel(editableLogement.proprietaire);
 
   const buildMediaPreviewUrl = (storagePath: string) => {
     if (!supabasePublicUrl || !storagePath) return null;
@@ -467,6 +473,7 @@ export default function FicheLogementPage() {
               <span className={styles.metaPill}>
                 {editableLogement.infos?.nb_chambres || "Chambres à compléter"}
               </span>
+              <span className={styles.metaPill}>{ownerSourceLabel}</span>
             </div>
           </div>
 
@@ -501,6 +508,33 @@ export default function FicheLogementPage() {
           <div className={styles.statCard}>
             <p className={styles.statLabel}>Notes internes</p>
             <strong className={styles.statValue}>{notesCount}</strong>
+          </div>
+        </div>
+
+        <div className={styles.ownerPanel}>
+          <div className={styles.ownerPanelHeader}>
+            <p className={styles.statLabel}>Proprietaire</p>
+            <span className={styles.ownerSourceBadge}>{ownerSourceLabel}</span>
+          </div>
+          <div className={styles.ownerGrid}>
+            <div className={styles.ownerCard}>
+              <span className={styles.ownerLabel}>Nom</span>
+              <strong className={styles.ownerValue}>{ownerDisplayName}</strong>
+            </div>
+            <div className={styles.ownerCard}>
+              <span className={styles.ownerLabel}>Email</span>
+              <strong className={styles.ownerValue}>
+                {editableLogement.proprietaire?.email || "-"}
+              </strong>
+            </div>
+            <div className={styles.ownerCard}>
+              <span className={styles.ownerLabel}>Telephone</span>
+              <strong className={styles.ownerValue}>{ownerPhone || "-"}</strong>
+            </div>
+            <div className={styles.ownerCard}>
+              <span className={styles.ownerLabel}>Origine du dossier</span>
+              <strong className={styles.ownerValue}>{ownerSourceLabel}</strong>
+            </div>
           </div>
         </div>
 

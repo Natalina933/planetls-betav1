@@ -11,9 +11,18 @@ export interface InfosJSON {
 }
 
 export interface ProprietaireJSON {
+  id?: string;
   nom?: string;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
   telephone?: string;
   email?: string;
+  phone?: string;
+  concierge_profile_id?: string;
+  created_outside_platform?: boolean;
+  created_by_role?: string;
+  owner_source?: string;
 }
 
 export interface LocationJSON {
@@ -79,6 +88,29 @@ export interface LogementTyped
   notes?: string[];
   tarifs?: TarifsJSON;
   contrat?: ContratJSON;
+}
+
+export function getOwnerDisplayName(proprietaire?: ProprietaireJSON) {
+  if (!proprietaire) return "Proprietaire non renseigne";
+
+  return (
+    `${proprietaire.first_name ?? ""} ${proprietaire.last_name ?? ""}`.trim() ||
+    proprietaire.company_name ||
+    proprietaire.nom ||
+    "Proprietaire non renseigne"
+  );
+}
+
+export function getOwnerContactPhone(proprietaire?: ProprietaireJSON) {
+  return proprietaire?.phone ?? proprietaire?.telephone ?? null;
+}
+
+export function getOwnerSourceLabel(proprietaire?: ProprietaireJSON) {
+  if (proprietaire?.owner_source === "manual_concierge" || proprietaire?.created_outside_platform) {
+    return "Hors site";
+  }
+
+  return "Via le site";
 }
 
 export type ActiveTab = "infos" | "menage" | "planning" | "docs" | "notes" | "tarifs";

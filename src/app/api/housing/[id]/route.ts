@@ -9,6 +9,8 @@ type HousingOwner = {
   profile_id?: string;
   owner_id?: string;
   proprietaire_id?: string;
+  concierge_profile_id?: string;
+  manager_profile_id?: string;
 } | null;
 
 type HousingPermissionContext = {
@@ -21,7 +23,8 @@ type HousingPermissionContext = {
   };
 };
 
-const HOUSING_OWNER_ROLES = new Set(["owner", "owner_pro"]);
+const HOUSING_ACCESS_ROLES = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
 
 function isUuidLike(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -29,13 +32,16 @@ function isUuidLike(value: string): boolean {
   );
 }
 
-function extractOwnerId(proprietaire: unknown): string | null {
-  if (!proprietaire) return null;
+function extractOwnerData(proprietaire: unknown): {
+  ownerId: string | null;
+  conciergeProfileId: string | null;
+} {
+  const readOwnerData = (value: unknown) => {
+    if (!value || typeof value !== "object") {
+      return { ownerId: null, conciergeProfileId: null };
+    }
 
-  const readOwnerId = (value: unknown): string | null => {
-    if (!value || typeof value !== "object") return null;
     const owner = value as HousingOwner;
-
     const ownerId =
       owner?.id ||
       owner?.userId ||
@@ -43,23 +49,31 @@ function extractOwnerId(proprietaire: unknown): string | null {
       owner?.owner_id ||
       owner?.proprietaire_id ||
       null;
+    const conciergeProfileId =
+      owner?.concierge_profile_id ||
+      owner?.manager_profile_id ||
+      null;
 
-    return ownerId && isUuidLike(ownerId) ? ownerId : null;
+    return {
+      ownerId: ownerId && isUuidLike(ownerId) ? ownerId : null,
+      conciergeProfileId:
+        conciergeProfileId && isUuidLike(conciergeProfileId) ? conciergeProfileId : null,
+    };
   };
 
   if (typeof proprietaire === "string") {
     const raw = proprietaire.trim();
-    if (!raw) return null;
+    if (!raw) return { ownerId: null, conciergeProfileId: null };
 
     try {
       const parsed: unknown = JSON.parse(raw);
-      return readOwnerId(parsed);
+      return readOwnerData(parsed);
     } catch {
-      return null;
+      return { ownerId: null, conciergeProfileId: null };
     }
   }
 
-  return readOwnerId(proprietaire);
+  return readOwnerData(proprietaire);
 }
 
 async function loadHousingForAuthorization(id: number) {
@@ -104,12 +118,17 @@ async function requireHousingPermission(
   }
 
   if (!actorResult.actor.isAdmin) {
-    const ownerId = extractOwnerId(housing.proprietaire);
-    if (!ownerId || ownerId !== actorResult.actor.userId) {
+    const ownerData = extractOwnerData(housing.proprietaire);
+    const isConcierge = CONCIERGE_ROLES.has(actorResult.actor.role);
+    const canAccess = isConcierge
+      ? ownerData.conciergeProfileId === actorResult.actor.userId
+      : ownerData.ownerId === actorResult.actor.userId;
+
+    if (!canAccess) {
       return {
         ok: false,
         response: NextResponse.json(
-          { error: "Vous n'êtes pas propriétaire de ce logement." },
+          { error: "Vous n'etes pas autorise a acceder a ce logement." },
           { status: 403 },
         ),
       };
@@ -138,7 +157,7 @@ export async function GET(
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
     }
 
-    const permission = await requireHousingPermission(req, id, HOUSING_OWNER_ROLES, "consulter");
+    const permission = await requireHousingPermission(req, id, HOUSING_ACCESS_ROLES, "consulter");
     if (!permission.ok) {
       return permission.response;
     }
@@ -152,7 +171,7 @@ export async function GET(
 
       console.error("[GET /api/housing/[id]] DB error:", error);
       return NextResponse.json(
-        { error: "Erreur lors de la récupération du logement" },
+        { error: "Erreur lors de la recuperation du logement" },
         { status: 500 },
       );
     }
@@ -175,7 +194,7 @@ export async function PATCH(
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
     }
 
-    const permission = await requireHousingPermission(req, id, HOUSING_OWNER_ROLES, "modifier");
+    const permission = await requireHousingPermission(req, id, HOUSING_ACCESS_ROLES, "modifier");
     if (!permission.ok) {
       return permission.response;
     }
@@ -198,12 +217,29 @@ export async function PATCH(
     if (body.notes !== undefined) updateObj.notes = body.notes;
 
     if (body.proprietaire !== undefined) {
-      const currentOwnerId = extractOwnerId(permission.context.housing.proprietaire);
-      const requestedOwnerId = extractOwnerId(body.proprietaire);
+      const currentOwnerData = extractOwnerData(permission.context.housing.proprietaire);
+      const requestedOwnerData = extractOwnerData(body.proprietaire);
+      const isConcierge = CONCIERGE_ROLES.has(permission.context.role);
 
-      if (!permission.context.isAdmin && requestedOwnerId && requestedOwnerId !== currentOwnerId) {
+      if (
+        !permission.context.isAdmin &&
+        requestedOwnerData.ownerId &&
+        requestedOwnerData.ownerId !== currentOwnerData.ownerId
+      ) {
         return NextResponse.json(
-          { error: "Vous ne pouvez pas transférer ce logement à un autre propriétaire." },
+          { error: "Vous ne pouvez pas transferer ce logement a un autre proprietaire." },
+          { status: 403 },
+        );
+      }
+
+      if (
+        isConcierge &&
+        currentOwnerData.conciergeProfileId &&
+        requestedOwnerData.conciergeProfileId &&
+        requestedOwnerData.conciergeProfileId !== currentOwnerData.conciergeProfileId
+      ) {
+        return NextResponse.json(
+          { error: "Vous ne pouvez pas changer le concierge gestionnaire de ce logement." },
           { status: 403 },
         );
       }
@@ -212,7 +248,7 @@ export async function PATCH(
     }
 
     if (Object.keys(updateObj).length === 0) {
-      return NextResponse.json({ error: "Aucune donnée à mettre à jour" }, { status: 400 });
+      return NextResponse.json({ error: "Aucune donnee a mettre a jour" }, { status: 400 });
     }
 
     updateObj.updated_at = new Date().toISOString();
@@ -231,7 +267,7 @@ export async function PATCH(
 
       console.error("[PATCH /api/housing/[id]] DB error:", error);
       return NextResponse.json(
-        { error: "Erreur lors de la mise à jour du logement" },
+        { error: "Erreur lors de la mise a jour du logement" },
         { status: 500 },
       );
     }
@@ -254,7 +290,7 @@ export async function DELETE(
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
     }
 
-    const permission = await requireHousingPermission(req, id, HOUSING_OWNER_ROLES, "supprimer");
+    const permission = await requireHousingPermission(req, id, HOUSING_ACCESS_ROLES, "supprimer");
     if (!permission.ok) {
       return permission.response;
     }
@@ -269,7 +305,7 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json({ success: true, message: "Logement supprimé" });
+    return NextResponse.json({ success: true, message: "Logement supprime" });
   } catch (err) {
     console.error("[DELETE /api/housing/[id]] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });

@@ -1,4 +1,7 @@
+import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { requireActor } from "@/app/lib/apiSecurity";
 import { db } from "@/app/lib/dbServer";
 
@@ -13,6 +16,8 @@ type ProfileLookup = {
   email: string | null;
   phone: string | null;
   city: string | null;
+  role?: string | null;
+  category?: string | null;
 };
 
 type ClientItem = {
@@ -40,6 +45,16 @@ type ClientItem = {
 
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 
+const createOwnerSchema = z.object({
+  first_name: z.string().trim().max(120).optional().nullable(),
+  last_name: z.string().trim().max(120).optional().nullable(),
+  email: z.string().trim().email(),
+  phone: z.string().trim().max(40).optional().nullable(),
+  company_name: z.string().trim().max(160).optional().nullable(),
+  city: z.string().trim().max(120).optional().nullable(),
+  notes: z.string().trim().max(4000).optional().nullable(),
+});
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dbAny = db as any;
 
@@ -52,6 +67,17 @@ function getDisplayName(profile?: ProfileLookup | null, fallback?: string | null
     profile.company_name ||
     profile.username ||
     "Proprietaire"
+  );
+}
+
+function isOwnerLikeProfile(profile?: Pick<ProfileLookup, "role" | "category"> | null) {
+  const roleValue = (profile?.role ?? "").toLowerCase();
+  const categoryValue = (profile?.category ?? "").toLowerCase();
+
+  return (
+    roleValue === "owner" ||
+    roleValue === "owner_pro" ||
+    categoryValue.startsWith("proprietaire")
   );
 }
 
@@ -70,6 +96,71 @@ function inferStage(params: {
   if (params.missionsTotal > 0) return "client";
   if (params.hasConversation) return "prospect";
   return "client";
+}
+
+function slugifyUsernamePart(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 24);
+}
+
+async function buildUniqueUsername(baseCandidate: string) {
+  const base = slugifyUsernamePart(baseCandidate) || `owner.${Date.now()}`;
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = attempt === 0 ? base : `${base}.${attempt + 1}`;
+    const { data, error } = await db
+      .from("profiles")
+      .select("id")
+      .eq("username", candidate)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[POST /api/concierge/owners] username lookup error:", error);
+      throw new Error("USERNAME_LOOKUP_FAILED");
+    }
+
+    if (!data) {
+      return candidate;
+    }
+  }
+
+  return `${base}.${Math.random().toString(36).slice(2, 8)}`;
+}
+
+async function findAuthUserIdByEmail(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+): Promise<string | null> {
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+
+    if (error) {
+      console.error("[POST /api/concierge/owners] auth list users error:", error);
+      throw new Error("AUTH_LIST_USERS_FAILED");
+    }
+
+    const users = data?.users ?? [];
+    const matchingUser = users.find(
+      (user) => typeof user.email === "string" && user.email.toLowerCase() === email,
+    );
+    if (matchingUser?.id) {
+      return matchingUser.id;
+    }
+
+    if (users.length < 200) {
+      break;
+    }
+  }
+
+  return null;
 }
 
 export async function GET(req: NextRequest) {
@@ -242,7 +333,6 @@ export async function GET(req: NextRequest) {
 
     const unreadNotificationsByOwnerId = new Map<string, number>();
     notifications.forEach((notification: {
-      notification_type?: string | null;
       metadata?: { owner_profile_id?: string | null; [key: string]: unknown } | null;
     }) => {
       const ownerProfileId =
@@ -400,6 +490,240 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("[GET /api/concierge/owners] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
+
+    const actorResult = await requireActor(req, {
+      logLabel: "concierge owners create",
+      allowedRoles: CONCIERGE_ROLES,
+      actionLabel: "creer un proprietaire",
+    });
+    if (!actorResult.ok) {
+      return actorResult.response;
+    }
+
+    const rawBody = await req.json();
+    const parsedBody = createOwnerSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
+    }
+
+    const body = parsedBody.data;
+    const email = body.email.trim().toLowerCase();
+    const displayName =
+      `${body.first_name ?? ""} ${body.last_name ?? ""}`.trim() ||
+      body.company_name?.trim() ||
+      email;
+
+    const { data: existingProfile, error: existingProfileError } = await db
+      .from("profiles")
+      .select("id, first_name, last_name, username, company_name, email, phone, city, role, category")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingProfileError) {
+      console.error("[POST /api/concierge/owners] existing profile error:", existingProfileError);
+      return NextResponse.json({ error: "Impossible de verifier le proprietaire." }, { status: 500 });
+    }
+
+    let ownerProfileId: string;
+    let ownerLabel = displayName;
+
+    if (existingProfile) {
+      if (!isOwnerLikeProfile(existingProfile as ProfileLookup)) {
+        return NextResponse.json(
+          { error: "Un profil existe deja avec cet email mais ce n'est pas un proprietaire." },
+          { status: 409 },
+        );
+      }
+
+      ownerProfileId = existingProfile.id;
+      ownerLabel = getDisplayName(existingProfile as ProfileLookup, displayName);
+    } else {
+      const usernameBase =
+        `${body.first_name ?? ""}.${body.last_name ?? ""}`.replace(/\.+/g, ".") ||
+        email.split("@")[0] ||
+        "owner";
+      const username = await buildUniqueUsername(usernameBase);
+      let profileAlreadyExistsForAuthUser = false;
+      let createdAuthUserId: string | null = null;
+
+      const temporaryPassword = `Tmp!${randomBytes(12).toString("base64url")}9a`;
+      const { data: createdAuthUser, error: authCreateError } = await supabase.auth.admin.createUser({
+        email,
+        password: temporaryPassword,
+        email_confirm: false,
+        user_metadata: {
+          username,
+          role: "owner",
+          source: "concierge_manual_owner",
+        },
+      });
+
+      if (authCreateError) {
+        const authErrorMessage = authCreateError.message.toLowerCase();
+        if (authErrorMessage.includes("already been registered")) {
+          const existingAuthUserId = await findAuthUserIdByEmail(supabase, email);
+          if (!existingAuthUserId) {
+            return NextResponse.json(
+              {
+                error:
+                  "Cet email existe deja dans l'authentification Supabase, mais aucun profil proprietaire exploitable n'a ete trouve.",
+              },
+              { status: 409 },
+            );
+          }
+
+          ownerProfileId = existingAuthUserId;
+
+          const { data: existingProfileByAuthId, error: existingProfileByAuthIdError } = await db
+            .from("profiles")
+            .select("id, first_name, last_name, username, company_name, email, phone, city, role, category")
+            .eq("id", existingAuthUserId)
+            .maybeSingle();
+
+          if (existingProfileByAuthIdError) {
+            console.error(
+              "[POST /api/concierge/owners] existing profile by auth id error:",
+              existingProfileByAuthIdError,
+            );
+            return NextResponse.json(
+              { error: "Impossible de verifier le profil rattache a cet email." },
+              { status: 500 },
+            );
+          }
+
+          if (existingProfileByAuthId) {
+            if (!isOwnerLikeProfile(existingProfileByAuthId as ProfileLookup)) {
+              return NextResponse.json(
+                {
+                  error:
+                    "Cet email est deja utilise par un compte existant qui n'est pas un proprietaire.",
+                },
+                { status: 409 },
+              );
+            }
+
+            ownerLabel = getDisplayName(existingProfileByAuthId as ProfileLookup, displayName);
+            profileAlreadyExistsForAuthUser = true;
+          }
+        } else {
+          console.error("[POST /api/concierge/owners] auth create user error:", authCreateError);
+          return NextResponse.json(
+            {
+              error:
+                typeof authCreateError.message === "string" && authCreateError.message.trim()
+                  ? `Impossible de creer l'utilisateur proprietaire: ${authCreateError.message}`
+                  : "Impossible de creer l'utilisateur proprietaire.",
+            },
+            { status: 500 },
+          );
+        }
+      } else if (createdAuthUser.user?.id) {
+        ownerProfileId = createdAuthUser.user.id;
+        createdAuthUserId = createdAuthUser.user.id;
+      } else {
+        console.error("[POST /api/concierge/owners] auth create user error:", authCreateError);
+        return NextResponse.json(
+          {
+            error:
+              typeof authCreateError?.message === "string" && authCreateError.message.trim()
+                ? `Impossible de creer l'utilisateur proprietaire: ${authCreateError.message}`
+                : "Impossible de creer l'utilisateur proprietaire.",
+          },
+          { status: 500 },
+        );
+      }
+
+      if (!profileAlreadyExistsForAuthUser) {
+        const { error: insertProfileError } = await db.from("profiles").insert({
+          id: ownerProfileId,
+          email,
+          username,
+          first_name: body.first_name ?? null,
+          last_name: body.last_name ?? null,
+          phone: body.phone ?? null,
+          company_name: body.company_name ?? null,
+          city: body.city ?? null,
+          country: "France",
+          role: "owner",
+          category: "proprietaire",
+          status: "active",
+          onboarding_complete: false,
+        });
+
+        if (insertProfileError) {
+          console.error("[POST /api/concierge/owners] insert profile error:", insertProfileError);
+          if (createdAuthUserId) {
+            await supabase.auth.admin.deleteUser(createdAuthUserId);
+          }
+          return NextResponse.json(
+            {
+              error:
+                typeof insertProfileError.message === "string" && insertProfileError.message.trim()
+                  ? `Impossible de creer le profil proprietaire: ${insertProfileError.message}`
+                  : "Impossible de creer le profil proprietaire.",
+            },
+            { status: 500 },
+          );
+        }
+      }
+    }
+
+    const { data: existingClientLink, error: existingClientLinkError } = await dbAny
+      .from("provider_clients")
+      .select("id")
+      .eq("provider_profile_id", actorResult.actor.userId)
+      .eq("owner_profile_id", ownerProfileId)
+      .maybeSingle();
+
+    if (existingClientLinkError && existingClientLinkError.code !== "PGRST116") {
+      console.error("[POST /api/concierge/owners] existing client link error:", existingClientLinkError);
+      return NextResponse.json({ error: "Impossible de verifier le rattachement client." }, { status: 500 });
+    }
+
+    if (!existingClientLink) {
+      const { error: clientInsertError } = await dbAny.from("provider_clients").insert({
+        provider_profile_id: actorResult.actor.userId,
+        owner_profile_id: ownerProfileId,
+        client_name: displayName,
+        company_name: body.company_name ?? null,
+        email,
+        phone: body.phone ?? null,
+        city: body.city ?? null,
+        client_type: "manual",
+        status: "active",
+        notes: body.notes ?? null,
+        metadata: {
+          source: "concierge_manual_owner",
+          created_via: "housing_workflow",
+        },
+      });
+
+      if (clientInsertError) {
+        console.error("[POST /api/concierge/owners] insert client link error:", clientInsertError);
+        return NextResponse.json({ error: "Impossible de rattacher ce proprietaire au concierge." }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json(
+      {
+        owner_profile_id: ownerProfileId,
+        owner_label: ownerLabel,
+        created: !existingProfile,
+      },
+      { status: existingProfile ? 200 : 201 },
+    );
+  } catch (err) {
+    console.error("[POST /api/concierge/owners] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
 }

@@ -123,12 +123,18 @@
     }
 
     input,
-    select {
+    select,
+    textarea {
         padding: 0.8rem 0.95rem;
         border-radius: 12px;
         border: 1px solid rgba(123, 91, 35, 0.25);
         background: #fffdf6;
         color: #4a3510;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 110px;
     }
 }
 

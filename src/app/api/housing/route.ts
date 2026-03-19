@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
 import { requireActor } from "@/app/lib/apiSecurity";
-import { z } from "zod";
 import type { Database, Json } from "@/types/supabase";
 
 type HousingOwner = {
@@ -10,9 +10,12 @@ type HousingOwner = {
   profile_id?: string;
   owner_id?: string;
   proprietaire_id?: string;
+  concierge_profile_id?: string;
+  manager_profile_id?: string;
 } | null;
 
-const HOUSING_OWNER_ROLES = new Set(["owner", "owner_pro"]);
+const HOUSING_ACCESS_ROLES = new Set(["owner", "owner_pro", "concierge", "concierge_pro"]);
+const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro"]);
 
 const createHousingSchema = z
   .object({
@@ -65,8 +68,13 @@ function isUuidLike(value: string): boolean {
   );
 }
 
-function extractOwnerId(proprietaire: unknown): string | null {
-  if (!proprietaire || typeof proprietaire !== "object") return null;
+function extractOwnerData(proprietaire: unknown): {
+  ownerId: string | null;
+  conciergeProfileId: string | null;
+} {
+  if (!proprietaire || typeof proprietaire !== "object") {
+    return { ownerId: null, conciergeProfileId: null };
+  }
 
   const owner = proprietaire as HousingOwner;
   const ownerId =
@@ -76,21 +84,56 @@ function extractOwnerId(proprietaire: unknown): string | null {
     owner?.owner_id ||
     owner?.proprietaire_id ||
     null;
+  const conciergeProfileId =
+    owner?.concierge_profile_id ||
+    owner?.manager_profile_id ||
+    null;
 
-  return ownerId && isUuidLike(ownerId) ? ownerId : null;
+  return {
+    ownerId: ownerId && isUuidLike(ownerId) ? ownerId : null,
+    conciergeProfileId:
+      conciergeProfileId && isUuidLike(conciergeProfileId) ? conciergeProfileId : null,
+  };
 }
 
-function normalizeOwnerPayload(proprietaire: unknown, userId: string) {
+function normalizeOwnerPayload(params: {
+  proprietaire: unknown;
+  ownerProfileId: string;
+  actorUserId: string;
+  actorRole: string;
+  ownerProfile: {
+    first_name?: string | null;
+    last_name?: string | null;
+    company_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+}) {
   const owner =
-    proprietaire && typeof proprietaire === "object"
-      ? { ...(proprietaire as Record<string, unknown>) }
+    params.proprietaire && typeof params.proprietaire === "object"
+      ? { ...(params.proprietaire as Record<string, unknown>) }
       : {};
 
-  const normalizedOwnerId = extractOwnerId(owner);
+  const isConcierge = CONCIERGE_ROLES.has(params.actorRole);
 
   return {
     ...owner,
-    id: normalizedOwnerId ?? userId,
+    id: params.ownerProfileId,
+    first_name: params.ownerProfile.first_name ?? null,
+    last_name: params.ownerProfile.last_name ?? null,
+    company_name: params.ownerProfile.company_name ?? null,
+    email: params.ownerProfile.email ?? null,
+    phone: params.ownerProfile.phone ?? null,
+    ...(isConcierge
+      ? {
+          concierge_profile_id: params.actorUserId,
+          created_outside_platform: true,
+          created_by_role: params.actorRole,
+          owner_source: "manual_concierge",
+        }
+      : {
+          owner_source: "platform",
+        }),
   };
 }
 
@@ -107,8 +150,8 @@ async function requireHousingCollectionAccess(req: NextRequest): Promise<
 > {
   const actorResult = await requireActor(req, {
     logLabel: "housing collection auth",
-    allowedRoles: HOUSING_OWNER_ROLES,
-    actionLabel: "gérer des logements",
+    allowedRoles: HOUSING_ACCESS_ROLES,
+    actionLabel: "gerer des logements",
   });
   if (!actorResult.ok) {
     return actorResult;
@@ -142,13 +185,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "proprietaireId invalide" }, { status: 400 });
     }
 
-    if (!access.context.isAdmin && proprietaireId && proprietaireId !== access.context.userId) {
-      return NextResponse.json(
-        { error: "Vous ne pouvez consulter que vos propres logements." },
-        { status: 403 },
-      );
-    }
-
     let query = db.from("housing").select("*");
 
     if (proprietaireId) {
@@ -169,9 +205,18 @@ export async function GET(req: NextRequest) {
     }
 
     const rows = data ?? [];
+    const isConcierge = CONCIERGE_ROLES.has(access.context.role);
     const visibleRows = access.context.isAdmin
       ? rows
-      : rows.filter((item) => extractOwnerId(item.proprietaire) === access.context.userId);
+      : rows.filter((item) => {
+          const ownerData = extractOwnerData(item.proprietaire);
+
+          if (isConcierge) {
+            return ownerData.conciergeProfileId === access.context.userId;
+          }
+
+          return ownerData.ownerId === access.context.userId;
+        });
 
     const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
     const safeData = visibleRows.map((item) => ({
@@ -207,23 +252,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
     }
 
-    const requestedOwnerId = extractOwnerId(body.proprietaire ?? null);
+    const requestedOwnerId = extractOwnerData(body.proprietaire ?? null).ownerId;
+    const isConcierge = CONCIERGE_ROLES.has(access.context.role);
     const effectiveOwnerId = requestedOwnerId ?? access.context.userId;
 
-    if (!access.context.isAdmin && effectiveOwnerId !== access.context.userId) {
+    if (!isConcierge && !access.context.isAdmin && effectiveOwnerId !== access.context.userId) {
       return NextResponse.json(
-        { error: "Vous ne pouvez créer un logement que pour votre propre profil." },
+        { error: "Vous ne pouvez creer un logement que pour votre propre profil." },
         { status: 403 },
       );
     }
 
     if (!isUuidLike(effectiveOwnerId)) {
-      return NextResponse.json({ error: "Propriétaire invalide." }, { status: 400 });
+      return NextResponse.json({ error: "Proprietaire invalide." }, { status: 400 });
     }
 
     const { data: ownerProfile, error: ownerError } = await db
       .from("profiles")
-      .select("*")
+      .select("id, role, category, status")
       .eq("id", effectiveOwnerId)
       .maybeSingle();
 
@@ -233,31 +279,39 @@ export async function POST(req: NextRequest) {
     }
 
     if (!ownerProfile) {
-      return NextResponse.json({ error: "Profil propriétaire introuvable." }, { status: 404 });
+      return NextResponse.json({ error: "Profil proprietaire introuvable." }, { status: 404 });
     }
 
-    const ownerStatus = (ownerProfile as { status?: string | null }).status ?? null;
-
-    if (ownerStatus === "suspended" || ownerStatus === "deleted") {
+    if (ownerProfile.status === "suspended" || ownerProfile.status === "deleted") {
       return NextResponse.json(
-        { error: "Le profil propriétaire ciblé ne peut pas recevoir de logement." },
+        { error: "Le profil proprietaire cible ne peut pas recevoir de logement." },
         { status: 403 },
       );
     }
 
-    if (
-      ownerProfile.role !== "owner" &&
-      ownerProfile.role !== "owner_pro" &&
-      ownerProfile.role !== "admin" &&
-      ownerProfile.role !== "super_admin"
-    ) {
+    const ownerRoleValue = (ownerProfile.role ?? "").toLowerCase();
+    const ownerCategoryValue = (ownerProfile.category ?? "").toLowerCase();
+    const isOwnerTarget =
+      ownerRoleValue === "owner" ||
+      ownerRoleValue === "owner_pro" ||
+      ownerRoleValue === "admin" ||
+      ownerRoleValue === "super_admin" ||
+      ownerCategoryValue.startsWith("proprietaire");
+
+    if (!isOwnerTarget) {
       return NextResponse.json(
-        { error: "Le profil ciblé n'est pas autorisé à posséder un logement." },
+        { error: "Le profil cible n'est pas autorise a posseder un logement." },
         { status: 403 },
       );
     }
 
-    const normalizedOwner = normalizeOwnerPayload(body.proprietaire, effectiveOwnerId);
+    const normalizedOwner = normalizeOwnerPayload({
+      proprietaire: body.proprietaire,
+      ownerProfileId: effectiveOwnerId,
+      actorUserId: access.context.userId,
+      actorRole: access.context.role,
+      ownerProfile,
+    });
 
     const insertPayload: Database["public"]["Tables"]["housing"]["Insert"] = {
       external_id: body.external_id ?? null,
