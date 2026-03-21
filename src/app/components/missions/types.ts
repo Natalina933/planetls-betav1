@@ -14,7 +14,7 @@ export interface MissionPriorityFlags {
 export interface MissionCatalogItem {
   id: string;
   label: string;
-  // garde la compatibilité avec ton code existant
+  // Garde la compatibilité avec le code existant
   basePrice?: number | null;
   customizable?: boolean;
 }
@@ -54,7 +54,7 @@ export interface ConciergeMissionProfile {
   specialConditions: MissionSpecialConditions;
 }
 
-/** Zone géographique (point + rayon appliqué côté availability) */
+// Zone géographique principale du profil concierge.
 export interface MissionZone {
   placeId: string;
   label: string;
@@ -63,13 +63,11 @@ export interface MissionZone {
   postcode?: string | null;
 }
 
-/** Plage horaire */
 export interface MissionTimeRange {
-  start: TimeHHMM; // ex: "09:00"
-  end: TimeHHMM;   // ex: "18:00"
+  start: TimeHHMM;
+  end: TimeHHMM;
 }
 
-/** Horaires par jour */
 export interface MissionDaySchedule {
   day: WeekDay;
   ranges: MissionTimeRange[];

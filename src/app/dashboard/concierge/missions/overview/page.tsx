@@ -13,11 +13,11 @@ import type {
   MissionZone,
   WeekDay,
 } from "@/app/components/missions/types";
+import MissionsTabLayout from "@/app/components/dashboard/concierge/MissionsTabLayout";
 import { useConciergeOverviewData } from "../../useConciergeOverviewData";
 import {
   EditableProfileSection,
   MissionProgressPanelSection,
-  MissionsTabLayout,
 } from "../../profile/profileTabSections";
 import profileStyles from "../../profile/ConciergeProfilePage.module.scss";
 import {

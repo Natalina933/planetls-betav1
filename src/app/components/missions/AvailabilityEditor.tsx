@@ -2,31 +2,41 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import type { MissionAvailability, WeekDay } from "./types";
+import type { MissionAvailability, TimeHHMM, WeekDay } from "./types";
 import styles from "./AvailabilityEditor.module.scss";
 
 type DaySchedule = MissionAvailability["schedule"][number];
 type TimeRange = DaySchedule["ranges"][number];
 
-const DAYS: { id: WeekDay; label: string }[] = [
-  { id: "mon", label: "Lundi" },
-  { id: "tue", label: "Mardi" },
-  { id: "wed", label: "Mercredi" },
-  { id: "thu", label: "Jeudi" },
-  { id: "fri", label: "Vendredi" },
-  { id: "sat", label: "Samedi" },
-  { id: "sun", label: "Dimanche" },
+const DAYS: { id: WeekDay; label: string; shortLabel: string; group: "weekday" | "weekend" }[] = [
+  { id: "mon", label: "Lundi", shortLabel: "Lun", group: "weekday" },
+  { id: "tue", label: "Mardi", shortLabel: "Mar", group: "weekday" },
+  { id: "wed", label: "Mercredi", shortLabel: "Mer", group: "weekday" },
+  { id: "thu", label: "Jeudi", shortLabel: "Jeu", group: "weekday" },
+  { id: "fri", label: "Vendredi", shortLabel: "Ven", group: "weekday" },
+  { id: "sat", label: "Samedi", shortLabel: "Sam", group: "weekend" },
+  { id: "sun", label: "Dimanche", shortLabel: "Dim", group: "weekend" },
 ];
 
 const WEEKDAY_IDS: WeekDay[] = ["mon", "tue", "wed", "thu", "fri"];
+const WEEKEND_IDS: WeekDay[] = ["sat", "sun"];
 const ALL_DAY_IDS: WeekDay[] = DAYS.map((day) => day.id);
-const DEFAULT_PRESET_RANGE: TimeRange = { start: "09:00", end: "18:00" };
+const STANDARD_RANGE: TimeRange = { start: "09:00", end: "18:00" };
+const CHECKIN_RANGE: TimeRange = { start: "08:00", end: "20:00" };
+const FULL_DAY_RANGE: TimeRange = { start: "00:00", end: "23:59" };
 
 interface AvailabilityEditorProps {
   value: DaySchedule[];
   emergency24h: boolean;
   isEditing: boolean;
   onChange: (value: DaySchedule[], emergency24h: boolean) => void;
+}
+
+interface ScheduleTemplate {
+  id: string;
+  label: string;
+  schedule: DaySchedule[];
+  emergency24h?: boolean;
 }
 
 function sortRanges(ranges: TimeRange[]) {
@@ -36,23 +46,130 @@ function sortRanges(ranges: TimeRange[]) {
 function validateRanges(ranges: TimeRange[]): string | null {
   const sorted = sortRanges(ranges);
 
-  for (let i = 0; i < sorted.length; i += 1) {
-    if (sorted[i].start >= sorted[i].end) {
-      return "Chaque plage doit avoir une heure de fin supérieure à l'heure de début.";
+  for (let index = 0; index < sorted.length; index += 1) {
+    if (sorted[index].start >= sorted[index].end) {
+      return "Heure de fin invalide.";
     }
   }
 
-  for (let i = 1; i < sorted.length; i += 1) {
-    if (sorted[i].start < sorted[i - 1].end) {
-      return "Les plages se chevauchent. Ajustez les horaires.";
+  for (let index = 1; index < sorted.length; index += 1) {
+    if (sorted[index].start < sorted[index - 1].end) {
+      return "Plages qui se chevauchent.";
     }
   }
 
   return null;
 }
 
-function rangeKey(day: WeekDay, range: TimeRange, index: number) {
-  return `${day}-${range.start}-${range.end}-${index}`;
+function cloneSchedule(schedule: DaySchedule[]) {
+  return schedule.map((day) => ({
+    day: day.day,
+    ranges: day.ranges.map((range) => ({ ...range })),
+  }));
+}
+
+function buildScheduleForDays(days: WeekDay[], range: TimeRange): DaySchedule[] {
+  return days.map((day) => ({
+    day,
+    ranges: [{ ...range }],
+  }));
+}
+
+function buildTemplates(): ScheduleTemplate[] {
+  return [
+    {
+      id: "standard",
+      label: "Standard • Lun-Ven 9h-18h",
+      schedule: buildScheduleForDays(WEEKDAY_IDS, STANDARD_RANGE),
+    },
+    {
+      id: "checkin",
+      label: "Check-in/out • Lun-Dim 8h-20h",
+      schedule: buildScheduleForDays(ALL_DAY_IDS, CHECKIN_RANGE),
+    },
+    {
+      id: "fulltime",
+      label: "24h/24 complet • Tous les jours",
+      schedule: buildScheduleForDays(ALL_DAY_IDS, FULL_DAY_RANGE),
+      emergency24h: true,
+    },
+    {
+      id: "weekend",
+      label: "Week-end • Sam-Dim 9h-18h",
+      schedule: buildScheduleForDays(WEEKEND_IDS, STANDARD_RANGE),
+    },
+  ];
+}
+
+function areRangesEqual(left: TimeRange[], right: TimeRange[]) {
+  if (left.length !== right.length) return false;
+  return left.every(
+    (range, index) => range.start === right[index]?.start && range.end === right[index]?.end,
+  );
+}
+
+function formatSingleRange(range: TimeRange | null) {
+  return range ? `${range.start}-${range.end}` : null;
+}
+
+function buildScheduleSummary(schedule: DaySchedule[], emergency24h: boolean) {
+  if (emergency24h) {
+    return "Tous les jours";
+  }
+
+  const valueByDay = new Map<WeekDay, TimeRange[]>();
+  for (const day of schedule) {
+    valueByDay.set(day.day, sortRanges(day.ranges));
+  }
+
+  const openDays = DAYS.filter((day) => (valueByDay.get(day.id) ?? []).length > 0);
+  if (openDays.length === 0) {
+    return "Aucun créneau";
+  }
+
+  const weekdayRanges = valueByDay.get("mon") ?? [];
+  const sameWeekdays =
+    weekdayRanges.length > 0 &&
+    WEEKDAY_IDS.every((day) => areRangesEqual(valueByDay.get(day) ?? [], weekdayRanges));
+  const weekendRanges = valueByDay.get("sat") ?? [];
+  const sameWeekend =
+    weekendRanges.length > 0 &&
+    WEEKEND_IDS.every((day) => areRangesEqual(valueByDay.get(day) ?? [], weekendRanges));
+
+  if (sameWeekdays && sameWeekend && areRangesEqual(weekdayRanges, weekendRanges)) {
+    const firstRange = formatSingleRange(weekdayRanges[0] ?? null);
+    return firstRange ? `Lun-Dim ${firstRange}` : "Lun-Dim";
+  }
+
+  if (sameWeekdays && WEEKEND_IDS.every((day) => (valueByDay.get(day) ?? []).length === 0)) {
+    const firstRange = formatSingleRange(weekdayRanges[0] ?? null);
+    return firstRange ? `Lun-Ven ${firstRange}` : "Lun-Ven";
+  }
+
+  if (sameWeekend && WEEKDAY_IDS.every((day) => (valueByDay.get(day) ?? []).length === 0)) {
+    const firstRange = formatSingleRange(weekendRanges[0] ?? null);
+    return firstRange ? `Sam-Dim ${firstRange}` : "Sam-Dim";
+  }
+
+  const firstOpenDay = openDays[0];
+  const firstRange = formatSingleRange((valueByDay.get(firstOpenDay.id) ?? [])[0] ?? null);
+  return firstRange ? `${firstOpenDay.shortLabel} ${firstRange}` : firstOpenDay.shortLabel;
+}
+
+function buildDayGroupSummary(days: WeekDay[], valueByDay: Map<WeekDay, TimeRange[]>) {
+  const relevantDays = days.filter((day) => (valueByDay.get(day) ?? []).length > 0);
+  if (relevantDays.length === 0) {
+    return null;
+  }
+
+  const reference = valueByDay.get(relevantDays[0]) ?? [];
+  const aligned = relevantDays.every((day) => areRangesEqual(valueByDay.get(day) ?? [], reference));
+  if (!aligned || reference.length !== 1) {
+    return null;
+  }
+
+  const prefix = days.length === 5 ? "LUN-VEN" : "SAM-DIM";
+  return `${prefix} ${reference[0].start}-${reference[0].end}`;
 }
 
 export default function AvailabilityEditor({
@@ -63,15 +180,32 @@ export default function AvailabilityEditor({
 }: AvailabilityEditorProps) {
   const [dayErrors, setDayErrors] = useState<Partial<Record<WeekDay, string>>>({});
 
-  const canEditSchedule = isEditing && !emergency24h;
-
+  const templates = useMemo(() => buildTemplates(), []);
   const valueByDay = useMemo(() => {
     const map = new Map<WeekDay, TimeRange[]>();
     for (const day of value) {
-      map.set(day.day, day.ranges);
+      map.set(day.day, sortRanges(day.ranges));
     }
     return map;
   }, [value]);
+
+  const canEditSchedule = isEditing && !emergency24h;
+  const openDaysCount = useMemo(
+    () => DAYS.filter((day) => (valueByDay.get(day.id) ?? []).length > 0).length,
+    [valueByDay],
+  );
+  const scheduleSummary = useMemo(
+    () => buildScheduleSummary(value, emergency24h),
+    [value, emergency24h],
+  );
+  const weekdaySummary = useMemo(
+    () => buildDayGroupSummary(WEEKDAY_IDS, valueByDay),
+    [valueByDay],
+  );
+  const weekendSummary = useMemo(
+    () => buildDayGroupSummary(WEEKEND_IDS, valueByDay),
+    [valueByDay],
+  );
 
   const commitDay = (day: WeekDay, ranges: TimeRange[]) => {
     const sorted = sortRanges(ranges);
@@ -104,7 +238,7 @@ export default function AvailabilityEditor({
     if (!ranges) return;
 
     const updated = ranges.map((range, index) =>
-      index === rangeIndex ? { ...range, [field]: newValue } : range,
+      index === rangeIndex ? { ...range, [field]: newValue as TimeHHMM } : range,
     );
 
     commitDay(day, updated);
@@ -112,7 +246,7 @@ export default function AvailabilityEditor({
 
   const addTimeRange = (day: WeekDay) => {
     const ranges = valueByDay.get(day) ?? [];
-    commitDay(day, [...ranges, { ...DEFAULT_PRESET_RANGE }]);
+    commitDay(day, [...ranges, { ...STANDARD_RANGE }]);
   };
 
   const removeTimeRange = (day: WeekDay, rangeIndex: number) => {
@@ -124,192 +258,109 @@ export default function AvailabilityEditor({
     );
   };
 
-  const copyDayToAll = (day: WeekDay, target: "all" | "weekdays" | "weekend") => {
-    const ranges = sortRanges(valueByDay.get(day) ?? []);
+  const copyToDays = (sourceDay: WeekDay, targetDays: WeekDay[]) => {
+    const ranges = sortRanges(valueByDay.get(sourceDay) ?? []);
     const error = validateRanges(ranges);
 
     if (error) {
-      setDayErrors((prev) => ({ ...prev, [day]: error }));
+      setDayErrors((prev) => ({ ...prev, [sourceDay]: error }));
       return;
     }
 
-    setDayErrors({});
-
-    const targets =
-      target === "all"
-        ? ALL_DAY_IDS
-        : target === "weekdays"
-          ? WEEKDAY_IDS
-          : (["sat", "sun"] as WeekDay[]);
-
-    const next = targets.map((targetDay) => ({
-      day: targetDay,
+    const preserved = value.filter((item) => !targetDays.includes(item.day));
+    const copied = targetDays.map((day) => ({
+      day,
       ranges: ranges.map((range) => ({ ...range })),
     }));
-
-    const preserved = value.filter((item) => !targets.includes(item.day));
-    onChange([...preserved, ...next], emergency24h);
+    onChange([...preserved, ...copied], emergency24h);
   };
 
-  const applyPreset = (days: WeekDay[]) => {
+  const applyTemplate = (template: ScheduleTemplate) => {
     setDayErrors({});
-    const next = ALL_DAY_IDS.map((day) => ({
-      day,
-      ranges: days.includes(day) ? [{ ...DEFAULT_PRESET_RANGE }] : [],
-    })).filter((item) => item.ranges.length > 0);
-
-    onChange(next, emergency24h);
+    onChange(cloneSchedule(template.schedule), Boolean(template.emergency24h));
   };
 
   const clearSchedule = () => {
     setDayErrors({});
-    onChange([], emergency24h);
+    onChange([], false);
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h4 className={styles.title}>Disponibilités hebdomadaires</h4>
-        <p className={styles.description}>
-          Définissez vos créneaux de disponibilité pour clarifier votre capacité réelle
-          d’intervention.
-        </p>
+  const renderGroup = (
+    title: string,
+    summary: string | null,
+    days: { id: WeekDay; label: string; shortLabel: string; group: "weekday" | "weekend" }[],
+    copyTargetDays: WeekDay[],
+    allowCopy = false,
+  ) => (
+    <section className={styles.groupBlock}>
+      <div className={styles.groupHeader}>
+        <div className={styles.groupTitleRow}>
+          <strong className={styles.groupTitle}>{title}</strong>
+          {summary ? <span className={styles.groupSummary}>{summary}</span> : null}
+        </div>
+        {isEditing && allowCopy && summary ? (
+          <button
+            type="button"
+            className={styles.copyGroupBtn}
+            onClick={() => copyToDays(days[0].id, copyTargetDays)}
+            disabled={!canEditSchedule}
+          >
+            Copier
+          </button>
+        ) : null}
       </div>
 
-      {isEditing ? (
-        <div className={styles.presetBar}>
-          <button
-            type="button"
-            className={styles.presetBtn}
-            onClick={() => applyPreset(WEEKDAY_IDS)}
-            disabled={emergency24h}
-            aria-disabled={emergency24h}
-            title={emergency24h ? "Désactivez le mode 24/7 pour éditer" : undefined}
-          >
-            Lun-Ven 09:00-18:00
-          </button>
-
-          <button
-            type="button"
-            className={styles.presetBtn}
-            onClick={() => applyPreset(ALL_DAY_IDS)}
-            disabled={emergency24h}
-            aria-disabled={emergency24h}
-            title={emergency24h ? "Désactivez le mode 24/7 pour éditer" : undefined}
-          >
-            7j/7 09:00-18:00
-          </button>
-
-          <button
-            type="button"
-            className={styles.presetBtnGhost}
-            onClick={clearSchedule}
-            disabled={emergency24h}
-            aria-disabled={emergency24h}
-          >
-            Effacer les horaires
-          </button>
-        </div>
-      ) : null}
-
-      <div
-        className={styles.daysGrid}
-        aria-disabled={!canEditSchedule}
-        data-disabled={!canEditSchedule ? "true" : "false"}
-      >
-        {DAYS.map((day) => {
+      <div className={styles.dayList}>
+        {days.map((day) => {
           const ranges = valueByDay.get(day.id) ?? [];
 
           return (
-            <div key={day.id} className={styles.dayBlock}>
-              <div className={styles.dayHeader}>
-                <strong className={styles.dayLabel}>{day.label}</strong>
+            <div key={day.id} className={styles.dayRow}>
+              <div className={styles.dayName}>{day.label}</div>
 
-                {isEditing ? (
-                  <div className={styles.dayActions}>
+              {ranges.length === 0 ? (
+                <div className={styles.emptyRow}>
+                  <span className={styles.closedLabel}>Fermé</span>
+                  {isEditing ? (
                     <button
                       type="button"
                       className={styles.addRangeBtn}
                       onClick={() => addTimeRange(day.id)}
                       disabled={!canEditSchedule}
-                      aria-label={`Ajouter une plage horaire pour ${day.label}`}
                     >
                       + Plage
                     </button>
-
-                    {ranges.length > 0 ? (
-                      <>
-                        <button
-                          type="button"
-                          className={styles.copyDayBtn}
-                          onClick={() => copyDayToAll(day.id, "all")}
-                          disabled={!canEditSchedule}
-                          aria-label={`Copier les horaires de ${day.label} sur tous les jours`}
-                        >
-                          Copier sur tous
-                        </button>
-
-                        <button
-                          type="button"
-                          className={styles.copyDayBtn}
-                          onClick={() => copyDayToAll(day.id, "weekdays")}
-                          disabled={!canEditSchedule}
-                          aria-label={`Copier les horaires de ${day.label} sur les jours ouvrés`}
-                        >
-                          Vers jours ouvrés
-                        </button>
-                      </>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-
-              {ranges.length === 0 ? (
-                <p className={styles.noRanges}>
-                  {isEditing ? "Aucune plage définie" : "Fermé"}
-                </p>
+                  ) : null}
+                </div>
               ) : (
-                <div className={styles.rangesList}>
+                <div className={styles.rangeList}>
                   {ranges.map((range, index) => (
-                    <div key={rangeKey(day.id, range, index)} className={styles.rangeItem}>
-                      <div className={styles.timeInputWrapper}>
-                        <label htmlFor={`${day.id}-start-${index}`} className={styles.srOnly}>
-                          Heure de début pour {day.label}, plage {index + 1}
-                        </label>
-                        <input
-                          id={`${day.id}-start-${index}`}
-                          type="time"
-                          value={range.start}
-                          readOnly={!canEditSchedule}
-                          disabled={!canEditSchedule}
-                          className={styles.timeInput}
-                          onChange={(event) =>
-                            updateTimeRange(day.id, index, "start", event.target.value)
-                          }
-                        />
-                      </div>
-
+                    <div key={`${day.id}-${range.start}-${range.end}-${index}`} className={styles.rangeRow}>
+                      <input
+                        type="time"
+                        value={range.start}
+                        readOnly={!canEditSchedule}
+                        disabled={!canEditSchedule}
+                        className={styles.timeInput}
+                        aria-label={`${day.label} début ${index + 1}`}
+                        onChange={(event) =>
+                          updateTimeRange(day.id, index, "start", event.target.value)
+                        }
+                      />
                       <span className={styles.separator} aria-hidden="true">
                         →
                       </span>
-
-                      <div className={styles.timeInputWrapper}>
-                        <label htmlFor={`${day.id}-end-${index}`} className={styles.srOnly}>
-                          Heure de fin pour {day.label}, plage {index + 1}
-                        </label>
-                        <input
-                          id={`${day.id}-end-${index}`}
-                          type="time"
-                          value={range.end}
-                          readOnly={!canEditSchedule}
-                          disabled={!canEditSchedule}
-                          className={styles.timeInput}
-                          onChange={(event) =>
-                            updateTimeRange(day.id, index, "end", event.target.value)
-                          }
-                        />
-                      </div>
-
+                      <input
+                        type="time"
+                        value={range.end}
+                        readOnly={!canEditSchedule}
+                        disabled={!canEditSchedule}
+                        className={styles.timeInput}
+                        aria-label={`${day.label} fin ${index + 1}`}
+                        onChange={(event) =>
+                          updateTimeRange(day.id, index, "end", event.target.value)
+                        }
+                      />
                       {canEditSchedule ? (
                         <button
                           type="button"
@@ -334,8 +385,65 @@ export default function AvailabilityEditor({
           );
         })}
       </div>
+    </section>
+  );
 
-      <div className={styles.emergencyToggle}>
+  return (
+    <div className={styles.container}>
+      <div className={styles.summaryRow}>
+        <span className={styles.summaryItem}>{openDaysCount}/7</span>
+        <span className={styles.summaryDivider}>•</span>
+        <span className={styles.summaryItem}>{scheduleSummary}</span>
+        <span className={styles.summaryDivider}>•</span>
+        <span className={styles.summaryItem}>24/7 urgences {emergency24h ? "✓" : "—"}</span>
+        {Object.keys(dayErrors).length > 0 ? (
+          <>
+            <span className={styles.summaryDivider}>•</span>
+            <span className={styles.summaryError}>Plages à corriger</span>
+          </>
+        ) : null}
+      </div>
+
+      <p className={styles.helperText}>
+        Les propriétaires lisent surtout des créneaux simples : check-in/out sur des horaires fixes,
+        ménage en journée, urgences en 24/7 pour les profils les plus réactifs.
+      </p>
+
+      {isEditing ? (
+        <div className={styles.templatesRow}>
+          {templates.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              className={styles.templateBtn}
+              onClick={() => applyTemplate(template)}
+            >
+              {template.label}
+            </button>
+          ))}
+          <button type="button" className={styles.clearBtn} onClick={clearSchedule}>
+            Effacer
+          </button>
+        </div>
+      ) : null}
+
+      <div className={styles.editorBlock}>
+        {renderGroup(
+          "LUN-VEN",
+          weekdaySummary,
+          DAYS.filter((day) => day.group === "weekday"),
+          WEEKDAY_IDS,
+          true,
+        )}
+        {renderGroup(
+          "SAM-DIM",
+          weekendSummary,
+          DAYS.filter((day) => day.group === "weekend"),
+          WEEKEND_IDS,
+        )}
+      </div>
+
+      <div className={styles.footerRow}>
         <label className={styles.checkboxLabel}>
           <input
             type="checkbox"
@@ -343,15 +451,8 @@ export default function AvailabilityEditor({
             onChange={(event) => onChange(value, event.target.checked)}
             disabled={!isEditing}
             className={styles.checkbox}
-            aria-describedby="emergency-description"
           />
-          <div>
-            <strong>Disponible 24h/24, 7j/7</strong>
-            <span id="emergency-description" className={styles.checkboxDesc}>
-              Accepter les missions urgentes à tout moment désactive l’édition manuelle
-              des horaires.
-            </span>
-          </div>
+          <span>24/7 urgences</span>
         </label>
       </div>
     </div>

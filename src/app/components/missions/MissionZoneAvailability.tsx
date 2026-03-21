@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { CSSProperties } from "react";
+import { useRef } from "react";
 import styles from "./MissionZoneAvailability.module.scss";
 import type { MissionAvailability } from "./types";
 import MissionAcceptanceRules from "./MissionAcceptanceRules";
@@ -39,14 +39,6 @@ const DEFAULT_VALUE: MissionAvailability = {
   },
 };
 
-const ZONE_STYLES = [
-  { stroke: "#1d4ed8", surface: "#dbeafe" },
-  { stroke: "#0f766e", surface: "#ccfbf1" },
-  { stroke: "#b45309", surface: "#fef3c7" },
-  { stroke: "#be185d", surface: "#fce7f3" },
-  { stroke: "#6d28d9", surface: "#ede9fe" },
-];
-
 function getState(value: MissionAvailability | null): MissionAvailability {
   return value ? value : { ...DEFAULT_VALUE, rules: { ...DEFAULT_VALUE.rules } };
 }
@@ -61,13 +53,22 @@ export default function MissionZoneAvailability({
   lockZones = false,
 }: Props) {
   const state = getState(value);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const visibleZones = lockZones ? state.zones.slice(0, 1) : state.zones;
-  const canEditZones = isEditing;
+  const primaryZone = visibleZones[0] ?? null;
   const normalizedState = lockZones ? { ...state, zones: visibleZones } : state;
 
+  const focusSearchField = () => {
+    const input = containerRef.current?.querySelector<HTMLInputElement>(
+      'input[aria-label="Rechercher un code postal ou une ville reconnue"]',
+    );
+    input?.focus();
+    input?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+
   const updateZones = (zones: MissionAvailability["zones"]) => {
-    if (!canEditZones) return;
+    if (!isEditing) return;
     onChange({
       ...normalizedState,
       zones: lockZones ? zones.slice(-1) : zones,
@@ -79,45 +80,69 @@ export default function MissionZoneAvailability({
     onChange({ ...normalizedState, radiusKm });
   };
 
-  const removeZone = (placeId: string) => {
-    if (!canEditZones) return;
+  const removeZone = () => {
+    if (!isEditing || !primaryZone) return;
     onChange({
       ...normalizedState,
-      zones: normalizedState.zones.filter((z) => z.placeId !== placeId),
+      zones: [],
     });
   };
 
   return (
-    <div className={styles.container}>
-      {showZoneSection && (
+    <div className={styles.container} ref={containerRef}>
+      {showZoneSection ? (
         <section className={styles.block}>
-          <h4 className={styles.blockTitle}>
-            <span className={styles.titleIcon}>📍</span>
-            Carte et rayon
-          </h4>
+          <div className={styles.blockHeader}>
+            <div>
+              <h4 className={styles.blockTitle}>Définir ma zone</h4>
+            </div>
+          </div>
+
+          {!primaryZone ? (
+            <div className={styles.emptyStateCard}>
+              <div className={styles.emptyStateCopy}>
+                <h5>Aucune zone définie</h5>
+                <p>
+                  Renseignez un code postal, une ville ou un arrondissement pour cadrer vos
+                  demandes entrantes.
+                </p>
+              </div>
+              {isEditing ? (
+                <button
+                  type="button"
+                  className={styles.searchCta}
+                  onClick={focusSearchField}
+                >
+                  Rechercher une zone
+                </button>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className={styles.mapWrapper}>
             <MissionMap
               zones={visibleZones}
               radiusKm={state.radiusKm}
               onZonesChange={updateZones}
-              isEditing={canEditZones}
+              isEditing={isEditing}
             />
           </div>
 
           <div className={styles.radiusSection}>
             <div className={styles.radiusHeader}>
-              <label htmlFor="radius-input" className={styles.radiusLabel}>
-                <span>Rayon de couverture :</span>
-                <span className={styles.radiusValue}>{state.radiusKm} km</span>
-              </label>
+              <span className={styles.radiusEyebrow}>Rayon d’intervention</span>
 
-              {!isEditing && state.radiusKm > 0 && (
+              {!isEditing && primaryZone ? (
                 <span className={styles.savedIndicator} role="status">
-                  ✓ Sauvegardé
+                  Sauvegardé
                 </span>
-              )}
+              ) : null}
             </div>
+
+            <label htmlFor="radius-input" className={styles.radiusLabel}>
+              <span className={styles.radiusTitle}>Ajuster la couverture autour de la zone</span>
+              <span className={styles.radiusValue}>{state.radiusKm} km</span>
+            </label>
 
             <input
               id="radius-input"
@@ -131,83 +156,35 @@ export default function MissionZoneAvailability({
               disabled={!isEditing}
               aria-disabled={!isEditing}
             />
-          </div>
 
-          <div className={styles.zonesSection}>
-            <div className={styles.zonesSectionHeader}>
-              <h5 className={styles.zonesSectionTitle}>
-                {visibleZones.length === 0
-                  ? "Aucune zone"
-                  : visibleZones.length === 1
-                    ? "Zone sélectionnée"
-                    : "Zones sélectionnées"}
-              </h5>
-
-              {!isEditing && visibleZones.length > 0 && (
-                <span className={styles.savedIndicator} role="status">
-                  ✓ Sauvegardé
-                </span>
-              )}
+            <div className={styles.radiusScale} aria-hidden="true">
+              <span>1 km</span>
+              <span>50 km</span>
+              <span>100 km</span>
             </div>
 
-            {visibleZones.length > 0 ? (
-              <div className={styles.zonesList}>
-                {visibleZones.map((zone, index) => {
-                  const zoneTone = ZONE_STYLES[index % ZONE_STYLES.length];
-
-                  return (
-                    <div
-                      key={zone.placeId}
-                      className={styles.zoneCard}
-                      style={
-                        {
-                          "--zone-stroke": zoneTone.stroke,
-                          "--zone-surface": zoneTone.surface,
-                        } as CSSProperties
-                      }
-                    >
-                      <div className={styles.zoneCardContent}>
-                        <div className={styles.zoneHeader}>
-                          <span className={styles.zoneIndex}>Zone {index + 1}</span>
-                          <span className={styles.zoneLabel}>{zone.label}</span>
-                        </div>
-                        <span className={styles.zoneCoordinates}>
-                          {zone.lat.toFixed(4)}°, {zone.lng.toFixed(4)}°
-                        </span>
-                      </div>
-
-                      {canEditZones ? (
-                        <button
-                          type="button"
-                          className={styles.removeZoneBtn}
-                          onClick={() => removeZone(zone.placeId)}
-                          aria-label={`Supprimer la zone ${zone.label}`}
-                          title="Supprimer cette zone"
-                        >
-                          Supprimer
-                        </button>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : canEditZones ? (
-              <p className={styles.emptyZoneState}>
-                Sélectionnez une ville reconnue pour définir votre zone principale.
-              </p>
-            ) : (
-              <p className={styles.emptyZoneState}>Aucune zone définie pour le moment.</p>
-            )}
+            <p className={styles.radiusHint}>
+              Faites glisser le curseur pour élargir ou réduire votre zone d’intervention.
+            </p>
           </div>
-        </section>
-      )}
 
-      {showScheduleSection && (
+          {isEditing && primaryZone ? (
+            <div className={styles.selectionActions}>
+              <button
+                type="button"
+                className={styles.removeZoneBtn}
+                onClick={removeZone}
+              >
+                Supprimer la zone
+              </button>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showScheduleSection ? (
         <section className={styles.block}>
-          <h4 className={styles.blockTitle}>
-            <span className={styles.titleIcon}>⏱️</span>
-            Disponibilités hebdomadaires
-          </h4>
+          <h4 className={styles.blockTitle}>Disponibilités hebdomadaires</h4>
 
           <AvailabilityEditor
             value={state.schedule}
@@ -231,14 +208,11 @@ export default function MissionZoneAvailability({
             }}
           />
         </section>
-      )}
+      ) : null}
 
-      {showRulesSection && (
+      {showRulesSection ? (
         <section className={styles.block}>
-          <h4 className={styles.blockTitle}>
-            <span className={styles.titleIcon}>🤖</span>
-            Règles d&apos;automatisation
-          </h4>
+          <h4 className={styles.blockTitle}>Règles d&apos;automatisation</h4>
 
           <MissionAcceptanceRules
             value={state.rules}
@@ -246,7 +220,7 @@ export default function MissionZoneAvailability({
             onChange={(rules) => onChange({ ...normalizedState, rules })}
           />
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

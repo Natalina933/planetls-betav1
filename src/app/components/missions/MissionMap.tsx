@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from "react-leaflet";
 import { FiMapPin, FiSearch, FiTrash2 } from "react-icons/fi";
 import L from "leaflet";
@@ -39,11 +39,11 @@ interface GeocodeSuggestion {
 
 const DEFAULT_CENTER: [number, number] = [48.8566, 2.3522];
 const ZONE_COLORS = [
-  { stroke: "#1d4ed8", fill: "rgba(59, 130, 246, 0.20)", surface: "#dbeafe" },
-  { stroke: "#0f766e", fill: "rgba(20, 184, 166, 0.20)", surface: "#ccfbf1" },
-  { stroke: "#b45309", fill: "rgba(245, 158, 11, 0.20)", surface: "#fef3c7" },
-  { stroke: "#be185d", fill: "rgba(236, 72, 153, 0.20)", surface: "#fce7f3" },
-  { stroke: "#6d28d9", fill: "rgba(139, 92, 246, 0.20)", surface: "#ede9fe" },
+  { stroke: "#1d4ed8", fill: "rgba(59, 130, 246, 0.20)" },
+  { stroke: "#0f766e", fill: "rgba(20, 184, 166, 0.20)" },
+  { stroke: "#b45309", fill: "rgba(245, 158, 11, 0.20)" },
+  { stroke: "#be185d", fill: "rgba(236, 72, 153, 0.20)" },
+  { stroke: "#6d28d9", fill: "rgba(139, 92, 246, 0.20)" },
 ];
 
 function FitToZones({
@@ -64,25 +64,17 @@ function FitToZones({
         Math.max(radiusKm, 1) * 2000,
       );
 
-      if (!acc) {
-        return circleBounds;
-      }
-
+      if (!acc) return circleBounds;
       return acc.extend(circleBounds);
     }, null as L.LatLngBounds | null);
 
     if (!bounds) return;
 
-    const paddedBounds = bounds.pad(0.12);
-    const targetZoom = radiusKm <= 3 ? 13 : radiusKm <= 10 ? 12 : 11;
-
-    // Avoid animated fitBounds here: Leaflet can throw during pane transitions
-    // when the map remounts while a zoom animation is still in flight.
     map.stop();
-    map.fitBounds(paddedBounds, {
+    map.fitBounds(bounds.pad(0.12), {
       animate: false,
       padding: [28, 28],
-      maxZoom: targetZoom,
+      maxZoom: radiusKm <= 3 ? 13 : radiusKm <= 10 ? 12 : 11,
     });
   }, [zones, radiusKm, map]);
 
@@ -172,9 +164,7 @@ export default function MissionMap({
 
         setSuggestions(Array.isArray(payload.suggestions) ? payload.suggestions : []);
       } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
+        if (controller.signal.aborted) return;
         setSuggestions([]);
         setUiError(
           error instanceof Error ? error.message : "Recherche de ville impossible.",
@@ -271,32 +261,6 @@ export default function MissionMap({
       ) : null}
 
       <div className={styles.mapWrap}>
-        <div className={styles.radiusBadge}>
-          <span className={styles.radiusBadgeLabel}>Rayon</span>
-          <strong>{radiusKm} km</strong>
-        </div>
-
-        {decoratedZones.length > 0 ? (
-          <div className={styles.mapLegend}>
-            {decoratedZones.map((zone) => (
-              <div key={zone.placeId} className={styles.legendItem}>
-                <span
-                  className={styles.legendSwatch}
-                  style={
-                    {
-                      "--legend-stroke": zone.colors.stroke,
-                      "--legend-surface": zone.colors.surface,
-                    } as CSSProperties
-                  }
-                >
-                  {zone.order}
-                </span>
-                <span className={styles.legendLabel}>{zone.label}</span>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
         <MapContainer center={center} zoom={10} className={styles.map}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -314,16 +278,9 @@ export default function MissionMap({
               <Popup>
                 <div className={styles.popup}>
                   <strong className={styles.popupTitle}>{zone.label}</strong>
-                  <span
-                    className={styles.popupBadge}
-                    style={{ "--popup-accent": zone.colors.stroke } as CSSProperties}
-                  >
-                    Zone {zone.order}
-                  </span>
-                  <div className={styles.popupMeta}>
-                    <span>Lat: {zone.lat.toFixed(5)}</span>
-                    <span>Lng: {zone.lng.toFixed(5)}</span>
-                  </div>
+                  {zone.postcode?.trim() ? (
+                    <span className={styles.popupMeta}>{zone.postcode.trim()}</span>
+                  ) : null}
                   {isEditing ? (
                     <button
                       type="button"
@@ -347,9 +304,9 @@ export default function MissionMap({
               pathOptions={{
                 color: zone.colors.stroke,
                 fillColor: zone.colors.fill,
-                fillOpacity: 0.22,
-                weight: 3,
-                opacity: 0.9,
+                fillOpacity: 0.18,
+                weight: 2.5,
+                opacity: 0.85,
                 dashArray: isEditing ? "10 8" : undefined,
               }}
             />
@@ -363,9 +320,9 @@ export default function MissionMap({
               pathOptions={{
                 color: zone.colors.stroke,
                 fillColor: zone.colors.stroke,
-                fillOpacity: 0.12,
-                weight: 1.5,
-                opacity: 0.45,
+                fillOpacity: 0.08,
+                weight: 1,
+                opacity: 0.25,
               }}
             />
           ))}

@@ -1,112 +1,60 @@
 .container {
   display: grid;
-  gap: 1rem;
-}
-
-.header {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-text, #1a1a2e);
-}
-
-.description {
-  margin: 0;
-  color: var(--color-text-secondary, #6b7280);
-  font-size: 0.88rem;
-  line-height: 1.55;
-}
-
-.daysGrid {
-  display: grid;
   gap: 0.9rem;
 }
 
-.presetBar {
+.summaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, #d4af37 18%, var(--color-border, #e5e7eb));
+  background: color-mix(in srgb, #d4af37 6%, var(--background, #fff));
+}
+
+.summaryItem {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+}
+
+.summaryDivider {
+  color: var(--color-text-secondary, #94a3b8);
+  font-size: 0.84rem;
+}
+
+.summaryError {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.helperText {
+  margin: -0.2rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.templatesRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  padding: 0.85rem 0.95rem;
-  border: 1px solid color-mix(in srgb, #d4af37 22%, #e5e7eb);
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #d4af37 8%, var(--background, #fff)), var(--background, #fff));
 }
 
-.presetBtn,
-.presetBtnGhost {
-  border-radius: 999px;
-  padding: 0.4rem 0.78rem;
+.templateBtn,
+.clearBtn,
+.copyGroupBtn,
+.addRangeBtn,
+.addInlineBtn,
+.removeBtn {
+  border-radius: 10px;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.16s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-
-.presetBtn {
-  border: 1px solid color-mix(in srgb, #d4af37 55%, #cbd5e1);
-  color: #8b6b07;
-  background: color-mix(in srgb, #d4af37 16%, var(--background, #fff));
-}
-
-.presetBtnGhost {
-  border: 1px solid var(--color-border, #d1d5db);
-  color: var(--color-text-secondary, #6b7280);
-  background: var(--background, #fff);
-}
-
-.presetBtn:hover,
-.presetBtnGhost:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-}
-
-.dayBlock {
-  border: 1px solid color-mix(in srgb, #d4af37 18%, var(--color-border, #e5e7eb));
-  border-radius: 16px;
-  padding: 1rem;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #d4af37 4%, var(--background, #fff)), var(--background, #fff));
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-}
-
-.dayHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  margin-bottom: 0.65rem;
-}
-
-.dayLabel {
-  color: var(--color-text, #1a1a2e);
-  font-size: 0.95rem;
-}
-
-.dayActions {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-}
-
-.addRangeBtn,
-.copyDayBtn,
-.removeBtn {
-  border: 1px solid var(--color-border, #d1d5db);
-  background: color-mix(in srgb, var(--background, #fff) 85%, #eef2f7 15%);
-  color: var(--color-text, #1a1a2e);
-  border-radius: 10px;
-  padding: 0.38rem 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.16s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.16s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 
   &:hover {
     transform: translateY(-1px);
@@ -114,121 +62,195 @@
   }
 }
 
-.copyDayBtn {
-  background: color-mix(in srgb, #d4af37 14%, var(--background, #fff));
-  border-color: color-mix(in srgb, #d4af37 45%, #cbd5e1);
+.templateBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.48rem 0.7rem;
+  border: 1px solid color-mix(in srgb, #d4af37 36%, #cbd5e1);
+  background: color-mix(in srgb, #d4af37 9%, var(--background, #fff));
+  color: var(--color-text, #111827);
+}
+
+.clearBtn {
+  padding: 0.48rem 0.7rem;
+  border: 1px solid color-mix(in srgb, #dc2626 28%, #e5e7eb);
+  background: #fff;
+  color: #b91c1c;
+}
+
+.editorBlock {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.groupBlock {
+  border: 1px solid color-mix(in srgb, #d4af37 16%, var(--color-border, #e5e7eb));
+  border-radius: 16px;
+  padding: 0.95rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #d4af37 4%, var(--background, #fff)), var(--background, #fff));
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.groupTitleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.groupTitle {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text, #111827);
+}
+
+.groupSummary {
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #8b6b07;
 }
 
-.addRangeBtn {
-  background: color-mix(in srgb, #d4af37 10%, var(--background, #fff));
-  border-color: color-mix(in srgb, #d4af37 42%, #cbd5e1);
+.copyGroupBtn {
+  padding: 0.38rem 0.62rem;
+  border: 1px solid color-mix(in srgb, #d4af37 34%, #cbd5e1);
+  background: color-mix(in srgb, #d4af37 9%, var(--background, #fff));
   color: #8b6b07;
 }
 
-.rangesList {
+.dayList {
   display: grid;
   gap: 0.55rem;
 }
 
-.rangeItem {
+.dayRow {
   display: grid;
-  grid-template-columns: minmax(90px, 130px) auto minmax(90px, 130px) auto;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 0.6rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, #d4af37 6%, var(--background, #fff));
-  border: 1px solid color-mix(in srgb, #d4af37 16%, var(--color-border, #e5e7eb));
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
 }
 
-.timeInputWrapper {
-  min-width: 0;
+.dayName {
+  padding-top: 0.5rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+}
+
+.rangeList {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.rangeRow,
+.emptyRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+}
+
+.emptyRow {
+  justify-content: space-between;
+}
+
+.closedLabel {
+  color: var(--color-text-secondary, #94a3b8);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .timeInput {
-  width: 100%;
+  width: 96px;
   border: 1px solid var(--color-border, #cbd5e1);
   border-radius: 10px;
-  padding: 0.45rem 0.55rem;
+  padding: 0.42rem 0.5rem;
   background: var(--background, #fff);
-  color: var(--color-text, #1a1a2e);
+  color: var(--color-text, #111827);
+  font-size: 0.82rem;
 
   &:focus {
-    outline: 2px solid color-mix(in srgb, #d4af37 40%, transparent);
+    outline: 2px solid color-mix(in srgb, #d4af37 35%, transparent);
     outline-offset: 1px;
     border-color: #d4af37;
   }
 }
 
 .separator {
-  color: var(--color-text-secondary, #6b7280);
-  font-weight: 600;
-  text-align: center;
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
-.noRanges {
-  margin: 0;
-  color: var(--color-text-secondary, #6b7280);
-  font-size: 0.88rem;
-  padding: 0.8rem 0.9rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, #eef2f7 55%, var(--background, #fff));
-  border: 1px dashed var(--color-border, #d1d5db);
+.addRangeBtn,
+.addInlineBtn {
+  padding: 0.38rem 0.62rem;
+  border: 1px solid color-mix(in srgb, #d4af37 34%, #cbd5e1);
+  background: color-mix(in srgb, #d4af37 9%, var(--background, #fff));
+  color: #8b6b07;
+}
+
+.removeBtn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, #dc2626 24%, #e5e7eb);
+  background: #fff;
+  color: #b91c1c;
 }
 
 .dayError {
-  margin: 0.5rem 0 0;
-  color: #dc2626;
-  font-size: 0.83rem;
-  font-weight: 600;
+  margin: 0.2rem 0 0 90px;
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
-.emergencyToggle {
-  border: 1px solid color-mix(in srgb, #d4af37 18%, var(--color-border, #e2e8f0));
-  border-radius: 16px;
-  padding: 1rem;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #d4af37 5%, var(--background, #fff)), var(--background, #fff));
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+.footerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.2rem;
 }
 
 .checkboxLabel {
-  display: flex;
-  gap: 0.65rem;
-  align-items: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
 }
 
 .checkbox {
-  margin-top: 0.15rem;
+  margin: 0;
 }
 
-.checkboxDesc {
-  display: block;
-  color: var(--color-text-secondary, #6b7280);
-  font-size: 0.85rem;
-  margin-top: 0.24rem;
-  line-height: 1.5;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
-
-@media (max-width: 640px) {
-  .rangeItem {
-    grid-template-columns: 1fr auto 1fr;
+@media (max-width: 720px) {
+  .dayRow {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
 
-  .removeBtn {
-    grid-column: 1 / -1;
-    justify-self: start;
+  .dayName {
+    padding-top: 0;
+  }
+
+  .dayError {
+    margin-left: 0;
+  }
+
+  .footerRow,
+  .groupHeader,
+  .emptyRow {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

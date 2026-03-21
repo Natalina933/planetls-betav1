@@ -24,7 +24,8 @@ import {
 import { ChevronDown, Edit2, LucideUser, Save, Shield, Star, X as LucideX } from "lucide-react";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
-import { CompletionStatusCard } from "@/components/dashboard";
+import MissionsTabLayout from "@/app/components/dashboard/concierge/MissionsTabLayout";
+import MissionSnapshotShell from "@/app/components/dashboard/concierge/MissionSnapshotShell";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
@@ -160,6 +161,70 @@ const DAY_LABELS: Record<WeekDay, string> = {
   sat: "Samedi",
   sun: "Dimanche",
 };
+
+const WEEKDAY_IDS: WeekDay[] = ["mon", "tue", "wed", "thu", "fri"];
+const WEEKEND_IDS: WeekDay[] = ["sat", "sun"];
+
+function areMissionTimeRangesEqual(
+  left: MissionAvailability["schedule"][number]["ranges"],
+  right: MissionAvailability["schedule"][number]["ranges"],
+) {
+  if (left.length !== right.length) return false;
+  return left.every(
+    (range, index) => range.start === right[index]?.start && range.end === right[index]?.end,
+  );
+}
+
+function formatMissionScheduleSummary(schedule: MissionAvailability["schedule"], emergency24h: boolean) {
+  if (emergency24h) {
+    return "24h/24, 7j/7";
+  }
+
+  const byDay = new Map(schedule.map((day) => [day.day, day.ranges]));
+  const openDays = schedule.filter((day) => day.ranges.length > 0);
+
+  if (openDays.length === 0) {
+    return "Aucune disponibilité définie";
+  }
+
+  const weekdayRanges = byDay.get("mon") ?? [];
+  const weekendRanges = byDay.get("sat") ?? [];
+  const sameWeekdays =
+    weekdayRanges.length > 0 &&
+    WEEKDAY_IDS.every((day) => areMissionTimeRangesEqual(byDay.get(day) ?? [], weekdayRanges));
+  const sameWeekend =
+    weekendRanges.length > 0 &&
+    WEEKEND_IDS.every((day) => areMissionTimeRangesEqual(byDay.get(day) ?? [], weekendRanges));
+
+  if (sameWeekdays && sameWeekend && areMissionTimeRangesEqual(weekdayRanges, weekendRanges)) {
+    const range = weekdayRanges[0];
+    if (weekdayRanges.length === 1 && range) {
+      return `Lun-Dim ${range.start}-${range.end}`;
+    }
+  }
+
+  if (sameWeekdays && WEEKEND_IDS.every((day) => (byDay.get(day) ?? []).length === 0)) {
+    const range = weekdayRanges[0];
+    if (weekdayRanges.length === 1 && range) {
+      return `Lun-Ven ${range.start}-${range.end}`;
+    }
+  }
+
+  if (sameWeekend && WEEKDAY_IDS.every((day) => (byDay.get(day) ?? []).length === 0)) {
+    const range = weekendRanges[0];
+    if (weekendRanges.length === 1 && range) {
+      return `Sam-Dim ${range.start}-${range.end}`;
+    }
+  }
+
+  const firstOpenDay = openDays[0];
+  const firstRange = firstOpenDay.ranges[0];
+  if (firstRange) {
+    return `${DAY_LABELS[firstOpenDay.day]} ${firstRange.start}-${firstRange.end}`;
+  }
+
+  return `${openDays.length}/7`;
+}
 
 interface EditableProfileFieldProps {
   styles: Record<string, string>;
@@ -483,28 +548,6 @@ export function EditableProfileSection({
       </div>
     </div>
   );
-}
-
-interface MissionsTabLayoutProps {
-  styles: Record<string, string>;
-  missionProgressPercent: number;
-  missionProgressDoneCount: number;
-  missionProgressTotal: number;
-  showPendingMissionStepsOnly: boolean;
-  onTogglePendingSteps: () => void;
-  displayedActiveMissionCount: number;
-  totalAvailableMissionCount: number;
-  recognizedActiveMissionCount: number;
-  unrecognizedActiveMissionLabelsCount: number;
-  missionOpenDaysCount: number;
-  missionRangesCount: number;
-  missionZonesCount: number;
-  missionProgressSteps: MissionProgressStepItem[];
-  openMissionSectionForEdit: (sectionId: string) => void;
-  children: React.ReactNode;
-  secondaryContent?: React.ReactNode;
-  showCompletionCard?: boolean;
-  showSecondaryContent?: boolean;
 }
 
 interface MissionsPrimarySectionsProps {
@@ -1577,141 +1620,6 @@ export function ConciergeFicheTabContent(props: FicheTabSectionProps) {
   return <FicheTabSection {...props} />;
 }
 
-export function MissionsTabLayout({
-  styles,
-  missionProgressPercent,
-  missionProgressDoneCount,
-  missionProgressTotal,
-  showPendingMissionStepsOnly,
-  onTogglePendingSteps,
-  displayedActiveMissionCount,
-  totalAvailableMissionCount,
-  recognizedActiveMissionCount,
-  unrecognizedActiveMissionLabelsCount,
-  missionOpenDaysCount,
-  missionRangesCount,
-  missionZonesCount,
-  missionProgressSteps,
-  openMissionSectionForEdit,
-  children,
-  secondaryContent,
-  showCompletionCard = true,
-  showSecondaryContent = true,
-}: MissionsTabLayoutProps) {
-  const servicesStep = missionProgressSteps.find((step) => step.key === "services");
-  const zoneStep = missionProgressSteps.find((step) => step.key === "zone");
-  const availabilityStep = missionProgressSteps.find((step) => step.key === "availability");
-
-  const renderMissionStatBadge = (step: MissionProgressStepItem | undefined, metricDone: boolean) => {
-    const isPending = !metricDone || (step ? !step.done : false);
-    if (!isPending || !step?.sectionId) return null;
-
-    return (
-      <button
-        type="button"
-        className={styles.missionPendingBadge}
-        onClick={() => openMissionSectionForEdit(step.sectionId!)}
-        title={`Completer: ${step.label}`}
-      >
-        <span className={styles.missionPendingDot} aria-hidden="true" />
-        À compléter
-      </button>
-    );
-  };
-
-  return (
-    <div className={styles.missionsLayout}>
-      <div className={styles.missionsHero}>
-        <div className={styles.missionsHeroTitle}>
-          <h3>Pilotage des missions</h3>
-          <p>Configurez vos services, zones et disponibilites, puis suivez vos indicateurs.</p>
-        </div>
-        <div className={styles.missionsHeroProgress}>
-          <div className={styles.missionsHeroProgressMeta}>
-            <span>Progression de configuration</span>
-            <strong>{missionProgressPercent}%</strong>
-          </div>
-          <button
-            type="button"
-            className={styles.missionProgressTrackButton}
-            onClick={onTogglePendingSteps}
-            title="Filtrer les étapes à configurer"
-            aria-pressed={showPendingMissionStepsOnly}
-          >
-            <div className={styles.missionProgressTrack} aria-hidden="true">
-              <div
-                className={styles.missionProgressFill}
-                style={{ width: `${missionProgressPercent}%` }}
-              />
-            </div>
-          </button>
-          <p className={styles.missionsHeroProgressHint}>
-            {missionProgressDoneCount}/{missionProgressTotal} étapes complétées
-          </p>
-        </div>
-        <div className={styles.missionsHeroStats}>
-          <div className={styles.missionStat}>
-            <div className={styles.missionStatTop}>
-              <span className={styles.missionStatLabel}>Services actifs</span>
-              {renderMissionStatBadge(servicesStep, displayedActiveMissionCount > 0)}
-            </div>
-            <strong>
-              {displayedActiveMissionCount}
-              {totalAvailableMissionCount > 0 ? `/${totalAvailableMissionCount}` : ""}
-            </strong>
-            {unrecognizedActiveMissionLabelsCount > 0 && (
-              <small className={styles.missionStatSub}>
-                {recognizedActiveMissionCount} reconnus, {unrecognizedActiveMissionLabelsCount} non reconnus
-              </small>
-            )}
-          </div>
-          <div className={styles.missionStat}>
-            <div className={styles.missionStatTop}>
-              <span className={styles.missionStatLabel}>Jours ouverts</span>
-              {renderMissionStatBadge(availabilityStep, missionOpenDaysCount > 0)}
-            </div>
-            <strong>{missionOpenDaysCount}/7</strong>
-          </div>
-          <div className={styles.missionStat}>
-            <div className={styles.missionStatTop}>
-              <span className={styles.missionStatLabel}>Plages horaires</span>
-              {renderMissionStatBadge(availabilityStep, missionRangesCount > 0)}
-            </div>
-            <strong>{missionRangesCount}</strong>
-          </div>
-          <div className={styles.missionStat}>
-            <div className={styles.missionStatTop}>
-              <span className={styles.missionStatLabel}>Zones couvertes</span>
-              {renderMissionStatBadge(zoneStep, missionZonesCount > 0)}
-            </div>
-            <strong>{missionZonesCount}</strong>
-          </div>
-        </div>
-      </div>
-
-      {showCompletionCard ? (
-        <CompletionStatusCard
-          title="Missions"
-          description="Vérifiez en un coup d’œil ce qu'il reste à configurer pour recevoir des demandes qualifiées."
-          percentage={missionProgressPercent}
-          completedCount={missionProgressDoneCount}
-          totalCount={missionProgressTotal}
-          missingItems={missionProgressSteps.filter((step) => !step.done).map((step) => step.label)}
-          actionLabel="Afficher les points à compléter"
-          onAction={onTogglePendingSteps}
-        />
-      ) : null}
-
-      <div className={styles.missionsColumns}>
-        <div className={styles.missionsPrimary}>{children}</div>
-        {showSecondaryContent && secondaryContent ? (
-          <aside className={styles.missionsSecondary}>{secondaryContent}</aside>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 export function ConciergePacksTabContent({
   styles,
   renderSection,
@@ -1890,47 +1798,35 @@ export function MissionZoneRulesSection({
   parseAvailabilityPayloadRaw,
 }: MissionZoneRulesSectionProps) {
   const zones = missionAvailability?.zones ?? [];
+  const primaryZone = zones[0] ?? null;
   const radiusKm = missionAvailability?.radiusKm ?? 0;
   const isEditingSection = editingSection === sectionId;
+  const readZonePostcode = (zone: MissionAvailabilityState["zones"][number] | null) => {
+    if (!zone || typeof zone !== "object") return null;
+    const candidate = zone as { postcode?: string | null };
+    return candidate.postcode?.trim() || null;
+  };
+  const primaryZonePostcode = readZonePostcode(primaryZone);
+  const summaryLabel = primaryZone
+    ? primaryZonePostcode
+      ? `${primaryZone.label} (${primaryZonePostcode})`
+      : primaryZone.label
+    : null;
 
   return renderSection(
     "Zone d'intervention",
     <FiMapPinOutline />,
     <>
-      <div className={styles.missionSnapshotCard}>
-        <div className={styles.missionSnapshotHeader}>
-          <div>
-            <p className={styles.missionSnapshotEyebrow}>Couverture</p>
-            <h4>Résumé</h4>
-          </div>
-        </div>
-
-        <div className={styles.missionMetaGrid}>
-          <div className={styles.missionMetaItem}>
-            <span>Zones actives</span>
-            <strong>{zones.length}</strong>
-          </div>
-          <div className={styles.missionMetaItem}>
-            <span>Rayon</span>
-            <strong>{radiusKm} km</strong>
-          </div>
-        </div>
-
-        <div className={styles.missionBadgeRow}>
-          {zones.length > 0 ? (
-            zones.map((zone) => (
-              <span key={zone.placeId} className={styles.missionUnknownItem}>
-                {zone.postcode?.trim() || zone.label}
-              </span>
-            ))
-          ) : (
-            <span className={styles.missionEmptyInline}>
-              Aucune zone définie pour le moment.
-            </span>
-          )}
-        </div>
-
-      </div>
+      <MissionSnapshotShell
+        styles={styles}
+        eyebrow="Couverture"
+        title={summaryLabel ?? "Aucune zone définie"}
+        footer={
+          <>
+            Rayon d’intervention : <strong>{radiusKm > 0 ? `${radiusKm} km` : "à définir"}</strong>
+          </>
+        }
+      />
       {isEditingSection ? (
         <div className={styles.missionEditorPanel}>
           <MissionZoneAvailability
@@ -1966,60 +1862,26 @@ export function MissionWeeklyAvailabilitySection({
   const schedule = missionAvailability?.schedule ?? [];
   const emergency24h = missionAvailability?.emergency24h ?? false;
   const openDays = schedule.filter((day) => day.ranges.length > 0);
-  const totalRanges = schedule.reduce((total, day) => total + day.ranges.length, 0);
   const isEditingSection = editingSection === sectionId;
+  const scheduleSummary = formatMissionScheduleSummary(schedule, emergency24h);
 
   return renderSection(
     "Disponibilités hebdomadaires",
     <FiClockOutline />,
     <>
-      <div className={styles.missionSnapshotCard}>
-        <div className={styles.missionSnapshotHeader}>
-          <div>
-            <p className={styles.missionSnapshotEyebrow}>Disponibilité</p>
-            <h4>Horaires hebdomadaires</h4>
-          </div>
-        </div>
-
-        {emergency24h ? (
-          <div className={styles.missionAlwaysOnCard}>
-            <strong>24h/24, 7j/7</strong>
-            <span>Les urgences peuvent être prises en charge à tout moment.</span>
-          </div>
-        ) : null}
-
-        <div className={styles.missionMetaGrid}>
-          <div className={styles.missionMetaItem}>
-            <span>Jours ouverts</span>
-            <strong>{openDays.length}/7</strong>
-          </div>
-          <div className={styles.missionMetaItem}>
-            <span>Plages horaires</span>
-            <strong>{totalRanges}</strong>
-          </div>
-        </div>
-
-        <div className={styles.missionBadgeRow}>
-          {openDays.length > 0 ? (
-            openDays.slice(0, 4).map((day) => (
-              <span key={day.day} className={styles.missionUnknownItem}>
-                {DAY_LABELS[day.day]}
-              </span>
-            ))
-          ) : (
-            <span className={styles.missionEmptyInline}>
-              Aucune disponibilité définie pour le moment.
+      {!isEditingSection ? (
+        <MissionSnapshotShell styles={styles} eyebrow="Disponibilité" title="Horaires hebdomadaires">
+          <p className={styles.missionSnapshotNote}>
+            <strong>{scheduleSummary}</strong>
+          </p>
+          <div className={styles.missionBadgeRow}>
+            <span className={styles.missionUnknownItem}>{openDays.length}/7</span>
+            <span className={styles.missionUnknownItem}>
+              24/7 urgences {emergency24h ? "Oui" : "Non"}
             </span>
-          )}
-          {openDays.length > 4 ? (
-            <span className={styles.missionUnknownItem}>+{openDays.length - 4} jour(x)</span>
-          ) : null}
-        </div>
-
-        <p className={styles.missionSnapshotNote}>
-          Gardez une lecture synthétique ici, puis ouvrez l’édition détaillée quand vous devez ajuster vos créneaux.
-        </p>
-      </div>
+          </div>
+        </MissionSnapshotShell>
+      ) : null}
 
       {isEditingSection ? (
         <div className={styles.missionEditorPanel}>
