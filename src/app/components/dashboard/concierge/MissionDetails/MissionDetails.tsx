@@ -1,9 +1,14 @@
-﻿"use client";
+﻿//src/app/components/dashboard/concierge/MissionDetails/MissionDetails.tsx
+"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { FiCheckCircle, FiAlertCircle, FiLoader } from "react-icons/fi";
 import styles from "./MissionDetails.module.scss";
 import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
+import {
+    buildDetailedMissionSummary,
+    type DetailedMissionCategory,
+} from "./missionCatalogSummary";
 
 /* =========================
     Types
@@ -19,11 +24,6 @@ interface ServiceCatalogItem {
     id: number;
     category: string;
     service: string;
-}
-
-interface DetailedCategory {
-    category: string;
-    services: string[];
 }
 
 /* =========================
@@ -66,46 +66,36 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
     }, []);
 
     // 3. Mapping détaillé (Strictement basé sur le catalogue)
-    const detailedSummary: DetailedCategory[] = useMemo(() => {
-        if (loadingCatalog || !catalog.length || !activeServices.length) return [];
+    const detailedSummary: DetailedMissionCategory[] = useMemo(
+        () => (loadingCatalog ? [] : buildDetailedMissionSummary(activeServices, catalog)),
+        [activeServices, catalog, loadingCatalog]
+    );
 
-        const groups: Record<string, string[]> = {};
-
-        activeServices.forEach((serviceName) => {
-            const normalizedInput = serviceName.trim().toLowerCase();
-
-            // On cherche si le service de l'inscription correspond à une CATEGORIE ou un SERVICE du SQL
-            const found = catalog.find((item) => {
-                const s = item.service.toLowerCase();
-                const c = item.category.toLowerCase();
-                // Match si le nom de l'inscription est inclus dans la catégorie ou vice-versa
-                return s.includes(normalizedInput) || normalizedInput.includes(s) ||
-                    c.includes(normalizedInput) || normalizedInput.includes(c);
-            });
-
-            // UN SERVICE EST AFFICHÉ UNIQUEMENT S'IL EXISTE DANS LE CATALOGUE
-            if (found) {
-                if (!groups[found.category]) groups[found.category] = [];
-                if (!groups[found.category].includes(found.service)) {
-                    groups[found.category].push(found.service);
-                }
-            }
-        });
-
-        // Tri par les catégories officielles
-        const order = ["Ménage", "Linge", "Accueil", "Maintenance", "Courses", "Administratif", "Extérieur", "Sécurité", "Confort", "Éco"];
-
-        return Object.entries(groups)
-            .map(([category, services]) => ({ category, services }))
-            .sort((a, b) => {
-                const indexA = order.indexOf(a.category);
-                const indexB = order.indexOf(b.category);
-                return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
-            });
-    }, [activeServices, catalog, loadingCatalog]);
+    const activeCategoryCount = detailedSummary.length;
+    const selectedServiceCount = activeServices.length;
 
     return (
         <div className={styles.wrapper}>
+            <div className={styles.header}>
+                <div className={styles.headerContent}>
+                    <p className={styles.eyebrow}>Catalogue missions</p>
+                    <h3 className={styles.title}>Services proposés</h3>
+                    <p className={styles.description}>
+                        Retrouvez ici votre offre active, regroupée par famille de services pour une lecture plus claire.
+                    </p>
+                </div>
+                <div className={styles.metrics}>
+                    <div className={styles.metric}>
+                        <span>Catégories</span>
+                        <strong>{activeCategoryCount}</strong>
+                    </div>
+                    <div className={styles.metric}>
+                        <span>Services</span>
+                        <strong>{selectedServiceCount}</strong>
+                    </div>
+                </div>
+            </div>
+
             <div className={styles.contentSection}>
                 <div className={styles.servicesScroll}>
                     {isEditing ? (
@@ -128,12 +118,24 @@ const MissionDetails: React.FC<MissionDetailsProps> = ({
 
                             {errorCatalog && <div className={styles.error}><FiAlertCircle /> {errorCatalog}</div>}
 
+                            {!loadingCatalog && detailedSummary.length > 0 && (
+                                <div className={styles.activeCategories}>
+                                    {detailedSummary.map((group) => (
+                                        <span key={group.category} className={styles.categoryPill}>
+                                            {group.category}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
                             {!loadingCatalog && detailedSummary.map((group) => (
                                 <div key={group.category} className={styles.categoryCard}>
-                                    <h4 className={styles.categoryTitle}>
-                                        {group.category}
+                                    <div className={styles.categoryHeader}>
+                                        <h4 className={styles.categoryTitle}>
+                                            {group.category}
+                                        </h4>
                                         <span className={styles.badge}>{group.services.length}</span>
-                                    </h4>
+                                    </div>
                                     <ul className={styles.serviceList}>
                                         {group.services.map((s, i) => (
                                             <li key={i} className={styles.serviceItem}>

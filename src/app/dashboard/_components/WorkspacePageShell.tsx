@@ -48,6 +48,8 @@ export default function WorkspacePageShell({
   children,
 }: WorkspacePageShellProps) {
   const { userType } = useUserType();
+  const resolvedTone = resolveTone(userType, fallbackTone);
+  const dashboardTone = resolvedTone === "provider" ? "artisan" : resolvedTone;
 
   return (
     <DashboardWorkspace
@@ -59,7 +61,7 @@ export default function WorkspacePageShell({
       chips={chips}
       actions={actions}
       detailSections={detailSections}
-      tone={resolveTone(userType, fallbackTone)}
+      tone={dashboardTone}
     >
       {children}
     </DashboardWorkspace>

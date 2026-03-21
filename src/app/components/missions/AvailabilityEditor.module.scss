@@ -3,11 +3,23 @@
   gap: 1rem;
 }
 
+.header {
+  display: grid;
+  gap: 0.3rem;
+}
+
 .title {
   margin: 0;
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-text, #1a1a2e);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 
 .daysGrid {
@@ -19,12 +31,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid color-mix(in srgb, #d4af37 22%, #e5e7eb);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #d4af37 8%, var(--background, #fff)), var(--background, #fff));
 }
 
 .presetBtn,
 .presetBtnGhost {
   border-radius: 999px;
-  padding: 0.38rem 0.75rem;
+  padding: 0.4rem 0.78rem;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
@@ -50,11 +67,12 @@
 }
 
 .dayBlock {
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 12px;
-  padding: 0.9rem;
-  background: var(--background, #fff);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+  border: 1px solid color-mix(in srgb, #d4af37 18%, var(--color-border, #e5e7eb));
+  border-radius: 16px;
+  padding: 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #d4af37 4%, var(--background, #fff)), var(--background, #fff));
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
 }
 
 .dayHeader {
@@ -67,6 +85,7 @@
 
 .dayLabel {
   color: var(--color-text, #1a1a2e);
+  font-size: 0.95rem;
 }
 
 .dayActions {
@@ -82,8 +101,8 @@
   border: 1px solid var(--color-border, #d1d5db);
   background: color-mix(in srgb, var(--background, #fff) 85%, #eef2f7 15%);
   color: var(--color-text, #1a1a2e);
-  border-radius: 8px;
-  padding: 0.34rem 0.6rem;
+  border-radius: 10px;
+  padding: 0.38rem 0.65rem;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -101,9 +120,15 @@
   color: #8b6b07;
 }
 
+.addRangeBtn {
+  background: color-mix(in srgb, #d4af37 10%, var(--background, #fff));
+  border-color: color-mix(in srgb, #d4af37 42%, #cbd5e1);
+  color: #8b6b07;
+}
+
 .rangesList {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
 .rangeItem {
@@ -111,6 +136,10 @@
   grid-template-columns: minmax(90px, 130px) auto minmax(90px, 130px) auto;
   align-items: center;
   gap: 0.45rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, #d4af37 6%, var(--background, #fff));
+  border: 1px solid color-mix(in srgb, #d4af37 16%, var(--color-border, #e5e7eb));
 }
 
 .timeInputWrapper {
@@ -120,8 +149,8 @@
 .timeInput {
   width: 100%;
   border: 1px solid var(--color-border, #cbd5e1);
-  border-radius: 8px;
-  padding: 0.38rem 0.45rem;
+  border-radius: 10px;
+  padding: 0.45rem 0.55rem;
   background: var(--background, #fff);
   color: var(--color-text, #1a1a2e);
 
@@ -141,7 +170,11 @@
 .noRanges {
   margin: 0;
   color: var(--color-text-secondary, #6b7280);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, #eef2f7 55%, var(--background, #fff));
+  border: 1px dashed var(--color-border, #d1d5db);
 }
 
 .dayError {
@@ -152,11 +185,12 @@
 }
 
 .emergencyToggle {
-  border: 1px solid var(--color-border, #e2e8f0);
-  border-radius: 12px;
-  padding: 0.9rem;
-  background: var(--background, #fff);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+  border: 1px solid color-mix(in srgb, #d4af37 18%, var(--color-border, #e2e8f0));
+  border-radius: 16px;
+  padding: 1rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #d4af37 5%, var(--background, #fff)), var(--background, #fff));
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
 }
 
 .checkboxLabel {
@@ -173,7 +207,8 @@
   display: block;
   color: var(--color-text-secondary, #6b7280);
   font-size: 0.85rem;
-  margin-top: 0.2rem;
+  margin-top: 0.24rem;
+  line-height: 1.5;
 }
 
 .srOnly {

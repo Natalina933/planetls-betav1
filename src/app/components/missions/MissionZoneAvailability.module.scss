@@ -1,4 +1,3 @@
-@use "sass:math";
 @use "sass:color";
 @use "../../styles/abstracts/variables" as *;
 @use "../../styles/abstracts/mixins" as *;
@@ -6,31 +5,26 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 
-/* ===============================
-   BLOCKS
-================================= */
-
 .block {
-  background: var(--color-surface);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  border-radius: 18px;
-  padding: 2rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 251, 252, 0.96));
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 20px;
+  padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
   transition: $transition;
 
   &::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg,
-        rgba(212, 175, 55, 0.06),
-        transparent 60%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 48%);
     pointer-events: none;
   }
 }
@@ -40,35 +34,30 @@
   align-items: center;
   gap: 0.75rem;
   font-family: var(--font-display);
-  font-size: 1.2rem;
-  letter-spacing: 0.5px;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
   color: var(--color-heading);
-  margin-bottom: 1.5rem;
+  margin: 0 0 1.2rem;
   position: relative;
 
   &::after {
     content: "";
     height: 1px;
     flex: 1;
-    background: linear-gradient(to right,
-        rgba(212, 175, 55, 0.4),
-        transparent);
+    background: linear-gradient(to right, rgba(212, 175, 55, 0.35), transparent);
   }
 }
 
 .titleIcon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--color-gold);
 }
 
-/* ===============================
-   MAP
-================================= */
-
 .mapWrapper {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .mapLoading {
@@ -95,23 +84,12 @@
   }
 }
 
-.emptyState {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: var(--color-muted);
-  font-style: italic;
-}
-
-/* ===============================
-   RADIUS SECTION
-================================= */
-
 .radiusSection {
-  margin-top: 1.5rem;
+  margin-top: 1.1rem;
   padding: 1rem;
-  background: var(--color-surface-soft);
-  border-radius: 12px;
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.14);
 }
 
 .radiusHeader {
@@ -126,24 +104,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-heading);
 }
 
 .radiusValue {
   color: var(--color-gold);
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: 800;
+  font-size: 1.05rem;
   margin-left: 0.5rem;
 }
 
 .radiusSlider {
   width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(to right,
-      rgba(212, 175, 55, 0.2) 0%,
-      rgba(212, 175, 55, 0.3) 100%);
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.3) 100%);
   outline: none;
   -webkit-appearance: none;
   appearance: none;
@@ -157,12 +133,12 @@
     border-radius: 50%;
     background: var(--color-gold);
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.45);
     transition: all 0.2s ease;
 
     &:hover {
-      transform: scale(1.15);
-      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.6);
+      transform: scale(1.12);
+      box-shadow: 0 4px 14px rgba(212, 175, 55, 0.6);
     }
   }
 
@@ -173,13 +149,7 @@
     background: var(--color-gold);
     cursor: pointer;
     border: none;
-    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.4);
-    transition: all 0.2s ease;
-
-    &:hover {
-      transform: scale(1.15);
-      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.6);
-    }
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.45);
   }
 
   &:disabled {
@@ -188,12 +158,8 @@
   }
 }
 
-/* ===============================
-   ZONES SECTION
-================================= */
-
 .zonesSection {
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .zonesSectionHeader {
@@ -205,108 +171,108 @@
 }
 
 .zonesSectionTitle {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.98rem;
+  font-weight: 700;
   color: var(--color-heading);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex: 1;
-
-  &::before {
-    content: "📌";
-    font-size: 1.1rem;
-  }
 }
 
 .savedIndicator {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #4caf50;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  background: rgba(76, 175, 80, 0.12);
+  color: #277a39;
+  padding: 0.38rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
   white-space: nowrap;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  border: 1px solid rgba(76, 175, 80, 0.22);
 }
 
 .zonesList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
 }
 
 .zoneCard {
+  --zone-stroke: rgba(212, 175, 55, 0.4);
+  --zone-surface: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--color-surface-soft);
-  border: 2px solid rgba(212, 175, 55, 0.3);
-  border-radius: 12px;
-  padding: 1rem;
-  transition: all 0.3s ease;
+  background: linear-gradient(180deg, var(--zone-surface), rgba(255, 255, 255, 0.96));
+  border: 1px solid color-mix(in srgb, var(--zone-stroke) 28%, white);
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  transition: all 0.25s ease;
 
   &:hover {
-    border-color: rgba(212, 175, 55, 0.6);
-    background: var(--color-surface);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);
+    border-color: color-mix(in srgb, var(--zone-stroke) 58%, white);
+    box-shadow: 0 10px 18px color-mix(in srgb, var(--zone-stroke) 14%, transparent);
+    transform: translateY(-1px);
   }
 }
 
 .zoneCardContent {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.38rem;
   flex: 1;
 }
 
+.zoneHeader {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.zoneIndex {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.26rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--zone-stroke) 12%, white);
+  color: var(--zone-stroke);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .zoneLabel {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-heading);
   word-break: break-word;
 }
 
 .zoneCoordinates {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--color-muted);
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .removeZoneBtn {
   flex-shrink: 0;
   margin-left: 0.75rem;
   background: transparent;
-  border: none;
-  font-size: 1.3rem;
-  color: #b04a4a;
+  border: 1px solid rgba(176, 74, 74, 0.16);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #9a3c3c;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  padding: 0.42rem 0.65rem;
+  border-radius: 10px;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(176, 74, 74, 0.1);
-    color: #8a2a2a;
-    transform: scale(1.1);
+    background: rgba(176, 74, 74, 0.08);
+    border-color: rgba(176, 74, 74, 0.3);
   }
 
   &:focus-visible {
@@ -316,126 +282,21 @@
 }
 
 .emptyZoneState {
-  padding: 1.5rem;
+  padding: 1rem 1.1rem;
   text-align: center;
-  background: var(--color-surface-soft);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
   border: 1px dashed rgba(212, 175, 55, 0.3);
   color: var(--color-muted);
   font-size: 0.9rem;
-  font-style: italic;
 }
-
-/* ===============================
-   SCHEDULE
-================================= */
-
-.scheduleGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-}
-
-.scheduleDay {
-  background: var(--color-surface-soft);
-  border-radius: 14px;
-  padding: 1rem;
-  border: 1px solid rgba(212, 175, 55, 0.15);
-}
-
-.scheduleDayHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.dayLabel {
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.addRangeBtn {
-  background: transparent;
-  border: 1px solid var(--color-gold);
-  color: var(--color-gold);
-  padding: 0.3rem 0.6rem;
-  font-size: 0.75rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--color-gold);
-    color: #fff;
-  }
-}
-
-.noSchedule {
-  font-size: 0.85rem;
-  color: var(--color-muted);
-  font-style: italic;
-}
-
-.rangesList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.rangeItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.rangeDisplay {
-  font-size: 0.9rem;
-  color: var(--color-text);
-}
-
-.timeInput {
-  background: var(--color-input-bg);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: var(--color-text);
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-gold);
-    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
-  }
-}
-
-.rangeSeparator {
-  font-size: 0.8rem;
-  color: var(--color-muted);
-}
-
-.removeRangeBtn {
-  background: transparent;
-  border: none;
-  font-size: 1rem;
-  color: #b04a4a;
-  cursor: pointer;
-
-  &:hover {
-    color: #7a1f1f;
-  }
-}
-
-/* ===============================
-   CHECKBOX (Art Déco)
-================================= */
 
 .checkboxLabel,
 .ruleItem {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  background: var(--color-surface-soft);
+  background: rgba(255, 255, 255, 0.76);
   padding: 1rem;
   border-radius: 14px;
   border: 1px solid rgba(212, 175, 55, 0.15);
@@ -443,7 +304,7 @@
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: rgba(212, 175, 55, 0.4);
+    border-color: rgba(212, 175, 55, 0.35);
   }
 }
 
@@ -456,8 +317,9 @@
 
 .checkboxDesc {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--color-muted);
+  line-height: 1.5;
 }
 
 .ruleContent {
@@ -466,7 +328,7 @@
 }
 
 .ruleTitle {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-heading);
 }
 
@@ -480,17 +342,9 @@
   cursor: not-allowed;
 }
 
-/* ===============================
-   EMERGENCY 24H
-================================= */
-
 .emergency24hToggle {
   margin-top: 2rem;
 }
-
-/* ===============================
-   ACCESSIBILITY
-================================= */
 
 .srOnly {
   position: absolute;
@@ -504,16 +358,12 @@
   border: 0;
 }
 
-/* ===============================
-   RESPONSIVE
-================================= */
-
 @media (max-width: 768px) {
   .block {
-    padding: 1.5rem;
+    padding: 1.2rem;
   }
 
-  .scheduleGrid {
+  .zonesList {
     grid-template-columns: 1fr;
   }
 }

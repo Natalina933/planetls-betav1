@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
@@ -98,7 +99,50 @@ export default function ProviderDashboardPage() {
         badge: workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard",
       }}
     >
-      <DashboardPanel title="Opérations critiques">
+      <DashboardPanel title="Vue d’ensemble">
+        <AsyncState
+          loading={isLoading}
+          error={error}
+          loadingLabel="Chargement de la synthèse artisan..."
+        >
+          <p>
+            {stats?.inProgress ?? 0} intervention(s) en cours, {stats?.urgentAlerts ?? 0} alerte(s)
+            urgente(s) et {stats?.activeClients ?? 0} client(s) actif(s).
+          </p>
+          <p>
+            {highlightedInterventions[0]
+              ? `${highlightedInterventions[0].title || highlightedInterventions[0].service_label || "Intervention"} est le dossier terrain le plus exposé aujourd’hui.`
+              : "Aucune intervention prioritaire remontée aujourd’hui."}
+          </p>
+          <Link href="/dashboard/provider/interventions/overview">Ouvrir la vue synthèse des interventions</Link>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Pilotage stratégique">
+        <AsyncState
+          loading={isLoading}
+          error={error}
+          loadingLabel="Chargement des signaux de pilotage..."
+        >
+          <p>
+            {workspace?.summary.is_pro
+              ? "Le compte PRO est actif pour valoriser l’offre et accélérer la relation client."
+              : "Le compte est en mode standard. Une montée en gamme peut renforcer la visibilité et la conversion."}
+          </p>
+          <p>
+            {(stats?.urgentAlerts ?? 0) > 0
+              ? "La priorité stratégique est de réduire les alertes urgentes pour protéger la disponibilité opérationnelle."
+              : "Les urgences sont contenues, la priorité peut basculer sur la fidélisation et la marge."}
+          </p>
+          <p>
+            {highlightedClients[0]
+              ? `Client à forte attention: ${highlightedClients[0].client_name || highlightedClients[0].company_name || "Client"}${highlightedClients[0].city ? `, ${highlightedClients[0].city}` : ""}.`
+              : "Aucun client prioritaire signalé pour le moment."}
+          </p>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Reporting de gestion">
         <AsyncState
           loading={isLoading}
           error={error}
@@ -109,6 +153,15 @@ export default function ProviderDashboardPage() {
           {highlightedAlerts.map((alert) => (
             <p key={alert.id}>
               {alert.title || "Alerte"}: {alert.body || "À traiter rapidement."}
+            </p>
+          ))}
+          {highlightedInterventions.slice(0, 2).map((item) => (
+            <p key={`reporting-${item.id}`}>
+              {item.title || item.service_label || "Intervention"} · {formatDateValue(item.scheduled_start)} ·{" "}
+              {formatCurrencyAmount(item.budget_amount, {
+                currency: item.currency || "EUR",
+                emptyLabel: "Budget à confirmer",
+              })}
             </p>
           ))}
         </AsyncState>

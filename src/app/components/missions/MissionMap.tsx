@@ -1,15 +1,8 @@
-﻿"use client";
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Circle,
-  Marker,
-  Popup,
-  useMap,
-  useMapEvents,
-} from "react-leaflet";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from "react-leaflet";
+import { FiMapPin, FiSearch, FiTrash2 } from "react-icons/fi";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MissionAvailability } from "./types";
@@ -34,34 +27,65 @@ interface MissionMapProps {
   isEditing: boolean;
 }
 
-const DEFAULT_CENTER: [number, number] = [48.8566, 2.3522];
-const DEFAULT_LABEL = "Nouveau point";
+interface GeocodeSuggestion {
+  placeId: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  displayName: string;
+  subtitle?: string;
+  postcode?: string | null;
+}
 
-function FitToZones({ zones }: { zones: MissionAvailability["zones"] }) {
+const DEFAULT_CENTER: [number, number] = [48.8566, 2.3522];
+const ZONE_COLORS = [
+  { stroke: "#1d4ed8", fill: "rgba(59, 130, 246, 0.20)", surface: "#dbeafe" },
+  { stroke: "#0f766e", fill: "rgba(20, 184, 166, 0.20)", surface: "#ccfbf1" },
+  { stroke: "#b45309", fill: "rgba(245, 158, 11, 0.20)", surface: "#fef3c7" },
+  { stroke: "#be185d", fill: "rgba(236, 72, 153, 0.20)", surface: "#fce7f3" },
+  { stroke: "#6d28d9", fill: "rgba(139, 92, 246, 0.20)", surface: "#ede9fe" },
+];
+
+function FitToZones({
+  zones,
+  radiusKm,
+}: {
+  zones: MissionAvailability["zones"];
+  radiusKm: number;
+}) {
   const map = useMap();
 
   useEffect(() => {
     if (!zones.length) return;
+    if (!(map as L.Map & { _loaded?: boolean })._loaded) return;
 
-    const bounds = L.latLngBounds(zones.map((z) => L.latLng(z.lat, z.lng))).pad(0.25);
-    map.fitBounds(bounds, { animate: true });
-  }, [zones, map]);
+    const bounds = zones.reduce((acc, zone) => {
+      const circleBounds = L.latLng(zone.lat, zone.lng).toBounds(
+        Math.max(radiusKm, 1) * 2000,
+      );
 
-  return null;
-}
+      if (!acc) {
+        return circleBounds;
+      }
 
-function MapClickHandler({
-  enabled,
-  onAdd,
-}: {
-  enabled: boolean;
-  onAdd: (lat: number, lng: number) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      if (enabled) onAdd(e.latlng.lat, e.latlng.lng);
-    },
-  });
+      return acc.extend(circleBounds);
+    }, null as L.LatLngBounds | null);
+
+    if (!bounds) return;
+
+    const paddedBounds = bounds.pad(0.12);
+    const targetZoom = radiusKm <= 3 ? 13 : radiusKm <= 10 ? 12 : 11;
+
+    // Avoid animated fitBounds here: Leaflet can throw during pane transitions
+    // when the map remounts while a zoom animation is still in flight.
+    map.stop();
+    map.fitBounds(paddedBounds, {
+      animate: false,
+      padding: [28, 28],
+      maxZoom: targetZoom,
+    });
+  }, [zones, radiusKm, map]);
+
   return null;
 }
 
@@ -71,25 +95,36 @@ export default function MissionMap({
   onZonesChange,
   isEditing,
 }: MissionMapProps) {
-  const [newZoneLabel, setNewZoneLabel] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([]);
+  const [searching, setSearching] = useState(false);
   const [uiError, setUiError] = useState<string | null>(null);
+
+  const decoratedZones = useMemo(
+    () =>
+      zones.map((zone, index) => ({
+        ...zone,
+        order: index + 1,
+        colors: ZONE_COLORS[index % ZONE_COLORS.length],
+      })),
+    [zones],
+  );
 
   const center = useMemo<[number, number]>(() => {
     if (zones[0]) return [zones[0].lat, zones[0].lng];
     return DEFAULT_CENTER;
   }, [zones]);
 
-  const addZoneAt = useCallback(
-    (lat: number, lng: number, label = DEFAULT_LABEL) => {
-      const safeLabel = label.trim() || DEFAULT_LABEL;
-
+  const addZoneFromSuggestion = useCallback(
+    (suggestion: GeocodeSuggestion) => {
       onZonesChange([
         ...zones,
         {
-          placeId: crypto.randomUUID(),
-          label: safeLabel,
-          lat,
-          lng,
+          placeId: suggestion.placeId,
+          label: suggestion.label,
+          lat: suggestion.latitude,
+          lng: suggestion.longitude,
+          postcode: suggestion.postcode ?? null,
         },
       ]);
     },
@@ -103,121 +138,237 @@ export default function MissionMap({
     [zones, onZonesChange],
   );
 
-  const renameZone = useCallback(
-    (placeId: string, nextLabel: string) => {
-      onZonesChange(zones.map((z) => (z.placeId === placeId ? { ...z, label: nextLabel } : z)));
-    },
-    [zones, onZonesChange],
-  );
-
-  const addZoneFromInput = () => {
-    const label = newZoneLabel.trim();
-    if (!label) {
-      setUiError("Saisis un nom de zone (ex : Paris centre).");
+  useEffect(() => {
+    if (!isEditing) {
+      setSuggestions([]);
+      setSearching(false);
       return;
     }
-    setUiError(null);
-    addZoneAt(DEFAULT_CENTER[0], DEFAULT_CENTER[1], label);
-    setNewZoneLabel("");
-  };
 
-  const canEdit = isEditing;
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setSearching(true);
+        setUiError(null);
+        const response = await fetch(
+          `/api/geocode?q=${encodeURIComponent(query)}&mode=suggest&limit=6`,
+          { signal: controller.signal },
+        );
+        const payload = (await response.json()) as {
+          error?: string;
+          suggestions?: GeocodeSuggestion[];
+        };
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Recherche de ville impossible.");
+        }
+
+        setSuggestions(Array.isArray(payload.suggestions) ? payload.suggestions : []);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+        setSuggestions([]);
+        setUiError(
+          error instanceof Error ? error.message : "Recherche de ville impossible.",
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setSearching(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [isEditing, searchQuery]);
+
+  const handleSuggestionSelect = useCallback(
+    (suggestion: GeocodeSuggestion) => {
+      addZoneFromSuggestion(suggestion);
+      setSearchQuery("");
+      setSuggestions([]);
+      setUiError(null);
+    },
+    [addZoneFromSuggestion],
+  );
+
+  const createZoneIcon = useCallback(
+    (index: number) =>
+      L.divIcon({
+        className: "",
+        html: `
+          <span
+            class="${styles.zoneMarker}"
+            style="--zone-marker:${ZONE_COLORS[index % ZONE_COLORS.length].stroke}"
+          >
+            ${index + 1}
+          </span>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -28],
+      }),
+    [],
+  );
 
   return (
     <div className={styles.container}>
-      {canEdit && (
+      {isEditing ? (
         <div className={styles.toolbar}>
-          <div className={styles.addZone}>
-            <input
-              value={newZoneLabel}
-              onChange={(e) => setNewZoneLabel(e.target.value)}
-              placeholder="Ajouter une zone..."
-              className={styles.input}
-              aria-label="Nom de la zone a ajouter"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addZoneFromInput();
-              }}
-            />
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              onClick={addZoneFromInput}
-            >
-              Ajouter
-            </button>
+          <div className={styles.searchMeta}>
+            {searching ? <span className={styles.searchState}>Recherche en cours</span> : null}
           </div>
 
-          <p className={styles.helpText}>Astuce : clique directement sur la carte pour ajouter un point.</p>
+          <div className={styles.searchInputWrap}>
+            <FiSearch className={styles.searchIcon} aria-hidden="true" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un code postal, une ville ou un arrondissement..."
+              className={styles.input}
+              aria-label="Rechercher un code postal ou une ville reconnue"
+              autoComplete="off"
+            />
+          </div>
 
-          {uiError && (
+          {suggestions.length > 0 ? (
+            <div className={styles.suggestionsPanel}>
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.placeId}
+                  type="button"
+                  className={styles.suggestionBtn}
+                  onClick={() => handleSuggestionSelect(suggestion)}
+                >
+                  <span className={styles.suggestionIcon} aria-hidden="true">
+                    <FiMapPin />
+                  </span>
+                  <span className={styles.suggestionCopy}>
+                    <strong>{suggestion.label}</strong>
+                    <span>{suggestion.subtitle || suggestion.displayName}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {uiError ? (
             <p className={styles.error} role="alert">
               {uiError}
             </p>
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
 
       <div className={styles.mapWrap}>
+        <div className={styles.radiusBadge}>
+          <span className={styles.radiusBadgeLabel}>Rayon</span>
+          <strong>{radiusKm} km</strong>
+        </div>
+
+        {decoratedZones.length > 0 ? (
+          <div className={styles.mapLegend}>
+            {decoratedZones.map((zone) => (
+              <div key={zone.placeId} className={styles.legendItem}>
+                <span
+                  className={styles.legendSwatch}
+                  style={
+                    {
+                      "--legend-stroke": zone.colors.stroke,
+                      "--legend-surface": zone.colors.surface,
+                    } as CSSProperties
+                  }
+                >
+                  {zone.order}
+                </span>
+                <span className={styles.legendLabel}>{zone.label}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <MapContainer center={center} zoom={10} className={styles.map}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="© OpenStreetMap"
           />
 
-          <FitToZones zones={zones} />
+          <FitToZones zones={zones} radiusKm={radiusKm} />
 
-          {zones.map((z) => (
-            <Marker key={z.placeId} position={[z.lat, z.lng]}>
+          {decoratedZones.map((zone, index) => (
+            <Marker
+              key={zone.placeId}
+              position={[zone.lat, zone.lng]}
+              icon={createZoneIcon(index)}
+            >
               <Popup>
                 <div className={styles.popup}>
-                  {canEdit ? (
-                    <>
-                      <label className={styles.popupLabel}>
-                        Nom
-                        <input
-                          className={styles.popupInput}
-                          value={z.label}
-                          onChange={(e) => renameZone(z.placeId, e.target.value)}
-                        />
-                      </label>
-
-                      <div className={styles.popupMeta}>
-                        <span>Lat: {z.lat.toFixed(5)}</span>
-                        <span>Lng: {z.lng.toFixed(5)}</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        className={styles.dangerBtn}
-                        onClick={() => removeZone(z.placeId)}
-                      >
-                        Supprimer
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <strong className={styles.popupTitle}>{z.label}</strong>
-                      <div className={styles.popupMeta}>
-                        <span>Lat: {z.lat.toFixed(5)}</span>
-                        <span>Lng: {z.lng.toFixed(5)}</span>
-                      </div>
-                    </>
-                  )}
+                  <strong className={styles.popupTitle}>{zone.label}</strong>
+                  <span
+                    className={styles.popupBadge}
+                    style={{ "--popup-accent": zone.colors.stroke } as CSSProperties}
+                  >
+                    Zone {zone.order}
+                  </span>
+                  <div className={styles.popupMeta}>
+                    <span>Lat: {zone.lat.toFixed(5)}</span>
+                    <span>Lng: {zone.lng.toFixed(5)}</span>
+                  </div>
+                  {isEditing ? (
+                    <button
+                      type="button"
+                      className={styles.dangerBtn}
+                      onClick={() => removeZone(zone.placeId)}
+                    >
+                      <FiTrash2 aria-hidden="true" />
+                      Supprimer
+                    </button>
+                  ) : null}
                 </div>
               </Popup>
             </Marker>
           ))}
 
-          {zones.map((z) => (
+          {decoratedZones.map((zone) => (
             <Circle
-              key={`${z.placeId}-circle`}
-              center={[z.lat, z.lng]}
+              key={`${zone.placeId}-circle`}
+              center={[zone.lat, zone.lng]}
               radius={radiusKm * 1000}
-              pathOptions={{ color: "#2b6cb0", fillOpacity: 0.18 }}
+              pathOptions={{
+                color: zone.colors.stroke,
+                fillColor: zone.colors.fill,
+                fillOpacity: 0.22,
+                weight: 3,
+                opacity: 0.9,
+                dashArray: isEditing ? "10 8" : undefined,
+              }}
             />
           ))}
 
-          <MapClickHandler enabled={canEdit} onAdd={(lat, lng) => addZoneAt(lat, lng)} />
+          {decoratedZones.map((zone) => (
+            <Circle
+              key={`${zone.placeId}-focus`}
+              center={[zone.lat, zone.lng]}
+              radius={Math.max(350, Math.min(radiusKm * 120, 1800))}
+              pathOptions={{
+                color: zone.colors.stroke,
+                fillColor: zone.colors.stroke,
+                fillOpacity: 0.12,
+                weight: 1.5,
+                opacity: 0.45,
+              }}
+            />
+          ))}
         </MapContainer>
       </div>
     </div>

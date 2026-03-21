@@ -35,7 +35,7 @@ import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import InputWithValidation from "@/app/components/ui/InputWithValidation/InputWithValidation";
 import type { ConciergeTabId } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import { buildConciergeProfileCompletion } from "@/app/dashboard/shared";
-import type { MissionAvailability } from "@/app/components/missions/types";
+import type { MissionAvailability, WeekDay } from "@/app/components/missions/types";
 import { ConciergeProfileShell } from "./profileShellSections";
 
 type RenderSection = (
@@ -149,6 +149,16 @@ type PricingScenario = {
   id: string;
   name: string;
   is_default: boolean;
+};
+
+const DAY_LABELS: Record<WeekDay, string> = {
+  mon: "Lundi",
+  tue: "Mardi",
+  wed: "Mercredi",
+  thu: "Jeudi",
+  fri: "Vendredi",
+  sat: "Samedi",
+  sun: "Dimanche",
 };
 
 interface EditableProfileFieldProps {
@@ -482,7 +492,8 @@ interface MissionsTabLayoutProps {
   missionProgressTotal: number;
   showPendingMissionStepsOnly: boolean;
   onTogglePendingSteps: () => void;
-  activeMissionRawLabelsCount: number;
+  displayedActiveMissionCount: number;
+  totalAvailableMissionCount: number;
   recognizedActiveMissionCount: number;
   unrecognizedActiveMissionLabelsCount: number;
   missionOpenDaysCount: number;
@@ -491,7 +502,9 @@ interface MissionsTabLayoutProps {
   missionProgressSteps: MissionProgressStepItem[];
   openMissionSectionForEdit: (sectionId: string) => void;
   children: React.ReactNode;
-  secondaryContent: React.ReactNode;
+  secondaryContent?: React.ReactNode;
+  showCompletionCard?: boolean;
+  showSecondaryContent?: boolean;
 }
 
 interface MissionsPrimarySectionsProps {
@@ -525,8 +538,8 @@ interface MissionsPrimarySectionsProps {
 interface MissionServicesSectionProps extends MissionsPrimarySectionsProps {}
 
 interface MissionZoneRulesSectionProps {
+  styles: Record<string, string>;
   renderSection: RenderSection;
-  renderField: RenderField;
   sectionId: string;
   editingSection: string | null;
   missionAvailability: MissionAvailabilityState;
@@ -535,6 +548,7 @@ interface MissionZoneRulesSectionProps {
 }
 
 interface MissionWeeklyAvailabilitySectionProps {
+  styles: Record<string, string>;
   renderSection: RenderSection;
   sectionId: string;
   editingSection: string | null;
@@ -584,6 +598,8 @@ interface MissionProgressControlsLike {
 
 interface MissionOverviewStatsLike {
   activeMissionRawLabels: string[];
+  displayedActiveMissionCount: number;
+  totalAvailableMissionCount: number;
   recognizedActiveMissionCount: number;
   unrecognizedActiveMissionLabels: string[];
   missionOpenDaysCount: number;
@@ -1568,7 +1584,8 @@ export function MissionsTabLayout({
   missionProgressTotal,
   showPendingMissionStepsOnly,
   onTogglePendingSteps,
-  activeMissionRawLabelsCount,
+  displayedActiveMissionCount,
+  totalAvailableMissionCount,
   recognizedActiveMissionCount,
   unrecognizedActiveMissionLabelsCount,
   missionOpenDaysCount,
@@ -1578,6 +1595,8 @@ export function MissionsTabLayout({
   openMissionSectionForEdit,
   children,
   secondaryContent,
+  showCompletionCard = true,
+  showSecondaryContent = true,
 }: MissionsTabLayoutProps) {
   const servicesStep = missionProgressSteps.find((step) => step.key === "services");
   const zoneStep = missionProgressSteps.find((step) => step.key === "zone");
@@ -1634,9 +1653,12 @@ export function MissionsTabLayout({
           <div className={styles.missionStat}>
             <div className={styles.missionStatTop}>
               <span className={styles.missionStatLabel}>Services actifs</span>
-              {renderMissionStatBadge(servicesStep, activeMissionRawLabelsCount > 0)}
+              {renderMissionStatBadge(servicesStep, displayedActiveMissionCount > 0)}
             </div>
-            <strong>{activeMissionRawLabelsCount}</strong>
+            <strong>
+              {displayedActiveMissionCount}
+              {totalAvailableMissionCount > 0 ? `/${totalAvailableMissionCount}` : ""}
+            </strong>
             {unrecognizedActiveMissionLabelsCount > 0 && (
               <small className={styles.missionStatSub}>
                 {recognizedActiveMissionCount} reconnus, {unrecognizedActiveMissionLabelsCount} non reconnus
@@ -1667,20 +1689,24 @@ export function MissionsTabLayout({
         </div>
       </div>
 
-      <CompletionStatusCard
-        title="Missions"
-        description="Vérifiez en un coup d’œil ce qu'il reste à configurer pour recevoir des demandes qualifiées."
-        percentage={missionProgressPercent}
-        completedCount={missionProgressDoneCount}
-        totalCount={missionProgressTotal}
-        missingItems={missionProgressSteps.filter((step) => !step.done).map((step) => step.label)}
-        actionLabel="Afficher les points à compléter"
-        onAction={onTogglePendingSteps}
-      />
+      {showCompletionCard ? (
+        <CompletionStatusCard
+          title="Missions"
+          description="Vérifiez en un coup d’œil ce qu'il reste à configurer pour recevoir des demandes qualifiées."
+          percentage={missionProgressPercent}
+          completedCount={missionProgressDoneCount}
+          totalCount={missionProgressTotal}
+          missingItems={missionProgressSteps.filter((step) => !step.done).map((step) => step.label)}
+          actionLabel="Afficher les points à compléter"
+          onAction={onTogglePendingSteps}
+        />
+      ) : null}
 
       <div className={styles.missionsColumns}>
         <div className={styles.missionsPrimary}>{children}</div>
-        <aside className={styles.missionsSecondary}>{secondaryContent}</aside>
+        {showSecondaryContent && secondaryContent ? (
+          <aside className={styles.missionsSecondary}>{secondaryContent}</aside>
+        ) : null}
       </div>
     </div>
   );
@@ -1724,29 +1750,32 @@ export function MissionsPrimarySections({
   normalizeMissionSchedule,
 }: MissionsPrimarySectionsProps) {
   return (
-    <>
-      <MissionServicesSection
+    <div className={styles.missionConfigLayout}>
+      <div className={styles.missionConfigPrimary}>
+        <MissionServicesSection
+          styles={styles}
+          renderSection={renderSection}
+          renderField={renderField}
+          sectionIds={sectionIds}
+          editingSection={editingSection}
+          missionPayload={missionPayload}
+          missionAvailability={missionAvailability}
+          unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
+          removeUnrecognizedServices={removeUnrecognizedServices}
+          catalogSyncBusy={catalogSyncBusy}
+          setEditProfile={setEditProfile}
+          parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
+          parseMissionPayload={parseMissionPayload}
+          buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
+          toMissionTypeId={toMissionTypeId}
+          normalizeMissionSchedule={normalizeMissionSchedule}
+        />
+      </div>
+
+      <div className={styles.missionConfigSecondary}>
+      <MissionZoneRulesSection
         styles={styles}
         renderSection={renderSection}
-        renderField={renderField}
-        sectionIds={sectionIds}
-        editingSection={editingSection}
-        missionPayload={missionPayload}
-        missionAvailability={missionAvailability}
-        unrecognizedActiveMissionLabels={unrecognizedActiveMissionLabels}
-        removeUnrecognizedServices={removeUnrecognizedServices}
-        catalogSyncBusy={catalogSyncBusy}
-        setEditProfile={setEditProfile}
-        parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
-        parseMissionPayload={parseMissionPayload}
-        buildLegacyFromMissionProfile={buildLegacyFromMissionProfile}
-        toMissionTypeId={toMissionTypeId}
-        normalizeMissionSchedule={normalizeMissionSchedule}
-      />
-
-      <MissionZoneRulesSection
-        renderSection={renderSection}
-        renderField={renderField}
         sectionId={sectionIds.ZONE_RULES}
         editingSection={editingSection}
         missionAvailability={missionAvailability}
@@ -1754,16 +1783,18 @@ export function MissionsPrimarySections({
         parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
       />
 
-      <MissionWeeklyAvailabilitySection
-        renderSection={renderSection}
-        sectionId={sectionIds.WEEKLY_AVAILABILITY}
-        editingSection={editingSection}
-        missionAvailability={missionAvailability}
-        setEditProfile={setEditProfile}
-        parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
-        normalizeMissionSchedule={normalizeMissionSchedule}
-      />
-    </>
+        <MissionWeeklyAvailabilitySection
+          styles={styles}
+          renderSection={renderSection}
+          sectionId={sectionIds.WEEKLY_AVAILABILITY}
+          editingSection={editingSection}
+          missionAvailability={missionAvailability}
+          setEditProfile={setEditProfile}
+          parseAvailabilityPayloadRaw={parseAvailabilityPayloadRaw}
+          normalizeMissionSchedule={normalizeMissionSchedule}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -1850,38 +1881,72 @@ export function MissionServicesSection({
 }
 
 export function MissionZoneRulesSection({
+  styles,
   renderSection,
-  renderField,
   sectionId,
   editingSection,
   missionAvailability,
   setEditProfile,
   parseAvailabilityPayloadRaw,
 }: MissionZoneRulesSectionProps) {
+  const zones = missionAvailability?.zones ?? [];
+  const radiusKm = missionAvailability?.radiusKm ?? 0;
+  const isEditingSection = editingSection === sectionId;
+
   return renderSection(
     "Zone d'intervention",
     <FiMapPinOutline />,
     <>
-      {renderField(
-        "Zone de travail (location)",
-        "location",
-        sectionId,
-        false,
-        true,
-        "Ex: Paris, Lyon, Bordeaux...",
-      )}
-      <MissionZoneAvailability
-        value={missionAvailability}
-        isEditing={editingSection === sectionId}
-        lockZones
-        showScheduleSection={false}
-        showRulesSection={false}
-        onChange={(data) =>
-          setEditProfile((prev: EditProfileStateLike) =>
-            prev ? buildProfileZoneUpdate(prev, data, parseAvailabilityPayloadRaw) : prev,
-          )
-        }
-      />
+      <div className={styles.missionSnapshotCard}>
+        <div className={styles.missionSnapshotHeader}>
+          <div>
+            <p className={styles.missionSnapshotEyebrow}>Couverture</p>
+            <h4>Résumé</h4>
+          </div>
+        </div>
+
+        <div className={styles.missionMetaGrid}>
+          <div className={styles.missionMetaItem}>
+            <span>Zones actives</span>
+            <strong>{zones.length}</strong>
+          </div>
+          <div className={styles.missionMetaItem}>
+            <span>Rayon</span>
+            <strong>{radiusKm} km</strong>
+          </div>
+        </div>
+
+        <div className={styles.missionBadgeRow}>
+          {zones.length > 0 ? (
+            zones.map((zone) => (
+              <span key={zone.placeId} className={styles.missionUnknownItem}>
+                {zone.postcode?.trim() || zone.label}
+              </span>
+            ))
+          ) : (
+            <span className={styles.missionEmptyInline}>
+              Aucune zone définie pour le moment.
+            </span>
+          )}
+        </div>
+
+      </div>
+      {isEditingSection ? (
+        <div className={styles.missionEditorPanel}>
+          <MissionZoneAvailability
+            value={missionAvailability}
+            isEditing={true}
+            lockZones
+            showScheduleSection={false}
+            showRulesSection={false}
+            onChange={(data) =>
+              setEditProfile((prev: EditProfileStateLike) =>
+                prev ? buildProfileZoneUpdate(prev, data, parseAvailabilityPayloadRaw) : prev,
+              )
+            }
+          />
+        </div>
+      ) : null}
     </>,
     true,
     sectionId,
@@ -1889,6 +1954,7 @@ export function MissionZoneRulesSection({
 }
 
 export function MissionWeeklyAvailabilitySection({
+  styles,
   renderSection,
   sectionId,
   editingSection,
@@ -1897,28 +1963,86 @@ export function MissionWeeklyAvailabilitySection({
   parseAvailabilityPayloadRaw,
   normalizeMissionSchedule,
 }: MissionWeeklyAvailabilitySectionProps) {
+  const schedule = missionAvailability?.schedule ?? [];
+  const emergency24h = missionAvailability?.emergency24h ?? false;
+  const openDays = schedule.filter((day) => day.ranges.length > 0);
+  const totalRanges = schedule.reduce((total, day) => total + day.ranges.length, 0);
+  const isEditingSection = editingSection === sectionId;
+
   return renderSection(
     "Disponibilités hebdomadaires",
     <FiClockOutline />,
     <>
-      <AvailabilityEditor
-        value={missionAvailability?.schedule ?? []}
-        emergency24h={missionAvailability?.emergency24h ?? false}
-        isEditing={editingSection === sectionId}
-        onChange={(schedule, emergency24h) =>
-          setEditProfile((prev: EditProfileStateLike) =>
-            prev
-              ? buildProfileWeeklyAvailabilityUpdate(
-                  prev,
-                  schedule,
-                  emergency24h,
-                  parseAvailabilityPayloadRaw,
-                  normalizeMissionSchedule,
-                )
-              : prev,
-          )
-        }
-      />
+      <div className={styles.missionSnapshotCard}>
+        <div className={styles.missionSnapshotHeader}>
+          <div>
+            <p className={styles.missionSnapshotEyebrow}>Disponibilité</p>
+            <h4>Horaires hebdomadaires</h4>
+          </div>
+        </div>
+
+        {emergency24h ? (
+          <div className={styles.missionAlwaysOnCard}>
+            <strong>24h/24, 7j/7</strong>
+            <span>Les urgences peuvent être prises en charge à tout moment.</span>
+          </div>
+        ) : null}
+
+        <div className={styles.missionMetaGrid}>
+          <div className={styles.missionMetaItem}>
+            <span>Jours ouverts</span>
+            <strong>{openDays.length}/7</strong>
+          </div>
+          <div className={styles.missionMetaItem}>
+            <span>Plages horaires</span>
+            <strong>{totalRanges}</strong>
+          </div>
+        </div>
+
+        <div className={styles.missionBadgeRow}>
+          {openDays.length > 0 ? (
+            openDays.slice(0, 4).map((day) => (
+              <span key={day.day} className={styles.missionUnknownItem}>
+                {DAY_LABELS[day.day]}
+              </span>
+            ))
+          ) : (
+            <span className={styles.missionEmptyInline}>
+              Aucune disponibilité définie pour le moment.
+            </span>
+          )}
+          {openDays.length > 4 ? (
+            <span className={styles.missionUnknownItem}>+{openDays.length - 4} jour(x)</span>
+          ) : null}
+        </div>
+
+        <p className={styles.missionSnapshotNote}>
+          Gardez une lecture synthétique ici, puis ouvrez l’édition détaillée quand vous devez ajuster vos créneaux.
+        </p>
+      </div>
+
+      {isEditingSection ? (
+        <div className={styles.missionEditorPanel}>
+          <AvailabilityEditor
+            value={schedule}
+            emergency24h={emergency24h}
+            isEditing={true}
+            onChange={(nextSchedule, nextEmergency24h) =>
+              setEditProfile((prev: EditProfileStateLike) =>
+                prev
+                  ? buildProfileWeeklyAvailabilityUpdate(
+                      prev,
+                      nextSchedule,
+                      nextEmergency24h,
+                      parseAvailabilityPayloadRaw,
+                      normalizeMissionSchedule,
+                    )
+                  : prev,
+              )
+            }
+          />
+        </div>
+      ) : null}
     </>,
     true,
     sectionId,
@@ -2106,68 +2230,73 @@ export function ConciergeMissionsTabContent({
   missionFoundationControls,
 }: ConciergeMissionsTabContentProps) {
   return (
-    <MissionsTabLayout
-      styles={styles}
-      missionProgressPercent={missionProgressControls.missionProgressPercent}
-      missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
-      missionProgressTotal={missionProgressControls.missionProgressSteps.length}
-      showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
-      onTogglePendingSteps={() =>
-        missionProgressControls.setShowPendingMissionStepsOnly((prev: boolean) => !prev)
-      }
-      activeMissionRawLabelsCount={missionOverviewStats.activeMissionRawLabels.length}
-      recognizedActiveMissionCount={missionOverviewStats.recognizedActiveMissionCount}
-      unrecognizedActiveMissionLabelsCount={missionOverviewStats.unrecognizedActiveMissionLabels.length}
-      missionOpenDaysCount={missionOverviewStats.missionOpenDaysCount}
-      missionRangesCount={missionOverviewStats.missionRangesCount}
-      missionZonesCount={missionOverviewStats.missionAvailability?.zones.length ?? 0}
-      missionProgressSteps={missionProgressControls.missionProgressSteps}
-      openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
-      secondaryContent={
-        <MissionsSecondaryPanels
-          styles={styles}
-          missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
-          missionProgressTotal={missionProgressControls.missionProgressSteps.length}
-          showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
-          setShowPendingMissionStepsOnly={missionProgressControls.setShowPendingMissionStepsOnly}
-          missionProgressSteps={missionProgressControls.missionProgressSteps}
-          openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
-          renderSection={renderSection}
-          missionQuoteControls={missionQuoteControls}
-        />
-      }
-    >
-      <MissionsPrimarySections
+    <div className={styles.missionsPageWide}>
+      <MissionsTabLayout
         styles={styles}
-        renderSection={renderSection}
-        renderField={renderField}
-        sectionIds={sectionIds}
-        editingSection={editingSection}
-        missionPayload={missionFoundationControls.missionPayload}
-        missionAvailability={
-          missionFoundationControls.missionAvailability ?? {
-            zones: [],
-            radiusKm: 0,
-            schedule: [],
-            emergency24h: false,
-            rules: {
-              refuseOutOfZone: true,
-              refuseOutOfSchedule: true,
-              autoAcceptEmergency: false,
-            },
-          }
+        missionProgressPercent={missionProgressControls.missionProgressPercent}
+        missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
+        missionProgressTotal={missionProgressControls.missionProgressSteps.length}
+        showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
+        onTogglePendingSteps={() =>
+          missionProgressControls.setShowPendingMissionStepsOnly((prev: boolean) => !prev)
         }
-        unrecognizedActiveMissionLabels={missionFoundationControls.unrecognizedActiveMissionLabels}
-        removeUnrecognizedServices={missionFoundationControls.removeUnrecognizedServices}
-        catalogSyncBusy={missionFoundationControls.catalogSyncBusy}
-        setEditProfile={missionFoundationControls.setEditProfile as SetEditProfile}
-        parseAvailabilityPayloadRaw={missionFoundationControls.parseAvailabilityPayloadRaw}
-        parseMissionPayload={missionFoundationControls.parseMissionPayload}
-        buildLegacyFromMissionProfile={missionFoundationControls.buildLegacyFromMissionProfile}
-        toMissionTypeId={missionFoundationControls.toMissionTypeId}
-        normalizeMissionSchedule={missionFoundationControls.normalizeMissionSchedule}
-      />
-    </MissionsTabLayout>
+        displayedActiveMissionCount={missionOverviewStats.displayedActiveMissionCount}
+        totalAvailableMissionCount={missionOverviewStats.totalAvailableMissionCount}
+        recognizedActiveMissionCount={missionOverviewStats.recognizedActiveMissionCount}
+        unrecognizedActiveMissionLabelsCount={missionOverviewStats.unrecognizedActiveMissionLabels.length}
+        missionOpenDaysCount={missionOverviewStats.missionOpenDaysCount}
+        missionRangesCount={missionOverviewStats.missionRangesCount}
+        missionZonesCount={missionOverviewStats.missionAvailability?.zones.length ?? 0}
+        missionProgressSteps={missionProgressControls.missionProgressSteps}
+        openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
+        showCompletionCard={false}
+        showSecondaryContent={false}
+        secondaryContent={
+          <MissionsSecondaryPanels
+            styles={styles}
+            missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
+            missionProgressTotal={missionProgressControls.missionProgressSteps.length}
+            showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
+            setShowPendingMissionStepsOnly={missionProgressControls.setShowPendingMissionStepsOnly}
+            missionProgressSteps={missionProgressControls.missionProgressSteps}
+            openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
+            renderSection={renderSection}
+            missionQuoteControls={missionQuoteControls}
+          />
+        }
+      >
+        <MissionsPrimarySections
+          styles={styles}
+          renderSection={renderSection}
+          renderField={renderField}
+          sectionIds={sectionIds}
+          editingSection={editingSection}
+          missionPayload={missionFoundationControls.missionPayload}
+          missionAvailability={
+            missionFoundationControls.missionAvailability ?? {
+              zones: [],
+              radiusKm: 0,
+              schedule: [],
+              emergency24h: false,
+              rules: {
+                refuseOutOfZone: true,
+                refuseOutOfSchedule: true,
+                autoAcceptEmergency: false,
+              },
+            }
+          }
+          unrecognizedActiveMissionLabels={missionFoundationControls.unrecognizedActiveMissionLabels}
+          removeUnrecognizedServices={missionFoundationControls.removeUnrecognizedServices}
+          catalogSyncBusy={missionFoundationControls.catalogSyncBusy}
+          setEditProfile={missionFoundationControls.setEditProfile as SetEditProfile}
+          parseAvailabilityPayloadRaw={missionFoundationControls.parseAvailabilityPayloadRaw}
+          parseMissionPayload={missionFoundationControls.parseMissionPayload}
+          buildLegacyFromMissionProfile={missionFoundationControls.buildLegacyFromMissionProfile}
+          toMissionTypeId={missionFoundationControls.toMissionTypeId}
+          normalizeMissionSchedule={missionFoundationControls.normalizeMissionSchedule}
+        />
+      </MissionsTabLayout>
+    </div>
   );
 }
 

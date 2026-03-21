@@ -25,9 +25,16 @@ export interface SidebarItem {
   notificationKey?: string;
 }
 
-export type UserType = "owner" | "concierge" | "provider";
+export type UserType = "admin" | "owner" | "concierge" | "provider";
 
 export const sidebarConfig: Record<UserType, SidebarItem[]> = {
+  admin: [
+    { label: "Vue plateforme", path: "/dashboard/admin", icon: FiHome },
+    { label: "Propriétaires", path: "/dashboard/owner", icon: FiUsers },
+    { label: "Conciergeries", path: "/dashboard/concierge", icon: FiClipboard },
+    { label: "Artisans", path: "/dashboard/provider", icon: FiTool },
+  ],
+
   owner: [
     { label: "Tableau de bord", path: "/dashboard/owner", icon: FiHome },
     {

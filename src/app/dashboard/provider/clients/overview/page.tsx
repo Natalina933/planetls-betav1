@@ -18,8 +18,8 @@ export default function ProviderClientsOverviewPage() {
       tone="provider"
       eyebrow="Relations clients"
       title="Vue d'ensemble des clients"
-      description="Cette vue rassemble uniquement l'état de vos clients. Les sous-rubriques servent ensuite à suivre vos clients et vos conversations, sans redondance."
-      chips={["Vue synthèse", "Suivi clients", "Conversations"]}
+      description="Cette vue rassemble uniquement l'etat de vos clients. Les sous-rubriques servent ensuite a suivre vos clients et vos conversations, sans redondance."
+      chips={["Vue synthese", "Demandes a traiter", "Points en attente"]}
       actions={[
         { label: "Voir les clients", href: "/dashboard/provider/clients", variant: "primary" },
         { label: "Voir les messages", href: "/dashboard/provider/messages", variant: "secondary" },
@@ -27,7 +27,7 @@ export default function ProviderClientsOverviewPage() {
       completion={{
         title: "Clients",
         description:
-          "Complétez cette catégorie pour disposer d'un suivi client structuré et facilement exploitable.",
+          "Completez cette categorie pour disposer d'un suivi client structure et facilement exploitable.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,

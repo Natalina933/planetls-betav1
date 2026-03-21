@@ -1,4 +1,4 @@
-export type DashboardPersona = "owner" | "conciergerie" | "artisan";
+export type DashboardPersona = "admin" | "owner" | "conciergerie" | "artisan";
 
 export interface DashboardNavItem {
   label: string;

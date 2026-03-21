@@ -7,6 +7,8 @@ $concierge-accent: #c6a66b;
 $concierge-accent-soft: #f3ead8;
 $provider-accent: #72825b;
 $provider-accent-soft: #e3e8d8;
+$admin-accent: #5a6782;
+$admin-accent-soft: #e3e8f2;
 
 @mixin sidebar-theme($accent, $soft) {
     border-right-color: rgba($accent, 0.32);
@@ -198,6 +200,7 @@ $provider-accent-soft: #e3e8d8;
 .sublink {
     display: flex;
     align-items: center;
+    width: 100%;
     padding: $spacing-sm $spacing-md;
     border-left: 4px solid transparent;
     cursor: pointer;
@@ -206,7 +209,11 @@ $provider-accent-soft: #e3e8d8;
     color: $text-dark;
     background: none;
     text-decoration: none;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
     border-radius: 8px;
+    text-align: left;
     transition:
         background $transition,
         color $transition,
@@ -389,6 +396,10 @@ $provider-accent-soft: #e3e8d8;
     .logout {
         transition: none !important;
     }
+}
+
+.adminTheme {
+    @include sidebar-theme($admin-accent, $admin-accent-soft);
 }
 
 .ownerTheme {

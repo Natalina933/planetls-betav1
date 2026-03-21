@@ -71,6 +71,48 @@ $border: #e2e2e2;
   color: #666;
 }
 
+.catalogActionsRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: -0.2rem 0 -0.35rem;
+  align-self: flex-end;
+}
+
+.catalogSelectionCount {
+  color: $green-dark;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.catalogLinkAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border: none;
+  background: transparent;
+  color: #7a6a48;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    color: $green-dark;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.catalogActionDivider {
+  color: #b8ab8c;
+  font-size: 0.78rem;
+}
+
 .noResult {
   border: 1px dashed rgba($gold, 0.55);
   border-radius: 8px;
@@ -230,5 +272,9 @@ $border: #e2e2e2;
 
   .clearFiltersBtn {
     width: 100%;
+  }
+
+  .catalogActionsRow {
+    align-self: flex-start;
   }
 }

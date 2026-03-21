@@ -20,12 +20,14 @@ interface SidebarProps {
 }
 
 const roleLabels: Record<string, string> = {
-  owner: "propriétaire",
+  admin: "global",
+  owner: "proprietaire",
   concierge: "concierge",
   provider: "artisan",
 };
 
 const roleThemeClasses: Record<string, string> = {
+  admin: styles.adminTheme,
   owner: styles.ownerTheme,
   concierge: styles.conciergeTheme,
   provider: styles.providerTheme,
@@ -69,16 +71,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         return;
       }
 
-      const replyCount = items.filter(
-        (item: { id: string; recipients?: Array<{ id?: string | null; status?: string | null }> }) =>
-          Array.isArray(item.recipients) &&
-          item.recipients.some(
-            (recipient) => isOwnerReplyStatus(recipient.status),
-          ),
-      ).filter((item: { id: string; recipients?: Array<{ id?: string | null; status?: string | null }> }) => {
-        const seenReplySignatures = getSeenOwnerReplySignatures();
-        return !seenReplySignatures.has(getOwnerReplySignature(item));
-      }).length;
+      const replyCount = items
+        .filter(
+          (item: { id: string; recipients?: Array<{ id?: string | null; status?: string | null }> }) =>
+            Array.isArray(item.recipients) &&
+            item.recipients.some((recipient) => isOwnerReplyStatus(recipient.status)),
+        )
+        .filter((item: { id: string; recipients?: Array<{ id?: string | null; status?: string | null }> }) => {
+          const seenReplySignatures = getSeenOwnerReplySignatures();
+          return !seenReplySignatures.has(getOwnerReplySignature(item));
+        }).length;
 
       setNotificationCounts({ "owner-service-replies": replyCount });
     } catch {
@@ -98,11 +100,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
         toggleSidebar();
       }
     };
+
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, toggleSidebar]);
@@ -133,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   return (
     <>
-      {isOpen && (
+      {isOpen ? (
         <div
           className={styles.overlay}
           onClick={toggleSidebar}
@@ -141,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           tabIndex={-1}
           aria-label="Fermer la sidebar"
         />
-      )}
+      ) : null}
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.open : styles.closed} ${
           userType ? roleThemeClasses[userType] || "" : ""
@@ -153,6 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             {userType ? `Espace ${roleLabels[userType] || userType}` : "Chargement..."}
           </span>
           <button
+            type="button"
             onClick={toggleSidebar}
             className={styles.closeBtn}
             aria-label="Fermer la sidebar"
@@ -187,6 +191,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
         <div className={styles.footer}>
           <button
+            type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
             className={styles.logout}
             aria-label="Se deconnecter"

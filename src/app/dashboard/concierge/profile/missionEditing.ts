@@ -23,7 +23,13 @@ interface ParsedMissionPayloadLike {
 }
 
 interface MissionZoneChangeLike {
-  zones: Array<{ label?: string | null }>;
+  zones: Array<{
+    placeId?: string | null;
+    label?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    postcode?: string | null;
+  }>;
   radiusKm: number;
   rules: unknown;
 }
@@ -107,14 +113,34 @@ export function buildProfileZoneUpdate(
   const fallbackLocation = normalizeAreaLabel(previousProfile.location);
   const fallbackServiceArea = normalizeAreaLabel(previousProfile.service_area);
   const normalizedZone = zoneLabel ?? fallbackLocation ?? fallbackServiceArea ?? null;
+  const normalizedZones = data.zones
+    .filter(
+      (zone) =>
+        typeof zone.label === "string" &&
+        zone.label.trim() &&
+        typeof zone.lat === "number" &&
+        Number.isFinite(zone.lat) &&
+        typeof zone.lng === "number" &&
+        Number.isFinite(zone.lng),
+    )
+    .slice(0, 1)
+    .map((zone, index) => ({
+      placeId: zone.placeId?.trim() || `zone-${index}-${zone.label!.trim()}`,
+      label: zone.label!.trim(),
+      lat: zone.lat as number,
+      lng: zone.lng as number,
+      postcode: zone.postcode?.trim() || null,
+    }));
 
   return {
     ...previousProfile,
     location: normalizedZone,
     service_area: normalizedZone,
+    city: normalizedZone,
     service_radius_km: data.radiusKm,
     availability_hours: JSON.stringify({
       ...parseAvailabilityPayloadRaw(previousProfile.availability_hours),
+      zones: normalizedZones,
       rules: data.rules,
     }),
   };

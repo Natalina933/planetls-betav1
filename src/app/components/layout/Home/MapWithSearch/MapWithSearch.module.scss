@@ -320,6 +320,56 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   }
 }
 
+.locationHint {
+  width: 100%;
+  max-width: 600px;
+  margin: 0.55rem auto 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: $ink-soft;
+  text-align: left;
+}
+
+.suggestionsPanel {
+  width: 100%;
+  max-width: 600px;
+  margin: 0.7rem auto 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.suggestionBtn {
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-md;
+  border: 1px solid rgba($gold-main, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  color: $ink-main;
+  box-shadow: $shadow-soft;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+  strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $gold-hover;
+  }
+
+  span {
+    font-size: 0.82rem;
+    color: $ink-soft;
+    line-height: 1.4;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba($gold-main, 0.45);
+    box-shadow: $shadow-medium;
+  }
+}
+
 /* -------------------------------------------------------
 🌟 BOUTON FERMETURE
 ------------------------------------------------------- */

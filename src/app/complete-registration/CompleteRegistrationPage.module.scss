@@ -80,6 +80,17 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
   }
 }
 
+.locationError {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-md;
+  border: 1px solid rgba(231, 76, 60, 0.18);
+  background: rgba(231, 76, 60, 0.08);
+  color: #b9382b;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 .recapGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

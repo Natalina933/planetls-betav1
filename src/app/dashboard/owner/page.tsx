@@ -118,7 +118,44 @@ export default function OwnerDashboardPage() {
         badge: averageRating ? `${averageRating.toFixed(1)} / 5` : "Profil actif",
       }}
     >
-      <DashboardPanel title="Pilotage propriétaire">
+      <DashboardPanel title="Vue d’ensemble">
+        <AsyncState loading={loading} error={error}>
+          <p>
+            {activeCount} logement(s) actif(s) sur {properties.length}, avec {ongoingMissions.length} opération(s)
+            ouverte(s) et {pendingInvoices.length} facture(s) à surveiller.
+          </p>
+          <p>
+            {properties[0]
+              ? `Bien le plus récent: ${properties[0].nom_logement || "Logement sans nom"} à ${
+                  properties[0].ville || "ville à préciser"
+                }.`
+              : "Aucun bien publié pour le moment."}
+          </p>
+          <Link href="/dashboard/owner/logements/overview">Ouvrir la vue synthèse des logements</Link>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Pilotage stratégique">
+        <AsyncState loading={loading} error={error}>
+          <p>
+            {draftCount > 0
+              ? `${draftCount} fiche(s) logement restent à finaliser avant de fiabiliser la lecture business.`
+              : "Le parc est structuré pour un pilotage plus serein."}
+          </p>
+          <p>
+            {averageRating
+              ? `Satisfaction moyenne à ${averageRating.toFixed(1)} / 5, avec ${unreadConversationCount} message(s) non lu(s) côté conciergerie.`
+              : `Aucune note consolidée pour l’instant, mais ${unreadConversationCount} message(s) méritent une revue rapide.`}
+          </p>
+          <p>
+            {pendingInvoices.length > 0
+              ? "Priorité recommandée: sécuriser les règlements en attente avant d’ouvrir de nouvelles demandes."
+              : "Priorité recommandée: arbitrer les prochaines actions avec votre conciergerie pour améliorer la performance du parc."}
+          </p>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Reporting de gestion">
         <AsyncState loading={loading} error={error}>
           {latestInvoices.length > 0 ? (
             <p>

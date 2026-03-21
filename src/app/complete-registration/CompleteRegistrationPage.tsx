@@ -40,6 +40,11 @@ interface AccountFormData {
   confirmPassword: string;
 }
 
+interface GeocodeLookupPayload {
+  error?: string;
+  label?: string;
+}
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -98,6 +103,7 @@ export default function CompleteRegistrationPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState("");
 
 
   // --------------------------------------------------------------------------
@@ -192,6 +198,32 @@ export default function CompleteRegistrationPage() {
     if (!canSubmit) return;
 
     setLoading(true);
+    setLocationError("");
+
+    let resolvedLocation = profile.location.trim();
+    try {
+      const geocodeResponse = await fetch(`/api/geocode?q=${encodeURIComponent(resolvedLocation)}`);
+      const geocodePayload = (await geocodeResponse.json()) as GeocodeLookupPayload;
+
+      if (!geocodeResponse.ok || typeof geocodePayload.label !== "string") {
+        throw new Error(
+          geocodePayload.error || "Veuillez sélectionner une ville reconnue pour finaliser l'inscription.",
+        );
+      }
+
+      resolvedLocation = geocodePayload.label;
+      if (resolvedLocation !== profile.location) {
+        setProfile((prev) => ({ ...prev, location: resolvedLocation }));
+      }
+    } catch (error) {
+      setLocationError(
+        error instanceof Error
+          ? error.message
+          : "Veuillez sélectionner une ville reconnue pour finaliser l'inscription.",
+      );
+      setLoading(false);
+      return;
+    }
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -208,7 +240,7 @@ export default function CompleteRegistrationPage() {
         category: profile.category,
         search_target: profile.searchTarget,
         option: profile.option,
-        location: profile.location,
+        location: resolvedLocation,
         experienceLevel: profile.experienceLevel === "peu_importe" ? null : profile.experienceLevel,
         yearsExperience: profile.yearsExperience,
       }),
@@ -242,6 +274,7 @@ export default function CompleteRegistrationPage() {
       {/* RÉCAP */}
       <section className={styles.recapSection}>
         <h2>🧾 Récapitulatif de votre demande</h2>
+        {locationError ? <p className={styles.locationError}>{locationError}</p> : null}
         <div className={styles.recapGrid}>
           <div>
             <strong>Catégorie</strong>

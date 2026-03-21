@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import React from "react";
+import Link from "next/link";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
@@ -106,7 +107,50 @@ export default function ConciergeDashboardPage() {
         badge: averageRating ? `${averageRating.toFixed(1)} / 5` : undefined,
       }}
     >
-      <DashboardPanel title="Prospection propriétaires">
+      <DashboardPanel title="Vue d’ensemble">
+        <AsyncState
+          loading={matchesLoading}
+          error={matchesError}
+          loadingLabel="Chargement de la synthèse opérationnelle..."
+        >
+          <p>
+            {kpis?.in_progress ?? 0} mission(s) en cours, {plannedNow.length} passage(s) planifié(s) et{" "}
+            {matches.length} opportunité(s) propriétaire(s) à suivre.
+          </p>
+          <p>
+            {typeof kpis?.avg_response_minutes === "number"
+              ? `Temps moyen de réponse estimé à ${Math.round(kpis.avg_response_minutes)} minutes.`
+              : "Temps de réponse en cours de consolidation."}
+          </p>
+          <Link href="/dashboard/concierge/missions/overview">Ouvrir la vue synthèse des missions</Link>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Pilotage stratégique">
+        <AsyncState
+          loading={matchesLoading}
+          error={matchesError}
+          loadingLabel="Chargement des signaux de pilotage..."
+        >
+          <p>
+            {matches.length > 0
+              ? `${matches.length} propriétaire(s) compatible(s) sont identifiés pour nourrir le pipeline.`
+              : "Le pipeline est calme pour l’instant et mérite de relancer la prospection."}
+          </p>
+          <p>
+            {averageRating
+              ? `Satisfaction consolidée à ${averageRating.toFixed(1)} / 5 sur ${kpis?.ratings_count ?? 0} avis.`
+              : "Aucun score de satisfaction consolidé pour le moment."}
+          </p>
+          <p>
+            {isPro
+              ? "Les outils PRO sont actifs pour structurer l’offre, les tarifs et la conversion."
+              : "Recommandation: activer la couche PRO pour renforcer la tarification et le pilotage commercial."}
+          </p>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Reporting de gestion">
         <AsyncState
           loading={matchesLoading}
           error={matchesError}
@@ -119,6 +163,20 @@ export default function ConciergeDashboardPage() {
               {match.title} · {match.city || "Ville non renseignée"} · score {match.compatibility_score}%
             </p>
           ))}
+          {plannedNow.length > 0 ? (
+            <p>
+              Prochain passage: {String(plannedNow[0].title || "Mission planifiée")} ·{" "}
+              {formatDateValue(plannedNow[0].start, {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              .
+            </p>
+          ) : (
+            <p>Aucun passage planifié pour le moment.</p>
+          )}
         </AsyncState>
       </DashboardPanel>
     </DashboardLayout>

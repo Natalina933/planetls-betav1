@@ -18,13 +18,13 @@ export default function ProviderFinancesOverviewPage() {
       tone="provider"
       eyebrow="Pilotage financier"
       title="Vue d'ensemble des finances"
-      description="Cette vue rassemble uniquement l'état de vos finances. Les sous-rubriques servent ensuite à suivre vos devis et vos éléments facturables, sans redondance."
-      chips={["Vue synthèse", "Budgets", "Devis & factures"]}
+      description="Cette vue rassemble uniquement l'etat de vos finances. Les sous-rubriques servent ensuite a suivre vos devis et vos elements facturables, sans redondance."
+      chips={["Vue synthese", "A finaliser", "Points en attente"]}
       actions={[{ label: "Voir devis & factures", href: "/dashboard/provider/devis", variant: "primary" }]}
       completion={{
         title: "Finances",
         description:
-          "Complétez cette catégorie pour disposer d'une base financière exploitable côté provider.",
+          "Completez cette categorie pour disposer d'une base financiere exploitable cote provider.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,

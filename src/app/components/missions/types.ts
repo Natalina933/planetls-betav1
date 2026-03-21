@@ -60,6 +60,7 @@ export interface MissionZone {
   label: string;
   lat: number;
   lng: number;
+  postcode?: string | null;
 }
 
 /** Plage horaire */

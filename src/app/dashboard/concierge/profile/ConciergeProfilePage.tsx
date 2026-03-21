@@ -209,6 +209,15 @@ interface ActiveTariffServiceRow {
   category: string;
 }
 
+interface ResolvedMissionZone {
+  placeId: string;
+  label: string;
+  latitude: number;
+  longitude: number;
+  city?: string | null;
+  postcode?: string | null;
+}
+
 type PricingTypeValue = "hourly" | "fixed" | "monthly" | "custom";
 
 interface ConciergeServicePriceRow {
@@ -936,11 +945,103 @@ const buildMissionAvailabilityFromProfile = (
 ): MissionAvailability | null => {
   if (!profile) return null;
   const missionPayload = parseMissionPayload(profile.availability_hours);
+  const availabilityRaw = parseAvailabilityPayloadRaw(profile.availability_hours);
+  const persistedZones: MissionAvailability["zones"] = Array.isArray(availabilityRaw.zones)
+    ? availabilityRaw.zones
+        .map((zone, index): MissionAvailability["zones"][number] | null => {
+          if (!zone || typeof zone !== "object") return null;
+          const candidate = zone as Record<string, unknown>;
+          const label =
+            typeof candidate.label === "string" ? candidate.label.trim() : "";
+          const lat =
+            typeof candidate.lat === "number" && Number.isFinite(candidate.lat)
+              ? candidate.lat
+              : null;
+          const lng =
+            typeof candidate.lng === "number" && Number.isFinite(candidate.lng)
+              ? candidate.lng
+              : null;
 
-  const primaryLabel = (profile.location ?? profile.service_area ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)[0];
+          if (!label || lat == null || lng == null) {
+            return null;
+          }
+
+          return {
+            placeId:
+              typeof candidate.placeId === "string" && candidate.placeId.trim()
+                ? candidate.placeId.trim()
+                : `zone-${index}-${label}`,
+            label,
+            lat,
+            lng,
+            postcode:
+              typeof candidate.postcode === "string" && candidate.postcode.trim()
+                ? candidate.postcode.trim()
+                : null,
+          };
+        })
+        .filter((zone): zone is MissionAvailability["zones"][number] => zone !== null)
+    : [];
+
+  const formatFrenchOrdinal = (value: number) => (value === 1 ? "1er" : `${value}e`);
+  const deriveArrondissementLabel = (
+    baseLocation: string | null | undefined,
+    city: string | null | undefined,
+    postalCode: string | null | undefined,
+  ) => {
+    const normalizedBase = (baseLocation ?? city ?? "").trim();
+    const normalizedCity = (city ?? baseLocation ?? "").trim().toLowerCase();
+    const digits = (postalCode ?? "").replace(/\D/g, "");
+
+    if (digits.length !== 5) {
+      return normalizedBase;
+    }
+
+    if (normalizedCity.includes("paris") && digits.startsWith("75")) {
+      const arrondissement = Number(digits.slice(3, 5));
+      if (arrondissement >= 1 && arrondissement <= 20) {
+        return `Paris ${formatFrenchOrdinal(arrondissement)}`;
+      }
+    }
+
+    if (normalizedCity.includes("lyon") && digits.startsWith("69")) {
+      const arrondissement = Number(digits.slice(3, 5));
+      if (arrondissement >= 1 && arrondissement <= 9) {
+        return `Lyon ${formatFrenchOrdinal(arrondissement)}`;
+      }
+    }
+
+    if (normalizedCity.includes("marseille") && digits.startsWith("13")) {
+      const arrondissement = Number(digits.slice(3, 5));
+      if (arrondissement >= 1 && arrondissement <= 16) {
+        return `Marseille ${formatFrenchOrdinal(arrondissement)}`;
+      }
+    }
+
+    return normalizedBase;
+  };
+
+  if (persistedZones.length > 0) {
+    return {
+      zones: persistedZones.slice(0, 1).map((zone): MissionAvailability["zones"][number] => ({
+        ...zone,
+        label: deriveArrondissementLabel(zone.label, profile.city, profile.postal_code),
+      })),
+      radiusKm: profile.service_radius_km ?? 30,
+      schedule: missionPayload.schedule,
+      emergency24h: Boolean(profile.emergency_service),
+      rules: missionPayload.rules,
+    };
+  }
+
+  const primaryLabel = deriveArrondissementLabel(
+    (profile.location ?? profile.service_area ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)[0] ?? null,
+    profile.city,
+    profile.postal_code,
+  );
 
   const labels = primaryLabel ? [primaryLabel] : [];
 
@@ -1031,6 +1132,7 @@ export default function ConciergeProfilePage() {
     actServicesEstimate: 4,
   });
   const didSeedFromOnboardingRef = useRef(false);
+  const handledMissionHashRef = useRef<string | null>(null);
   const missionPayload = useMemo(
     () => parseMissionPayload(editProfile?.availability_hours),
     [editProfile?.availability_hours],
@@ -1100,6 +1202,10 @@ export default function ConciergeProfilePage() {
         ),
       ),
     [missionPayload.missionProfile.missions],
+  );
+  const displayedActiveMissionCount = useMemo(
+    () => activeMissionServiceLabels.length,
+    [activeMissionServiceLabels.length],
   );
   const unrecognizedActiveMissionLabels = useMemo(() => {
     if (activeMissionRawLabels.length === 0) return [];
@@ -2402,6 +2508,88 @@ export default function ConciergeProfilePage() {
     setErrors((prevErrors) => updateProfileFieldErrorsSafe(prevErrors, name, value));
   }, [editProfile]);
 
+  const resolveKnownMissionZone = useCallback(async (): Promise<ResolvedMissionZone> => {
+    const currentZone = missionAvailability?.zones?.[0];
+    if (
+      currentZone &&
+      typeof currentZone.label === "string" &&
+      currentZone.label.trim() &&
+      typeof currentZone.placeId === "string" &&
+      currentZone.placeId.trim() &&
+      typeof currentZone.lat === "number" &&
+      Number.isFinite(currentZone.lat) &&
+      typeof currentZone.lng === "number" &&
+      Number.isFinite(currentZone.lng)
+    ) {
+      try {
+        const enrichResponse = await fetch(
+          `/api/geocode?q=${encodeURIComponent(currentZone.label.trim())}`,
+        );
+        const enrichPayload = (await enrichResponse.json()) as {
+          postcode?: string | null;
+          city?: string | null;
+        };
+
+      return {
+        placeId: currentZone.placeId.trim(),
+        label: currentZone.label.trim(),
+        latitude: currentZone.lat,
+        longitude: currentZone.lng,
+        city: enrichPayload.city ?? currentZone.label.trim(),
+        postcode: currentZone.postcode ?? enrichPayload.postcode ?? editProfile?.postal_code ?? null,
+      };
+      } catch {
+        return {
+          placeId: currentZone.placeId.trim(),
+          label: currentZone.label.trim(),
+          latitude: currentZone.lat,
+          longitude: currentZone.lng,
+          city: currentZone.label.trim(),
+          postcode: currentZone.postcode ?? editProfile?.postal_code ?? null,
+        };
+      }
+    }
+
+    const query = currentZone?.label?.trim() || editProfile?.location?.trim() || "";
+
+    if (!query) {
+      throw new Error("Sélectionnez une ville reconnue avant d'enregistrer votre zone.");
+    }
+
+    const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+    const payload = (await response.json()) as {
+      error?: string;
+      latitude?: number;
+      longitude?: number;
+      label?: string;
+      placeId?: string;
+      city?: string | null;
+      postcode?: string | null;
+    };
+
+    if (!response.ok) {
+      throw new Error(payload.error || "La ville sélectionnée n'a pas été reconnue.");
+    }
+
+    if (
+      typeof payload.latitude !== "number" ||
+      typeof payload.longitude !== "number" ||
+      typeof payload.label !== "string" ||
+      typeof payload.placeId !== "string"
+    ) {
+      throw new Error("La ville sélectionnée n'a pas été reconnue.");
+    }
+
+    return {
+      placeId: payload.placeId,
+      label: payload.label,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      city: payload.city ?? payload.label,
+      postcode: payload.postcode ?? null,
+    };
+  }, [editProfile?.location, missionAvailability?.zones]);
+
   const handleSaveSection = useCallback(async (sectionTitle: string) => {
     if (!editProfile) return;
 
@@ -2412,19 +2600,45 @@ export default function ConciergeProfilePage() {
 
     setLoading(true);
     let avatarUrl = editProfile.avatar_url;
+    let profileToSave = editProfile;
     const shouldMarkOnboardingComplete = shouldCompleteMissionOnboarding(
       activeTab,
       missionProgressSteps,
-      editProfile,
+      profileToSave,
     );
 
     try {
       if (avatarFile && sectionTitle === "Photo de profil") {
-        avatarUrl = await uploadProfileAvatar(avatarFile, editProfile.id);
+        avatarUrl = await uploadProfileAvatar(avatarFile, profileToSave.id);
+      }
+
+      if (editingSection === MISSION_SECTION_IDS.ZONE_RULES) {
+        const resolvedZone = await resolveKnownMissionZone();
+        const availabilityRaw = parseAvailabilityPayloadRaw(profileToSave.availability_hours);
+
+        profileToSave = {
+          ...profileToSave,
+          location: resolvedZone.label,
+          service_area: resolvedZone.label,
+          city: resolvedZone.city ?? resolvedZone.label,
+          postal_code: resolvedZone.postcode ?? profileToSave.postal_code,
+          availability_hours: JSON.stringify({
+            ...availabilityRaw,
+            zones: [
+              {
+                placeId: resolvedZone.placeId,
+                label: resolvedZone.label,
+                lat: resolvedZone.latitude,
+                lng: resolvedZone.longitude,
+                postcode: resolvedZone.postcode ?? null,
+              },
+            ],
+          }),
+        };
       }
 
       const updatedProfile = await patchProfileRequest(
-        editProfile,
+        profileToSave,
         avatarUrl,
         shouldMarkOnboardingComplete,
       );
@@ -2440,7 +2654,7 @@ export default function ConciergeProfilePage() {
       setAvatarFile(null);
 
       await update({
-        user: buildSessionUserPayload(editProfile, avatarUrl),
+        user: buildSessionUserPayload(profileToSave, avatarUrl),
       });
       window.dispatchEvent(new Event("user-profile-updated"));
 
@@ -2460,6 +2674,7 @@ export default function ConciergeProfilePage() {
     missionProgressSteps,
     avatarFile,
     editingSection,
+    resolveKnownMissionZone,
     update,
     pushTransientMessage,
   ]);
@@ -2484,6 +2699,46 @@ export default function ConciergeProfilePage() {
     beginSectionEdit(sectionId);
     setOpenSections((prev) => ensureOpenSection(prev, sectionId));
   }, [beginSectionEdit]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const targetSectionId = window.location.hash.replace(/^#/, "");
+    if (!targetSectionId || activeTab !== "missions") {
+      handledMissionHashRef.current = null;
+      return;
+    }
+
+    if (targetSectionId !== MISSION_SECTION_IDS.SERVICES) {
+      handledMissionHashRef.current = null;
+      return;
+    }
+
+    if (handledMissionHashRef.current === targetSectionId) {
+      return;
+    }
+
+    handledMissionHashRef.current = targetSectionId;
+    openMissionSectionForEdit(targetSectionId);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        scrollToPageSection(targetSectionId);
+      });
+    });
+  }, [activeTab, openMissionSectionForEdit]);
+
+  useEffect(() => {
+    if (activeTab !== "missions") {
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.location.hash) {
+      return;
+    }
+
+    setOpenSections((prev) => ensureOpenSection(prev, MISSION_SECTION_IDS.SERVICES));
+  }, [activeTab]);
 
   const cancelSectionEdit = useCallback(() => {
     if (!confirmDiscardIfNeeded(editingSection)) return;
@@ -2653,6 +2908,8 @@ export default function ConciergeProfilePage() {
   const missionOverviewStats = useMemo(
     () => ({
       activeMissionRawLabels,
+      displayedActiveMissionCount,
+      totalAvailableMissionCount: catalogServices.length,
       recognizedActiveMissionCount,
       unrecognizedActiveMissionLabels,
       missionOpenDaysCount,
@@ -2661,6 +2918,8 @@ export default function ConciergeProfilePage() {
     }),
     [
       activeMissionRawLabels,
+      displayedActiveMissionCount,
+      catalogServices.length,
       recognizedActiveMissionCount,
       unrecognizedActiveMissionLabels,
       missionOpenDaysCount,

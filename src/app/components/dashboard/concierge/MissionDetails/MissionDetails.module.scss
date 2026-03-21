@@ -1,21 +1,97 @@
-﻿// Variables de thèmes (à adapter selon votre charte)
 $gold-primary: #b4975a;
+$gold-soft: rgba(180, 151, 90, 0.14);
+$gold-border: rgba(180, 151, 90, 0.26);
 $green-dark: #2d4a3e;
-$cream-light: #f9f4e8;
-$text-muted: #666;
-$border-color: #e2e2e2;
+$cream-light: #fbf7ef;
+$text-muted: #6b6b6b;
+$border-color: #e5e1d7;
 $white: #ffffff;
 
 .wrapper {
-  background: $white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-  font-family: 'Playfair Display', serif; // Pour l'esprit 1900
+  display: grid;
+  gap: 1rem;
+}
 
-  .contentSection {
-    margin-top: 1rem;
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid $gold-border;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(180, 151, 90, 0.14), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(251, 247, 239, 0.92));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+
+  @media (max-width: 720px) {
+    flex-direction: column;
   }
+}
+
+.headerContent {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $text-muted;
+}
+
+.title {
+  margin: 0;
+  color: $green-dark;
+  font-size: 1.15rem;
+  line-height: 1.15;
+}
+
+.description {
+  margin: 0.45rem 0 0;
+  color: $text-muted;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 62ch;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(88px, 1fr));
+  gap: 0.65rem;
+  flex-shrink: 0;
+  width: min(240px, 100%);
+}
+
+.metric {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(180, 151, 90, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+
+  span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $text-muted;
+  }
+
+  strong {
+    color: $green-dark;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+}
+
+.contentSection {
+  display: grid;
+  gap: 0.9rem;
 }
 
 .servicesScroll {
@@ -24,139 +100,157 @@ $white: #ffffff;
   padding-right: 0.25rem;
 }
 
-// --- Mode Édition (Selector) ---
 .editorBox {
-  background: rgba($cream-light, 0.5);
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px dashed $gold-primary;
-
-  .infoText {
-    font-style: italic;
-    color: $green-dark;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-  }
+  background: linear-gradient(180deg, rgba(251, 247, 239, 0.75), rgba(255, 255, 255, 0.96));
+  padding: 1.1rem;
+  border-radius: 14px;
+  border: 1px dashed rgba(180, 151, 90, 0.58);
 }
 
-// --- Mode Lecture (Viewer) ---
 .viewerBox {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  min-height: 150px;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  min-height: 140px;
   position: relative;
-
-  .loading {
-    grid-column: 1 / -1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 3rem;
-
-    .spin {
-      font-size: 2rem;
-      color: $gold-primary;
-      animation: spin 1s linear infinite;
-    }
-  }
-
-  .error {
-    grid-column: 1 / -1;
-    color: #d9534f;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: #fff5f5;
-    border-radius: 6px;
-  }
-
-  .empty {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 3rem;
-    color: $text-muted;
-    border: 1px solid $border-color;
-    border-radius: 8px;
-    font-style: italic;
-  }
 }
 
-// --- Cartes de Catégories ---
-.categoryCard {
-  background: $white;
-  border: 1px solid $border-color;
+.activeCategories {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.categoryPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.34rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid $gold-border;
+  background: $gold-soft;
+  color: $green-dark;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.loading {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.spin {
+  font-size: 2rem;
+  color: $gold-primary;
+  animation: spin 1s linear infinite;
+}
+
+.error {
+  grid-column: 1 / -1;
+  color: #b3423d;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff5f5;
+  border: 1px solid rgba(179, 66, 61, 0.14);
   border-radius: 10px;
-  padding: 1.25rem;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2.4rem 1.2rem;
+  color: $text-muted;
+  border: 1px dashed $border-color;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(251, 247, 239, 0.35), rgba(255, 255, 255, 0.95));
+  font-style: italic;
+}
+
+.categoryCard {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(249, 244, 232, 0.48));
+  border: 1px solid $border-color;
+  border-radius: 16px;
+  padding: 1rem 1.05rem 1.05rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
 
   &:hover {
-    border-color: $gold-primary;
-    transform: translateY(-3px);
-  }
-
-  .categoryTitle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: $green-dark;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid $cream-light;
-
-    .badge {
-      background: $gold-primary;
-      color: $white;
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-family: 'Inter', sans-serif;
-    }
+    border-color: rgba(180, 151, 90, 0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
   }
 }
 
-// --- Liste des Services ---
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(180, 151, 90, 0.18);
+}
+
+.categoryTitle {
+  margin: 0;
+  color: $green-dark;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: $gold-primary;
+  color: $white;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .serviceList {
   list-style: none;
   padding: 0;
   margin: 0;
-
-  .serviceItem {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    font-size: 0.95rem;
-    color: #444;
-    margin-bottom: 0.6rem;
-    font-family: 'Inter', sans-serif; // Police plus lisible pour la liste
-
-    .checkIcon {
-      color: $gold-primary;
-      margin-top: 3px;
-      flex-shrink: 0;
-    }
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
+  display: grid;
+  gap: 0.55rem;
 }
 
-// --- Animations ---
+.serviceItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.72rem;
+  font-size: 0.9rem;
+  color: #3f3f3f;
+  line-height: 1.45;
+}
+
+.checkIcon {
+  color: $gold-primary;
+  margin-top: 0.18rem;
+  flex-shrink: 0;
+}
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-// Responsive
 @media (max-width: 640px) {
-  .viewerBox {
-    grid-template-columns: 1fr;
+  .header {
+    padding: 0.95rem;
   }
-  
-  .wrapper {
-    padding: 1rem;
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

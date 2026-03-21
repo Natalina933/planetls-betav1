@@ -17,6 +17,7 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
+  const groupId = `sidebar-group-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   const query = searchParams.toString();
   const currentPath = `${pathname}${query ? `?${query}` : ""}`;
@@ -42,6 +43,12 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
     localStorage.setItem(`sidebar-${item.label}`, String(isOpen));
   }, [isOpen, item.label]);
 
+  useEffect(() => {
+    if (hasActiveChild) {
+      setIsOpen(true);
+    }
+  }, [hasActiveChild]);
+
   const handleParentClick = () => {
     if (item.children) {
       setIsOpen((prev) => !prev);
@@ -51,7 +58,13 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
   return (
     <div className={styles.menuGroup}>
       {item.children ? (
-        <div className={`${styles.link} ${isActive ? styles.active : ""}`} onClick={handleParentClick}>
+        <button
+          type="button"
+          className={`${styles.link} ${isActive ? styles.active : ""}`}
+          onClick={handleParentClick}
+          aria-expanded={isOpen}
+          aria-controls={groupId}
+        >
           {item.icon && <item.icon className={styles.icon} />}
           <span>{item.label}</span>
           {badgeCount > 0 ? (
@@ -60,7 +73,7 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
             </span>
           ) : null}
           <FiChevronDown className={`${styles.chevron} ${isOpen ? styles.rotate : ""}`} />
-        </div>
+        </button>
       ) : (
         <Link
           href={item.path}
@@ -78,7 +91,10 @@ const SidebarItem: React.FC<Props> = ({ item, toggleSidebar, notificationCounts 
       )}
 
       {item.children && (
-        <div className={`${styles.submenu} ${isOpen ? styles.expanded : styles.collapsed}`}>
+        <div
+          id={groupId}
+          className={`${styles.submenu} ${isOpen ? styles.expanded : styles.collapsed}`}
+        >
           {item.children.map((child) => {
             const isChildActive = child.path === currentPath || child.path === pathname;
             return (

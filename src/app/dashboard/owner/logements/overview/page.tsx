@@ -15,15 +15,15 @@ export default function OwnerHousingOverviewPage() {
       tone="owner"
       eyebrow="Pilotage des logements"
       title="Vue d'ensemble des logements"
-      description="Retrouvez ici l'état de votre parc, avant d'ouvrir les fiches, les stocks ou l'ajout de nouveaux biens."
-      chips={["Vue synthèse", "Parc géré", "Fiches & équipements"]}
+      description="Retrouvez ici l'etat de votre parc, avant d'ouvrir les fiches, les stocks ou l'ajout de nouveaux biens."
+      chips={["Vue synthese", "A finaliser", "Points en attente"]}
       actions={[
         { label: "Voir les logements", href: "/dashboard/owner/logements", variant: "primary" },
         { label: "Ajouter un logement", href: "/dashboard/owner/logements/create", variant: "secondary" },
       ]}
       completion={{
         title: "Logements",
-        description: "Complétez cette catégorie pour disposer d'un parc bien structuré et exploitable.",
+        description: "Completez cette categorie pour disposer d'un parc bien structure et exploitable.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,

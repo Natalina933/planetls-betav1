@@ -6,6 +6,7 @@ import { StatsWidget } from "../StatsWidget/StatsWidget";
 import { QuickActions } from "../QuickActions/QuickActions";
 import { ActivityFeed } from "../ActivityFeed/ActivityFeed";
 import { ProfileSummary } from "../ProfileSummary/ProfileSummary";
+import { Sidebar } from "../Sidebar/Sidebar";
 import type {
   DashboardActivityItem,
   DashboardNavItem,
@@ -68,14 +69,11 @@ export function DashboardLayout({
           </section>
           <StatsWidget items={stats} />
           <QuickActions actions={actions} />
-          {children ? (
-            <Card className={styles.mainContentCard}>
-              <CardBody className={styles.mainContentBody}>{children}</CardBody>
-            </Card>
-          ) : null}
+          {children ? <div className={styles.mainSections}>{children}</div> : null}
         </div>
 
         <aside className={styles.aside}>
+          <Sidebar title={navTitle} items={navItems} />
           <ProfileSummary {...profile} />
           <ActivityFeed items={activity} />
           <Card className={styles.panel}>

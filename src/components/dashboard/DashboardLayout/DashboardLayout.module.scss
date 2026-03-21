@@ -43,17 +43,9 @@
   color: var(--dash-accent-strong);
 }
 
-.mainContentCard {
-  width: 100%;
-  max-width: none;
-  border: 1px solid var(--dash-border);
-  background: var(--dash-bg-panel);
-}
-
-.mainContentBody {
+.mainSections {
   display: grid;
   gap: var(--dash-space-3);
-  padding: var(--dash-space-4);
 }
 
 .aside {

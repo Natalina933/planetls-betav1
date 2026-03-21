@@ -51,9 +51,8 @@ function validateRanges(ranges: TimeRange[]): string | null {
   return null;
 }
 
-function rangeKey(day: WeekDay, r: TimeRange, index: number) {
-  // clé stable tant que les valeurs ne changent pas
-  return `${day}-${r.start}-${r.end}-${index}`;
+function rangeKey(day: WeekDay, range: TimeRange, index: number) {
+  return `${day}-${range.start}-${range.end}-${index}`;
 }
 
 export default function AvailabilityEditor({
@@ -62,15 +61,15 @@ export default function AvailabilityEditor({
   isEditing,
   onChange,
 }: AvailabilityEditorProps) {
-  const [dayErrors, setDayErrors] = useState<Partial<Record<WeekDay, string>>>(
-    {}
-  );
+  const [dayErrors, setDayErrors] = useState<Partial<Record<WeekDay, string>>>({});
 
   const canEditSchedule = isEditing && !emergency24h;
 
   const valueByDay = useMemo(() => {
     const map = new Map<WeekDay, TimeRange[]>();
-    for (const d of value) map.set(d.day, d.ranges);
+    for (const day of value) {
+      map.set(day.day, day.ranges);
+    }
     return map;
   }, [value]);
 
@@ -80,14 +79,18 @@ export default function AvailabilityEditor({
 
     setDayErrors((prev) => {
       const next = { ...prev };
-      if (error) next[day] = error;
-      else delete next[day];
+      if (error) {
+        next[day] = error;
+      } else {
+        delete next[day];
+      }
       return next;
     });
 
-    // IMPORTANT: on commit même si invalide => UX fluide
-    const next = value.filter((d) => d.day !== day);
-    if (sorted.length) next.push({ day, ranges: sorted });
+    const next = value.filter((item) => item.day !== day);
+    if (sorted.length > 0) {
+      next.push({ day, ranges: sorted });
+    }
     onChange(next, emergency24h);
   };
 
@@ -95,13 +98,13 @@ export default function AvailabilityEditor({
     day: WeekDay,
     rangeIndex: number,
     field: "start" | "end",
-    newValue: string
+    newValue: string,
   ) => {
     const ranges = valueByDay.get(day);
     if (!ranges) return;
 
-    const updated = ranges.map((range, idx) =>
-      idx === rangeIndex ? { ...range, [field]: newValue } : range
+    const updated = ranges.map((range, index) =>
+      index === rangeIndex ? { ...range, [field]: newValue } : range,
     );
 
     commitDay(day, updated);
@@ -117,7 +120,7 @@ export default function AvailabilityEditor({
     if (!ranges) return;
     commitDay(
       day,
-      ranges.filter((_, idx) => idx !== rangeIndex)
+      ranges.filter((_, index) => index !== rangeIndex),
     );
   };
 
@@ -136,16 +139,15 @@ export default function AvailabilityEditor({
       target === "all"
         ? ALL_DAY_IDS
         : target === "weekdays"
-        ? WEEKDAY_IDS
-        : (["sat", "sun"] as WeekDay[]);
+          ? WEEKDAY_IDS
+          : (["sat", "sun"] as WeekDay[]);
 
-    const next = targets.map((d) => ({
-      day: d,
-      ranges: ranges.map((r) => ({ ...r })),
+    const next = targets.map((targetDay) => ({
+      day: targetDay,
+      ranges: ranges.map((range) => ({ ...range })),
     }));
 
-    // On conserve aussi les jours non ciblés déjà présents
-    const preserved = value.filter((d) => !targets.includes(d.day));
+    const preserved = value.filter((item) => !targets.includes(item.day));
     onChange([...preserved, ...next], emergency24h);
   };
 
@@ -166,9 +168,15 @@ export default function AvailabilityEditor({
 
   return (
     <div className={styles.container}>
-      <h4 className={styles.title}>⏱️ Disponibilités hebdomadaires</h4>
+      <div className={styles.header}>
+        <h4 className={styles.title}>Disponibilités hebdomadaires</h4>
+        <p className={styles.description}>
+          Définissez vos créneaux de disponibilité pour clarifier votre capacité réelle
+          d’intervention.
+        </p>
+      </div>
 
-      {isEditing && (
+      {isEditing ? (
         <div className={styles.presetBar}>
           <button
             type="button"
@@ -202,41 +210,41 @@ export default function AvailabilityEditor({
             Effacer les horaires
           </button>
         </div>
-      )}
+      ) : null}
 
       <div
         className={styles.daysGrid}
         aria-disabled={!canEditSchedule}
         data-disabled={!canEditSchedule ? "true" : "false"}
       >
-        {DAYS.map((d) => {
-          const ranges = valueByDay.get(d.id) ?? [];
+        {DAYS.map((day) => {
+          const ranges = valueByDay.get(day.id) ?? [];
 
           return (
-            <div key={d.id} className={styles.dayBlock}>
+            <div key={day.id} className={styles.dayBlock}>
               <div className={styles.dayHeader}>
-                <strong className={styles.dayLabel}>{d.label}</strong>
+                <strong className={styles.dayLabel}>{day.label}</strong>
 
-                {isEditing && (
+                {isEditing ? (
                   <div className={styles.dayActions}>
                     <button
                       type="button"
                       className={styles.addRangeBtn}
-                      onClick={() => addTimeRange(d.id)}
+                      onClick={() => addTimeRange(day.id)}
                       disabled={!canEditSchedule}
-                      aria-label={`Ajouter une plage horaire pour ${d.label}`}
+                      aria-label={`Ajouter une plage horaire pour ${day.label}`}
                     >
                       + Plage
                     </button>
 
-                    {ranges.length > 0 && (
+                    {ranges.length > 0 ? (
                       <>
                         <button
                           type="button"
                           className={styles.copyDayBtn}
-                          onClick={() => copyDayToAll(d.id, "all")}
+                          onClick={() => copyDayToAll(day.id, "all")}
                           disabled={!canEditSchedule}
-                          aria-label={`Copier les horaires de ${d.label} sur tous les jours`}
+                          aria-label={`Copier les horaires de ${day.label} sur tous les jours`}
                         >
                           Copier sur tous
                         </button>
@@ -244,16 +252,16 @@ export default function AvailabilityEditor({
                         <button
                           type="button"
                           className={styles.copyDayBtn}
-                          onClick={() => copyDayToAll(d.id, "weekdays")}
+                          onClick={() => copyDayToAll(day.id, "weekdays")}
                           disabled={!canEditSchedule}
-                          aria-label={`Copier les horaires de ${d.label} sur les jours ouvrés`}
+                          aria-label={`Copier les horaires de ${day.label} sur les jours ouvrés`}
                         >
-                          → Jours ouvrés
+                          Vers jours ouvrés
                         </button>
                       </>
-                    )}
+                    ) : null}
                   </div>
-                )}
+                ) : null}
               </div>
 
               {ranges.length === 0 ? (
@@ -262,21 +270,21 @@ export default function AvailabilityEditor({
                 </p>
               ) : (
                 <div className={styles.rangesList}>
-                  {ranges.map((r, i) => (
-                    <div key={rangeKey(d.id, r, i)} className={styles.rangeItem}>
+                  {ranges.map((range, index) => (
+                    <div key={rangeKey(day.id, range, index)} className={styles.rangeItem}>
                       <div className={styles.timeInputWrapper}>
-                        <label htmlFor={`${d.id}-start-${i}`} className={styles.srOnly}>
-                          Heure de début pour {d.label}, plage {i + 1}
+                        <label htmlFor={`${day.id}-start-${index}`} className={styles.srOnly}>
+                          Heure de début pour {day.label}, plage {index + 1}
                         </label>
                         <input
-                          id={`${d.id}-start-${i}`}
+                          id={`${day.id}-start-${index}`}
                           type="time"
-                          value={r.start}
+                          value={range.start}
                           readOnly={!canEditSchedule}
                           disabled={!canEditSchedule}
                           className={styles.timeInput}
-                          onChange={(e) =>
-                            updateTimeRange(d.id, i, "start", e.target.value)
+                          onChange={(event) =>
+                            updateTimeRange(day.id, index, "start", event.target.value)
                           }
                         />
                       </div>
@@ -286,40 +294,42 @@ export default function AvailabilityEditor({
                       </span>
 
                       <div className={styles.timeInputWrapper}>
-                        <label htmlFor={`${d.id}-end-${i}`} className={styles.srOnly}>
-                          Heure de fin pour {d.label}, plage {i + 1}
+                        <label htmlFor={`${day.id}-end-${index}`} className={styles.srOnly}>
+                          Heure de fin pour {day.label}, plage {index + 1}
                         </label>
                         <input
-                          id={`${d.id}-end-${i}`}
+                          id={`${day.id}-end-${index}`}
                           type="time"
-                          value={r.end}
+                          value={range.end}
                           readOnly={!canEditSchedule}
                           disabled={!canEditSchedule}
                           className={styles.timeInput}
-                          onChange={(e) => updateTimeRange(d.id, i, "end", e.target.value)}
+                          onChange={(event) =>
+                            updateTimeRange(day.id, index, "end", event.target.value)
+                          }
                         />
                       </div>
 
-                      {canEditSchedule && (
+                      {canEditSchedule ? (
                         <button
                           type="button"
                           className={styles.removeBtn}
-                          onClick={() => removeTimeRange(d.id, i)}
-                          aria-label={`Supprimer la plage ${i + 1} de ${d.label}`}
+                          onClick={() => removeTimeRange(day.id, index)}
+                          aria-label={`Supprimer la plage ${index + 1} de ${day.label}`}
                         >
                           ×
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>
               )}
 
-              {dayErrors[d.id] && (
+              {dayErrors[day.id] ? (
                 <p className={styles.dayError} role="alert">
-                  {dayErrors[d.id]}
+                  {dayErrors[day.id]}
                 </p>
-              )}
+              ) : null}
             </div>
           );
         })}
@@ -330,7 +340,7 @@ export default function AvailabilityEditor({
           <input
             type="checkbox"
             checked={emergency24h}
-            onChange={(e) => onChange(value, e.target.checked)}
+            onChange={(event) => onChange(value, event.target.checked)}
             disabled={!isEditing}
             className={styles.checkbox}
             aria-describedby="emergency-description"
@@ -338,7 +348,8 @@ export default function AvailabilityEditor({
           <div>
             <strong>Disponible 24h/24, 7j/7</strong>
             <span id="emergency-description" className={styles.checkboxDesc}>
-              Accepter les missions urgentes à tout moment (désactive l’édition des horaires)
+              Accepter les missions urgentes à tout moment désactive l’édition manuelle
+              des horaires.
             </span>
           </div>
         </label>

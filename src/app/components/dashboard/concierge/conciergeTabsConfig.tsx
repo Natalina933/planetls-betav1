@@ -3,9 +3,10 @@ import {
   FiHome,
   FiClipboard,
   FiFileText,
+  FiTarget,
 } from "react-icons/fi";
 
-export type ConciergeVisibleTabId = "overview" | "fiche" | "documents";
+export type ConciergeVisibleTabId = "overview" | "fiche" | "missions" | "documents";
 
 export type ConciergeHiddenTabId =
   | "missions"
@@ -27,5 +28,6 @@ export interface ConciergeTab {
 export const CONCIERGE_TABS: ConciergeTab[] = [
   { id: "overview", label: "Vue d'ensemble", icon: FiHome },
   { id: "fiche", label: "Fiche & Infos", icon: FiClipboard },
+  { id: "missions", label: "Missions", icon: FiTarget },
   { id: "documents", label: "Documents & Avis", icon: FiFileText },
 ];

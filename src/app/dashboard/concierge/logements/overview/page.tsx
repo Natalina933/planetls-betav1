@@ -17,13 +17,13 @@ export default function ConciergeHousingOverviewPage() {
       tone="concierge"
       eyebrow="Pilotage des logements"
       title="Vue d'ensemble des logements"
-      description="Retrouvez ici l'état de votre parc, avant d'ouvrir les fiches, les stocks ou l'ajout de nouveaux biens."
-      chips={["Vue synthèse", "Parc géré", "Fiches & équipements"]}
+      description="Retrouvez ici l'etat de votre parc, avant d'ouvrir les fiches, les stocks ou l'ajout de nouveaux biens."
+      chips={["Vue synthese", "A finaliser", "Points en attente"]}
       actions={[{ label: "Voir les logements", href: "/dashboard/concierge/logements", variant: "primary" }]}
       completion={{
         title: "Logements",
         description:
-          "Complétez cette catégorie pour disposer d'un parc exploitable, documenté et bien préparé.",
+          "Completez cette categorie pour disposer d'un parc exploitable, documente et bien prepare.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,

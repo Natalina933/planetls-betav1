@@ -18,20 +18,52 @@ export default function OwnerFinancesOverviewPage() {
       tone="owner"
       eyebrow="Pilotage financier"
       title="Vue d'ensemble des finances"
-      description="Cette vue rassemble uniquement l'état de vos finances. Les sous-rubriques servent ensuite à suivre vos devis, vos factures et vos règlements, sans redondance."
-      chips={["Vue synthèse", "Devis", "Factures & règlements"]}
-      actions={[{ label: "Voir les devis", href: "/dashboard/owner/reglement", variant: "primary" }]}
+      description="Cette vue rassemble uniquement l'etat de vos finances. Les sous-rubriques servent ensuite a suivre vos devis, vos factures et vos reglements, sans redondance."
+      chips={["Vue synthese", "A finaliser", "Points en attente"]}
+      actions={[
+        { label: "Voir les devis", href: "/dashboard/owner/devis", variant: "secondary" },
+        { label: "Ouvrir les reglements", href: "/dashboard/owner/reglement", variant: "primary" },
+      ]}
       completion={{
         title: "Finances",
-        description:
-          "Complétez cette catégorie pour suivre clairement vos devis, vos factures et vos règlements.",
+        description: "Completez cette categorie pour suivre clairement vos devis, vos factures et vos reglements.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,
         missingItems: completion.missingItems,
-        actionLabel: "Voir les devis",
+        actionLabel: "Ouvrir les reglements",
         actionHref: "/dashboard/owner/reglement",
       }}
+      metrics={[
+        {
+          label: "Devis",
+          value: String(quotes.length),
+          hint: "Opportunites ou validations en cours",
+        },
+        {
+          label: "Factures",
+          value: String(invoices.length),
+          hint: "Pieces financieres deja consolidees",
+        },
+      ]}
+      cards={[
+        {
+          title: "Lecture strategique",
+          text:
+            invoices.length > 0
+              ? "La vue d'ensemble doit servir a arbitrer la sante financiere, puis le reporting detaille prend le relais sur les montants et statuts."
+              : "La base financiere est encore legere. Commencez par centraliser devis et reglements pour fiabiliser les decisions.",
+          actions: [{ label: "Voir les factures", href: "/dashboard/owner/factures", variant: "secondary" }],
+        },
+        {
+          title: "Decision recommandee",
+          text:
+            quotes.length > 0
+              ? "Priorite: comparer les devis ouverts avec les factures deja engagees pour eviter les angles morts de tresorerie."
+              : "Priorite: formaliser les demandes en devis avant d'accelerer les engagements financiers.",
+          actions: [{ label: "Voir les devis", href: "/dashboard/owner/devis", variant: "primary" }],
+        },
+      ]}
     />
   );
 }

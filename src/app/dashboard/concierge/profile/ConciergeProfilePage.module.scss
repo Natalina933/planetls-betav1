@@ -19,9 +19,15 @@ $color-error: #ef4444;
 $color-warning: #f59e0b;
 
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-md:
+  0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg:
+  0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl:
+  0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
 $radius-sm: 6px;
 $radius-md: 10px;
@@ -47,7 +53,12 @@ $transition-slow: 380ms $easing-soft;
 }
 
 @mixin golden-gradient {
-  background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 50%, $color-primary-light 100%);
+  background: linear-gradient(
+    135deg,
+    $color-primary-dark 0%,
+    $color-primary 50%,
+    $color-primary-light 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -124,10 +135,16 @@ $transition-slow: 380ms $easing-soft;
     bottom: -2px;
     height: 2px;
     border-radius: 999px;
-    background: linear-gradient(90deg, $color-primary-dark, $color-primary-light);
+    background: linear-gradient(
+      90deg,
+      $color-primary-dark,
+      $color-primary-light
+    );
     transform: scaleX(0.15);
     opacity: 0;
-    transition: transform $transition-base, opacity $transition-base;
+    transition:
+      transform $transition-base,
+      opacity $transition-base;
     transform-origin: center;
   }
 
@@ -170,7 +187,9 @@ $transition-slow: 380ms $easing-soft;
 
 .tabIcon {
   font-size: 1.1rem;
-  transition: transform $transition-base, color $transition-base;
+  transition:
+    transform $transition-base,
+    color $transition-base;
 }
 
 .tabLabel {
@@ -199,14 +218,31 @@ $transition-slow: 380ms $easing-soft;
   transform-origin: 50% 0;
 }
 
+.missionsPageWide {
+  width: 100%;
+}
+
+.main:has(.missionsPageWide) {
+  max-width: none;
+  padding-inline: 1.25rem;
+}
+
 .tabPane > * {
   animation: paneItemIn 420ms $easing-soft both;
 }
 
-.tabPane > *:nth-child(1) { animation-delay: 50ms; }
-.tabPane > *:nth-child(2) { animation-delay: 100ms; }
-.tabPane > *:nth-child(3) { animation-delay: 140ms; }
-.tabPane > *:nth-child(4) { animation-delay: 180ms; }
+.tabPane > *:nth-child(1) {
+  animation-delay: 50ms;
+}
+.tabPane > *:nth-child(2) {
+  animation-delay: 100ms;
+}
+.tabPane > *:nth-child(3) {
+  animation-delay: 140ms;
+}
+.tabPane > *:nth-child(4) {
+  animation-delay: 180ms;
+}
 
 // ============================================
 // GRID LAYOUT
@@ -298,7 +334,11 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .badgeCard {
-  background: linear-gradient(135deg, rgba($color-primary, 0.1) 0%, rgba($color-primary-light, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba($color-primary, 0.1) 0%,
+    rgba($color-primary-light, 0.05) 100%
+  );
   border: 1px solid rgba($color-primary, 0.2);
   border-radius: $radius-md;
   padding: 1.5rem;
@@ -422,12 +462,22 @@ $transition-slow: 380ms $easing-soft;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: linear-gradient(to right, rgba($color-primary, 0.03), rgba($color-primary, 0.01));
+  background: linear-gradient(
+    to right,
+    rgba($color-primary, 0.03),
+    rgba($color-primary, 0.01)
+  );
   border-bottom: 1px solid $color-border-light;
-  transition: background $transition-base, border-color $transition-base;
+  transition:
+    background $transition-base,
+    border-color $transition-base;
 
   &:hover {
-    background: linear-gradient(to right, rgba($color-primary, 0.05), rgba($color-primary, 0.02));
+    background: linear-gradient(
+      to right,
+      rgba($color-primary, 0.05),
+      rgba($color-primary, 0.02)
+    );
   }
 }
 
@@ -496,12 +546,19 @@ $transition-slow: 380ms $easing-soft;
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, $color-primary-dark, $color-primary-light);
+  background: linear-gradient(
+    135deg,
+    $color-primary-dark,
+    $color-primary-light
+  );
   border-radius: $radius-sm;
   color: white;
   font-size: 1rem;
   box-shadow: 0 2px 8px rgba($color-primary, 0.3);
-  transition: transform $transition-base, box-shadow $transition-base, filter $transition-base;
+  transition:
+    transform $transition-base,
+    box-shadow $transition-base,
+    filter $transition-base;
 
   .section:hover & {
     transform: scale(1.05);
@@ -512,7 +569,9 @@ $transition-slow: 380ms $easing-soft;
 
 .toggleIcon {
   color: $color-text-secondary;
-  transition: transform $transition-base, color $transition-base;
+  transition:
+    transform $transition-base,
+    color $transition-base;
   margin-left: 0.5rem;
 
   &Open {
@@ -591,7 +650,11 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .saveBtn {
-  background: linear-gradient(135deg, $color-success, color.scale($color-success, $lightness: 10%));
+  background: linear-gradient(
+    135deg,
+    $color-success,
+    color.scale($color-success, $lightness: 10%)
+  );
   color: white;
   box-shadow: 0 2px 6px rgba($color-success, 0.3);
 
@@ -744,7 +807,10 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.925rem;
   font-family: inherit;
   resize: vertical;
-  transition: border-color $transition-base, box-shadow $transition-base, background-color $transition-base;
+  transition:
+    border-color $transition-base,
+    box-shadow $transition-base,
+    background-color $transition-base;
 
   &:focus {
     outline: none;
@@ -762,7 +828,10 @@ $transition-slow: 380ms $easing-soft;
   font-family: inherit;
   background: white;
   cursor: pointer;
-  transition: border-color $transition-base, box-shadow $transition-base, background-color $transition-base;
+  transition:
+    border-color $transition-base,
+    box-shadow $transition-base,
+    background-color $transition-base;
 
   &:focus {
     outline: none;
@@ -814,29 +883,62 @@ $transition-slow: 380ms $easing-soft;
 
 .missionsLayout {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .missionsHero {
-  background: linear-gradient(135deg, rgba($color-primary, 0.08), rgba($color-primary-light, 0.03));
-  border: 1px solid rgba($color-primary, 0.22);
-  border-radius: $radius-lg;
-  padding: 1rem 1.2rem;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba($color-primary-light, 0.16),
+      transparent 42%
+    ),
+    linear-gradient(
+      135deg,
+      rgba($color-primary, 0.08),
+      rgba($color-primary-light, 0.02) 52%,
+      rgba($color-bg-card, 0.96)
+    );
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-xl;
+  padding: 1.2rem 1.3rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(120deg, rgba(255, 255, 255, 0.22), transparent 34%),
+      linear-gradient(180deg, rgba($color-bg-card, 0.05), transparent 60%);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .missionsHeroTitle {
   h3 {
-    margin: 0 0 0.25rem;
-    font-size: 1rem;
+    margin: 0 0 0.3rem;
+    font-size: 1.16rem;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
     color: $color-text-primary;
   }
 
   p {
     margin: 0;
     color: $color-text-secondary;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-width: 70ch;
   }
 }
 
@@ -1016,7 +1118,12 @@ $transition-slow: 380ms $easing-soft;
 
 .missionsHeroProgress {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.45rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: $radius-md;
+  background: rgba($color-bg-card, 0.76);
+  border: 1px solid rgba($color-primary, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .missionsHeroProgressMeta {
@@ -1028,7 +1135,7 @@ $transition-slow: 380ms $easing-soft;
 
   strong {
     color: $color-primary-dark;
-    font-size: 0.85rem;
+    font-size: 0.96rem;
   }
 }
 
@@ -1051,13 +1158,18 @@ $transition-slow: 380ms $easing-soft;
 .missionProgressFill {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, $color-primary-dark 0%, $color-primary 55%, $color-primary-light 100%);
+  background: linear-gradient(
+    90deg,
+    $color-primary-dark 0%,
+    $color-primary 55%,
+    $color-primary-light 100%
+  );
   transition: width $transition-base;
 }
 
 .missionsHeroProgressHint {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: $color-text-secondary;
 }
 
@@ -1076,17 +1188,32 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .missionStat {
-  border: 1px solid rgba($color-primary, 0.2);
+  border: 1px solid rgba($color-primary, 0.18);
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 0.6rem 0.75rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba($color-bg-main, 0.92)
+  );
+  padding: 0.82rem 0.88rem;
   display: grid;
-  gap: 0.2rem;
+  gap: 0.28rem;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-base,
+    border-color $transition-base;
 
   strong {
     color: $color-text-primary;
-    font-size: 1.05rem;
-    line-height: 1;
+    font-size: 1.14rem;
+    line-height: 1.05;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
+    border-color: rgba($color-primary, 0.28);
   }
 }
 
@@ -1104,9 +1231,9 @@ $transition-slow: 380ms $easing-soft;
 }
 
 .missionStatLabel {
-  font-size: 0.73rem;
+  font-size: 0.71rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   color: $color-text-secondary;
   font-weight: 700;
 }
@@ -1126,7 +1253,9 @@ $transition-slow: 380ms $easing-soft;
   padding: 0.14rem 0.42rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform $transition-fast, background-color $transition-base;
+  transition:
+    transform $transition-fast,
+    background-color $transition-base;
 
   &:hover {
     transform: translateY(-1px);
@@ -1144,8 +1273,7 @@ $transition-slow: 380ms $easing-soft;
 
 .missionsColumns {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
-  gap: 1rem;
+  gap: 1.15rem;
 
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
@@ -1156,6 +1284,29 @@ $transition-slow: 380ms $easing-soft;
 .missionsSecondary {
   display: grid;
   gap: 1rem;
+  align-content: start;
+}
+
+.missionsPrimary {
+  .section {
+    border-radius: $radius-xl;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.05);
+    border-color: rgba($color-primary, 0.12);
+  }
+
+  .sectionHeader {
+    padding-bottom: 0.2rem;
+  }
+}
+
+.missionsSecondary {
+  position: sticky;
+  top: 110px;
+
+  @media (max-width: 1200px) {
+    position: static;
+    top: auto;
+  }
 }
 
 .missionUnknownPanel {
@@ -1207,7 +1358,9 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform $transition-fast, border-color $transition-base;
+  transition:
+    transform $transition-fast,
+    border-color $transition-base;
 
   &:hover {
     transform: translateY(-1px);
@@ -1225,7 +1378,7 @@ $transition-slow: 380ms $easing-soft;
   background: $color-bg-card;
   border: 1px solid $color-border-light;
   border-radius: $radius-lg;
-  box-shadow: $shadow-sm;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.06);
   padding: 1rem;
 }
 
@@ -1363,7 +1516,10 @@ $transition-slow: 380ms $easing-soft;
   padding: 0.28rem 0.55rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform $transition-fast, box-shadow $transition-base, background-color $transition-base;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-base,
+    background-color $transition-base;
 
   &:hover {
     transform: translateY(-1px);
@@ -1589,6 +1745,208 @@ $transition-slow: 380ms $easing-soft;
   line-height: 1.5;
 }
 
+.missionSectionLead {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: $color-text-secondary;
+}
+
+.missionOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+
+  @media (max-width: 980px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionSnapshotCard {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba($color-primary, 0.18);
+  border-radius: $radius-lg;
+  background: linear-gradient(
+    180deg,
+    rgba($color-bg-card, 0.98),
+    rgba($color-bg-main, 0.86)
+  );
+  padding: 1rem;
+  box-shadow: $shadow-sm;
+}
+
+.missionSnapshotHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+
+  h4 {
+    margin: 0.12rem 0 0;
+    font-size: 1rem;
+    color: $color-text-primary;
+  }
+}
+
+.missionSnapshotEyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-text-secondary;
+  font-weight: 700;
+}
+
+.missionMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionMetaItem {
+  display: grid;
+  gap: 0.24rem;
+  border: 1px solid rgba($color-border, 0.9);
+  border-radius: $radius-md;
+  background: rgba($color-bg-card, 0.9);
+  padding: 0.8rem 0.9rem;
+
+  span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: $color-text-secondary;
+  }
+
+  strong {
+    font-size: 1.08rem;
+    color: $color-text-primary;
+  }
+}
+
+.missionBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.missionSnapshotNote {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: $color-text-secondary;
+}
+
+.missionEditorPanel {
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 0.25rem;
+}
+
+.missionConfigLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+  gap: 1.15rem;
+  align-items: start;
+
+  @media (max-width: 1280px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionConfigPrimary,
+.missionConfigSecondary {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.missionEmptyInline {
+  font-size: 0.84rem;
+  color: $color-text-secondary;
+}
+
+.missionAlwaysOnCard {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid rgba($color-success, 0.3);
+  border-radius: $radius-md;
+  background: rgba($color-success, 0.08);
+  padding: 0.85rem 0.95rem;
+  color: color.scale($color-success, $lightness: -20%);
+
+  strong {
+    font-size: 0.92rem;
+  }
+
+  span {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+}
+
+.missionDayList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.missionDayCard {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba($color-border, 0.9);
+  border-radius: $radius-md;
+  background: rgba($color-bg-card, 0.92);
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.missionDayCardMuted {
+  background: rgba($color-bg-main, 0.8);
+}
+
+.missionDayName {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.missionDayRanges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.28rem 0.6rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: $color-primary-dark;
+    background: rgba($color-primary, 0.12);
+    border: 1px solid rgba($color-primary, 0.28);
+  }
+}
+
+.missionDayClosed {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  color: $color-text-secondary;
+}
+
 // ============================================
 // NOTIFICATIONS
 // ============================================
@@ -1706,7 +2064,10 @@ $transition-slow: 380ms $easing-soft;
   border-radius: $radius-lg;
   border: 1px solid $color-border-light;
   box-shadow: $shadow-sm;
-  transition: box-shadow $transition-base, border-color $transition-base, transform $transition-base;
+  transition:
+    box-shadow $transition-base,
+    border-color $transition-base,
+    transform $transition-base;
 
   &:hover {
     box-shadow: $shadow-md;
@@ -1772,7 +2133,11 @@ $transition-slow: 380ms $easing-soft;
     right: 0;
     top: 0;
     height: 3px;
-    background: linear-gradient(90deg, rgba($color-primary-dark, 0.78), rgba($color-primary, 0.78));
+    background: linear-gradient(
+      90deg,
+      rgba($color-primary-dark, 0.78),
+      rgba($color-primary, 0.78)
+    );
     opacity: 0.65;
   }
 }
@@ -1829,7 +2194,12 @@ $transition-slow: 380ms $easing-soft;
   border-radius: 14px;
   border: 1px solid rgba($color-primary, 0.22);
   background:
-    radial-gradient(circle at 0% 0%, rgba($color-primary, 0.14) 0%, rgba($color-primary, 0.04) 48%, transparent 85%),
+    radial-gradient(
+      circle at 0% 0%,
+      rgba($color-primary, 0.14) 0%,
+      rgba($color-primary, 0.04) 48%,
+      transparent 85%
+    ),
     linear-gradient(180deg, rgba($color-bg-main, 0.95), rgba($color-bg-card, 1));
 }
 
@@ -1876,7 +2246,11 @@ $transition-slow: 380ms $easing-soft;
   position: relative;
   border-radius: 12px;
   border: 1px solid rgba(17, 24, 39, 0.18);
-  background: linear-gradient(165deg, rgba(17, 24, 39, 0.94), rgba(31, 41, 55, 0.96));
+  background: linear-gradient(
+    165deg,
+    rgba(17, 24, 39, 0.94),
+    rgba(31, 41, 55, 0.96)
+  );
   color: #e5e7eb;
   padding: 0.7rem 0.8rem;
   display: grid;
@@ -1928,12 +2302,18 @@ $transition-slow: 380ms $easing-soft;
   overflow: hidden;
   border: 1px solid rgba($color-primary, 0.2);
   border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba($color-bg-card, 0.98), rgba($color-bg-main, 0.92));
+  background: linear-gradient(
+    180deg,
+    rgba($color-bg-card, 0.98),
+    rgba($color-bg-main, 0.92)
+  );
   padding: 0.62rem 0.68rem;
   display: grid;
   gap: 0.18rem;
-  transition: transform $transition-fast, box-shadow $transition-base, border-color $transition-base;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-base,
+    border-color $transition-base;
 
   &::before {
     content: "";
@@ -1942,7 +2322,11 @@ $transition-slow: 380ms $easing-soft;
     right: 0;
     top: 0;
     height: 3px;
-    background: linear-gradient(90deg, rgba($color-primary-dark, 0.95), rgba($color-primary, 0.85));
+    background: linear-gradient(
+      90deg,
+      rgba($color-primary-dark, 0.95),
+      rgba($color-primary, 0.85)
+    );
     opacity: 0.75;
   }
 
@@ -2022,7 +2406,11 @@ $transition-slow: 380ms $easing-soft;
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, $color-primary-dark 0%, $color-primary 100%);
+    background: linear-gradient(
+      90deg,
+      $color-primary-dark 0%,
+      $color-primary 100%
+    );
     transition: width $transition-base;
   }
 }
@@ -2127,7 +2515,10 @@ $transition-slow: 380ms $easing-soft;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform $transition-fast, border-color $transition-base, color $transition-base;
+  transition:
+    transform $transition-fast,
+    border-color $transition-base,
+    color $transition-base;
 
   &:hover {
     transform: translateY(-1px);
@@ -2148,7 +2539,9 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform $transition-base, box-shadow $transition-base,
+  transition:
+    transform $transition-base,
+    box-shadow $transition-base,
     background $transition-base;
 
   &:hover {
@@ -2202,8 +2595,12 @@ $transition-slow: 380ms $easing-soft;
   cursor: pointer;
   white-space: nowrap;
   flex: 0 0 auto;
-  transition: transform $transition-fast, border-color $transition-base,
-    color $transition-base, box-shadow $transition-base, background $transition-base;
+  transition:
+    transform $transition-fast,
+    border-color $transition-base,
+    color $transition-base,
+    box-shadow $transition-base,
+    background $transition-base;
 
   &:hover {
     border-color: rgba($color-primary, 0.35);
@@ -2234,7 +2631,10 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform $transition-fast, box-shadow $transition-base, border-color $transition-base;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-base,
+    border-color $transition-base;
 
   &:hover {
     transform: translateY(-1px);
@@ -2412,7 +2812,11 @@ $transition-slow: 380ms $easing-soft;
 
 .tariffExpertCard {
   border: 1px solid rgba($color-primary, 0.24);
-  background: linear-gradient(135deg, rgba($color-primary, 0.12), rgba($color-primary-light, 0.06));
+  background: linear-gradient(
+    135deg,
+    rgba($color-primary, 0.12),
+    rgba($color-primary-light, 0.06)
+  );
   border-radius: 12px;
   padding: 0.75rem 0.85rem;
   display: grid;
@@ -2439,9 +2843,9 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.84rem;
   line-height: 1.35;
   color: $color-text-secondary;
-  line-clamp: 2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -2495,7 +2899,12 @@ $transition-slow: 380ms $easing-soft;
 .tariffPillarCard {
   border: 1px solid rgba($color-primary, 0.2);
   border-radius: 12px;
-  background: linear-gradient(150deg, rgba($color-primary, 0.08), rgba($color-primary-light, 0.03) 45%, #fff 100%);
+  background: linear-gradient(
+    150deg,
+    rgba($color-primary, 0.08),
+    rgba($color-primary-light, 0.03) 45%,
+    #fff 100%
+  );
   padding: 0.8rem;
   display: grid;
   gap: 0.45rem;
@@ -3012,7 +3421,9 @@ $transition-slow: 380ms $easing-soft;
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color $transition-base, transform $transition-fast;
+  transition:
+    border-color $transition-base,
+    transform $transition-fast;
 }
 
 .pricingActionBtn {
@@ -3256,6 +3667,10 @@ $transition-slow: 380ms $easing-soft;
     padding: 0 0.75rem;
   }
 
+  .main:has(.missionsPageWide) {
+    padding-inline: 0.75rem;
+  }
+
   .profileCard {
     position: static;
   }
@@ -3279,7 +3694,6 @@ $transition-slow: 380ms $easing-soft;
   .tariffMetaGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 }
 
 @media (max-width: 640px) {

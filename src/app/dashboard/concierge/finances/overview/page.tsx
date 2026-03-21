@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo } from "react";
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
@@ -22,8 +22,8 @@ export default function ConciergeFinancesOverviewPage() {
       tone="concierge"
       eyebrow="Pilotage financier"
       title="Vue d'ensemble des finances"
-      description="Cette vue rassemble uniquement l'état de vos finances. Les sous-rubriques servent ensuite à gérer la facturation, les tarifs et les packs, sans redondance."
-      chips={["Vue synthèse", "Devis & factures", "Tarifs & packs"]}
+      description="Cette vue rassemble uniquement l'etat de vos finances. Les sous-rubriques servent ensuite a gerer la facturation, les tarifs et les packs, sans redondance."
+      chips={["Vue synthese", "A finaliser", "Services a configurer"]}
       actions={[
         { label: "Ouvrir la facturation", href: "/dashboard/concierge/billing", variant: "primary" },
         { label: "Voir mes tarifs", href: "/dashboard/concierge/pricing", variant: "secondary" },
@@ -32,7 +32,7 @@ export default function ConciergeFinancesOverviewPage() {
       completion={{
         title: "Finances",
         description:
-          "Complétez cette catégorie pour structurer vos revenus, vos tarifs et vos offres commercialisables.",
+          "Completez cette categorie pour structurer vos revenus, vos tarifs et vos offres commercialisables.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,

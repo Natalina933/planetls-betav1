@@ -43,6 +43,12 @@ interface AccessFormData {
   additionalInfo: string;
 }
 
+interface LocationSuggestion {
+  placeId: string;
+  label: string;
+  displayName: string;
+}
+
 const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
     <>
@@ -88,6 +94,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | "">("");
   const [searchTarget, setSearchTarget] = useState("");
   const [location, setLocation] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [locationSearching, setLocationSearching] = useState(false);
+  const [validatedLocation, setValidatedLocation] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   const [showExperiencePopup, setShowExperiencePopup] = useState(false);
@@ -97,6 +106,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const isMainModalVisible =
+    !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
 
   // ACCESSIBILITÉ & UX
   useEffect(() => {
@@ -164,6 +175,51 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     }
   }, [selectedCategory]);
 
+  useEffect(() => {
+    const query = location.trim();
+
+    if (!isMainModalVisible || query.length < 2) {
+      setLocationSuggestions([]);
+      setLocationSearching(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setLocationSearching(true);
+        const response = await fetch(
+          `/api/geocode?q=${encodeURIComponent(query)}&mode=suggest&limit=6`,
+          { signal: controller.signal },
+        );
+        const payload = (await response.json()) as {
+          error?: string;
+          suggestions?: LocationSuggestion[];
+        };
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Recherche de ville impossible.");
+        }
+
+        setLocationSuggestions(Array.isArray(payload.suggestions) ? payload.suggestions : []);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+        setLocationSuggestions([]);
+      } finally {
+        if (!controller.signal.aborted) {
+          setLocationSearching(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [isMainModalVisible, location]);
+
   const handleCategoryChange = useCallback((key: CategoryKey) => {
     setSelectedCategory(key);
     setTimeout(() => {
@@ -171,8 +227,22 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     }, 100);
   }, []);
 
+  const resolveLocationLabel = useCallback(async (query: string) => {
+    const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+    const payload = (await response.json()) as {
+      error?: string;
+      label?: string;
+    };
+
+    if (!response.ok || typeof payload.label !== "string") {
+      throw new Error(payload.error || "Veuillez sélectionner une ville reconnue.");
+    }
+
+    return payload.label;
+  }, []);
+
   const handleSearch = useCallback(
-    (query?: string) => {
+    async (query?: string) => {
       const trimmedLocation = (query ?? location).trim();
 
       if (!trimmedLocation) {
@@ -190,13 +260,26 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         return;
       }
 
-      if (trimmedLocation !== location) {
-        setLocation(trimmedLocation);
+      try {
+        const resolvedLocation = await resolveLocationLabel(trimmedLocation);
+        if (resolvedLocation !== location) {
+          setLocation(resolvedLocation);
+        }
+        setValidatedLocation(resolvedLocation);
+      } catch (error) {
+        toast.warn(
+          error instanceof Error
+            ? error.message
+            : "Veuillez sélectionner une ville reconnue.",
+          { position: "top-center" },
+        );
+        searchInputRef.current?.focus();
+        return;
       }
 
       setShowExperiencePopup(true);
     },
-    [location, selectedCategory]
+    [location, resolveLocationLabel, selectedCategory]
   );
 
   const handleExperienceSelect = useCallback(
@@ -239,7 +322,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         category: selectedCategory,
         searchTarget,
         option: selectedOptions.join(","),
-        location: location.trim(),
+        location: (validatedLocation ?? location).trim(),
         experienceLevel,
         yearsExperience,
       }).toString();
@@ -252,6 +335,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       searchTarget,
       selectedOptions,
       location,
+      validatedLocation,
       experienceLevel,
       yearsExperience,
       router,
@@ -272,9 +356,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     const map = Object.fromEntries(categories.map((c) => [c.key, c]));
     return CATEGORY_ORDER.filter((key) => map[key]).map((key) => map[key]);
   }, [categories]);
-
-  const isMainModalVisible =
-    !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
 
   return (
     <>
@@ -364,7 +445,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
               <SearchBar
                 className={styles.searchBar}
                 defaultValue={location}
-                placeholder="Ou recherchez-vous ?"
+                placeholder="Ville ou arrondissement"
                 buttonLabel="Rechercher"
                 inputRef={searchInputRef}
                 onSearch={handleSearch}
@@ -373,9 +454,41 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                   required: true,
                   autoComplete: "off",
                   spellCheck: "false",
-                  onChange: (event) => setLocation(event.target.value),
+                  onChange: (event) => {
+                    setLocation(event.target.value);
+                    setValidatedLocation(null);
+                  },
                 }}
               />
+
+              {locationSearching ? (
+                <p className={styles.locationHint}>Recherche de villes reconnues...</p>
+              ) : null}
+
+              {locationSuggestions.length > 0 ? (
+                <div className={styles.suggestionsPanel}>
+                  {locationSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.placeId}
+                      type="button"
+                      className={styles.suggestionBtn}
+                      onClick={() => {
+                        setLocation(suggestion.label);
+                        setValidatedLocation(suggestion.label);
+                        setLocationSuggestions([]);
+                      }}
+                    >
+                      <strong>{suggestion.label}</strong>
+                      <span>{suggestion.displayName}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <p className={styles.locationHint}>
+                Sélectionnez une ville reconnue. Les grandes villes avec arrondissement sont
+                prises en charge, par exemple Paris 16e ou Marseille 8e.
+              </p>
             </section>
           </div>
         </div>
@@ -403,7 +516,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           recap={{
             category: selectedCategory,
             searchTarget,
-            location: location.trim(),
+            location: (validatedLocation ?? location).trim(),
             experienceLevel,
             yearsExperience,
           }}

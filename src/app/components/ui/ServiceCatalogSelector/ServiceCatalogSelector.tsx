@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { LucideLoader2 } from "lucide-react";
+import { ChevronsDown, ChevronsUp } from "lucide-react";
 import styles from "./ServiceCatalogSelector.module.scss";
 
 interface ServiceItem {
@@ -68,6 +69,17 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
         }));
     };
 
+    const setAllCategoriesOpenState = useCallback(
+        (isOpen: boolean) => {
+            setOpenCategories(() =>
+                Object.fromEntries(
+                    Object.keys(catalog).map((category) => [category, isOpen])
+                )
+            );
+        },
+        [catalog]
+    );
+
     useEffect(() => {
         const loadCatalog = async () => {
             setLoading(true);
@@ -91,7 +103,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
 
                 const initialOpenState: Record<string, boolean> = {};
                 Object.keys(groupedCatalog).forEach((category) => {
-                    initialOpenState[category] = true;
+                    initialOpenState[category] = false;
                 });
                 setOpenCategories(initialOpenState);
             } catch (err) {
@@ -179,24 +191,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
             .filter(([, services]) => services.length > 0);
     }, [orderedCategories, activeCategory, searchQuery, catalog]);
 
-    const totalServicesCount = useMemo(
-        () =>
-            Object.values(catalog).reduce(
-                (total, services) => total + services.length,
-                0
-            ),
-        [catalog]
-    );
-
-    const filteredServicesCount = useMemo(
-        () =>
-            filteredCatalogEntries.reduce(
-                (total, [, services]) => total + services.length,
-                0
-            ),
-        [filteredCatalogEntries]
-    );
-
     if (loading) {
         return (
             <div className={styles.loadingContainer}>
@@ -277,10 +271,31 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 </button>
             </div>
 
-            <p className={styles.filterMeta}>
-                {filteredServicesCount} service{filteredServicesCount > 1 ? "s" : ""} affiché
-                {filteredServicesCount > 1 ? "s" : ""} sur {totalServicesCount}
-            </p>
+            <div className={styles.catalogActionsRow}>
+                <span className={styles.catalogSelectionCount}>
+                    {selected.length} sélectionné{selected.length > 1 ? "s" : ""}
+                </span>
+                <span className={styles.catalogActionDivider}>·</span>
+                <button
+                    type="button"
+                    className={styles.catalogLinkAction}
+                    onClick={() => setAllCategoriesOpenState(true)}
+                    disabled={disabled || orderedCategories.length === 0}
+                >
+                    <ChevronsDown size={14} aria-hidden="true" />
+                    Tout déplier
+                </button>
+                <span className={styles.catalogActionDivider}>·</span>
+                <button
+                    type="button"
+                    className={styles.catalogLinkAction}
+                    onClick={() => setAllCategoriesOpenState(false)}
+                    disabled={disabled || orderedCategories.length === 0}
+                >
+                    <ChevronsUp size={14} aria-hidden="true" />
+                    Tout replier
+                </button>
+            </div>
 
             <div className={styles.catalogContent}>
                 {filteredCatalogEntries.length === 0 && (
@@ -366,19 +381,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                     );
                 })}
             </div>
-
-            {Object.keys(catalog).length > 0 && (
-                <div className={styles.selectedCount}>
-                    {selected.length} service
-                    {selected.length > 1 ? "s" : ""} sélectionné
-                    {selected.length > 1 ? "s" : ""} /
-                    {" "}
-                    {totalServicesCount} proposé
-                    {totalServicesCount > 1
-                        ? "s"
-                        : ""}
-                </div>
-            )}
 
         </div>
     );

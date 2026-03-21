@@ -17,6 +17,51 @@ const mapYearsToInt = (years?: string | null): number | null => {
   return null;
 };
 
+const resolveKnownLocation = async (location: string | null) => {
+  if (!location) return null;
+
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("addressdetails", "1");
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("q", location);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "Accept-Language": "fr",
+      "User-Agent": "planetls-register",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Recherche de localisation impossible");
+  }
+
+  const payload = (await response.json()) as Array<{
+    address?: Record<string, string | undefined>;
+    display_name?: string;
+    name?: string;
+  }>;
+  const first = payload[0];
+
+  if (!first) {
+    return null;
+  }
+
+  const address = first.address ?? {};
+  const city =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.municipality ||
+    first.name ||
+    first.display_name?.split(",")[0]?.trim() ||
+    null;
+
+  return city?.trim() || null;
+};
+
 // --- Schéma de Validation ---
 
 const registerSchema = z.object({
@@ -56,6 +101,13 @@ export async function POST(req: NextRequest) {
     }
 
     const data = result.data;
+    const resolvedLocation = await resolveKnownLocation(data.location ?? null);
+    if (data.location && !resolvedLocation) {
+      return NextResponse.json(
+        { error: "Veuillez sélectionner une ville reconnue." },
+        { status: 400 }
+      );
+    }
     const role = categoryToRole(data.category || "");
 
     // 1. Vérification unique de l'username (la DB s'occupe de l'email)
@@ -107,7 +159,7 @@ export async function POST(req: NextRequest) {
         role: role,
         search_target: data.search_target,
         option: data.option,
-        location: data.location,
+        location: resolvedLocation ?? data.location,
         additional_info: data.additionalInfo,
         experience_level: data.experienceLevel,
         years_experience: mapYearsToInt(data.yearsExperience),
