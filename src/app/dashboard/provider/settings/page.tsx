@@ -1,8 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import EditableUnifiedProfilePage from "@/app/components/dashboard/profile/EditableUnifiedProfilePage";
 
-export default function ProviderSettingsPage() {
+function ProviderSettingsContent() {
   return (
     <EditableUnifiedProfilePage
       roleLabel="Provider partenaire"
@@ -14,5 +15,13 @@ export default function ProviderSettingsPage() {
       preferCompanyName
       requireCompanyForVerified
     />
+  );
+}
+
+export default function ProviderSettingsPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement du profil...</p></section>}>
+      <ProviderSettingsContent />
+    </Suspense>
   );
 }
