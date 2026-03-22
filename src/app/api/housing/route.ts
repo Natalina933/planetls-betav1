@@ -1,227 +1,183 @@
-// src/app/api/housing/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import { z } from "zod";
-import type { Database, Json } from "@/types/supabase";
+import type { Json } from "@/types/supabase";
+import type { ConciergeHousing, HousingInsert } from "@/types/housing";
+import { buildHousingMutationPayload, canAccessHousing } from "@/types/housing";
 
-type HousingOwner = {
-  id?: string;
-  userId?: string;
-  profile_id?: string;
-  owner_id?: string;
-  proprietaire_id?: string;
-} | null;
+const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
-const createHousingSchema = z
-  .object({
-    external_id: z
-      .preprocess((value) => {
-        if (value === null || value === undefined || value === "") return null;
-        const parsed = Number(value);
-        return Number.isFinite(parsed) ? parsed : value;
-      }, z.number().int().nonnegative().nullable())
-      .optional(),
-    statut: z.string().trim().max(40).optional().nullable(),
-    photo_principale: z.string().trim().max(2048).optional().nullable(),
-    proprietaire: z
-      .object({
-        id: z.string().uuid().optional(),
-        userId: z.string().uuid().optional(),
-        profile_id: z.string().uuid().optional(),
-        owner_id: z.string().uuid().optional(),
-        proprietaire_id: z.string().uuid().optional(),
-      })
-      .passthrough()
-      .optional()
-      .nullable(),
-    infos: z
-      .object({
-        nomLogement: z.string().trim().min(1).max(120),
-        adresse: z.string().trim().max(255).optional().nullable(),
-        photos: z.array(z.string().trim().max(2048)).max(20).optional(),
-      })
-      .passthrough()
-      .optional(),
-    location: z
-      .object({
-        city: z.string().trim().max(120).optional().nullable(),
-        plateformePrincipale: z.string().trim().max(80).optional().nullable(),
-      })
-      .passthrough()
-      .optional()
-      .nullable(),
-    menage: z.unknown().optional().nullable(),
-    planning: z.unknown().optional().nullable(),
-    documents: z.unknown().optional().nullable(),
-    notes: z.unknown().optional().nullable(),
-  })
-  .passthrough();
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
 
-function normalizeOwnerPayload(proprietaire: unknown, userId: string) {
-  const owner =
-    proprietaire && typeof proprietaire === "object"
-      ? { ...(proprietaire as Record<string, unknown>) }
-      : {};
+function isNormalizedHousingPayload(value: unknown): value is Partial<ConciergeHousing> {
+  return Boolean(value && typeof value === "object" && ("owner" in (value as Record<string, unknown>) || "locationInfo" in (value as Record<string, unknown>)));
+}
 
-  const normalizedOwnerId = extractOwnerId(owner);
+function coerceLegacyPayload(body: Record<string, unknown>, userId: string): HousingInsert {
+  const infos = (body.infos ?? {}) as Record<string, unknown>;
+  const location = (body.location ?? {}) as Record<string, unknown>;
+  const proprietaire = (body.proprietaire ?? {}) as Record<string, unknown>;
 
   return {
-    ...owner,
-    id: normalizedOwnerId ?? userId,
+    external_id: typeof body.external_id === "number" ? body.external_id : null,
+    nom_logement: cleanString(body.nom_logement) || cleanString(infos.nomLogement) || null,
+    ville: cleanString(body.ville) || cleanString(location.city) || null,
+    adresse: cleanString(body.adresse) || cleanString(infos.adresse) || null,
+    plateforme: cleanString(body.plateforme) || cleanString(location.plateformePrincipale) || null,
+    statut: cleanString(body.statut) || "draft",
+    photo_principale:
+      cleanString(body.photo_principale) ||
+      (Array.isArray(infos.photos) ? cleanString(infos.photos[0]) : "") ||
+      null,
+    infos: (body.infos ?? null) as Json | null,
+    proprietaire: {
+      ...proprietaire,
+      owner_profile_id:
+        cleanString(proprietaire.owner_profile_id) ||
+        cleanString(proprietaire.id) ||
+        cleanString(proprietaire.profile_id) ||
+        null,
+      manager_profile_id:
+        cleanString(proprietaire.manager_profile_id) ||
+        cleanString(proprietaire.concierge_profile_id) ||
+        userId,
+    } as Json,
+    location: (body.location ?? null) as Json | null,
+    menage: (body.menage ?? null) as Json | null,
+    planning: (body.planning ?? null) as Json | null,
+    documents: (body.documents ?? null) as Json | null,
+    notes: (body.notes ?? null) as Json | null,
+    tarifs: (body.tarifs ?? null) as Json | null,
+    contrat: (body.contrat ?? null) as Json | null,
   };
 }
 
-function isUuidLike(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
+function coerceIncomingPayload(rawBody: unknown, userId: string): HousingInsert {
+  if (!rawBody || typeof rawBody !== "object") {
+    throw new Error("Payload invalide.");
+  }
+
+  if (isNormalizedHousingPayload(rawBody)) {
+    const body = rawBody as Partial<ConciergeHousing>;
+    return buildHousingMutationPayload({
+      id: 0,
+      external_id: body.external_id ?? null,
+      nom_logement: body.nom_logement ?? "",
+      plateforme: body.plateforme ?? "",
+      statut: body.statut ?? "draft",
+      photo_principale: body.photo_principale ?? null,
+      creationMode: body.creationMode ?? "manual",
+      owner: {
+        profileId: body.owner?.profileId ?? null,
+        managerProfileId: body.owner?.managerProfileId ?? userId,
+        fullName: body.owner?.fullName ?? "",
+        email: body.owner?.email ?? "",
+        phone: body.owner?.phone ?? "",
+        companyName: body.owner?.companyName ?? "",
+        city: body.owner?.city ?? "",
+        notes: body.owner?.notes ?? "",
+        source: body.owner?.source ?? "manual",
+      },
+      locationInfo: {
+        addressLine1: body.locationInfo?.addressLine1 ?? "",
+        addressLine2: body.locationInfo?.addressLine2 ?? "",
+        postalCode: body.locationInfo?.postalCode ?? "",
+        city: body.locationInfo?.city ?? "",
+        country: body.locationInfo?.country ?? "France",
+        accessCode: body.locationInfo?.accessCode ?? "",
+        floor: body.locationInfo?.floor ?? "",
+        entryInstructions: body.locationInfo?.entryInstructions ?? "",
+      },
+      characteristics: {
+        propertyType: body.characteristics?.propertyType ?? "",
+        surfaceSqm: body.characteristics?.surfaceSqm ?? null,
+        roomCount: body.characteristics?.roomCount ?? null,
+        bedroomCount: body.characteristics?.bedroomCount ?? null,
+        bathroomCount: body.characteristics?.bathroomCount ?? null,
+        bedCount: body.characteristics?.bedCount ?? null,
+        guestCapacity: body.characteristics?.guestCapacity ?? null,
+        amenities: body.characteristics?.amenities ?? [],
+        description: body.characteristics?.description ?? "",
+      },
+      services: body.services ?? { items: [], housekeepingNotes: "", internalNotes: "" },
+      timeline: body.timeline ?? [],
+      documentsList: body.documentsList ?? [],
+      pricing: body.pricing ?? {
+        currency: "EUR",
+        baseRate: null,
+        nightlyRate: null,
+        cleaningFee: null,
+        securityDeposit: null,
+        commissionRate: null,
+        totalContractValue: null,
+      },
+      contractInfo: body.contractInfo ?? {
+        contractUrl: "",
+        signedAt: "",
+        autoRenew: false,
+        quoteId: null,
+        quoteNumber: "",
+      },
+    });
+  }
+
+  return coerceLegacyPayload(rawBody as Record<string, unknown>, userId);
 }
-
-function extractOwnerId(proprietaire: unknown): string | null {
-  if (!proprietaire || typeof proprietaire !== "object") return null;
-
-  const owner = proprietaire as HousingOwner;
-  const ownerId =
-    owner?.id ||
-    owner?.userId ||
-    owner?.profile_id ||
-    owner?.owner_id ||
-    owner?.proprietaire_id ||
-    null;
-
-  return ownerId && isUuidLike(ownerId) ? ownerId : null;
-}
-
-// GET  /api/housing       -> list des logements (filtrage possible via query)
-// POST /api/housing       -> créer un logement (auth requis)
-//
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const { userId, role, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const url = new URL(req.url);
-    const searchParams = url.searchParams;
-
-    // filtres optionnels (ex: ?proprietaireId=P001 ou ?ville=Bordeaux)
-    const proprietaireIdRaw = searchParams.get("proprietaireId");
-    const proprietaireId = proprietaireIdRaw ? proprietaireIdRaw.trim() : "";
-    const ville = (searchParams.get("ville") ?? "").trim();
-    const platform = (searchParams.get("plateforme") ?? "").trim();
-
-    if (proprietaireId && !isUuidLike(proprietaireId)) {
-      return NextResponse.json({ error: "proprietaireId invalide" }, { status: 400 });
-    }
+    const ville = (url.searchParams.get("ville") ?? "").trim();
+    const platform = (url.searchParams.get("plateforme") ?? "").trim();
 
     let query = db.from("housing").select("*");
+    if (ville) query = query.ilike("ville", `%${ville}%`);
+    if (platform) query = query.eq("plateforme", platform);
 
-    if (proprietaireId) {
-      query = query.eq("proprietaire->>id", proprietaireId);
-    }
-    if (ville) {
-      query = query.ilike("ville", `%${ville}%`);
-    }
-    if (platform) {
-      query = query.eq("plateforme", platform);
-    }
-
-    const { data, error } = await query.order("id", { ascending: true });
-
+    const { data, error } = await query.order("updated_at", { ascending: false }).order("id", { ascending: false });
     if (error) {
       console.error("[GET /api/housing] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
-    const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
-    const rows = data ?? [];
-    const visibleRows = isAdmin
-      ? rows
-      : rows.filter((item) => extractOwnerId(item.proprietaire) === userId);
-
-    // Ajout automatique de l'image par défaut
-    const safeData = visibleRows.map((item) => ({
-      ...item,
-      photo_principale:
-        item.photo_principale && item.photo_principale.trim() !== ""
-          ? item.photo_principale
-          : DEFAULT_LOGEMENT_PHOTO,
-    }));
-
-    return NextResponse.json(safeData);
+    const rows = (data ?? []).filter((item) => canAccessHousing(item.proprietaire, userId, role, isAdmin));
+    return NextResponse.json(
+      rows.map((item) => ({
+        ...item,
+        photo_principale: cleanString(item.photo_principale) || DEFAULT_LOGEMENT_PHOTO,
+      })),
+    );
   } catch (err) {
     console.error("[GET /api/housing] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await getApiAuthContext(req);
+    const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
+    if (!["admin", "super_admin", "concierge", "concierge_pro"].includes(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
 
     const rawBody = await req.json();
-    const parsedBody = createHousingSchema.safeParse(rawBody);
-    if (!parsedBody.success) {
-      return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
-    }
-    const body = parsedBody.data;
-    const proprietaireId =
-      typeof body?.proprietaire?.id === "string"
-        ? body.proprietaire.id
-        : typeof body?.proprietaire?.userId === "string"
-        ? body.proprietaire.userId
-        : typeof body?.proprietaire?.profile_id === "string"
-        ? body.proprietaire.profile_id
-        : null;
-    const normalizedOwner = normalizeOwnerPayload(body?.proprietaire, userId);
+    const payload = coerceIncomingPayload(rawBody, userId);
 
-    if (!body.infos?.nomLogement) {
-      return NextResponse.json(
-        { error: "Champs requis manquants" },
-        { status: 400 }
-      );
+    if (!cleanString(payload.nom_logement)) {
+      return NextResponse.json({ error: "Le nom du logement est obligatoire." }, { status: 400 });
     }
 
-    if (proprietaireId && proprietaireId !== userId) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
-    }
-
-    // Insère. Utilise returning/select pour renvoyer l'enregistrement inséré
-    const insertPayload: Database["public"]["Tables"]["housing"]["Insert"] = {
-      external_id: body.external_id ?? null,
-      nom_logement: body.infos?.nomLogement ?? null,
-      ville:
-        body.infos?.adresse?.split(",").pop()?.trim() ??
-        body.location?.city ??
-        null,
-      adresse: body.infos?.adresse ?? null,
-      plateforme: body.location?.plateformePrincipale ?? null,
-      statut: body.statut ?? "draft",
-      photo_principale:
-        (body.infos?.photos && body.infos.photos[0]) ??
-        body.photo_principale ??
-        null,
-      infos: (body.infos ?? null) as Json | null,
-      proprietaire: (normalizedOwner ?? null) as Json | null,
-      location: (body.location ?? null) as Json | null,
-      menage: (body.menage ?? null) as Json | null,
-      planning: (body.planning ?? null) as Json | null,
-      documents: (body.documents ?? null) as Json | null,
-      notes: (body.notes ?? null) as Json | null,
-      // created_at/updated_at are managed by the DB.
-    };
-
-    const { data, error } = await db
-      .from("housing")
-      .insert(insertPayload)
-      .select()
-      .maybeSingle();
-
+    const { data, error } = await db.from("housing").insert(payload).select().single();
     if (error) {
       console.error("[POST /api/housing] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
@@ -230,9 +186,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     console.error("[POST /api/housing] ERROR:", err);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { status: 500 },
+    );
   }
 }
-
-
-

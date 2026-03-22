@@ -438,6 +438,39 @@
   accent-color: var(--accent);
 }
 
+.linkedNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(184, 148, 30, 0.2);
+  border-radius: 12px;
+  background: rgba(250, 250, 248, 0.96);
+}
+
+.linkedNoticeContent {
+  display: grid;
+  gap: 0.2rem;
+
+  strong {
+    color: #0f172a;
+    font-size: 0.9rem;
+  }
+
+  span {
+    color: #6b7280;
+    font-size: 0.84rem;
+  }
+}
+
+.linkedActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
 .formActions {
   display: flex;
   gap: 0.7rem;
@@ -532,6 +565,27 @@
   font-size: 0.78rem;
 }
 
+.unlinkInlineButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  padding: 0.42rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 90, 90, 0.35);
+  background: rgba(255, 241, 242, 0.96);
+  color: #a54444;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #c85a5a;
+    color: #ffffff;
+  }
+}
+
 .labelCell {
   display: grid;
   gap: 0.2rem;
@@ -540,6 +594,22 @@
 .labelText {
   font-weight: 600;
   color: #0f172a;
+}
+
+.linkedPackMeta {
+  font-size: 0.78rem;
+  color: #8a6a12;
+}
+
+.linkedPackList {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.linkedPackActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .badge {
@@ -586,6 +656,24 @@
 .rowActions {
   display: inline-flex;
   gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inlineTextAction {
+  border: none;
+  background: none;
+  color: #a54444;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.2rem 0.15rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15rem;
+}
+
+.inlineTextAction:hover {
+  color: #8f3434;
 }
 
 .iconActionButton {

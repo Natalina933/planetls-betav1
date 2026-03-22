@@ -1,0 +1,120 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: 28px;
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.12), transparent 34%),
+    linear-gradient(145deg, #fffdf8 0%, #f7ece5 100%);
+  box-shadow: 0 18px 40px rgba(109, 53, 41, 0.08);
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a4f3f;
+}
+
+.heroTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 72ch;
+}
+
+.heroTitle {
+  margin: 0;
+  color: #3f2f14;
+}
+
+.heroText {
+  margin: 0;
+  color: #5f5237;
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.heroLink {
+  color: #7b5b23;
+  font-weight: 700;
+}
+
+.metricsGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #3f2f14;
+}
+
+.sectionText {
+  margin: 0;
+  color: #5f5237;
+  line-height: 1.6;
+}
+
+.workspace {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+  align-items: start;
+}
+
+.workspaceMain {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(109, 53, 41, 0.06);
+}
+
+.workspaceAside {
+  display: grid;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.copyLine {
+  margin: 0;
+}
+
+@media (max-width: 960px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .workspaceAside {
+    position: static;
+  }
+}

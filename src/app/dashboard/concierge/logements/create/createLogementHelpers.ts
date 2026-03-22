@@ -1,3 +1,45 @@
+import type { ConciergeHousing, HousingOwnerInfo, QuotePreview } from "../../../../../types/housing.ts";
+import {
+  buildHousingMutationPayload,
+  normalizeOwnerFromProfile,
+  validateHousingDraft,
+} from "../../../../../types/housing.ts";
+
+export interface ManualCreateFormState {
+  housingName: string;
+  propertyType: string;
+  addressLine1: string;
+  addressLine2: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  accessCode: string;
+  floor: string;
+  entryInstructions: string;
+  surfaceSqm: string;
+  roomCount: string;
+  bedroomCount: string;
+  bathroomCount: string;
+  bedCount: string;
+  guestCapacity: string;
+  amenities: string;
+  description: string;
+  platform: string;
+  status: string;
+  photo: string;
+  owner: HousingOwnerInfo;
+  services: Array<{
+    id: string;
+    label: string;
+    category: string;
+    frequency: string;
+    unitPrice: string;
+    totalPrice: string;
+    notes: string;
+  }>;
+  internalNotes: string;
+}
+
 export interface FormState {
   name: string;
   propertyType: string;
@@ -9,100 +51,302 @@ export interface FormState {
   city: string;
   platform: string;
   photo?: string;
-  status: "pret" | "menage" | "arrivee" | "depart";
+  status: string;
 }
 
-function isMediaUrl(value: string) {
-  return value.startsWith("/") || /^https?:\/\//i.test(value);
-}
-
-export function validateCreateLogementForm(form: FormState, userId?: string) {
-  if (!userId) {
-    return "Session introuvable. Reconnecte-toi pour créer un logement.";
-  }
-
-  if (!form.name.trim()) {
-    return "Le nom du logement est obligatoire.";
-  }
-
-  if (form.name.trim().length < 3) {
-    return "Le nom du logement doit contenir au moins 3 caractères.";
-  }
-
-  if (!form.address.trim()) {
-    return "L'adresse est obligatoire.";
-  }
-
-  if (!form.city.trim()) {
-    return "La ville est obligatoire.";
-  }
-
-  if (form.city.trim().length < 2) {
-    return "La ville doit contenir au moins 2 caractères.";
-  }
-
-  if (form.capacity.trim()) {
-    const capacity = Number(form.capacity.trim());
-    if (!Number.isFinite(capacity) || capacity <= 0) {
-      return "La capacité doit être un nombre positif.";
-    }
-  }
-
-  if (form.bedrooms.trim()) {
-    const bedrooms = Number(form.bedrooms.trim());
-    if (!Number.isFinite(bedrooms) || bedrooms < 0) {
-      return "Le nombre de chambres doit être un nombre valide.";
-    }
-  }
-
-  if (form.photo?.trim() && !isMediaUrl(form.photo.trim())) {
-    return "La photo doit être une URL valide ou un chemin commençant par '/'.";
-  }
-
-  return null;
-}
-
-export function buildCreateLogementPayload(form: FormState, userId: string) {
+export function createEmptyOwner(managerProfileId?: string | null): HousingOwnerInfo {
   return {
-    infos: {
-      nomLogement: form.name.trim(),
-      adresse: form.address.trim(),
-      photos: form.photo?.trim() ? [form.photo.trim()] : [],
-      categorie: form.propertyType.trim() || null,
-      description: form.description.trim() || null,
-      capacite: form.capacity.trim() ? Number(form.capacity.trim()) : null,
-      nb_chambres: form.bedrooms.trim() ? Number(form.bedrooms.trim()) : null,
-      equipements: form.equipments
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
-    },
-    statut: form.status,
-    photo_principale: form.photo?.trim() || null,
-    proprietaire: {
-      id: userId,
-    },
-    location: {
-      city: form.city.trim(),
-      plateformePrincipale: form.platform.trim() || null,
-    },
+    profileId: null,
+    managerProfileId: managerProfileId ?? null,
+    fullName: "",
+    email: "",
+    phone: "",
+    companyName: "",
+    city: "",
+    notes: "",
+    source: "manual",
   };
 }
 
-export function buildCreateLogementSummary(form: FormState) {
-  return [
-    { label: "Nom", value: form.name.trim() || "À renseigner" },
-    { label: "Type", value: form.propertyType.trim() || "À renseigner" },
-    { label: "Adresse", value: form.address.trim() || "À renseigner" },
-    { label: "Ville", value: form.city.trim() || "À renseigner" },
-    { label: "Plateforme", value: form.platform.trim() || "À renseigner" },
-    { label: "Capacité", value: form.capacity.trim() || "À renseigner" },
-    { label: "Chambres", value: form.bedrooms.trim() || "À renseigner" },
-    {
-      label: "Équipements",
-      value: form.equipments.trim() || "À renseigner",
+export function createInitialManualForm(managerProfileId?: string | null): ManualCreateFormState {
+  return {
+    housingName: "",
+    propertyType: "Appartement",
+    addressLine1: "",
+    addressLine2: "",
+    postalCode: "",
+    city: "",
+    country: "France",
+    accessCode: "",
+    floor: "",
+    entryInstructions: "",
+    surfaceSqm: "",
+    roomCount: "",
+    bedroomCount: "",
+    bathroomCount: "",
+    bedCount: "",
+    guestCapacity: "",
+    amenities: "",
+    description: "",
+    platform: "Airbnb",
+    status: "Brouillon",
+    photo: "",
+    owner: createEmptyOwner(managerProfileId),
+    services: [
+      {
+        id: "manual-service-1",
+        label: "Menage hebdomadaire",
+        category: "Menage",
+        frequency: "Hebdomadaire",
+        unitPrice: "",
+        totalPrice: "",
+        notes: "",
+      },
+    ],
+    internalNotes: "",
+  };
+}
+
+function isLegacyFormState(form: ManualCreateFormState | FormState): form is FormState {
+  return "name" in form;
+}
+
+function toManualFormState(
+  form: ManualCreateFormState | FormState,
+  managerProfileId?: string | null,
+): ManualCreateFormState {
+  if (!isLegacyFormState(form)) return form;
+
+  return {
+    ...createInitialManualForm(managerProfileId),
+    housingName: form.name,
+    propertyType: form.propertyType,
+    addressLine1: form.address,
+    city: form.city,
+    surfaceSqm: "",
+    bedroomCount: form.bedrooms,
+    guestCapacity: form.capacity,
+    amenities: form.equipments,
+    description: form.description,
+    platform: form.platform,
+    status: form.status,
+    photo: form.photo ?? "",
+    owner: {
+      ...createEmptyOwner(managerProfileId),
+      profileId: managerProfileId ?? null,
+      fullName: "Proprietaire a confirmer",
+      email: managerProfileId ? `${managerProfileId}@pending.local` : "",
+      source: "manual",
     },
-    { label: "Statut", value: form.status },
-    { label: "Photo", value: form.photo?.trim() ? "Ajoutée" : "Aucune" },
+    services: [
+      {
+        id: "legacy-service-1",
+        label: "Service de base",
+        category: "Operations",
+        frequency: "A definir",
+        unitPrice: "",
+        totalPrice: "",
+        notes: "",
+      },
+    ],
+  };
+}
+
+function toOptionalNumber(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function splitAmenities(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function splitPlatforms(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeHousing {
+  return {
+    id: 0,
+    external_id: null,
+    nom_logement: form.housingName.trim(),
+    ville: form.city.trim(),
+    adresse: form.addressLine1.trim(),
+    plateforme: splitPlatforms(form.platform)[0] ?? form.platform.trim() ?? null,
+    statut: form.status.trim() || "Brouillon",
+    photo_principale: form.photo.trim() || null,
+    created_at: null,
+    updated_at: null,
+    creationMode: "manual",
+    owner: {
+      ...form.owner,
+      fullName: form.owner.fullName.trim(),
+      email: form.owner.email.trim(),
+      phone: form.owner.phone.trim(),
+      companyName: form.owner.companyName.trim(),
+      city: form.owner.city.trim(),
+      notes: form.owner.notes.trim(),
+      source: form.owner.profileId ? "directory" : "manual",
+    },
+    locationInfo: {
+      addressLine1: form.addressLine1.trim(),
+      addressLine2: form.addressLine2.trim(),
+      postalCode: form.postalCode.trim(),
+      city: form.city.trim(),
+      country: form.country.trim() || "France",
+      accessCode: form.accessCode.trim(),
+      floor: form.floor.trim(),
+      entryInstructions: form.entryInstructions.trim(),
+    },
+    characteristics: {
+      propertyType: form.propertyType.trim(),
+      platforms: splitPlatforms(form.platform),
+      surfaceSqm: toOptionalNumber(form.surfaceSqm),
+      roomCount: toOptionalNumber(form.roomCount),
+      bedroomCount: toOptionalNumber(form.bedroomCount),
+      bathroomCount: toOptionalNumber(form.bathroomCount),
+      bedCount: toOptionalNumber(form.bedCount),
+      guestCapacity: toOptionalNumber(form.guestCapacity),
+      amenities: splitAmenities(form.amenities),
+      description: form.description.trim(),
+    },
+    services: {
+      items: form.services
+        .map((service) => ({
+          id: service.id,
+          label: service.label.trim(),
+          category: service.category.trim(),
+          frequency: service.frequency.trim(),
+          unitPrice: toOptionalNumber(service.unitPrice),
+          totalPrice: toOptionalNumber(service.totalPrice),
+          included: true,
+          status: "included" as const,
+          sourceQuoteItemId: null,
+          notes: service.notes.trim(),
+        }))
+        .filter((service) => service.label.length > 0),
+      housekeepingNotes: form.entryInstructions.trim(),
+      internalNotes: form.internalNotes.trim(),
+    },
+    timeline: [],
+    documentsList: [],
+    pricing: {
+      currency: "EUR",
+      baseRate: null,
+      nightlyRate: null,
+      cleaningFee: null,
+      securityDeposit: null,
+      commissionRate: null,
+      totalContractValue: null,
+    },
+    contractInfo: {
+      contractUrl: "",
+      signedAt: "",
+      autoRenew: false,
+      quoteId: null,
+      quoteNumber: "",
+    },
+    completion: { completed: 0, total: 0, ratio: 0 },
+  };
+}
+
+export function validateCreateLogementForm(
+  form: ManualCreateFormState | FormState,
+  managerProfileId?: string,
+) {
+  return validateHousingDraft(buildManualHousingDraft(toManualFormState(form, managerProfileId)));
+}
+
+export function buildCreateLogementPayload(
+  form: ManualCreateFormState | FormState,
+  managerProfileId?: string,
+) {
+  return buildHousingMutationPayload(buildManualHousingDraft(toManualFormState(form, managerProfileId)));
+}
+
+export function buildCreateLogementSummary(form: ManualCreateFormState | FormState) {
+  const manualForm = toManualFormState(form);
+  return [
+    { label: "Logement", value: manualForm.housingName.trim() || "A renseigner" },
+    { label: "Proprietaire", value: manualForm.owner.fullName.trim() || "A renseigner" },
+    { label: "Adresse", value: manualForm.addressLine1.trim() || "A renseigner" },
+    { label: "Ville", value: manualForm.city.trim() || "A renseigner" },
+    { label: "Type", value: manualForm.propertyType.trim() || "A renseigner" },
+    { label: "Surface", value: manualForm.surfaceSqm.trim() ? `${manualForm.surfaceSqm.trim()} m2` : "A renseigner" },
+    { label: "Services", value: String(manualForm.services.filter((item) => item.label.trim()).length) },
+    { label: "Flux", value: "Manuel" },
   ];
+}
+
+export function buildHousingDraftFromQuote(preview: QuotePreview): ConciergeHousing {
+  return {
+    id: 0,
+    external_id: null,
+    nom_logement: preview.housingName,
+    ville: preview.locationInfo.city,
+    adresse: preview.locationInfo.addressLine1,
+    plateforme: "Quote",
+    statut: "Actif - suivi en cours",
+    photo_principale: null,
+    created_at: null,
+    updated_at: null,
+    creationMode: "quote",
+    owner: preview.owner,
+    locationInfo: preview.locationInfo,
+    characteristics: {
+      propertyType: "Logement saisonnier",
+      surfaceSqm: null,
+      roomCount: null,
+      bedroomCount: null,
+      bathroomCount: null,
+      bedCount: null,
+      guestCapacity: null,
+      amenities: [],
+      description: `Creation automatique depuis devis ${preview.quoteNumber}`,
+    },
+    services: preview.services,
+    timeline: [
+      {
+        id: `quote-accepted-${preview.quoteId}`,
+        title: `Devis ${preview.quoteNumber} accepte`,
+        description: "Le logement a ete initialise automatiquement a partir du devis accepte.",
+        date: preview.acceptedAt || new Date().toISOString(),
+        type: "quote",
+        status: "done",
+        actor: preview.owner.fullName || "Proprietaire",
+        source: "quote",
+      },
+    ],
+    documentsList: [],
+    pricing: preview.pricing,
+    contractInfo: {
+      contractUrl: "",
+      signedAt: preview.acceptedAt,
+      autoRenew: false,
+      quoteId: preview.quoteId,
+      quoteNumber: preview.quoteNumber,
+    },
+    completion: { completed: 0, total: 0, ratio: 0 },
+  };
+}
+
+export function buildOwnerFromDirectoryProfile(profile: {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | undefined;
+  phone?: string | null;
+  city?: string | null;
+  company_name?: string | null;
+  username?: string | undefined;
+}, managerProfileId?: string | null) {
+  return normalizeOwnerFromProfile(profile, managerProfileId);
 }

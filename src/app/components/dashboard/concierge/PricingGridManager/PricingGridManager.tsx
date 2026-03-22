@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import {
   FiPlus,
   FiEdit2,
@@ -37,6 +37,19 @@ interface PricingServiceRelation {
   id: string;
   service: string;
   category: string;
+}
+
+interface LinkedPricingPackage {
+  id: string;
+  package_id: string;
+  label: string;
+  type: PricingType;
+  amount: number;
+  property_type?: string | null;
+  package?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 interface Pricing {
@@ -117,7 +130,7 @@ const PricingGridManager = ({
   const [filterPricingType, setFilterPricingType] = useState<PricingType | ''>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPricingIdsForPack, setSelectedPricingIdsForPack] = useState<string[]>([]);
-  const [linkedPricingSignatures, setLinkedPricingSignatures] = useState<Set<string>>(new Set());
+  const [linkedPricingPackages, setLinkedPricingPackages] = useState<LinkedPricingPackage[]>([]);
   const [isLinkingSelected, setIsLinkingSelected] = useState(false);
   const [prioritySearch, setPrioritySearch] = useState("");
   const [showAdvancedPricingTools, setShowAdvancedPricingTools] = useState(false);
@@ -153,7 +166,7 @@ const PricingGridManager = ({
     { value: 'hourly', label: 'Horaire' },
     { value: 'fixed', label: 'Forfait' },
     { value: 'monthly', label: 'Mensuel' },
-    { value: 'custom', label: 'Personnalise' }
+    { value: 'custom', label: 'Personnalisé' }
   ];
 
   /* -------------------------------------------------------------------------- */
@@ -164,34 +177,23 @@ const PricingGridManager = ({
   }, []);
 
   useEffect(() => {
-    if (!linkedPackageId) {
-      setLinkedPricingSignatures(new Set());
-      setSelectedPricingIdsForPack([]);
-      return;
-    }
-
     const fetchLinkedPackPricings = async () => {
       try {
-        const res = await fetch(
-          `/api/services/pricing-packages?packageId=${encodeURIComponent(linkedPackageId)}`,
-        );
+        const url = linkedPackageId
+          ? `/api/services/pricing-packages?packageId=${encodeURIComponent(linkedPackageId)}`
+          : '/api/services/pricing-packages';
+        const res = await fetch(url);
         if (!res.ok) return;
-        const data: Array<{
-          label: string;
-          type: PricingType;
-          amount: number;
-          property_type?: string | null;
-        }> = await res.json();
-        const nextSet = new Set(
-          (Array.isArray(data) ? data : []).map((item) =>
-            `${item.label}__${item.type}__${Number(item.amount)}__${item.property_type ?? ""}`,
-          ),
-        );
-        setLinkedPricingSignatures(nextSet);
+        const data: LinkedPricingPackage[] = await res.json();
+        setLinkedPricingPackages(Array.isArray(data) ? data : []);
       } catch {
         // silent fail: this feature is optional
       }
     };
+
+    if (!linkedPackageId) {
+      setSelectedPricingIdsForPack([]);
+    }
 
     fetchLinkedPackPricings();
   }, [linkedPackageId]);
@@ -263,6 +265,15 @@ const PricingGridManager = ({
       }
 
       const savedPricing: Pricing | null = await res.json().catch(() => null);
+      const previousPricing = editingId
+        ? pricings.find((pricing) => pricing.id === editingId) ?? null
+        : null;
+      const previousSignature = previousPricing ? getPricingSignature(previousPricing) : null;
+      const previousLooseSignature = previousPricing ? getLoosePricingSignature(previousPricing) : null;
+      const previousLinkedRows = previousSignature
+        ? linkedPricingMap[previousSignature] ??
+          (previousLooseSignature ? linkedPricingLooseMap[previousLooseSignature] ?? [] : [])
+        : [];
 
       if (!editingId && linkedPackageId && linkToPackage && savedPricing) {
         const linkRes = await fetch('/api/services/pricing-packages', {
@@ -281,12 +292,46 @@ const PricingGridManager = ({
           const linkErr = await linkRes.json().catch(() => null);
           console.warn('[Pricing] Link package warning', linkErr);
         } else {
-          setLinkedPricingSignatures((prev) => {
-            const next = new Set(prev);
-            next.add(
-              `${savedPricing.label}__${savedPricing.type}__${Number(savedPricing.amount)}__${savedPricing.property_type ?? ""}`,
+          const linkedRow: LinkedPricingPackage | null = await linkRes.json().catch(() => null);
+          if (linkedRow) {
+            setLinkedPricingPackages((prev) => [linkedRow, ...prev]);
+          }
+        }
+      }
+
+      if (editingId && linkedPackageId && savedPricing && previousLinkedRows.length > 0) {
+        for (const linkedRow of previousLinkedRows) {
+          const deleteRes = await fetch(`/api/services/pricing-packages/${linkedRow.id}`, {
+            method: 'DELETE',
+          });
+          if (!deleteRes.ok) {
+            const deleteErr = await deleteRes.json().catch(() => null);
+            console.warn('[Pricing] Unlink package warning', deleteErr);
+          }
+        }
+
+        const relinkRes = await fetch('/api/services/pricing-packages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            package_id: linkedPackageId,
+            label: savedPricing.label,
+            type: savedPricing.type,
+            amount: savedPricing.amount,
+            property_type: savedPricing.property_type ?? null,
+          }),
+        });
+
+        if (!relinkRes.ok) {
+          const relinkErr = await relinkRes.json().catch(() => null);
+          console.warn('[Pricing] Relink package warning', relinkErr);
+        } else {
+          const relinkedRow: LinkedPricingPackage | null = await relinkRes.json().catch(() => null);
+          setLinkedPricingPackages((prev) => {
+            const next = prev.filter(
+              (item) => !previousLinkedRows.some((linkedRow) => linkedRow.id === item.id),
             );
-            return next;
+            return relinkedRow ? [relinkedRow, ...next] : next;
           });
         }
       }
@@ -318,7 +363,7 @@ const PricingGridManager = ({
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Etes-vous sur de vouloir supprimer cette regle tarifaire ?')) return;
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette règle tarifaire ?')) return;
     
     try {
       await fetch(`/api/pricing/${id}`, { method: 'DELETE' });
@@ -336,8 +381,155 @@ const PricingGridManager = ({
     setLinkToPackage(Boolean(linkedPackageId));
   };
 
+  const buildPricingSignature = ({
+    label,
+    type,
+    amount,
+    propertyType,
+    includePropertyType = true,
+  }: {
+    label: string;
+    type: PricingType;
+    amount: number;
+    propertyType?: string | null;
+    includePropertyType?: boolean;
+  }) =>
+    [
+      normalizeServiceText(label),
+      type,
+      Number(amount).toFixed(2),
+      includePropertyType ? propertyType ?? "" : "",
+    ].join("__");
+
   const getPricingSignature = (pricing: Pricing) =>
-    `${pricing.label}__${pricing.type}__${Number(pricing.amount)}__${pricing.property_type ?? ""}`;
+    buildPricingSignature({
+      label: pricing.label,
+      type: pricing.type,
+      amount: pricing.amount,
+      propertyType: pricing.property_type ?? null,
+    });
+
+  const getLoosePricingSignature = (pricing: Pricing) =>
+    buildPricingSignature({
+      label: pricing.label,
+      type: pricing.type,
+      amount: pricing.amount,
+      propertyType: pricing.property_type ?? null,
+      includePropertyType: false,
+    });
+
+  const linkedPricingMap = useMemo(() => {
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
+      const signature = buildPricingSignature({
+        label: item.label,
+        type: item.type,
+        amount: item.amount,
+        propertyType: item.property_type ?? null,
+      });
+      if (!acc[signature]) acc[signature] = [];
+      acc[signature].push(item);
+      return acc;
+    }, {});
+  }, [linkedPricingPackages]);
+
+  const linkedPricingLooseMap = useMemo(() => {
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
+      const signature = buildPricingSignature({
+        label: item.label,
+        type: item.type,
+        amount: item.amount,
+        propertyType: item.property_type ?? null,
+        includePropertyType: false,
+      });
+      if (!acc[signature]) acc[signature] = [];
+      acc[signature].push(item);
+      return acc;
+    }, {});
+  }, [linkedPricingPackages]);
+
+  const linkedPricingSignatures = useMemo(
+    () => new Set(Object.keys(linkedPricingMap)),
+    [linkedPricingMap],
+  );
+
+  const allPricingPackageMap = useMemo(() => {
+    return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
+      const exactSignature = buildPricingSignature({
+        label: item.label,
+        type: item.type,
+        amount: item.amount,
+        propertyType: item.property_type ?? null,
+      });
+      const looseSignature = buildPricingSignature({
+        label: item.label,
+        type: item.type,
+        amount: item.amount,
+        propertyType: item.property_type ?? null,
+        includePropertyType: false,
+      });
+
+      if (!acc[exactSignature]) acc[exactSignature] = [];
+      acc[exactSignature].push(item);
+
+      if (!acc[looseSignature]) acc[looseSignature] = [];
+      acc[looseSignature].push(item);
+
+      return acc;
+    }, {});
+  }, [linkedPricingPackages]);
+
+  const dedupeLinkedPricingRows = useCallback((rows: LinkedPricingPackage[]) => {
+    const seen = new Set<string>();
+    return rows.filter((row) => {
+      if (seen.has(row.id)) return false;
+      seen.add(row.id);
+      return true;
+    });
+  }, []);
+
+  const editingPricing = useMemo(
+    () => pricings.find((pricing) => pricing.id === editingId) ?? null,
+    [editingId, pricings],
+  );
+
+  const editingPricingLinkedRows = useMemo(() => {
+    if (!editingPricing) return [];
+    return dedupeLinkedPricingRows(
+      allPricingPackageMap[getPricingSignature(editingPricing)] ??
+        allPricingPackageMap[getLoosePricingSignature(editingPricing)] ??
+        [],
+    );
+  }, [allPricingPackageMap, dedupeLinkedPricingRows, editingPricing]);
+
+  const getPricingLinkedPackages = useCallback(
+    (pricing: Pricing) => {
+      const rows = dedupeLinkedPricingRows(
+        allPricingPackageMap[getPricingSignature(pricing)] ??
+          allPricingPackageMap[getLoosePricingSignature(pricing)] ??
+          [],
+      );
+
+      return rows.reduce<Array<{ id: string; name: string }>>((acc, row) => {
+        const packageId = row.package?.id ?? row.package_id;
+        const packageName = row.package?.name?.trim();
+        if (!packageId || !packageName) return acc;
+        if (acc.some((item) => item.id === packageId)) return acc;
+        acc.push({ id: packageId, name: packageName });
+        return acc;
+      }, []);
+    },
+    [allPricingPackageMap, dedupeLinkedPricingRows],
+  );
+
+  const getPricingLinkedRows = useCallback(
+    (pricing: Pricing) =>
+      dedupeLinkedPricingRows(
+        allPricingPackageMap[getPricingSignature(pricing)] ??
+          allPricingPackageMap[getLoosePricingSignature(pricing)] ??
+          [],
+      ),
+    [allPricingPackageMap, dedupeLinkedPricingRows],
+  );
 
   const togglePricingSelectionForPack = (pricingId: string) => {
     setSelectedPricingIdsForPack((prev) =>
@@ -354,11 +546,13 @@ const PricingGridManager = ({
       selectedPricingIdsForPack.includes(pricing.id),
     );
     const toAttach = selectedPricings.filter(
-      (pricing) => !linkedPricingSignatures.has(getPricingSignature(pricing)),
+      (pricing) =>
+        !linkedPricingSignatures.has(getPricingSignature(pricing)) &&
+        !(getLoosePricingSignature(pricing) in linkedPricingLooseMap),
     );
 
     if (toAttach.length === 0) {
-      alert("Les tarifs selectionnes sont deja lies au pack.");
+      alert("Les tarifs sélectionnés sont déjà liés au pack.");
       return;
     }
 
@@ -380,20 +574,63 @@ const PricingGridManager = ({
           const err = await res.json().catch(() => null);
           throw new Error(err?.error || `Erreur liaison tarif ${pricing.label}`);
         }
+        const createdLink: LinkedPricingPackage | null = await res.json().catch(() => null);
+        if (createdLink) {
+          setLinkedPricingPackages((prev) => [createdLink, ...prev]);
+        }
       }
 
-      setLinkedPricingSignatures((prev) => {
-        const next = new Set(prev);
-        toAttach.forEach((pricing) => next.add(getPricingSignature(pricing)));
-        return next;
-      });
       setSelectedPricingIdsForPack([]);
-      alert(`${toAttach.length} tarif(s) lie(s) au pack.`);
+      alert(`${toAttach.length} tarif(s) lié(s) au pack.`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erreur liaison au pack";
       alert(errorMessage);
     } finally {
       setIsLinkingSelected(false);
+    }
+  };
+
+  const handleDetachPricingFromPack = async (pricing: Pricing) => {
+    const linkedRows =
+      linkedPricingMap[getPricingSignature(pricing)] ??
+      linkedPricingLooseMap[getLoosePricingSignature(pricing)] ??
+      [];
+    if (linkedRows.length === 0) return;
+
+    try {
+      for (const linkedRow of linkedRows) {
+        const res = await fetch(`/api/services/pricing-packages/${linkedRow.id}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          throw new Error(err?.error || `Erreur déliaison tarif ${pricing.label}`);
+        }
+      }
+
+      const linkedIds = new Set(linkedRows.map((row) => row.id));
+      setLinkedPricingPackages((prev) => prev.filter((row) => !linkedIds.has(row.id)));
+      setSelectedPricingIdsForPack((prev) => prev.filter((id) => id !== pricing.id));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la déliaison';
+      alert(errorMessage);
+    }
+  };
+
+  const handleDetachPricingLink = async (linkId: string, pricingLabel: string) => {
+    try {
+      const res = await fetch(`/api/services/pricing-packages/${linkId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.error || `Erreur déliaison tarif ${pricingLabel}`);
+      }
+
+      setLinkedPricingPackages((prev) => prev.filter((row) => row.id !== linkId));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la déliaison';
+      alert(errorMessage);
     }
   };
 
@@ -502,11 +739,6 @@ const PricingGridManager = ({
     setFilterPricingType('');
     setSearchTerm('');
   };
-
-  const linkedServiceCount = useMemo(
-    () => visiblePricings.filter((pricing) => Boolean(pricing.service_id)).length,
-    [visiblePricings],
-  );
 
   const averageFixedAmount = useMemo(() => {
     const fixedPricings = visiblePricings.filter((pricing) => pricing.type === 'fixed');
@@ -704,7 +936,7 @@ const PricingGridManager = ({
             <h3 className={styles.headingTitle}>
               {isContextualMode
                 ? "Tarification contextuelle simplifiee"
-                : "Ma grille tarifaire personnalisee"}
+                : "Ma grille tarifaire personnalisée"}
             </h3>
             <p className={styles.headingText}>
               {isContextualMode
@@ -713,16 +945,13 @@ const PricingGridManager = ({
             </p>
             {linkedPackageId && (
               <p className={styles.headingPackHint}>
-                Les nouveaux tarifs seront aussi lies au pack :{' '}
+                Les nouveaux tarifs seront aussi liés au pack :{' '}
                 <strong>{linkedPackageName ?? linkedPackageId}</strong>
               </p>
             )}
             <div className={styles.inlineStats}>
               <span className={styles.inlineStat}>
                 <strong>{pricings.length}</strong> règles
-              </span>
-              <span className={styles.inlineStat}>
-                <strong>{linkedServiceCount}</strong> liees a un service
               </span>
             </div>
           </div>
@@ -768,7 +997,7 @@ const PricingGridManager = ({
                 onClick={() => setShowAdvancedPricingTools((prev) => !prev)}
               >
                 <FiPlus size={16} aria-hidden="true" />
-                {showAdvancedPricingTools ? "Masquer options avancees" : "Options avancees"}
+                {showAdvancedPricingTools ? "Masquer options avancées" : "Options avancées"}
               </button>
             </>
           ) : (
@@ -809,7 +1038,7 @@ const PricingGridManager = ({
                 <input
                   className={styles.searchInput}
                   type="text"
-                  placeholder="Rechercher un libelle..."
+                  placeholder="Rechercher un libellé..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   aria-label="Rechercher un tarif"
@@ -832,7 +1061,7 @@ const PricingGridManager = ({
                 onClick={() => setShowAddForm((prev) => !prev)}
               >
                 <FiPlus size={16} aria-hidden="true" />
-                {showAddForm ? 'Fermer le formulaire' : 'Nouvelle regle'}
+                {showAddForm ? 'Fermer le formulaire' : 'Nouvelle règle'}
               </button>
             </>
           )}
@@ -867,7 +1096,7 @@ const PricingGridManager = ({
                   <tr>
                     <td colSpan={7} className={styles.emptyCell}>
                       <p className={styles.emptyTitle}>
-                        Aucun service ne correspond a la recherche.
+                        Aucun service ne correspond à la recherche.
                       </p>
                     </td>
                   </tr>
@@ -1003,19 +1232,19 @@ const PricingGridManager = ({
       {shouldShowAdvancedTools && showAddForm && (
         <div className={styles.formCard}>
           <h4 className={styles.formTitle}>
-            {editingId ? 'Modifier la regle' : 'Nouvelle regle tarifaire'}
+            {editingId ? 'Modifier la règle' : 'Nouvelle règle tarifaire'}
           </h4>
           
           <div className={styles.formLayout}>
             {/* Service (optionnel) */}
             <div>
               <label className={styles.fieldLabel}>
-                Service associe (optionnel)
+                Service associé (optionnel)
               </label>
               {hasActiveServiceFilter && (
                 <p className={styles.fieldHint}>
                   {selectableServiceCount > 0
-                    ? "Seuls les services actifs dans l'onglet Missions sont proposes."
+                    ? "Seuls les services actifs dans l'onglet Missions sont proposés."
                     : 'Aucun service actif: activez un service dans Missions ou laissez ce champ vide.'}
                 </p>
               )}
@@ -1023,9 +1252,9 @@ const PricingGridManager = ({
                 className={styles.inputControl}
                 value={formData.service_id}
                 onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
-                aria-label="Service associe"
+                aria-label="Service associé"
               >
-                <option value="">- Service personnalise -</option>
+                <option value="">- Service personnalisé -</option>
                 {Object.entries(selectableServicesByCategory).map(([cat, services]) => (
                   <optgroup key={cat} label={cat}>
                     {services.map((s) => (
@@ -1039,12 +1268,12 @@ const PricingGridManager = ({
             {/* Libelle */}
             <div>
               <label className={styles.fieldLabel}>
-                Libelle du tarif *
+                Libellé du tarif *
               </label>
               <input
                 className={styles.inputControl}
                 type="text"
-                placeholder="Ex: Menage appartement 2 pieces"
+                placeholder="Ex: Ménage appartement 2 pièces"
                 value={formData.label}
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
               />
@@ -1088,14 +1317,14 @@ const PricingGridManager = ({
               {/* Surface min */}
               <div>
                 <label className={styles.fieldLabel}>
-                  Surface min (m2)
+                  Surface min (m²)
                 </label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.surface_min}
                   onChange={(e) => setFormData({ ...formData, surface_min: e.target.value })}
-                  aria-label="Surface minimum en metres carres"
+                  aria-label="Surface minimum en mètres carrés"
                   placeholder="Ex: 0"
                   min="0"
                 />
@@ -1104,14 +1333,14 @@ const PricingGridManager = ({
               {/* Surface max */}
               <div>
                 <label className={styles.fieldLabel}>
-                  Surface max (m2)
+                  Surface max (m²)
                 </label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.surface_max}
                   onChange={(e) => setFormData({ ...formData, surface_max: e.target.value })}
-                  aria-label="Surface maximum en metres carres"
+                  aria-label="Surface maximum en mètres carrés"
                   placeholder="Ex: 50"
                   min="0"
                 />
@@ -1137,14 +1366,14 @@ const PricingGridManager = ({
               {/* Duree estimee */}
               <div>
                 <label className={styles.fieldLabel}>
-                  Duree estimee (h)
+                  Durée estimée (h)
                 </label>
                 <input
                   className={styles.inputControl}
                   type="number"
                   value={formData.estimated_duration}
                   onChange={(e) => setFormData({ ...formData, estimated_duration: e.target.value })}
-                  aria-label="Duree estimee en heures"
+                  aria-label="Durée estimée en heures"
                   placeholder="Ex: 2.5"
                   min="0"
                   step="0.5"
@@ -1167,6 +1396,43 @@ const PricingGridManager = ({
               </div>
             )}
 
+            {editingId && (
+              <div className={styles.linkedNotice}>
+                <div className={styles.linkedNoticeContent}>
+                  <strong>
+                    {editingPricingLinkedRows.length > 0
+                      ? 'Tarif reli\u00E9 \u00E0'
+                      : 'Aucun pack reli\u00E9'}
+                  </strong>
+                  <span>
+                    {editingPricingLinkedRows.length > 0
+                      ? Array.from(
+                          new Set(
+                            editingPricingLinkedRows
+                              .map((row) => row.package?.name ?? '')
+                              .filter(Boolean),
+                          ),
+                        ).join(', ')
+                      : "Cette r\u00E8gle tarifaire n'est rattach\u00E9e \u00E0 aucun pack pour le moment."}
+                  </span>
+                </div>
+                {editingPricingLinkedRows.length > 0 ? (
+                  <div className={styles.linkedActions}>
+                    {editingPricingLinkedRows.map((row) => (
+                      <button
+                        key={row.id}
+                        type="button"
+                        className={styles.unlinkInlineButton}
+                        onClick={() => void handleDetachPricingLink(row.id, editingPricing?.label ?? row.label)}
+                      >
+                        {`D\u00E9lier ${row.package?.name ?? 'ce pack'}`}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
+
             {/* Actions */}
             <div className={styles.formActions}>
               <button
@@ -1175,7 +1441,7 @@ const PricingGridManager = ({
                 disabled={loading}
                 className={styles.successButton}
               >
-                {loading ? 'Enregistrement...' : (editingId ? 'Mettre a jour' : 'Ajouter')}
+                {loading ? 'Enregistrement...' : (editingId ? 'Mettre à jour' : 'Ajouter')}
               </button>
               <button
                 type="button"
@@ -1194,7 +1460,7 @@ const PricingGridManager = ({
       {shouldShowAdvancedTools && linkedPackageId && (
         <div className={styles.packageBar}>
           <p>
-            Selectionnez des tarifs existants puis integrez-les au pack {linkedPackageName ?? linkedPackageId}.
+                    Sélectionnez des tarifs existants puis intégrez-les au pack {linkedPackageName ?? linkedPackageId}.
           </p>
           <button
             type="button"
@@ -1203,8 +1469,8 @@ const PricingGridManager = ({
             className={styles.packLinkButton}
           >
             {isLinkingSelected
-              ? 'Integration...'
-              : `Integrer au pack (${selectedPricingIdsForPack.length})`}
+              ? 'Intégration...'
+              : `Intégrer au pack (${selectedPricingIdsForPack.length})`}
           </button>
         </div>
       )}
@@ -1215,11 +1481,6 @@ const PricingGridManager = ({
         <table className={styles.pricingTable}>
           <thead>
             <tr className={styles.tableHeaderRow}>
-              {linkedPackageId && (
-                <th className={styles.tableHeadCell}>
-                  PACK
-                </th>
-              )}
               <th className={styles.tableHeadCell}>
                 LIBELLE
               </th>
@@ -1243,11 +1504,11 @@ const PricingGridManager = ({
           <tbody>
             {visiblePricings.length === 0 ? (
               <tr>
-                <td colSpan={linkedPackageId ? 7 : 6} className={styles.emptyCell}>
+                <td colSpan={6} className={styles.emptyCell}>
                   <p className={styles.emptyTitle}>
                     {searchTerm || filterPropertyType || filterPricingType
                       ? 'Aucun tarif ne correspond aux filtres'
-                      : 'Aucune regle tarifaire definie.'}
+                      : 'Aucune règle tarifaire définie.'}
                   </p>
                   {(searchTerm || filterPropertyType || filterPricingType) && (
                     <button
@@ -1262,8 +1523,14 @@ const PricingGridManager = ({
               </tr>
             ) : (
               visiblePricings.map((pricing) => {
+                const linkedPackages = getPricingLinkedPackages(pricing);
+                const linkedRows = getPricingLinkedRows(pricing);
                 const isAlreadyLinkedToCurrentPack =
-                  linkedPackageId && linkedPricingSignatures.has(getPricingSignature(pricing));
+                  linkedPackageId &&
+                  (
+                    linkedPricingSignatures.has(getPricingSignature(pricing)) ||
+                    Boolean(linkedPricingLooseMap[getLoosePricingSignature(pricing)])
+                  );
                 const isCheckedForPack = selectedPricingIdsForPack.includes(pricing.id);
 
                 return (
@@ -1271,24 +1538,37 @@ const PricingGridManager = ({
                   key={pricing.id}
                   className={styles.tableRow}
                 >
-                  {linkedPackageId && (
-                    <td className={styles.tableCell}>
-                      <label className={styles.packToggle}>
-                        <input
-                          type="checkbox"
-                          checked={isCheckedForPack}
-                          onChange={() => togglePricingSelectionForPack(pricing.id)}
-                          disabled={Boolean(isAlreadyLinkedToCurrentPack)}
-                        />
-                        <span className={styles.packToggleText}>
-                          {isAlreadyLinkedToCurrentPack ? 'Deja lie' : 'Lier'}
-                        </span>
-                      </label>
-                    </td>
-                  )}
                   <td className={styles.tableCell}>
                     <div className={styles.labelCell}>
                       <span className={styles.labelText}>{pricing.label}</span>
+                      <div className={styles.linkedPackMeta}>
+                        {linkedPackages.length > 0 ? (
+                          <div className={styles.linkedPackList}>
+                            <span>
+                              {"Reli\u00E9 \u00E0 : "}
+                              {linkedPackages
+                                .map((item: { id: string; name: string }) => item.name)
+                                .join(", ")}
+                            </span>
+                            {!linkedPackageId ? (
+                              <div className={styles.linkedPackActions}>
+                                {linkedRows.map((row) => (
+                                  <button
+                                    key={row.id}
+                                    type="button"
+                                    className={styles.inlineTextAction}
+                                    onClick={() => void handleDetachPricingLink(row.id, pricing.label)}
+                                  >
+                                    {`D\u00E9lier ${row.package?.name ?? 'ce pack'}`}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span>Aucun pack reli\u00E9</span>
+                        )}
+                      </div>
                       {pricing.service && (
                         <div className={styles.serviceMeta}>
                           {pricing.service.category} {"->"} {pricing.service.service}
@@ -1326,6 +1606,30 @@ const PricingGridManager = ({
                   </td>
                   <td className={`${styles.tableCell} ${styles.actionsCell}`}>
                     <div className={styles.rowActions}>
+                      {linkedPackageId ? (
+                        isAlreadyLinkedToCurrentPack ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDetachPricingFromPack(pricing)}
+                            aria-label={`Délier le tarif ${pricing.label} du pack`}
+                            title="Délier du pack"
+                            className={styles.inlineTextAction}
+                          >
+                            Délier
+                          </button>
+                        ) : (
+                          <label className={styles.packToggle}>
+                            <input
+                              type="checkbox"
+                              checked={isCheckedForPack}
+                              onChange={() => togglePricingSelectionForPack(pricing.id)}
+                            />
+                            <span className={styles.packToggleText}>
+                              {isCheckedForPack ? 'À lier' : 'Lier'}
+                            </span>
+                          </label>
+                        )
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => handleEdit(pricing)}
@@ -1370,15 +1674,7 @@ const PricingGridManager = ({
                 {visiblePricings.length}
               </div>
             </div>
-            <div className={styles.quickStatItem}>
-              <div className={styles.quickStatLabel}>
-                Tarifs lies a un service
-              </div>
-              <div className={styles.quickStatValue}>
-                {linkedServiceCount}
-              </div>
-            </div>
-            <div className={styles.quickStatItem}>
+                      <div className={styles.quickStatItem}>
               <div className={styles.quickStatLabel}>
                 Tarif moyen forfait
               </div>
@@ -1402,3 +1698,10 @@ const PricingGridManager = ({
 };
 
 export default PricingGridManager;
+
+
+
+
+
+
+

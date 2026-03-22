@@ -2,138 +2,108 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  buildCreateLogementSummary,
   buildCreateLogementPayload,
+  buildCreateLogementSummary,
+  createInitialManualForm,
   validateCreateLogementForm,
 } from "../app/dashboard/concierge/logements/create/createLogementHelpers.ts";
 
-const baseForm = {
-  name: "Appartement test",
-  propertyType: "Appartement",
-  description: "",
-  capacity: "",
-  bedrooms: "",
-  equipments: "",
-  address: "1 rue de Paris",
-  city: "Paris",
-  platform: "Airbnb",
-  photo: "",
-  status: "pret" as const,
-};
+test("validateCreateLogementForm enforces the guided manual flow", () => {
+  const form = createInitialManualForm("manager-1");
+  assert.equal(validateCreateLogementForm(form), "Le nom du logement est obligatoire.");
 
-test("validateCreateLogementForm enforces required session and fields", () => {
-  assert.equal(
-    validateCreateLogementForm(
-      { ...baseForm, name: "" },
-      undefined,
-    ),
-    "Session introuvable. Reconnecte-toi pour créer un logement.",
-  );
-
-  assert.equal(
-    validateCreateLogementForm(
-      { ...baseForm, name: "   " },
-      "user-1",
-    ),
-    "Le nom du logement est obligatoire.",
-  );
-
-  assert.equal(
-    validateCreateLogementForm(
-      { ...baseForm, city: "   " },
-      "user-1",
-    ),
-    "La ville est obligatoire.",
-  );
-
-  assert.equal(
-    validateCreateLogementForm(
-      { ...baseForm, name: "Ap" },
-      "user-1",
-    ),
-    "Le nom du logement doit contenir au moins 3 caractères.",
-  );
-
-  assert.equal(
-    validateCreateLogementForm(
-      { ...baseForm, address: " " },
-      "user-1",
-    ),
-    "L'adresse est obligatoire.",
-  );
-
-  assert.equal(
-    validateCreateLogementForm(
-      { ...baseForm, photo: "ftp://img.png" },
-      "user-1",
-    ),
-    "La photo doit être une URL valide ou un chemin commençant par '/'.",
-  );
-});
-
-test("buildCreateLogementPayload trims values and builds expected body", () => {
-  assert.deepEqual(
-    buildCreateLogementPayload(
-      {
-        name: " Appartement ",
-        propertyType: " Appartement premium ",
-        description: " Bien lumineux ",
-        capacity: " 4 ",
-        bedrooms: " 2 ",
-        equipments: " Wifi, Parking , Piscine ",
-        address: " 12 rue Victor Hugo ",
-        city: " Paris ",
-        platform: " Airbnb ",
-        photo: " /img.png ",
-        status: "pret",
-      },
-      "user-1",
-    ),
-    {
-      infos: {
-        nomLogement: "Appartement",
-        adresse: "12 rue Victor Hugo",
-        photos: ["/img.png"],
-        categorie: "Appartement premium",
-        description: "Bien lumineux",
-        capacite: 4,
-        nb_chambres: 2,
-        equipements: ["Wifi", "Parking", "Piscine"],
-      },
-      statut: "pret",
-      photo_principale: "/img.png",
-      proprietaire: { id: "user-1" },
-      location: { city: "Paris", plateformePrincipale: "Airbnb" },
+  const partiallyFilled = {
+    ...form,
+    housingName: "Appart Montmartre",
+    addressLine1: "12 rue des Abbesses",
+    city: "Paris",
+    surfaceSqm: "45",
+    bedroomCount: "1",
+    services: [],
+    owner: {
+      ...form.owner,
+      fullName: "Jean Dupont",
+      email: "jean@email.com",
     },
+  };
+  assert.equal(
+    validateCreateLogementForm(partiallyFilled),
+    "Ajoutez au moins un service associe pour finaliser la creation manuelle.",
   );
 });
 
-test("buildCreateLogementSummary exposes a readable preview", () => {
-  assert.deepEqual(
-    buildCreateLogementSummary({
-      name: "Appartement",
-      propertyType: "Villa",
-      description: "",
-      capacity: "8",
-      bedrooms: "4",
-      equipments: "Piscine, Parking",
-      address: "12 rue Victor Hugo",
+test("buildCreateLogementPayload maps the new manual form to legacy-compatible housing JSON columns", () => {
+  const form = {
+    ...createInitialManualForm("manager-1"),
+    housingName: "Appart Montmartre",
+    addressLine1: "12 rue des Abbesses",
+    postalCode: "75018",
+    city: "Paris",
+    surfaceSqm: "45",
+    bedroomCount: "2",
+    amenities: "Wifi, Balcon",
+    owner: {
+      profileId: "owner-1",
+      managerProfileId: "manager-1",
+      fullName: "Jean Dupont",
+      email: "jean@email.com",
+      phone: "0600000000",
+      companyName: "",
       city: "Paris",
-      platform: "Airbnb",
-      photo: "",
-      status: "pret",
-    }),
-    [
-      { label: "Nom", value: "Appartement" },
-      { label: "Type", value: "Villa" },
-      { label: "Adresse", value: "12 rue Victor Hugo" },
-      { label: "Ville", value: "Paris" },
-      { label: "Plateforme", value: "Airbnb" },
-      { label: "Capacité", value: "8" },
-      { label: "Chambres", value: "4" },
-      { label: "Équipements", value: "Piscine, Parking" },
-      { label: "Statut", value: "pret" },
-      { label: "Photo", value: "Aucune" },
+      notes: "",
+      source: "directory" as const,
+    },
+    services: [
+      {
+        id: "service-1",
+        label: "Menage hebdo",
+        category: "Menage",
+        frequency: "Hebdomadaire",
+        unitPrice: "80",
+        totalPrice: "320",
+        notes: "4 passages",
+      },
     ],
-  );
+  };
+
+  const payload = buildCreateLogementPayload(form);
+  assert.equal(payload.nom_logement, "Appart Montmartre");
+  assert.equal(payload.ville, "Paris");
+  assert.equal((payload.proprietaire as Record<string, unknown>).owner_profile_id, "owner-1");
+  assert.equal((payload.proprietaire as Record<string, unknown>).manager_profile_id, "manager-1");
+  assert.equal((payload.location as Record<string, unknown>).postal_code, "75018");
+  assert.equal(((payload.menage as Record<string, unknown>).services as Array<Record<string, unknown>>)[0]?.label, "Menage hebdo");
+});
+
+test("buildCreateLogementSummary exposes the premium guided preview", () => {
+  const form = {
+    ...createInitialManualForm("manager-1"),
+    housingName: "Appart Montmartre",
+    propertyType: "Appartement",
+    addressLine1: "12 rue des Abbesses",
+    city: "Paris",
+    surfaceSqm: "45",
+    owner: {
+      profileId: "owner-1",
+      managerProfileId: "manager-1",
+      fullName: "Jean Dupont",
+      email: "jean@email.com",
+      phone: "",
+      companyName: "",
+      city: "Paris",
+      notes: "",
+      source: "manual" as const,
+    },
+  };
+
+  assert.deepEqual(buildCreateLogementSummary(form), [
+    { label: "Logement", value: "Appart Montmartre" },
+    { label: "Proprietaire", value: "Jean Dupont" },
+    { label: "Adresse", value: "12 rue des Abbesses" },
+    { label: "Ville", value: "Paris" },
+    { label: "Type", value: "Appartement" },
+    { label: "Surface", value: "45 m2" },
+    { label: "Services", value: "1" },
+    { label: "Flux", value: "Manuel" },
+  ]);
 });

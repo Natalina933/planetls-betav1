@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
 type QuoteStatus =
   | "draft"
@@ -116,7 +117,19 @@ export async function PATCH(
       console.error("[PATCH /api/quotes/:id/status] event error:", eventError);
     }
 
-    return NextResponse.json(updated);
+    let autoHousingResult: { housingId: number; created: boolean } | null = null;
+    if (nextStatus === "accepted") {
+      try {
+        autoHousingResult = await createHousingFromQuote(id, userId);
+      } catch (autoHousingError) {
+        console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
+      }
+    }
+
+    return NextResponse.json({
+      ...updated,
+      auto_housing: autoHousingResult,
+    });
   } catch (err) {
     console.error("[PATCH /api/quotes/:id/status] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

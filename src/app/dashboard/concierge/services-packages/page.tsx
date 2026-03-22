@@ -1,40 +1,18 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
-
-type ServiceCatalogRow = {
-  id: string;
-  category: string | null;
-  service: string | null;
-};
-
-type PackageRow = {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string | null;
-  services_package_items?: Array<{ service_id: string }>;
-};
-
-type PricingPackageRow = {
-  id: string;
-  package_id: string;
-  label: string;
-  type: string;
-  amount: number;
-  property_type: string | null;
-};
-
-type ContractTemplateRow = {
-  id: string;
-  package_id: string;
-  title: string;
-};
-
-function formatMoney(value: number) {
-  return `${value.toFixed(0)} EUR`;
-}
+import Link from "next/link";
+import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
+import OfferInfoCard from "@/app/components/dashboard/concierge/offers/OfferInfoCard";
+import OfferMetricCard from "@/app/components/dashboard/concierge/offers/OfferMetricCard";
+import {
+  formatServicePackageMoney,
+  type ContractTemplateRow,
+  type PackageRow,
+  type PricingPackageRow,
+  type ServiceCatalogRow,
+} from "@/types/servicePackages";
+import styles from "./page.module.scss";
 
 export default function ServicesPackagesPage() {
   const [catalog, setCatalog] = useState<ServiceCatalogRow[]>([]);
@@ -90,113 +68,170 @@ export default function ServicesPackagesPage() {
     void loadData();
   }, []);
 
-  const serviceNameById = useMemo(
-    () => new Map(catalog.map((service) => [service.id, service.service || service.category || "Service"])),
-    [catalog],
+  const serviceCount = catalog.length;
+  const packageCount = packages.length;
+  const pricingCount = pricingPackages.length;
+  const templateCount = templates.length;
+
+  const linkedServicesCount = useMemo(
+    () =>
+      packages.reduce(
+        (total, pack) =>
+          total + (Array.isArray(pack.services_package_items) ? pack.services_package_items.length : 0),
+        0,
+      ),
+    [packages],
   );
 
-  const cards = useMemo(() => {
-    if (packages.length === 0) {
-      return [
-        {
-          title: "Aucun pack créé pour le moment",
-          text: loading
-            ? "Chargement de vos packs en cours."
-            : error ||
-              "Vos packs de services, tarifs liés et modèles de contrat seront centralisés ici.",
-          actions: [
-            {
-              label: "Configurer mes packs dans la fiche concierge",
-              href: "/dashboard/concierge/profile?tab=packs",
-              variant: "primary" as const,
-            },
-          ],
-        },
-      ];
-    }
+  const averageServicesPerPack = useMemo(() => {
+    if (packages.length === 0) return 0;
+    return Math.round((linkedServicesCount / packages.length) * 10) / 10;
+  }, [linkedServicesCount, packages.length]);
 
-    return packages.map((pack) => {
-      const linkedPricing = pricingPackages.filter((item) => item.package_id === pack.id);
-      const linkedTemplates = templates.filter((item) => item.package_id === pack.id);
-      const linkedServices =
-        pack.services_package_items?.map((item) => serviceNameById.get(item.service_id) || "Service") || [];
+  const highlightedPack = useMemo(() => {
+    if (packages.length === 0) return null;
 
-      const pricingPreview =
-        linkedPricing.length > 0
-          ? linkedPricing
-              .slice(0, 2)
-              .map((item) => `${item.label}: ${formatMoney(item.amount)}`)
-              .join(" | ")
-          : "Aucun tarif lié";
+    return [...packages]
+      .sort((a, b) => {
+        const aCount = a.services_package_items?.length ?? 0;
+        const bCount = b.services_package_items?.length ?? 0;
+        return bCount - aCount;
+      })
+      .at(0) ?? null;
+  }, [packages]);
 
-      const templatesPreview =
-        linkedTemplates.length > 0
-          ? `${linkedTemplates.length} modèle(s) de contrat`
-          : "Aucun modèle de contrat";
-
-      return {
-        title: pack.name,
-        text: [
-          pack.description || pack.category || "Pack sans description",
-          linkedServices.length > 0
-            ? `Services : ${linkedServices.slice(0, 4).join(", ")}`
-            : "Services non renseignés",
-          pricingPreview,
-          templatesPreview,
-        ].join(" - "),
-        actions: [
-          {
-            label: "Ouvrir dans la fiche",
-            href: "/dashboard/concierge/profile?tab=packs",
-            variant: "secondary" as const,
-          },
-          {
-            label: "Lier un tarif",
-            href: `/dashboard/concierge/pricing?packageId=${pack.id}&packageName=${encodeURIComponent(pack.name)}`,
-            variant: "primary" as const,
-          },
-        ],
-      };
-    });
-  }, [error, loading, packages, pricingPackages, serviceNameById, templates]);
+  const metrics = [
+    {
+      label: "Catalogue services",
+      value: loading ? "..." : String(serviceCount),
+      hint: "Services disponibles dans la base",
+    },
+    {
+      label: "Packs actifs",
+      value: loading ? "..." : String(packageCount),
+      hint: "Offres prêtes à réutiliser",
+    },
+    {
+      label: "Tarifs liés",
+      value: loading ? "..." : String(pricingCount),
+      hint: "Tarifs raccordés aux packs",
+    },
+    {
+      label: "Modèles contrat",
+      value: loading ? "..." : String(templateCount),
+      hint: "Trames prêtes à signer",
+    },
+  ];
 
   return (
-    <ConciergeWorkspacePage
-      eyebrow="Offres et industrialisation"
-      title="Packs de services concierge"
-      description={
-        loading
-          ? "Chargement de vos packs de services..."
-          : error ||
-            "Centralisez vos offres commercialisables, les tarifs associés et les modèles de contrat pour standardiser vos signatures propriétaires."
-      }
-      chips={[
-        `${packages.length} pack(s)`,
-        `${pricingPackages.length} tarif(s) lié(s)`,
-        `${templates.length} modèle(s)`,
-      ]}
-      actions={[
-        { label: "Ouvrir ma fiche concierge", href: "/dashboard/concierge/profile?tab=packs" },
-        { label: "Voir la grille tarifaire", href: "/dashboard/concierge/pricing" },
-      ]}
-      metrics={[
-        {
-          label: "Catalogue services",
-          value: loading ? "..." : String(catalog.length),
-          hint: "Services disponibles dans la base",
-        },
-        {
-          label: "Packs actifs",
-          value: loading ? "..." : String(packages.length),
-          hint: "Offres structurées",
-        },
-        {
-          label: "Modèles contrat",
-          value: loading ? "..." : String(templates.length),
-          hint: "Trames prêtes à signer",
-        },
-      ]}
-      cards={cards}
-    />
+    <section className={`dashboard-grid ${styles.page}`}>
+      <div className={styles.hero}>
+        <span className={styles.eyebrow}>Offres et industrialisation</span>
+
+        <div className={styles.heroTop}>
+          <div className={styles.heroCopy}>
+            <h1 className={styles.heroTitle}>Packs de services concierge</h1>
+            <p className={styles.heroText}>
+              Structurez des offres simples à réutiliser dans vos logements : un pack prêt à
+              l&apos;emploi pour aller vite, ou quelques services à la carte quand le besoin est
+              plus spécifique. Les tarifs et modèles de contrat restent directement liés à vos
+              packs.
+            </p>
+          </div>
+
+          <div className={styles.heroActions}>
+            <Link href="/dashboard/concierge/pricing" className={styles.heroLink}>
+              Ouvrir la grille tarifaire
+            </Link>
+            <Link
+              href="/dashboard/concierge/profile?tab=missions"
+              className={styles.heroLink}
+            >
+              Voir Services & disponibilités
+            </Link>
+          </div>
+        </div>
+
+        <div className={styles.metricsGrid}>
+          {metrics.map((metric) => (
+            <OfferMetricCard
+              key={metric.label}
+              label={metric.label}
+              value={metric.value}
+              hint={metric.hint}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.workspace}>
+        <section className={styles.workspaceMain}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.eyebrow}>Construction des offres</span>
+            <h2 className={styles.sectionTitle}>Créer des packs clairs et réutilisables</h2>
+            <p className={styles.sectionText}>
+              Commencez par sélectionner les services actifs de votre conciergerie,
+              regroupez-les dans un pack lisible, puis rattachez un tarif pour accélérer la
+              configuration des logements.
+            </p>
+          </div>
+
+          <ServicePackageManager />
+        </section>
+
+        <aside className={styles.workspaceAside}>
+          <OfferInfoCard title="Parcours recommandé">
+            <p className={styles.copyLine}>1. Activez vos services dans Missions.</p>
+            <p className={styles.copyLine}>2. Regroupez-les dans un pack simple.</p>
+            <p className={styles.copyLine}>
+              3. Liez un tarif pour rendre le pack exploitable dans les logements.
+            </p>
+          </OfferInfoCard>
+
+          <OfferInfoCard title="Lecture rapide">
+            {highlightedPack ? (
+              <>
+                <p className={styles.copyLine}>
+                  Pack le plus dense : <strong>{highlightedPack.name}</strong>
+                </p>
+                <p className={styles.copyLine}>
+                  {(highlightedPack.services_package_items?.length ?? 0)} service(s) inclus
+                </p>
+              </>
+            ) : (
+              <p className={styles.copyLine}>
+                Aucun pack créé pour le moment. Préparez votre premier pack pour simplifier la
+                configuration des logements.
+              </p>
+            )}
+            <p className={styles.copyLine}>
+              Moyenne actuelle : <strong>{averageServicesPerPack}</strong> service(s) par pack
+            </p>
+          </OfferInfoCard>
+
+          <OfferInfoCard title="Tarification">
+            <p className={styles.copyLine}>
+              {pricingCount > 0
+                ? `${pricingCount} tarif(s) déjà relié(s) à vos packs.`
+                : "Aucun tarif lié pour le moment."}
+            </p>
+            {pricingPackages.slice(0, 2).map((pricing) => (
+              <p key={pricing.id} className={styles.copyLine}>
+                {pricing.label} : <strong>{formatServicePackageMoney(pricing.amount)}</strong>
+              </p>
+            ))}
+            <Link href="/dashboard/concierge/pricing" className={styles.heroLink}>
+              Gérer les tarifs
+            </Link>
+          </OfferInfoCard>
+
+          {error ? (
+            <OfferInfoCard title="Chargement incomplet" tone="danger">
+              <p className={styles.copyLine}>{error}</p>
+            </OfferInfoCard>
+          ) : null}
+        </aside>
+      </div>
+    </section>
   );
 }

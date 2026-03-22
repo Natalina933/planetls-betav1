@@ -1,0 +1,70 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px solid rgba(184, 139, 74, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 34%),
+    linear-gradient(145deg, #fffdf7 0%, #f4ead8 100%);
+  box-shadow: 0 16px 40px rgba(74, 53, 16, 0.08);
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a7a3b;
+}
+
+.heroTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.title {
+  margin: 0;
+  color: #3f2f14;
+}
+
+.text {
+  margin: 0;
+  color: #5f5237;
+  max-width: 72ch;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.link {
+  color: #7b5b23;
+  font-weight: 700;
+}
+
+.workspace {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 139, 74, 0.18);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(74, 53, 16, 0.06);
+}

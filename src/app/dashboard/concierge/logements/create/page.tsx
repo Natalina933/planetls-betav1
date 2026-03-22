@@ -1,7 +1,5 @@
-"use client";
+import LogementCreateModal from "@/app/components/dashboard/concierge/LogementCreateModal";
 
-import CreateHousingForm from "@/app/components/dashboard/housing/CreateHousingForm";
-
-export default function AddLogementPage() {
-  return <CreateHousingForm redirectPath="/dashboard/concierge/logements" />;
+export default function ConciergeCreateHousingPage() {
+  return <LogementCreateModal />;
 }

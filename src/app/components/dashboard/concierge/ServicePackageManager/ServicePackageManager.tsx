@@ -2,7 +2,23 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, X, Package, Zap, AlertCircle, Save, Unlink } from "lucide-react";
+import {
+  AlertCircle,
+  Package,
+  Plus,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  Unlink,
+  X,
+  Zap,
+} from "lucide-react";
+import {
+  DEFAULT_SERVICE_PACK_TEMPLATES,
+  type DefaultPackTemplate,
+  normalizeServicePackageName,
+  normalizeServicePackageText,
+} from "@/types/servicePackages";
 import styles from "./ServicePackageManager.module.scss";
 
 interface Service {
@@ -58,28 +74,29 @@ interface Props {
 }
 
 const PROPOSED_SERVICES: Service[] = [
-  { id: "1", category: "Menage", service: "Menage standard", description: "Nettoyage complet", isProposed: true },
-  { id: "2", category: "Menage", service: "Menage entre voyageurs", description: "Nettoyage rapide", isProposed: true },
+  { id: "1", category: "Ménage", service: "Ménage standard", description: "Nettoyage complet", isProposed: true },
+  { id: "2", category: "Ménage", service: "Ménage entre voyageurs", description: "Nettoyage rapide", isProposed: true },
   { id: "13", category: "Linge", service: "Gestion stock linge", description: "Inventaire et renouvellement", isProposed: true },
-  { id: "15", category: "Linge", service: "Linge bebe", description: "Draps et lit parapluie", isProposed: true },
+  { id: "15", category: "Linge", service: "Linge bébé", description: "Draps et lit parapluie", isProposed: true },
   { id: "16", category: "Accueil", service: "Check-in / Check-out", description: "Accueil voyageurs", isProposed: true },
-  { id: "17", category: "Accueil", service: "Conciergerie 24/7", description: "Disponibilite 24h/24", isProposed: true },
-  { id: "18", category: "Accueil", service: "Kit de bienvenue", description: "Kit personnalise", isProposed: true },
-  { id: "25", category: "Maintenance", service: "Controle d'etat", description: "Verification logement", isProposed: true },
-  { id: "35", category: "Courses", service: "Courses d'arrivee", description: "Produits premiere necessite", isProposed: true },
+  { id: "17", category: "Accueil", service: "Conciergerie 24/7", description: "Disponibilité 24h/24", isProposed: true },
+  { id: "18", category: "Accueil", service: "Kit de bienvenue", description: "Kit personnalisé", isProposed: true },
+  { id: "25", category: "Maintenance", service: "Contrôle d'état", description: "Vérification logement", isProposed: true },
+  { id: "35", category: "Courses", service: "Courses d'arrivée", description: "Produits première nécessité", isProposed: true },
 ];
 
 const normalizePackage = (pkg: ApiPackage, services: Service[]): ServicePackage => {
   const idsFromItems = Array.isArray(pkg.services_package_items)
     ? pkg.services_package_items.map((item) => item.service_id)
     : [];
-  const serviceIds = Array.isArray(pkg.service_ids) && pkg.service_ids.length > 0 ? pkg.service_ids : idsFromItems;
+  const serviceIds =
+    Array.isArray(pkg.service_ids) && pkg.service_ids.length > 0 ? pkg.service_ids : idsFromItems;
 
   return {
     id: pkg.id,
     name: pkg.name,
     description: pkg.description ?? "",
-    category: pkg.category ?? "General",
+    category: pkg.category ?? "Général",
     service_ids: serviceIds,
     services: services.filter((svc) => serviceIds.includes(svc.id)),
     attached_pricings: [],
@@ -110,25 +127,16 @@ const ServicePackageManager: React.FC<Props> = ({
     selected_service_ids: [] as string[],
   });
 
-  const normalizeServiceText = useCallback(
-    (value: string) =>
-      value
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim(),
-    [],
-  );
-
   const missionLabelSet = useMemo(
     () =>
       new Set(
         (activeMissionServiceLabels ?? [])
           .filter(Boolean)
-          .map((label) => normalizeServiceText(label)),
+          .map((label) => normalizeServicePackageText(label)),
       ),
-    [activeMissionServiceLabels, normalizeServiceText],
+    [activeMissionServiceLabels],
   );
+
   const missionIdSet = useMemo(
     () => new Set((activeMissionServiceIds ?? []).filter(Boolean)),
     [activeMissionServiceIds],
@@ -141,9 +149,22 @@ const ServicePackageManager: React.FC<Props> = ({
     return proposedServices.filter(
       (service) =>
         missionIdSet.has(service.id) ||
-        missionLabelSet.has(normalizeServiceText(service.service)),
+        missionLabelSet.has(normalizeServicePackageText(service.service)),
     );
-  }, [proposedServices, missionIdSet, missionLabelSet, normalizeServiceText]);
+  }, [proposedServices, missionIdSet, missionLabelSet]);
+
+  const existingPackageNames = useMemo(
+    () => new Set(packages.map((pkg) => normalizeServicePackageName(pkg.name))),
+    [packages],
+  );
+
+  const suggestedTemplates = useMemo(
+    () =>
+      DEFAULT_SERVICE_PACK_TEMPLATES.filter(
+        (template) => !existingPackageNames.has(normalizeServicePackageName(template.name)),
+      ),
+    [existingPackageNames],
+  );
 
   React.useEffect(() => {
     const loadPackages = async () => {
@@ -175,7 +196,7 @@ const ServicePackageManager: React.FC<Props> = ({
             }
           }
         } catch {
-          // Fallback to static list if services catalog is unavailable
+          // fallback local si catalogue indisponible
         }
 
         const response = await fetch("/api/services/packages");
@@ -213,9 +234,15 @@ const ServicePackageManager: React.FC<Props> = ({
     const selectedAllowedServiceIds = formData.selected_service_ids.filter((id) =>
       availableIdSet.has(id),
     );
+    const normalizedIncomingName = normalizeServicePackageName(formData.name);
 
     if (!formData.name.trim() || !formData.category || selectedAllowedServiceIds.length === 0) {
-      alert("Remplissez tous les champs et selectionnez au moins un service");
+      alert("Remplissez tous les champs et sélectionnez au moins un service");
+      return;
+    }
+
+    if (existingPackageNames.has(normalizedIncomingName)) {
+      alert("Un pack avec ce nom existe déjà.");
       return;
     }
 
@@ -232,7 +259,7 @@ const ServicePackageManager: React.FC<Props> = ({
         }),
       });
 
-      if (!response.ok) throw new Error("Erreur creation pack");
+      if (!response.ok) throw new Error("Erreur création pack");
 
       const created: ApiPackage = await response.json();
       const newPackage = normalizePackage(created, proposedServices);
@@ -243,24 +270,77 @@ const ServicePackageManager: React.FC<Props> = ({
         return next;
       });
       onPackCreated?.(newPackage);
-
+      setSelectedPackId(newPackage.id);
       setFormData({ name: "", description: "", category: "", selected_service_ids: [] });
       setShowNewPackForm(false);
     } catch (err) {
-      console.error("Erreur creation pack:", err);
-      alert("Erreur lors de la creation du pack");
+      console.error("Erreur création pack:", err);
+      alert("Erreur lors de la création du pack");
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, proposedServices, onPackCreated, onPacksLoaded, availableServices]);
+  }, [availableServices, existingPackageNames, formData, onPackCreated, onPacksLoaded, proposedServices]);
+
+  const handleCreateTemplate = useCallback(
+    async (template: DefaultPackTemplate) => {
+      const matchedServiceIds = availableServices
+        .filter((service) => {
+          const haystack = normalizeServicePackageText(
+            `${service.category} ${service.service} ${service.description}`,
+          );
+          return template.serviceHints.some((hint) =>
+            haystack.includes(normalizeServicePackageText(hint)),
+          );
+        })
+        .map((service) => service.id);
+
+      const uniqueServiceIds = Array.from(new Set(matchedServiceIds));
+
+      if (uniqueServiceIds.length === 0) {
+        alert("Aucun service actif ne correspond encore à ce modèle.");
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        const response = await fetch("/api/services/packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: template.name,
+            description: template.description,
+            category: template.category,
+            service_ids: uniqueServiceIds,
+          }),
+        });
+
+        if (!response.ok) throw new Error("Erreur création pack");
+
+        const created: ApiPackage = await response.json();
+        const newPackage = normalizePackage(created, proposedServices);
+
+        setPackages((prev) => {
+          const next = [newPackage, ...prev];
+          onPacksLoaded?.(next);
+          return next;
+        });
+        onPackCreated?.(newPackage);
+        setSelectedPackId(newPackage.id);
+      } catch (err) {
+        console.error("Erreur création pack modèle:", err);
+        alert("Erreur lors de la création du pack");
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [availableServices, onPackCreated, onPacksLoaded, proposedServices],
+  );
 
   React.useEffect(() => {
     const availableIdSet = new Set(availableServices.map((service) => service.id));
     setFormData((prev) => ({
       ...prev,
-      selected_service_ids: prev.selected_service_ids.filter((id) =>
-        availableIdSet.has(id),
-      ),
+      selected_service_ids: prev.selected_service_ids.filter((id) => availableIdSet.has(id)),
     }));
   }, [availableServices]);
 
@@ -294,7 +374,7 @@ const ServicePackageManager: React.FC<Props> = ({
           `/api/services/pricing-packages?packageId=${encodeURIComponent(selectedPackId)}`,
         );
         if (!response.ok) {
-          throw new Error("Erreur chargement tarifs lies");
+          throw new Error("Erreur chargement tarifs liés");
         }
 
         const data = (await response.json()) as AttachedPricing[];
@@ -306,7 +386,7 @@ const ServicePackageManager: React.FC<Props> = ({
           ),
         );
       } catch (err) {
-        console.warn("Chargement tarifs lies indisponible:", err);
+        console.warn("Chargement tarifs liés indisponible:", err);
       } finally {
         setIsLoadingAttachedPricings(false);
       }
@@ -324,7 +404,7 @@ const ServicePackageManager: React.FC<Props> = ({
           method: "DELETE",
         });
         if (!response.ok) {
-          throw new Error("Erreur suppression tarif lie");
+          throw new Error("Erreur suppression tarif lié");
         }
 
         setPackages((prev) =>
@@ -340,8 +420,8 @@ const ServicePackageManager: React.FC<Props> = ({
           ),
         );
       } catch (err) {
-        console.error("Erreur suppression tarif lie:", err);
-        alert("Erreur lors de la suppression du tarif lie");
+        console.error("Erreur suppression tarif lié:", err);
+        alert("Erreur lors de la suppression du tarif lié");
       }
     },
     [selectedPackId],
@@ -351,31 +431,31 @@ const ServicePackageManager: React.FC<Props> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <h2>
-          <Package size={24} /> Packs de Services
+          <Package size={24} /> Packs de services
         </h2>
-        <p>Groupez vos services proposes pour creer des packages tarifaires et contractuels</p>
+        <p>Groupez vos services proposés pour créer des packages tarifaires et contractuels.</p>
       </div>
 
       <div className={styles.content}>
         <div className={styles.packsList}>
           <div className={styles.listHeader}>
-            <h3>Mes Packs ({packages.length})</h3>
+            <h3>Mes packs ({packages.length})</h3>
             {!showNewPackForm && (
               <button onClick={() => setShowNewPackForm(true)} className={styles.addButton}>
-                <Plus size={18} /> Nouveau Pack
+                <Plus size={18} /> Nouveau pack
               </button>
             )}
           </div>
 
           {showNewPackForm && (
             <div className={styles.newPackForm}>
-              <h4>Creer un nouveau pack</h4>
+              <h4>Créer un nouveau pack</h4>
 
               <div className={styles.formGroup}>
                 <label>Nom du pack *</label>
                 <input
                   type="text"
-                  placeholder="Ex: Pack Courte Duree, Pack Luxe..."
+                  placeholder="Ex : Pack courte durée, Pack luxe..."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
@@ -384,16 +464,19 @@ const ServicePackageManager: React.FC<Props> = ({
               <div className={styles.formGroup}>
                 <label>Description</label>
                 <textarea
-                  placeholder="Decrire ce pack..."
+                  placeholder="Décrire ce pack..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
 
               <div className={styles.formGroup}>
-                <label>Categorie principale *</label>
-                <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>
-                  <option value="">Selectionner...</option>
+                <label>Catégorie principale *</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                >
+                  <option value="">Sélectionner...</option>
                   {Object.keys(servicesByCategory).map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
@@ -405,7 +488,7 @@ const ServicePackageManager: React.FC<Props> = ({
               <div className={styles.serviceSelection}>
                 <label>Services du pack *</label>
                 <p className={styles.hint}>
-                  Selectionnez au moins un service propose actif dans Missions :
+                  Sélectionnez au moins un service proposé actif dans Missions :
                 </p>
                 <p className={styles.hint}>
                   {availableServices.length} service(s) disponible(s) selon vos services actifs.
@@ -413,7 +496,7 @@ const ServicePackageManager: React.FC<Props> = ({
 
                 {availableServices.length === 0 && (
                   <p className={styles.hint}>
-                    Aucun service actif trouve dans Missions. Activez vos services dans
+                    Aucun service actif trouvé dans Missions. Activez vos services dans
                     l&apos;onglet Missions pour les utiliser dans les packs.
                   </p>
                 )}
@@ -429,8 +512,10 @@ const ServicePackageManager: React.FC<Props> = ({
                             checked={formData.selected_service_ids.includes(svc.id)}
                             onChange={() => handleToggleService(svc.id)}
                           />
-                          <span className={styles.serviceName}>{svc.service}</span>
-                          <span className={styles.serviceDesc}>{svc.description}</span>
+                          <span className={styles.serviceText}>
+                            <span className={styles.serviceName}>{svc.service}</span>
+                            <span className={styles.serviceDesc}>{svc.description}</span>
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -439,13 +524,22 @@ const ServicePackageManager: React.FC<Props> = ({
               </div>
 
               <div className={styles.formActions}>
-                <button onClick={handleCreatePackage} disabled={isSubmitting} className={styles.saveButton}>
-                  <Save size={18} /> {isSubmitting ? "Creation..." : "Creer le Pack"}
+                <button
+                  onClick={handleCreatePackage}
+                  disabled={isSubmitting}
+                  className={styles.saveButton}
+                >
+                  <Save size={18} /> {isSubmitting ? "Création..." : "Créer le pack"}
                 </button>
                 <button
                   onClick={() => {
                     setShowNewPackForm(false);
-                    setFormData({ name: "", description: "", category: "", selected_service_ids: [] });
+                    setFormData({
+                      name: "",
+                      description: "",
+                      category: "",
+                      selected_service_ids: [],
+                    });
                   }}
                   className={styles.cancelButton}
                 >
@@ -464,17 +558,80 @@ const ServicePackageManager: React.FC<Props> = ({
                   onClick={() => window.location.reload()}
                   type="button"
                 >
-                  Reessayer
+                  Réessayer
                 </button>
               </div>
             )}
 
-            {isLoadingPackages && <div className={styles.empty}><p>Chargement des packs...</p></div>}
+            {isLoadingPackages && (
+              <div className={styles.empty}>
+                <p>Chargement des packs...</p>
+              </div>
+            )}
 
             {!isLoadingPackages && !loadError && packages.length === 0 && !showNewPackForm && (
               <div className={styles.empty}>
-                <Package size={40} />
-                <p>Aucun pack cree. Commencez par creer votre premier pack.</p>
+                <div className={styles.emptyHero}>
+                  <div className={styles.emptyIcon}>
+                    <Sparkles size={20} />
+                  </div>
+                  <div className={styles.emptyContent}>
+                    <strong>Construisez votre première offre prête à vendre</strong>
+                    <p>
+                      Commencez avec un modèle conciergerie, puis ajustez les services,
+                      les tarifs et les contrats selon votre façon de travailler.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!isLoadingPackages && !loadError && !showNewPackForm && suggestedTemplates.length > 0 && (
+              <div className={styles.templatesPanel}>
+                <div className={styles.templatesHeader}>
+                  <div>
+                    <h5>{packages.length === 0 ? "Modèles proposés" : "Autres modèles disponibles"}</h5>
+                    <p>Des offres déjà structurées pour aller plus vite sans repartir de zéro.</p>
+                  </div>
+                </div>
+                <div className={styles.templateGrid}>
+                  {suggestedTemplates.map((template) => (
+                    <article
+                      key={template.id}
+                      className={`${styles.templateCard} ${styles[`templateCard${template.accent.charAt(0).toUpperCase()}${template.accent.slice(1)}`]}`}
+                    >
+                      <div className={styles.templateTopRow}>
+                        <span className={styles.templateCategory}>{template.category}</span>
+                        {template.id === "premium" ? (
+                          <span className={styles.templateRecommended}>Recommandé</span>
+                        ) : (
+                          <span className={styles.templateState}>Prêt à créer</span>
+                        )}
+                      </div>
+                      <div className={styles.templateBody}>
+                        <strong className={styles.templateTitle}>{template.name}</strong>
+                        <p className={styles.templateDescription}>{template.description}</p>
+                        <div className={styles.templatePromise}>
+                          <ShieldCheck size={15} />
+                          <span>{template.promise}</span>
+                        </div>
+                        <div className={styles.templateHints}>
+                          {template.serviceHints.slice(0, 4).map((hint) => (
+                            <span key={hint}>{hint}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.templateButton}
+                        onClick={() => handleCreateTemplate(template)}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Création..." : "Créer ce pack"}
+                      </button>
+                    </article>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -511,7 +668,9 @@ const ServicePackageManager: React.FC<Props> = ({
               </button>
             </div>
 
-            {selectedPackage.description && <p className={styles.detailsDescription}>{selectedPackage.description}</p>}
+            {selectedPackage.description && (
+              <p className={styles.detailsDescription}>{selectedPackage.description}</p>
+            )}
 
             <div className={styles.detailsSection}>
               <h4>Services inclus</h4>
@@ -527,7 +686,7 @@ const ServicePackageManager: React.FC<Props> = ({
 
             <div className={styles.detailsSection}>
               <div className={styles.sectionHeader}>
-                <h4>Tarifs attaches</h4>
+                <h4>Tarifs attachés</h4>
                 <button
                   className={styles.linkButton}
                   onClick={() =>
@@ -538,15 +697,15 @@ const ServicePackageManager: React.FC<Props> = ({
                     )
                   }
                 >
-                  <Zap size={16} /> Ajouter Tarif
+                  <Zap size={16} /> Ajouter un tarif
                 </button>
               </div>
               {isLoadingAttachedPricings ? (
-                <p className={styles.emptyState}>Chargement des tarifs lies...</p>
+                <p className={styles.emptyState}>Chargement des tarifs liés...</p>
               ) : selectedPackage.attached_pricings.length === 0 ? (
-                <p className={styles.emptyState}>Aucun tarif lie. Creez un tarif pour ce pack.</p>
+                <p className={styles.emptyState}>Aucun tarif lié. Créez un tarif pour ce pack.</p>
               ) : (
-                <ul>
+                <ul className={styles.linkedList}>
                   {selectedPackage.attached_pricings.map((pricing) => (
                     <li key={pricing.id}>
                       <span>
@@ -556,7 +715,7 @@ const ServicePackageManager: React.FC<Props> = ({
                         className={styles.unlinkButton}
                         onClick={() => handleRemoveAttachedPricing(pricing.id)}
                         type="button"
-                        aria-label={`Supprimer le tarif lie ${pricing.label}`}
+                        aria-label={`Supprimer le tarif lié ${pricing.label}`}
                       >
                         <Unlink size={14} />
                       </button>
@@ -568,7 +727,7 @@ const ServicePackageManager: React.FC<Props> = ({
 
             <div className={styles.detailsSection}>
               <div className={styles.sectionHeader}>
-                <h4>Modeles de contrats</h4>
+                <h4>Modèles de contrats</h4>
                 <button
                   className={styles.linkButton}
                   onClick={() =>
@@ -579,13 +738,13 @@ const ServicePackageManager: React.FC<Props> = ({
                     )
                   }
                 >
-                  <Zap size={16} /> Ajouter Modele
+                  <Zap size={16} /> Ajouter un modèle
                 </button>
               </div>
               {selectedPackage.attached_contract_ids.length === 0 ? (
-                <p className={styles.emptyState}>Aucun modele attache.</p>
+                <p className={styles.emptyState}>Aucun modèle attaché.</p>
               ) : (
-                <ul>
+                <ul className={styles.linkedList}>
                   {selectedPackage.attached_contract_ids.map((contractId) => (
                     <li key={contractId}>
                       <span>Contrat #{contractId}</span>
@@ -601,8 +760,8 @@ const ServicePackageManager: React.FC<Props> = ({
             <div className={styles.infoBox}>
               <AlertCircle size={18} />
               <p>
-                Ce pack regroupe vos services proposes. Vous pouvez le lier a des tarifs
-                specifiques et des modeles de contrats.
+                Ce pack regroupe vos services proposés. Vous pouvez le lier à des tarifs
+                spécifiques et à des modèles de contrats.
               </p>
             </div>
           </div>

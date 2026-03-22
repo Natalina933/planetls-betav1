@@ -63,3 +63,18 @@ export {
   getFullName,
   getDisplayName,
 } from './profile';
+
+export type {
+  ServiceCatalogRow,
+  PackageRow,
+  PricingPackageRow,
+  ContractTemplateRow,
+  DefaultPackTemplate,
+} from './servicePackages';
+
+export {
+  DEFAULT_SERVICE_PACK_TEMPLATES,
+  normalizeServicePackageText,
+  normalizeServicePackageName,
+  formatServicePackageMoney,
+} from './servicePackages';

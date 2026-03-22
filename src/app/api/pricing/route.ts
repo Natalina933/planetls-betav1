@@ -14,6 +14,10 @@ interface PricingInsertBody {
   type?: PricingType;
   amount: number;
   unit?: string;
+  property_type?: string | null;
+  surface_min?: number | null;
+  surface_max?: number | null;
+  estimated_duration?: number | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -78,6 +82,24 @@ export async function POST(req: NextRequest) {
       type: rawBody.type,
       amount: rawBody.amount,
       unit: rawBody.unit,
+      property_type:
+        typeof rawBody.property_type === "string" && rawBody.property_type.trim()
+          ? rawBody.property_type.trim()
+          : null,
+      surface_min:
+        rawBody.surface_min !== undefined && rawBody.surface_min !== null && rawBody.surface_min !== ""
+          ? Number(rawBody.surface_min)
+          : null,
+      surface_max:
+        rawBody.surface_max !== undefined && rawBody.surface_max !== null && rawBody.surface_max !== ""
+          ? Number(rawBody.surface_max)
+          : null,
+      estimated_duration:
+        rawBody.estimated_duration !== undefined &&
+        rawBody.estimated_duration !== null &&
+        rawBody.estimated_duration !== ""
+          ? Number(rawBody.estimated_duration)
+          : null,
     };
 
     if (!body.label || body.amount === undefined) {
@@ -87,16 +109,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const insertPayload = {
+      profile_id: auth.userId,
+      service_id: body.service_id ?? null,
+      label: body.label,
+      type: body.type ?? "custom",
+      amount: body.amount,
+      unit: body.unit ?? "EUR",
+      property_type: body.property_type ?? null,
+      surface_min: body.surface_min ?? null,
+      surface_max: body.surface_max ?? null,
+      estimated_duration: body.estimated_duration ?? null,
+    } as never;
+
     const { data, error } = await db
       .from("services_pricing")
-      .insert({
-        profile_id: auth.userId,
-        service_id: body.service_id ?? null,
-        label: body.label,
-        type: body.type ?? "custom",
-        amount: body.amount,
-        unit: body.unit ?? "EUR",
-      })
+      .insert(insertPayload)
       .select(`
         *,
         service:services_catalog(id, category, service, description)

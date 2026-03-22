@@ -1,0 +1,56 @@
+.metricCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(184, 92, 72, 0.12);
+}
+
+.metricLabel {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a4f3f;
+}
+
+.metricValue {
+  font-size: 1.65rem;
+  color: #3f2f14;
+}
+
+.metricHint {
+  color: #6a5b49;
+  line-height: 1.5;
+}
+
+.infoCard {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.infoCardDanger {
+  border-color: rgba(155, 59, 47, 0.18);
+  background: rgba(255, 245, 243, 0.96);
+}
+
+.infoCardTitle {
+  color: #3f2f14;
+}
+
+.infoCardBody {
+  display: grid;
+  gap: 0.65rem;
+  color: #5f5237;
+  line-height: 1.55;
+}
+
+.infoCardDanger .infoCardTitle,
+.infoCardDanger .infoCardBody {
+  color: #8e2f23;
+}

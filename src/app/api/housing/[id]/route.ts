@@ -1,86 +1,37 @@
-// src/app/api/housing/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import type { HousingUpdate } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { canAccessHousing } from "@/types/housing";
 
-type HousingOwner = { id?: string; userId?: string; profile_id?: string } | null;
-
-function isUuidLike(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
-}
-
-function extractOwnerId(proprietaire: unknown): string | null {
-  if (!proprietaire) return null;
-
-  const readOwnerId = (value: unknown): string | null => {
-    if (!value || typeof value !== "object") return null;
-    const owner = value as HousingOwner & {
-      owner_id?: string;
-      proprietaire_id?: string;
-    };
-    return (
-      owner?.id ||
-      owner?.userId ||
-      owner?.profile_id ||
-      owner?.owner_id ||
-      owner?.proprietaire_id ||
-      null
-    );
-  };
-
-  if (typeof proprietaire === "string") {
-    const raw = proprietaire.trim();
-    if (!raw) return null;
-    try {
-      const parsed: unknown = JSON.parse(raw);
-      return readOwnerId(parsed);
-    } catch {
-      return null;
-    }
-  }
-
-  return readOwnerId(proprietaire);
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const { userId, role, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { id: rawId } = await context.params;
     const id = Number(rawId);
-    if (isNaN(id) || id <= 0) {
+    if (!Number.isFinite(id) || id <= 0) {
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
     }
 
-    const { data, error } = await db
-      .from("housing")
-      .select("*")
-      .eq("id", id)
-      .single();
-
+    const { data, error } = await db.from("housing").select("*").eq("id", id).maybeSingle();
     if (error) {
-      if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
-      }
-      console.error("[GET /api/housing/[id]] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la récupération du logement" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la recuperation du logement" }, { status: 500 });
     }
-
-    const ownerId = extractOwnerId(data?.proprietaire);
-    if (!isAdmin && (!ownerId || !isUuidLike(ownerId) || ownerId !== userId)) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!data) {
+      return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
+    }
+    if (!canAccessHousing(data.proprietaire, userId, role, isAdmin)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     return NextResponse.json(data);
@@ -92,69 +43,83 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const { userId, role, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { id: rawId } = await context.params;
     const id = Number(rawId);
-    if (isNaN(id) || id <= 0) {
+    if (!Number.isFinite(id) || id <= 0) {
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
     }
 
     const { data: existingHousing, error: existingError } = await db
       .from("housing")
-      .select("id, proprietaire")
+      .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
-    if (existingError || !existingHousing) {
-      if (existingError?.code === "PGRST116") {
-        return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
-      }
-      console.error("[PATCH /api/housing/[id]] ownership check error:", existingError);
+    if (existingError) {
       return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
     }
-
-    const ownerId = extractOwnerId(existingHousing.proprietaire);
-    if (!isAdmin && (!ownerId || ownerId !== userId)) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!existingHousing) {
+      return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
+    }
+    if (!canAccessHousing(existingHousing.proprietaire, userId, role, isAdmin)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
-    const body = await req.json();
-    const updateObj: HousingUpdate = {};
+    const body = (await req.json()) as Record<string, unknown>;
+    const updateObj: Record<string, unknown> = {};
 
-    if (body.external_id !== undefined) updateObj.external_id = body.external_id;
-    if (body.nom_logement !== undefined) updateObj.nom_logement = body.nom_logement;
-    if (body.ville !== undefined) updateObj.ville = body.ville;
-    if (body.adresse !== undefined) updateObj.adresse = body.adresse;
-    if (body.plateforme !== undefined) updateObj.plateforme = body.plateforme;
-    if (body.statut !== undefined) updateObj.statut = body.statut;
-    if (body.photo_principale !== undefined) updateObj.photo_principale = body.photo_principale;
-    if (body.infos !== undefined) updateObj.infos = body.infos;
-    if (body.location !== undefined) updateObj.location = body.location;
-    if (body.menage !== undefined) updateObj.menage = body.menage;
-    if (body.planning !== undefined) updateObj.planning = body.planning;
-    if (body.documents !== undefined) updateObj.documents = body.documents;
-    if (body.notes !== undefined) updateObj.notes = body.notes;
+    const allowedKeys = [
+      "external_id",
+      "nom_logement",
+      "ville",
+      "adresse",
+      "plateforme",
+      "statut",
+      "photo_principale",
+      "infos",
+      "proprietaire",
+      "location",
+      "menage",
+      "planning",
+      "documents",
+      "tarifs",
+      "contrat",
+      "notes",
+    ] as const;
 
-    if (body.proprietaire !== undefined) {
-      const requestedOwnerId = extractOwnerId(body.proprietaire);
-      if (!isAdmin && requestedOwnerId && requestedOwnerId !== userId) {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    for (const key of allowedKeys) {
+      if (key in body) {
+        updateObj[key] = body[key];
       }
-      updateObj.proprietaire = body.proprietaire;
     }
+
+    if ("proprietaire" in updateObj && updateObj.proprietaire && typeof updateObj.proprietaire === "object") {
+      const previousOwner =
+        existingHousing.proprietaire && typeof existingHousing.proprietaire === "object"
+          ? (existingHousing.proprietaire as Record<string, unknown>)
+          : {};
+      updateObj.proprietaire = {
+        ...previousOwner,
+        ...(updateObj.proprietaire as Record<string, unknown>),
+      };
+    }
+
+    if ("nom_logement" in updateObj) updateObj.nom_logement = cleanString(updateObj.nom_logement);
+    if ("ville" in updateObj) updateObj.ville = cleanString(updateObj.ville);
+    if ("adresse" in updateObj) updateObj.adresse = cleanString(updateObj.adresse);
+    if ("plateforme" in updateObj) updateObj.plateforme = cleanString(updateObj.plateforme);
+    if ("photo_principale" in updateObj) updateObj.photo_principale = cleanString(updateObj.photo_principale);
 
     if (Object.keys(updateObj).length === 0) {
-      return NextResponse.json(
-        { error: "Aucune donnée à mettre à jour" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Aucune donnee a mettre a jour" }, { status: 400 });
     }
 
     updateObj.updated_at = new Date().toISOString();
@@ -167,14 +132,7 @@ export async function PATCH(
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
-      }
-      console.error("[PATCH /api/housing/[id]] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la mise à jour du logement" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la mise a jour du logement" }, { status: 500 });
     }
 
     return NextResponse.json(data);
@@ -186,57 +144,44 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const { userId, role, isAdmin } = await getApiAuthContext(req);
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { id: rawId } = await context.params;
     const id = Number(rawId);
-    if (isNaN(id) || id <= 0) {
+    if (!Number.isFinite(id) || id <= 0) {
       return NextResponse.json({ error: "ID invalide" }, { status: 400 });
     }
 
     const { data: existingHousing, error: existingError } = await db
       .from("housing")
-      .select("id, proprietaire")
+      .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
-    if (existingError || !existingHousing) {
-      if (existingError?.code === "PGRST116") {
-        return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
-      }
-      console.error("[DELETE /api/housing/[id]] ownership check error:", existingError);
+    if (existingError) {
       return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
     }
-
-    const ownerId = extractOwnerId(existingHousing.proprietaire);
-    if (!isAdmin && (!ownerId || ownerId !== userId)) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    if (!existingHousing) {
+      return NextResponse.json({ error: "Logement introuvable" }, { status: 404 });
+    }
+    if (!canAccessHousing(existingHousing.proprietaire, userId, role, isAdmin)) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
-    const { error } = await db
-      .from("housing")
-      .update({ statut: "deleted" })
-      .eq("id", id);
-
+    const { error } = await db.from("housing").update({ statut: "deleted" }).eq("id", id);
     if (error) {
-      console.error("[DELETE /api/housing/[id]] DB error:", error);
-      return NextResponse.json(
-        { error: "Erreur lors de la suppression du logement" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erreur lors de la suppression du logement" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: "Logement supprimé" });
+    return NextResponse.json({ success: true, message: "Logement supprime" });
   } catch (err) {
     console.error("[DELETE /api/housing/[id]] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur interne" }, { status: 500 });
   }
 }
-
-

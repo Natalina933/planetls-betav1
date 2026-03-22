@@ -1,101 +1,58 @@
-import type { Database } from "../../../../../types/supabase.ts";
+import type {
+  ConciergeHousing,
+  HousingDocument,
+  HousingRow as BaseHousingRow,
+  HousingTimelineItem,
+} from "../../../../../types/housing.ts";
+import {
+  buildHousingMutationPayload,
+  normalizeHousingRow,
+  validateHousingDraft,
+} from "../../../../../types/housing.ts";
 
-export interface InfosJSON {
-  digicode?: string;
-  categorie?: string;
-  superficie?: string;
-  nb_chambres?: number;
-  description?: string;
-  capacite?: number;
-  equipements?: string[];
+export type InfosJSON = ConciergeHousing["characteristics"];
+export type ProprietaireJSON = ConciergeHousing["owner"];
+export type LocationJSON = ConciergeHousing["locationInfo"];
+export type MenageJSON = ConciergeHousing["services"];
+export type PlanningEvent = HousingTimelineItem;
+export type DocumentItem = HousingDocument;
+export type TarifsJSON = ConciergeHousing["pricing"];
+export type ContratJSON = ConciergeHousing["contractInfo"];
+export type HousingRow = BaseHousingRow;
+export type LogementTyped = ConciergeHousing & {
+  infos: InfosJSON;
+  proprietaire: ProprietaireJSON;
+  location: LocationJSON;
+  menage: MenageJSON;
+  planning: PlanningEvent[];
+  documents: DocumentItem[];
+  notes: string[];
+  tarifs: TarifsJSON;
+  contrat: ContratJSON;
+};
+
+export type ActiveTab = "overview" | "infos" | "services" | "timeline" | "docs";
+
+function withLegacyAliases(logement: ConciergeHousing): LogementTyped {
+  return {
+    ...logement,
+    infos: logement.characteristics,
+    proprietaire: logement.owner,
+    location: logement.locationInfo,
+    menage: logement.services,
+    planning: logement.timeline,
+    documents: logement.documentsList,
+    notes: logement.services.internalNotes
+      .split("\n")
+      .map((note) => note.trim())
+      .filter(Boolean),
+    tarifs: logement.pricing,
+    contrat: logement.contractInfo,
+  };
 }
-
-export interface ProprietaireJSON {
-  nom?: string;
-  telephone?: string;
-  email?: string;
-}
-
-export interface LocationJSON {
-  prix_nuit?: number;
-  caution?: number;
-  frais_menage?: number;
-}
-
-export interface MenageJSON {
-  temps?: string;
-  checklist?: string;
-  instructions?: string;
-}
-
-export interface PlanningEvent {
-  date: string;
-  type: string;
-  guest?: string;
-  agent?: string;
-  status?: string;
-}
-
-export interface DocumentItem {
-  name: string;
-  file?: string;
-  url?: string;
-}
-
-export interface TarifsJSON {
-  prix_base?: number;
-  prix_par_nuit?: number;
-  caution?: number;
-  frais_menage?: number;
-}
-
-export interface ContratJSON {
-  date_signature?: string;
-  renouvellement_auto?: boolean;
-  fichier_pdf?: string;
-}
-
-export type HousingRow = Database["public"]["Tables"]["housing"]["Row"];
-
-export interface LogementTyped
-  extends Omit<
-    HousingRow,
-    | "infos"
-    | "proprietaire"
-    | "location"
-    | "menage"
-    | "planning"
-    | "documents"
-    | "notes"
-    | "tarifs"
-    | "contrat"
-  > {
-  infos?: InfosJSON;
-  proprietaire?: ProprietaireJSON;
-  location?: LocationJSON;
-  menage?: MenageJSON;
-  planning?: PlanningEvent[];
-  documents?: DocumentItem[];
-  notes?: string[];
-  tarifs?: TarifsJSON;
-  contrat?: ContratJSON;
-}
-
-export type ActiveTab = "infos" | "menage" | "planning" | "docs" | "notes" | "tarifs";
 
 export function parseHousingRow(data: HousingRow): LogementTyped {
-  return {
-    ...data,
-    infos: data.infos as InfosJSON,
-    proprietaire: data.proprietaire as ProprietaireJSON,
-    location: data.location as LocationJSON,
-    menage: data.menage as MenageJSON,
-    planning: data.planning as unknown as PlanningEvent[],
-    documents: data.documents as unknown as DocumentItem[],
-    notes: data.notes as string[],
-    tarifs: data.tarifs as TarifsJSON,
-    contrat: data.contrat as ContratJSON,
-  };
+  return withLegacyAliases(normalizeHousingRow(data));
 }
 
 export function buildEditableLogement(
@@ -104,30 +61,43 @@ export function buildEditableLogement(
 ) {
   if (!logement) return null;
 
-  return {
+  const mergedBase = {
     ...logement,
     ...editedData,
-    infos: {
-      ...logement.infos,
-      ...editedData.infos,
+    owner: {
+      ...logement.owner,
+      ...(editedData.owner ?? {}),
     },
-    menage: {
-      ...logement.menage,
-      ...editedData.menage,
+    locationInfo: {
+      ...logement.locationInfo,
+      ...(editedData.locationInfo ?? {}),
     },
-    tarifs: {
-      ...logement.tarifs,
-      ...editedData.tarifs,
+    characteristics: {
+      ...logement.characteristics,
+      ...(editedData.characteristics ?? {}),
     },
-    contrat: {
-      ...logement.contrat,
-      ...editedData.contrat,
+    services: {
+      ...logement.services,
+      ...(editedData.services ?? {}),
+      items: editedData.services?.items ?? logement.services.items,
     },
-  } as LogementTyped;
+    pricing: {
+      ...logement.pricing,
+      ...(editedData.pricing ?? {}),
+    },
+    contractInfo: {
+      ...logement.contractInfo,
+      ...(editedData.contractInfo ?? {}),
+    },
+    timeline: editedData.timeline ?? logement.timeline,
+    documentsList: editedData.documentsList ?? logement.documentsList,
+  } satisfies ConciergeHousing;
+
+  return withLegacyAliases(mergedBase);
 }
 
-export function formatMoney(value?: number | null) {
-  return typeof value === "number" ? `${value} EUR` : "-";
+export function formatMoney(value?: number | null, currency = "EUR") {
+  return typeof value === "number" ? `${value} ${currency}` : "-";
 }
 
 export function hasPendingLogementChanges(editedData: Partial<LogementTyped>) {
@@ -145,18 +115,6 @@ export interface LogementValidationResult {
   message: string | null;
 }
 
-function cleanString(value: string | null | undefined) {
-  return typeof value === "string" ? value.trim() : value;
-}
-
-function isAssetUrlLike(value: string) {
-  return value.startsWith("/") || /^https?:\/\//i.test(value);
-}
-
-function isInvalidMoneyValue(value: number | null | undefined) {
-  return value !== null && value !== undefined && (!Number.isFinite(value) || value < 0);
-}
-
 export function toOptionalNumber(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
@@ -170,90 +128,97 @@ export function validateLogementChanges(logement: LogementTyped | null): Logemen
     return { isValid: false, message: "Logement introuvable." };
   }
 
-  if (!logement.nom_logement?.trim()) {
-    return { isValid: false, message: "Le nom du logement est obligatoire." };
-  }
-
-  if (!logement.adresse?.trim()) {
-    return { isValid: false, message: "L'adresse du logement est obligatoire." };
-  }
-
-  if (!logement.ville?.trim()) {
-    return { isValid: false, message: "La ville du logement est obligatoire." };
-  }
-
-  if (
-    logement.infos?.capacite !== undefined &&
-    logement.infos.capacite !== null &&
-    (!Number.isFinite(logement.infos.capacite) || logement.infos.capacite <= 0)
-  ) {
-    return {
-      isValid: false,
-      message: "La capacité du logement doit être un nombre positif.",
-    };
-  }
-
-  if (
-    logement.infos?.nb_chambres !== undefined &&
-    logement.infos.nb_chambres !== null &&
-    (!Number.isFinite(logement.infos.nb_chambres) || logement.infos.nb_chambres < 0)
-  ) {
-    return {
-      isValid: false,
-      message: "Le nombre de chambres doit être un nombre valide.",
-    };
-  }
-
-  if (logement.photo_principale?.trim() && !isAssetUrlLike(logement.photo_principale.trim())) {
-    return {
-      isValid: false,
-      message: "La photo principale doit être une URL valide ou un chemin local commençant par '/'.",
-    };
-  }
-
-  if (logement.contrat?.fichier_pdf?.trim() && !isAssetUrlLike(logement.contrat.fichier_pdf.trim())) {
-    return {
-      isValid: false,
-      message: "Le contrat PDF doit être une URL valide ou un chemin local commençant par '/'.",
-    };
-  }
-
-  if (
-    isInvalidMoneyValue(logement.tarifs?.prix_base) ||
-    isInvalidMoneyValue(logement.tarifs?.prix_par_nuit) ||
-    isInvalidMoneyValue(logement.tarifs?.caution) ||
-    isInvalidMoneyValue(logement.tarifs?.frais_menage)
-  ) {
-    return {
-      isValid: false,
-      message: "Les montants du logement doivent être des nombres positifs ou vides.",
-    };
-  }
-
-  return { isValid: true, message: null };
+  const error = validateHousingDraft(logement);
+  return {
+    isValid: !error,
+    message: error,
+  };
 }
 
 export function buildLogementPatchPayload(editedData: Partial<LogementTyped>) {
-  const payload: Partial<LogementTyped> = {};
+  const payload: Record<string, unknown> = {};
 
-  if (editedData.nom_logement !== undefined) payload.nom_logement = cleanString(editedData.nom_logement);
-  if (editedData.ville !== undefined) payload.ville = cleanString(editedData.ville);
-  if (editedData.adresse !== undefined) payload.adresse = cleanString(editedData.adresse);
-  if (editedData.plateforme !== undefined) payload.plateforme = cleanString(editedData.plateforme);
+  if (editedData.nom_logement !== undefined) payload.nom_logement = editedData.nom_logement?.trim();
+  if (editedData.ville !== undefined) payload.ville = editedData.ville?.trim();
+  if (editedData.adresse !== undefined) payload.adresse = editedData.adresse?.trim();
+  if (editedData.plateforme !== undefined) payload.plateforme = editedData.plateforme?.trim();
   if (editedData.statut !== undefined) payload.statut = editedData.statut;
-  if (editedData.photo_principale !== undefined) {
-    payload.photo_principale = cleanString(editedData.photo_principale);
+  if (editedData.photo_principale !== undefined) payload.photo_principale = editedData.photo_principale?.trim();
+
+  if (editedData.owner || editedData.locationInfo || editedData.characteristics || editedData.services || editedData.timeline || editedData.documentsList || editedData.pricing || editedData.contractInfo) {
+    const normalized = buildHousingMutationPayload({
+      id: editedData.id ?? 0,
+      external_id: editedData.external_id ?? null,
+      nom_logement: editedData.nom_logement ?? "",
+      plateforme: editedData.plateforme ?? "",
+      statut: editedData.statut ?? "",
+      photo_principale: editedData.photo_principale ?? null,
+      creationMode: editedData.creationMode ?? "manual",
+      owner: editedData.owner ?? {
+        profileId: null,
+        managerProfileId: null,
+        fullName: "",
+        email: "",
+        phone: "",
+        companyName: "",
+        city: "",
+        notes: "",
+        source: "manual",
+      },
+      locationInfo: editedData.locationInfo ?? {
+        addressLine1: "",
+        addressLine2: "",
+        postalCode: "",
+        city: "",
+        country: "France",
+        accessCode: "",
+        floor: "",
+        entryInstructions: "",
+      },
+      characteristics: editedData.characteristics ?? {
+        propertyType: "",
+        surfaceSqm: null,
+        roomCount: null,
+        bedroomCount: null,
+        bathroomCount: null,
+        bedCount: null,
+        guestCapacity: null,
+        amenities: [],
+        description: "",
+      },
+      services: editedData.services ?? { items: [], housekeepingNotes: "", internalNotes: "" },
+      timeline: editedData.timeline ?? [],
+      documentsList: editedData.documentsList ?? [],
+      pricing: editedData.pricing ?? {
+        currency: "EUR",
+        baseRate: null,
+        nightlyRate: null,
+        cleaningFee: null,
+        securityDeposit: null,
+        commissionRate: null,
+        totalContractValue: null,
+      },
+      contractInfo: editedData.contractInfo ?? {
+        contractUrl: "",
+        signedAt: "",
+        autoRenew: false,
+        quoteId: null,
+        quoteNumber: "",
+      },
+    });
+
+    if (editedData.owner !== undefined) payload.proprietaire = normalized.proprietaire;
+    if (editedData.locationInfo !== undefined) payload.location = normalized.location;
+    if (editedData.characteristics !== undefined || editedData.creationMode !== undefined) payload.infos = normalized.infos;
+    if (editedData.services !== undefined) {
+      payload.menage = normalized.menage;
+      payload.notes = normalized.notes;
+    }
+    if (editedData.timeline !== undefined) payload.planning = normalized.planning;
+    if (editedData.documentsList !== undefined) payload.documents = normalized.documents;
+    if (editedData.pricing !== undefined) payload.tarifs = normalized.tarifs;
+    if (editedData.contractInfo !== undefined) payload.contrat = normalized.contrat;
   }
-  if (editedData.external_id !== undefined) payload.external_id = editedData.external_id;
-  if (editedData.infos !== undefined) payload.infos = editedData.infos;
-  if (editedData.proprietaire !== undefined) payload.proprietaire = editedData.proprietaire;
-  if (editedData.location !== undefined) payload.location = editedData.location;
-  if (editedData.menage !== undefined) payload.menage = editedData.menage;
-  if (editedData.planning !== undefined) payload.planning = editedData.planning;
-  if (editedData.documents !== undefined) payload.documents = editedData.documents;
-  if (editedData.notes !== undefined) payload.notes = editedData.notes;
-  if (editedData.tarifs !== undefined) payload.tarifs = editedData.tarifs;
-  if (editedData.contrat !== undefined) payload.contrat = editedData.contrat;
 
   return payload;
 }

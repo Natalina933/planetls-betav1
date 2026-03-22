@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
     let query = db
       .from("pricing_packages")
-      .select("id, profile_id, package_id, label, type, amount, property_type, created_at")
+      .select("id, profile_id, package_id, label, type, amount, property_type, created_at, package:services_packages(id, name)")
       .order("created_at", { ascending: false });
 
     if (!auth.isAdmin) {
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
         amount: body.amount,
         property_type: body.property_type ?? null,
       })
-      .select("id, profile_id, package_id, label, type, amount, property_type, created_at")
+      .select("id, profile_id, package_id, label, type, amount, property_type, created_at, package:services_packages(id, name)")
       .single();
 
     if (error) {

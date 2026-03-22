@@ -12,6 +12,10 @@ interface PricingUpdateBody {
   type?: PricingType;
   amount?: number;
   unit?: string;
+  property_type?: string | null;
+  surface_min?: number | null;
+  surface_max?: number | null;
+  estimated_duration?: number | null;
 }
 
 export async function GET(
@@ -92,6 +96,30 @@ export async function PATCH(
       type: rawBody.type,
       amount: rawBody.amount,
       unit: rawBody.unit,
+      property_type:
+        rawBody.property_type !== undefined
+          ? typeof rawBody.property_type === "string" && rawBody.property_type.trim()
+            ? rawBody.property_type.trim()
+            : null
+          : undefined,
+      surface_min:
+        rawBody.surface_min !== undefined
+          ? rawBody.surface_min === null || rawBody.surface_min === ""
+            ? null
+            : Number(rawBody.surface_min)
+          : undefined,
+      surface_max:
+        rawBody.surface_max !== undefined
+          ? rawBody.surface_max === null || rawBody.surface_max === ""
+            ? null
+            : Number(rawBody.surface_max)
+          : undefined,
+      estimated_duration:
+        rawBody.estimated_duration !== undefined
+          ? rawBody.estimated_duration === null || rawBody.estimated_duration === ""
+            ? null
+            : Number(rawBody.estimated_duration)
+          : undefined,
     };
 
     const updateObj: Partial<PricingUpdateBody> = {};
@@ -100,6 +128,12 @@ export async function PATCH(
     if (body.type !== undefined) updateObj.type = body.type;
     if (body.amount !== undefined) updateObj.amount = body.amount;
     if (body.unit !== undefined) updateObj.unit = body.unit;
+    if (body.property_type !== undefined) updateObj.property_type = body.property_type;
+    if (body.surface_min !== undefined) updateObj.surface_min = body.surface_min;
+    if (body.surface_max !== undefined) updateObj.surface_max = body.surface_max;
+    if (body.estimated_duration !== undefined) {
+      updateObj.estimated_duration = body.estimated_duration;
+    }
 
     if (Object.keys(updateObj).length === 0) {
       return NextResponse.json(
@@ -110,7 +144,7 @@ export async function PATCH(
 
     const { data, error } = await db
       .from("services_pricing")
-      .update(updateObj)
+      .update(updateObj as never)
       .eq("id", id)
       .select(`
         *,

@@ -18,6 +18,15 @@ interface DbErrorLike {
   message?: string;
 }
 
+const normalizePackageName = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/^pack\s+/, "")
+    .trim();
+
 const getDbErrorMessage = (error: DbErrorLike): string => {
   if (error.code === "42P01" || error.code === "PGRST205" || error.code === "PGRST204") {
     return "Tables packs introuvables. Executez la migration SQL 20260220_services_packages_contract_templates.sql dans Supabase.";
@@ -81,11 +90,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const normalizedIncomingName = normalizePackageName(body.name);
+
+    const { data: existingPackages, error: existingPackagesError } = await db
+      .from("services_packages")
+      .select("id, name")
+      .eq("profile_id", auth.userId);
+
+    if (existingPackagesError) {
+      console.error("[POST /api/services/packages] load existing packages error:", existingPackagesError);
+      return NextResponse.json(
+        { error: getDbErrorMessage(existingPackagesError) },
+        { status: 500 },
+      );
+    }
+
+    const duplicatedPackage = (existingPackages ?? []).find(
+      (pkg) => normalizePackageName(pkg.name ?? "") === normalizedIncomingName,
+    );
+
+    if (duplicatedPackage) {
+      return NextResponse.json(
+        { error: "Un pack avec ce nom existe déjà." },
+        { status: 409 },
+      );
+    }
+
     const { data: createdPackage, error: packageError } = await db
       .from("services_packages")
       .insert({
         profile_id: auth.userId,
-        name: body.name,
+        name: body.name.trim(),
         description: body.description ?? null,
         category: body.category,
       })
