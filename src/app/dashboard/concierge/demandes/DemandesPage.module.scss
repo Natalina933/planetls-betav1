@@ -152,3 +152,81 @@
   background: rgba(188, 74, 72, 0.1);
   color: #8a2220;
 }
+
+:global([data-theme="mucha-dark"]) .card {
+  border-color: rgba(221, 185, 122, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(255, 215, 130, 0.1), transparent 32%),
+    linear-gradient(160deg, rgba(29, 31, 48, 0.96), rgba(18, 20, 34, 0.94));
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme="mucha-dark"]) .ownerName,
+:global([data-theme="mucha-dark"]) .statusBadge,
+:global([data-theme="mucha-dark"]) .tag,
+:global([data-theme="mucha-dark"]) .secondaryBtn,
+:global([data-theme="mucha-dark"]) .linkBtn {
+  color: #f5deb0;
+}
+
+:global([data-theme="mucha-dark"]) .cardTitleBlock h2,
+:global([data-theme="mucha-dark"]) .successBox,
+:global([data-theme="mucha-dark"]) .errorBox {
+  color: #f8f3e8;
+}
+
+:global([data-theme="mucha-dark"]) .meta,
+:global([data-theme="mucha-dark"]) .description,
+:global([data-theme="mucha-dark"]) .metaGrid span,
+:global([data-theme="mucha-dark"]) .emptyState {
+  color: rgba(242, 233, 214, 0.86);
+}
+
+:global([data-theme="mucha-dark"]) .statusBadge {
+  border: 1px solid rgba(221, 185, 122, 0.24);
+  background: rgba(221, 185, 122, 0.12);
+}
+
+:global([data-theme="mucha-dark"]) .urgentBadge {
+  color: #ffd0c7;
+  border: 1px solid rgba(220, 110, 92, 0.26);
+  background: rgba(220, 110, 92, 0.14);
+}
+
+:global([data-theme="mucha-dark"]) .tag {
+  border: 1px solid rgba(221, 185, 122, 0.2);
+  background: rgba(221, 185, 122, 0.1);
+}
+
+:global([data-theme="mucha-dark"]) .tagMuted {
+  color: rgba(242, 233, 214, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme="mucha-dark"]) .primaryBtn {
+  background: linear-gradient(135deg, #caa05d, #8f6c2d);
+  color: #fffaf0;
+}
+
+:global([data-theme="mucha-dark"]) .secondaryBtn,
+:global([data-theme="mucha-dark"]) .linkBtn {
+  border-color: rgba(221, 185, 122, 0.26);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme="mucha-dark"]) .ghostBtn {
+  border-color: rgba(220, 110, 92, 0.24);
+  background: rgba(220, 110, 92, 0.1);
+  color: #ffd0c7;
+}
+
+:global([data-theme="mucha-dark"]) .successBox {
+  border: 1px solid rgba(221, 185, 122, 0.22);
+  background: rgba(221, 185, 122, 0.12);
+}
+
+:global([data-theme="mucha-dark"]) .errorBox {
+  border: 1px solid rgba(220, 110, 92, 0.22);
+  background: rgba(220, 110, 92, 0.12);
+}

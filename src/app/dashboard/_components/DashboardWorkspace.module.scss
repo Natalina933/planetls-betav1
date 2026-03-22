@@ -589,6 +589,86 @@
   transform: translateY(-1px);
 }
 
+:global([data-theme="mucha-dark"]) .hero,
+:global([data-theme="mucha-dark"]) .metricCard,
+:global([data-theme="mucha-dark"]) .card,
+:global([data-theme="mucha-dark"]) .detailSection,
+:global([data-theme="mucha-dark"]) .detailItem {
+  border-color: color-mix(in srgb, var(--workspace-accent) 28%, rgba(255, 255, 255, 0.08));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 20px 36px rgba(0, 0, 0, 0.34);
+}
+
+:global([data-theme="mucha-dark"]) .hero {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+    linear-gradient(145deg, rgba(32, 34, 51, 0.98), rgba(20, 22, 36, 0.96));
+}
+
+:global([data-theme="mucha-dark"]) .metricCard,
+:global([data-theme="mucha-dark"]) .card,
+:global([data-theme="mucha-dark"]) .detailSection {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)),
+    linear-gradient(160deg, rgba(32, 34, 51, 0.96), rgba(20, 22, 36, 0.94));
+}
+
+:global([data-theme="mucha-dark"]) .detailItem {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.04);
+}
+
+:global([data-theme="mucha-dark"]) .heroBlockLabel,
+:global([data-theme="mucha-dark"]) .eyebrow,
+:global([data-theme="mucha-dark"]) .metricLabel,
+:global([data-theme="mucha-dark"]) .sectionLabel {
+  color: #f1d79c;
+  opacity: 1;
+}
+
+:global([data-theme="mucha-dark"]) .title,
+:global([data-theme="mucha-dark"]) .sectionTitle,
+:global([data-theme="mucha-dark"]) .metricValue,
+:global([data-theme="mucha-dark"]) .cardTitle,
+:global([data-theme="mucha-dark"]) .detailTitle,
+:global([data-theme="mucha-dark"]) .detailItemTitle {
+  color: #fbf6eb;
+}
+
+:global([data-theme="mucha-dark"]) .description,
+:global([data-theme="mucha-dark"]) .sectionDescription,
+:global([data-theme="mucha-dark"]) .metricHint,
+:global([data-theme="mucha-dark"]) .cardText,
+:global([data-theme="mucha-dark"]) .detailDescription,
+:global([data-theme="mucha-dark"]) .detailEmpty,
+:global([data-theme="mucha-dark"]) .detailItemDescription {
+  color: rgba(244, 236, 219, 0.9);
+}
+
+:global([data-theme="mucha-dark"]) .chip,
+:global([data-theme="mucha-dark"]) .detailFact,
+:global([data-theme="mucha-dark"]) .detailBadge {
+  color: #f1d79c;
+  border-color: color-mix(in srgb, var(--workspace-accent) 24%, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme="mucha-dark"]) .actionLink,
+:global([data-theme="mucha-dark"]) .actionLinkSecondary,
+:global([data-theme="mucha-dark"]) .cardActionSecondary,
+:global([data-theme="mucha-dark"]) .detailItemAction {
+  color: #f5e2b7;
+  border-color: color-mix(in srgb, var(--workspace-accent) 26%, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme="mucha-dark"]) .actionLinkPrimary,
+:global([data-theme="mucha-dark"]) .cardActionPrimary {
+  color: #fff9ef;
+}
+
 @media (max-width: 980px) {
   .title {
     max-width: none;

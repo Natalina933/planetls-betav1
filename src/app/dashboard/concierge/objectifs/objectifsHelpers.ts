@@ -63,12 +63,12 @@ export function buildObjectiveChecklist(input: {
       tone: input.activeHousing >= 5 ? "success" : "warning",
     },
     {
-      title: "Maintenir le pipe missions",
+      title: "Maintenir le suivi missions",
       meta: `${input.activeMissionCount} mission(s) en cours`,
       description:
         input.activeMissionCount > 0
-          ? "Votre pipe est actif. Gardez du rythme dans les confirmations et les clôtures."
-          : "Aucune mission active. Relancez vos contacts et réveillez le pipe commercial.",
+          ? "Vos missions sont bien engagées. Gardez du rythme dans les confirmations et les clôtures."
+          : "Aucune mission active. Relancez vos contacts et redonnez de l'élan à l'activité commerciale.",
       href: "/dashboard/concierge/profile?tab=missions",
       actionLabel: "Voir les missions",
       tone: input.activeMissionCount > 0 ? "success" : "warning",

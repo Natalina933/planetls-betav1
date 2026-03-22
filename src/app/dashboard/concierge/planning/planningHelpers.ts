@@ -89,7 +89,7 @@ export function buildPlanningStatusBreakdown(missions: MissionRow[]): PlanningIt
   ).map(([status, count]) => ({
     title: normalizePlanningStatus(status),
     meta: `${count} mission(s)`,
-    description: "Répartition actuelle de votre pipe opérationnel.",
+    description: "Répartition actuelle de votre activité opérationnelle.",
     href: "/dashboard/concierge/profile?tab=missions",
     actionLabel: "Voir les missions",
     tone:

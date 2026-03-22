@@ -81,7 +81,7 @@ export default function AdminDashboard() {
         {
           id: "admin-concierge",
           title: "Suivi conciergeries",
-          description: "Qualité de service et pipeline",
+          description: "Qualité de service et activité commerciale",
           href: "/dashboard/concierge",
         },
         {

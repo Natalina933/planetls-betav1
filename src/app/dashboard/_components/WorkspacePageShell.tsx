@@ -22,6 +22,10 @@ interface WorkspacePageShellProps {
   detailSections?: DashboardWorkspaceDetailSection[];
   fallbackTone: WorkspaceTone;
   children?: React.ReactNode;
+  showHeroRailLabels?: boolean;
+  showMetricsIntro?: boolean;
+  showCardsIntro?: boolean;
+  showDetailsIntro?: boolean;
 }
 
 function resolveTone(
@@ -46,6 +50,10 @@ export default function WorkspacePageShell({
   detailSections,
   fallbackTone,
   children,
+  showHeroRailLabels,
+  showMetricsIntro,
+  showCardsIntro,
+  showDetailsIntro,
 }: WorkspacePageShellProps) {
   const { userType } = useUserType();
   const resolvedTone = resolveTone(userType, fallbackTone);
@@ -62,6 +70,10 @@ export default function WorkspacePageShell({
       actions={actions}
       detailSections={detailSections}
       tone={dashboardTone}
+      showHeroRailLabels={showHeroRailLabels}
+      showMetricsIntro={showMetricsIntro}
+      showCardsIntro={showCardsIntro}
+      showDetailsIntro={showDetailsIntro}
     >
       {children}
     </DashboardWorkspace>

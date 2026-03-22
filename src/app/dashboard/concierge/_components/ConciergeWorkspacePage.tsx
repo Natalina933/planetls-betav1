@@ -19,6 +19,10 @@ interface ConciergeWorkspacePageProps {
   actions?: ConciergeWorkspaceAction[];
   detailSections?: ConciergeDetailSection[];
   children?: React.ReactNode;
+  showHeroRailLabels?: boolean;
+  showMetricsIntro?: boolean;
+  showCardsIntro?: boolean;
+  showDetailsIntro?: boolean;
 }
 
 export default function ConciergeWorkspacePage({
@@ -31,6 +35,10 @@ export default function ConciergeWorkspacePage({
   actions,
   detailSections,
   children,
+  showHeroRailLabels,
+  showMetricsIntro,
+  showCardsIntro,
+  showDetailsIntro,
 }: ConciergeWorkspacePageProps) {
   return (
     <WorkspacePageShell
@@ -43,6 +51,10 @@ export default function ConciergeWorkspacePage({
       actions={actions}
       detailSections={detailSections}
       fallbackTone="concierge"
+      showHeroRailLabels={showHeroRailLabels}
+      showMetricsIntro={showMetricsIntro}
+      showCardsIntro={showCardsIntro}
+      showDetailsIntro={showDetailsIntro}
     >
       {children}
     </WorkspacePageShell>

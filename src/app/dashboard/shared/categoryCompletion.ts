@@ -237,7 +237,7 @@ export function buildConciergeOwnersCompletion(conversations: GenericRecord[]): 
       complete: activeConversations.length > 0,
     },
     {
-      label: "Pipeline engagé",
+      label: "Prospection engagée",
       complete: recentConversations.length > 0,
     },
     {

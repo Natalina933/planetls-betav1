@@ -143,7 +143,7 @@ export default function ConciergeContactsPage() {
       }
       detailSections={[
         {
-          title: "Pipeline actif",
+          title: "Suivi actif",
           description:
             "Toutes les conversations ouvertes qui méritent une prochaine étape commerciale ou opérationnelle.",
           emptyText:

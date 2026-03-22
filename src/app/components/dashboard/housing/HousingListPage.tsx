@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { FiTarget } from "react-icons/fi";
 import { FiPlus } from "react-icons/fi";
 import { DashboardSectionShell } from "@/components/dashboard";
 import cardStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
 import pageStyles from "@/app/dashboard/owner/OwnerDashboardPages.module.scss";
+import profileStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
+import { EditableProfileSection } from "@/app/dashboard/concierge/profile/profileTabSections";
 
 export interface HousingListItem {
   id: number;
@@ -85,6 +88,39 @@ export default function HousingListPage({
     [logements],
   );
 
+  const isConcierge = persona === "conciergerie";
+  const firstEditableHousingHref =
+    detailHrefBase && logements.length > 0 ? `${detailHrefBase}/${logements[0].id}` : addHref;
+
+  const goToHref = (href: string) => () => {
+    window.location.href = href;
+  };
+
+  const renderConciergeEditableSection = (
+    sectionTitle: string,
+    editHref: string,
+    children: React.ReactNode,
+  ) => (
+    <EditableProfileSection
+      styles={profileStyles}
+      title={sectionTitle}
+      icon={<FiTarget />}
+      canEdit
+      collapsible={false}
+      isOpen
+      isEditing={false}
+      isDirty={false}
+      isLoading={false}
+      onToggle={() => {}}
+      onHeaderKeyDown={() => {}}
+      onBeginEdit={goToHref(editHref)}
+      onSave={() => {}}
+      onCancel={() => {}}
+    >
+      {children}
+    </EditableProfileSection>
+  );
+
   return (
     <DashboardSectionShell
       persona={persona}
@@ -148,105 +184,198 @@ export default function HousingListPage({
           </section>
         ) : null}
 
-        {!loading && !error && logements.length === 0 ? (
-          <section className={pageStyles.panel}>
-            <div className={pageStyles.sectionHeading}>
-              <div>
-                <p className={pageStyles.eyebrow}>Aucun logement</p>
-                <h2 className={pageStyles.terracottaSectionTitle}>Commencez votre parc</h2>
-              </div>
-            </div>
-            <p className={pageStyles.meta}>
-              Aucun logement reel n&apos;est encore enregistre sur votre compte.
-            </p>
-            <div className={pageStyles.inlineActions}>
-              <Link href={addHref} className={pageStyles.buttonPrimary}>
-                <FiPlus /> Ajouter mon premier logement
-              </Link>
-            </div>
-          </section>
-        ) : null}
-
-        {!loading && !error && logements.length > 0 ? (
-          <section className={pageStyles.panel}>
-            <div className={pageStyles.sectionHeading}>
-              <div>
-                <p className={pageStyles.eyebrow}>Vue cartes</p>
-                <h2 className={pageStyles.terracottaSectionTitle}>Tous les logements</h2>
-              </div>
-            </div>
-
-            <div className={cardStyles.logementsGrid}>
-              {logements.map((logement) => {
-                const cardContent = (
-                  <>
-                    <div className={cardStyles.cardImageWrapper}>
-                      <Image
-                        src={getSafePhoto(logement.photo_principale)}
-                        alt={logement.nom_logement}
-                        width={220}
-                        height={180}
-                        className={cardStyles.cardImage}
-                      />
-                    </div>
-
-                    <div className={cardStyles.cardBody}>
-                      <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
-
-                      <p className={cardStyles.cardMeta}>
-                        <span className={cardStyles.metaItem}>
-                          Type : {logement.infos?.categorie || "Appartement"}
-                        </span>
-                        <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
-                        <span className={cardStyles.metaItem}>
-                          Capacite : {logement.infos?.capacite ?? "-"} voyageur(s)
-                        </span>
-                        <span className={cardStyles.metaItem}>
-                          Equipements :{" "}
-                          {Array.isArray(logement.infos?.equipements) &&
-                          logement.infos.equipements.length > 0
-                            ? logement.infos.equipements.slice(0, 3).join(", ")
-                            : "-"}
-                        </span>
-                      </p>
-
-                      {logement.infos?.description ? (
-                        <p className={cardStyles.cardDescription}>{logement.infos.description}</p>
-                      ) : null}
-
-                      <div className={cardStyles.cardFooter}>
-                        <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
-                          {renderStatusLabel(logement.statut)}
-                        </span>
-                        <span className={cardStyles.btnView}>
-                          {detailHrefBase ? "Voir ->" : "Logement"}
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                );
-
-                if (!detailHrefBase) {
-                  return (
-                    <div key={logement.id} className={cardStyles.logementCard}>
-                      {cardContent}
-                    </div>
-                  );
-                }
-
-                return (
-                  <Link
-                    key={logement.id}
-                    href={`${detailHrefBase}/${logement.id}`}
-                    className={cardStyles.logementCard}
-                  >
-                    {cardContent}
+        {!loading && !error && logements.length === 0
+          ? isConcierge
+            ? renderConciergeEditableSection(
+                "Parc logements",
+                addHref,
+                <div className={cardStyles.conciergeEmptyBlock}>
+                  <p className={cardStyles.conciergeEyebrow}>Aucun logement</p>
+                  <h3 className={cardStyles.conciergeTitle}>Commencez votre parc</h3>
+                  <p className={cardStyles.conciergeText}>
+                    Aucun logement réel n&apos;est encore enregistré sur votre compte.
+                  </p>
+                  <Link href={addHref} className={cardStyles.conciergePrimaryAction}>
+                    <FiPlus /> Ajouter mon premier logement
                   </Link>
-                );
-              })}
-            </div>
-          </section>
-        ) : null}
+                </div>,
+              )
+            : (
+              <section className={pageStyles.panel}>
+                <div className={pageStyles.sectionHeading}>
+                  <div>
+                    <p className={pageStyles.eyebrow}>Aucun logement</p>
+                    <h2 className={pageStyles.terracottaSectionTitle}>Commencez votre parc</h2>
+                  </div>
+                </div>
+                <p className={pageStyles.meta}>
+                  Aucun logement reel n&apos;est encore enregistre sur votre compte.
+                </p>
+                <div className={pageStyles.inlineActions}>
+                  <Link href={addHref} className={pageStyles.buttonPrimary}>
+                    <FiPlus /> Ajouter mon premier logement
+                  </Link>
+                </div>
+              </section>
+            )
+          : null}
+
+        {!loading && !error && logements.length > 0
+          ? isConcierge
+            ? renderConciergeEditableSection(
+                "Tous les logements",
+                firstEditableHousingHref,
+                <div className={cardStyles.logementsGrid}>
+                  {logements.map((logement) => {
+                    const cardContent = (
+                      <>
+                        <div className={cardStyles.cardImageWrapper}>
+                          <Image
+                            src={getSafePhoto(logement.photo_principale)}
+                            alt={logement.nom_logement}
+                            width={220}
+                            height={180}
+                            className={cardStyles.cardImage}
+                          />
+                        </div>
+
+                        <div className={cardStyles.cardBody}>
+                          <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
+
+                          <p className={cardStyles.cardMeta}>
+                            <span className={cardStyles.metaItem}>
+                              Type : {logement.infos?.categorie || "Appartement"}
+                            </span>
+                            <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
+                            <span className={cardStyles.metaItem}>
+                              Capacite : {logement.infos?.capacite ?? "-"} voyageur(s)
+                            </span>
+                            <span className={cardStyles.metaItem}>
+                              Equipements :{" "}
+                              {Array.isArray(logement.infos?.equipements) &&
+                              logement.infos.equipements.length > 0
+                                ? logement.infos.equipements.slice(0, 3).join(", ")
+                                : "-"}
+                            </span>
+                          </p>
+
+                          {logement.infos?.description ? (
+                            <p className={cardStyles.cardDescription}>{logement.infos.description}</p>
+                          ) : null}
+
+                          <div className={cardStyles.cardFooter}>
+                            <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
+                              {renderStatusLabel(logement.statut)}
+                            </span>
+                            <span className={cardStyles.btnView}>
+                              {detailHrefBase ? "Voir ->" : "Logement"}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    );
+
+                    if (!detailHrefBase) {
+                      return (
+                        <div key={logement.id} className={cardStyles.logementCard}>
+                          {cardContent}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={logement.id}
+                        href={`${detailHrefBase}/${logement.id}`}
+                        className={cardStyles.logementCard}
+                      >
+                        {cardContent}
+                      </Link>
+                    );
+                  })}
+                </div>,
+              )
+            : (
+              <section className={pageStyles.panel}>
+                <div className={pageStyles.sectionHeading}>
+                  <div>
+                    <p className={pageStyles.eyebrow}>Vue cartes</p>
+                    <h2 className={pageStyles.terracottaSectionTitle}>Tous les logements</h2>
+                  </div>
+                </div>
+
+                <div className={cardStyles.logementsGrid}>
+                  {logements.map((logement) => {
+                    const cardContent = (
+                      <>
+                        <div className={cardStyles.cardImageWrapper}>
+                          <Image
+                            src={getSafePhoto(logement.photo_principale)}
+                            alt={logement.nom_logement}
+                            width={220}
+                            height={180}
+                            className={cardStyles.cardImage}
+                          />
+                        </div>
+
+                        <div className={cardStyles.cardBody}>
+                          <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
+
+                          <p className={cardStyles.cardMeta}>
+                            <span className={cardStyles.metaItem}>
+                              Type : {logement.infos?.categorie || "Appartement"}
+                            </span>
+                            <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
+                            <span className={cardStyles.metaItem}>
+                              Capacite : {logement.infos?.capacite ?? "-"} voyageur(s)
+                            </span>
+                            <span className={cardStyles.metaItem}>
+                              Equipements :{" "}
+                              {Array.isArray(logement.infos?.equipements) &&
+                              logement.infos.equipements.length > 0
+                                ? logement.infos.equipements.slice(0, 3).join(", ")
+                                : "-"}
+                            </span>
+                          </p>
+
+                          {logement.infos?.description ? (
+                            <p className={cardStyles.cardDescription}>{logement.infos.description}</p>
+                          ) : null}
+
+                          <div className={cardStyles.cardFooter}>
+                            <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
+                              {renderStatusLabel(logement.statut)}
+                            </span>
+                            <span className={cardStyles.btnView}>
+                              {detailHrefBase ? "Voir ->" : "Logement"}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    );
+
+                    if (!detailHrefBase) {
+                      return (
+                        <div key={logement.id} className={cardStyles.logementCard}>
+                          {cardContent}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={logement.id}
+                        href={`${detailHrefBase}/${logement.id}`}
+                        className={cardStyles.logementCard}
+                      >
+                        {cardContent}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            )
+          : null}
       </div>
     </DashboardSectionShell>
   );

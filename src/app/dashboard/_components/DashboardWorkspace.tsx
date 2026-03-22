@@ -75,6 +75,10 @@ export interface DashboardWorkspaceProps {
   children?: React.ReactNode;
   tone?: DashboardTone;
   className?: string;
+  showHeroRailLabels?: boolean;
+  showMetricsIntro?: boolean;
+  showCardsIntro?: boolean;
+  showDetailsIntro?: boolean;
 }
 
 interface WorkspaceSectionIntroProps {
@@ -145,7 +149,6 @@ function hasNotifications(count?: number) {
 
 function NotificationBadge({ count }: { count?: number }) {
   if (!hasNotifications(count)) return null;
-
   return <span className={styles.notificationBadge}>{count}</span>;
 }
 
@@ -215,9 +218,14 @@ export default function DashboardWorkspace({
   children,
   tone = "concierge",
   className,
+  showHeroRailLabels = true,
+  showMetricsIntro = true,
+  showCardsIntro = true,
+  showDetailsIntro = true,
 }: DashboardWorkspaceProps) {
   const hasHeroRail = chips.length > 0 || actions.length > 0;
   const hasMetrics = metrics.length > 0;
+  const hasCards = cards.length > 0;
   const hasDetailSections = detailSections.length > 0;
 
   return (
@@ -235,7 +243,9 @@ export default function DashboardWorkspace({
             <aside className={styles.heroRail}>
               {chips.length > 0 ? (
                 <div className={styles.heroBlock}>
-                  <span className={styles.heroBlockLabel}>Repères</span>
+                  {showHeroRailLabels ? (
+                    <span className={styles.heroBlockLabel}>Repères</span>
+                  ) : null}
                   <div className={styles.chips}>
                     {chips.map((chip, index) => (
                       <span key={`${chip}-${index}`} className={styles.chip}>
@@ -248,7 +258,9 @@ export default function DashboardWorkspace({
 
               {actions.length > 0 ? (
                 <div className={styles.heroBlock}>
-                  <span className={styles.heroBlockLabel}>Actions rapides</span>
+                  {showHeroRailLabels ? (
+                    <span className={styles.heroBlockLabel}>Actions rapides</span>
+                  ) : null}
                   <div className={styles.actions}>
                     {actions.map((action, index) => (
                       <ActionRenderer
@@ -266,11 +278,13 @@ export default function DashboardWorkspace({
 
         {hasMetrics ? (
           <section className={styles.sectionBlock}>
-            <WorkspaceSectionIntro
-              label="Lecture rapide"
-              title="Indicateurs clés"
-              description="Les chiffres à lire avant de descendre dans le détail."
-            />
+            {showMetricsIntro ? (
+              <WorkspaceSectionIntro
+                label="Lecture rapide"
+                title="Indicateurs clés"
+                description="Les chiffres à lire avant de descendre dans le détail."
+              />
+            ) : null}
 
             <div className={styles.metrics}>
               {metrics.map((metric, index) => (
@@ -280,8 +294,46 @@ export default function DashboardWorkspace({
                 >
                   <span className={styles.metricLabel}>{metric.label}</span>
                   <strong className={styles.metricValue}>{metric.value}</strong>
-                  {metric.hint ? (
-                    <p className={styles.metricHint}>{metric.hint}</p>
+                  {metric.hint ? <p className={styles.metricHint}>{metric.hint}</p> : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {hasCards ? (
+          <section className={styles.sectionBlock}>
+            {showCardsIntro ? (
+              <WorkspaceSectionIntro
+                label="Pilotage"
+                title="Priorités du moment"
+                description="Les zones à arbitrer ou à débloquer en premier."
+              />
+            ) : null}
+
+            <div className={styles.grid}>
+              {cards.map((card, index) => (
+                <article
+                  key={card.id || `${card.title}-${index}`}
+                  className={styles.card}
+                >
+                  <div className={styles.cardTitleRow}>
+                    <h2 className={styles.cardTitle}>{card.title}</h2>
+                    <NotificationBadge count={card.notificationCount} />
+                  </div>
+
+                  <p className={styles.cardText}>{card.text}</p>
+
+                  {card.actions && card.actions.length > 0 ? (
+                    <div className={styles.cardActions}>
+                      {card.actions.map((action, actionIndex) => (
+                        <ActionRenderer
+                          key={action.id || `${action.label}-${actionIndex}`}
+                          action={action}
+                          className={getCardActionClass(action.variant)}
+                        />
+                      ))}
+                    </div>
                   ) : null}
                 </article>
               ))}
@@ -289,49 +341,15 @@ export default function DashboardWorkspace({
           </section>
         ) : null}
 
-        <section className={styles.sectionBlock}>
-          <WorkspaceSectionIntro
-            label="Pilotage"
-            title="Priorités du moment"
-            description="Les zones à arbitrer ou à débloquer en premier."
-          />
-
-          <div className={styles.grid}>
-            {cards.map((card, index) => (
-              <article
-                key={card.id || `${card.title}-${index}`}
-                className={styles.card}
-              >
-                <div className={styles.cardTitleRow}>
-                  <h2 className={styles.cardTitle}>{card.title}</h2>
-                  <NotificationBadge count={card.notificationCount} />
-                </div>
-
-                <p className={styles.cardText}>{card.text}</p>
-
-                {card.actions && card.actions.length > 0 ? (
-                  <div className={styles.cardActions}>
-                    {card.actions.map((action, actionIndex) => (
-                      <ActionRenderer
-                        key={action.id || `${action.label}-${actionIndex}`}
-                        action={action}
-                        className={getCardActionClass(action.variant)}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </section>
-
         {hasDetailSections ? (
           <section className={styles.sectionBlock}>
-            <WorkspaceSectionIntro
-              label="Surveillance"
-              title="Éléments à garder proches"
-              description="Une lecture plus fine des dossiers, biens, missions ou alertes en mouvement."
-            />
+            {showDetailsIntro ? (
+              <WorkspaceSectionIntro
+                label="Surveillance"
+                title="Éléments à garder proches"
+                description="Une lecture plus fine des dossiers, biens, missions ou alertes en mouvement."
+              />
+            ) : null}
 
             <div className={styles.detailSections}>
               {detailSections.map((section, sectionIndex) => (
@@ -342,9 +360,7 @@ export default function DashboardWorkspace({
                   <div className={styles.detailHeader}>
                     <h2 className={styles.detailTitle}>{section.title}</h2>
                     {section.description ? (
-                      <p className={styles.detailDescription}>
-                        {section.description}
-                      </p>
+                      <p className={styles.detailDescription}>{section.description}</p>
                     ) : null}
                   </div>
 
@@ -358,9 +374,7 @@ export default function DashboardWorkspace({
                           <div className={styles.detailItemMain}>
                             <div className={styles.detailItemTopline}>
                               <div className={styles.detailItemHeading}>
-                                <h3 className={styles.detailItemTitle}>
-                                  {item.title}
-                                </h3>
+                                <h3 className={styles.detailItemTitle}>{item.title}</h3>
                                 <NotificationBadge count={item.notificationCount} />
                               </div>
 
@@ -372,9 +386,7 @@ export default function DashboardWorkspace({
                             </div>
 
                             {item.description ? (
-                              <p className={styles.detailItemDescription}>
-                                {item.description}
-                              </p>
+                              <p className={styles.detailItemDescription}>{item.description}</p>
                             ) : null}
 
                             {item.facts && item.facts.length > 0 ? (
@@ -407,8 +419,7 @@ export default function DashboardWorkspace({
                     </div>
                   ) : (
                     <p className={styles.detailEmpty}>
-                      {section.emptyText ||
-                        "Aucun élément à afficher pour le moment."}
+                      {section.emptyText || "Aucun élément à afficher pour le moment."}
                     </p>
                   )}
                 </section>

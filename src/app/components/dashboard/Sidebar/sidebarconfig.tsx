@@ -139,7 +139,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       children: [
         { label: "Vue d'ensemble", path: "/dashboard/concierge/proprietaires/overview", icon: FiHome },
         { label: "Relations actives", path: "/dashboard/concierge/contacts", icon: FiUsers },
-        { label: "Pipeline", path: "/dashboard/concierge/recherche", icon: FiSearch },
+        { label: "Prospection", path: "/dashboard/concierge/recherche", icon: FiSearch },
         { label: "Messages propriétaires", path: "/dashboard/concierge/messages", icon: FiMessageSquare },
       ],
     },

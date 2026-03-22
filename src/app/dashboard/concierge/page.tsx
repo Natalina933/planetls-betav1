@@ -134,8 +134,8 @@ export default function ConciergeDashboardPage() {
         >
           <p>
             {matches.length > 0
-              ? `${matches.length} propriétaire(s) compatible(s) sont identifiés pour nourrir le pipeline.`
-              : "Le pipeline est calme pour l’instant et mérite de relancer la prospection."}
+              ? `${matches.length} propriétaire(s) compatible(s) sont identifiés pour nourrir la prospection.`
+              : "La prospection est calme pour l’instant et mérite d’être relancée."}
           </p>
           <p>
             {averageRating

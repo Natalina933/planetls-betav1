@@ -1,8 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import EditableUnifiedProfilePage from "@/app/components/dashboard/profile/EditableUnifiedProfilePage";
 
-export default function OwnerSettingsPage() {
+function OwnerSettingsContent() {
   return (
     <EditableUnifiedProfilePage
       roleLabel="Propriétaire"
@@ -12,5 +13,13 @@ export default function OwnerSettingsPage() {
       emptyDisplayName="Profil propriétaire"
       presentationIntro="Expliquez votre fonctionnement, le type de biens concernés et le niveau d'accompagnement attendu."
     />
+  );
+}
+
+export default function OwnerSettingsPage() {
+  return (
+    <Suspense fallback={<section className="dashboard-grid"><p>Chargement du profil...</p></section>}>
+      <OwnerSettingsContent />
+    </Suspense>
   );
 }
