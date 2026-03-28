@@ -154,6 +154,25 @@ export const authOptions: NextAuthConfig = {
   },
 
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return new URL(url, baseUrl).toString();
+      }
+
+      try {
+        const targetUrl = new URL(url);
+        const appUrl = new URL(baseUrl);
+
+        if (targetUrl.origin === appUrl.origin) {
+          return targetUrl.toString();
+        }
+      } catch {
+        // Fall through to the safe internal dashboard below.
+      }
+
+      return new URL("/dashboard", baseUrl).toString();
+    },
+
     async jwt({ token, user }) {
       if (user) {
         const u = user as CustomUser;
