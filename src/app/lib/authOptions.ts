@@ -4,7 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { createClient } from "@supabase/supabase-js";
 import { UserRole } from "@/types/supabase";
-import { categoryToRole } from "@/app/utils/roles";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -93,13 +92,9 @@ const providers: NextAuthConfig["providers"] = [
           return null;
         }
 
-        const fallbackRole = categoryToRole(profile.category);
-        const roleCandidate =
-          VALID_ROLES.includes(profile.role) ? profile.role : fallbackRole;
-        const role: UserRole =
-          roleCandidate && VALID_ROLES.includes(roleCandidate as UserRole)
-            ? (roleCandidate as UserRole)
-            : "owner";
+        const role: UserRole = VALID_ROLES.includes(profile.role)
+          ? profile.role
+          : "owner";
 
         const fullName =
           profile.first_name && profile.last_name
@@ -159,25 +154,6 @@ export const authOptions: NextAuthConfig = {
   },
 
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) {
-        return new URL(url, baseUrl).toString();
-      }
-
-      try {
-        const targetUrl = new URL(url);
-        const appUrl = new URL(baseUrl);
-
-        if (targetUrl.origin === appUrl.origin) {
-          return targetUrl.toString();
-        }
-      } catch {
-        // Fall through to the safe internal dashboard below.
-      }
-
-      return new URL("/dashboard", baseUrl).toString();
-    },
-
     async jwt({ token, user }) {
       if (user) {
         const u = user as CustomUser;
