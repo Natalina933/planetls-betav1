@@ -236,7 +236,7 @@ export default function CompleteRegistrationPage() {
         lastName: profile.lastName,
         email: profile.email,
         phone: profile.phone,
-        additional_info: profile.additionalInfo,
+        additionalInfo: profile.additionalInfo,
         category: profile.category,
         search_target: profile.searchTarget,
         option: profile.option,
@@ -255,9 +255,20 @@ export default function CompleteRegistrationPage() {
 
     setShowConfetti(true);
 
-    await signIn("credentials", { email: profile.email, password: form.password, redirect: false });
+    const signInResult = await signIn("credentials", {
+      email: profile.email,
+      password: form.password,
+      redirect: false,
+      callbackUrl: "/dashboard",
+    });
 
-    router.replace("/dashboard/owner");
+    if (signInResult?.error) {
+      alert("Compte cree, mais la connexion automatique a echoue. Connectez-vous manuellement.");
+      router.replace("/login");
+      return;
+    }
+
+    window.location.assign(signInResult?.url ?? "/dashboard");
 
   };
 

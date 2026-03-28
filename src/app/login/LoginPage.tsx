@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
@@ -11,8 +10,6 @@ const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export default function LoginPage() {
-  const router = useRouter();
-
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string; auth?: string }>({});
   const [loading, setLoading] = useState(false);
@@ -47,6 +44,7 @@ export default function LoginPage() {
       redirect: false,
       email: formData.email,
       password: formData.password,
+      callbackUrl: "/dashboard",
     });
 
     setLoading(false);
@@ -54,33 +52,7 @@ export default function LoginPage() {
     if (result?.error) {
       setErrors((prev) => ({ ...prev, auth: "Email ou mot de passe incorrect" }));
     } else {
-      try {
-        const res = await fetch("/api/auth/session");
-        const session = await res.json();
-        const role = session?.user?.role;
-
-        switch (role) {
-          case "concierge":
-          case "concierge_pro":
-            router.push("/dashboard/concierge");
-            break;
-          case "owner":
-          case "owner_pro":
-            router.push("/dashboard/owner");
-            break;
-          case "provider":
-          case "provider_pro":
-          case "artisan":
-          case "artisan_pro":
-            router.push("/dashboard/provider");
-            break;
-          default:
-            router.push("/dashboard");
-        }
-      } catch (err) {
-        console.error("Erreur lors de la recuperation du role :", err);
-        router.push("/dashboard");
-      }
+      window.location.assign(result?.url ?? "/dashboard");
     }
   };
 
