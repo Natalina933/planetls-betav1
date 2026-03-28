@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import OwnerConciergesPageClient from "./OwnerConciergesPageClient";
+import { OwnerConciergesPage as OwnerConciergesFeaturePage } from "@/features/owner-concierges";
 
 export const dynamic = "force-dynamic";
 
 export default function OwnerConciergesPage() {
   return (
     <Suspense fallback={null}>
-      <OwnerConciergesPageClient />
+      <OwnerConciergesFeaturePage />
     </Suspense>
   );
 }

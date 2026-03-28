@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { DashboardLoadingScreen } from "@/components/dashboard";
-import ConciergeProfilePage from "./ConciergeProfilePage";
+import { ConciergeProfileFeature } from "@/features/concierge-profile";
 
 export default function ProfilePage() {
   return (
     <Suspense fallback={<DashboardLoadingScreen label="Chargement du profil..." />}>
-      <ConciergeProfilePage />
+      <ConciergeProfileFeature />
     </Suspense>
   );
 }

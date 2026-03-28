@@ -1,0 +1,30 @@
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.pricing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: rgba(52, 41, 22, 0.82);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.tagMuted {
+  opacity: 0.75;
+}
+
+.quote {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(127, 111, 74, 0.28);
+  color: rgba(52, 41, 22, 0.78);
+  font-style: italic;
+}

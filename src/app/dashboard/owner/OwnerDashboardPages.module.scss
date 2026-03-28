@@ -712,10 +712,45 @@
   line-height: 1.6;
 }
 
+.conciergeNextStep {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.6;
+}
+
 .conciergeRecipients {
+  display: none;
+}
+
+.conciergeRecipientList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.conciergeRecipientCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.conciergeRecipientSummary {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.conciergeRecipientSummary strong {
+  color: var(--dash-text);
+}
+
+.conciergeRecipientSummary span {
+  color: var(--dash-text-muted);
+  font-size: 0.9rem;
 }
 
 .conciergeRecipientChip {
@@ -893,6 +928,7 @@
 
 :global([data-theme="art-deco"]) .reviewBadge,
 :global([data-theme="art-deco"]) .reviewBadgeMuted,
+:global([data-theme="art-deco"]) .conciergeRecipientCard,
 :global([data-theme="art-deco"]) .conciergeRecipientChip,
 :global([data-theme="art-deco"]) .conciergeStatusPill {
   border-radius: 3px;

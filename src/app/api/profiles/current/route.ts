@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { fetchCurrentProfile } from "@/server/profiles/currentProfile";
 
 export async function GET(req: NextRequest) {
   const { userId } = await getApiAuthContext(req);
@@ -9,11 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile, error } = await db
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .maybeSingle();
+  const { data: profile, error } = await fetchCurrentProfile(userId);
 
   if (error) {
     console.error("[profiles/current] DB error:", error);

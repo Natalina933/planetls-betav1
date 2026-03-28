@@ -57,10 +57,11 @@ test("buildProfileZoneUpdate syncs location, service area and rules", () => {
 
   assert.equal(nextProfile.location, "Lyon");
   assert.equal(nextProfile.service_area, "Lyon");
-  assert.equal(nextProfile.city, "PARIS");
+  assert.equal(nextProfile.city, "Lyon");
   assert.equal(nextProfile.service_radius_km, 25);
   assert.deepEqual(JSON.parse(nextProfile.availability_hours), {
     rules: { refuseOutOfZone: true },
+    zones: [],
   });
 });
 

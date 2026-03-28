@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { db } from "@/server/db/dbServer";
 import { normalizeProfileLocationFields } from "../../lib/profileLocation.ts";
+import { fetchCurrentProfile } from "@/server/profiles/currentProfile";
 
 const VALID_PROFILE_ROLES = new Set([
   "owner",
@@ -174,11 +175,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
 
-    const { data: updatedProfile, error: selectError } = await db
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    const { data: updatedProfile, error: selectError } = await fetchCurrentProfile(userId);
 
     if (selectError) {
       console.error("[PATCH /api/profiles] select error:", selectError);

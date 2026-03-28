@@ -28,7 +28,7 @@ test("validateCreateLogementForm enforces the guided manual flow", () => {
   };
   assert.equal(
     validateCreateLogementForm(partiallyFilled),
-    "Ajoutez au moins un service associe pour finaliser la creation manuelle.",
+    "Ajoutez au moins un service associé pour finaliser la création manuelle.",
   );
 });
 

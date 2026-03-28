@@ -26,6 +26,7 @@ export default function ConciergeFinancesOverviewPage() {
       chips={["Vue synthese", "A finaliser", "Services a configurer"]}
       actions={[
         { label: "Ouvrir la facturation", href: "/dashboard/concierge/billing", variant: "primary" },
+        { label: "Lancer une simulation", href: "/dashboard/concierge/finances/simulation", variant: "secondary" },
         { label: "Voir mes tarifs", href: "/dashboard/concierge/pricing", variant: "secondary" },
         { label: "Ouvrir les packs", href: "/dashboard/concierge/services-packages", variant: "secondary" },
       ]}

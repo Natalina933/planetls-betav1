@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import styles from "./DemandesPage.module.scss";
 
@@ -18,10 +19,15 @@ type ConciergeRequestRow = {
   currency: string | null;
   requested_services: string[];
   status: string;
+  owner_profile_id?: string | null;
   recipient_id: string;
   recipient_status: string;
   response_message: string | null;
   owner_name: string;
+  conversation_id?: string | null;
+  quote_id?: string | null;
+  quote_number?: string | null;
+  quote_status?: string | null;
 };
 
 function formatDate(value: string | null) {
@@ -47,7 +53,29 @@ function formatType(value: ConciergeRequestRow["request_type"]) {
   return "Besoin ponctuel";
 }
 
+function formatRecipientStatus(value: string) {
+  switch (value) {
+    case "sent":
+      return "À ouvrir";
+    case "viewed":
+      return "Consultée";
+    case "interested":
+      return "Intérêt confirmé";
+    case "quoted":
+      return "Devis préparé";
+    case "declined":
+      return "Refusée";
+    case "selected":
+      return "Retenue";
+    case "not_selected":
+      return "Non retenue";
+    default:
+      return value || "En cours";
+  }
+}
+
 export default function ConciergeDemandesPage() {
+  const router = useRouter();
   const [items, setItems] = useState<ConciergeRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +139,10 @@ export default function ConciergeDemandesPage() {
 
   const urgentCount = useMemo(() => items.filter((item) => item.urgency).length, [items]);
   const openCount = useMemo(
-    () => items.filter((item) => item.recipient_status === "sent" || item.recipient_status === "viewed").length,
+    () =>
+      items.filter(
+        (item) => item.recipient_status === "sent" || item.recipient_status === "viewed",
+      ).length,
     [items],
   );
   const quotedCount = useMemo(
@@ -119,7 +150,7 @@ export default function ConciergeDemandesPage() {
     [items],
   );
 
-  async function respond(recipientId: string, status: "interested" | "declined" | "quoted") {
+  async function respond(recipientId: string, status: "interested" | "declined") {
     try {
       setBusyRecipientId(recipientId);
       setActionMessage(null);
@@ -132,15 +163,13 @@ export default function ConciergeDemandesPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de mettre à jour la demande.");
+          throw new Error(payload?.error || "Impossible de mettre à jour la demande.");
       }
 
       setActionMessage(
         status === "interested"
           ? "Demande marquée comme intéressante."
-          : status === "quoted"
-            ? "Demande marquée comme devis à préparer."
-            : "Demande refusée.",
+          : "Demande refusée.",
       );
       await loadRequests();
     } catch (err) {
@@ -148,6 +177,169 @@ export default function ConciergeDemandesPage() {
     } finally {
       setBusyRecipientId(null);
     }
+  }
+
+  async function prepareQuote(item: ConciergeRequestRow, options?: { force?: boolean }) {
+    try {
+      setBusyRecipientId(item.recipient_id);
+      setActionMessage(null);
+      setError(null);
+
+      const response = await fetch(
+        `/api/service-request-recipients/${item.recipient_id}/prepare-quote`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(options?.force ? { force: true } : {}),
+        },
+      );
+      const payload = await response.json();
+
+      if (!response.ok) {
+          throw new Error(payload?.error || "Impossible de préparer le devis.");
+      }
+
+      const quoteId =
+        payload?.quote && typeof payload.quote.id === "string" ? payload.quote.id : item.quote_id;
+      const quoteNumber =
+        payload?.quote && typeof payload.quote.quote_number === "string"
+          ? payload.quote.quote_number
+          : item.quote_number;
+
+      setActionMessage(
+        payload?.reused
+          ? `Votre brouillon de devis est déjà prêt. Vous pouvez l’ouvrir et le finaliser.`
+          : payload?.refreshed
+            ? `Votre brouillon de devis a été mis à jour à partir de cette demande.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis.` : ""}`
+            : `Votre brouillon de devis est prêt.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis à partir de la demande.` : ""}`,
+      );
+
+      await loadRequests();
+
+      router.push(
+        quoteId
+          ? `/dashboard/concierge/billing?quote=${encodeURIComponent(quoteId)}&source=request`
+          : "/dashboard/concierge/billing?source=request",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de préparer le devis.");
+    } finally {
+      setBusyRecipientId(null);
+    }
+  }
+
+  function getConversationHref(item: ConciergeRequestRow) {
+    if (item.conversation_id) {
+      return `/dashboard/concierge/messages?conversation=${encodeURIComponent(item.conversation_id)}`;
+    }
+    return "/dashboard/concierge/messages";
+  }
+
+  function renderActions(item: ConciergeRequestRow) {
+    const isBusy = busyRecipientId === item.recipient_id;
+    const quoteHref = item.quote_id
+      ? `/dashboard/concierge/billing?quote=${encodeURIComponent(item.quote_id)}&source=request`
+      : "/dashboard/concierge/billing?source=request";
+
+    if (item.recipient_status === "quoted") {
+      return (
+        <>
+          <Link href={getConversationHref(item)} className={styles.linkBtn}>
+            Ouvrir la conversation
+          </Link>
+          <Link href={quoteHref} className={styles.secondaryBtn}>
+            Ouvrir le devis
+          </Link>
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            disabled={isBusy}
+            onClick={() => void prepareQuote(item, { force: true })}
+          >
+            {isBusy ? "Mise à jour..." : "Relancer la préparation"}
+          </button>
+        </>
+      );
+    }
+
+    if (item.recipient_status === "selected") {
+      return (
+        <>
+          <Link href={getConversationHref(item)} className={styles.linkBtn}>
+            Ouvrir la conversation
+          </Link>
+          <Link href={quoteHref} className={styles.secondaryBtn}>
+            Ouvrir devis / facturation
+          </Link>
+        </>
+      );
+    }
+
+    if (item.recipient_status === "declined" || item.recipient_status === "not_selected") {
+      return (
+        <Link href={getConversationHref(item)} className={styles.linkBtn}>
+          Ouvrir la conversation
+        </Link>
+      );
+    }
+
+    if (item.recipient_status === "interested") {
+      return (
+        <>
+          <Link href={getConversationHref(item)} className={styles.linkBtn}>
+            Ouvrir la conversation
+          </Link>
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            disabled={isBusy}
+            onClick={() => void prepareQuote(item)}
+          >
+            {isBusy ? "Préparation..." : "Préparer un devis"}
+          </button>
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            disabled={isBusy}
+            onClick={() => void respond(item.recipient_id, "declined")}
+          >
+            Refuser
+          </button>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <button
+          type="button"
+          className={styles.primaryBtn}
+          disabled={isBusy}
+          onClick={() => void respond(item.recipient_id, "interested")}
+        >
+            {isBusy ? "Mise à jour..." : "Je suis intéressée"}
+        </button>
+        <Link href={getConversationHref(item)} className={styles.linkBtn}>
+          Ouvrir la conversation
+        </Link>
+        <button
+          type="button"
+          className={styles.secondaryBtn}
+          disabled={isBusy}
+          onClick={() => void prepareQuote(item)}
+        >
+          {isBusy ? "Préparation..." : "Préparer un devis"}
+        </button>
+        <button
+          type="button"
+          className={styles.ghostBtn}
+          disabled={isBusy}
+          onClick={() => void respond(item.recipient_id, "declined")}
+        >
+          Refuser
+        </button>
+      </>
+    );
   }
 
   return (
@@ -165,22 +357,22 @@ export default function ConciergeDemandesPage() {
         {
           label: "Demandes",
           value: loading ? "..." : String(items.length),
-          hint: "Demandes reçues dans votre file",
+           hint: "Demandes reçues dans votre file",
         },
         {
           label: "À ouvrir",
           value: loading ? "..." : String(openCount),
-          hint: "Demandes encore sans réponse claire",
+           hint: "Demandes encore sans réponse claire",
         },
         {
           label: "Urgentes",
           value: loading ? "..." : String(urgentCount),
-          hint: "Demandes qui demandent une réaction rapide",
+           hint: "Demandes qui demandent une réaction rapide",
         },
         {
           label: "Devis",
           value: loading ? "..." : String(quotedCount),
-          hint: "Demandes déjà basculées en préparation devis",
+           hint: "Demandes déjà basculées en préparation devis",
         },
       ]}
       actions={[
@@ -191,15 +383,15 @@ export default function ConciergeDemandesPage() {
       cards={[
         {
           title: "1. Prioriser",
-          text: "Commencez par les urgences et les demandes de remplacement pour capter les opportunités chaudes.",
+           text: "Commencez par les urgences et les demandes de remplacement pour capter les opportunités chaudes.",
         },
         {
           title: "2. Qualifier",
-          text: "Utilisez 'intéressée' si vous pouvez avancer, ou 'devis à préparer' si le chiffrage est la prochaine étape.",
+           text: "Confirmez votre intérêt, ouvrez la conversation pré-remplie, puis lancez un devis quand le chiffrage devient l'étape suivante.",
         },
         {
           title: "3. Convertir",
-          text: "Une fois choisie par le propriétaire, la demande deviendra une mission à planifier proprement.",
+           text: "Une fois choisie par le propriétaire, la demande devient une mission à planifier proprement.",
         },
       ]}
     >
@@ -220,7 +412,9 @@ export default function ConciergeDemandesPage() {
                   </p>
                 </div>
                 <div className={styles.badges}>
-                  <span className={styles.statusBadge}>{item.recipient_status}</span>
+                  <span className={styles.statusBadge}>
+                    {formatRecipientStatus(item.recipient_status)}
+                  </span>
                   {item.urgency ? <span className={styles.urgentBadge}>Urgent</span> : null}
                 </div>
               </div>
@@ -245,35 +439,7 @@ export default function ConciergeDemandesPage() {
                 )}
               </div>
 
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={styles.primaryBtn}
-                  disabled={busyRecipientId === item.recipient_id}
-                  onClick={() => void respond(item.recipient_id, "interested")}
-                >
-                  {busyRecipientId === item.recipient_id ? "Mise à jour..." : "Je suis intéressée"}
-                </button>
-                <button
-                  type="button"
-                  className={styles.secondaryBtn}
-                  disabled={busyRecipientId === item.recipient_id}
-                  onClick={() => void respond(item.recipient_id, "quoted")}
-                >
-                  Préparer un devis
-                </button>
-                <button
-                  type="button"
-                  className={styles.ghostBtn}
-                  disabled={busyRecipientId === item.recipient_id}
-                  onClick={() => void respond(item.recipient_id, "declined")}
-                >
-                  Refuser
-                </button>
-                <Link href="/dashboard/concierge/messages" className={styles.linkBtn}>
-                  Ouvrir messages
-                </Link>
-              </div>
+              <div className={styles.actions}>{renderActions(item)}</div>
             </article>
           ))}
 

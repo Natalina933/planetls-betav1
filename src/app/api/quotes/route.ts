@@ -75,7 +75,7 @@ const quoteItemSchema = z.object({
   quantity: z.coerce.number().positive().max(100000).optional(),
   unit_price: z.coerce.number().nonnegative().max(100000000),
   service_id: z.coerce.number().int().positive().optional().nullable(),
-  pricing_id: z.string().uuid().optional().nullable(),
+  pricing_id: z.string().trim().min(1).optional().nullable(),
   sort_order: z.coerce.number().int().min(0).max(10000).optional(),
   metadata: z.record(z.string(), z.unknown()).optional().nullable(),
 });
@@ -187,6 +187,18 @@ const quoteSelect = `
   canceled_at,
   created_at,
   updated_at,
+  owner:profiles!quotes_owner_profile_id_fkey(
+    id,
+    first_name,
+    last_name,
+    company_name
+  ),
+  package:services_packages(
+    id,
+    name,
+    description,
+    category
+  ),
   quote_items(
     id,
     label,

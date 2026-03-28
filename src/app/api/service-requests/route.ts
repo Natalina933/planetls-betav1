@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { deriveServiceRequestStatus } from "@/server/service-requests/workflow";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
 
@@ -72,6 +73,10 @@ type ServiceRequestRecipientRow = {
   responded_at?: string | null;
   created_at?: string | null;
   metadata?: Record<string, unknown> | null;
+  conversation_id?: string | null;
+  quote_id?: string | null;
+  quote_number?: string | null;
+  quote_status?: string | null;
 };
 
 type ServiceRequestRow = {
@@ -85,6 +90,19 @@ type ContactConversationRow = {
   id: string;
   concierge_profile_id: string;
   owner_profile_id: string;
+  source_reference?: string | null;
+  source?: string | null;
+  created_at?: string | null;
+};
+
+type QuoteLookupRow = {
+  id: string;
+  quote_number?: string | null;
+  status?: string | null;
+  owner_profile_id?: string | null;
+  concierge_profile_id?: string | null;
+  created_at?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 // Legacy Supabase typing is incomplete on these tables in this project.
@@ -306,12 +324,94 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     recipientsByRequestId.set(recipient.service_request_id, current);
   });
 
+  const { data: conversations, error: conversationsError } = await dbAny
+    .from("contact_conversations")
+    .select("id, concierge_profile_id, owner_profile_id, source, source_reference, created_at")
+    .eq("owner_profile_id", ownerId)
+    .eq("source", "search")
+    .in(
+      "concierge_profile_id",
+      conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
+    );
+
+  if (conversationsError) {
+    console.error("[GET /api/service-requests] owner conversations error:", conversationsError);
+    throw new Error("Impossible de charger les conversations liees.");
+  }
+
+  const conversationByRequestAndConcierge = new Map<string, ContactConversationRow>();
+  const fallbackConversationByConcierge = new Map<string, ContactConversationRow>();
+  (conversations ?? []).forEach((conversation: ContactConversationRow) => {
+    const conciergeId = conversation.concierge_profile_id;
+    const requestId = typeof conversation.source_reference === "string" ? conversation.source_reference : "";
+
+    if (requestId) {
+      conversationByRequestAndConcierge.set(`${requestId}:${conciergeId}`, conversation);
+    }
+
+    const previous = fallbackConversationByConcierge.get(conciergeId);
+    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
+    const currentTime = conversation.created_at ? new Date(conversation.created_at).getTime() : 0;
+    if (!previous || currentTime >= previousTime) {
+      fallbackConversationByConcierge.set(conciergeId, conversation);
+    }
+  });
+
+  const { data: quotes, error: quotesError } = await dbAny
+    .from("quotes")
+    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, created_at, metadata")
+    .eq("owner_profile_id", ownerId)
+    .in(
+      "concierge_profile_id",
+      conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
+    );
+
+  if (quotesError) {
+    console.error("[GET /api/service-requests] owner quotes error:", quotesError);
+    throw new Error("Impossible de charger les devis lies.");
+  }
+
+  const quoteByRequestAndConcierge = new Map<string, QuoteLookupRow>();
+  (quotes ?? []).forEach((quote: QuoteLookupRow) => {
+    const conciergeId =
+      typeof quote.concierge_profile_id === "string" ? quote.concierge_profile_id : "";
+    const metadata =
+      quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+        ? quote.metadata
+        : null;
+    const requestId =
+      metadata && typeof metadata.service_request_id === "string" ? metadata.service_request_id : "";
+    if (!requestId || !conciergeId) return;
+
+    const key = `${requestId}:${conciergeId}`;
+    const previous = quoteByRequestAndConcierge.get(key);
+    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
+    const currentTime = quote.created_at ? new Date(quote.created_at).getTime() : 0;
+    if (!previous || currentTime >= previousTime) {
+      quoteByRequestAndConcierge.set(key, quote);
+    }
+  });
+
   return (requests ?? []).map((request: ServiceRequestRow) => ({
     ...request,
     selected_concierge_name: request.selected_concierge_profile_id
       ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
       : null,
-    recipients: recipientsByRequestId.get(request.id) ?? [],
+    recipients: (recipientsByRequestId.get(request.id) ?? []).map((recipient) => {
+      const conversation =
+        conversationByRequestAndConcierge.get(`${request.id}:${recipient.concierge_profile_id}`) ??
+        fallbackConversationByConcierge.get(recipient.concierge_profile_id);
+      const quote =
+        quoteByRequestAndConcierge.get(`${request.id}:${recipient.concierge_profile_id}`) ?? null;
+
+      return {
+        ...recipient,
+        conversation_id: conversation?.id ?? null,
+        quote_id: quote?.id ?? null,
+        quote_number: quote?.quote_number ?? null,
+        quote_status: quote?.status ?? null,
+      };
+    }),
   }));
 }
 
@@ -380,8 +480,75 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
     requestById.set(request.id, request);
   });
 
+  const { data: conversations, error: conversationsError } = await dbAny
+    .from("contact_conversations")
+    .select("id, concierge_profile_id, owner_profile_id, source, source_reference, created_at")
+    .eq("concierge_profile_id", conciergeId)
+    .eq("source", "search")
+    .in("owner_profile_id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (conversationsError) {
+    console.error("[GET /api/service-requests] concierge conversations error:", conversationsError);
+    throw new Error("Impossible de charger les conversations liees.");
+  }
+
+  const conversationByRequestAndOwner = new Map<string, ContactConversationRow>();
+  const fallbackConversationByOwner = new Map<string, ContactConversationRow>();
+  (conversations ?? []).forEach((conversation: ContactConversationRow) => {
+    const ownerId = conversation.owner_profile_id;
+    const requestId = typeof conversation.source_reference === "string" ? conversation.source_reference : "";
+
+    if (requestId) {
+      conversationByRequestAndOwner.set(`${requestId}:${ownerId}`, conversation);
+    }
+
+    const previous = fallbackConversationByOwner.get(ownerId);
+    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
+    const currentTime = conversation.created_at ? new Date(conversation.created_at).getTime() : 0;
+    if (!previous || currentTime >= previousTime) {
+      fallbackConversationByOwner.set(ownerId, conversation);
+    }
+  });
+
+  const { data: quotes, error: quotesError } = await dbAny
+    .from("quotes")
+    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, created_at, metadata")
+    .eq("concierge_profile_id", conciergeId)
+    .in("owner_profile_id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (quotesError) {
+    console.error("[GET /api/service-requests] concierge quotes error:", quotesError);
+    throw new Error("Impossible de charger les devis lies.");
+  }
+
+  const quoteByRequestAndOwner = new Map<string, QuoteLookupRow>();
+  (quotes ?? []).forEach((quote: QuoteLookupRow) => {
+    const ownerId = typeof quote.owner_profile_id === "string" ? quote.owner_profile_id : "";
+    const metadata =
+      quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+        ? quote.metadata
+        : null;
+    const requestId =
+      metadata && typeof metadata.service_request_id === "string" ? metadata.service_request_id : "";
+    if (!requestId || !ownerId) return;
+
+    const key = `${requestId}:${ownerId}`;
+    const previous = quoteByRequestAndOwner.get(key);
+    const previousTime = previous?.created_at ? new Date(previous.created_at).getTime() : 0;
+    const currentTime = quote.created_at ? new Date(quote.created_at).getTime() : 0;
+    if (!previous || currentTime >= previousTime) {
+      quoteByRequestAndOwner.set(key, quote);
+    }
+  });
+
   return (recipients ?? []).map((recipient: ServiceRequestRecipientRow) => {
     const request = requestById.get(recipient.service_request_id);
+    const ownerId = typeof request?.owner_profile_id === "string" ? request.owner_profile_id : "";
+    const conversation =
+      conversationByRequestAndOwner.get(`${recipient.service_request_id}:${ownerId}`) ??
+      fallbackConversationByOwner.get(ownerId);
+    const quote = quoteByRequestAndOwner.get(`${recipient.service_request_id}:${ownerId}`) ?? null;
+
     return {
       ...request,
       recipient_id: recipient.id,
@@ -389,6 +556,10 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       response_message: recipient.response_message,
       viewed_at: recipient.viewed_at,
       responded_at: recipient.responded_at,
+      conversation_id: conversation?.id ?? null,
+      quote_id: quote?.id ?? null,
+      quote_number: quote?.quote_number ?? null,
+      quote_status: quote?.status ?? null,
       owner_name: request?.owner_profile_id
         ? ownerNameById.get(request.owner_profile_id) ?? "Proprietaire"
         : "Proprietaire",

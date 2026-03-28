@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import {
+  deriveServiceRequestStatus,
+  type ServiceRequestRecipientStatus,
+} from "@/server/service-requests/workflow";
 
 type RecipientStatus =
   | "viewed"
   | "interested"
   | "quoted"
   | "declined";
-
-type RequestStatus =
-  | "sent"
-  | "in_review"
-  | "quoted"
-  | "accepted"
-  | "closed"
-  | "cancelled";
 
 interface RespondBody {
   status?: RecipientStatus;
@@ -27,12 +23,6 @@ const VALID_STATUSES: RecipientStatus[] = ["viewed", "interested", "quoted", "de
 // Keep the cast local instead of spreading `any` through the whole handler.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dbAny = db as any;
-
-function mapRequestStatus(status: RecipientStatus): RequestStatus | null {
-  if (status === "quoted") return "quoted";
-  if (status === "interested" || status === "viewed") return "in_review";
-  return null;
-}
 
 export async function POST(
   req: NextRequest,
@@ -102,18 +92,51 @@ export async function POST(
       return NextResponse.json({ error: "Impossible de mettre a jour la reponse." }, { status: 500 });
     }
 
-    const requestStatus = mapRequestStatus(nextStatus);
-    if (requestStatus) {
-      const { error: requestUpdateError } = await dbAny
-        .from("service_requests")
-        .update({ status: requestStatus })
-        .eq("id", updatedRecipient.service_request_id);
+    const { data: relatedRecipients, error: relatedRecipientsError } = await dbAny
+      .from("service_request_recipients")
+      .select("status")
+      .eq("service_request_id", updatedRecipient.service_request_id);
 
-      if (requestUpdateError) {
+    if (relatedRecipientsError) {
+      console.error(
+        "[POST /api/service-request-recipients/[id]/respond] related recipients error:",
+        relatedRecipientsError,
+      );
+    } else {
+      const { data: requestRow, error: requestRowError } = await dbAny
+        .from("service_requests")
+        .select("id, selected_concierge_profile_id")
+        .eq("id", updatedRecipient.service_request_id)
+        .maybeSingle();
+
+      if (requestRowError) {
         console.error(
-          "[POST /api/service-request-recipients/[id]/respond] request update error:",
-          requestUpdateError,
+          "[POST /api/service-request-recipients/[id]/respond] request read error:",
+          requestRowError,
         );
+      } else if (requestRow) {
+        const requestStatus = deriveServiceRequestStatus(
+          Array.isArray(relatedRecipients)
+            ? relatedRecipients
+                .map((row: { status?: string | null }) => row.status)
+                .filter((status): status is ServiceRequestRecipientStatus => typeof status === "string")
+            : [],
+          typeof requestRow.selected_concierge_profile_id === "string"
+            ? requestRow.selected_concierge_profile_id
+            : null,
+        );
+
+        const { error: requestUpdateError } = await dbAny
+          .from("service_requests")
+          .update({ status: requestStatus })
+          .eq("id", updatedRecipient.service_request_id);
+
+        if (requestUpdateError) {
+          console.error(
+            "[POST /api/service-request-recipients/[id]/respond] request update error:",
+            requestUpdateError,
+          );
+        }
       }
     }
 

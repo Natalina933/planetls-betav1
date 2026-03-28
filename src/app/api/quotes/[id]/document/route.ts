@@ -54,7 +54,7 @@ export async function GET(
     const { data: quote, error: quoteError } = await db
       .from("quotes")
       .select(
-        "id, quote_number, concierge_profile_id, owner_profile_id, mission_id, status, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, notes, created_at, quote_items(id, label, description, quantity, unit_price, line_total, sort_order)",
+        "id, quote_number, concierge_profile_id, owner_profile_id, mission_id, package_id, status, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, notes, created_at, package:services_packages(id, name, description, category), quote_items(id, label, description, quantity, unit_price, line_total, sort_order)",
       )
       .eq("id", id)
       .single();
@@ -116,6 +116,9 @@ export async function GET(
     const vatMention = concierge?.vat_number
       ? `TVA intracommunautaire: ${escapeHtml(concierge.vat_number)}`
       : "TVA non applicable, art. 293 B du CGI";
+    const packageHtml = quote.package
+      ? `<section class="box" style="margin-top: 12px;"><h3>Pack rattache</h3><div>${escapeHtml(quote.package.name ?? "Pack")}</div><div class="muted">${quote.package.category ? escapeHtml(quote.package.category) : ""}${quote.package.description ? `<br/>${escapeHtml(quote.package.description)}` : ""}</div></section>`
+      : "";
 
     const rowsHtml = items
       .map(
@@ -227,6 +230,7 @@ export async function GET(
         ? `<section class="box" style="margin-top: 12px;"><h3>Notes</h3><div class="muted">${escapeHtml(quote.notes).replaceAll("\n", "<br/>")}</div></section>`
         : ""
     }
+    ${packageHtml}
 
     <footer class="footer">
       Document numerote automatiquement. Ce devis est emis par ${escapeHtml(conciergeName)}.

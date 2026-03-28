@@ -2,7 +2,9 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { Avatar, Badge, ButtonLink, Card, CardBody, CardFooter, CardHeader, Tag } from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
+import { ConciergePreviewCard } from "@/features/public-concierges";
+import { EmptyState } from "@/features/shared/components/EmptyState";
 import styles from "./ProfilesDisplay.module.scss";
 
 export interface Profile {
@@ -71,68 +73,48 @@ export default function ProfilesDisplay({
                 onMouseEnter={() => onHover?.(id)}
                 onMouseLeave={() => onLeave?.()}
               >
-                <Card variant="small" interactive className={styles.profileCard}>
-                  <CardHeader className={styles.cardHeader}>
-                    <Avatar src={photo || null} name={name} alt={`Avatar de ${name}, ${type}`} size="lg" />
-                    <Badge variant={available ? "success" : "danger"}>
-                      {available ? "Disponible" : "Indisponible"}
-                    </Badge>
-                  </CardHeader>
-
-                  <CardBody className={styles.profileDetails}>
-                    <h4>
-                      {name} <span className={styles.categoryLabel}>({categoryInfo.label})</span>
-                    </h4>
-                    <p className={styles.categoryDescription}>{categoryInfo.description}</p>
-
-                    <div className={styles.services}>
-                      {services.length > 0 ? (
-                        <>
-                          {services.slice(0, 3).map((srv, index) => (
-                            <Tag key={`${name}-${srv}-${index}`} tone="category" className={styles.serviceTag}>
-                              {srv}
-                            </Tag>
-                          ))}
-                          {services.length > 3 && <Tag className={styles.more}>+{services.length - 3}</Tag>}
-                        </>
-                      ) : (
-                        <span className={styles.serviceNone}>Aucun service renseigne</span>
-                      )}
-                    </div>
-
-                    <p className={styles.location}>Secteur : {location}</p>
-                    {created_at && (
-                      <p className={styles.experience}>
-                        Membre depuis {new Date(created_at).getFullYear()}
-                      </p>
-                    )}
-                  </CardBody>
-
-                  <CardFooter className={styles.actions}>
+                <ConciergePreviewCard
+                  id={id}
+                  displayName={`${name} (${categoryInfo.label})`}
+                  city={location}
+                  serviceArea={categoryInfo.description}
+                  services={services}
+                  badgeLabel={available ? "Disponible" : "Indisponible"}
+                  badgeVariant={available ? "success" : "danger"}
+                  yearsExperience={
+                    created_at ? new Date().getFullYear() - new Date(created_at).getFullYear() : null
+                  }
+                  className={styles.profileCard}
+                  primaryAction={
                     <ButtonLink href="/login" variant="outline" size="sm">
                       Contacter
                     </ButtonLink>
+                  }
+                  secondaryAction={
                     <ButtonLink href={getProfileHref(profile)} variant="primary" size="sm">
                       Voir profil
                     </ButtonLink>
-                  </CardFooter>
-                </Card>
+                  }
+                />
               </li>
             );
           })}
         </ul>
       ) : (
-        <div>
-          <p className={styles.noResultAlert}>Aucun profil trouve pour {category} a {location}.</p>
-          <div className={styles.actions}>
+        <EmptyState
+          title={`Aucun profil trouvé pour ${category} à ${location}.`}
+          description="Élargissez la recherche ou connectez-vous pour créer une alerte pertinente."
+          primaryAction={
             <ButtonLink href="/map-list?filter=concierge" variant="secondary" size="sm">
               Elargir la recherche
             </ButtonLink>
+          }
+          secondaryAction={
             <ButtonLink href="/login" variant="primary" size="sm">
               Se connecter pour creer une alerte
             </ButtonLink>
-          </div>
-        </div>
+          }
+        />
       )}
     </div>
   );

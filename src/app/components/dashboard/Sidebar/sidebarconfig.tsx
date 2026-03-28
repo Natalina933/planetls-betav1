@@ -150,6 +150,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       children: [
         { label: "Vue d'ensemble", path: "/dashboard/concierge/finances/overview", icon: FiHome },
         { label: "Devis & factures", path: "/dashboard/concierge/billing", icon: FiFileText },
+        { label: "Simulation", path: "/dashboard/concierge/finances/simulation", icon: FiCreditCard },
         { label: "Tarifs", path: "/dashboard/concierge/pricing", icon: FiCreditCard },
         { label: "Packs", path: "/dashboard/concierge/services-packages", icon: FiPackage },
       ],

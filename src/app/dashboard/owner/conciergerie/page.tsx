@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getOwnerReplySignature,
   isOwnerReplyStatus,
@@ -51,9 +51,14 @@ type SpotlightConciergeProfile = {
 type OwnerServiceRequestRecipient = {
   id: string;
   status: string;
+  concierge_profile_id?: string | null;
   concierge_name?: string;
   responded_at?: string | null;
   viewed_at?: string | null;
+  conversation_id?: string | null;
+  quote_id?: string | null;
+  quote_number?: string | null;
+  quote_status?: string | null;
 };
 
 type OwnerServiceRequestRow = {
@@ -69,6 +74,7 @@ type OwnerServiceRequestRow = {
   currency?: string | null;
   status: string;
   created_at?: string | null;
+  selected_concierge_profile_id?: string | null;
   selected_concierge_name?: string | null;
   recipients: OwnerServiceRequestRecipient[];
 };
@@ -108,6 +114,7 @@ function formatRequestStatus(status: string) {
       return "Intérêt reçu";
     case "quoted":
       return "Devis reçu";
+    case "accepted":
     case "selected":
       return "Concierge retenu";
     case "closed":
@@ -117,9 +124,63 @@ function formatRequestStatus(status: string) {
   }
 }
 
+function formatRecipientStatus(status: string) {
+  switch (status) {
+    case "sent":
+      return "Envoyee";
+    case "viewed":
+      return "Consultee";
+    case "interested":
+      return "Interessee";
+    case "quoted":
+      return "Devis prepare";
+    case "selected":
+      return "Retenu";
+    case "not_selected":
+      return "Non retenu";
+    case "declined":
+      return "Refusee";
+    default:
+      return status || "En cours";
+  }
+}
+
+function getSelectedRecipient(request: OwnerServiceRequestRow) {
+  return (
+    request.recipients.find((recipient) => recipient.status === "selected") ??
+    request.recipients.find(
+      (recipient) => recipient.concierge_profile_id === request.selected_concierge_profile_id,
+    ) ??
+    null
+  );
+}
+
+function getRequestNextStep(request: OwnerServiceRequestRow) {
+  const selectedRecipient = getSelectedRecipient(request);
+  if (selectedRecipient) {
+    return `Concierge retenu : ${selectedRecipient.concierge_name || "concierge"}. La suite se joue dans la conversation et la mission active.`;
+  }
+
+  if (request.recipients.some((recipient) => recipient.status === "quoted")) {
+    return "Des devis sont disponibles. Comparez les retours puis retenez un concierge.";
+  }
+
+  if (request.recipients.some((recipient) => recipient.status === "interested")) {
+    return "Des concierges ont confirme leur interet. Ouvrez la conversation et demandez un chiffrage si besoin.";
+  }
+
+  if (request.recipients.every((recipient) => recipient.status === "declined")) {
+    return "Tous les concierges ont decline cette demande. Relancez une nouvelle recherche.";
+  }
+
+  return "Attendez les premiers retours ou poursuivez les echanges depuis la conversation liee.";
+}
+
 function getStatusTone(status: string, urgent?: boolean) {
   if (urgent) return pageStyles.statusUrgent;
-  if (status === "selected" || status === "closed") return pageStyles.statusSuccess;
+  if (status === "accepted" || status === "selected" || status === "closed") {
+    return pageStyles.statusSuccess;
+  }
   if (status === "quoted" || status === "interested" || status === "in_review") {
     return pageStyles.statusInfo;
   }
@@ -143,12 +204,14 @@ export default function OwnerConciergeriePage() {
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [spotlightProfile, setSpotlightProfile] = useState<SpotlightConciergeProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
   const [selectedMissionId, setSelectedMissionId] = useState("");
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [selectingRequestId, setSelectingRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -194,6 +257,51 @@ export default function OwnerConciergeriePage() {
     void loadData();
   }, []);
 
+  const reloadRequests = useCallback(async () => {
+    const response = await fetch("/api/service-requests?limit=8", { cache: "no-store" });
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload?.error || "Impossible de recharger les demandes.");
+    }
+
+    const nextRequests = Array.isArray(payload?.items) ? payload.items : [];
+    setRequests(nextRequests);
+    markOwnerReplySignaturesAsSeen(collectReplySignatures(nextRequests));
+  }, []);
+
+  const getOwnerConversationHref = useCallback((conversationId?: string | null) => {
+    if (conversationId) {
+      return `/dashboard/owner/messages?conversation=${encodeURIComponent(conversationId)}`;
+    }
+    return "/dashboard/owner/messages";
+  }, []);
+
+  async function handleSelectConcierge(requestId: string, recipientId: string) {
+    try {
+      setSelectingRequestId(requestId);
+      setRequestSuccess(null);
+      setError(null);
+
+      const response = await fetch(`/api/service-requests/${requestId}/select`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipient_id: recipientId }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de retenir ce concierge.");
+      }
+
+      await reloadRequests();
+      setRequestSuccess("Le concierge a ete retenu et la demande a ete transformee en mission active.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
+    } finally {
+      setSelectingRequestId(null);
+    }
+  }
+
   const ongoingCount = useMemo(
     () =>
       missions.filter(
@@ -216,7 +324,7 @@ export default function OwnerConciergeriePage() {
     () =>
       requests.filter((request) =>
         request.recipients.some((recipient) =>
-          ["interested", "quoted", "selected", "in_review"].includes(recipient.status),
+          ["interested", "quoted", "selected", "in_review", "accepted"].includes(recipient.status),
         ),
       ).length,
     [requests],
@@ -442,6 +550,10 @@ export default function OwnerConciergeriePage() {
               </Link>
             </div>
 
+            {requestSuccess ? (
+              <p className={`${pageStyles.message} ${pageStyles.messageSuccess}`}>{requestSuccess}</p>
+            ) : null}
+
             {requests.length === 0 ? (
               <div className={pageStyles.conciergeEmptyState}>
                 <h3>Aucune demande envoyée pour le moment.</h3>
@@ -492,6 +604,8 @@ export default function OwnerConciergeriePage() {
                       <p className={pageStyles.conciergeRequestDescription}>{request.description}</p>
                     ) : null}
 
+                    <p className={pageStyles.conciergeNextStep}>{getRequestNextStep(request)}</p>
+
                     <div className={pageStyles.conciergeRecipients}>
                       {request.recipients.length > 0 ? (
                         request.recipients.slice(0, 4).map((recipient) => (
@@ -504,13 +618,102 @@ export default function OwnerConciergeriePage() {
                       )}
                     </div>
 
+                    {request.recipients.length > 0 ? (
+                      <div className={pageStyles.conciergeRecipientList}>
+                        {request.recipients.map((recipient) => {
+                          const isSelectedRecipient =
+                            recipient.status === "selected" ||
+                            recipient.concierge_profile_id === request.selected_concierge_profile_id;
+                          const canSelect =
+                            request.status !== "selected" &&
+                            request.status !== "accepted" &&
+                            !isSelectedRecipient &&
+                            ["interested", "quoted"].includes(recipient.status);
+
+                          return (
+                            <div key={`${request.id}-${recipient.id}`} className={pageStyles.conciergeRecipientCard}>
+                              <div className={pageStyles.conciergeRecipientSummary}>
+                                <strong>{recipient.concierge_name || "Concierge"}</strong>
+                                <span>{formatRecipientStatus(recipient.status)}</span>
+                              </div>
+                              <div className={pageStyles.inlineActions}>
+                                <Link
+                                  href={getOwnerConversationHref(recipient.conversation_id)}
+                                  className={pageStyles.buttonSecondary}
+                                >
+                                  Ouvrir la conversation
+                                </Link>
+                                {recipient.quote_id ? (
+                                  <Link
+                                    href={`/api/quotes/${recipient.quote_id}/document?print=1`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className={pageStyles.linkButton}
+                                  >
+                                    Voir le devis
+                                  </Link>
+                                ) : null}
+                                {isSelectedRecipient ? (
+                                  <Link
+                                    href={getOwnerConversationHref(recipient.conversation_id)}
+                                    className={pageStyles.buttonPrimary}
+                                  >
+                                    Suivre le concierge retenu
+                                  </Link>
+                                ) : null}
+                                {canSelect ? (
+                                  <button
+                                    type="button"
+                                    className={pageStyles.buttonPrimary}
+                                    onClick={() => void handleSelectConcierge(request.id, recipient.id)}
+                                    disabled={selectingRequestId === request.id}
+                                  >
+                                    {selectingRequestId === request.id
+                                      ? "Selection..."
+                                      : "Retenir ce concierge"}
+                                  </button>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+
                     <div className={pageStyles.inlineActions}>
-                      <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
-                        Voir les messages
-                      </Link>
-                      <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                        Relancer une recherche
-                      </Link>
+                      {getSelectedRecipient(request) ? (
+                        <>
+                          <Link
+                            href={getOwnerConversationHref(getSelectedRecipient(request)?.conversation_id)}
+                            className={pageStyles.buttonSecondary}
+                          >
+                            Ouvrir la conversation retenue
+                          </Link>
+                          <Link href="/dashboard/owner/planning" className={pageStyles.buttonPrimary}>
+                            Suivre la mission
+                          </Link>
+                        </>
+                      ) : request.recipients.some((recipient) =>
+                          ["interested", "quoted"].includes(recipient.status),
+                        ) ? (
+                        <>
+                          <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
+                            Comparer via les messages
+                          </Link>
+                          <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
+                            Contacter d'autres concierges
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
+                            Voir les messages
+                          </Link>
+                          <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
+                            Relancer une recherche
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </article>
                 ))}

@@ -3,13 +3,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import FilterSliders from "@/app/components/ui/FilterSliders";
-import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
+import { Button, ButtonLink } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
-import { ConciergeAvatar } from "./ConciergeAvatar";
-import { ConciergeCard } from "./card/ConciergeCard";
 import type { ServiceCatalogItem, SortMode, ViewMode } from "./conciergeSearchTypes";
-import { OwnerLocationAutocomplete } from "./OwnerLocationAutocomplete";
 import {
   createConciergeComparator,
   getActiveSearchSummary,
@@ -24,19 +20,8 @@ import {
 } from "./searchHelpers";
 import { getOwnerCitySuggestions, getOwnerRegionSuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
-
-type RequestType = "ponctuel" | "renfort" | "durable";
-
-type RequestFormState = {
-  requestType: RequestType;
-  title: string;
-  description: string;
-  city: string;
-  postalCode: string;
-  desiredDate: string;
-  budgetMax: string;
-  urgency: boolean;
-};
+import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
+import type { RequestFormState } from "@/features/owner-concierges/types";
 
 const initialFilters: OwnerConciergeSearchFilters = {
   region: "",
@@ -392,610 +377,78 @@ export default function OwnerConciergesPageClient() {
     }
   }
 
-  const filterControls = (
-    <>
-      <div className={styles.searchBar}>
-        <div className={`${styles.field} ${styles.searchField}`}>
-          <span id="search-region-label">Région</span>
-          <OwnerLocationAutocomplete
-            ariaLabel="Région"
-            value={filters.region}
-            onChange={(value) => updateFilters("region", value)}
-            placeholder="Ile-de-France, PACA, Bretagne..."
-            getSuggestions={getOwnerRegionSuggestions}
-          />
-        </div>
-
-        <div className={`${styles.field} ${styles.searchField}`}>
-          <span id="search-city-label">Ville ou code postal</span>
-          <OwnerLocationAutocomplete
-            ariaLabel="Ville ou code postal"
-            value={filters.city}
-            onChange={(value) => updateFilters("city", value)}
-            placeholder="Paris, 75015, Annecy..."
-            getSuggestions={getOwnerCitySuggestions}
-          />
-        </div>
-
-        <label className={styles.field}>
-          <span>Type de bien</span>
-          <Select
-            aria-label="Type de bien"
-            value={filters.propertyType}
-            onChange={(event) => updateFilters("propertyType", event.target.value)}
-          >
-            <option value="">Tous les biens</option>
-            {propertyTypeOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </Select>
-        </label>
-
-        <div className={styles.sliderFilters}>
-          <FilterSliders
-            title="Budget et rayon"
-            budget={{
-              label: "Budget max par heure",
-              value: parseSliderValue(filters.budgetMax),
-              min: 0,
-              max: 300,
-              step: 10,
-              helperText: "0 = sans limite",
-              formatValue: (value) => (value === 0 ? "Sans limite" : `${value} EUR/h`),
-              onChange: (value) => updateFilters("budgetMax", value === 0 ? "" : String(value)),
-            }}
-            radius={{
-              label: "Rayon max",
-              value: parseSliderValue(filters.radiusKm),
-              min: 0,
-              max: 100,
-              step: 5,
-              unit: "km",
-              helperText: "0 = sans limite",
-              formatValue: (value) => (value === 0 ? "Sans limite" : `${value} km`),
-              onChange: (value) => updateFilters("radiusKm", value === 0 ? "" : String(value)),
-            }}
-          />
-        </div>
-
-        <div className={styles.searchActions}>
-          <Button type="submit" variant="primary" className={styles.primaryBtn} disabled={loading}>
-            {loading ? "Recherche..." : "Rechercher"}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className={styles.secondaryBtn}
-            onClick={resetFilters}
-            disabled={loading}
-          >
-            Réinitialiser
-          </Button>
-        </div>
-      </div>
-
-        <div className={styles.searchMeta}>
-          <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Services recherchés</span>
-            <div className={styles.serviceChips}>
-              {categoryOptions.length === 0 ? (
-                <span className={styles.tagMuted}>
-                  Les catégories apparaîtront après le premier chargement.
-                </span>
-              ) : (
-                categoryOptions.map((categoryLabel) => {
-                  const isSelected = filters.selectedCategories.includes(categoryLabel);
-                  return (
-                    <Button
-                      key={categoryLabel}
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      aria-pressed={isSelected}
-                      className={isSelected ? styles.serviceChipActive : styles.serviceChip}
-                      onClick={() => toggleCategory(categoryLabel)}
-                    >
-                      {categoryLabel}
-                    </Button>
-                  );
-                })
-              )}
-            </div>
-            <p className={styles.filterHint}>
-              Choisissez d&apos;abord une grande catégorie, puis affinez avec le détail si besoin.
-            </p>
-          </div>
-
-          <div className={styles.servicesBlock}>
-            <span className={styles.blockLabel}>Details du service</span>
-            {filters.selectedCategories.length === 0 ? (
-              <span className={styles.tagMuted}>Sélectionnez une catégorie pour voir les détails.</span>
-            ) : visibleServicesByCategory.length === 0 ? (
-              <span className={styles.tagMuted}>Aucun détail disponible pour la sélection actuelle.</span>
-            ) : (
-              <div className={styles.serviceSections}>
-                {visibleServicesByCategory.map((group) => {
-                  const isOpen = openServiceSections[group.category] ?? true;
-                  const selectedCount = group.services.filter((service) =>
-                    filters.selectedServices.includes(service),
-                  ).length;
-
-                  return (
-                    <section key={group.category} className={styles.serviceSection}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className={styles.serviceSectionHeader}
-                        onClick={() => toggleServiceSection(group.category)}
-                        aria-expanded={isOpen}
-                      >
-                        <span>{group.category}</span>
-                        <span className={styles.serviceSectionMeta}>
-                          {selectedCount}/{group.services.length} {isOpen ? "-" : "+"}
-                        </span>
-                      </Button>
-
-                      {isOpen ? (
-                        <div className={styles.serviceSectionBody}>
-                          {group.services.map((serviceLabel) => {
-                            const isSelected = filters.selectedServices.includes(serviceLabel);
-                            return (
-                              <Button
-                                key={serviceLabel}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                aria-pressed={isSelected}
-                                className={isSelected ? styles.serviceChipActive : styles.serviceChip}
-                                onClick={() => toggleService(serviceLabel)}
-                              >
-                                {serviceLabel}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      ) : null}
-                    </section>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <Checkbox
-            aria-label="Afficher uniquement les concierges PRO"
-            checked={filters.proOnly}
-            onChange={(event) => updateFilters("proOnly", event.target.checked)}
-            label="Afficher uniquement les concierges PRO"
-            className={styles.checkboxInput}
-            labelClassName={styles.checkboxLabel}
-          />
-      </div>
-    </>
-  );
+  const filtersLabel = [filters.region.trim(), filters.city.trim()].filter(Boolean).join(" · ");
 
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
-        <header className={styles.hero}>
-          <div className={styles.heroCopy}>
-            <span className={styles.eyebrow}>Mise en relation</span>
-            <h1 className={styles.title}>Trouvez un concierge disponible dans votre ville ou code postal</h1>
-            <p className={styles.description}>
-              Recherchez par zone, comparez les profils les plus utiles puis envoyez un brief clair
-              aux concierges que vous retenez.
-            </p>
-          </div>
-
-          <div className={styles.mobileHeroActions}>
-            <Button
-              type="button"
-              variant="secondary"
-              className={styles.secondaryBtn}
-              onClick={() => setMobileFiltersOpen(true)}
-            >
-              Ouvrir les filtres
-            </Button>
-            <div className={styles.viewToggle} aria-label="Mode d'affichage">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={viewMode === "cards" ? styles.viewToggleActive : styles.viewToggleBtn}
-                onClick={() => setViewMode("cards")}
-              >
-                Cartes
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={viewMode === "list" ? styles.viewToggleActive : styles.viewToggleBtn}
-                onClick={() => setViewMode("list")}
-              >
-                Liste
-              </Button>
-            </div>
-          </div>
-
-          <form className={styles.searchShell} onSubmit={handleSubmit}>
-            {filterControls}
-          </form>
-
-          <div className={styles.statsRow}>
-            <article className={styles.statCard}>
-              <span className={styles.statLabel}>Concierges trouvés</span>
-              <strong>{items.length}</strong>
-            </article>
-            <article className={styles.statCard}>
-              <span className={styles.statLabel}>Disponibles maintenant</span>
-              <strong>{stats.totalAvailable}</strong>
-            </article>
-            <article className={styles.statCard}>
-              <span className={styles.statLabel}>Profils PRO</span>
-              <strong>{stats.totalPro}</strong>
-            </article>
-            <article className={styles.statCard}>
-              <span className={styles.statLabel}>Votre sélection</span>
-              <strong>{selectedConciergeIds.length}</strong>
-            </article>
-          </div>
-        </header>
+        <SearchFilters
+          styles={styles}
+          filters={filters}
+          propertyTypeOptions={propertyTypeOptions}
+          categoryOptions={categoryOptions}
+          visibleServicesByCategory={visibleServicesByCategory}
+          openServiceSections={openServiceSections}
+          loading={loading}
+          viewMode={viewMode}
+          itemsCount={items.length}
+          stats={stats}
+          selectedConciergeCount={selectedConciergeIds.length}
+          onSubmit={handleSubmit}
+          onReset={resetFilters}
+          onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+          onViewModeChange={setViewMode}
+          onFilterChange={updateFilters}
+          onToggleCategory={toggleCategory}
+          onToggleService={toggleService}
+          onToggleServiceSection={toggleServiceSection}
+          getRegionSuggestions={getOwnerRegionSuggestions}
+          getCitySuggestions={getOwnerCitySuggestions}
+          parseSliderValue={parseSliderValue}
+        />
 
         {error ? <p className={styles.errorBox}>{error}</p> : null}
         {feedback ? <p className={styles.successBox}>{feedback}</p> : null}
 
         <div className={styles.contentLayout}>
           <div className={styles.resultsColumn} ref={resultsRef}>
-            <div className={styles.resultsHeader}>
-              <div>
-                <p className={styles.eyebrow}>Résultats</p>
-                <h2 className={styles.sectionTitle}>
-                  {loading
-                    ? "Recherche en cours..."
-                    : hasSubmittedSearch
-                      ? `${items.length} concierge(s) disponible(s)`
-                      : "Aucun concierge affiché pour le moment"}
-                </h2>
-              </div>
-              <div className={styles.resultsTools}>
-                <p className={styles.resultsNote}>
-                  Disponibles d&apos;abord, puis profils les mieux notes et les plus fiables.
-                </p>
-                <div className={styles.sortTabs} aria-label="Tri des concierges">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={sortMode === "available" ? styles.sortTabActive : styles.sortTab}
-                    onClick={() => setSortMode("available")}
-                  >
-                    Disponibles
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={sortMode === "rating" ? styles.sortTabActive : styles.sortTab}
-                    onClick={() => setSortMode("rating")}
-                  >
-                    Mieux notés
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={sortMode === "pro" ? styles.sortTabActive : styles.sortTab}
-                    onClick={() => setSortMode("pro")}
-                  >
-                    PRO
-                  </Button>
-                </div>
-                <div className={styles.viewToggleDesktop} aria-label="Mode d'affichage">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={viewMode === "cards" ? styles.viewToggleActive : styles.viewToggleBtn}
-                    onClick={() => setViewMode("cards")}
-                  >
-                    Cartes
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={viewMode === "list" ? styles.viewToggleActive : styles.viewToggleBtn}
-                    onClick={() => setViewMode("list")}
-                  >
-                    Liste
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <ResultsHeader
+              styles={styles}
+              loading={loading}
+              hasSubmittedSearch={hasSubmittedSearch}
+              itemsCount={items.length}
+              sortMode={sortMode}
+              viewMode={viewMode}
+              onSortModeChange={setSortMode}
+              onViewModeChange={setViewMode}
+            />
 
-            {!loading && !error && items.length === 0 && hasSubmittedSearch ? (
-              <div className={styles.emptyState}>
-                <h2>
-                  {filters.region.trim() || filters.city.trim()
-                    ? `Aucun concierge disponible pour ${[filters.region.trim(), filters.city.trim()].filter(Boolean).join(" · ")}.`
-                    : "Aucun concierge disponible pour cette recherche."}
-                </h2>
-                <p>
-                  Aucun profil actif n&apos;a été trouvé avec les filtres actuels. Essayez une région
-                  voisine, augmentez le rayon ou retirez quelques filtres.
-                </p>
-                {(filters.region.trim() || filters.city.trim()) && (
-                  <div className={styles.emptyStateActions}>
-                    <Button type="button" variant="primary" className={styles.primaryBtn} onClick={handleCreateAlert}>
-                      Créer une alerte pour cette zone
-                    </Button>
-                    <ButtonLink href="/dashboard/owner/alertes" variant="secondary" className={styles.secondaryBtn}>
-                      Voir mes alertes
-                    </ButtonLink>
-                  </div>
-                )}
-              </div>
-            ) : null}
-
-            {!loading && !error && items.length === 0 && !hasSubmittedSearch ? (
-              <div className={styles.emptyState}>
-                <h2>Lancez une recherche pour voir les concierges disponibles.</h2>
-                <p>
-                  {hasSearchCriteria
-                    ? "Vos filtres sont prêts. Cliquez sur Rechercher pour afficher les concierges disponibles."
-                    : "Saisissez une ville ou un code postal pour affiner."}
-                </p>
-              </div>
-            ) : null}
-
-            <div className={viewMode === "list" ? `${styles.grid} ${styles.gridList}` : styles.grid}>
-              {loading
-                ? Array.from({ length: viewMode === "list" ? 3 : 6 }).map((_, index) => (
-                  <article
-                    key={`skeleton-${index}`}
-                    className={`${styles.card} ${styles.skeletonCard}`}
-                    style={{ ["--card-index" as string]: String(index) }}
-                    aria-hidden="true"
-                  >
-                    <div className={styles.cardHead}>
-                      <div className={styles.cardIdentityWrap}>
-                        <div className={`${styles.avatarBadge} ${styles.skeletonBlock}`} />
-                        <div className={styles.cardIdentity}>
-                          <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-                          <div className={styles.skeletonLine} />
-                        </div>
-                      </div>
-                      <div className={styles.badgesCol}>
-                        <div className={`${styles.skeletonPill} ${styles.skeletonBlock}`} />
-                        <div className={`${styles.skeletonPill} ${styles.skeletonBlock}`} />
-                      </div>
-                    </div>
-
-                    <div className={styles.kpiRow}>
-                      <div className={`${styles.kpiCard} ${styles.skeletonBlock}`} />
-                      <div className={`${styles.kpiCard} ${styles.skeletonBlock}`} />
-                      <div className={`${styles.kpiCard} ${styles.skeletonBlock}`} />
-                    </div>
-
-                    <div className={styles.pricing}>
-                      <div className={`${styles.priceCard} ${styles.skeletonBlock}`} />
-                      <div className={`${styles.priceCard} ${styles.skeletonBlock}`} />
-                    </div>
-
-                    <div className={styles.tags}>
-                      <div className={`${styles.skeletonPillWide} ${styles.skeletonBlock}`} />
-                      <div className={`${styles.skeletonPill} ${styles.skeletonBlock}`} />
-                      <div className={`${styles.skeletonPill} ${styles.skeletonBlock}`} />
-                    </div>
-                  </article>
-                ))
-                : null}
-              {sortedItems.map((item, index) => (
-                <ConciergeCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  isSelected={selectedIdSet.has(item.id)}
-                  onToggle={toggleConciergeSelection}
-                />
-              ))}
-            </div>
+            <ResultsGrid
+              styles={styles}
+              loading={loading}
+              error={error}
+              hasSubmittedSearch={hasSubmittedSearch}
+              hasSearchCriteria={hasSearchCriteria}
+              filtersLabel={filtersLabel}
+              items={sortedItems}
+              selectedIds={selectedIdSet}
+              viewMode={viewMode}
+              onToggleSelection={toggleConciergeSelection}
+              onCreateAlert={handleCreateAlert}
+            />
           </div>
 
           <aside className={styles.sidebar}>
-            <form className={styles.requestPanel} onSubmit={handleSendRequest} id="owner-request-panel">
-              <div className={styles.requestHeader}>
-                <div className={styles.requestHeaderCopy}>
-                  <p className={styles.eyebrow}>Demande</p>
-                  <h2 className={styles.requestTitle}>Votre brief concierge</h2>
-                  <p className={styles.requestIntro}>
-                    Formalisez votre besoin comme une fiche mission claire, puis ciblez les profils les
-                    plus adaptés.
-                  </p>
-                </div>
-                <span className={styles.requestCount}>{selectedConciergeIds.length} cible(s)</span>
-              </div>
-
-              <div className={styles.selectionSummary}>
-                <div className={styles.panelSummary}>
-                  <span className={styles.requestSectionLabel}>Recherche active</span>
-                  <strong>Recherche active</strong>
-                  <div className={styles.summaryChips}>
-                    {activeSearchSummary.length > 0 ? (
-                      activeSearchSummary.map((item) => (
-                        <span key={item} className={styles.summaryChip}>
-                          {item}
-                        </span>
-                      ))
-                    ) : (
-                      <span className={styles.tagMuted}>Aucun filtre actif pour le moment.</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.selectionDivider} />
-
-                <div className={styles.panelSummary}>
-                  <span className={styles.requestSectionLabel}>Destinataires</span>
-                  <strong>Concierges sélectionnés</strong>
-                </div>
-                <div className={styles.selectedList}>
-                  {selectedConcierges.length > 0 ? (
-                    selectedConcierges.map((item) => (
-                      <span key={item.id} className={styles.selectedChip}>
-                        <span className={styles.selectedChipAvatar}>
-                          <ConciergeAvatar
-                            src={item.avatar_url}
-                            alt={
-                              item.avatar_url
-                                ? `Avatar de ${item.display_name}`
-                                : `Avatar par défaut de ${item.display_name}`
-                            }
-                            className={styles.selectedChipAvatarImage}
-                            width={28}
-                            height={28}
-                          />
-                        </span>
-                        <span className={styles.selectedChipLabel}>{item.display_name}</span>
-                      </span>
-                    ))
-                  ) : (
-                    <span className={styles.tagMuted}>
-                      Sélectionnez un ou plusieurs concierges dans la liste.
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.sidebarFields}>
-                <div className={styles.requestBlock}>
-                  <div className={styles.requestBlockHeader}>
-                    <span className={styles.requestSectionLabel}>Cadre de mission</span>
-                    <p className={styles.requestBlockHint}>Les informations visibles en tête de brief.</p>
-                  </div>
-                  <div className={styles.fieldGrid}>
-                    <label className={styles.field}>
-                      <span>Type de demande</span>
-                      <Select
-                        value={requestForm.requestType}
-                        onChange={(event) =>
-                          updateRequestForm("requestType", event.target.value as RequestType)
-                        }
-                      >
-                        <option value="ponctuel">Besoin ponctuel</option>
-                        <option value="renfort">Remplacement / renfort</option>
-                        <option value="durable">Besoin durable</option>
-                      </Select>
-                    </label>
-
-                    <div className={styles.field}>
-                      <span>Code postal</span>
-                      <Input
-                        value={requestForm.postalCode}
-                        onChange={(event) => updateRequestForm("postalCode", event.target.value)}
-                        placeholder="75015"
-                        inputMode="numeric"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.requestBlock}>
-                  <div className={styles.requestBlockHeader}>
-                    <span className={styles.requestSectionLabel}>Zone et budget</span>
-                    <p className={styles.requestBlockHint}>Précisez l&apos;intervention attendue.</p>
-                  </div>
-                  <div className={styles.fieldGrid}>
-                    <label className={styles.field}>
-                      <span>Ville</span>
-                      <OwnerLocationAutocomplete
-                        ariaLabel="Ville"
-                        value={requestForm.city}
-                        onChange={(value) => updateRequestForm("city", value)}
-                        placeholder="Ville d'intervention"
-                        getSuggestions={getOwnerCitySuggestions}
-                      />
-                    </label>
-
-                    <div className={styles.field}>
-                      <span>Budget max</span>
-                      <Input
-                        type="number"
-                        min="0"
-                        inputMode="numeric"
-                        value={requestForm.budgetMax}
-                        onChange={(event) => updateRequestForm("budgetMax", event.target.value)}
-                        placeholder="120"
-                      />
-                      <small className={styles.fieldHint}>En EUR par heure. Laissez vide si non défini.</small>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.requestBlock}>
-                  <div className={styles.requestBlockHeader}>
-                    <span className={styles.requestSectionLabel}>Contenu du brief</span>
-                    <p className={styles.requestBlockHint}>
-                      Donnez assez de contexte pour obtenir une réponse utile.
-                    </p>
-                  </div>
-                  <div className={styles.field}>
-                    <span>Date souhaitée</span>
-                    <Input
-                      type="datetime-local"
-                      value={requestForm.desiredDate}
-                      onChange={(event) => updateRequestForm("desiredDate", event.target.value)}
-                    />
-                  </div>
-
-                  <div className={styles.field}>
-                    <span>Titre</span>
-                    <Input
-                      value={requestForm.title}
-                      onChange={(event) => updateRequestForm("title", event.target.value)}
-                      placeholder="Ex: besoin de check-in ce week-end"
-                    />
-                  </div>
-
-                  <label className={styles.field}>
-                    <span>Description</span>
-                    <Textarea
-                      className={styles.requestTextarea}
-                      value={requestForm.description}
-                      onChange={(event) => updateRequestForm("description", event.target.value)}
-                      placeholder="Expliquez la situation, le logement, l'urgence et ce que vous attendez."
-                      rows={5}
-                    />
-                  </label>
-                </div>
-
-                <Checkbox
-                  checked={requestForm.urgency}
-                  onChange={(event) => updateRequestForm("urgency", event.target.checked)}
-                  label="Cette demande est urgente"
-                  className={styles.checkboxInput}
-                  labelClassName={styles.checkboxLabel}
-                />
-              </div>
-
-              <div className={styles.actions}>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className={styles.primaryBtn}
-                  disabled={submittingRequest || selectedConciergeIds.length === 0}
-                >
-                  {submittingRequest ? "Envoi..." : "Envoyer ma demande"}
-                </Button>
-                <ButtonLink href="/dashboard/owner/conciergerie" variant="secondary" className={styles.secondaryBtn}>
-                  Suivre mes demandes envoyées
-                </ButtonLink>
-              </div>
-            </form>
+            <RequestPanel
+              styles={styles}
+              selectedConcierges={selectedConcierges}
+              activeSearchSummary={activeSearchSummary}
+              requestForm={requestForm}
+              submittingRequest={submittingRequest}
+              onSubmit={handleSendRequest}
+              onRequestFormChange={updateRequestForm}
+              getCitySuggestions={getOwnerCitySuggestions}
+            />
           </aside>
         </div>
 
@@ -1036,9 +489,33 @@ export default function OwnerConciergesPageClient() {
                   Fermer
                 </Button>
               </div>
-              <form className={styles.mobileDrawerBody} onSubmit={handleSubmit}>
-                {filterControls}
-              </form>
+              <div className={styles.mobileDrawerBody}>
+                <SearchFilters
+                  styles={styles}
+                  mode="compact"
+                  filters={filters}
+                  propertyTypeOptions={propertyTypeOptions}
+                  categoryOptions={categoryOptions}
+                  visibleServicesByCategory={visibleServicesByCategory}
+                  openServiceSections={openServiceSections}
+                  loading={loading}
+                  viewMode={viewMode}
+                  itemsCount={items.length}
+                  stats={stats}
+                  selectedConciergeCount={selectedConciergeIds.length}
+                  onSubmit={handleSubmit}
+                  onReset={resetFilters}
+                  onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+                  onViewModeChange={setViewMode}
+                  onFilterChange={updateFilters}
+                  onToggleCategory={toggleCategory}
+                  onToggleService={toggleService}
+                  onToggleServiceSection={toggleServiceSection}
+                  getRegionSuggestions={getOwnerRegionSuggestions}
+                  getCitySuggestions={getOwnerCitySuggestions}
+                  parseSliderValue={parseSliderValue}
+                />
+              </div>
             </div>
           </div>
         ) : null}

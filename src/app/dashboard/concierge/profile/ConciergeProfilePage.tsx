@@ -90,62 +90,12 @@ import type {
   WeekDay,
 } from "@/app/components/missions/types";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
+import { fetchCurrentConciergeProfile } from "@/features/concierge-profile";
+import type { ConciergeProfile as Profile } from "@/features/concierge-profile";
 
 const DEFAULT_AVATAR = "/icons/account-svgrepo-com.svg";
 
 type TabId = ConciergeTabId;
-
-export interface Profile {
-  id: string;
-  username: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string | null;
-  avatar_url: string | null;
-  additional_info: string | null;
-  category: string;
-  created_at: string;
-  location: string | null;
-  option: string | null;
-  search_target: string | null;
-  role: string | null;
-  travel_fee: number | null;
-  avatar_scale: number | null;
-  avatar_offset_x?: number | null;
-  avatar_offset_y?: number | null;
-  avatar_rotation?: number | null;
-  company_name: string | null;
-  legal_form: string | null;
-  siret: string | null;
-  siren: string | null;
-  vat_number: string | null;
-  street_address: string | null;
-  postal_code: string | null;
-  city: string | null;
-  country: string | null;
-  website: string | null;
-  linkedin: string | null;
-  facebook: string | null;
-  instagram: string | null;
-  insurance_number: string | null;
-  insurance_company: string | null;
-  hourly_rate: number | null;
-  monthly_rate: number | null;
-  availability_hours?: string | null;
-  emergency_service?: boolean | null;
-  certifications: string | null;
-  mission_settings?: string | null;
-  years_experience: number | null;
-  experience_level: "debutant" | "intermediaire" | "experimente" | null;
-  iban: string | null;
-  bic: string | null;
-  // champs étendus pour l'onglet équipe
-  service_area?: string | null;
-  service_radius_km?: number | null;
-  onboarding_complete?: boolean;
-  onboarding_completed_at?: string | null;
-}
 
 const formatExperienceLabel = (
   level: "debutant" | "intermediaire" | "experimente" | null,
@@ -1398,28 +1348,8 @@ export default function ConciergeProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch("/api/profiles/current");
-        const data: Profile | { error: string } = await response.json();
-
+        const hydratedData = await fetchCurrentConciergeProfile();
         if (!isMounted) return;
-
-        if ("error" in data) {
-          throw new Error(data.error);
-        }
-
-        if (data.avatar_url && data.avatar_url.includes("/avatars//")) {
-          data.avatar_url = data.avatar_url.replace(
-            "/avatars/avatars/",
-            "/avatars/",
-          );
-        }
-
-        const hydratedData: Profile = {
-          ...data,
-          location: data.location ?? data.service_area ?? null,
-          service_area: data.service_area ?? data.location ?? null,
-          service_radius_km: data.service_radius_km ?? null,
-        };
 
         setProfile(hydratedData);
         setEditProfile(hydratedData);

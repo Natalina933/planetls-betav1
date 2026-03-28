@@ -1,731 +1,671 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  FiCheckCircle,
-  FiClock,
-  FiDollarSign,
-  FiFileText,
-  FiRefreshCw,
-  FiSend,
-} from "react-icons/fi";
+  AsyncState,
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  Select,
+  Tag,
+  Textarea,
+} from "@/components/ui";
 import styles from "./TariffBillingDesk.module.scss";
 
-type MissionLite = {
-  id: string;
-  title: string;
-  status: string;
-  amount: number | null;
-  currency: string | null;
+type QuoteItem = {
+  id?: string;
+  label: string;
+  description?: string | null;
+  quantity: number;
+  unit_price: number;
+  service_id?: number | null;
+  pricing_id?: string | null;
+  sort_order?: number;
+};
+
+type QuoteMeta = {
+  source?: string;
+  requested_services?: string[];
+  auto_match_summary?: { matchedPackageName?: string | null; matchedPricingCount?: number };
 };
 
 type QuoteLite = {
   id: string;
-  quote_number: string;
-  status: string;
-  mission_id: string | null;
-  total_amount: number;
-  currency: string;
-  created_at: string;
+  quote_number?: string | null;
+  status?: string | null;
+  total_amount?: number | null;
+  valid_until?: string | null;
+  created_at?: string | null;
+  package_id?: string | null;
+  notes?: string | null;
+  metadata?: QuoteMeta | null;
+  owner?: {
+    id?: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    company_name?: string | null;
+  } | null;
+  quote_items?: QuoteItem[];
 };
 
 type InvoiceLite = {
   id: string;
-  invoice_number: string;
-  quote_id: string | null;
-  status: string;
-  total_amount: number;
-  balance_amount: number;
-  currency: string;
-  due_date: string | null;
-  created_at: string;
+  invoice_number?: string | null;
+  status?: string | null;
+  total_amount?: number | null;
+  created_at?: string | null;
 };
 
-type QuoteStatus = "draft" | "sent" | "accepted" | "rejected" | "expired" | "canceled";
-type InvoiceStatus =
-  | "draft"
-  | "issued"
-  | "partially_paid"
-  | "paid"
-  | "overdue"
-  | "canceled";
-
-const QUOTE_STATUS_LABEL: Record<string, string> = {
-  draft: "Brouillon",
-  sent: "Envoye",
-  accepted: "Accepte",
-  rejected: "Refuse",
-  expired: "Expire",
-  canceled: "Annule",
+type PricingLite = {
+  id: string;
+  label?: string | null;
+  amount?: number | null;
+  unit?: string | null;
+  service_id?: number | null;
 };
 
-const INVOICE_STATUS_LABEL: Record<string, string> = {
-  draft: "Brouillon",
-  issued: "Emise",
-  partially_paid: "Partiellement payee",
-  paid: "Payee",
-  overdue: "En retard",
-  canceled: "Annulee",
+type PackageLite = {
+  id: string;
+  name?: string | null;
+  services_package_items?: Array<{ service_id: string | number }>;
 };
 
-const formatCurrency = (value: number, currency: string) =>
-  new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: currency || "EUR",
-    minimumFractionDigits: 2,
-  }).format(value ?? 0);
+type ServiceLite = { id: number; service?: string | null; category?: string | null };
+type Mode = "package" | "custom";
+type TariffBillingDeskProps = { initialSelectedQuoteId?: string; [key: string]: unknown };
 
-const formatDate = (value?: string | null) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
+const money = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const formatMoney = (value?: number | null) => money.format(Number(value ?? 0));
+const formatDate = (value?: string | null) => (value ? new Date(value).toLocaleDateString("fr-FR") : "-");
+
+const statusLabel = (status?: string | null) =>
+  ({
+    draft: "Brouillon",
+    sent: "Envoyé",
+    accepted: "Accepté",
+    rejected: "Refusé",
+    canceled: "Annulé",
+    expired: "Expiré",
+    issued: "Émise",
+    paid: "Payée",
+    overdue: "En retard",
+  })[String(status ?? "")] ?? (status || "-");
+
+const statusVariant = (status?: string | null) => {
+  if (status === "accepted" || status === "paid") return "success" as const;
+  if (status === "sent" || status === "issued") return "info" as const;
+  if (status === "rejected" || status === "canceled") return "danger" as const;
+  if (status === "expired" || status === "overdue") return "warning" as const;
+  return "neutral" as const;
 };
 
-const round2 = (value: number): number => Math.round(value * 100) / 100;
+const ownerLabel = (owner?: QuoteLite["owner"]) =>
+  owner?.company_name ||
+  [owner?.first_name, owner?.last_name].filter(Boolean).join(" ") ||
+  "Propriétaire";
 
-const getResponseError = async (res: Response, fallback: string): Promise<string> => {
-  try {
-    const data = await res.json();
-    if (typeof data?.error === "string" && data.error.trim()) {
-      return data.error;
-    }
-    return fallback;
-  } catch {
-    return fallback;
-  }
-};
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.trashIcon}>
+      <path
+        d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 7h2v8h-2v-8Zm4 0h2v8h-2v-8ZM7 10h2v8H7v-8Zm1 11h8a2 2 0 0 0 2-2V8H6v11a2 2 0 0 0 2 2Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
-type TariffBillingDeskProps = {
-  hourlyRate?: number;
-  travelFee?: number;
-  minimumInvoice?: number;
-  urgentPercent?: number;
-  nightPercent?: number;
-  weekendPercent?: number;
-  highSeasonPercent?: number;
-  commissionRatePct?: number;
-  setupFee?: number;
-  presetVersion?: number;
-  presetMonthlyRevenueEstimate?: number;
-  presetNewListingsEstimate?: number;
-  presetActServicesEstimate?: number;
-};
-
-const TariffBillingDesk = ({
-  hourlyRate = 0,
-  travelFee = 0,
-  minimumInvoice = 0,
-  urgentPercent = 0,
-  nightPercent = 0,
-  weekendPercent = 0,
-  highSeasonPercent = 0,
-  commissionRatePct = 20,
-  setupFee = 0,
-  presetVersion = 0,
-  presetMonthlyRevenueEstimate,
-  presetNewListingsEstimate,
-  presetActServicesEstimate,
-}: TariffBillingDeskProps) => {
+export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBillingDeskProps) {
+  const [quotes, setQuotes] = useState<QuoteLite[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceLite[]>([]);
+  const [pricing, setPricing] = useState<PricingLite[]>([]);
+  const [packages, setPackages] = useState<PackageLite[]>([]);
+  const [services, setServices] = useState<ServiceLite[]>([]);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(initialSelectedQuoteId ?? null);
+  const [editor, setEditor] = useState<QuoteLite | null>(null);
+  const [mode, setMode] = useState<Mode>("custom");
+  const [selectedPackageId, setSelectedPackageId] = useState("");
+  const [selectedPricingId, setSelectedPricingId] = useState("");
   const [loading, setLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const [missions, setMissions] = useState<MissionLite[]>([]);
-  const [quotes, setQuotes] = useState<QuoteLite[]>([]);
-  const [invoices, setInvoices] = useState<InvoiceLite[]>([]);
+  const load = async () => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const [quotesRes, invoicesRes, pricingRes, packagesRes, servicesRes] = await Promise.all([
+        fetch("/api/quotes?limit=30", { cache: "no-store" }),
+        fetch("/api/invoices?limit=12", { cache: "no-store" }),
+        fetch("/api/services/service_pricing", { cache: "no-store" }),
+        fetch("/api/services/packages", { cache: "no-store" }),
+        fetch("/api/services/services-catalog", { cache: "no-store" }),
+      ]);
 
-  const [selectedMissionId, setSelectedMissionId] = useState("");
-  const [selectedQuoteId, setSelectedQuoteId] = useState("");
-  const [monthlyRevenueEstimate, setMonthlyRevenueEstimate] = useState(6000);
-  const [newListingsEstimate, setNewListingsEstimate] = useState(1);
-  const [actServicesEstimate, setActServicesEstimate] = useState(4);
+      const [quotesData, invoicesData, pricingData, packagesData, servicesData] = await Promise.all([
+        quotesRes.json(),
+        invoicesRes.json(),
+        pricingRes.json(),
+        packagesRes.json(),
+        servicesRes.json(),
+      ]);
 
-  useEffect(() => {
-    if (presetMonthlyRevenueEstimate != null) {
-      setMonthlyRevenueEstimate(Math.max(0, Number(presetMonthlyRevenueEstimate || 0)));
-    }
-    if (presetNewListingsEstimate != null) {
-      setNewListingsEstimate(Math.max(0, Number(presetNewListingsEstimate || 0)));
-    }
-    if (presetActServicesEstimate != null) {
-      setActServicesEstimate(Math.max(0, Number(presetActServicesEstimate || 0)));
-    }
-  }, [
-    presetVersion,
-    presetMonthlyRevenueEstimate,
-    presetNewListingsEstimate,
-    presetActServicesEstimate,
-  ]);
-
-  const loadData = useCallback(async () => {
-    const [missionsRes, quotesRes, invoicesRes] = await Promise.all([
-      fetch("/api/missions?scope=concierge&limit=40"),
-      fetch("/api/quotes?limit=30"),
-      fetch("/api/invoices?limit=30"),
-    ]);
-
-    if (!missionsRes.ok) {
-      throw new Error(await getResponseError(missionsRes, "Erreur chargement missions"));
-    }
-    if (!quotesRes.ok) {
-      throw new Error(await getResponseError(quotesRes, "Erreur chargement devis"));
-    }
-    if (!invoicesRes.ok) {
-      throw new Error(await getResponseError(invoicesRes, "Erreur chargement factures"));
-    }
-
-    const [missionsData, quotesData, invoicesData] = await Promise.all([
-      missionsRes.json(),
-      quotesRes.json(),
-      invoicesRes.json(),
-    ]);
-
-    const nextMissions: MissionLite[] = Array.isArray(missionsData) ? missionsData : [];
-    const nextQuotes: QuoteLite[] = Array.isArray(quotesData) ? quotesData : [];
-    const nextInvoices: InvoiceLite[] = Array.isArray(invoicesData) ? invoicesData : [];
-
-    setMissions(nextMissions);
-    setQuotes(nextQuotes);
-    setInvoices(nextInvoices);
-
-    if (!selectedMissionId && nextMissions.length > 0) {
-      setSelectedMissionId(nextMissions[0].id);
-    }
-    if (!selectedQuoteId && nextQuotes.length > 0) {
-      setSelectedQuoteId(nextQuotes[0].id);
-    }
-  }, [selectedMissionId, selectedQuoteId]);
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        setLoading(true);
-        setErrorMsg(null);
-        await loadData();
-      } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : "Erreur de chargement");
-      } finally {
-        setLoading(false);
+      if (!quotesRes.ok) {
+        throw new Error(quotesData?.error || "Impossible de charger les devis.");
       }
-    };
-    run();
-  }, [loadData]);
 
-  const quoteCandidates = useMemo(
+      const nextQuotes = Array.isArray(quotesData) ? quotesData : [];
+      setQuotes(nextQuotes);
+      setInvoices(Array.isArray(invoicesData) ? invoicesData : []);
+      setPricing(Array.isArray(pricingData) ? pricingData : []);
+      setPackages(Array.isArray(packagesData) ? packagesData : []);
+      setServices(Array.isArray(servicesData) ? servicesData : []);
+      setSelectedQuoteId((previous) => previous ?? initialSelectedQuoteId ?? nextQuotes[0]?.id ?? null);
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Impossible de charger le bureau devis.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, [initialSelectedQuoteId]);
+
+  useEffect(() => {
+    if (!selectedQuoteId) {
+      setEditor(null);
+      return;
+    }
+    const current = quotes.find((quote) => quote.id === selectedQuoteId) ?? null;
+    if (!current) return;
+    setEditor({
+      ...current,
+      quote_items: (current.quote_items ?? []).map((item, index) => ({
+        ...item,
+        quantity: Number(item.quantity ?? 1),
+        unit_price: Number(item.unit_price ?? 0),
+        sort_order: Number(item.sort_order ?? index),
+      })),
+    });
+    setSelectedPackageId(current.package_id ?? "");
+    setMode(current.package_id ? "package" : "custom");
+  }, [quotes, selectedQuoteId]);
+
+  const serviceNames = useMemo(
     () =>
-      quotes.filter(
-        (quote) => quote.status !== "canceled" && quote.status !== "rejected",
+      new Map(
+        services.map((service) => [
+          service.id,
+          service.service || service.category || `Service #${service.id}`,
+        ]),
       ),
-    [quotes],
+    [services],
   );
 
-  const receivableAmount = useMemo(
-    () => invoices.reduce((sum, invoice) => sum + Number(invoice.balance_amount ?? 0), 0),
-    [invoices],
-  );
-
-  const openInvoiceCount = useMemo(
-    () =>
-      invoices.filter(
-        (invoice) => invoice.status !== "paid" && invoice.status !== "canceled",
-      ).length,
-    [invoices],
-  );
-
-  const actionPending = (actionKey: string) => busyAction === actionKey;
-
-  const quoteProjection = useMemo(() => {
-    const commissionAmount = (monthlyRevenueEstimate * commissionRatePct) / 100;
-    const actAverage = Math.max(minimumInvoice, hourlyRate * 2 + travelFee);
-    const actAmount = actAverage * actServicesEstimate;
-    const setupAmount = setupFee * newListingsEstimate;
-    const total = round2(commissionAmount + actAmount + setupAmount);
-
-    return {
-      commissionAmount: round2(commissionAmount),
-      actAmount: round2(actAmount),
-      setupAmount: round2(setupAmount),
-      total,
-    };
-  }, [
-    monthlyRevenueEstimate,
-    commissionRatePct,
-    minimumInvoice,
-    hourlyRate,
-    travelFee,
-    actServicesEstimate,
-    setupFee,
-    newListingsEstimate,
-  ]);
-
-  const refreshData = async () => {
-    try {
-      setBusyAction("refresh");
-      setSuccessMsg(null);
-      setErrorMsg(null);
-      await loadData();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur actualisation");
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const createQuoteFromMission = async () => {
-    if (!selectedMissionId) return;
-
-    try {
-      setBusyAction("create-quote");
-      setSuccessMsg(null);
-      setErrorMsg(null);
-
-      const res = await fetch("/api/quotes/from-mission", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mission_id: selectedMissionId }),
-      });
-
-      if (!res.ok) {
-        throw new Error(await getResponseError(res, "Impossible de creer le devis"));
-      }
-
-      const created: QuoteLite | null = await res.json().catch(() => null);
-      await loadData();
-      if (created?.id) {
-        setSelectedQuoteId(created.id);
-      }
-      setSuccessMsg("Devis cree depuis mission.");
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur creation devis");
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const createInvoiceFromQuote = async () => {
-    if (!selectedQuoteId) return;
-
-    try {
-      setBusyAction("create-invoice");
-      setSuccessMsg(null);
-      setErrorMsg(null);
-
-      const res = await fetch("/api/invoices/from-quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quote_id: selectedQuoteId }),
-      });
-
-      if (!res.ok) {
-        throw new Error(await getResponseError(res, "Impossible de creer la facture"));
-      }
-
-      await loadData();
-      setSuccessMsg("Facture creee depuis devis.");
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur creation facture");
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const updateQuoteStatus = async (quoteId: string, status: QuoteStatus) => {
-    try {
-      setBusyAction(`quote-${quoteId}-${status}`);
-      setSuccessMsg(null);
-      setErrorMsg(null);
-
-      const res = await fetch(`/api/quotes/${quoteId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      if (!res.ok) {
-        throw new Error(await getResponseError(res, "Impossible de changer le statut devis"));
-      }
-
-      await loadData();
-      setSuccessMsg("Statut devis mis a jour.");
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur mise a jour devis");
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const updateInvoiceStatus = async (
-    invoice: InvoiceLite,
-    status: InvoiceStatus,
-    paidAmount?: number,
-  ) => {
-    try {
-      setBusyAction(`invoice-${invoice.id}-${status}`);
-      setSuccessMsg(null);
-      setErrorMsg(null);
-
-      const payload: { status: InvoiceStatus; paid_amount?: number } = { status };
-      if (paidAmount !== undefined) {
-        payload.paid_amount = paidAmount;
-      }
-
-      const res = await fetch(`/api/invoices/${invoice.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(await getResponseError(res, "Impossible de changer le statut facture"));
-      }
-
-      await loadData();
-      setSuccessMsg("Statut facture mis a jour.");
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur mise a jour facture");
-    } finally {
-      setBusyAction(null);
-    }
-  };
-
-  const openQuoteDocument = (quoteId: string) => {
-    window.open(`/api/quotes/${quoteId}/document?print=1`, "_blank", "noopener,noreferrer");
-  };
-
-  const openInvoiceDocument = (invoiceId: string) => {
-    window.open(
-      `/api/invoices/${invoiceId}/document?print=1`,
-      "_blank",
-      "noopener,noreferrer",
+  const packagePricing = useMemo(() => {
+    if (!selectedPackageId) return [] as PricingLite[];
+    const currentPackage = packages.find((entry) => entry.id === selectedPackageId);
+    const serviceIds = new Set(
+      (currentPackage?.services_package_items ?? []).map((item) => Number(item.service_id)),
     );
+    return pricing.filter((entry) => entry.service_id !== null && serviceIds.has(Number(entry.service_id)));
+  }, [packages, pricing, selectedPackageId]);
+
+  const totals = useMemo(() => {
+    const subtotal = (editor?.quote_items ?? []).reduce(
+      (sum, item) => sum + Number(item.quantity || 0) * Number(item.unit_price || 0),
+      0,
+    );
+    return { subtotal, total: subtotal };
+  }, [editor]);
+
+  const updateEditor = (patch: Partial<QuoteLite>) =>
+    setEditor((previous) => (previous ? { ...previous, ...patch } : previous));
+
+  const updateItem = (index: number, patch: Partial<QuoteItem>) =>
+    setEditor((previous) =>
+      previous
+        ? {
+            ...previous,
+            quote_items: (previous.quote_items ?? []).map((item, itemIndex) =>
+              itemIndex === index ? { ...item, ...patch } : item,
+            ),
+          }
+        : previous,
+    );
+
+  const removeItem = (index: number) =>
+    setEditor((previous) =>
+      previous
+        ? {
+            ...previous,
+            quote_items: (previous.quote_items ?? [])
+              .filter((_, itemIndex) => itemIndex !== index)
+              .map((item, itemIndex) => ({ ...item, sort_order: itemIndex })),
+          }
+        : previous,
+    );
+
+  const applyPackage = () => {
+    if (!editor || !selectedPackageId) return;
+    updateEditor({
+      package_id: selectedPackageId,
+      quote_items: packagePricing.map((entry, index) => ({
+        label: entry.label?.trim() || "Service packagé",
+        description: entry.unit ? `Tarif ${entry.unit}` : null,
+        quantity: entry.unit?.toLowerCase().includes("heure") ? 2 : 1,
+        unit_price: Number(entry.amount ?? 0),
+        service_id: entry.service_id ?? null,
+        pricing_id: entry.id,
+        sort_order: index,
+      })),
+    });
+    setSuccessMsg("Le pack a été intégré au devis.");
   };
 
-  if (loading) {
-    return <p className={styles.placeholder}>Chargement des données devis et factures...</p>;
-  }
+  const addPricing = () => {
+    if (!editor || !selectedPricingId) return;
+    const currentPricing = pricing.find((entry) => entry.id === selectedPricingId);
+    if (!currentPricing) return;
+    if ((editor.quote_items ?? []).some((item) => item.pricing_id === currentPricing.id)) {
+      setSuccessMsg("Ce tarif est déjà présent dans le devis.");
+      return;
+    }
+    updateEditor({
+      package_id: null,
+      quote_items: [
+        ...(editor.quote_items ?? []),
+        {
+          label: currentPricing.label?.trim() || "Tarif",
+          description: currentPricing.unit ? `Tarif ${currentPricing.unit}` : null,
+          quantity: currentPricing.unit?.toLowerCase().includes("heure") ? 2 : 1,
+          unit_price: Number(currentPricing.amount ?? 0),
+          service_id: currentPricing.service_id ?? null,
+          pricing_id: currentPricing.id,
+          sort_order: (editor.quote_items ?? []).length,
+        },
+      ],
+    });
+    setSuccessMsg("Le tarif a été ajouté au devis.");
+  };
+
+  const saveQuote = async () => {
+    if (!editor) return;
+    setBusyAction("save");
+    setErrorMsg(null);
+    try {
+      const response = await fetch(`/api/quotes/${editor.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          package_id: mode === "package" ? selectedPackageId || null : null,
+          valid_until: editor.valid_until ?? null,
+          notes: editor.notes ?? null,
+          items: (editor.quote_items ?? []).map((item, index) => ({ ...item, sort_order: index })),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Impossible d'enregistrer le devis.");
+      setQuotes((previous) => previous.map((quote) => (quote.id === payload.id ? payload : quote)));
+      setSuccessMsg("Le devis a été enregistré.");
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Erreur d'enregistrement.");
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const sendQuote = async () => {
+    if (!editor) return;
+    setBusyAction("send");
+    setErrorMsg(null);
+    try {
+      const response = await fetch(`/api/quotes/${editor.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "sent" }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Impossible d'envoyer le devis.");
+      setQuotes((previous) =>
+        previous.map((quote) => (quote.id === payload.id ? { ...quote, ...payload } : quote)),
+      );
+      setSuccessMsg("Le devis a été envoyé.");
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Erreur d'envoi.");
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const generateInvoice = async () => {
+    if (!editor) return;
+    setBusyAction("invoice");
+    setErrorMsg(null);
+    try {
+      const response = await fetch("/api/invoices/from-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quote_id: editor.id }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Impossible de générer la facture.");
+      setInvoices((previous) => [payload, ...previous]);
+      setSuccessMsg("La facture a été générée.");
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Erreur de génération de facture.");
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const deleteQuote = async () => {
+    if (!editor) return;
+    setBusyAction("delete");
+    setErrorMsg(null);
+    try {
+      const response = await fetch(`/api/quotes/${editor.id}`, { method: "DELETE" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Impossible de supprimer le devis.");
+      const remainingQuotes = quotes.filter((quote) => quote.id !== editor.id);
+      setQuotes(remainingQuotes);
+      setSelectedQuoteId(remainingQuotes[0]?.id ?? null);
+      setSuccessMsg("Le devis brouillon a été supprimé.");
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Erreur de suppression.");
+    } finally {
+      setBusyAction(null);
+    }
+  };
 
   return (
     <div className={styles.root}>
-      <div className={styles.header}>
-        <div className={styles.headerIntro}>
-          <h4 className={styles.headerTitle}>Production devis et factures</h4>
-          <p className={styles.lead}>
-            Transformez rapidement les missions en devis puis en factures, avec
-            suivi des statuts et des montants restants.
-          </p>
-          <p className={styles.lead}>
-            Base active: {hourlyRate} EUR/h - D&eacute;placement: {travelFee} EUR - Minimum:{" "}
-            {minimumInvoice} EUR - Majorations: U {urgentPercent}% / N {nightPercent}% / WE{" "}
-            {weekendPercent}% / HS {highSeasonPercent}%
-          </p>
-        </div>
-        <button
-          type="button"
-          className={styles.refreshBtn}
-          onClick={refreshData}
-          disabled={actionPending("refresh")}
-        >
-          <FiRefreshCw size={14} />
-          Actualiser
-        </button>
-      </div>
+      {successMsg ? <p className={styles.feedbackSuccess}>{successMsg}</p> : null}
+      {errorMsg && !loading ? <p className={styles.feedbackError}>{errorMsg}</p> : null}
 
-      <div className={styles.projectionCard}>
-        <h4>Simulation devis live (3 piliers)</h4>
-        <div className={styles.projectionInputs}>
-          <label>
-            <span>Revenus locatifs mensuels (EUR)</span>
-            <input
-              type="number"
-              min={0}
-              step={100}
-              value={monthlyRevenueEstimate}
-              onChange={(e) => setMonthlyRevenueEstimate(Math.max(0, Number(e.target.value || 0)))}
-            />
-          </label>
-          <label>
-            <span>Nouveaux logements / mois</span>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={newListingsEstimate}
-              onChange={(e) => setNewListingsEstimate(Math.max(0, Number(e.target.value || 0)))}
-            />
-          </label>
-          <label>
-            <span>Services &agrave; l&apos;acte / mois</span>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={actServicesEstimate}
-              onChange={(e) => setActServicesEstimate(Math.max(0, Number(e.target.value || 0)))}
-            />
-          </label>
-        </div>
-        <div className={styles.projectionMetrics}>
-          <span>
-            Commission ({commissionRatePct}%):{" "}
-            <strong>{formatCurrency(quoteProjection.commissionAmount, "EUR")}</strong>
-          </span>
-          <span>
-            Set-up ({newListingsEstimate}):{" "}
-            <strong>{formatCurrency(quoteProjection.setupAmount, "EUR")}</strong>
-          </span>
-          <span>
-            Actes ({actServicesEstimate}):{" "}
-            <strong>{formatCurrency(quoteProjection.actAmount, "EUR")}</strong>
-          </span>
-          <span className={styles.projectionTotal}>
-            Total estime: <strong>{formatCurrency(quoteProjection.total, "EUR")}</strong>
-          </span>
-        </div>
-      </div>
-
-      {errorMsg && <p className={styles.errorBox}>{errorMsg}</p>}
-      {successMsg && <p className={styles.successBox}>{successMsg}</p>}
-
-      <div className={styles.kpiGrid}>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Devis</span>
-          <strong className={styles.kpiValue}>{quotes.length}</strong>
-        </article>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Devis envoyes</span>
-          <strong className={styles.kpiValue}>
-            {quotes.filter((quote) => quote.status === "sent").length}
-          </strong>
-        </article>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Factures ouvertes</span>
-          <strong className={styles.kpiValue}>{openInvoiceCount}</strong>
-        </article>
-        <article className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Encaissement restant</span>
-          <strong className={styles.kpiValue}>{formatCurrency(receivableAmount, "EUR")}</strong>
-        </article>
-      </div>
-
-      <div className={styles.actionGrid}>
-        <article className={styles.actionCard}>
-          <h4>
-            <FiFileText size={14} />
-            Creer un devis depuis mission
-          </h4>
-          <select
-            value={selectedMissionId}
-            onChange={(event) => setSelectedMissionId(event.target.value)}
-            className={styles.select}
-          >
-            {missions.length === 0 && <option value="">Aucune mission disponible</option>}
-            {missions.map((mission) => (
-              <option key={mission.id} value={mission.id}>
-                {mission.title} - {mission.status}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={createQuoteFromMission}
-            disabled={!selectedMissionId || actionPending("create-quote")}
-          >
-            {actionPending("create-quote") ? "Cr&eacute;ation..." : "G&eacute;n&eacute;rer devis"}
-          </button>
-        </article>
-
-        <article className={styles.actionCard}>
-          <h4>
-            <FiDollarSign size={14} />
-            Creer une facture depuis devis
-          </h4>
-          <select
-            value={selectedQuoteId}
-            onChange={(event) => setSelectedQuoteId(event.target.value)}
-            className={styles.select}
-          >
-            {quoteCandidates.length === 0 && <option value="">Aucun devis disponible</option>}
-            {quoteCandidates.map((quote) => (
-              <option key={quote.id} value={quote.id}>
-                {quote.quote_number} - {QUOTE_STATUS_LABEL[quote.status] ?? quote.status}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={createInvoiceFromQuote}
-            disabled={!selectedQuoteId || actionPending("create-invoice")}
-          >
-            {actionPending("create-invoice") ? "Cr&eacute;ation..." : "G&eacute;n&eacute;rer facture"}
-          </button>
-        </article>
-      </div>
-
-      <div className={styles.listGrid}>
-        <section className={styles.listCard}>
-          <h4 className={styles.listTitle}>Derniers devis</h4>
-          {quotes.length === 0 ? (
-            <p className={styles.placeholder}>Aucun devis genere.</p>
-          ) : (
-            <div className={styles.rows}>
-              {quotes.slice(0, 8).map((quote) => (
-                <article key={quote.id} className={styles.row}>
-                  <div className={styles.rowHead}>
-                    <strong>{quote.quote_number}</strong>
-                    <span
-                      className={`${styles.statusBadge} ${styles[`statusQuote${quote.status}`] ?? ""}`}
+      <AsyncState
+        loading={loading}
+        error={loading ? null : errorMsg}
+        isEmpty={!loading && quotes.length === 0}
+        emptyLabel="Aucun devis disponible pour le moment."
+      >
+        {editor ? (
+          <div className={styles.layout}>
+            <aside className={styles.sidebar}>
+              <Card variant="large" tone="soft" className={styles.panel}>
+                <CardHeader>
+                  <div>
+                    <h3 className={styles.panelTitle}>Mes devis</h3>
+                  </div>
+                </CardHeader>
+                <CardBody className={styles.listBody}>
+                  {quotes.map((quote) => (
+                    <div
+                      key={quote.id}
+                      className={`${styles.quoteRow} ${selectedQuoteId === quote.id ? styles.quoteRowActive : ""}`}
                     >
-                      {QUOTE_STATUS_LABEL[quote.status] ?? quote.status}
-                    </span>
-                  </div>
-                  <div className={styles.rowMeta}>
-                    <span>{formatDate(quote.created_at)}</span>
-                    <span>{formatCurrency(Number(quote.total_amount ?? 0), quote.currency)}</span>
-                  </div>
-                    <div className={styles.rowActions}>
                       <button
                         type="button"
-                        className={styles.smallBtnGhost}
-                        onClick={() => openQuoteDocument(quote.id)}
+                        className={styles.quoteRowButton}
+                        onClick={() => setSelectedQuoteId(quote.id)}
                       >
-                        PDF
+                        <div className={styles.quoteRowHead}>
+                          <strong>{quote.quote_number || "Devis brouillon"}</strong>
+                          <Badge variant={statusVariant(quote.status)}>{statusLabel(quote.status)}</Badge>
+                        </div>
                       </button>
-                      {quote.status === "draft" && (
+                      {["draft", "canceled"].includes(String(quote.status ?? "")) ? (
                         <button
                           type="button"
-                          className={styles.smallBtn}
-                        onClick={() => updateQuoteStatus(quote.id, "sent")}
-                        disabled={actionPending(`quote-${quote.id}-sent`)}
-                      >
-                        <FiSend size={12} />
-                        Envoyer
-                      </button>
-                    )}
-                    {quote.status === "sent" && (
-                      <button
-                        type="button"
-                        className={styles.smallBtn}
-                        onClick={() => updateQuoteStatus(quote.id, "accepted")}
-                        disabled={actionPending(`quote-${quote.id}-accepted`)}
-                      >
-                        <FiCheckCircle size={12} />
-                        Accepter
-                      </button>
-                    )}
-                    {(quote.status === "draft" || quote.status === "sent") && (
-                      <button
-                        type="button"
-                        className={styles.smallBtnGhost}
-                        onClick={() => updateQuoteStatus(quote.id, "canceled")}
-                        disabled={actionPending(`quote-${quote.id}-canceled`)}
-                      >
-                        Annuler
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                          className={styles.quoteDeleteBtn}
+                          aria-label={`Supprimer ${quote.quote_number || "ce devis"}`}
+                          onClick={async (event) => {
+                            event.stopPropagation();
+                            const response = await fetch(`/api/quotes/${quote.id}`, { method: "DELETE" });
+                            const payload = await response.json();
+                            if (!response.ok) {
+                              setErrorMsg(payload?.error || "Impossible de supprimer le devis.");
+                              return;
+                            }
+                            const remainingQuotes = quotes.filter((entry) => entry.id !== quote.id);
+                            setQuotes(remainingQuotes);
+                            if (selectedQuoteId === quote.id) {
+                              setSelectedQuoteId(remainingQuotes[0]?.id ?? null);
+                            }
+                            setSuccessMsg("Le devis a été supprimé.");
+                          }}
+                        >
+                          <TrashIcon />
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </CardBody>
+              </Card>
 
-        <section className={styles.listCard}>
-          <h4 className={styles.listTitle}>Dernieres factures</h4>
-          {invoices.length === 0 ? (
-            <p className={styles.placeholder}>Aucune facture generee.</p>
-          ) : (
-            <div className={styles.rows}>
-              {invoices.slice(0, 8).map((invoice) => (
-                <article key={invoice.id} className={styles.row}>
-                  <div className={styles.rowHead}>
-                    <strong>{invoice.invoice_number}</strong>
-                    <span
-                      className={`${styles.statusBadge} ${styles[`statusInvoice${invoice.status}`] ?? ""}`}
+              <Card variant="large" tone="outlined" className={styles.panel}>
+                <CardHeader>
+                  <div>
+                    <h3 className={styles.panelTitle}>Dernières factures</h3>
+                    <p className={styles.panelText}>Juste les plus récentes.</p>
+                  </div>
+                </CardHeader>
+                <CardBody className={styles.listBody}>
+                  {invoices.length ? (
+                    invoices.slice(0, 4).map((invoice) => (
+                      <div key={invoice.id} className={styles.invoiceRow}>
+                        <div className={styles.quoteRowHead}>
+                          <strong>{invoice.invoice_number || "Facture"}</strong>
+                          <Badge variant={statusVariant(invoice.status)}>{statusLabel(invoice.status)}</Badge>
+                        </div>
+                        <span>{formatDate(invoice.created_at)}</span>
+                        <span>{formatMoney(invoice.total_amount)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={styles.emptyCopy}>Aucune facture générée.</p>
+                  )}
+                </CardBody>
+              </Card>
+            </aside>
+
+            <section className={styles.editorColumn}>
+              <Card variant="large" tone="elevated" className={styles.editorCard}>
+                <CardHeader className={styles.editorHeader}>
+                  <div>
+                    <div className={styles.editorTitleRow}>
+                      <h3 className={styles.panelTitle}>{editor.quote_number || "Devis brouillon"}</h3>
+                      <Badge variant={statusVariant(editor.status)}>{statusLabel(editor.status)}</Badge>
+                    </div>
+                    <p className={styles.panelText}>
+                      {ownerLabel(editor.owner)} · validité {formatDate(editor.valid_until)}
+                    </p>
+                  </div>
+                  <div className={styles.actionRow}>
+                    <Button className={styles.actionSecondary} variant="dark" size="sm" onClick={() => void load()} disabled={loading}>
+                      Actualiser
+                    </Button>
+                    <Button className={styles.actionSecondary} variant="dark" size="sm" onClick={saveQuote} disabled={Boolean(busyAction)}>
+                      Enregistrer
+                    </Button>
+                    <Button
+                      className={styles.actionPrimary}
+                      variant="primary"
+                      size="sm"
+                      onClick={sendQuote}
+                      disabled={Boolean(busyAction) || editor.status === "sent"}
                     >
-                      {INVOICE_STATUS_LABEL[invoice.status] ?? invoice.status}
-                    </span>
-                  </div>
-                  <div className={styles.rowMeta}>
-                    <span>
-                      <FiClock size={12} />
-                      Echeance: {formatDate(invoice.due_date)}
-                    </span>
-                    <span>{formatCurrency(Number(invoice.total_amount ?? 0), invoice.currency)}</span>
-                  </div>
-                  <div className={styles.rowMetaSecondary}>
-                    Reste: {formatCurrency(Number(invoice.balance_amount ?? 0), invoice.currency)}
-                  </div>
-                  <div className={styles.rowActions}>
-                    <button
-                      type="button"
-                      className={styles.smallBtnGhost}
-                      onClick={() => openInvoiceDocument(invoice.id)}
+                      Envoyer
+                    </Button>
+                    <Button
+                      className={styles.actionSecondary}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`/api/quotes/${editor.id}/document`, "_blank", "noopener,noreferrer")}
                     >
                       PDF
-                    </button>
-                    {invoice.status === "draft" && (
-                      <button
-                        type="button"
-                        className={styles.smallBtn}
-                        onClick={() => updateInvoiceStatus(invoice, "issued")}
-                        disabled={actionPending(`invoice-${invoice.id}-issued`)}
-                      >
-                        Emettre
-                      </button>
-                    )}
-                    {(invoice.status === "issued" || invoice.status === "overdue") && (
-                      <button
-                        type="button"
-                        className={styles.smallBtn}
-                        onClick={() =>
-                          updateInvoiceStatus(
-                            invoice,
-                            "partially_paid",
-                            round2(Number(invoice.total_amount ?? 0) / 2),
-                          )
-                        }
-                        disabled={actionPending(`invoice-${invoice.id}-partially_paid`)}
-                      >
-                        Paiement partiel
-                      </button>
-                    )}
-                    {(invoice.status === "issued" ||
-                      invoice.status === "partially_paid" ||
-                      invoice.status === "overdue") && (
-                      <button
-                        type="button"
-                        className={styles.smallBtn}
-                        onClick={() =>
-                          updateInvoiceStatus(
-                            invoice,
-                            "paid",
-                            round2(Number(invoice.total_amount ?? 0)),
-                          )
-                        }
-                        disabled={actionPending(`invoice-${invoice.id}-paid`)}
-                      >
-                        Marquer payee
-                      </button>
-                    )}
+                    </Button>
+                    <Button className={styles.actionGhost} variant="ghost" size="sm" onClick={generateInvoice} disabled={Boolean(busyAction)}>
+                      Générer facture
+                    </Button>
+                    {editor.status === "draft" ? (
+                      <Button className={styles.actionDanger} variant="outline" size="sm" onClick={deleteQuote} disabled={Boolean(busyAction)}>
+                        Supprimer
+                      </Button>
+                    ) : null}
                   </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+                </CardHeader>
+
+                <CardBody className={styles.editorBody}>
+                  {editor.metadata?.source === "service_request" ? (
+                    <div className={styles.contextBox}>
+                      <div className={styles.contextHeader}>
+                        <strong>Contexte propriétaire</strong>
+                        {editor.metadata.auto_match_summary?.matchedPackageName ? (
+                          <Tag tone="gold">Pack suggéré: {editor.metadata.auto_match_summary.matchedPackageName}</Tag>
+                        ) : null}
+                      </div>
+                      <p className={styles.contextOwner}>{ownerLabel(editor.owner)}</p>
+                      <div className={styles.tags}>
+                        {(editor.metadata.requested_services ?? []).length ? (
+                          (editor.metadata.requested_services ?? []).map((service) => (
+                            <Tag key={`${editor.id}-${service}`} tone="category">
+                              {service}
+                            </Tag>
+                          ))
+                        ) : (
+                          <Tag tone="default">Services à préciser</Tag>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className={styles.modeRow}>
+                    <Button className={mode === "package" ? styles.actionPrimary : styles.actionSecondary} variant={mode === "package" ? "primary" : "outline"} size="sm" onClick={() => setMode("package")}>
+                      Utiliser un pack
+                    </Button>
+                    <Button
+                      className={mode === "custom" ? styles.actionPrimary : styles.actionSecondary}
+                      variant={mode === "custom" ? "primary" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setMode("custom");
+                        updateEditor({ package_id: null });
+                      }}
+                    >
+                      Tarifs unitaires
+                    </Button>
+                  </div>
+
+                  {mode === "package" ? (
+                    <div className={styles.selectionRow}>
+                      <Select label="Pack" value={selectedPackageId} onChange={(event) => setSelectedPackageId(event.target.value)}>
+                        <option value="">Sélectionner un pack</option>
+                        {packages.map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {entry.name || "Pack sans nom"}
+                          </option>
+                        ))}
+                      </Select>
+                      <Button className={styles.actionSecondary} variant="secondary" onClick={applyPackage} disabled={!selectedPackageId}>
+                        Intégrer le pack
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className={styles.selectionRow}>
+                      <Select label="Tarif" value={selectedPricingId} onChange={(event) => setSelectedPricingId(event.target.value)}>
+                        <option value="">Sélectionner un tarif</option>
+                        {pricing.map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {(entry.label || "Tarif") + " · " + formatMoney(entry.amount)}
+                          </option>
+                        ))}
+                      </Select>
+                      <Button className={styles.actionSecondary} variant="secondary" onClick={addPricing} disabled={!selectedPricingId}>
+                        Ajouter le tarif
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className={styles.lines}>
+                    {(editor.quote_items ?? []).map((item, index) => (
+                      <Card key={`${item.pricing_id ?? item.label}-${index}`} variant="large" tone="soft" className={styles.lineCard}>
+                        <CardBody className={styles.lineGrid}>
+                          <Input
+                            label="Libellé"
+                            value={item.label}
+                            onChange={(event) => updateItem(index, { label: event.target.value })}
+                          />
+                          <Input
+                            label="Description"
+                            value={item.description ?? ""}
+                            onChange={(event) => updateItem(index, { description: event.target.value })}
+                          />
+                          <Input
+                            label="Quantité"
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={item.quantity}
+                            onChange={(event) => updateItem(index, { quantity: Number(event.target.value || 1) })}
+                          />
+                          <Input
+                            label="Prix unitaire"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.unit_price}
+                            onChange={(event) => updateItem(index, { unit_price: Number(event.target.value || 0) })}
+                          />
+                          <div className={styles.lineMeta}>
+                            <span>{item.pricing_id ? "Tarif existant" : "Ligne libre"}</span>
+                            {item.service_id ? (
+                              <Tag tone="default">
+                                {serviceNames.get(Number(item.service_id)) || `Service #${item.service_id}`}
+                              </Tag>
+                            ) : null}
+                          </div>
+                          <div className={styles.lineSide}>
+                            <strong>{formatMoney(Number(item.quantity || 0) * Number(item.unit_price || 0))}</strong>
+                            <Button className={styles.actionGhost} variant="ghost" size="sm" onClick={() => removeItem(index)}>
+                              Retirer
+                            </Button>
+                          </div>
+                        </CardBody>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <div className={styles.footerGrid}>
+                    <Textarea
+                      label="Notes visibles dans le devis"
+                      value={editor.notes ?? ""}
+                      onChange={(event) => updateEditor({ notes: event.target.value })}
+                    />
+                    <Card variant="large" tone="outlined" className={styles.totalCard}>
+                      <CardBody className={styles.totalBody}>
+                        <div>
+                          <span>Sous-total</span>
+                          <strong>{formatMoney(totals.subtotal)}</strong>
+                        </div>
+                        <div>
+                          <span>Total</span>
+                          <strong>{formatMoney(totals.total)}</strong>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+                </CardBody>
+              </Card>
+            </section>
+          </div>
+        ) : null}
+      </AsyncState>
     </div>
   );
-};
-
-export default TariffBillingDesk;
-
-
+}

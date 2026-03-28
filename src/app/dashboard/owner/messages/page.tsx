@@ -70,7 +70,8 @@ function getParticipantName(
 
 function OwnerMessagesContent() {
   const searchParams = useSearchParams();
-  const createdConversationId = searchParams.get("created") ?? "";
+  const preferredConversationId =
+    searchParams.get("conversation") ?? searchParams.get("created") ?? "";
 
   const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
   const [activeConversationId, setActiveConversationId] = useState("");
@@ -150,9 +151,9 @@ function OwnerMessagesContent() {
   }
 
   useEffect(() => {
-    void loadConversations(createdConversationId);
+    void loadConversations(preferredConversationId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [createdConversationId]);
+  }, [preferredConversationId]);
 
   useEffect(() => {
     if (!activeConversationId) {
@@ -164,9 +165,9 @@ function OwnerMessagesContent() {
   }, [activeConversationId]);
 
   useEffect(() => {
-    if (!createdConversationId) return;
+    if (!preferredConversationId) return;
     setSuccess("La conversation a bien été créée. Vous pouvez maintenant poursuivre ici.");
-  }, [createdConversationId]);
+  }, [preferredConversationId]);
 
   useEffect(() => {
     if (!success) return;

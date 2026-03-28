@@ -1,112 +1,58 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
+import { useSearchParams } from "next/navigation";
+import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
-import {
-  buildBillingCards,
-  formatBillingDate,
-  getBillingSourceLabel,
-} from "./billingHelpers";
-
-type BillingHistoryPayload = {
-  subscription: {
-    is_pro: boolean;
-    source: string | null;
-    reference: string | null;
-    updated_at: string | null;
-  } | null;
-  events: Array<{
-    id: string;
-    profile_id: string | null;
-    stripe_object_id: string;
-    stripe_event_type: string;
-    source: string;
-    payload: Record<string, unknown> | null;
-    created_at: string | null;
-  }>;
-};
 
 export default function ConciergeBillingPage() {
-  const [data, setData] = useState<BillingHistoryPayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadHistory() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch("/api/billing/history", { cache: "no-store" });
-        const payload = await response.json();
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger l'historique Stripe.");
-        }
-
-        if (!cancelled) {
-          setData(payload);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : "Impossible de charger l'historique Stripe.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadHistory();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const cards = useMemo(() => buildBillingCards(data, loading, error), [data, error, loading]);
+  const searchParams = useSearchParams();
+  const targetQuoteId = searchParams.get("quote");
+  const source = searchParams.get("source");
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Revenus et abonnement"
-      title="Facturation et revenus"
-      description={
-        loading
-          ? "Synchronisation de votre historique Stripe..."
-          : error ||
-            "Suivez l'état de votre abonnement PRO, vos références de facturation et les derniers événements synchronisés sur votre compte."
-      }
+      eyebrow="Finances"
+      title="Devis et factures"
+      description="Préparez un devis clair, envoyez-le au propriétaire, puis transformez-le en facture depuis un seul espace de travail."
       chips={[
-        data?.subscription?.is_pro ? "PRO actif" : "Compte standard",
-        `${data?.events.length ?? 0} événement(s)`,
+        "Devis",
+        "Factures",
+        source === "request" ? "Arrivée depuis une demande" : "Espace de production",
       ]}
       actions={[
-        { label: "Voir mon abonnement PRO", href: "/abonnement/concierge-pro" },
         { label: "Mettre à jour mes tarifs", href: "/dashboard/concierge/pricing" },
+        { label: "Gérer mes packs", href: "/dashboard/concierge/services-packages" },
+        { label: "Voir mes demandes", href: "/dashboard/concierge/demandes" },
       ]}
-      metrics={[
-        {
-          label: "Statut abonnement",
-          value: loading ? "..." : data?.subscription?.is_pro ? "PRO actif" : "Standard",
-        },
-        {
-          label: "Source",
-          value: loading ? "..." : getBillingSourceLabel(data?.subscription?.source ?? null),
-        },
-        {
-          label: "Référence",
-          value: loading ? "..." : data?.subscription?.reference || "-",
-        },
-        {
-          label: "Dernière synchro",
-          value: loading ? "..." : formatBillingDate(data?.subscription?.updated_at ?? null),
-        },
-      ]}
-      cards={cards}
-    />
+      metrics={[]}
+      cards={[]}
+    >
+      <section style={{ display: "grid", gap: "1rem", marginTop: "1rem" }}>
+        {source === "request" ? (
+          <div
+            style={{
+              padding: "1rem",
+              borderRadius: "18px",
+              border: "1px solid rgba(184, 148, 30, 0.26)",
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250, 245, 235, 0.98))",
+              color: "#3b3126",
+            }}
+          >
+            <strong style={{ display: "block", marginBottom: "0.35rem" }}>
+              Devis préparé depuis une demande
+            </strong>
+            <p style={{ margin: 0, lineHeight: 1.6 }}>
+              {targetQuoteId
+                ? "Le brouillon créé depuis la demande est présélectionné ci-dessous. Vérifiez-le, ajustez-le si besoin, puis envoyez-le."
+                : "Vous arrivez depuis une demande. Le bureau devis et factures ci-dessous est prêt à prendre le relais."}
+            </p>
+          </div>
+        ) : null}
+
+        <TariffBillingDesk initialSelectedQuoteId={targetQuoteId ?? undefined} />
+      </section>
+    </ConciergeWorkspacePage>
   );
 }
