@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { createClient } from "@supabase/supabase-js";
 import { UserRole } from "@/types/supabase";
+import { categoryToRole } from "@/app/utils/roles";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,9 +93,13 @@ const providers: NextAuthConfig["providers"] = [
           return null;
         }
 
-        const role: UserRole = VALID_ROLES.includes(profile.role)
-          ? profile.role
-          : "owner";
+        const fallbackRole = categoryToRole(profile.category);
+        const roleCandidate =
+          VALID_ROLES.includes(profile.role) ? profile.role : fallbackRole;
+        const role: UserRole =
+          roleCandidate && VALID_ROLES.includes(roleCandidate as UserRole)
+            ? (roleCandidate as UserRole)
+            : "owner";
 
         const fullName =
           profile.first_name && profile.last_name
