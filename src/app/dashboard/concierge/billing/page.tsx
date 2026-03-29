@@ -1,11 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import TariffBillingDesk from "@/app/components/tariffs/TariffBillingDesk";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 
 export default function ConciergeBillingPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConciergeBillingPageContent />
+    </Suspense>
+  );
+}
+
+function ConciergeBillingPageContent() {
   const searchParams = useSearchParams();
   const targetQuoteId = searchParams.get("quote");
   const source = searchParams.get("source");
