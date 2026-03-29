@@ -10,6 +10,26 @@ import { Button, Input } from "@/components/ui";
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+const getDashboardPathFromRole = (role: string | null | undefined): string => {
+  switch (role) {
+    case "concierge":
+    case "concierge_pro":
+      return "/dashboard/concierge";
+    case "owner":
+    case "owner_pro":
+      return "/dashboard/owner";
+    case "provider":
+    case "provider_pro":
+    case "artisan":
+    case "artisan_pro":
+      return "/dashboard/provider";
+    default:
+      return "/dashboard/owner";
+  }
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -17,6 +37,40 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; auth?: string }>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const resolveRoleFromSession = async (): Promise<string | null> => {
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const res = await fetch(`/api/auth/session?ts=${Date.now()}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+      const session = await res.json();
+      const role = session?.user?.role;
+      if (role) {
+        return role;
+      }
+      await wait(250);
+    }
+    return null;
+  };
+
+  const resolveRoleFromLoginApi = async (): Promise<string | null> => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const payload = await res.json();
+    return payload?.user?.role ?? null;
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,6 +89,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
     if (!canSubmit()) {
       setErrors((prev) => ({ ...prev, auth: "Veuillez corriger les erreurs" }));
       return;
@@ -55,40 +110,34 @@ export default function LoginPage() {
       setErrors((prev) => ({ ...prev, auth: "Email ou mot de passe incorrect" }));
     } else {
       try {
-        const res = await fetch("/api/auth/session");
-        const session = await res.json();
-        const role = session?.user?.role;
+        let role = await resolveRoleFromSession();
 
-        switch (role) {
-          case "concierge":
-          case "concierge_pro":
-            router.push("/dashboard/concierge");
-            break;
-          case "owner":
-          case "owner_pro":
-            router.push("/dashboard/owner");
-            break;
-          case "provider":
-          case "provider_pro":
-          case "artisan":
-          case "artisan_pro":
-            router.push("/dashboard/provider");
-            break;
-          default:
-            router.push("/dashboard");
+        if (!role) {
+          role = await resolveRoleFromLoginApi();
         }
+
+        const targetPath = getDashboardPathFromRole(role);
+        router.refresh();
+        router.push(targetPath);
       } catch (err) {
-        console.error("Erreur lors de la recuperation du role :", err);
-        router.push("/dashboard");
+        router.push("/dashboard/owner");
       }
     }
   };
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Connexion</h1>
+      <div className={styles.headerBlock}>
+        <span className={styles.eyebrow}>Espace securise</span>
+        <h1 className={styles.title}>Connexion</h1>
+        <p className={styles.subtitle}>
+          Accedez a votre espace pour gerer vos demandes, vos missions et votre activite.
+        </p>
+      </div>
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email" className={styles.fieldLabel}>
+          Email
+        </label>
         <div className={styles.inputWrapper}>
           <Input
             bare
@@ -116,7 +165,9 @@ export default function LoginPage() {
           )}
         </div>
 
-        <label htmlFor="password">Mot de passe</label>
+        <label htmlFor="password" className={styles.fieldLabel}>
+          Mot de passe
+        </label>
         <div className={styles.passwordInputWrapper}>
           <Input
             bare

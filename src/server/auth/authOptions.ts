@@ -43,13 +43,7 @@ const providers: NextAuthConfig["providers"] = [
     },
     async authorize(credentials) {
       try {
-        console.log("[AUTH][AUTHORIZE] Debut authorize credentials", {
-          hasEmail: Boolean(credentials?.email),
-          hasPassword: Boolean(credentials?.password),
-        });
-
         if (!credentials?.email || !credentials.password) {
-          console.warn("[AUTH] Missing email or password");
           return null;
         }
 
@@ -59,16 +53,8 @@ const providers: NextAuthConfig["providers"] = [
         });
 
         if (error || !authData.user) {
-          console.warn("[AUTH][AUTHORIZE] Echec signInWithPassword Supabase", {
-            message: error?.message ?? null,
-          });
           return null;
         }
-
-        console.log("[AUTH][AUTHORIZE] Utilisateur Supabase authentifie", {
-          userId: authData.user.id,
-          email: authData.user.email ?? null,
-        });
 
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -77,21 +63,10 @@ const providers: NextAuthConfig["providers"] = [
           .single();
 
         if (profileError || !profile) {
-          console.warn("[AUTH][AUTHORIZE] Profil introuvable apres auth", {
-            userId: authData.user.id,
-            message: profileError?.message ?? null,
-          });
           return null;
         }
 
-        console.log("[AUTH][AUTHORIZE] Profil charge", {
-          userId: profile.id,
-          role: profile.role ?? null,
-          status: profile.status ?? null,
-        });
-
         if (profile.status === "suspended" || profile.status === "deleted") {
-          console.warn(`[AUTH] User suspended or deleted: ${authData.user.id}`);
           return null;
         }
 
@@ -119,7 +94,6 @@ const providers: NextAuthConfig["providers"] = [
           status: profile.status ?? "active",
         } satisfies CustomUser;
       } catch (error) {
-        console.error("[AUTH][AUTHORIZE] Exception inattendue", error);
         return null;
       }
     },
@@ -154,10 +128,6 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      console.log("[AUTH][JWT] Callback jwt", {
-        hasIncomingUser: Boolean(user),
-        existingTokenRole: token.role ?? null,
-      });
       if (user) {
         const currentUser = user as CustomUser;
         token.id = currentUser.id;
@@ -177,19 +147,9 @@ export const authOptions: NextAuthConfig = {
         token.company_name = currentUser.company_name;
       }
 
-      console.log("[AUTH][JWT] Token pret", {
-        tokenId: token.id ?? null,
-        role: token.role ?? null,
-        status: token.status ?? null,
-      });
       return token;
     },
     async session({ session, token }) {
-      console.log("[AUTH][SESSION] Callback session", {
-        hasSessionUser: Boolean(session.user),
-        tokenId: token.id ?? null,
-        tokenRole: token.role ?? null,
-      });
       if (!session.user) {
         return session;
       }
@@ -212,11 +172,6 @@ export const authOptions: NextAuthConfig = {
         company_name: (token.company_name as string | null) ?? null,
       };
 
-      console.log("[AUTH][SESSION] Session hydratee", {
-        sessionUserId: session.user.id,
-        sessionRole: session.user.role,
-        sessionEmail: session.user.email,
-      });
       return session;
     },
   },

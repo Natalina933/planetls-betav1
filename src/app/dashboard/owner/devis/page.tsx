@@ -1,10 +1,21 @@
-"use client";
+﻿"use client";
 
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { SearchBar, StatsCard, Tag } from "@/components/ui";
+import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
+import { OwnerQuoteResponseCard, OwnerRequestSummaryCard } from "@/features/owner-dashboard";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { getWorkflowStatusMeta } from "@/app/lib/workflowStatus";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import styles from "../OwnerDashboardPages.module.scss";
+
+type QuotePerson = {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  company_name?: string | null;
+};
 
 type OwnerQuoteRow = {
   id: string;
@@ -14,6 +25,8 @@ type OwnerQuoteRow = {
   valid_until: string | null;
   created_at: string | null;
   notes?: string | null;
+  metadata?: Record<string, unknown> | null;
+  concierge?: QuotePerson | null;
   package?: {
     id: string;
     name: string | null;
@@ -29,7 +42,50 @@ type OwnerQuoteRow = {
   }>;
 };
 
-function formatDate(value: string | null) {
+type OwnerServiceRequestRecipient = {
+  id: string;
+  status: string;
+  concierge_profile_id?: string | null;
+  concierge_name?: string;
+  quote_id?: string | null;
+  quote_number?: string | null;
+};
+
+type OwnerServiceRequestRow = {
+  id: string;
+  title: string;
+  description?: string | null;
+  property_id?: string | null;
+  property_name?: string | null;
+  request_type?: "ponctuel" | "renfort" | "durable";
+  city?: string | null;
+  postal_code?: string | null;
+  desired_date?: string | null;
+  budget_max?: number | null;
+  currency?: string | null;
+  requested_services?: string[] | null;
+  status?: string | null;
+  recipients?: OwnerServiceRequestRecipient[];
+};
+
+type ServiceRequestsPayload = {
+  items?: OwnerServiceRequestRow[];
+  error?: string;
+};
+
+type QuoteGroup = {
+  key: string;
+  request: OwnerServiceRequestRow | null;
+  quotes: OwnerQuoteRow[];
+};
+
+type PropertyGroup = {
+  key: string;
+  label: string;
+  groups: QuoteGroup[];
+};
+
+function formatDate(value: string | null | undefined) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
@@ -40,42 +96,142 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
-function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(2)} EUR` : "-";
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "Date à confirmer";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date invalide";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatAmount(value: number | null | undefined, currency = "EUR") {
+  return typeof value === "number" ? `${value.toFixed(2)} ${currency}` : "-";
+}
+
+function getPersonName(person?: QuotePerson | null) {
+  if (!person) return "Concierge";
+  return (
+    `${person.first_name ?? ""} ${person.last_name ?? ""}`.trim() ||
+    person.company_name ||
+    "Concierge"
+  );
+}
+
+function getRequestTypeLabel(value?: OwnerServiceRequestRow["request_type"]) {
+  if (value === "durable") return "Besoin durable";
+  if (value === "renfort") return "Renfort";
+  return "Ponctuel";
+}
+
+function getRequestIdFromQuote(quote: OwnerQuoteRow) {
+  const metadata =
+    quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+      ? quote.metadata
+      : null;
+  return metadata && typeof metadata.service_request_id === "string"
+    ? metadata.service_request_id
+    : null;
+}
+
+function getRequestRecipientIdFromQuote(quote: OwnerQuoteRow) {
+  const metadata =
+    quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+      ? quote.metadata
+      : null;
+  return metadata && typeof metadata.service_request_recipient_id === "string"
+    ? metadata.service_request_recipient_id
+    : null;
+}
+
+function getQuoteLineCountLabel(quote: OwnerQuoteRow) {
+  const count = quote.quote_items?.length ?? 0;
+  return `${count} prestation${count > 1 ? "s" : ""}`;
+}
+
+function getResponseSpeedLabel(quote: OwnerQuoteRow) {
+  return quote.created_at ? formatDateTime(quote.created_at) : "Date à confirmer";
+}
+
+function formatPackageName(value?: string | null) {
+  return (value ?? "").replace(/\(\s*seed\s*\)/gi, "(Initial)").trim() || "Pack";
+}
+
+function getPropertyLabel(request: OwnerServiceRequestRow | null) {
+  if (!request) return "Demandes sans logement attribué";
+  return request.property_name || request.title || "Logement";
+}
+
+export default function OwnerQuotesPage() {
+  return (
+    <Suspense
+      fallback={
+        <section className="dashboard-grid">
+          <p>Chargement des devis...</p>
+        </section>
+      }
+    >
+      <OwnerQuotesContent />
+    </Suspense>
+  );
 }
 
 function OwnerQuotesContent() {
   const searchParams = useSearchParams();
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
+  const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [compareSelection, setCompareSelection] = useState<Record<string, string[]>>({});
+  const [selectingRequestId, setSelectingRequestId] = useState<string | null>(null);
   const targetQuoteId = searchParams.get("quote");
+  const targetRequestId = searchParams.get("request");
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [quotesResponse, requestsResponse] = await Promise.all([
+        fetch("/api/quotes?limit=30", { cache: "no-store" }),
+        fetch("/api/service-requests?limit=30", { cache: "no-store" }),
+      ]);
+
+      const quotesPayload = await quotesResponse.json();
+      const requestsPayload = (await requestsResponse.json()) as ServiceRequestsPayload;
+
+      if (!quotesResponse.ok) {
+        throw new Error(quotesPayload?.error || "Impossible de charger vos devis.");
+      }
+
+      if (!requestsResponse.ok) {
+        throw new Error(requestsPayload?.error || "Impossible de charger le contexte des demandes.");
+      }
+
+      setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
+      setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de charger vos devis.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadQuotes() {
-      try {
-        setLoading(true);
-        setError(null);
+    void loadData();
+  }, [loadData]);
 
-        const response = await fetch("/api/quotes?limit=30", { cache: "no-store" });
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger vos devis.");
-        }
-
-        setQuotes(Array.isArray(payload) ? payload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos devis.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadQuotes();
-  }, []);
+  const requestById = useMemo(
+    () => new Map(requests.map((request) => [request.id, request])),
+    [requests],
+  );
 
   const pendingQuotes = useMemo(
     () => quotes.filter((quote) => quote.status === "draft" || quote.status === "sent"),
@@ -87,15 +243,22 @@ function OwnerQuotesContent() {
 
     return quotes.filter((quote) => {
       if (targetQuoteId && quote.id !== targetQuoteId) return false;
+      if (targetRequestId && getRequestIdFromQuote(quote) !== targetRequestId) return false;
 
       const matchesStatus = statusFilter === "all" || (quote.status ?? "draft") === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
 
+      const request = requestById.get(getRequestIdFromQuote(quote) ?? "");
+
       const haystack = [
         quote.quote_number,
         quote.status,
         quote.package?.name,
+        getPersonName(quote.concierge),
+        request?.title,
+        request?.city,
+        ...(request?.requested_services ?? []),
         ...(quote.quote_items ?? []).map((item) => item.label),
       ]
         .filter(Boolean)
@@ -104,29 +267,85 @@ function OwnerQuotesContent() {
 
       return haystack.includes(normalizedSearch);
     });
-  }, [quotes, searchTerm, statusFilter, targetQuoteId]);
+  }, [quotes, searchTerm, statusFilter, targetQuoteId, targetRequestId, requestById]);
+
+  const groupedQuotes = useMemo(() => {
+    const groups = new Map<string, QuoteGroup>();
+
+    filteredQuotes.forEach((quote) => {
+      const requestId = getRequestIdFromQuote(quote);
+      const request = requestId ? requestById.get(requestId) ?? null : null;
+      const key = requestId ?? `standalone:${quote.id}`;
+      const current = groups.get(key);
+
+      if (current) {
+        current.quotes.push(quote);
+        return;
+      }
+
+      groups.set(key, {
+        key,
+        request,
+        quotes: [quote],
+      });
+    });
+
+    return Array.from(groups.values()).sort((a, b) => {
+      const aTime = a.request?.desired_date
+        ? new Date(a.request.desired_date).getTime()
+        : new Date(a.quotes[0]?.created_at ?? 0).getTime();
+      const bTime = b.request?.desired_date
+        ? new Date(b.request.desired_date).getTime()
+        : new Date(b.quotes[0]?.created_at ?? 0).getTime();
+      return bTime - aTime;
+    });
+  }, [filteredQuotes, requestById]);
+
+  const propertyGroups = useMemo(() => {
+    const groups = new Map<string, PropertyGroup>();
+
+    groupedQuotes.forEach((group) => {
+      const propertyId = group.request?.property_id ?? null;
+      const key = propertyId ?? `unassigned:${group.key}`;
+      const current = groups.get(key);
+
+      if (current) {
+        current.groups.push(group);
+        return;
+      }
+
+      groups.set(key, {
+        key,
+        label: getPropertyLabel(group.request),
+        groups: [group],
+      });
+    });
+
+    return Array.from(groups.values()).sort((a, b) => a.label.localeCompare(b.label, "fr"));
+  }, [groupedQuotes]);
 
   const totalAmount = useMemo(
     () => filteredQuotes.reduce((sum, quote) => sum + (quote.total_amount ?? 0), 0),
     [filteredQuotes],
   );
 
-  const targetedQuote = useMemo(
-    () => quotes.find((quote) => quote.id === targetQuoteId) ?? null,
-    [quotes, targetQuoteId],
-  );
+  const propertyCountWithQuotes = useMemo(() => propertyGroups.length, [propertyGroups]);
 
   function exportQuotesCsv() {
     const rows = [
-      ["Numero", "Statut", "Pack", "Total", "Valide jusqu'au", "Cree le"],
-      ...filteredQuotes.map((quote) => [
-        quote.quote_number ?? "",
-        quote.status ?? "",
-        quote.package?.name ?? "",
-        quote.total_amount?.toString() ?? "",
-        quote.valid_until ?? "",
-        quote.created_at ?? "",
-      ]),
+      ["Numero", "Statut", "Concierge", "Pack", "Total", "Demande", "Date mission"],
+      ...filteredQuotes.map((quote) => {
+        const request = requestById.get(getRequestIdFromQuote(quote) ?? "");
+        return [
+          quote.quote_number ?? "",
+          quote.status ?? "",
+          getPersonName(quote.concierge),
+          quote.package?.name ?? "",
+          quote.total_amount?.toString() ?? "",
+          request?.title ?? "",
+          request?.desired_date ?? "",
+        ];
+      }),
     ];
 
     const csv = rows
@@ -142,58 +361,92 @@ function OwnerQuotesContent() {
     window.URL.revokeObjectURL(url);
   }
 
+  function toggleCompare(groupKey: string, quoteId: string) {
+    setCompareSelection((current) => {
+      const currentSelection = current[groupKey] ?? [];
+      const exists = currentSelection.includes(quoteId);
+
+      if (exists) {
+        return {
+          ...current,
+          [groupKey]: currentSelection.filter((id) => id !== quoteId),
+        };
+      }
+
+      if (currentSelection.length >= 3) {
+        return {
+          ...current,
+          [groupKey]: [...currentSelection.slice(1), quoteId],
+        };
+      }
+
+      return {
+        ...current,
+        [groupKey]: [...currentSelection, quoteId],
+      };
+    });
+  }
+
+  async function handleSelectConcierge(requestId: string, recipientId: string) {
+    try {
+      setSelectingRequestId(requestId);
+      setSuccess(null);
+      setError(null);
+
+      const response = await fetch(`/api/service-requests/${requestId}/select`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipient_id: recipientId }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de retenir ce concierge.");
+      }
+
+      await loadData();
+      setSuccess("Le concierge a été retenu pour cette demande.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
+    } finally {
+      setSelectingRequestId(null);
+    }
+  }
+
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
         eyebrow="Devis"
-        title="Devis recus"
+        title="Devis reçus"
         description={
           loading
             ? "Chargement des devis..."
             : error ||
-              "Retrouvez les propositions recues, comparez les prestations incluses et identifiez rapidement le devis a valider."
+              (targetRequestId
+                ? "Retrouvez ici uniquement les devis liés à cette demande pour ce logement."
+                : "Retrouvez chaque demande, comparez clairement les réponses des concierges et retenez la proposition la plus adaptée.")
         }
-        chips={[
-          `${quotes.length} devis`,
-          `${pendingQuotes.length} a arbitrer`,
-          targetedQuote ? "Focus actif" : "Vue globale",
-        ]}
+        chips={undefined}
         metrics={[
-          { label: "Devis suivis", value: loading ? "..." : String(quotes.length) },
-          { label: "A arbitrer", value: loading ? "..." : String(pendingQuotes.length) },
-          { label: "Montant visible", value: loading ? "..." : formatAmount(totalAmount) },
+          { label: "Devis", value: loading ? "..." : String(filteredQuotes.length) },
+          { label: "Logements suivis", value: loading ? "..." : String(propertyCountWithQuotes) },
+          { label: "À arbitrer", value: loading ? "..." : String(pendingQuotes.length) },
         ]}
         actions={[
-          { label: "Voir mes demandes", href: "/dashboard/owner/conciergerie" },
+          { label: "Voir mes demandes", href: "/dashboard/owner/demandes" },
           { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
         ]}
-        cards={[
-          {
-            title: "Lecture simplifiee",
-            text: "Chaque devis met en avant le pack rattache, les lignes de prestation et le total visible sans jargon technique inutile.",
-          },
-          {
-            title: "Comparaison rapide",
-            text: pendingQuotes.length > 0
-              ? `${pendingQuotes.length} devis demandent encore une decision.`
-              : "Aucun devis en attente d'arbitrage actuellement.",
-          },
-          {
-            title: "Signal commercial",
-            text: targetedQuote?.package?.name
-              ? `Le focus courant inclut le pack ${targetedQuote.package.name}.`
-              : "Les packs proposes par les concierges apparaitront ici quand ils sont rattaches au devis.",
-          },
-        ]}
+        cards={[]}
       />
 
       <section className={styles.conciergeDashboardFlow}>
         <div className={styles.toolbar}>
-          <input
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Rechercher un numero, un pack ou une prestation"
+          <SearchBar
+            defaultValue={searchTerm}
+            onSearch={setSearchTerm}
+            placeholder="Rechercher une demande, un concierge ou un devis"
             className={styles.field}
+            buttonLabel="Filtrer"
           />
           <select
             value={statusFilter}
@@ -202,9 +455,9 @@ function OwnerQuotesContent() {
           >
             <option value="all">Tous statuts</option>
             <option value="draft">Brouillons</option>
-            <option value="sent">Envoyes</option>
-            <option value="accepted">Acceptes</option>
-            <option value="rejected">Refuses</option>
+            <option value="sent">Envoyés</option>
+            <option value="accepted">Acceptés</option>
+            <option value="rejected">Refusés</option>
           </select>
           <button
             type="button"
@@ -216,118 +469,351 @@ function OwnerQuotesContent() {
           </button>
         </div>
 
-        {loading ? <p>Chargement des devis...</p> : null}
-        {!loading && error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
-        {targetedQuote ? (
-          <p className={`${styles.message} ${styles.messageSuccess}`}>
-            Focus sur {targetedQuote.quote_number || "le devis selectionne"}.
-          </p>
-        ) : null}
-
-        {!loading && !error && filteredQuotes.length === 0 ? (
-          <div className={styles.conciergeEmptyState}>
-            <h3>Aucun devis disponible.</h3>
-            <p>Les propositions recues apparaitront ici des qu'un concierge vous enverra un devis.</p>
+        {!loading && !error && groupedQuotes.length > 0 ? (
+          <div className={styles.conciergeKpiGrid}>
+            <StatsCard
+              label="Montant visible"
+              value={formatAmount(totalAmount)}
+              hint="Sur la sélection affichée."
+              tone="soft"
+            />
+            <StatsCard
+              label="Demandes avec réponses"
+              value={String(groupedQuotes.length)}
+              hint="Chaque bloc regroupe une demande d’origine."
+              tone="soft"
+            />
+            <StatsCard
+              label="Comparaison active"
+              value={String(Math.max(...groupedQuotes.map((group) => group.quotes.length)))}
+              hint="Nombre max de réponses pour une même demande."
+              tone="soft"
+            />
           </div>
         ) : null}
 
-        {!loading && !error && filteredQuotes.length > 0 ? (
+        {loading ? <p>Chargement des devis...</p> : null}
+        {!loading && error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
+        {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
+
+        {!loading && !error && groupedQuotes.length === 0 ? (
+          <EmptyState
+            title="Aucun devis disponible."
+            description="Les devis envoyés par les concierges apparaîtront ici."
+            className={styles.conciergeEmptyState}
+          />
+        ) : null}
+
+        {!loading && !error && groupedQuotes.length > 0 ? (
           <div className={styles.conciergeTimeline}>
-            {filteredQuotes.map((quote) => (
-              <article key={quote.id} className={styles.conciergeRequestCard}>
-                <div className={styles.conciergeRequestTopline}>
-                  <div className={styles.conciergeRequestHeading}>
-                    <span className={`${styles.conciergeStatusPill} ${styles.statusInfo}`}>
-                      {quote.status || "devis"}
-                    </span>
-                    <h3>{quote.quote_number || "Devis sans numero"}</h3>
-                    <p>
-                      Cree le {formatDate(quote.created_at)} · Valide jusqu&apos;au{" "}
-                      {formatDate(quote.valid_until)}
-                    </p>
+            {propertyGroups.map((propertyGroup) => (
+              <section key={propertyGroup.key} className={styles.conciergeTimelinePanel}>
+                <div className={styles.conciergeSectionHeader}>
+                  <div>
+                    <p className={styles.eyebrow}>Suivi par logement</p>
+                    <h2 className={styles.conciergeSectionTitle}>{propertyGroup.label}</h2>
                   </div>
-                  <div className={styles.inlineActions}>
-                    <WorkflowStatusBadge value={quote.status || "-"} />
-                    <a
-                      href={`/api/quotes/${quote.id}/document`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={styles.linkButton}
-                    >
-                      Apercu PDF
-                    </a>
-                  </div>
+                  <span className={`${styles.conciergeStatusPill} ${styles.statusInfo}`}>
+                    {propertyGroup.groups.length} demande(s)
+                  </span>
                 </div>
 
-                <div className={styles.conciergeFactRow}>
-                  <div className={styles.conciergeFactCard}>
-                    <span>Total</span>
-                    <strong>{formatAmount(quote.total_amount)}</strong>
-                  </div>
-                  <div className={styles.conciergeFactCard}>
-                    <span>Pack</span>
-                    <strong>{quote.package?.name || "Aucun pack"}</strong>
-                  </div>
-                  <div className={styles.conciergeFactCard}>
-                    <span>Lignes</span>
-                    <strong>{quote.quote_items?.length ?? 0}</strong>
-                  </div>
-                </div>
+                <p className={styles.conciergeNextStep}>
+                  Chaque demande et chaque devis affichés ci-dessous concernent ce logement.
+                </p>
 
-                {quote.package ? (
-                  <div className={styles.conciergeRecipientCard}>
-                    <div className={styles.conciergeRecipientSummary}>
-                      <strong>Pack propose</strong>
-                      <span>{quote.package.category || "Pack commercial"}</span>
+                {propertyGroup.groups.map((group) => {
+              const cheapestQuoteId = group.quotes.reduce<string | null>((bestId, current) => {
+                if (bestId === null) return current.id;
+                const bestQuote = group.quotes.find((quote) => quote.id === bestId);
+                const bestAmount = bestQuote?.total_amount ?? Number.POSITIVE_INFINITY;
+                const currentAmount = current.total_amount ?? Number.POSITIVE_INFINITY;
+                return currentAmount < bestAmount ? current.id : bestId;
+              }, null);
+
+              const mostDetailedQuoteId = group.quotes.reduce<string | null>((bestId, current) => {
+                if (bestId === null) return current.id;
+                const bestQuote = group.quotes.find((quote) => quote.id === bestId);
+                const bestCount = bestQuote?.quote_items?.length ?? 0;
+                const currentCount = current.quote_items?.length ?? 0;
+                return currentCount > bestCount ? current.id : bestId;
+              }, null);
+
+              const fastestQuoteId = group.quotes.reduce<string | null>((bestId, current) => {
+                if (bestId === null) return current.id;
+                const bestQuote = group.quotes.find((quote) => quote.id === bestId);
+                const bestTime = bestQuote?.created_at
+                  ? new Date(bestQuote.created_at).getTime()
+                  : Number.POSITIVE_INFINITY;
+                const currentTime = current.created_at
+                  ? new Date(current.created_at).getTime()
+                  : Number.POSITIVE_INFINITY;
+                return currentTime < bestTime ? current.id : bestId;
+              }, null);
+
+              const selectedCompareIds = compareSelection[group.key] ?? [];
+              const comparedQuotes = group.quotes.filter((quote) => selectedCompareIds.includes(quote.id));
+
+              const comparisonColumns = comparedQuotes.map((quote) => {
+                const recipientId =
+                  getRequestRecipientIdFromQuote(quote) ??
+                  group.request?.recipients?.find((recipient) => recipient.quote_id === quote.id)?.id ??
+                  null;
+
+                return {
+                  quote,
+                  recipientId,
+                  isCheapest: cheapestQuoteId === quote.id,
+                  isMostDetailed: mostDetailedQuoteId === quote.id,
+                  isFastest: fastestQuoteId === quote.id,
+                };
+              });
+
+              return (
+                <article key={group.key} className={styles.conciergeRequestCard}>
+                  {group.request ? (
+                    <OwnerRequestSummaryCard
+                      className={styles.conciergeSpotlightCard}
+                      eyebrow="Demande d’origine"
+                      title={group.request.title}
+                      subtitle={getRequestTypeLabel(group.request.request_type)}
+                      status={group.request.status || null}
+                      primaryFacts={[
+                        {
+                          label: "Lieu",
+                          value: `${group.request.city || "Ville à confirmer"}${
+                            group.request.postal_code ? ` ${group.request.postal_code}` : ""
+                          }`,
+                        },
+                        {
+                          label: "Début mission",
+                          value: formatDateTime(group.request.desired_date),
+                        },
+                        {
+                          label: "Budget",
+                          value: formatAmount(group.request.budget_max, group.request.currency ?? "EUR"),
+                        },
+                        {
+                          label: "Logement",
+                          value: group.request.property_name || "Logement à préciser",
+                        },
+                      ]}
+                      services={group.request.requested_services ?? []}
+                      emptyServicesLabel="Services à préciser"
+                      description={group.request.description}
+                    />
+                  ) : null}
+
+                  <div className={styles.conciergeSectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Réponses des concierges</p>
+                      <h2 className={styles.conciergeSectionTitle}>
+                        {group.quotes.length} proposition(s) à comparer
+                      </h2>
                     </div>
-                    <p className={styles.conciergeRequestDescription}>
-                      {quote.package.description || "Ce devis s'appuie sur un pack de services structure."}
+                    <p className={styles.conciergeNextStep}>
+                      Sélectionnez jusqu&apos;à 3 devis pour activer le comparatif visuel.
                     </p>
                   </div>
-                ) : null}
 
-                <div className={styles.conciergeRecipientList}>
-                  {(quote.quote_items ?? []).map((item) => (
-                    <div key={item.id} className={styles.conciergeRecipientCard}>
-                      <div className={styles.conciergeRecipientSummary}>
-                        <strong>{item.label}</strong>
-                        <span>
-                          {item.quantity} x {formatAmount(item.line_total)}
-                        </span>
+                  {comparisonColumns.length >= 2 ? (
+                    <div className={styles.comparisonScroller}>
+                      <div
+                        className={styles.comparisonTable}
+                        style={{
+                          gridTemplateColumns: `minmax(150px, 0.85fr) repeat(${comparisonColumns.length}, minmax(220px, 1fr))`,
+                        }}
+                      >
+                        <div className={styles.comparisonLabelCell}>Comparatif</div>
+                        {comparisonColumns.map(({ quote, isCheapest, isMostDetailed, isFastest }) => (
+                          <div key={`header-${quote.id}`} className={styles.comparisonValueCell}>
+                            <div className={styles.comparisonHeaderStack}>
+                              <strong>{getPersonName(quote.concierge)}</strong>
+                              <WorkflowStatusBadge value={quote.status || "-"} />
+                              <div className={styles.comparisonBadgeRow}>
+                                {isCheapest ? (
+                                  <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur prix</Tag>
+                                ) : null}
+                                {isMostDetailed ? (
+                                  <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur détail</Tag>
+                                ) : null}
+                                {isFastest ? (
+                                  <Tag tone="gold" className={styles.conciergeRecipientChip}>Réponse la plus rapide</Tag>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        <div className={styles.comparisonLabelCell}>Total</div>
+                        {comparisonColumns.map(({ quote }) => (
+                          <div key={`total-${quote.id}`} className={styles.comparisonValueCell}>
+                            <strong>{formatAmount(quote.total_amount)}</strong>
+                          </div>
+                        ))}
+
+                        <div className={styles.comparisonLabelCell}>Pack</div>
+                        {comparisonColumns.map(({ quote }) => (
+                          <div key={`pack-${quote.id}`} className={styles.comparisonValueCell}>
+                            {quote.package?.name ? formatPackageName(quote.package.name) : "Sans pack"}
+                          </div>
+                        ))}
+
+                        <div className={styles.comparisonLabelCell}>Prestations</div>
+                        {comparisonColumns.map(({ quote }) => (
+                          <div key={`lines-${quote.id}`} className={styles.comparisonValueCell}>
+                            {getQuoteLineCountLabel(quote)}
+                          </div>
+                        ))}
+
+                        <div className={styles.comparisonLabelCell}>Validité</div>
+                        {comparisonColumns.map(({ quote }) => (
+                          <div key={`valid-${quote.id}`} className={styles.comparisonValueCell}>
+                            {formatDate(quote.valid_until)}
+                          </div>
+                        ))}
+
+                        <div className={styles.comparisonLabelCell}>Réponse reçue</div>
+                        {comparisonColumns.map(({ quote }) => (
+                          <div key={`speed-${quote.id}`} className={styles.comparisonValueCell}>
+                            {getResponseSpeedLabel(quote)}
+                          </div>
+                        ))}
+
+                        <div className={styles.comparisonLabelCell}>Actions</div>
+                        {comparisonColumns.map(({ quote, recipientId }) => (
+                          <div key={`actions-${quote.id}`} className={styles.comparisonValueCell}>
+                            <div className={styles.comparisonActions}>
+                              <a
+                                href={`/api/quotes/${quote.id}/document`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={styles.linkButton}
+                              >
+                                Voir le PDF
+                              </a>
+                              {group.request?.id && recipientId ? (
+                                <button
+                                  type="button"
+                                  className={styles.buttonPrimary}
+                                  disabled={selectingRequestId === group.request.id}
+                                  onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
+                                >
+                                  {selectingRequestId === group.request.id
+                                    ? "Sélection..."
+                                    : "Retenir ce concierge"}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      {item.description ? (
-                        <p className={styles.conciergeRequestDescription}>{item.description}</p>
-                      ) : null}
                     </div>
-                  ))}
-                </div>
+                  ) : null}
 
-                {quote.notes ? (
-                  <p className={styles.conciergeNextStep}>{quote.notes}</p>
-                ) : (
-                  <p className={styles.conciergeNextStep}>
-                    Le devis detaille les prestations proposees, leur total et, le cas echeant, le pack commercial retenu par le concierge.
-                  </p>
-                )}
-              </article>
+                  <div
+                    className={styles.conciergeRecipientList}
+                    style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}
+                  >
+                    {group.quotes.map((quote) => {
+                      const statusMeta = getWorkflowStatusMeta(quote.status || "draft");
+                      const isCheapest = cheapestQuoteId === quote.id;
+                      const isMostDetailed = mostDetailedQuoteId === quote.id;
+                      const isFastest = fastestQuoteId === quote.id;
+                      const isCompared = selectedCompareIds.includes(quote.id);
+                      const recipientId =
+                        getRequestRecipientIdFromQuote(quote) ??
+                        group.request?.recipients?.find((recipient) => recipient.quote_id === quote.id)?.id ??
+                        null;
+
+                      return (
+                        <OwnerQuoteResponseCard
+                          key={quote.id}
+                          className={styles.conciergeRecipientCard}
+                          style={
+                            isCompared
+                              ? {
+                                  borderColor: "rgba(184, 92, 72, 0.32)",
+                                  boxShadow: "0 0 0 2px rgba(184, 92, 72, 0.12)",
+                                }
+                              : undefined
+                          }
+                          conciergeName={getPersonName(quote.concierge)}
+                          status={quote.status || "-"}
+                          badges={
+                            <>
+                              <Tag tone="status" className={styles.conciergeRecipientChip}>{statusMeta.label}</Tag>
+                              {isCheapest ? (
+                                <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur prix</Tag>
+                              ) : null}
+                              {isMostDetailed ? (
+                                <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur détail</Tag>
+                              ) : null}
+                              {isFastest ? (
+                                <Tag tone="gold" className={styles.conciergeRecipientChip}>Réponse la plus rapide</Tag>
+                              ) : null}
+                              {quote.package?.name ? (
+                                <Tag tone="status" className={styles.conciergeRecipientChip}>
+                                  {formatPackageName(quote.package.name)}
+                                </Tag>
+                              ) : null}
+                            </>
+                          }
+                          facts={[
+                            { label: "Total", value: formatAmount(quote.total_amount) },
+                            { label: "Validité", value: formatDate(quote.valid_until) },
+                            { label: "Prestations", value: getQuoteLineCountLabel(quote) },
+                          ]}
+                          items={(quote.quote_items ?? []).map((item) => ({
+                            id: item.id,
+                            label: item.label,
+                            meta: `${item.quantity} x ${formatAmount(item.line_total)}`,
+                            description: item.description,
+                          }))}
+                          notes={quote.notes}
+                          actions={
+                            <>
+                              <button
+                                type="button"
+                                className={isCompared ? styles.buttonPrimary : styles.buttonSecondary}
+                                onClick={() => toggleCompare(group.key, quote.id)}
+                              >
+                                {isCompared ? "Retirer du comparatif" : "Comparer"}
+                              </button>
+                              <a
+                                href={`/api/quotes/${quote.id}/document`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={styles.linkButton}
+                              >
+                                Ouvrir le devis PDF
+                              </a>
+                              {group.request?.id && recipientId ? (
+                                <button
+                                  type="button"
+                                  className={styles.buttonPrimary}
+                                  disabled={selectingRequestId === group.request.id}
+                                  onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
+                                >
+                                  {selectingRequestId === group.request.id
+                                    ? "Sélection..."
+                                    : "Retenir ce concierge"}
+                                </button>
+                              ) : null}
+                            </>
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                </article>
+              );
+                })}
+              </section>
             ))}
           </div>
         ) : null}
       </section>
     </div>
-  );
-}
-
-export default function OwnerQuotesPage() {
-  return (
-    <Suspense
-      fallback={
-        <section className="dashboard-grid">
-          <p>Chargement des devis...</p>
-        </section>
-      }
-    >
-      <OwnerQuotesContent />
-    </Suspense>
   );
 }

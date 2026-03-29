@@ -719,12 +719,79 @@
 }
 
 .conciergeRecipients {
-  display: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
 .conciergeRecipientList {
   display: grid;
   gap: 0.75rem;
+}
+
+.comparisonScroller {
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.comparisonTable {
+  display: grid;
+  gap: 0;
+  min-width: 100%;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.06), transparent 30%),
+    linear-gradient(180deg, rgba(255, 253, 250, 0.96), rgba(247, 236, 229, 0.94));
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.06);
+}
+
+.comparisonLabelCell,
+.comparisonValueCell {
+  min-height: 82px;
+  padding: 0.9rem 1rem;
+  border-right: 1px solid rgba(184, 92, 72, 0.12);
+  border-bottom: 1px solid rgba(184, 92, 72, 0.12);
+}
+
+.comparisonLabelCell {
+  display: flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-accent-strong);
+  background: rgba(184, 92, 72, 0.06);
+}
+
+.comparisonValueCell {
+  display: grid;
+  gap: 0.55rem;
+  align-content: center;
+  color: var(--dash-text);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.comparisonHeaderStack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.comparisonHeaderStack strong {
+  color: var(--dash-text);
+}
+
+.comparisonBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.comparisonActions {
+  display: grid;
+  gap: 0.6rem;
 }
 
 .conciergeRecipientCard {
@@ -932,5 +999,41 @@
 :global([data-theme="art-deco"]) .conciergeRecipientChip,
 :global([data-theme="art-deco"]) .conciergeStatusPill {
   border-radius: 3px;
+}
+
+:global([data-theme="mucha-dark"]) .comparisonTable,
+:global([data-theme="mucha-dark"]) .conciergeRequestCard,
+:global([data-theme="mucha-dark"]) .conciergeSpotlightCard,
+:global([data-theme="mucha-dark"]) .conciergeKpiCard,
+:global([data-theme="mucha-dark"]) .conciergeFactCard,
+:global([data-theme="mucha-dark"]) .conciergeRecipientCard {
+  background:
+    radial-gradient(circle at top right, rgba(198, 167, 92, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(26, 22, 20, 0.98), rgba(39, 31, 25, 0.96));
+  border-color: rgba(198, 167, 92, 0.24);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.28);
+}
+
+:global([data-theme="mucha-dark"]) .comparisonLabelCell {
+  background: rgba(198, 167, 92, 0.12);
+  color: #e5d6ae;
+}
+
+:global([data-theme="mucha-dark"]) .comparisonValueCell,
+:global([data-theme="mucha-dark"]) .conciergeRequestDescription,
+:global([data-theme="mucha-dark"]) .conciergeNextStep,
+:global([data-theme="mucha-dark"]) .conciergeRecipientSummary span,
+:global([data-theme="mucha-dark"]) .conciergeKpiHint,
+:global([data-theme="mucha-dark"]) .conciergeFactCard strong,
+:global([data-theme="mucha-dark"]) .comparisonHeaderStack strong {
+  color: #f6efe2;
+}
+
+:global([data-theme="mucha-dark"]) .conciergeKpiLabel,
+:global([data-theme="mucha-dark"]) .conciergeFactCard span,
+:global([data-theme="mucha-dark"]) .comparisonHeaderStack,
+:global([data-theme="mucha-dark"]) .eyebrow,
+:global([data-theme="mucha-dark"]) .comparisonValueCell strong {
+  color: #c6a75c;
 }
 

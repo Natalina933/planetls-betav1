@@ -216,9 +216,9 @@ export async function prepareQuoteDraftFromRequest(
 
   const matchedPackageName = bestPackageMatch?.pkg.name ?? null;
   const noteParts = [
-    `Devis brouillon cree depuis la demande ${request.id}`,
-    matchedPackageName ? `Pack suggere : ${matchedPackageName}` : null,
-    matchedPricingRows.length > 0 ? `${matchedPricingRows.length} tarif(s) precharges` : null,
+    `Devis brouillon créé depuis la demande ${request.id}`,
+    matchedPackageName ? `Pack suggéré : ${matchedPackageName}` : null,
+    matchedPricingRows.length > 0 ? `${matchedPricingRows.length} tarif(s) préchargés` : null,
   ].filter(Boolean);
 
   return {

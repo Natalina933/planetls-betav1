@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -13,6 +13,7 @@ type ConciergeRequestRow = {
   request_type: "ponctuel" | "renfort" | "durable";
   city: string | null;
   postal_code: string | null;
+  property_name?: string | null;
   desired_date: string | null;
   urgency: boolean;
   budget_max: number | null;
@@ -31,7 +32,7 @@ type ConciergeRequestRow = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date à définir";
+  if (!value) return "Date Ã  dÃ©finir";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -43,8 +44,8 @@ function formatDate(value: string | null) {
 }
 
 function formatAmount(value: number | null, currency: string | null) {
-  if (typeof value !== "number") return "Budget non renseigné";
-  return `${value.toFixed(0)} ${currency || "EUR"} max`;
+  if (typeof value !== "number") return "Budget indicatif non renseigné";
+  return `Budget indicatif du propriétaire : ${value.toFixed(0)} ${currency || "EUR"}`;
 }
 
 function formatType(value: ConciergeRequestRow["request_type"]) {
@@ -56,15 +57,15 @@ function formatType(value: ConciergeRequestRow["request_type"]) {
 function formatRecipientStatus(value: string) {
   switch (value) {
     case "sent":
-      return "À ouvrir";
+      return "Ã€ ouvrir";
     case "viewed":
-      return "Consultée";
+      return "ConsultÃ©e";
     case "interested":
-      return "Intérêt confirmé";
+      return "IntÃ©rÃªt confirmÃ©";
     case "quoted":
-      return "Devis préparé";
+      return "Devis prÃ©parÃ©";
     case "declined":
-      return "Refusée";
+      return "RefusÃ©e";
     case "selected":
       return "Retenue";
     case "not_selected":
@@ -163,17 +164,17 @@ export default function ConciergeDemandesPage() {
       });
       const payload = await response.json();
       if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de mettre à jour la demande.");
+          throw new Error(payload?.error || "Impossible de mettre Ã  jour la demande.");
       }
 
       setActionMessage(
         status === "interested"
-          ? "Demande marquée comme intéressante."
-          : "Demande refusée.",
+          ? "Demande marquÃ©e comme intÃ©ressante."
+          : "Demande refusÃ©e.",
       );
       await loadRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre à jour la demande.");
+      setError(err instanceof Error ? err.message : "Impossible de mettre Ã  jour la demande.");
     } finally {
       setBusyRecipientId(null);
     }
@@ -196,7 +197,7 @@ export default function ConciergeDemandesPage() {
       const payload = await response.json();
 
       if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de préparer le devis.");
+          throw new Error(payload?.error || "Impossible de prÃ©parer le devis.");
       }
 
       const quoteId =
@@ -208,10 +209,10 @@ export default function ConciergeDemandesPage() {
 
       setActionMessage(
         payload?.reused
-          ? `Votre brouillon de devis est déjà prêt. Vous pouvez l’ouvrir et le finaliser.`
+          ? `Votre brouillon de devis est dÃ©jÃ  prÃªt. Vous pouvez lâ€™ouvrir et le finaliser.`
           : payload?.refreshed
-            ? `Votre brouillon de devis a été mis à jour à partir de cette demande.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis.` : ""}`
-            : `Votre brouillon de devis est prêt.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis à partir de la demande.` : ""}`,
+            ? `Votre brouillon de devis a Ã©tÃ© mis Ã  jour Ã  partir de cette demande.${payload?.summary?.matchedPackageName ? ` Pack suggÃ©rÃ© : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont Ã©tÃ© prÃ©remplis.` : ""}`
+            : `Votre brouillon de devis est prÃªt.${payload?.summary?.matchedPackageName ? ` Pack suggÃ©rÃ© : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont Ã©tÃ© prÃ©remplis Ã  partir de la demande.` : ""}`,
       );
 
       await loadRequests();
@@ -222,7 +223,7 @@ export default function ConciergeDemandesPage() {
           : "/dashboard/concierge/billing?source=request",
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de préparer le devis.");
+      setError(err instanceof Error ? err.message : "Impossible de prÃ©parer le devis.");
     } finally {
       setBusyRecipientId(null);
     }
@@ -256,7 +257,7 @@ export default function ConciergeDemandesPage() {
             disabled={isBusy}
             onClick={() => void prepareQuote(item, { force: true })}
           >
-            {isBusy ? "Mise à jour..." : "Relancer la préparation"}
+            {isBusy ? "Mise Ã  jour..." : "Relancer la prÃ©paration"}
           </button>
         </>
       );
@@ -295,7 +296,7 @@ export default function ConciergeDemandesPage() {
             disabled={isBusy}
             onClick={() => void prepareQuote(item)}
           >
-            {isBusy ? "Préparation..." : "Préparer un devis"}
+            {isBusy ? "PrÃ©paration..." : "PrÃ©parer un devis"}
           </button>
           <button
             type="button"
@@ -317,7 +318,7 @@ export default function ConciergeDemandesPage() {
           disabled={isBusy}
           onClick={() => void respond(item.recipient_id, "interested")}
         >
-            {isBusy ? "Mise à jour..." : "Je suis intéressée"}
+            {isBusy ? "Mise Ã  jour..." : "Je suis intÃ©ressÃ©e"}
         </button>
         <Link href={getConversationHref(item)} className={styles.linkBtn}>
           Ouvrir la conversation
@@ -328,7 +329,7 @@ export default function ConciergeDemandesPage() {
           disabled={isBusy}
           onClick={() => void prepareQuote(item)}
         >
-          {isBusy ? "Préparation..." : "Préparer un devis"}
+          {isBusy ? "PrÃ©paration..." : "PrÃ©parer un devis"}
         </button>
         <button
           type="button"
@@ -345,34 +346,34 @@ export default function ConciergeDemandesPage() {
   return (
     <ConciergeWorkspacePage
       eyebrow="Missions"
-      title="Demandes reçues"
+      title="Demandes reÃ§ues"
       description={
         loading
           ? "Chargement des demandes..."
           : error ||
-            "Traitez les nouvelles demandes propriétaires avant qu'elles ne deviennent de vraies missions."
+            "Traitez les nouvelles demandes propriÃ©taires avant qu'elles ne deviennent de vraies missions."
       }
-      chips={[`${items.length} demande(s)`, `${urgentCount} urgente(s)`, `${quotedCount} à chiffrer`]}
+      chips={[`${items.length} demande(s)`, `${urgentCount} urgente(s)`, `${quotedCount} Ã  chiffrer`]}
       metrics={[
         {
           label: "Demandes",
           value: loading ? "..." : String(items.length),
-           hint: "Demandes reçues dans votre file",
+           hint: "Demandes reÃ§ues dans votre file",
         },
         {
-          label: "À ouvrir",
+          label: "Ã€ ouvrir",
           value: loading ? "..." : String(openCount),
-           hint: "Demandes encore sans réponse claire",
+           hint: "Demandes encore sans rÃ©ponse claire",
         },
         {
           label: "Urgentes",
           value: loading ? "..." : String(urgentCount),
-           hint: "Demandes qui demandent une réaction rapide",
+           hint: "Demandes qui demandent une rÃ©action rapide",
         },
         {
           label: "Devis",
           value: loading ? "..." : String(quotedCount),
-           hint: "Demandes déjà basculées en préparation devis",
+           hint: "Demandes dÃ©jÃ  basculÃ©es en prÃ©paration devis",
         },
       ]}
       actions={[
@@ -383,15 +384,15 @@ export default function ConciergeDemandesPage() {
       cards={[
         {
           title: "1. Prioriser",
-           text: "Commencez par les urgences et les demandes de remplacement pour capter les opportunités chaudes.",
+           text: "Commencez par les urgences et les demandes de remplacement pour capter les opportunitÃ©s chaudes.",
         },
         {
           title: "2. Qualifier",
-           text: "Confirmez votre intérêt, ouvrez la conversation pré-remplie, puis lancez un devis quand le chiffrage devient l'étape suivante.",
+           text: "Confirmez votre intÃ©rÃªt, ouvrez la conversation prÃ©-remplie, puis lancez un devis quand le chiffrage devient l'Ã©tape suivante.",
         },
         {
           title: "3. Convertir",
-           text: "Une fois choisie par le propriétaire, la demande devient une mission à planifier proprement.",
+           text: "Une fois choisie par le propriÃ©taire, la demande devient une mission Ã  planifier proprement.",
         },
       ]}
     >
@@ -407,7 +408,7 @@ export default function ConciergeDemandesPage() {
                   <p className={styles.ownerName}>{item.owner_name}</p>
                   <h2>{item.title}</h2>
                   <p className={styles.meta}>
-                    {formatType(item.request_type)} | {item.city || "Ville à confirmer"} |{" "}
+                    {formatType(item.request_type)} | {item.property_name || item.city || "Logement à préciser"} |{" "}
                     {formatDate(item.desired_date)}
                   </p>
                 </div>
@@ -423,7 +424,8 @@ export default function ConciergeDemandesPage() {
 
               <div className={styles.metaGrid}>
                 <span>{formatAmount(item.budget_max, item.currency)}</span>
-                <span>{item.postal_code || "Code postal non renseigné"}</span>
+                <span>{item.property_name || "Logement non renseigné"}</span>
+                <span>{item.postal_code || "Code postal non renseignÃ©"}</span>
                 <span>{item.status}</span>
               </div>
 
@@ -435,7 +437,7 @@ export default function ConciergeDemandesPage() {
                     </span>
                   ))
                 ) : (
-                  <span className={styles.tagMuted}>Services à préciser</span>
+                  <span className={styles.tagMuted}>Services Ã  prÃ©ciser</span>
                 )}
               </div>
 
@@ -444,10 +446,11 @@ export default function ConciergeDemandesPage() {
           ))}
 
           {!loading && !error && items.length === 0 ? (
-            <p className={styles.emptyState}>Aucune demande reçue pour le moment.</p>
+            <p className={styles.emptyState}>Aucune demande reÃ§ue pour le moment.</p>
           ) : null}
         </div>
       </div>
     </ConciergeWorkspacePage>
   );
 }
+

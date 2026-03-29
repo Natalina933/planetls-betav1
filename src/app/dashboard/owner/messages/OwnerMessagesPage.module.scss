@@ -6,37 +6,36 @@
   gap: var(--dash-space-5);
 }
 
-.header {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.header h1,
-.threadHeader h2,
-.sidebarHeader h2 {
-  margin: 0;
-}
-
-.header p {
-  margin: 0;
-  color: var(--dash-text-muted);
-}
-
 .layout {
   display: grid;
-  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-  gap: var(--dash-space-4);
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.35rem);
+  align-items: start;
 }
 
 .sidebar,
 .thread {
   display: grid;
-  gap: var(--dash-space-4);
-  padding: var(--dash-space-4);
-  border-radius: var(--dash-radius-lg);
-  border: 1px solid var(--dash-border);
-  background: color-mix(in srgb, var(--dash-bg-panel-soft) 96%, transparent);
-  box-shadow: var(--dash-shadow-sm);
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--dash-border) 78%, var(--dash-accent) 22%);
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--dash-accent) 12%, transparent), transparent 34%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--dash-bg-panel-soft) 96%, white 4%),
+      color-mix(in srgb, var(--dash-bg-panel) 94%, white 6%)
+    );
+  box-shadow:
+    0 18px 42px rgba(43, 31, 17, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.68) inset;
+  backdrop-filter: blur(8px);
+}
+
+.sidebar {
+  position: sticky;
+  top: 1rem;
 }
 
 .sidebarHeader,
@@ -48,65 +47,146 @@
   gap: 0.75rem;
 }
 
+.sidebarHeader h2,
+.threadHeader h2 {
+  margin: 0;
+  color: var(--dash-text-strong);
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  line-height: 1.2;
+}
+
+.headerBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 35%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-accent) 12%, var(--dash-bg-panel));
+  color: var(--dash-text-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+}
+
 .conversationList,
 .messageList {
   display: grid;
   gap: 0.75rem;
 }
 
+.messageList {
+  align-content: start;
+}
+
 .filtersRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--dash-border) 80%, var(--dash-accent) 20%);
+  background: color-mix(in srgb, var(--dash-bg-panel) 90%, white 10%);
 }
 
 .filtersInput {
   flex: 1 1 220px;
-  border-radius: var(--dash-radius-md);
+  min-height: 46px;
+  border-radius: 16px;
   border: 1px solid var(--dash-border);
-  padding: var(--dash-space-3) var(--dash-space-4);
-  background: var(--dash-bg-panel);
+  padding: 0.8rem 1rem;
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white 4%);
+  color: var(--dash-text-strong);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
 
 .filtersSelect {
-  border-radius: var(--dash-radius-md);
+  min-height: 46px;
+  border-radius: 16px;
   border: 1px solid var(--dash-border);
-  padding: var(--dash-space-3) var(--dash-space-4);
-  background: var(--dash-bg-panel);
+  padding: 0.8rem 1rem;
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white 4%);
+  color: var(--dash-text-strong);
 }
 
 .conversationItem {
   display: grid;
-  gap: 0.4rem;
-  padding: 0.9rem;
+  gap: 0.45rem;
   width: 100%;
+  padding: 1rem;
   text-align: left;
-  border-radius: var(--dash-radius-md);
-  border: 1px solid var(--dash-border);
-  background: var(--dash-bg-panel);
-  box-shadow: none;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--dash-border) 84%, var(--dash-accent) 16%);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--dash-bg-panel) 96%, white 4%),
+      color-mix(in srgb, var(--dash-bg-panel-soft) 96%, white 4%)
+    );
+  box-shadow:
+    0 10px 24px rgba(67, 47, 15, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.5) inset;
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
 }
 
 .conversationItem:hover {
-  transform: none;
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--dash-accent) 40%, var(--dash-border));
+  box-shadow: 0 14px 28px rgba(67, 47, 15, 0.12);
 }
 
 .conversationItemActive {
-  border-color: color-mix(in srgb, var(--dash-accent) 45%, var(--dash-border));
-  box-shadow: var(--dash-shadow-sm);
+  border-color: color-mix(in srgb, var(--dash-accent) 58%, var(--dash-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 14%, transparent), transparent 34%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--dash-accent) 8%, var(--dash-bg-panel)),
+      color-mix(in srgb, var(--dash-bg-panel-soft) 94%, white 6%)
+    );
+  box-shadow: 0 18px 34px rgba(93, 66, 18, 0.14);
 }
 
 .conversationHead {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 0.75rem;
   font-size: 0.9rem;
+}
+
+.conversationHead strong {
+  color: var(--dash-text-strong);
+  font-size: 0.98rem;
+  line-height: 1.3;
 }
 
 .conversationMeta {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  color: var(--dash-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.conversationSubject {
+  margin: 0;
+  color: var(--dash-text-strong);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.conversationPreview {
+  display: block;
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.45;
 }
 
 .unreadDot {
@@ -118,52 +198,87 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--dash-danger) 16%, transparent);
 }
 
+.threadHeader {
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--dash-border) 80%, transparent);
+}
+
+.threadHeader h2 {
+  max-width: 80%;
+}
+
 .message {
   display: grid;
-  gap: 0.45rem;
-  padding: 0.85rem 1rem;
-  border-radius: 16px;
-  max-width: 90%;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  max-width: min(90%, 720px);
+  box-shadow: 0 8px 22px rgba(52, 39, 18, 0.08);
 }
 
 .messageMine {
   justify-self: end;
-  background: linear-gradient(135deg, var(--dash-accent), color-mix(in srgb, var(--dash-accent) 62%, white));
-  color: var(--dash-text);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dash-accent) 78%, white 22%),
+    color-mix(in srgb, var(--dash-accent) 52%, white 48%)
+  );
+  color: #31230f;
 }
 
 .messageOther {
-  background: var(--dash-bg-panel);
-  border: 1px solid var(--dash-border);
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white 4%);
+  border: 1px solid color-mix(in srgb, var(--dash-border) 84%, var(--dash-accent) 16%);
+}
+
+.messageMeta {
+  align-items: baseline;
+  color: var(--dash-text-muted);
+  font-size: 0.8rem;
+}
+
+.messageMeta strong {
+  color: inherit;
+  font-size: 0.92rem;
 }
 
 .message p,
 .emptyState,
 .successBox,
-.errorBox {
+.errorBox,
+.infoText {
   margin: 0;
+}
+
+.infoText {
+  color: var(--dash-text-muted);
+}
+
+.emptyState {
+  padding: 1rem 1.05rem;
+  border-radius: 18px;
+  border: 1px dashed color-mix(in srgb, var(--dash-border) 76%, var(--dash-accent) 24%);
+  background: color-mix(in srgb, var(--dash-bg-panel-soft) 92%, white 8%);
+  color: var(--dash-text-muted);
 }
 
 .composer {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.8rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--dash-border) 80%, transparent);
 }
 
-.composer textarea {
-  min-height: 120px;
-  resize: vertical;
-  border-radius: var(--dash-radius-md);
-  border: 1px solid var(--dash-border);
-  padding: var(--dash-space-3) var(--dash-space-4);
-  background: var(--dash-bg-panel);
-}
-
+.composer textarea,
 .composerTextarea {
-  min-height: 120px;
-  border-radius: var(--dash-radius-md);
-  border: 1px solid var(--dash-border);
-  padding: var(--dash-space-3) var(--dash-space-4);
-  background: var(--dash-bg-panel);
+  min-height: 140px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-border) 80%, var(--dash-accent) 20%);
+  padding: 0.95rem 1rem;
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white 4%);
+  color: var(--dash-text-strong);
+  resize: vertical;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
 }
 
 .composer button,
@@ -171,38 +286,153 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0.7rem 1rem;
+  min-height: 44px;
+  padding: 0.75rem 1.05rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--dash-accent) 35%, var(--dash-border));
-  background: linear-gradient(135deg, var(--dash-accent), color-mix(in srgb, var(--dash-accent) 62%, white));
-  color: var(--dash-text);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--dash-accent) 82%, white 18%),
+    color-mix(in srgb, var(--dash-accent) 58%, white 42%)
+  );
+  color: #2f2412;
   text-decoration: none;
   font-weight: 700;
+  box-shadow: 0 10px 24px rgba(95, 67, 18, 0.16);
 }
 
 .composer button:disabled {
   opacity: 0.55;
+  box-shadow: none;
 }
 
 .successBox {
-  padding: 0.85rem 1rem;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--dash-success) 16%, transparent);
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-success) 24%, transparent);
+  background: color-mix(in srgb, var(--dash-success) 16%, white 84%);
   color: var(--dash-success);
   font-weight: 700;
+  box-shadow: 0 10px 22px rgba(29, 137, 90, 0.08);
 }
 
 .errorBox {
-  padding: 0.85rem 1rem;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--dash-danger) 14%, transparent);
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-danger) 22%, transparent);
+  background: color-mix(in srgb, var(--dash-danger) 12%, white 88%);
   color: var(--dash-danger);
   font-weight: 700;
+  box-shadow: 0 10px 22px rgba(176, 64, 64, 0.08);
+}
+
+:global([data-theme="mucha-dark"]) {
+  .sidebar,
+  .thread {
+    border-color: rgba(198, 167, 92, 0.18);
+    background:
+      radial-gradient(circle at top, rgba(198, 167, 92, 0.14), transparent 34%),
+      linear-gradient(180deg, rgba(38, 28, 21, 0.98), rgba(24, 18, 14, 0.98));
+    box-shadow:
+      0 20px 44px rgba(0, 0, 0, 0.34),
+      0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  }
+
+  .sidebarHeader h2,
+  .threadHeader h2,
+  .conversationHead strong,
+  .conversationSubject,
+  .messageMeta strong {
+    color: #f7f0db;
+  }
+
+  .headerBadge {
+    border-color: rgba(198, 167, 92, 0.24);
+    background: rgba(198, 167, 92, 0.12);
+    color: #e6cf92;
+  }
+
+  .filtersRow,
+  .conversationItem,
+  .messageOther,
+  .emptyState,
+  .composer textarea,
+  .composerTextarea {
+    background: linear-gradient(180deg, rgba(48, 35, 25, 0.96), rgba(31, 23, 17, 0.96));
+    border-color: rgba(198, 167, 92, 0.16);
+    color: #f7f0db;
+  }
+
+  .filtersInput,
+  .filtersSelect {
+    background: linear-gradient(180deg, rgba(25, 18, 14, 0.96), rgba(35, 25, 19, 0.96));
+    border-color: rgba(198, 167, 92, 0.18);
+    color: #fff7e6;
+  }
+
+  .conversationItem:hover,
+  .conversationItemActive {
+    border-color: rgba(198, 167, 92, 0.32);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.3);
+  }
+
+  .conversationMeta,
+  .conversationPreview,
+  .messageMeta,
+  .emptyState,
+  .infoText {
+    color: rgba(247, 240, 219, 0.76);
+  }
+
+  .threadHeader,
+  .composer {
+    border-color: rgba(198, 167, 92, 0.14);
+  }
+
+  .messageMine {
+    background: linear-gradient(135deg, #c6a75c, #e0c985);
+    color: #241a0f;
+  }
+
+  .composer button,
+  .cta {
+    background: linear-gradient(135deg, #c6a75c, #e0c985);
+    color: #241a0f;
+    box-shadow: 0 12px 26px rgba(198, 167, 92, 0.16);
+  }
+
+  .successBox {
+    background: rgba(58, 108, 83, 0.22);
+    border-color: rgba(92, 189, 146, 0.22);
+    color: #bfe7d3;
+  }
+
+  .errorBox {
+    background: rgba(127, 53, 53, 0.24);
+    border-color: rgba(214, 111, 111, 0.22);
+    color: #ffd2d2;
+  }
 }
 
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .threadHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .threadHeader h2 {
+    max-width: 100%;
+  }
+
+  .message {
+    max-width: 100%;
   }
 }

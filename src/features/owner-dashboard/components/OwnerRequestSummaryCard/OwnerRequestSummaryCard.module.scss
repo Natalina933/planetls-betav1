@@ -1,0 +1,127 @@
+.card {
+  display: grid;
+  gap: 1rem;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.heading h3,
+.heading p {
+  margin: 0;
+}
+
+.heading h3 {
+  color: var(--dash-text);
+  font-size: 1.12rem;
+}
+
+.heading p {
+  color: var(--dash-text-muted);
+}
+
+.statusLine,
+.actions,
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.factCard {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.factCard span {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-accent-strong);
+}
+
+.factCard strong {
+  color: var(--dash-text);
+  font-size: 0.98rem;
+}
+
+.description,
+.helperText {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.6;
+}
+
+.helperStack {
+  display: grid;
+  gap: 0.35rem;
+}
+
+@media (max-width: 720px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+:global([data-theme="mucha-dark"]) .heading h3,
+:global([data-theme="mucha-dark"]) .factCard strong {
+  color: #f6efe2;
+}
+
+:global([data-theme="mucha-dark"]) .eyebrow,
+:global([data-theme="mucha-dark"]) .factCard span {
+  color: #c6a75c;
+}
+
+:global([data-theme="mucha-dark"]) .heading p,
+:global([data-theme="mucha-dark"]) .description,
+:global([data-theme="mucha-dark"]) .helperText {
+  color: #f6efe2;
+}
+
+:global([data-theme="mucha-dark"]) .factCard {
+  background:
+    radial-gradient(circle at top right, rgba(198, 167, 92, 0.1), transparent 32%),
+    linear-gradient(180deg, rgba(26, 22, 20, 0.98), rgba(39, 31, 25, 0.96));
+  border-color: rgba(198, 167, 92, 0.24);
+}
+
+:global([data-theme="art-deco"]) .factCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}

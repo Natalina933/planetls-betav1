@@ -29,6 +29,9 @@ const formatDate = (value?: string | null): string => {
   }).format(date);
 };
 
+const formatPackageName = (value?: string | null): string =>
+  (value ?? "").replace(/\(\s*seed\s*\)/gi, "(Initial)").trim() || "Pack";
+
 const getUserId = async (req: NextRequest): Promise<string | null> => {
   const token = await getToken({
     req,
@@ -117,7 +120,7 @@ export async function GET(
       ? `TVA intracommunautaire: ${escapeHtml(concierge.vat_number)}`
       : "TVA non applicable, art. 293 B du CGI";
     const packageHtml = quote.package
-      ? `<section class="box" style="margin-top: 12px;"><h3>Pack rattache</h3><div>${escapeHtml(quote.package.name ?? "Pack")}</div><div class="muted">${quote.package.category ? escapeHtml(quote.package.category) : ""}${quote.package.description ? `<br/>${escapeHtml(quote.package.description)}` : ""}</div></section>`
+      ? `<section class="box" style="margin-top: 12px;"><h3>Pack rattaché</h3><div>${escapeHtml(formatPackageName(quote.package.name))}</div><div class="muted">${quote.package.category ? escapeHtml(quote.package.category) : ""}${quote.package.description ? `<br/>${escapeHtml(quote.package.description)}` : ""}</div></section>`
       : "";
 
     const rowsHtml = items

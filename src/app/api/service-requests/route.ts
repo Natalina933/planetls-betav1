@@ -25,6 +25,7 @@ type RecipientStatus =
 
 interface CreateServiceRequestBody {
   property_id?: string | null;
+  property_name?: string | null;
   request_type?: ServiceRequestType;
   title?: string;
   description?: string | null;
@@ -48,6 +49,7 @@ const isUuidLike = (value: string): boolean =>
 
 const createServiceRequestSchema = z.object({
   property_id: z.string().uuid().optional().nullable(),
+  property_name: z.string().trim().max(180).optional().nullable(),
   request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
   title: z.string().trim().min(1).max(180),
   description: z.string().trim().max(5000).optional().nullable(),
@@ -59,7 +61,7 @@ const createServiceRequestSchema = z.object({
   urgency: z.boolean().optional(),
   budget_max: z.coerce.number().nonnegative().max(100000000).optional().nullable(),
   currency: z.string().trim().length(3).optional().nullable(),
-  recipient_ids: z.array(z.string().uuid()).min(1).max(100),
+  recipient_ids: z.array(z.string().uuid()).max(100).optional(),
 });
 
 type ServiceRequestRecipientRow = {
@@ -125,6 +127,14 @@ function normalizeRecipientIds(value: unknown): string[] {
 function normalizeCurrency(value: unknown): string {
   if (typeof value !== "string" || !value.trim()) return "EUR";
   return value.trim().toUpperCase();
+}
+
+function readPropertyLabelFromMetadata(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const propertyLabel = "property_label" in value ? value.property_label : null;
+  return typeof propertyLabel === "string" && propertyLabel.trim()
+    ? propertyLabel.trim()
+    : null;
 }
 
 function parseLimit(raw: string | null, fallback = 20) {
@@ -266,6 +276,13 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
   const selectedConciergeIds = (requests ?? [])
     .map((row: { selected_concierge_profile_id?: string | null }) => row.selected_concierge_profile_id)
     .filter((id: unknown): id is string => typeof id === "string" && id.length > 0);
+  const propertyIds = Array.from(
+    new Set(
+      (requests ?? [])
+        .map((row: { property_id?: string | null }) => row.property_id)
+        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+    ),
+  );
 
   const { data: recipients, error: recipientsError } = await dbAny
     .from("service_request_recipients")
@@ -296,7 +313,18 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     throw new Error("Impossible de charger les profils concierges.");
   }
 
+  const { data: properties, error: propertiesError } = await dbAny
+    .from("properties")
+    .select("id, name, city")
+    .in("id", propertyIds.length > 0 ? propertyIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (propertiesError) {
+    console.error("[GET /api/service-requests] owner properties error:", propertiesError);
+    throw new Error("Impossible de charger les logements lies.");
+  }
+
   const conciergeNameById = new Map<string, string>();
+  const propertyNameById = new Map<string, string>();
   (conciergeProfiles ?? []).forEach(
     (profile: {
       id: string;
@@ -313,6 +341,10 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
       conciergeNameById.set(profile.id, displayName);
     },
   );
+  (properties ?? []).forEach((property: { id: string; name?: string | null; city?: string | null }) => {
+    const label = property.name?.trim() || (property.city ? `Logement à ${property.city}` : "") || "Logement";
+    propertyNameById.set(property.id, label);
+  });
 
   const recipientsByRequestId = new Map<string, ServiceRequestRecipientRow[]>();
   (recipients ?? []).forEach((recipient: ServiceRequestRecipientRow) => {
@@ -394,6 +426,9 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
 
   return (requests ?? []).map((request: ServiceRequestRow) => ({
     ...request,
+    property_name:
+      (typeof request.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
+      readPropertyLabelFromMetadata(request.metadata),
     selected_concierge_name: request.selected_concierge_profile_id
       ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
       : null,
@@ -446,6 +481,13 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
         .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
     ),
   );
+  const propertyIds = Array.from(
+    new Set(
+      (requests ?? [])
+        .map((row: { property_id?: string | null }) => row.property_id)
+        .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
+    ),
+  );
 
   const { data: ownerProfiles, error: ownerProfilesError } = await dbAny
     .from("profiles")
@@ -457,7 +499,18 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
     throw new Error("Impossible de charger les proprietaires.");
   }
 
+  const { data: properties, error: propertiesError } = await dbAny
+    .from("properties")
+    .select("id, name, city")
+    .in("id", propertyIds.length > 0 ? propertyIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  if (propertiesError) {
+    console.error("[GET /api/service-requests] concierge properties error:", propertiesError);
+    throw new Error("Impossible de charger les logements lies.");
+  }
+
   const ownerNameById = new Map<string, string>();
+  const propertyNameById = new Map<string, string>();
   (ownerProfiles ?? []).forEach(
     (profile: {
       id: string;
@@ -474,6 +527,10 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       ownerNameById.set(profile.id, displayName);
     },
   );
+  (properties ?? []).forEach((property: { id: string; name?: string | null; city?: string | null }) => {
+    const label = property.name?.trim() || (property.city ? `Logement à ${property.city}` : "") || "Logement";
+    propertyNameById.set(property.id, label);
+  });
 
   const requestById = new Map<string, ServiceRequestRow>();
   (requests ?? []).forEach((request: ServiceRequestRow) => {
@@ -551,6 +608,9 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
     return {
       ...request,
+      property_name:
+        (typeof request?.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
+        readPropertyLabelFromMetadata(request?.metadata),
       recipient_id: recipient.id,
       recipient_status: recipient.status,
       response_message: recipient.response_message,
@@ -589,12 +649,6 @@ export async function POST(req: NextRequest) {
     }
 
     const recipientIds = normalizeRecipientIds(body.recipient_ids);
-    if (recipientIds.length === 0) {
-      return NextResponse.json(
-        { error: "Selectionnez au moins un concierge destinataire." },
-        { status: 400 },
-      );
-    }
 
     const requestType: ServiceRequestType = VALID_REQUEST_TYPES.includes(body.request_type as ServiceRequestType)
       ? (body.request_type as ServiceRequestType)
@@ -608,37 +662,40 @@ export async function POST(req: NextRequest) {
     const requestSubject = title;
     const prefillMessage = buildRequestPrefillMessage(body, requestedServices);
 
-    const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
-      .from("profiles")
-      .select("id, role, category")
-      .in("id", recipientIds);
+    let validRecipientIds: string[] = [];
+    if (recipientIds.length > 0) {
+      const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
+        .from("profiles")
+        .select("id, role, category")
+        .in("id", recipientIds);
 
-    if (conciergeProfilesError) {
-      console.error("[POST /api/service-requests] concierge profiles error:", conciergeProfilesError);
-      return NextResponse.json({ error: "Impossible de verifier les concierges." }, { status: 500 });
-    }
+      if (conciergeProfilesError) {
+        console.error("[POST /api/service-requests] concierge profiles error:", conciergeProfilesError);
+        return NextResponse.json({ error: "Impossible de verifier les concierges." }, { status: 500 });
+      }
 
-    const validRecipientIds = (conciergeProfiles ?? [])
-      .filter((profile: { role?: string | null; category?: string | null }) => {
-        const roleValue = (profile.role ?? "").toLowerCase();
-        const categoryValue = (profile.category ?? "").toLowerCase();
-        return (
-          roleValue === "concierge" ||
-          roleValue === "concierge_pro" ||
-          categoryValue.startsWith("concierge")
-        );
-      })
-      .map((profile: { id: string }) => profile.id);
+      validRecipientIds = (conciergeProfiles ?? [])
+        .filter((profile: { role?: string | null; category?: string | null }) => {
+          const roleValue = (profile.role ?? "").toLowerCase();
+          const categoryValue = (profile.category ?? "").toLowerCase();
+          return (
+            roleValue === "concierge" ||
+            roleValue === "concierge_pro" ||
+            categoryValue.startsWith("concierge")
+          );
+        })
+        .map((profile: { id: string }) => profile.id);
 
-    if (validRecipientIds.length === 0) {
-      return NextResponse.json({ error: "Aucun concierge valide selectionne." }, { status: 400 });
+      if (validRecipientIds.length === 0) {
+        return NextResponse.json({ error: "Aucun concierge valide selectionne." }, { status: 400 });
+      }
     }
 
     const insertPayload = {
       owner_profile_id: userId,
       property_id: body.property_id ?? null,
       request_type: requestType,
-      status: "sent" as ServiceRequestStatus,
+      status: (validRecipientIds.length > 0 ? "sent" : "draft") as ServiceRequestStatus,
       title,
       description: typeof body.description === "string" ? body.description.trim() || null : null,
       requested_services: requestedServices,
@@ -649,8 +706,9 @@ export async function POST(req: NextRequest) {
       budget_max: typeof body.budget_max === "number" ? body.budget_max : null,
       currency: normalizeCurrency(body.currency),
       metadata: {
-        origin: "owner_search_flow",
+        origin: validRecipientIds.length > 0 ? "owner_search_flow" : "owner_direct_request",
         region: typeof body.region === "string" ? body.region.trim() || null : null,
+        property_label: typeof body.property_name === "string" ? body.property_name.trim() || null : null,
       },
     };
 
@@ -690,6 +748,17 @@ export async function POST(req: NextRequest) {
 
       console.error("[POST /api/service-requests] create request error:", requestError);
       return NextResponse.json({ error: "Impossible de creer la demande." }, { status: 500 });
+    }
+
+    if (validRecipientIds.length === 0) {
+      return NextResponse.json(
+        {
+          request: createdRequest,
+          recipients: [],
+          conversations: [],
+        },
+        { status: 201 },
+      );
     }
 
     const recipientRows = validRecipientIds.map((conciergeId: string) => ({

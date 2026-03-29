@@ -55,6 +55,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
       icon: FiCalendar,
       children: [
         { label: "Vue d'ensemble", path: "/dashboard/owner/missions/overview", icon: FiHome },
+        { label: "Demandes", path: "/dashboard/owner/demandes", icon: FiMessageSquare },
         { label: "Planning", path: "/dashboard/owner/planning", icon: FiCalendar },
         { label: "Alertes", path: "/dashboard/owner/alertes", icon: FiBell },
         { label: "Mission urgente", path: "/dashboard/owner/mission-urgente", icon: FiTool },

@@ -193,6 +193,12 @@ const quoteSelect = `
     last_name,
     company_name
   ),
+  concierge:profiles!quotes_concierge_profile_id_fkey(
+    id,
+    first_name,
+    last_name,
+    company_name
+  ),
   package:services_packages(
     id,
     name,

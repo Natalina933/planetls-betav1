@@ -80,6 +80,8 @@ type TariffBillingDeskProps = { initialSelectedQuoteId?: string; [key: string]: 
 const money = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 const formatMoney = (value?: number | null) => money.format(Number(value ?? 0));
 const formatDate = (value?: string | null) => (value ? new Date(value).toLocaleDateString("fr-FR") : "-");
+const formatPackageName = (value?: string | null) =>
+  (value ?? "").replace(/\(\s*seed\s*\)/gi, "(Initial)").trim() || "Pack";
 
 const statusLabel = (status?: string | null) =>
   ({
@@ -527,7 +529,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                       <div className={styles.contextHeader}>
                         <strong>Contexte propriétaire</strong>
                         {editor.metadata.auto_match_summary?.matchedPackageName ? (
-                          <Tag tone="gold">Pack suggéré: {editor.metadata.auto_match_summary.matchedPackageName}</Tag>
+                          <Tag tone="gold">Pack suggéré: {formatPackageName(editor.metadata.auto_match_summary.matchedPackageName)}</Tag>
                         ) : null}
                       </div>
                       <p className={styles.contextOwner}>{ownerLabel(editor.owner)}</p>
@@ -568,7 +570,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                         <option value="">Sélectionner un pack</option>
                         {packages.map((entry) => (
                           <option key={entry.id} value={entry.id}>
-                            {entry.name || "Pack sans nom"}
+                            {formatPackageName(entry.name) || "Pack sans nom"}
                           </option>
                         ))}
                       </Select>

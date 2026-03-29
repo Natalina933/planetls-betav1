@@ -1,4 +1,4 @@
-import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
+﻿import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
 import { ConciergeAvatar } from "@/features/owner-concierges/components/ConciergeAvatar";
 import { OwnerLocationAutocomplete } from "@/features/owner-concierges/components/OwnerLocationAutocomplete";
 import type { ConciergeSearchRow } from "@/features/owner-concierges/lib/search";
@@ -36,7 +36,7 @@ export function RequestPanel({
           <h2 className={styles.requestTitle}>Votre brief concierge</h2>
           <p className={styles.requestIntro}>
             Formalisez votre besoin comme une fiche mission claire, puis ciblez les profils les
-            plus adaptés.
+            plus adaptÃ©s.
           </p>
         </div>
         <span className={styles.requestCount}>{selectedConcierges.length} cible(s)</span>
@@ -63,7 +63,7 @@ export function RequestPanel({
 
         <div className={styles.panelSummary}>
           <span className={styles.requestSectionLabel}>Destinataires</span>
-          <strong>Concierges sélectionnés</strong>
+          <strong>Concierges sÃ©lectionnÃ©s</strong>
         </div>
         <div className={styles.selectedList}>
           {selectedConcierges.length > 0 ? (
@@ -75,7 +75,7 @@ export function RequestPanel({
                     alt={
                       item.avatar_url
                         ? `Avatar de ${item.display_name}`
-                        : `Avatar par défaut de ${item.display_name}`
+                        : `Avatar par dÃ©faut de ${item.display_name}`
                     }
                     className={styles.selectedChipAvatarImage}
                     width={28}
@@ -86,7 +86,7 @@ export function RequestPanel({
               </span>
             ))
           ) : (
-            <span className={styles.tagMuted}>Sélectionnez un ou plusieurs concierges dans la liste.</span>
+            <span className={styles.tagMuted}>SÃ©lectionnez un ou plusieurs concierges dans la liste.</span>
           )}
         </div>
       </div>
@@ -95,7 +95,7 @@ export function RequestPanel({
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
             <span className={styles.requestSectionLabel}>Cadre de mission</span>
-            <p className={styles.requestBlockHint}>Les informations visibles en tête de brief.</p>
+            <p className={styles.requestBlockHint}>Les informations visibles en tÃªte de brief.</p>
           </div>
           <div className={styles.fieldGrid}>
             <label className={styles.field}>
@@ -127,7 +127,7 @@ export function RequestPanel({
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
             <span className={styles.requestSectionLabel}>Zone et budget</span>
-            <p className={styles.requestBlockHint}>Précisez l&apos;intervention attendue.</p>
+            <p className={styles.requestBlockHint}>PrÃ©cisez l&apos;intervention attendue.</p>
           </div>
           <div className={styles.fieldGrid}>
             <label className={styles.field}>
@@ -142,7 +142,7 @@ export function RequestPanel({
             </label>
 
             <div className={styles.field}>
-              <span>Budget max</span>
+              <span>Budget indicatif du propriétaire</span>
               <Input
                 type="number"
                 min="0"
@@ -151,7 +151,7 @@ export function RequestPanel({
                 onChange={(event) => onRequestFormChange("budgetMax", event.target.value)}
                 placeholder="120"
               />
-              <small className={styles.fieldHint}>En EUR par heure. Laissez vide si non défini.</small>
+              <small className={styles.fieldHint}>Sert à cadrer la demande, sans engager le tarif final. Laissez vide si non défini.</small>
             </div>
           </div>
         </div>
@@ -159,15 +159,18 @@ export function RequestPanel({
         <div className={styles.requestBlock}>
           <div className={styles.requestBlockHeader}>
             <span className={styles.requestSectionLabel}>Contenu du brief</span>
-            <p className={styles.requestBlockHint}>Donnez assez de contexte pour obtenir une réponse utile.</p>
+            <p className={styles.requestBlockHint}>Donnez assez de contexte pour obtenir une rÃ©ponse utile.</p>
           </div>
           <div className={styles.field}>
-            <span>Date souhaitée</span>
+            <span>Date de dÃ©but de mission</span>
             <Input
               type="datetime-local"
               value={requestForm.desiredDate}
               onChange={(event) => onRequestFormChange("desiredDate", event.target.value)}
             />
+            <small className={styles.fieldHint}>
+              Cette date est transmise aux concierges pour qu&apos;ils sachent quand la mission commence.
+            </small>
           </div>
 
           <div className={styles.field}>
@@ -209,10 +212,11 @@ export function RequestPanel({
         >
           {submittingRequest ? "Envoi..." : "Envoyer ma demande"}
         </Button>
-        <ButtonLink href="/dashboard/owner/conciergerie" variant="secondary" className={styles.secondaryBtn}>
-          Suivre mes demandes envoyées
+        <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
+          Suivre mes demandes envoyÃ©es
         </ButtonLink>
       </div>
     </form>
   );
 }
+

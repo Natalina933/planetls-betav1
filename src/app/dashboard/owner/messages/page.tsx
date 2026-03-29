@@ -263,7 +263,7 @@ function OwnerMessagesContent() {
           <aside className={styles.sidebar}>
             <div className={styles.sidebarHeader}>
               <h2>Conversations prioritaires</h2>
-              <span>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
+              <span className={styles.headerBadge}>{loading ? "..." : `${filteredConversations.length} fil(s)`}</span>
             </div>
 
             <ConversationFilters
@@ -284,7 +284,7 @@ function OwnerMessagesContent() {
               selectClassName={styles.filtersSelect}
             />
 
-            {loading ? <p>Chargement des conversations...</p> : null}
+            {loading ? <p className={styles.infoText}>Chargement des conversations...</p> : null}
 
             {!loading && filteredConversations.length === 0 ? (
               <div className={styles.messageList}>

@@ -11,6 +11,28 @@ const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const mapMissionInsertError = (error: { code?: string; message?: string; details?: string } | null) => {
+  const code = error?.code ?? "";
+
+  if (code === "23503") {
+    return "Impossible de créer la mission car un lien associé n'est plus valide. Vérifiez le logement ou recréez la demande.";
+  }
+
+  if (code === "22P02") {
+    return "Impossible de créer la mission car une date ou un identifiant est invalide.";
+  }
+
+  if (code === "23514") {
+    return "Impossible de créer la mission car un statut ou une priorité est invalide.";
+  }
+
+  if (process.env.NODE_ENV !== "production" && error?.message) {
+    return `Impossible de créer la mission. ${error.message}`;
+  }
+
+  return "Impossible de créer la mission.";
+};
+
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -18,10 +40,10 @@ export async function POST(
   try {
     const { userId, role } = await getApiAuthContext(req);
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
     if (!OWNER_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
     const { id } = await context.params;
@@ -69,6 +91,16 @@ export async function POST(
       return NextResponse.json({ error: "Destinataire introuvable pour cette demande." }, { status: 404 });
     }
 
+    if (
+      typeof selectedRecipient.concierge_profile_id !== "string" ||
+      !selectedRecipient.concierge_profile_id.trim()
+    ) {
+      return NextResponse.json(
+        { error: "Impossible de sélectionner ce concierge car son profil est incomplet." },
+        { status: 400 },
+      );
+    }
+
     const recipientStatuses = new Map<string, string>();
     recipientRows.forEach((recipient: { id: string }) => {
       recipientStatuses.set(recipient.id, recipient.id === recipientId ? "selected" : "not_selected");
@@ -93,14 +125,32 @@ export async function POST(
       selectedRecipient.concierge_profile_id ?? null,
     );
 
-    const nextMetadata = isRecord(requestRow.metadata)
-      ? { ...requestRow.metadata }
-      : {};
-
+    const nextMetadata = isRecord(requestRow.metadata) ? { ...requestRow.metadata } : {};
     const existingMissionId =
       typeof nextMetadata.selected_mission_id === "string" ? nextMetadata.selected_mission_id : "";
 
     let missionRow = null;
+    let safePropertyId: string | null = null;
+
+    if (typeof requestRow.property_id === "string" && requestRow.property_id.trim()) {
+      const { data: propertyRow, error: propertyError } = await db
+        .from("properties")
+        .select("id")
+        .eq("id", requestRow.property_id)
+        .eq("owner_id", requestRow.owner_profile_id ?? userId)
+        .maybeSingle();
+
+      if (propertyError) {
+        console.error("[service-requests/select] property lookup error:", propertyError);
+      } else if (propertyRow?.id) {
+        safePropertyId = propertyRow.id;
+      } else {
+        console.warn(
+          "[service-requests/select] property missing for mission creation, fallback to null:",
+          requestRow.property_id,
+        );
+      }
+    }
 
     if (existingMissionId) {
       const { data: existingMission } = await db
@@ -117,10 +167,9 @@ export async function POST(
         .insert({
           concierge_profile_id: selectedRecipient.concierge_profile_id,
           owner_profile_id: requestRow.owner_profile_id ?? null,
-          property_id: requestRow.property_id ?? null,
+          property_id: safePropertyId,
           service_id: null,
           title: requestRow.title ?? "Mission issue d'une demande",
-          description: requestRow.description ?? null,
           status: "accepted",
           priority: requestRow.urgency ? "urgent" : "normal",
           amount: requestRow.budget_max ?? null,
@@ -134,6 +183,7 @@ export async function POST(
             requested_services: Array.isArray(requestRow.requested_services)
               ? requestRow.requested_services
               : [],
+            request_description: requestRow.description ?? null,
           },
         })
         .select("id, title, status, concierge_profile_id, owner_profile_id")
@@ -141,7 +191,7 @@ export async function POST(
 
       if (missionError || !createdMission) {
         console.error("[service-requests/select] mission create error:", missionError);
-        return NextResponse.json({ error: "Impossible de creer la mission." }, { status: 500 });
+        return NextResponse.json({ error: mapMissionInsertError(missionError) }, { status: 500 });
       }
 
       missionRow = createdMission;
@@ -182,7 +232,7 @@ export async function POST(
 
     if (updateRequestError || !updatedRequest) {
       console.error("[service-requests/select] request update error:", updateRequestError);
-      return NextResponse.json({ error: "Impossible de finaliser la selection." }, { status: 500 });
+      return NextResponse.json({ error: "Impossible de finaliser la sélection." }, { status: 500 });
     }
 
     return NextResponse.json(

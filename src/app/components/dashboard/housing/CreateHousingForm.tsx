@@ -21,6 +21,7 @@ const initialForm: FormState = {
   name: "",
   propertyType: "Appartement",
   description: "",
+  surface: "",
   capacity: "",
   bedrooms: "",
   equipments: "",
@@ -195,6 +196,19 @@ export default function CreateHousingForm({ redirectPath }: CreateHousingFormPro
             </div>
 
             <div className={formStyles.form}>
+              <div className={formStyles.formGroup}>
+          <label htmlFor="surface">Surface</label>
+          <input
+            type="number"
+            id="surface"
+            name="surface"
+            value={form.surface}
+            onChange={handleChange}
+            min="1"
+            placeholder="55"
+          />
+              </div>
+
               <div className={formStyles.formGroup}>
           <label htmlFor="capacity">Capacité</label>
           <input

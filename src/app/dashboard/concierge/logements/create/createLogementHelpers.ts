@@ -44,6 +44,7 @@ export interface FormState {
   name: string;
   propertyType: string;
   description: string;
+  surface: string;
   capacity: string;
   bedrooms: string;
   equipments: string;
@@ -123,7 +124,7 @@ function toManualFormState(
     propertyType: form.propertyType,
     addressLine1: form.address,
     city: form.city,
-    surfaceSqm: "",
+    surfaceSqm: form.surface,
     bedroomCount: form.bedrooms,
     guestCapacity: form.capacity,
     amenities: form.equipments,
