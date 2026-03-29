@@ -4,8 +4,11 @@ import React, { Suspense, useCallback, useEffect, useMemo, useState } from "reac
 import { useSearchParams } from "next/navigation";
 import { SearchBar, StatsCard, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
-import { OwnerQuoteResponseCard, OwnerRequestSummaryCard } from "@/features/owner-dashboard";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import {
+  OwnerQuoteResponseCard,
+  OwnerQuotesComparisonTable,
+  OwnerRequestSummaryCard,
+} from "@/features/owner-dashboard";
 import { getWorkflowStatusMeta } from "@/app/lib/workflowStatus";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import styles from "../OwnerDashboardPages.module.scss";
@@ -616,100 +619,55 @@ function OwnerQuotesContent() {
                     </p>
                   </div>
 
-                  {comparisonColumns.length >= 2 ? (
-                    <div className={styles.comparisonScroller}>
-                      <div
-                        className={styles.comparisonTable}
-                        style={{
-                          gridTemplateColumns: `minmax(150px, 0.85fr) repeat(${comparisonColumns.length}, minmax(220px, 1fr))`,
-                        }}
-                      >
-                        <div className={styles.comparisonLabelCell}>Comparatif</div>
-                        {comparisonColumns.map(({ quote, isCheapest, isMostDetailed, isFastest }) => (
-                          <div key={`header-${quote.id}`} className={styles.comparisonValueCell}>
-                            <div className={styles.comparisonHeaderStack}>
-                              <strong>{getPersonName(quote.concierge)}</strong>
-                              <WorkflowStatusBadge value={quote.status || "-"} />
-                              <div className={styles.comparisonBadgeRow}>
-                                {isCheapest ? (
-                                  <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur prix</Tag>
-                                ) : null}
-                                {isMostDetailed ? (
-                                  <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur détail</Tag>
-                                ) : null}
-                                {isFastest ? (
-                                  <Tag tone="gold" className={styles.conciergeRecipientChip}>Réponse la plus rapide</Tag>
-                                ) : null}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-
-                        <div className={styles.comparisonLabelCell}>Total</div>
-                        {comparisonColumns.map(({ quote }) => (
-                          <div key={`total-${quote.id}`} className={styles.comparisonValueCell}>
-                            <strong>{formatAmount(quote.total_amount)}</strong>
-                          </div>
-                        ))}
-
-                        <div className={styles.comparisonLabelCell}>Pack</div>
-                        {comparisonColumns.map(({ quote }) => (
-                          <div key={`pack-${quote.id}`} className={styles.comparisonValueCell}>
-                            {quote.package?.name ? formatPackageName(quote.package.name) : "Sans pack"}
-                          </div>
-                        ))}
-
-                        <div className={styles.comparisonLabelCell}>Prestations</div>
-                        {comparisonColumns.map(({ quote }) => (
-                          <div key={`lines-${quote.id}`} className={styles.comparisonValueCell}>
-                            {getQuoteLineCountLabel(quote)}
-                          </div>
-                        ))}
-
-                        <div className={styles.comparisonLabelCell}>Validité</div>
-                        {comparisonColumns.map(({ quote }) => (
-                          <div key={`valid-${quote.id}`} className={styles.comparisonValueCell}>
-                            {formatDate(quote.valid_until)}
-                          </div>
-                        ))}
-
-                        <div className={styles.comparisonLabelCell}>Réponse reçue</div>
-                        {comparisonColumns.map(({ quote }) => (
-                          <div key={`speed-${quote.id}`} className={styles.comparisonValueCell}>
-                            {getResponseSpeedLabel(quote)}
-                          </div>
-                        ))}
-
-                        <div className={styles.comparisonLabelCell}>Actions</div>
-                        {comparisonColumns.map(({ quote, recipientId }) => (
-                          <div key={`actions-${quote.id}`} className={styles.comparisonValueCell}>
-                            <div className={styles.comparisonActions}>
-                              <a
-                                href={`/api/quotes/${quote.id}/document`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={styles.linkButton}
-                              >
-                                Voir le PDF
-                              </a>
-                              {group.request?.id && recipientId ? (
-                                <button
-                                  type="button"
-                                  className={styles.buttonPrimary}
-                                  disabled={selectingRequestId === group.request.id}
-                                  onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
-                                >
-                                  {selectingRequestId === group.request.id
-                                    ? "Sélection..."
-                                    : "Retenir ce concierge"}
-                                </button>
-                              ) : null}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
+                  <OwnerQuotesComparisonTable
+                    columns={comparisonColumns.map(({ quote, recipientId, isCheapest, isMostDetailed, isFastest }) => ({
+                      id: quote.id,
+                      conciergeName: getPersonName(quote.concierge),
+                      status: quote.status || "-",
+                      badges: (
+                        <>
+                          {isCheapest ? (
+                            <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur prix</Tag>
+                          ) : null}
+                          {isMostDetailed ? (
+                            <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur détail</Tag>
+                          ) : null}
+                          {isFastest ? (
+                            <Tag tone="gold" className={styles.conciergeRecipientChip}>Réponse la plus rapide</Tag>
+                          ) : null}
+                        </>
+                      ),
+                      total: formatAmount(quote.total_amount),
+                      pack: quote.package?.name ? formatPackageName(quote.package.name) : "Sans pack",
+                      services: getQuoteLineCountLabel(quote),
+                      validity: formatDate(quote.valid_until),
+                      responseAt: getResponseSpeedLabel(quote),
+                      actions: (
+                        <>
+                          <a
+                            href={`/api/quotes/${quote.id}/document`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={styles.linkButton}
+                          >
+                            Voir le PDF
+                          </a>
+                          {group.request?.id && recipientId ? (
+                            <button
+                              type="button"
+                              className={styles.buttonPrimary}
+                              disabled={selectingRequestId === group.request.id}
+                              onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
+                            >
+                              {selectingRequestId === group.request.id
+                                ? "Sélection..."
+                                : "Retenir ce concierge"}
+                            </button>
+                          ) : null}
+                        </>
+                      ),
+                    }))}
+                  />
 
                   <div
                     className={styles.conciergeRecipientList}
