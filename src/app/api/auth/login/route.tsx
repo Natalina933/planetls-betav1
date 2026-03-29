@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { categoryToRole } from "@/app/utils/roles";
+import { resolveUserRole } from "@/app/utils/roles";
 
 const loginSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -39,33 +39,51 @@ export async function POST(request: NextRequest) {
     request.headers.get("x-real-ip") ||
     "unknown";
 
+  console.log("[LOGIN API] Requete recue", {
+    ip,
+    origin: request.headers.get("origin"),
+    referer: request.headers.get("referer"),
+  });
+
   const rateLimit = checkRateLimit(ip);
   if (!rateLimit.allowed) {
     const retryAfterStr = rateLimit.retryAfter?.toString() ?? "300";
+    console.warn("[LOGIN API] Blocage rate limit", { ip, retryAfter: retryAfterStr });
     return NextResponse.json(
-      { error: `Trop de tentatives. Réessayez dans ${retryAfterStr} secondes.` },
-      { status: 429, headers: { "Retry-After": retryAfterStr } }
+      { error: `Trop de tentatives. Reessayez dans ${retryAfterStr} secondes.` },
+      { status: 429, headers: { "Retry-After": retryAfterStr } },
     );
   }
 
   let body: LoginBody;
   try {
     body = await request.json();
+    console.log("[LOGIN API] Payload recu", {
+      hasEmail: Boolean(body.email),
+      hasPassword: Boolean(body.password),
+    });
   } catch {
+    console.warn("[LOGIN API] Payload JSON invalide");
     return NextResponse.json({ error: "Format JSON invalide" }, { status: 400 });
   }
 
   const result = loginSchema.safeParse(body);
   if (!result.success) {
+    console.warn("[LOGIN API] Validation zod echouee", {
+      issues: result.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
     return NextResponse.json(
       {
-        error: "Données invalides",
-        details: result.error.issues.map((i) => ({
-          field: i.path.join("."),
-          message: i.message,
+        error: "Donnees invalides",
+        details: result.error.issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
         })),
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -79,26 +97,54 @@ export async function POST(request: NextRequest) {
   });
 
   if (error || !data.user) {
+    console.warn("[LOGIN API] Echec signInWithPassword", {
+      message: error?.message ?? null,
+      code: error?.code ?? null,
+    });
     return NextResponse.json({ error: "Email ou mot de passe incorrect" }, { status: 401 });
   }
+
+  console.log("[LOGIN API] Utilisateur Supabase authentifie", {
+    userId: data.user.id,
+    email: data.user.email ?? null,
+  });
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "id, username, first_name, last_name, email, avatar_url, role, category, phone, location, option, search_target"
+      "id, username, first_name, last_name, email, avatar_url, role, category, phone, location, option, search_target",
     )
     .eq("id", data.user.id)
     .maybeSingle();
 
   if (profileError || !profile) {
-    console.error("[LOGIN API] Profile fetch error:", profileError?.message);
-    return NextResponse.json({ error: "Impossible de récupérer le profil" }, { status: 500 });
+    console.error("[LOGIN API] Profile fetch error", {
+      message: profileError?.message ?? null,
+      userId: data.user.id,
+    });
+    return NextResponse.json({ error: "Impossible de recuperer le profil" }, { status: 500 });
   }
 
-  const role = categoryToRole(profile.role);
+  console.log("[LOGIN API] Profil charge", {
+    profileId: profile.id,
+    rawRole: profile.role ?? null,
+    category: profile.category ?? null,
+  });
+
+  const role = resolveUserRole(profile.role, profile.category);
   if (!role) {
-    return NextResponse.json({ error: "Rôle inconnu, accès refusé" }, { status: 403 });
+    console.warn("[LOGIN API] Role non mappe", {
+      rawRole: profile.role ?? null,
+      category: profile.category ?? null,
+      profileId: profile.id,
+    });
+    return NextResponse.json({ error: "Role inconnu, acces refuse" }, { status: 403 });
   }
+
+  console.log("[LOGIN API] Reponse finale", {
+    profileId: profile.id,
+    mappedRole: role,
+  });
 
   return NextResponse.json(
     {
@@ -119,6 +165,6 @@ export async function POST(request: NextRequest) {
         searchTarget: profile.search_target,
       },
     },
-    { status: 200 }
+    { status: 200 },
   );
 }

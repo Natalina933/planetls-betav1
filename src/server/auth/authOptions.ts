@@ -3,24 +3,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { createClient } from "@supabase/supabase-js";
 import { UserRole } from "@/types/supabase";
+import { resolveUserRole } from "@/app/utils/roles";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
-
-const VALID_ROLES: UserRole[] = [
-  "owner",
-  "owner_pro",
-  "concierge",
-  "concierge_pro",
-  "provider",
-  "provider_pro",
-  "artisan",
-  "artisan_pro",
-  "admin",
-  "super_admin",
-] as const;
 
 const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -55,6 +43,11 @@ const providers: NextAuthConfig["providers"] = [
     },
     async authorize(credentials) {
       try {
+        console.log("[AUTH][AUTHORIZE] Debut authorize credentials", {
+          hasEmail: Boolean(credentials?.email),
+          hasPassword: Boolean(credentials?.password),
+        });
+
         if (!credentials?.email || !credentials.password) {
           console.warn("[AUTH] Missing email or password");
           return null;
@@ -66,9 +59,16 @@ const providers: NextAuthConfig["providers"] = [
         });
 
         if (error || !authData.user) {
-          console.warn("[AUTH] Supabase login failed:", error?.message);
+          console.warn("[AUTH][AUTHORIZE] Echec signInWithPassword Supabase", {
+            message: error?.message ?? null,
+          });
           return null;
         }
+
+        console.log("[AUTH][AUTHORIZE] Utilisateur Supabase authentifie", {
+          userId: authData.user.id,
+          email: authData.user.email ?? null,
+        });
 
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -77,16 +77,25 @@ const providers: NextAuthConfig["providers"] = [
           .single();
 
         if (profileError || !profile) {
-          console.warn("[AUTH] Profile missing:", profileError?.message);
+          console.warn("[AUTH][AUTHORIZE] Profil introuvable apres auth", {
+            userId: authData.user.id,
+            message: profileError?.message ?? null,
+          });
           return null;
         }
+
+        console.log("[AUTH][AUTHORIZE] Profil charge", {
+          userId: profile.id,
+          role: profile.role ?? null,
+          status: profile.status ?? null,
+        });
 
         if (profile.status === "suspended" || profile.status === "deleted") {
           console.warn(`[AUTH] User suspended or deleted: ${authData.user.id}`);
           return null;
         }
 
-        const role: UserRole = VALID_ROLES.includes(profile.role) ? profile.role : "owner";
+        const role: UserRole = resolveUserRole(profile.role, profile.category) ?? "owner";
         const fullName =
           profile.first_name && profile.last_name
             ? `${profile.first_name} ${profile.last_name}`
@@ -110,7 +119,7 @@ const providers: NextAuthConfig["providers"] = [
           status: profile.status ?? "active",
         } satisfies CustomUser;
       } catch (error) {
-        console.error("[AUTH] Authorize error:", error);
+        console.error("[AUTH][AUTHORIZE] Exception inattendue", error);
         return null;
       }
     },
@@ -145,6 +154,10 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async jwt({ token, user }) {
+      console.log("[AUTH][JWT] Callback jwt", {
+        hasIncomingUser: Boolean(user),
+        existingTokenRole: token.role ?? null,
+      });
       if (user) {
         const currentUser = user as CustomUser;
         token.id = currentUser.id;
@@ -164,9 +177,19 @@ export const authOptions: NextAuthConfig = {
         token.company_name = currentUser.company_name;
       }
 
+      console.log("[AUTH][JWT] Token pret", {
+        tokenId: token.id ?? null,
+        role: token.role ?? null,
+        status: token.status ?? null,
+      });
       return token;
     },
     async session({ session, token }) {
+      console.log("[AUTH][SESSION] Callback session", {
+        hasSessionUser: Boolean(session.user),
+        tokenId: token.id ?? null,
+        tokenRole: token.role ?? null,
+      });
       if (!session.user) {
         return session;
       }
@@ -189,6 +212,11 @@ export const authOptions: NextAuthConfig = {
         company_name: (token.company_name as string | null) ?? null,
       };
 
+      console.log("[AUTH][SESSION] Session hydratee", {
+        sessionUserId: session.user.id,
+        sessionRole: session.user.role,
+        sessionEmail: session.user.email,
+      });
       return session;
     },
   },
