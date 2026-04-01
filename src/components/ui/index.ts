@@ -10,6 +10,7 @@ export type { CardProps } from "./Card";
 
 export { Badge } from "./Badge";
 export type { BadgeProps } from "./Badge";
+export { RequestStatusBadge } from "./RequestStatusBadge";
 
 export { StatsCard } from "./StatsCard";
 export type { StatsCardProps } from "./StatsCard";

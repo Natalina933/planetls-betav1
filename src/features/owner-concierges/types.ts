@@ -8,5 +8,6 @@ export type RequestFormState = {
   postalCode: string;
   desiredDate: string;
   budgetMax: string;
+  currency: string;
   urgency: boolean;
 };

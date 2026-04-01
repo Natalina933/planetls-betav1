@@ -3,6 +3,7 @@ export type WorkflowTone = "neutral" | "info" | "warning" | "success" | "danger"
 export type WorkflowStatusKey =
   | "draft"
   | "sent"
+  | "in_review"
   | "accepted"
   | "rejected"
   | "quoted"
@@ -40,6 +41,7 @@ type WorkflowMeta = {
 const WORKFLOW_STATUS_META: Partial<Record<WorkflowStatusKey, WorkflowMeta>> = {
   draft: { label: "Brouillon", tone: "neutral" },
   sent: { label: "Envoyé", tone: "info" },
+  in_review: { label: "En cours d'examen", tone: "info" },
   accepted: { label: "Accepté", tone: "success" },
   rejected: { label: "Refusé", tone: "danger" },
   quoted: { label: "Devis préparé", tone: "info" },

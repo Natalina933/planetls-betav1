@@ -1,12 +1,14 @@
 .page {
   display: grid;
   gap: 1.5rem;
+  width: min(100%, 1720px);
+  margin-inline: auto;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.45fr);
-  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem;
   align-items: start;
 }
 
@@ -14,14 +16,40 @@
 .listPanel,
 .requestRow {
   display: grid;
-  gap: 1rem;
-  padding: 1.2rem;
+  gap: 1.1rem;
+  padding: 1.3rem;
   border-radius: 24px;
   border: 1px solid rgba(184, 92, 72, 0.16);
   background:
     radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
     linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(247, 236, 229, 0.96));
   box-shadow: 0 16px 32px rgba(109, 53, 41, 0.06);
+}
+
+.formPanel,
+.listPanel {
+  --ui-card-large-max: 100%;
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+}
+
+.formPanel {
+  position: sticky;
+  top: 1rem;
+  max-width: none;
+}
+
+.listPanel {
+  align-content: start;
+  min-width: 0;
+}
+
+.requestRow {
+  --ui-card-large-max: 100%;
+  width: 100%;
+  max-width: none;
 }
 
 .sectionHeader {
@@ -55,13 +83,20 @@
 
 .formGrid {
   display: grid;
-  gap: 0.95rem;
+  gap: 1rem;
+}
+
+.budgetRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 0.75rem;
+  align-items: end;
 }
 
 .fieldGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 1rem;
 }
 
 .field,
@@ -86,7 +121,7 @@
 
 .chipsInputWrap {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.75rem;
 }
 
 .serviceChips {
@@ -122,34 +157,43 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  align-items: center;
 }
 
 .message {
   margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
   font-weight: 700;
 }
 
 .success {
+  border: 1px solid rgba(53, 81, 58, 0.16);
+  background: rgba(53, 81, 58, 0.1);
   color: var(--dash-accent-strong);
 }
 
 .error {
+  border: 1px solid rgba(155, 28, 28, 0.14);
+  background: rgba(155, 28, 28, 0.08);
   color: #9b1c1c;
 }
 
 .toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+  gap: 0.9rem;
+  align-items: center;
 }
 
 .searchField {
-  flex: 1 1 260px;
+  min-width: 0;
 }
 
 .rows {
   display: grid;
-  gap: 1rem;
+  gap: 1.15rem;
+  min-width: 0;
 }
 
 .requestTopline {
@@ -181,7 +225,7 @@
 
 .facts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
   gap: 0.75rem;
 }
 
@@ -249,9 +293,21 @@
   .layout {
     grid-template-columns: 1fr;
   }
+
+  .formPanel {
+    position: static;
+  }
+}
+
+@media (min-width: 1400px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 720px) {
+  .toolbar,
+  .budgetRow,
   .fieldGrid,
   .facts {
     grid-template-columns: 1fr;

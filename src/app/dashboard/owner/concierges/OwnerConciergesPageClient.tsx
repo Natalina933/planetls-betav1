@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Button, ButtonLink } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import type { ServiceCatalogItem, SortMode, ViewMode } from "./conciergeSearchTypes";
@@ -21,6 +23,7 @@ import {
 import { getOwnerCitySuggestions, getOwnerRegionSuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
 import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
+import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import type { RequestFormState } from "@/features/owner-concierges/types";
 
 const initialFilters: OwnerConciergeSearchFilters = {
@@ -42,6 +45,7 @@ const initialRequestForm: RequestFormState = {
   postalCode: "",
   desiredDate: "",
   budgetMax: "",
+  currency: "EUR",
   urgency: false,
 };
 
@@ -66,8 +70,16 @@ export default function OwnerConciergesPageClient() {
   const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
   const [openServiceSections, setOpenServiceSections] = useState<Record<string, boolean>>({});
   const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
+  const [lastSubmittedStatus, setLastSubmittedStatus] = useState<RequestWorkflowStatus | null>(null);
+  const [lastSentSummary, setLastSentSummary] = useState<{
+    title: string;
+    city: string;
+    recipients: string[];
+  } | null>(null);
   const { items, loading, error, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
+  const requestPanelRef = useRef<HTMLElement | null>(null);
+  const lastToastMessageRef = useRef<string | null>(null);
 
   const selectedIdSet = useMemo(() => new Set(selectedConciergeIds), [selectedConciergeIds]);
   const stats = useMemo(
@@ -150,6 +162,8 @@ export default function OwnerConciergesPageClient() {
     key: Key,
     value: RequestFormState[Key],
   ) {
+    setFeedback(null);
+    setLastSentSummary(null);
     setRequestForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -231,6 +245,30 @@ export default function OwnerConciergesPageClient() {
     void search(nextFilters);
   }, [search, searchParams]);
 
+  useEffect(() => {
+    if (!feedback || lastToastMessageRef.current === feedback) return;
+    lastToastMessageRef.current = feedback;
+    toast.success(feedback, {
+      position: "top-right",
+      autoClose: 3500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+    });
+  }, [feedback]);
+
+  useEffect(() => {
+    if (!error || lastToastMessageRef.current === error) return;
+    lastToastMessageRef.current = error;
+    toast.error(error, {
+      position: "top-right",
+      autoClose: 4500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+    });
+  }, [error]);
+
   function clearResults() {
     clear();
     setSelectedConciergeIds([]);
@@ -271,6 +309,9 @@ export default function OwnerConciergesPageClient() {
     setMobileFiltersOpen(false);
     setRequestForm(initialRequestForm);
     setEditingAlertId(null);
+    setLastSubmittedStatus(null);
+    setLastSentSummary(null);
+    lastToastMessageRef.current = null;
     clearResults();
     router.replace("/dashboard/owner/concierges");
   }
@@ -315,6 +356,7 @@ export default function OwnerConciergesPageClient() {
       prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
     );
     setFeedback(null);
+    setLastSentSummary(null);
     setError(null);
   }
 
@@ -350,7 +392,7 @@ export default function OwnerConciergesPageClient() {
             desired_date: requestForm.desiredDate ? new Date(requestForm.desiredDate).toISOString() : null,
           urgency: requestForm.urgency,
           budget_max: requestForm.budgetMax ? Number(requestForm.budgetMax) : null,
-          currency: "EUR",
+          currency: requestForm.currency,
           recipient_ids: selectedConciergeIds,
         }),
       });
@@ -360,9 +402,16 @@ export default function OwnerConciergesPageClient() {
         throw new Error(payload?.error || "Impossible d'envoyer votre demande.");
       }
 
+      const recipientNames = selectedConcierges.map((item) => item.display_name);
       setFeedback(
-        `Demande envoyée à ${selectedConciergeIds.length} concierge(s). Vous pouvez maintenant suivre les retours.`,
+        `Votre demande a bien été envoyée à ${selectedConciergeIds.length} concierge(s).`,
       );
+      setLastSubmittedStatus("NEW");
+      setLastSentSummary({
+        title: requestForm.title.trim(),
+        city: requestForm.city.trim(),
+        recipients: recipientNames,
+      });
       setSelectedConciergeIds([]);
       setMobileFiltersOpen(false);
       setRequestForm({
@@ -370,8 +419,10 @@ export default function OwnerConciergesPageClient() {
         city: /^\d{4,6}$/.test(filters.city.trim()) ? "" : filters.city,
         postalCode: /^\d{4,6}$/.test(filters.city.trim()) ? filters.city : "",
       });
+      requestPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre demande.");
+      requestPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } finally {
       setSubmittingRequest(false);
     }
@@ -382,6 +433,7 @@ export default function OwnerConciergesPageClient() {
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
+        <ToastContainer newestOnTop position="top-right" />
         <SearchFilters
           styles={styles}
           filters={filters}
@@ -406,9 +458,6 @@ export default function OwnerConciergesPageClient() {
           getCitySuggestions={getOwnerCitySuggestions}
           parseSliderValue={parseSliderValue}
         />
-
-        {error ? <p className={styles.errorBox}>{error}</p> : null}
-        {feedback ? <p className={styles.successBox}>{feedback}</p> : null}
 
         <div className={styles.contentLayout}>
           <div className={styles.resultsColumn} ref={resultsRef}>
@@ -438,13 +487,18 @@ export default function OwnerConciergesPageClient() {
             />
           </div>
 
-          <aside className={styles.sidebar}>
+          <aside className={styles.sidebar} ref={requestPanelRef}>
             <RequestPanel
               styles={styles}
               selectedConcierges={selectedConcierges}
+              selectedServices={filters.selectedServices}
               activeSearchSummary={activeSearchSummary}
               requestForm={requestForm}
               submittingRequest={submittingRequest}
+              requestFeedback={feedback}
+              requestError={error}
+              lastSubmittedStatus={lastSubmittedStatus}
+              lastSentSummary={lastSentSummary}
               onSubmit={handleSendRequest}
               onRequestFormChange={updateRequestForm}
               getCitySuggestions={getOwnerCitySuggestions}

@@ -68,6 +68,7 @@ type RequestFormState = {
   postalCode: string;
   requestedServices: string;
   budgetMax: string;
+  currency: string;
   description: string;
   urgency: boolean;
 };
@@ -89,9 +90,17 @@ const initialForm: RequestFormState = {
   postalCode: "",
   requestedServices: "",
   budgetMax: "",
+  currency: "EUR",
   description: "",
   urgency: false,
 };
+
+const currencyOptions = [
+  { value: "EUR", label: "€" },
+  { value: "USD", label: "$" },
+  { value: "GBP", label: "£" },
+  { value: "CHF", label: "CHF" },
+] as const;
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "Date à confirmer";
@@ -107,7 +116,7 @@ function formatDateTime(value: string | null | undefined) {
 }
 
 function formatAmount(value: number | null | undefined, currency = "EUR") {
-  if (typeof value !== "number") return "Budget libre";
+  if (typeof value !== "number") return "Sur devis";
   return `${value.toFixed(0)} ${currency}`;
 }
 
@@ -119,7 +128,7 @@ function getRequestTypeLabel(value: OwnerServiceRequestRow["request_type"]) {
 
 function getRecipientSummary(request: OwnerServiceRequestRow) {
   const count = request.recipients?.length ?? 0;
-  if (count === 0) return "Aucun concierge ciblé pour l’instant";
+  if (count === 0) return "Aucun concierge ciblé";
   return `${count} concierge${count > 1 ? "s" : ""} ciblé${count > 1 ? "s" : ""}`;
 }
 
@@ -221,7 +230,7 @@ export default function OwnerRequestsPage() {
         throw new Error(housingPayload?.error || "Impossible de charger les logements.");
       }
       if (!quotesResponse.ok) {
-        throw new Error(quotesPayload?.error || "Impossible de charger les devis liés.");
+        throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
       }
 
       setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
@@ -243,9 +252,7 @@ export default function OwnerRequestsPage() {
       housing.map((item) => ({
         key: String(item.id),
         label:
-          item.nom_logement?.trim() ||
-          (item.ville ? `Logement à ${item.ville}` : "") ||
-          "Logement",
+          item.nom_logement?.trim() || (item.ville ? `Logement à ${item.ville}` : "") || "Logement",
         city: item.ville?.trim() || "",
       })),
     [housing],
@@ -331,7 +338,7 @@ export default function OwnerRequestsPage() {
         desired_date: form.desiredDate ? new Date(form.desiredDate).toISOString() : null,
         urgency: form.urgency,
         budget_max: form.budgetMax ? Number(form.budgetMax) : null,
-        currency: "EUR",
+        currency: form.currency,
       };
 
       const response = await fetch("/api/service-requests", {
@@ -345,9 +352,7 @@ export default function OwnerRequestsPage() {
         throw new Error(responsePayload?.error || "Impossible de créer la demande.");
       }
 
-      setSuccess(
-        "Demande enregistrée. Vous pouvez maintenant suivre les devis liés à ce logement depuis cette page.",
-      );
+      setSuccess("Demande créée. Vous pouvez maintenant suivre les devis associés juste à droite.");
       setForm(initialForm);
       await loadData();
     } catch (err) {
@@ -367,6 +372,8 @@ export default function OwnerRequestsPage() {
     }));
   }
 
+  const normalizedServices = normalizeServices(form.requestedServices);
+
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
@@ -375,8 +382,7 @@ export default function OwnerRequestsPage() {
         description={
           loading
             ? "Chargement des demandes..."
-            : error ||
-              "Créez une demande sans choisir tout de suite de concierge, puis suivez surtout les devis liés à chaque logement."
+            : error || "Créez une demande puis comparez les devis reçus pour le bon logement."
         }
         metrics={[
           { label: "Demandes", value: loading ? "..." : String(requests.length) },
@@ -396,24 +402,21 @@ export default function OwnerRequestsPage() {
         {error ? <p className={`${pageStyles.message} ${pageStyles.error}`}>{error}</p> : null}
 
         <div className={pageStyles.layout}>
-          <Card className={pageStyles.formPanel} tone="soft">
+          <Card className={pageStyles.formPanel} tone="soft" variant="large">
             <CardHeader className={pageStyles.sectionHeader}>
               <div>
                 <p className={pageStyles.eyebrow}>Nouvelle demande</p>
-                <h2 className={pageStyles.title}>Créer un brief sans choisir de concierge</h2>
+                <h2 className={pageStyles.title}>Créer une mission claire et rapide</h2>
               </div>
             </CardHeader>
 
             <CardBody className={pageStyles.formGrid}>
-              <p className={pageStyles.intro}>
-                Préparez d’abord votre besoin côté propriétaire. Vous pourrez ensuite lancer la
-                recherche et comparer les devis pour le bon logement.
-              </p>
+              <p className={pageStyles.intro}>Renseignez l’essentiel. Les détails pourront être affinés ensuite.</p>
 
               <form className={pageStyles.formGrid} onSubmit={handleSubmit}>
                 <div className={pageStyles.fieldGrid}>
                   <label className={pageStyles.field}>
-                    <span>Logement concerné</span>
+                    <span>Logement</span>
                     <Select value={form.propertyKey} onChange={(event) => handleHousingChange(event.target.value)}>
                       <option value="">Choisir un logement</option>
                       {housingOptions.map((item) => (
@@ -444,7 +447,7 @@ export default function OwnerRequestsPage() {
 
                 <div className={pageStyles.fieldGrid}>
                   <label className={pageStyles.field}>
-                    <span>Date de début de mission</span>
+                    <span>Date de début</span>
                     <Input
                       type="datetime-local"
                       value={form.desiredDate}
@@ -454,23 +457,33 @@ export default function OwnerRequestsPage() {
 
                   <label className={pageStyles.field}>
                     <span>Budget indicatif du propriétaire</span>
-                    <Input
-                      type="number"
-                      min="0"
-                      inputMode="numeric"
-                      value={form.budgetMax}
-                      onChange={(event) => setForm((current) => ({ ...current, budgetMax: event.target.value }))}
-                      placeholder="300"
-                    />
-                    <small className={pageStyles.fieldHint}>
-                      Sert à cadrer la demande, sans engager le tarif final.
-                    </small>
+                    <div className={pageStyles.budgetRow}>
+                      <Input
+                        type="number"
+                        min="0"
+                        inputMode="numeric"
+                        value={form.budgetMax}
+                        onChange={(event) => setForm((current) => ({ ...current, budgetMax: event.target.value }))}
+                        placeholder="Sur devis"
+                      />
+                      <Select
+                        value={form.currency}
+                        onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value }))}
+                      >
+                        {currencyOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                    <small className={pageStyles.fieldHint}>Indicatif, sans engagement sur le tarif final.</small>
                   </label>
                 </div>
 
                 <div className={pageStyles.fieldGrid}>
                   <label className={pageStyles.field}>
-                    <span>Ville de la mission</span>
+                    <span>Ville</span>
                     <Input
                       value={form.city}
                       onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))}
@@ -490,11 +503,11 @@ export default function OwnerRequestsPage() {
                 </div>
 
                 <label className={pageStyles.fullField}>
-                  <span>Titre de la demande</span>
+                  <span>Titre</span>
                   <Input
                     value={form.title}
                     onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                    placeholder="Ex : check-in et ménage de lancement pour le logement Montmartre"
+                    placeholder="Ex : check-in et ménage de lancement"
                   />
                 </label>
 
@@ -508,37 +521,32 @@ export default function OwnerRequestsPage() {
                       }
                       placeholder="Ex : check-in, ménage, blanchisserie"
                     />
-                    <small className={pageStyles.fieldHint}>
-                      Séparez les services par une virgule pour construire une demande claire.
-                    </small>
-                    <div className={pageStyles.serviceChips}>
-                      {normalizeServices(form.requestedServices).length > 0 ? (
-                        normalizeServices(form.requestedServices).map((service) => (
+                    {normalizedServices.length > 0 ? (
+                      <div className={pageStyles.serviceChips}>
+                        {normalizedServices.map((service) => (
                           <span key={service} className={pageStyles.serviceChip}>
                             {service}
                           </span>
-                        ))
-                      ) : (
-                        <span className={pageStyles.mutedChip}>Aucun service ajouté pour l’instant</span>
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 </label>
 
                 <label className={pageStyles.fullField}>
-                  <span>Contexte à transmettre</span>
+                  <span>Contexte</span>
                   <Textarea
-                    rows={5}
+                    rows={4}
                     value={form.description}
                     onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-                    placeholder="Expliquez le contexte, le nombre de voyageurs, les contraintes d’arrivée ou tout point utile."
+                    placeholder="Précisez le contexte, l’urgence éventuelle et ce que vous attendez."
                   />
                 </label>
 
                 <Checkbox
                   checked={form.urgency}
                   onChange={(event) => setForm((current) => ({ ...current, urgency: event.target.checked }))}
-                  label="Cette demande est urgente"
+                  label="Mission urgente"
                 />
 
                 <div className={pageStyles.actions}>
@@ -553,11 +561,11 @@ export default function OwnerRequestsPage() {
             </CardBody>
           </Card>
 
-          <Card className={pageStyles.listPanel} tone="soft">
+          <Card className={pageStyles.listPanel} tone="soft" variant="large">
             <CardHeader className={pageStyles.sectionHeader}>
               <div>
                 <p className={pageStyles.eyebrow}>Suivi</p>
-                <h2 className={pageStyles.title}>Demandes reliées aux devis</h2>
+                <h2 className={pageStyles.title}>Demandes et devis associés</h2>
               </div>
             </CardHeader>
 
@@ -585,7 +593,7 @@ export default function OwnerRequestsPage() {
             {!loading && filteredRequests.length === 0 ? (
               <EmptyState
                 title="Aucune demande à afficher"
-                description="Créez votre première demande pour commencer à suivre les devis liés à ce logement."
+                description="Créez votre première demande pour commencer à suivre les devis."
                 className={pageStyles.emptyState}
                 primaryAction={<ButtonLink href="/dashboard/owner/concierges">Trouver un concierge</ButtonLink>}
               />
@@ -600,7 +608,6 @@ export default function OwnerRequestsPage() {
                     <OwnerRequestSummaryCard
                       key={request.id}
                       className={pageStyles.requestRow}
-                      eyebrow="Demande liée aux devis"
                       title={request.title}
                       subtitle={getRequestTypeLabel(request.request_type)}
                       status={request.status || "-"}
@@ -614,39 +621,31 @@ export default function OwnerRequestsPage() {
                             variant="secondary"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            {request.status === "draft"
-                              ? "Lancer la recherche pour cette demande"
-                              : "Relancer la recherche"}
+                            {request.status === "draft" ? "Lancer la recherche" : "Relancer la recherche"}
                           </ButtonLink>
                           <ButtonLink
                             href={buildRequestQuotesHref(request.id)}
                             variant="secondary"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            Voir les devis du logement
+                            Voir les devis
                           </ButtonLink>
                         </>
                       }
                       primaryFacts={[
-                        { label: "Logement", value: request.property_name || "Logement à préciser" },
-                        { label: "Début mission", value: formatDateTime(request.desired_date) },
-                        { label: "Services demandés", value: (request.requested_services ?? []).length || 0 },
-                        {
-                          label: "Budget indicatif",
-                          value: formatAmount(request.budget_max, request.currency ?? "EUR"),
-                        },
+                        { label: "Logement", value: request.property_name || "À préciser" },
+                        { label: "Début", value: formatDateTime(request.desired_date) },
+                        { label: "Budget", value: formatAmount(request.budget_max, request.currency ?? "EUR") },
                       ]}
                       secondaryFacts={[
-                        { label: "Devis liés", value: quoteSummary.total },
+                        { label: "Devis", value: quoteSummary.total },
                         { label: "À valider", value: quoteSummary.pending },
-                        { label: "Validés", value: quoteSummary.accepted },
-                        { label: "Clôturés", value: quoteSummary.closed },
+                        { label: "Retenus", value: quoteSummary.accepted },
                       ]}
                       services={request.requested_services ?? []}
                       emptyServicesLabel="Services à préciser"
                       helperTexts={[
                         `${getRecipientSummary(request)} · créée le ${formatDateTime(request.created_at)}`,
-                        "Cliquez sur cette demande pour ouvrir directement les devis associés.",
                       ]}
                     />
                   );

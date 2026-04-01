@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { RequestStatusBadge } from "@/components/ui";
+import { deriveRequestWorkflowStatus } from "@/app/lib/requestStatus";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import styles from "./DemandesPage.module.scss";
 
@@ -29,6 +31,9 @@ type ConciergeRequestRow = {
   quote_id?: string | null;
   quote_number?: string | null;
   quote_status?: string | null;
+  workflow_status?: string | null;
+  mission_status?: string | null;
+  mission_id?: string | null;
 };
 
 function formatDate(value: string | null) {
@@ -52,27 +57,6 @@ function formatType(value: ConciergeRequestRow["request_type"]) {
   if (value === "durable") return "Besoin durable";
   if (value === "renfort") return "Renfort / remplacement";
   return "Besoin ponctuel";
-}
-
-function formatRecipientStatus(value: string) {
-  switch (value) {
-    case "sent":
-      return "Ã€ ouvrir";
-    case "viewed":
-      return "ConsultÃ©e";
-    case "interested":
-      return "IntÃ©rÃªt confirmÃ©";
-    case "quoted":
-      return "Devis prÃ©parÃ©";
-    case "declined":
-      return "RefusÃ©e";
-    case "selected":
-      return "Retenue";
-    case "not_selected":
-      return "Non retenue";
-    default:
-      return value || "En cours";
-  }
 }
 
 export default function ConciergeDemandesPage() {
@@ -147,7 +131,18 @@ export default function ConciergeDemandesPage() {
     [items],
   );
   const quotedCount = useMemo(
-    () => items.filter((item) => item.recipient_status === "quoted").length,
+    () =>
+      items.filter(
+        (item) =>
+          deriveRequestWorkflowStatus({
+            workflowStatus: item.workflow_status,
+            serviceRequestStatus: item.status,
+            recipientStatus: item.recipient_status,
+            quoteStatus: item.quote_status,
+            missionStatus: item.mission_status,
+            hasMission: Boolean(item.mission_id),
+          }) === "QUOTE_SENT",
+      ).length,
     [items],
   );
 
@@ -412,10 +407,15 @@ export default function ConciergeDemandesPage() {
                     {formatDate(item.desired_date)}
                   </p>
                 </div>
-                <div className={styles.badges}>
-                  <span className={styles.statusBadge}>
-                    {formatRecipientStatus(item.recipient_status)}
-                  </span>
+              <div className={styles.badges}>
+                  <RequestStatusBadge
+                    workflowStatus={item.workflow_status}
+                    serviceRequestStatus={item.status}
+                    recipientStatus={item.recipient_status}
+                    quoteStatus={item.quote_status}
+                    missionStatus={item.mission_status}
+                    hasMission={Boolean(item.mission_id)}
+                  />
                   {item.urgency ? <span className={styles.urgentBadge}>Urgent</span> : null}
                 </div>
               </div>

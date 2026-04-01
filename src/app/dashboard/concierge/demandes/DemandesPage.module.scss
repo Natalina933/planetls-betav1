@@ -1,232 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
+
+$page-bg: #f6f1e8;
+$card-bg: #fffdf9;
+$ink: #2d2a26;
+$muted: #7a746c;
+$border: #e2d8c8;
+$accent: #b89b5e;
+$accent-soft: #e8dcc3;
+$danger: #a94442;
+$success: #4a7c59;
+
 .page {
-  display: grid;
-  gap: 1rem;
+  background: $page-bg;
+  padding: 24px;
+  font-family: 'Inter', sans-serif;
+  color: $ink;
 }
 
 .list {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
+
+/* === CARD === */
 
 .card {
-  display: grid;
-  gap: 0.9rem;
-  padding: 1.2rem;
-  border-radius: 22px;
-  border: 1px solid rgba(198, 166, 107, 0.18);
-  background:
-    radial-gradient(circle at top right, rgba(198, 166, 107, 0.08), transparent 30%),
-    rgba(255, 253, 247, 0.96);
-  box-shadow: 0 12px 28px rgba(111, 87, 40, 0.08);
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 20px;
+  position: relative;
+
+  box-shadow:
+    0 1px 0 rgba(0,0,0,0.03),
+    0 8px 20px rgba(0,0,0,0.04);
+
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 2px 0 rgba(0,0,0,0.04),
+      0 12px 28px rgba(0,0,0,0.06);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px dashed $accent-soft;
+    border-radius: 8px;
+    pointer-events: none;
+  }
 }
 
-.cardHead,
-.actions,
-.badges,
-.metaGrid,
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
+/* === HEADER === */
 
 .cardHead {
-  align-items: flex-start;
+  display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .cardTitleBlock {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.ownerName,
-.meta,
-.description,
-.emptyState,
-.successBox,
-.errorBox {
-  margin: 0;
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    margin: 4px 0;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
 }
 
 .ownerName {
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-size: 12px;
   text-transform: uppercase;
-  color: #7b5b23;
+  letter-spacing: 1px;
+  color: $accent;
 }
 
-.cardTitleBlock h2 {
-  margin: 0;
-  color: #2f2415;
+.meta {
+  font-size: 13px;
+  color: $muted;
+  font-style: italic;
 }
 
-.meta,
-.description,
-.metaGrid span,
-.emptyState {
-  color: #6f5a3b;
-  line-height: 1.5;
-}
+/* === BADGES === */
 
-.statusBadge,
-.urgentBadge,
-.tag,
-.tagMuted {
-  display: inline-flex;
+.badges {
+  display: flex;
+  gap: 8px;
   align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.statusBadge {
-  background: rgba(198, 166, 107, 0.14);
-  color: #7b5b23;
 }
 
 .urgentBadge {
-  background: rgba(198, 74, 54, 0.12);
-  color: #9a3f2f;
+  background: rgba(169, 68, 66, 0.1);
+  color: $danger;
+  border: 1px solid rgba(169, 68, 66, 0.2);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+/* === CONTENT === */
+
+.description {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 10px 0 14px;
+}
+
+/* === META GRID === */
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  font-size: 13px;
+  color: $muted;
+  margin-bottom: 12px;
+
+  span {
+    background: $accent-soft;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+}
+
+/* === TAGS === */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .tag {
-  background: rgba(198, 166, 107, 0.12);
-  color: #7b5b23;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #efe6d6;
+  border: 1px solid $border;
 }
 
 .tagMuted {
-  background: rgba(148, 163, 184, 0.18);
-  color: #6a5841;
+  font-size: 12px;
+  font-style: italic;
+  color: $muted;
 }
 
-.primaryBtn,
-.secondaryBtn,
-.ghostBtn,
-.linkBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
-  font-weight: 700;
-  text-decoration: none;
+/* === ACTIONS === */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
+/* === BUTTONS === */
 
 .primaryBtn {
+  background: $accent;
+  color: white;
   border: none;
-  background: linear-gradient(135deg, #c6a66b, #a8864f);
-  color: #fffdf7;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: darken($accent, 8%);
+  }
 }
 
-.secondaryBtn,
-.linkBtn {
-  border: 1px solid rgba(198, 166, 107, 0.3);
-  background: linear-gradient(135deg, #fffdfa, #f3ead8);
-  color: #7b5b23;
+.secondaryBtn {
+  background: transparent;
+  border: 1px solid $accent;
+  color: $accent;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    background: $accent-soft;
+  }
 }
 
 .ghostBtn {
-  border: 1px solid rgba(184, 92, 72, 0.24);
-  background: rgba(184, 92, 72, 0.08);
-  color: #8a4030;
+  background: none;
+  border: none;
+  color: $muted;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    color: $ink;
+    text-decoration: underline;
+  }
 }
 
-.successBox,
-.errorBox {
-  padding: 0.9rem 1rem;
-  border-radius: 14px;
+.linkBtn {
+  font-size: 13px;
+  color: $ink;
+  text-decoration: underline;
+
+  &:hover {
+    color: $accent;
+  }
 }
+
+/* === FEEDBACK === */
 
 .successBox {
-  background: rgba(198, 166, 107, 0.12);
-  color: #7b5b23;
+  background: rgba(74, 124, 89, 0.1);
+  color: $success;
+  border: 1px solid rgba(74, 124, 89, 0.2);
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 16px;
 }
 
 .errorBox {
-  background: rgba(188, 74, 72, 0.1);
-  color: #8a2220;
+  background: rgba(169, 68, 66, 0.1);
+  color: $danger;
+  border: 1px solid rgba(169, 68, 66, 0.2);
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 16px;
 }
 
-:global([data-theme="mucha-dark"]) .card {
-  border-color: rgba(221, 185, 122, 0.22);
-  background:
-    radial-gradient(circle at top right, rgba(255, 215, 130, 0.1), transparent 32%),
-    linear-gradient(160deg, rgba(29, 31, 48, 0.96), rgba(18, 20, 34, 0.94));
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
-}
-
-:global([data-theme="mucha-dark"]) .ownerName,
-:global([data-theme="mucha-dark"]) .statusBadge,
-:global([data-theme="mucha-dark"]) .tag,
-:global([data-theme="mucha-dark"]) .secondaryBtn,
-:global([data-theme="mucha-dark"]) .linkBtn {
-  color: #f5deb0;
-}
-
-:global([data-theme="mucha-dark"]) .cardTitleBlock h2,
-:global([data-theme="mucha-dark"]) .successBox,
-:global([data-theme="mucha-dark"]) .errorBox {
-  color: #f8f3e8;
-}
-
-:global([data-theme="mucha-dark"]) .meta,
-:global([data-theme="mucha-dark"]) .description,
-:global([data-theme="mucha-dark"]) .metaGrid span,
-:global([data-theme="mucha-dark"]) .emptyState {
-  color: rgba(242, 233, 214, 0.86);
-}
-
-:global([data-theme="mucha-dark"]) .statusBadge {
-  border: 1px solid rgba(221, 185, 122, 0.24);
-  background: rgba(221, 185, 122, 0.12);
-}
-
-:global([data-theme="mucha-dark"]) .urgentBadge {
-  color: #ffd0c7;
-  border: 1px solid rgba(220, 110, 92, 0.26);
-  background: rgba(220, 110, 92, 0.14);
-}
-
-:global([data-theme="mucha-dark"]) .tag {
-  border: 1px solid rgba(221, 185, 122, 0.2);
-  background: rgba(221, 185, 122, 0.1);
-}
-
-:global([data-theme="mucha-dark"]) .tagMuted {
-  color: rgba(242, 233, 214, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme="mucha-dark"]) .primaryBtn {
-  background: linear-gradient(135deg, #caa05d, #8f6c2d);
-  color: #fffaf0;
-}
-
-:global([data-theme="mucha-dark"]) .secondaryBtn,
-:global([data-theme="mucha-dark"]) .linkBtn {
-  border-color: rgba(221, 185, 122, 0.26);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme="mucha-dark"]) .ghostBtn {
-  border-color: rgba(220, 110, 92, 0.24);
-  background: rgba(220, 110, 92, 0.1);
-  color: #ffd0c7;
-}
-
-:global([data-theme="mucha-dark"]) .successBox {
-  border: 1px solid rgba(221, 185, 122, 0.22);
-  background: rgba(221, 185, 122, 0.12);
-}
-
-:global([data-theme="mucha-dark"]) .errorBox {
-  border: 1px solid rgba(220, 110, 92, 0.22);
-  background: rgba(220, 110, 92, 0.12);
+.emptyState {
+  text-align: center;
+  font-style: italic;
+  color: $muted;
+  margin-top: 20px;
 }

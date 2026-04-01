@@ -53,6 +53,7 @@ export function OwnerRequestSummaryCard({
   return (
     <Card
       className={[styles.card, interactive ? styles.clickable : "", className].filter(Boolean).join(" ")}
+      variant="large"
       tone="elevated"
       interactive={interactive}
       onClick={interactive ? onOpen : undefined}
@@ -70,9 +71,9 @@ export function OwnerRequestSummaryCard({
               </Tag>
             ) : null}
           </div>
-          <p className={styles.eyebrow}>{eyebrow}</p>
           <h3>{title}</h3>
-          {subtitle ? <p>{subtitle}</p> : null}
+          {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
+          {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
         </div>
 
         {actions ? (

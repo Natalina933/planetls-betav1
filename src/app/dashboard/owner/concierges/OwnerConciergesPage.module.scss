@@ -465,7 +465,7 @@
 
 .contentLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1.78fr) minmax(330px, 0.92fr);
+  grid-template-columns: minmax(0, 1.42fr) minmax(460px, 1.08fr);
   gap: 1.2rem;
   align-items: start;
 }
@@ -658,16 +658,85 @@
   line-height: 1.2;
 }
 
+.quickIdeas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.quickIdea,
+.quickIdeaActive {
+  min-height: 38px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--owner-line);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.quickIdea {
+  background: rgba(255, 252, 248, 0.94);
+  color: var(--owner-burgundy-deep);
+}
+
+.quickIdea:hover {
+  transform: translateY(-1px);
+  border-color: rgba(143, 73, 56, 0.26);
+  background: #fffdfa;
+}
+
+.quickIdeaActive {
+  border-color: rgba(143, 73, 56, 0.16);
+  background: linear-gradient(180deg, #f1dfcf, #e8cebb);
+  color: #6a3428;
+  box-shadow: 0 10px 18px rgba(111, 53, 40, 0.08);
+}
+
 .fieldGrid {
   display: grid;
   gap: 0.85rem;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
+.budgetRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.budgetCurrency {
+  min-width: 0;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.requestProgress {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(113, 81, 52, 0.12);
+  background: rgba(255, 252, 248, 0.92);
+}
+
+.requestProgressText {
+  margin: 0;
+  color: var(--owner-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .primaryBtn,
@@ -690,9 +759,25 @@
 
 .successBox {
   margin: 0;
+  display: grid;
+  gap: 0.55rem;
   background: rgba(53, 81, 58, 0.11);
   color: #2f5035;
   font-weight: 700;
+}
+
+.feedbackTitle {
+  color: #26472c;
+  font-size: 1rem;
+}
+
+.sentSummary {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+  color: #2f5035;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .emptyState {
@@ -986,6 +1071,7 @@
   .statsRow,
   .kpiRow,
   .pricing,
+  .budgetRow,
   .fieldGrid {
     grid-template-columns: 1fr;
   }
