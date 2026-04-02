@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import dynamic from "next/dynamic";
@@ -15,48 +15,57 @@ const Icons = {
 
 export default function PromotePlatformSection() {
   return (
-    <ServicesBlock title="Professionnalisez votre activité">
+    <ServicesBlock title="Développez votre activité à votre rythme">
       <div className={styles.platformSectionContent}>
         <div className={styles.heroBanner}>
-          <span className={styles.eyebrow}>Conciergerie premium</span>
-          <h2 className={styles.heroTitle}>Je veux structurer ma conciergerie</h2>
+          <span className={styles.eyebrow}>Conciergerie, activité locale ou complément de revenu</span>
+          <h2 className={styles.heroTitle}>Je veux proposer mes services</h2>
           <p className={styles.heroSubtitle}>
-            Structurez votre offre, vos packs, vos tarifs et votre relation propriétaire avec un
-            outil pensé pour la location saisonnière.
+            Que vous soyez une conciergerie déjà lancée ou une personne qui souhaite démarrer une
+            activité complémentaire, PlanetLS vous aide à présenter vos services et à trouver vos
+            premières missions.
           </p>
           <div className={styles.heroActions}>
-            <ButtonLink href="/abonnement/concierge-pro" variant="primary" className={styles.heroButton}>
-              Voir l&apos;offre PRO <Icons.ChevronRight size={18} />
+            <ButtonLink
+              href="/abonnement/concierge-pro"
+              variant="primary"
+              className={styles.heroButton}
+            >
+              Voir les options <Icons.ChevronRight size={18} />
             </ButtonLink>
-            <ButtonLink href="/dashboard/owner/concierges" variant="secondary" className={styles.secondaryButton}>
+            <ButtonLink
+              href="/dashboard/owner/concierges"
+              variant="secondary"
+              className={styles.secondaryButton}
+            >
               Voir les profils visibles
             </ButtonLink>
           </div>
         </div>
 
         <div className={styles.introBox}>
-          <h3>Une base SaaS pour piloter votre activité</h3>
+          <h3>Une base simple pour lancer ou structurer votre activité</h3>
           <p>
-            Prospection propriétaires, packs de services, devis, factures, missions, planning et
-            messagerie : la plateforme centralise le cycle complet.
+            Profil public, services, devis, missions, planning et messagerie : la plateforme vous
+            aide à gagner en clarté, que vous soyez en phase de démarrage ou déjà plus structuré.
           </p>
         </div>
 
         <div className={styles.pillarsGrid}>
           <div className={styles.pillarItem}>
             <Icons.AiOutlineWechat size={24} />
-            <h4>Relation client</h4>
-            <p>Suivez vos conversations, relances et recommandations sans sortir du dashboard.</p>
+            <h4>Premiers contacts</h4>
+            <p>Échangez avec les propriétaires et développez votre réseau sans complexité inutile.</p>
           </div>
           <div className={styles.pillarItem}>
             <Icons.TbPackages size={24} />
-            <h4>Offres structurées</h4>
-            <p>Transformez vos prestations en packs clairs, tarifs liés et contrats réutilisables.</p>
+            <h4>Services clairs</h4>
+            <p>Présentez ce que vous proposez, vos tarifs et vos disponibilités de manière lisible.</p>
           </div>
           <div className={styles.pillarItem}>
             <Icons.MdAutoMode size={24} />
-            <h4>Pilotage terrain</h4>
-            <p>Gardez la main sur missions, urgences, stocks et planning avec une vision centralisée.</p>
+            <h4>Organisation simple</h4>
+            <p>Gardez la main sur vos missions, urgences et plannings avec une vision centralisée.</p>
           </div>
         </div>
       </div>

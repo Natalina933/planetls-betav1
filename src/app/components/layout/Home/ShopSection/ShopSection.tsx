@@ -7,8 +7,8 @@ export function ShopSection() {
   return (
     <section className={styles.shop}>
       <SectionIntro
-        title="Notre boutique locale"
-        description="Une selection d'objets, kits et produits utiles pour enrichir l'experience voyageur."
+        title="Boutique et kits utiles"
+        description="Une sélection de produits et kits pratiques pour accompagner l'exploitation quotidienne de vos logements."
       />
       <motion.div
         className={styles.shopContent}
@@ -18,8 +18,8 @@ export function ShopSection() {
       >
         <ShoppingBag size={48} />
         <p>
-          Decouvrez nos kits d'accueil, objets deco et produits artisanaux concus pour les acteurs
-          de la location saisonniere.
+          Découvrez nos kits d'accueil, produits utiles et essentiels pensés pour les acteurs de la
+          location courte durée.
         </p>
         <ButtonLink href="/shop" variant="paper" className={styles.shopButton}>
           Voir la boutique

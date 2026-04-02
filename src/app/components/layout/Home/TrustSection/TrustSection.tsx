@@ -8,31 +8,47 @@ export function TrustSection() {
     <section className={styles.trust}>
       <SectionIntro
         title="Pourquoi nous faire confiance ?"
-        description="Une base plus rassurante, plus lisible et plus professionnelle pour la location saisonniere."
+        description="Une base plus rassurante, plus lisible et plus professionnelle pour travailler ensemble dans la location courte durée."
       />
       <div className={styles.trustItems}>
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
           <ShieldCheck size={32} />
-          <h3>Paiement sécurisé</h3>
-          <p>Transactions protégées et données chiffrées.</p>
+          <h3>Échanges centralisés</h3>
+          <p>Une meilleure lisibilité sur les demandes, les missions et les informations utiles.</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
           <ShieldCheck size={32} />
-          <h3>Plateforme éthique</h3>
-          <p>Charte RSE, intermédiaire clair et transparence sur les interactions.</p>
+          <h3>Cadre plus clair</h3>
+          <p>Chaque acteur retrouve son rôle, ses outils et un parcours plus simple à suivre.</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
           <ShieldCheck size={32} />
-          <h3>Identité vérifiée</h3>
-          <p>Profils authentifiés, badge PRO visible et informations de service consolidées.</p>
+          <h3>Profils plus fiables</h3>
+          <p>Les informations de service, les badges et la visibilité des profils renforcent la confiance.</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ delay: 0.8 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
           <ShieldCheck size={32} />
-          <h3>Avis visibles</h3>
-          <p>Les profils concierges publics affichent note moyenne, commentaires et services proposés.</p>
+          <h3>Activité mieux suivie</h3>
+          <p>Documents, missions et coordination terrain sont rassemblés dans un même environnement.</p>
         </motion.div>
       </div>
     </section>

@@ -7,9 +7,9 @@ import BlogPreviewList from "../../../blog/BlogPreviewList";
 export default function BlogNewsSection() {
   return (
     <ServicesBlock
-      title="Derniers conseils & actualités"
-      subtitle="Inspiration et méthode"
-      description="Retrouvez des contenus utiles pour professionnaliser la location saisonnière, mieux piloter votre activité et améliorer l'expérience voyageur."
+      title="Guides et conseils utiles"
+      subtitle="Contenus pour mieux piloter votre activité"
+      description="Retrouvez des contenus utiles pour professionnaliser la location courte durée, mieux organiser votre activité et améliorer l'expérience voyageur."
     >
       <BlogPreviewList />
     </ServicesBlock>

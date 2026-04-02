@@ -36,7 +36,7 @@ export default function RecommendedConciergesSection() {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger les concierges recommandes.");
+          throw new Error(payload?.error || "Impossible de charger les concierges recommandés.");
         }
 
         if (!cancelled) {
@@ -64,9 +64,9 @@ export default function RecommendedConciergesSection() {
     <section id="concierges-recommandes" className={styles.section}>
       <div className={styles.header}>
         <SectionIntro
-          eyebrow="Selection premium"
-          title="Concierges recommandes"
-          description="Une premiere vitrine de profils visibles publiquement, notes par leurs clients et prets pour la mise en relation."
+          eyebrow="Profils visibles"
+          title="Conciergeries à découvrir"
+          description="Une première sélection de profils visibles publiquement pour aider les propriétaires à identifier les bons partenaires."
         />
       </div>
 
@@ -74,8 +74,8 @@ export default function RecommendedConciergesSection() {
 
       {!loading && items.length === 0 ? (
         <p className={styles.info}>
-          Les recommandations apparaitront ici des que davantage de profils concierges publics
-          seront completes.
+          Les profils visibles apparaîtront ici dès que davantage de fiches publiques seront
+          complétées.
         </p>
       ) : null}
 
@@ -103,7 +103,7 @@ export default function RecommendedConciergesSection() {
             }
             secondaryAction={
               <ButtonLink href="/dashboard/owner/concierges" variant="secondary" size="sm">
-                Trouver un concierge
+                Voir plus de profils
               </ButtonLink>
             }
           />

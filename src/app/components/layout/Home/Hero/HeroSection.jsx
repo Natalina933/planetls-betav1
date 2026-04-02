@@ -17,7 +17,7 @@ const HeroSection = () => {
 
       window.scrollTo({ top: 800, behavior: "smooth" });
     } catch (error) {
-      console.error("Echec du scroll :", error);
+      console.error("Échec du scroll :", error);
     }
   };
 
@@ -25,7 +25,7 @@ const HeroSection = () => {
     <section className={styles.hero}>
       <Image
         src="/images/hero-warmv2.jpg"
-        alt="Plateforme de location saisonnière"
+        alt="Plateforme de gestion pour la location courte durée"
         fill
         priority
         style={{ objectFit: "cover" }}
@@ -40,16 +40,18 @@ const HeroSection = () => {
 
         <div className={styles.content}>
           <h1>
-            Simplifiez la <span className={styles.highlight}>location saisonnière</span>
+            Pilotez la <span className={styles.highlight}>location courte durée</span>
           </h1>
           <p className={styles.subHeadline}>
-            PlanetLS connecte <strong>propriétaires</strong>, <strong>concierges</strong> et{" "}
-            <strong>prestataires locaux</strong> de confiance.
+            PlanetLS relie <strong>propriétaires</strong>, <strong>conciergeries</strong>,{" "}
+            <strong>indépendants</strong> et <strong>prestataires locaux</strong> sur une seule
+            plateforme.
           </p>
 
           <p className={styles.valueProp}>
-            Centralisez la mise en relation, la gestion des biens et le pilotage terrain dans une
-            seule plateforme.
+            Recherchez les bons partenaires, organisez les missions, suivez les plannings et
+            centralisez les documents utiles à votre activité, que vous gériez déjà plusieurs
+            logements ou que vous souhaitiez créer un complément de revenu.
           </p>
 
           <div className={styles.buttonsRow}>
@@ -59,7 +61,7 @@ const HeroSection = () => {
               size="lg"
               className={styles.heroButton}
             >
-              Besoin d&apos;un check-in en urgence ?
+              Besoin d&apos;une mission urgente ?
             </ButtonLink>
 
             <ButtonLink
@@ -81,7 +83,10 @@ const HeroSection = () => {
             </Button>
           </div>
 
-          <p className={styles.urgentHint}>Trouvez un concierge disponible en moins de 24h.</p>
+          <p className={styles.urgentHint}>
+            Une base plus claire pour coordonner votre gestion locative ou démarrer une activité
+            complémentaire sereinement.
+          </p>
         </div>
       </div>
     </section>

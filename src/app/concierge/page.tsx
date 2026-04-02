@@ -13,64 +13,69 @@ import styles from "./page.module.scss";
 
 const onboardingSteps = [
   {
-    title: "Définissez votre zone",
-    description: "Indiquez les villes couvertes, votre rayon d'action et vos disponibilités.",
+    title: "Definissez votre zone",
+    description: "Indiquez les villes couvertes, votre rayon d'action et vos disponibilites.",
   },
   {
     title: "Activez vos services",
-    description: "Choisissez les missions que vous acceptez : check-in, ménage, maintenance, urgence.",
+    description:
+      "Choisissez les missions que vous acceptez : check-in, menage, maintenance, urgence.",
   },
   {
-    title: "Structurez votre offre",
-    description: "Ajoutez vos tarifs, vos packs et vos éléments de réassurance pour convertir plus vite.",
+    title: "Presentez votre offre",
+    description:
+      "Ajoutez vos tarifs, vos services et vos elements de reassurance pour etre plus lisible.",
   },
   {
-    title: "Recevez vos premiers leads",
-    description: "PlanetLS vous aide à détecter des propriétaires compatibles et à lancer la relation.",
+    title: "Recevez vos premieres opportunites",
+    description:
+      "PlanetLS vous aide a trouver des proprietaires compatibles et a lancer la relation.",
   },
 ];
 
 const proofPoints = [
-  "Prospection propriétaires directement dans le dashboard",
-  "Demandes reçues, messages, devis et factures reliés au même parcours",
-  "Profil, zone et services centralisés pour mieux convertir",
+  "Prospection proprietaires directement dans le dashboard",
+  "Demandes recues, messages, devis et factures relies au meme parcours",
+  "Profil, zone et services centralises pour mieux vous presenter",
 ];
 
 const actionSteps = [
   {
     icon: MapPin,
-    title: "1. Compléter votre profil",
-    description: "Zone, services, documents et positionnement doivent être clairs dès le départ.",
+    title: "1. Completer votre profil",
+    description: "Zone, services, disponibilites et informations doivent etre clairs des le depart.",
     href: "/dashboard/concierge/profile?tab=fiche",
-    cta: "Compléter ma fiche",
+    cta: "Completer ma fiche",
   },
   {
     icon: Sparkles,
     title: "2. Configurer vos missions",
-    description: "Activez les services que vous souhaitez recevoir et vos règles de disponibilité.",
+    description:
+      "Activez les services que vous souhaitez proposer et vos regles de disponibilite.",
     href: "/dashboard/concierge/profile?tab=missions",
     cta: "Configurer mes missions",
   },
   {
     icon: Target,
-    title: "3. Trouver des propriétaires",
-    description: "Lancez votre prospection et ouvrez les opportunités les plus compatibles.",
+    title: "3. Trouver des proprietaires",
+    description: "Lancez votre prospection et ouvrez les opportunites les plus compatibles.",
     href: "/dashboard/concierge/recherche",
     cta: "Ouvrir la prospection",
   },
   {
     icon: MessageSquare,
-    title: "4. Convertir vos leads",
-    description: "Répondez vite, ouvrez le message, préparez un devis et transformez la demande.",
+    title: "4. Repondre et organiser",
+    description:
+      "Repondez vite, ouvrez le message, preparez un devis et transformez la demande en mission.",
     href: "/dashboard/concierge/demandes",
     cta: "Voir mes demandes",
   },
 ];
 
 export const metadata: Metadata = {
-  title: "Concierge | Trouvez des propriétaires et pilotez votre activité",
+  title: "Concierge | Demarrez ou developpez votre activite",
   description:
-    "Développez votre conciergerie avec un parcours clair : profil, zone, services, leads propriétaires, messages, devis et pilotage.",
+    "Creez votre profil, trouvez des proprietaires, recevez des missions et organisez votre activite avec PlanetLS.",
 };
 
 export default function ConciergeLandingPage() {
@@ -78,16 +83,17 @@ export default function ConciergeLandingPage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <span className={styles.kicker}>Parcours Concierge</span>
-          <h1>Trouvez des propriétaires et gérez toute votre conciergerie au même endroit.</h1>
+          <span className={styles.kicker}>Parcours concierge</span>
+          <h1>Trouvez des proprietaires et organisez votre activite au meme endroit.</h1>
           <p className={styles.lead}>
-            PlanetLS réunit prospection, activation, demandes, messages, devis et pilotage dans un
-            seul espace pensé pour les conciergeries qui veulent structurer leur croissance.
+            PlanetLS reunit prospection, activation, demandes, messages, devis et pilotage dans un
+            seul espace, que vous soyez une conciergerie deja lancee ou une personne qui souhaite
+            creer un complement de revenu.
           </p>
 
           <div className={styles.heroActions}>
             <Link href="/login" className={styles.primaryCta}>
-              Créer mon compte concierge
+              Creer mon compte concierge
             </Link>
             <Link href="/dashboard/concierge" className={styles.secondaryCta}>
               Ouvrir mon dashboard
@@ -106,15 +112,16 @@ export default function ConciergeLandingPage() {
 
         <aside className={styles.heroPanel}>
           <p className={styles.panelEyebrow}>Objectif</p>
-          <h2>Passer de profil créé à activité active</h2>
+          <h2>Passer de profil cree a activite active</h2>
           <p className={styles.panelLead}>
-            Le bon parcours concierge n&apos;est pas seulement un compte ouvert. C&apos;est un profil
-            prêt, une offre lisible et des leads réellement activés.
+            Le bon parcours concierge n&apos;est pas reserve aux structures deja etabli es. C&apos;est
+            aussi un moyen simple de vous lancer, de rendre votre offre lisible et de trouver vos
+            premieres missions.
           </p>
           <div className={styles.panelMetrics}>
             <article>
               <strong>1</strong>
-              <span>profil bien cadré</span>
+              <span>profil bien cadre</span>
             </article>
             <article>
               <strong>1</strong>
@@ -131,10 +138,10 @@ export default function ConciergeLandingPage() {
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
           <span className={styles.sectionKicker}>Onboarding</span>
-          <h2>Un parcours simple en 4 étapes</h2>
+          <h2>Un parcours simple en 4 etapes</h2>
           <p>
-            Voici la structure cible du tunnel concierge : activation métier d&apos;abord, gestion
-            avancée ensuite.
+            Voici la structure cible du tunnel concierge : commencer simplement, puis structurer
+            votre activite au fur et a mesure.
           </p>
         </div>
 
@@ -151,10 +158,10 @@ export default function ConciergeLandingPage() {
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
           <span className={styles.sectionKicker}>Activation</span>
-          <h2>Commencez par les actions qui convertissent</h2>
+          <h2>Commencez par les actions les plus utiles</h2>
           <p>
-            L&apos;ordre utile n&apos;est pas de tout ouvrir. Il faut d&apos;abord rendre votre profil
-            crédible, puis activer les demandes et la prospection.
+            L&apos;objectif n&apos;est pas de tout ouvrir d&apos;un coup. Il faut d&apos;abord rendre votre profil
+            credible, puis activer les demandes et la prospection.
           </p>
         </div>
 
@@ -182,16 +189,16 @@ export default function ConciergeLandingPage() {
         <div className={styles.highlightCard}>
           <div>
             <span className={styles.sectionKicker}>Conversion</span>
-            <h2>Le bon enchaînement concierge</h2>
+            <h2>Le bon enchainement concierge</h2>
             <p>
-              Lead propriétaire reçu, message ouvert, devis préparé, mission planifiée : votre
-              produit a déjà une grande partie de ces briques. Cette page relie maintenant ce
-              tunnel de façon plus lisible.
+              Profil visible, premier contact, devis prepare, mission planifiee : le produit a deja
+              une grande partie de ces briques. Cette page les relie maintenant de facon plus
+              lisible pour une petite activite comme pour une structure plus developpee.
             </p>
           </div>
 
           <div className={styles.highlightFlow}>
-            <span>Lead</span>
+            <span>Profil</span>
             <ArrowRight size={16} />
             <span>Message</span>
             <ArrowRight size={16} />
@@ -205,10 +212,10 @@ export default function ConciergeLandingPage() {
       <section className={styles.bottomCta}>
         <div>
           <span className={styles.sectionKicker}>Suite</span>
-          <h2>Créer, activer, convertir</h2>
+          <h2>Creer, activer, organiser</h2>
           <p>
-            Commencez par votre profil concierge puis ouvrez votre prospection. C&apos;est le point
-            de départ le plus rentable pour le produit actuel.
+            Commencez par votre profil concierge puis ouvrez votre prospection. C&apos;est le point de
+            depart le plus simple pour lancer ou faire grandir votre activite.
           </p>
         </div>
 
@@ -228,11 +235,11 @@ export default function ConciergeLandingPage() {
           </span>
           <span>
             <Target size={15} />
-            Prospection propriétaire déjà existante
+            Prospection proprietaire deja existante
           </span>
           <span>
             <MessageSquare size={15} />
-            Messages et demandes déjà branchés
+            Messages et demandes deja branches
           </span>
         </div>
       </section>

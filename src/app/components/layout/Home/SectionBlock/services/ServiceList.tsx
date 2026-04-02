@@ -45,22 +45,29 @@ export default function ServiceList() {
       <ServicesBlock
         title={
           <>
-            Decouvrir notre Plateforme <br />
+            Découvrir notre plateforme <br />
             de gestion tout-en-un
           </>
         }
-        subtitle="La solution en ligne pour l'ensemble des acteurs de la location saisonniere"
-        description="Une application et une plateforme entierement securisees, pensees pour automatiser la gestion, fluidifier la communication, et vous assister a chaque etape, que vous soyez proprietaire, professionnel, ou en quete de solutions fiables."
+        subtitle="La solution en ligne pour les acteurs de la location courte durée"
+        description="Une plateforme pensée pour mieux coordonner les missions, fluidifier les échanges et centraliser les informations utiles, que vous soyez propriétaire, conciergerie, indépendant ou partenaire terrain."
       >
         <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
-            Concue pour <span className={styles.highlightText}>simplifier la vie de toutes les categories professionnelles</span>,
-            notre plateforme centralise vos outils, automatise vos taches et securise vos donnees. Que vous soyez <strong className={styles.userCategory}>proprietaire, concierge ou artisan</strong>,
-            gagnez en efficacite et en serenite.
+            Conçue pour{" "}
+            <span className={styles.highlightText}>
+              centraliser les outils utiles à la gestion locative
+            </span>
+            , notre plateforme rassemble vos services, vos informations et vos actions dans une
+            expérience plus claire. Que vous soyez{" "}
+            <strong className={styles.userCategory}>
+              propriétaire, conciergerie, indépendant ou prestataire
+            </strong>
+            , gagnez en lisibilité et en efficacité.
           </p>
 
           <ButtonLink href="#contact" variant="primary" className={styles.CTAButton}>
-            Decouvrir la Plateforme <ArrowRight className={styles.ctaIcon} />
+            Découvrir la plateforme <ArrowRight className={styles.ctaIcon} />
           </ButtonLink>
         </header>
 
@@ -85,28 +92,30 @@ export default function ServiceList() {
         </ul>
 
         <div className={styles.serviceGrid}>
-          {services.map(({ title, description, quote, icon, keyPoint, posterLabel, posterTone, posterLayout }, index) => {
-            const safeKeyPoint = keyPoint?.trim() || `fallback-${index}`;
-            const isFlipped = flippedCards.includes(safeKeyPoint);
-            const size = getCardSize(index);
+          {services.map(
+            ({ title, description, quote, icon, keyPoint, posterLabel, posterTone, posterLayout }, index) => {
+              const safeKeyPoint = keyPoint?.trim() || `fallback-${index}`;
+              const isFlipped = flippedCards.includes(safeKeyPoint);
+              const size = getCardSize(index);
 
-            return (
-              <ShowcaseFlipCard
-                key={`${title}-${index}`}
-                title={title}
-                description={description}
-                quote={quote}
-                posterLabel={posterLabel}
-                posterTone={posterTone}
-                posterLayout={posterLayout}
-                icon={icon}
-                isFlipped={isFlipped}
-                onToggle={() => handleKeyPointClick(safeKeyPoint)}
-                size={size}
-                className={getCardAccentClass(index, size)}
-              />
-            );
-          })}
+              return (
+                <ShowcaseFlipCard
+                  key={`${title}-${index}`}
+                  title={title}
+                  description={description}
+                  quote={quote}
+                  posterLabel={posterLabel}
+                  posterTone={posterTone}
+                  posterLayout={posterLayout}
+                  icon={icon}
+                  isFlipped={isFlipped}
+                  onToggle={() => handleKeyPointClick(safeKeyPoint)}
+                  size={size}
+                  className={getCardAccentClass(index, size)}
+                />
+              );
+            },
+          )}
         </div>
       </ServicesBlock>
 
@@ -118,7 +127,10 @@ export default function ServiceList() {
         >
           Essayer gratuitement
         </ButtonLink>
-        <span className={styles.ctaSub}>Assistance personnalisee et offres sans commission.</span>
+        <span className={styles.ctaSub}>
+          Commencez simplement, développez votre activité et créez un revenu complémentaire à votre
+          rythme.
+        </span>
       </div>
     </>
   );

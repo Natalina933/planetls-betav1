@@ -4,20 +4,20 @@ import HomeContent from "./HomePage";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Location saisonnière intelligente",
+  title: "Plateforme de gestion location courte durée",
   description:
-    "Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée.",
+    "Reliez propriétaires, conciergeries et prestataires sur une seule plateforme pour mieux gérer la location courte durée.",
   keywords: [
-    "location saisonnière",
+    "location courte durée",
     "conciergerie",
     "propriétaires",
     "gestion locative",
     "PlanetLs",
   ],
   openGraph: {
-    title: "PlanetLs | Location saisonnière intelligente",
+    title: "PlanetLs | Plateforme de gestion location courte durée",
     description:
-      "Connectez propriétaires et conciergeries indépendantes pour une gestion locative optimisée.",
+      "Reliez propriétaires, conciergeries et prestataires sur une seule plateforme pour mieux gérer la location courte durée.",
     images: ["/images/hero-warmv2.jpg"],
   },
 };

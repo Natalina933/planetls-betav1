@@ -20,36 +20,36 @@ interface CardData {
 const CARDS: CardData[] = [
   {
     key: "proprietaire",
-    title: "Proprietaires",
+    title: "Propriétaires",
     img: "/icons/proprio_belle_epoque.png",
-    alt: "Illustration proprietaire location saisonniere",
-    cta: "Decouvrir le parcours proprietaire",
+    alt: "Illustration propriétaire location saisonnière",
+    cta: "Découvrir le parcours propriétaire",
     href: "/owner",
-    eyebrow: "Mise en relation rapide",
+    eyebrow: "Recherche et coordination",
     description:
-      "Trouvez une conciergerie adaptee a votre ville, a votre type de bien et a votre niveau d'accompagnement, puis pilotez missions, documents et paiements depuis un meme espace.",
+      "Trouvez une conciergerie adaptée à votre ville, à votre type de bien et à votre niveau d'accompagnement, puis suivez missions, documents et échanges depuis un même espace.",
   },
   {
     key: "concierge",
-    title: "Concierges",
+    title: "Concierges et indépendants",
     img: "/icons/concierges_belle_epoque.png",
-    alt: "Illustration conciergerie premium",
-    cta: "Developper mon activite",
+    alt: "Illustration conciergerie ou activité indépendante",
+    cta: "Développer mon activité",
     href: "/concierge",
-    eyebrow: "Pilotage tout-en-un",
+    eyebrow: "Activité flexible",
     description:
-      "Structurez vos services, vos tarifs, vos packs, vos logements et vos missions. PlanetLS vous aide a gagner du temps et a rendre votre activite plus lisible et plus premium.",
+      "Que vous gériez déjà une conciergerie ou que vous souhaitiez créer un complément de revenu, PlanetLS vous aide à présenter vos services, trouver des missions et vous organiser simplement.",
   },
   {
     key: "artisan",
     title: "Artisans et partenaires",
     img: "/icons/artisans_belle_epoque.png",
     alt: "Illustration artisan partenaire local",
-    cta: "Decouvrir le parcours partenaire",
+    cta: "Découvrir le parcours partenaire",
     href: "/provider",
-    eyebrow: "Reseau local qualifie",
+    eyebrow: "Visibilité locale",
     description:
-      "Rejoignez un ecosysteme de proprietaires et de concierges qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
+      "Rejoignez un écosystème de propriétaires, de conciergeries et d'indépendants qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
   },
 ];
 
@@ -88,8 +88,8 @@ const ForWhomSection: React.FC = () => (
         <SectionIntro
           titleId="for-whom-title"
           eyebrow="Pour qui ?"
-          title="Une plateforme concue pour faire grandir tout l'ecosysteme locatif"
-          description="PlanetLS relie proprietaires, concierges et partenaires terrain dans une experience plus fluide, plus rassurante et beaucoup plus simple a piloter au quotidien."
+          title="Une plateforme conçue pour faire travailler chaque acteur plus simplement"
+          description="PlanetLS relie propriétaires, conciergeries, indépendants et partenaires terrain dans une expérience plus claire, plus fluide et plus simple à piloter au quotidien."
         />
       </div>
 
@@ -100,15 +100,15 @@ const ForWhomSection: React.FC = () => (
       </div>
 
       <div className={styles.sectionMission}>
-        <strong>Notre mission :</strong> centraliser la mise en relation, la gestion des biens et la
-        coordination terrain pour professionnaliser la location saisonniere, sans complexifier le
-        quotidien.
+        <strong>Notre mission :</strong> centraliser la mise en relation, la gestion des missions
+        et la coordination terrain pour professionnaliser la location courte durée sans fermer la
+        porte à ceux qui veulent démarrer progressivement.
       </div>
 
       <div className={styles.heroActions}>
         <div className={styles.buttonsRow}>
           <ButtonLink href="/login" variant="primary" className={styles.CTAButton}>
-            Demarrer sur PlanetLS
+            Démarrer sur PlanetLS
           </ButtonLink>
           <ButtonLink href="/parcours" variant="secondary" className={styles.CTAButtonSecondary}>
             Choisir mon parcours

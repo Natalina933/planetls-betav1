@@ -24,7 +24,7 @@ interface StepCategory {
 
 const stepsByCategory: Record<string, StepCategory> = {
   proprietaires: {
-    label: "Proprietaires",
+    label: "Propriétaires",
     icon: Users,
     ctaLabel: "Trouver une conciergerie",
     ctaLink: "/dashboard/owner/concierges",
@@ -32,45 +32,51 @@ const stepsByCategory: Record<string, StepCategory> = {
       {
         Icon: Lightbulb,
         title: "Publiez votre besoin",
-        description: "Decrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
+        description:
+          "Décrivez votre logement, votre zone et le niveau d'accompagnement attendu.",
         link: "/login",
       },
       {
         Icon: Briefcase,
         title: "Comparez les profils",
-        description: "Consultez les avis, les badges PRO, les tarifs et les services avant de contacter.",
+        description:
+          "Consultez les services, les zones d'intervention, les badges et les informations utiles avant de contacter.",
         link: "/dashboard/owner/concierges",
       },
       {
         Icon: Handshake,
-        title: "Pilotez vos priorites",
-        description: "Suivez devis, factures, missions et messages dans un espace unique oriente action.",
+        title: "Pilotez vos priorités",
+        description:
+          "Suivez devis, documents, missions et messages dans un espace plus lisible et orienté action.",
         link: "/dashboard/owner",
       },
     ],
   },
   concierges: {
-    label: "Concierges",
+    label: "Concierges et indépendants",
     icon: User,
-    ctaLabel: "Demarrer ma conciergerie",
+    ctaLabel: "Démarrer mon activité",
     ctaLink: "/abonnement/concierge-pro",
     steps: [
       {
         Icon: Lightbulb,
-        title: "Structurez votre offre",
-        description: "Creez votre fiche, vos packs, vos tarifs et vos zones d'intervention.",
+        title: "Créez votre profil",
+        description:
+          "Présentez vos services, vos disponibilités, vos tarifs et votre zone d'intervention, même si vous démarrez.",
         link: "/dashboard/concierge/profile?tab=fiche",
       },
       {
         Icon: Users,
-        title: "Prospectez les proprietaires",
-        description: "Activez la recherche, ouvrez des conversations et transformez vos prises de contact.",
+        title: "Trouvez vos premiers clients",
+        description:
+          "Activez la recherche, ouvrez des conversations et développez votre activité à votre rythme.",
         link: "/dashboard/concierge/recherche",
       },
       {
         Icon: Handshake,
-        title: "Pilotez l'operationnel",
-        description: "Gerez logements, missions, planning, documents et suivi financier depuis le dashboard.",
+        title: "Organisez vos missions",
+        description:
+          "Gérez logements, planning, documents et interventions depuis un espace simple à utiliser au quotidien.",
         link: "/dashboard/concierge",
       },
     ],
@@ -83,20 +89,23 @@ const stepsByCategory: Record<string, StepCategory> = {
     steps: [
       {
         Icon: Users,
-        title: "Accedez au reseau local",
-        description: "Positionnez votre savoir-faire aupres des concierges et proprietaires actifs.",
+        title: "Accédez au réseau local",
+        description:
+          "Positionnez votre savoir-faire auprès des conciergeries, des indépendants et des propriétaires actifs.",
         link: "/home",
       },
       {
         Icon: Lightbulb,
-        title: "Recevez des missions ciblees",
-        description: "Travaillez avec des demandes plus lisibles et un cadre plus professionnel.",
+        title: "Recevez des missions ciblées",
+        description:
+          "Travaillez avec des demandes plus claires et un cadre plus professionnel.",
         link: "/home",
       },
       {
         Icon: Handshake,
-        title: "Renforcez votre visibilite",
-        description: "Capitalisez sur la recommandation, les avis et la qualite d'execution.",
+        title: "Renforcez votre visibilité",
+        description:
+          "Mettez en avant votre fiabilité, vos services et la qualité de vos interventions.",
         link: "/home",
       },
     ],
@@ -135,7 +144,10 @@ export function HowItWorksSection() {
         transition={{ duration: 0.45, ease: "easeOut" }}
         className={styles.intro}
       >
-        <SectionIntro title="Comment ca marche ?" />
+        <SectionIntro
+          title="Comment ça marche ?"
+          description="Un parcours simple pour mettre en relation les bons acteurs, lancer les demandes et mieux suivre l'activité, que vous soyez déjà structuré ou en train de démarrer."
+        />
       </motion.div>
 
       <Tabs defaultValue="concierges">
