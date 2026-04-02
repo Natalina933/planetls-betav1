@@ -7,6 +7,14 @@ interface SelectRequestBody {
   recipient_id?: string;
 }
 
+type QuoteLookupRow = {
+  id: string;
+  status?: string | null;
+  mission_id?: string | null;
+  accepted_at?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -101,6 +109,26 @@ export async function POST(
       );
     }
 
+    const { data: candidateQuotes, error: candidateQuotesError } = await dbAny
+      .from("quotes")
+      .select("id, status, mission_id, accepted_at, metadata")
+      .eq("concierge_profile_id", selectedRecipient.concierge_profile_id)
+      .eq("owner_profile_id", requestRow.owner_profile_id ?? userId);
+
+    if (candidateQuotesError) {
+      console.error("[service-requests/select] quotes lookup error:", candidateQuotesError);
+      return NextResponse.json({ error: "Impossible de charger le devis lie." }, { status: 500 });
+    }
+
+    const selectedQuote =
+      ((candidateQuotes ?? []) as QuoteLookupRow[]).find((quote) => {
+        const metadata = isRecord(quote.metadata) ? quote.metadata : null;
+        return (
+          metadata?.service_request_id === requestRow.id &&
+          metadata?.service_request_recipient_id === selectedRecipient.id
+        );
+      }) ?? null;
+
     const recipientStatuses = new Map<string, string>();
     recipientRows.forEach((recipient: { id: string }) => {
       recipientStatuses.set(recipient.id, recipient.id === recipientId ? "selected" : "not_selected");
@@ -127,7 +155,11 @@ export async function POST(
 
     const nextMetadata = isRecord(requestRow.metadata) ? { ...requestRow.metadata } : {};
     const existingMissionId =
-      typeof nextMetadata.selected_mission_id === "string" ? nextMetadata.selected_mission_id : "";
+      typeof nextMetadata.selected_mission_id === "string"
+        ? nextMetadata.selected_mission_id
+        : typeof selectedQuote?.mission_id === "string"
+          ? selectedQuote.mission_id
+          : "";
 
     let missionRow = null;
     let safePropertyId: string | null = null;
@@ -212,11 +244,52 @@ export async function POST(
       }
     }
 
+    if (selectedQuote?.id && missionRow?.id) {
+      const quoteUpdatePayload: Record<string, unknown> = {
+        mission_id: missionRow.id,
+      };
+
+      if (selectedQuote.status !== "accepted") {
+        quoteUpdatePayload.status = "accepted";
+      }
+
+      if (!selectedQuote.accepted_at) {
+        quoteUpdatePayload.accepted_at = new Date().toISOString();
+      }
+
+      const { error: quoteUpdateError } = await db
+        .from("quotes")
+        .update(quoteUpdatePayload)
+        .eq("id", selectedQuote.id);
+
+      if (quoteUpdateError) {
+        console.error("[service-requests/select] quote update error:", quoteUpdateError);
+        return NextResponse.json({ error: "Impossible de relier le devis a la mission." }, { status: 500 });
+      }
+
+      const { error: quoteEventError } = await db.from("quote_events").insert({
+        quote_id: selectedQuote.id,
+        actor_profile_id: userId,
+        event_type: "accepted",
+        payload: {
+          source: "service_request_selection",
+          service_request_id: requestRow.id,
+          service_request_recipient_id: selectedRecipient.id,
+          mission_id: missionRow.id,
+        },
+      });
+
+      if (quoteEventError) {
+        console.error("[service-requests/select] quote event error:", quoteEventError);
+      }
+    }
+
     const updatedMetadata = {
       ...nextMetadata,
       selected_at: new Date().toISOString(),
       selected_recipient_id: selectedRecipient.id,
       selected_mission_id: missionRow?.id ?? null,
+      selected_quote_id: selectedQuote?.id ?? null,
     };
 
     const { data: updatedRequest, error: updateRequestError } = await dbAny
@@ -224,6 +297,7 @@ export async function POST(
       .update({
         selected_concierge_profile_id: selectedRecipient.concierge_profile_id,
         status: nextRequestStatus,
+        mission_id: missionRow?.id ?? null,
         metadata: updatedMetadata,
       })
       .eq("id", id)

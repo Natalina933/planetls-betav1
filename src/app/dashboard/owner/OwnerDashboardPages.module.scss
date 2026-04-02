@@ -597,12 +597,22 @@
   display: grid;
   gap: 1rem;
   padding: 1.1rem;
+  position: relative;
+  overflow: hidden;
   border-radius: 22px;
   border: 1px solid rgba(184, 92, 72, 0.14);
   background:
     radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 32%),
     linear-gradient(180deg, var(--dash-bg-panel)dfa, #f7ece5);
   box-shadow: 0 12px 24px rgba(109, 53, 41, 0.05);
+}
+
+.conciergeRequestCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(184, 92, 72, 0.92), rgba(212, 175, 55, 0.65));
 }
 
 .conciergeRequestTopline {
@@ -680,7 +690,7 @@
 
 .conciergeFactRow {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -712,10 +722,54 @@
   line-height: 1.6;
 }
 
+.conciergeResponseStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.conciergeResponseStat {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 242, 236, 0.94));
+  text-align: center;
+}
+
+.conciergeResponseStat span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-text-muted);
+}
+
+.conciergeResponseStat strong {
+  color: var(--dash-text);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
 .conciergeNextStep {
   margin: 0;
   color: var(--dash-text-muted);
   line-height: 1.6;
+}
+
+.conciergeRecipientsBlock {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.conciergeSectionLabel {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-accent-strong);
 }
 
 .conciergeRecipients {
@@ -804,11 +858,13 @@
 }
 
 .conciergeRecipientSummary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: 0.75rem;
+}
+
+.conciergeRecipientIdentity {
+  display: grid;
+  gap: 0.25rem;
 }
 
 .conciergeRecipientSummary strong {
@@ -818,6 +874,24 @@
 .conciergeRecipientSummary span {
   color: var(--dash-text-muted);
   font-size: 0.9rem;
+}
+
+.conciergeRecipientMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.conciergeRecipientMetaChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.24rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .conciergeRecipientChip {
@@ -830,6 +904,11 @@
   color: #7a3f32;
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.conciergeCardActions {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(184, 92, 72, 0.12);
 }
 
 .conciergeQuickActions {
@@ -866,6 +945,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .conciergeResponseStats {
+    grid-template-columns: 1fr;
+  }
+
   .conciergeLayout {
     grid-template-columns: 1fr;
   }
@@ -882,6 +965,10 @@
 @media (max-width: 640px) {
   .conciergeKpiGrid,
   .conciergeFactRow {
+    grid-template-columns: 1fr;
+  }
+
+  .conciergeResponseStats {
     grid-template-columns: 1fr;
   }
 
@@ -997,6 +1084,7 @@
 :global([data-theme="art-deco"]) .reviewBadgeMuted,
 :global([data-theme="art-deco"]) .conciergeRecipientCard,
 :global([data-theme="art-deco"]) .conciergeRecipientChip,
+:global([data-theme="art-deco"]) .conciergeResponseStat,
 :global([data-theme="art-deco"]) .conciergeStatusPill {
   border-radius: 3px;
 }
@@ -1006,6 +1094,7 @@
 :global([data-theme="mucha-dark"]) .conciergeSpotlightCard,
 :global([data-theme="mucha-dark"]) .conciergeKpiCard,
 :global([data-theme="mucha-dark"]) .conciergeFactCard,
+:global([data-theme="mucha-dark"]) .conciergeResponseStat,
 :global([data-theme="mucha-dark"]) .conciergeRecipientCard {
   background:
     radial-gradient(circle at top right, rgba(198, 167, 92, 0.1), transparent 32%),
@@ -1024,13 +1113,16 @@
 :global([data-theme="mucha-dark"]) .conciergeNextStep,
 :global([data-theme="mucha-dark"]) .conciergeRecipientSummary span,
 :global([data-theme="mucha-dark"]) .conciergeKpiHint,
+:global([data-theme="mucha-dark"]) .conciergeResponseStat span,
 :global([data-theme="mucha-dark"]) .conciergeFactCard strong,
+:global([data-theme="mucha-dark"]) .conciergeResponseStat strong,
 :global([data-theme="mucha-dark"]) .comparisonHeaderStack strong {
   color: #f6efe2;
 }
 
 :global([data-theme="mucha-dark"]) .conciergeKpiLabel,
 :global([data-theme="mucha-dark"]) .conciergeFactCard span,
+:global([data-theme="mucha-dark"]) .conciergeSectionLabel,
 :global([data-theme="mucha-dark"]) .comparisonHeaderStack,
 :global([data-theme="mucha-dark"]) .eyebrow,
 :global([data-theme="mucha-dark"]) .comparisonValueCell strong {

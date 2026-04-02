@@ -3,6 +3,8 @@ import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
+const untypedDb = db as typeof db & { from: (table: string) => any };
+
 type QuoteStatus =
   | "draft"
   | "sent"
@@ -14,6 +16,19 @@ type QuoteStatus =
 interface UpdateQuoteStatusBody {
   status?: QuoteStatus;
 }
+
+type ServiceRequestRow = {
+  id: string;
+  owner_profile_id?: string | null;
+  property_id?: string | null;
+  title?: string | null;
+  description?: string | null;
+  desired_date?: string | null;
+  budget_max?: number | null;
+  currency?: string | null;
+  urgency?: boolean | null;
+  metadata?: Record<string, unknown> | null;
+};
 
 const VALID_QUOTE_STATUS: QuoteStatus[] = [
   "draft",
@@ -54,7 +69,9 @@ export async function PATCH(
 
     const { data: existing, error: existingError } = await db
       .from("quotes")
-      .select("id, status, sent_at, accepted_at, rejected_at, canceled_at")
+      .select(
+        "id, status, sent_at, accepted_at, rejected_at, canceled_at, owner_profile_id, concierge_profile_id, mission_id, total_amount, currency, notes, metadata",
+      )
       .eq("id", id)
       .eq("concierge_profile_id", userId)
       .maybeSingle();
@@ -79,6 +96,161 @@ export async function PATCH(
     }
     if (nextStatus === "canceled" && !existing.canceled_at) {
       updatePayload.canceled_at = new Date().toISOString();
+    }
+
+    let linkedMissionId =
+      typeof existing.mission_id === "string" && existing.mission_id.trim() ? existing.mission_id : null;
+
+    if (nextStatus === "accepted") {
+      const metadata =
+        existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+          ? existing.metadata
+          : {};
+
+      const serviceRequestId =
+        typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
+      const serviceRequestRecipientId =
+        typeof metadata.service_request_recipient_id === "string"
+          ? metadata.service_request_recipient_id
+          : null;
+
+      let serviceRequest: ServiceRequestRow | null = null;
+      if (serviceRequestId) {
+        const { data: requestRow, error: requestError } = await untypedDb
+          .from("service_requests")
+          .select("*")
+          .eq("id", serviceRequestId)
+          .maybeSingle();
+
+        if (requestError) {
+          console.error("[PATCH /api/quotes/:id/status] request lookup error:", requestError);
+          return NextResponse.json({ error: "Impossible de charger la demande liee." }, { status: 500 });
+        }
+
+        serviceRequest = (requestRow as ServiceRequestRow | null) ?? null;
+      }
+
+      if (!linkedMissionId) {
+        let safePropertyId: string | null = null;
+
+        if (typeof serviceRequest?.property_id === "string" && serviceRequest.property_id.trim()) {
+          const { data: propertyRow, error: propertyError } = await db
+            .from("properties")
+            .select("id")
+            .eq("id", serviceRequest.property_id)
+            .eq("owner_id", serviceRequest.owner_profile_id ?? existing.owner_profile_id ?? "")
+            .maybeSingle();
+
+          if (propertyError) {
+            console.error("[PATCH /api/quotes/:id/status] property lookup error:", propertyError);
+          } else if (propertyRow?.id) {
+            safePropertyId = propertyRow.id;
+          }
+        }
+
+        const { data: missionRow, error: missionError } = await db
+          .from("missions")
+          .insert({
+            concierge_profile_id: existing.concierge_profile_id,
+            owner_profile_id: serviceRequest?.owner_profile_id ?? existing.owner_profile_id ?? null,
+            property_id: safePropertyId,
+            service_id: null,
+            title: serviceRequest?.title ?? "Mission issue d'un devis accepte",
+            description: serviceRequest?.description ?? existing.notes ?? null,
+            status: "accepted",
+            priority: serviceRequest?.urgency ? "urgent" : "normal",
+            amount:
+              typeof existing.total_amount === "number"
+                ? existing.total_amount
+                : serviceRequest?.budget_max ?? null,
+            currency: existing.currency ?? serviceRequest?.currency ?? "EUR",
+            scheduled_start: serviceRequest?.desired_date ?? null,
+            scheduled_end: null,
+            metadata: {
+              source: "quote_acceptance",
+              quote_id: existing.id,
+              service_request_id: serviceRequestId,
+              service_request_recipient_id: serviceRequestRecipientId,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (missionError || !missionRow) {
+          console.error("[PATCH /api/quotes/:id/status] mission create error:", missionError);
+          return NextResponse.json({ error: "Impossible de creer la mission liee." }, { status: 500 });
+        }
+
+        linkedMissionId = missionRow.id;
+
+        const { error: missionEventError } = await db.from("mission_events").insert({
+          mission_id: missionRow.id,
+          actor_profile_id: userId,
+          event_type: "created",
+          payload: {
+            source: "quote_acceptance",
+            quote_id: existing.id,
+            service_request_id: serviceRequestId,
+          },
+        });
+
+        if (missionEventError) {
+          console.error("[PATCH /api/quotes/:id/status] mission event error:", missionEventError);
+        }
+      }
+
+      updatePayload.mission_id = linkedMissionId;
+
+      if (serviceRequestId) {
+        const requestMetadata =
+          serviceRequest?.metadata && typeof serviceRequest.metadata === "object" && !Array.isArray(serviceRequest.metadata)
+            ? { ...serviceRequest.metadata }
+            : {};
+
+        const { error: requestUpdateError } = await untypedDb
+          .from("service_requests")
+          .update({
+            selected_concierge_profile_id: existing.concierge_profile_id,
+            status: "accepted",
+            mission_id: linkedMissionId,
+            metadata: {
+              ...requestMetadata,
+              selected_at: new Date().toISOString(),
+              selected_mission_id: linkedMissionId,
+              selected_quote_id: existing.id,
+            },
+          })
+          .eq("id", serviceRequestId);
+
+        if (requestUpdateError) {
+          console.error("[PATCH /api/quotes/:id/status] request update error:", requestUpdateError);
+          return NextResponse.json({ error: "Impossible de synchroniser la demande." }, { status: 500 });
+        }
+
+        if (serviceRequestRecipientId) {
+          const { data: relatedRecipients, error: recipientsError } = await untypedDb
+            .from("service_request_recipients")
+            .select("id")
+            .eq("service_request_id", serviceRequestId);
+
+          if (recipientsError) {
+            console.error("[PATCH /api/quotes/:id/status] recipients lookup error:", recipientsError);
+            return NextResponse.json({ error: "Impossible de synchroniser les destinataires." }, { status: 500 });
+          }
+
+          await Promise.all(
+            (relatedRecipients ?? []).map((recipient: { id: string }) =>
+              untypedDb
+                .from("service_request_recipients")
+                .update({
+                  status: recipient.id === serviceRequestRecipientId ? "selected" : "not_selected",
+                  responded_at: new Date().toISOString(),
+                })
+                .eq("id", recipient.id),
+            ),
+          );
+        }
+      }
     }
 
     const { data: updated, error: updateError } = await db

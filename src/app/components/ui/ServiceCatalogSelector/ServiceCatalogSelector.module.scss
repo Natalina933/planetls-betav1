@@ -113,6 +113,77 @@ $border: #e2e2e2;
   font-size: 0.78rem;
 }
 
+.catalogPreviewRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px dashed rgba($gold, 0.35);
+  border-radius: 10px;
+  background: rgba($gold, 0.05);
+}
+
+.catalogPreviewText {
+  margin: 0;
+  color: #665636;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.catalogPreviewButton {
+  border: none;
+  background: transparent;
+  color: $green-dark;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+}
+
+.catalogPreviewButton:hover {
+  color: #1d3028;
+  text-decoration: underline;
+}
+
+.quickAccessBlock {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.quickAccessTitle {
+  margin: 0;
+  color: $green-dark;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.quickAccessList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quickAccessChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.32rem 0.72rem;
+  border: 1px solid rgba($gold, 0.24);
+  border-radius: 999px;
+  background: #fff;
+  color: #6a5530;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quickAccessChipActive {
+  background: rgba($gold, 0.12);
+  color: $green-dark;
+}
+
 .noResult {
   border: 1px dashed rgba($gold, 0.55);
   border-radius: 8px;

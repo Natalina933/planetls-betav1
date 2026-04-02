@@ -7,13 +7,18 @@
   max-width: none;
 }
 
+.body {
+  display: grid;
+  gap: 1rem;
+}
+
 .clickable {
   cursor: pointer;
 }
 
 .header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: flex-start;
   gap: 1rem;
   min-width: 0;
@@ -84,17 +89,19 @@
 }
 
 .actions {
-  justify-content: flex-end;
+  justify-content: flex-start;
   max-width: 100%;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(184, 92, 72, 0.12);
 }
 
 .actions > * {
   flex: 0 1 auto;
 }
 
-.facts {
+.primaryFacts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
   gap: 0.75rem;
   min-width: 0;
 }
@@ -122,47 +129,127 @@
   overflow-wrap: anywhere;
 }
 
+.secondaryFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 0.7rem;
+}
+
+.secondaryFactCard {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 242, 236, 0.94));
+  text-align: center;
+}
+
+.secondaryFactCard span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-text-muted);
+}
+
+.secondaryFactCard strong {
+  color: var(--dash-text);
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.infoStack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.extraContent {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.servicesBlock,
+.responsesBlock {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sectionLabel {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-accent-strong);
+}
+
 .description,
-.helperText {
+.metaText,
+.responseItem {
   margin: 0;
   color: var(--dash-text-muted);
   line-height: 1.6;
 }
 
-.helperStack {
+.metaText {
+  font-size: 0.88rem;
+}
+
+.responseList {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.55rem;
+}
+
+.responseItem {
+  position: relative;
+  padding: 0.8rem 0.9rem 0.8rem 1.1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.responseItem::before {
+  content: "";
+  position: absolute;
+  left: 0.55rem;
+  top: 0.95rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.85);
 }
 
 @media (max-width: 1100px) {
-  .header {
-    grid-template-columns: 1fr;
-  }
-
   .actions {
     justify-content: flex-start;
   }
 }
 
 @media (max-width: 720px) {
-  .facts {
+  .primaryFacts,
+  .secondaryFacts {
     grid-template-columns: 1fr;
   }
 }
 
 :global([data-theme="mucha-dark"]) .heading h3,
-:global([data-theme="mucha-dark"]) .factCard strong {
+:global([data-theme="mucha-dark"]) .factCard strong,
+:global([data-theme="mucha-dark"]) .secondaryFactCard strong {
   color: #f6efe2;
 }
 
 :global([data-theme="mucha-dark"]) .eyebrow,
-:global([data-theme="mucha-dark"]) .factCard span {
+:global([data-theme="mucha-dark"]) .factCard span,
+:global([data-theme="mucha-dark"]) .sectionLabel {
   color: #c6a75c;
 }
 
 :global([data-theme="mucha-dark"]) .subtitle,
 :global([data-theme="mucha-dark"]) .description,
-:global([data-theme="mucha-dark"]) .helperText {
+:global([data-theme="mucha-dark"]) .metaText,
+:global([data-theme="mucha-dark"]) .responseItem,
+:global([data-theme="mucha-dark"]) .secondaryFactCard span {
   color: #f6efe2;
 }
 
@@ -177,7 +264,21 @@
   border-color: rgba(198, 167, 92, 0.24);
 }
 
+:global([data-theme="mucha-dark"]) .secondaryFactCard,
+:global([data-theme="mucha-dark"]) .responseItem {
+  background:
+    radial-gradient(circle at top right, rgba(198, 167, 92, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(26, 22, 20, 0.96), rgba(39, 31, 25, 0.94));
+  border-color: rgba(198, 167, 92, 0.22);
+}
+
 :global([data-theme="art-deco"]) .factCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}
+
+:global([data-theme="art-deco"]) .secondaryFactCard,
+:global([data-theme="art-deco"]) .responseItem {
   border-radius: 4px;
   border-color: #d5dbdf;
 }

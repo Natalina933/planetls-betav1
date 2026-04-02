@@ -1,3 +1,4 @@
+@use "sass:color";
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
 
 $page-bg: #f6f1e8;
@@ -173,7 +174,7 @@ $success: #4a7c59;
   cursor: pointer;
 
   &:hover {
-    background: darken($accent, 8%);
+    background: color.adjust($accent, $lightness: -8%);
   }
 }
 

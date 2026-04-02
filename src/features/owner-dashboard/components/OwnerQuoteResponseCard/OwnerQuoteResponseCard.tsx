@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Card, CardBody } from "@/components/ui";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { RequestStatusBadge } from "@/components/ui";
 import styles from "./OwnerQuoteResponseCard.module.scss";
 
 type QuoteFact = {
@@ -18,6 +18,8 @@ type QuoteItem = {
 export type OwnerQuoteResponseCardProps = {
   conciergeName: string;
   status: string | null | undefined;
+  workflowStatus?: string | null;
+  hasMission?: boolean;
   badges?: ReactNode;
   facts: QuoteFact[];
   items: QuoteItem[];
@@ -30,6 +32,8 @@ export type OwnerQuoteResponseCardProps = {
 export function OwnerQuoteResponseCard({
   conciergeName,
   status,
+  workflowStatus,
+  hasMission = false,
   badges,
   facts,
   items,
@@ -43,7 +47,11 @@ export function OwnerQuoteResponseCard({
       <CardBody className={styles.card}>
         <div className={styles.summary}>
           <strong>{conciergeName}</strong>
-          <WorkflowStatusBadge value={status || "-"} />
+          <RequestStatusBadge
+            workflowStatus={workflowStatus}
+            quoteStatus={status}
+            hasMission={hasMission}
+          />
         </div>
 
         {badges ? <div className={styles.badges}>{badges}</div> : null}

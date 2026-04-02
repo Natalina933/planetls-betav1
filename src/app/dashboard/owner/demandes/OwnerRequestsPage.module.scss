@@ -39,6 +39,13 @@
   position: sticky;
   top: 1rem;
   max-width: none;
+  padding: 1rem;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 248, 0.82), rgba(247, 236, 229, 0.72));
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.05);
+  gap: 1rem;
+  overflow: hidden;
 }
 
 .listPanel {
@@ -50,6 +57,17 @@
   --ui-card-large-max: 100%;
   width: 100%;
   max-width: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.requestRow::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(184, 92, 72, 0.92), rgba(212, 175, 55, 0.65));
+  pointer-events: none;
 }
 
 .sectionHeader {
@@ -84,6 +102,24 @@
 .formGrid {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+}
+
+.formSectionCard {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1.05rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.06), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(249, 238, 231, 0.94));
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.05);
+}
+
+.formSectionFeature {
+  padding: 1.15rem;
 }
 
 .budgetRow {
@@ -103,6 +139,7 @@
 .fullField {
   display: grid;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .field span,
@@ -119,9 +156,130 @@
   line-height: 1.45;
 }
 
+.titleSuggestionCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.06), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 238, 231, 0.92));
+}
+
+.titleSuggestionCopy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.titleSuggestionCopy strong,
+.titleSuggestionCopy p,
+.titleSuggestionCopy code {
+  margin: 0;
+}
+
+.titleSuggestionCopy strong {
+  color: var(--dash-text);
+  font-size: 0.88rem;
+}
+
+.titleSuggestionCopy p {
+  color: var(--dash-text-muted);
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+
+.titleSuggestionCopy code {
+  width: fit-content;
+  padding: 0.32rem 0.55rem;
+  border-radius: 10px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.inlineHintAction {
+  width: fit-content;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #7a3f32;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(109, 53, 41, 0.06);
+}
+
+.inlineHintAction:hover {
+  background: rgba(184, 92, 72, 0.1);
+}
+
 .chipsInputWrap {
   display: grid;
   gap: 0.75rem;
+}
+
+.catalogSelectorWrap {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.05), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(249, 238, 231, 0.9));
+  padding: 0.95rem;
+}
+
+.quickServicesBlock {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.quickServicesTitle {
+  margin: 0;
+  color: var(--dash-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quickServicesHint {
+  margin: -0.15rem 0 0;
+  color: var(--dash-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.quickServicesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.quickServiceChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0.4rem 0.82rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  color: #7a3f32;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quickServiceChipSelected {
+  border-color: rgba(122, 63, 50, 0.24);
+  background: rgba(184, 92, 72, 0.12);
+  color: #5f342a;
 }
 
 .serviceChips {
@@ -158,6 +316,41 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+}
+
+.compactActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.iconAction,
+.iconActionPrimary {
+  min-width: 42px;
+  width: 42px;
+  padding-inline: 0;
+  border-radius: 14px;
+}
+
+.iconAction svg,
+.iconActionPrimary svg {
+  flex: 0 0 auto;
+}
+
+.iconAction {
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  color: #7a4a3c;
+}
+
+.iconAction:hover {
+  background: rgba(184, 92, 72, 0.1);
+  color: #5f342a;
+}
+
+.iconActionPrimary {
+  box-shadow: 0 10px 18px rgba(109, 53, 41, 0.12);
 }
 
 .message {
@@ -326,6 +519,15 @@
   box-shadow: 0 18px 32px rgba(0, 0, 0, 0.28);
 }
 
+:global([data-theme="mucha-dark"]) .formSectionCard,
+:global([data-theme="mucha-dark"]) .catalogSelectorWrap,
+:global([data-theme="mucha-dark"]) .titleSuggestionCard {
+  background:
+    radial-gradient(circle at top right, rgba(198, 167, 92, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(26, 22, 20, 0.96), rgba(39, 31, 25, 0.94));
+  border-color: rgba(198, 167, 92, 0.22);
+}
+
 :global([data-theme="mucha-dark"]) .title,
 :global([data-theme="mucha-dark"]) .field span,
 :global([data-theme="mucha-dark"]) .fullField span,
@@ -353,6 +555,13 @@
 :global([data-theme="art-deco"]) .listPanel,
 :global([data-theme="art-deco"]) .requestRow,
 :global([data-theme="art-deco"]) .factCard {
+  border-radius: 4px;
+  border-color: #d5dbdf;
+}
+
+:global([data-theme="art-deco"]) .formSectionCard,
+:global([data-theme="art-deco"]) .catalogSelectorWrap,
+:global([data-theme="art-deco"]) .titleSuggestionCard {
   border-radius: 4px;
   border-color: #d5dbdf;
 }

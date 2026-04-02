@@ -9,7 +9,6 @@ import {
   OwnerQuotesComparisonTable,
   OwnerRequestSummaryCard,
 } from "@/features/owner-dashboard";
-import { getWorkflowStatusMeta } from "@/app/lib/workflowStatus";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import styles from "../OwnerDashboardPages.module.scss";
 
@@ -24,6 +23,8 @@ type OwnerQuoteRow = {
   id: string;
   quote_number: string | null;
   status: string | null;
+  workflow_status?: string | null;
+  mission_id?: string | null;
   total_amount: number | null;
   valid_until: string | null;
   created_at: string | null;
@@ -52,6 +53,7 @@ type OwnerServiceRequestRecipient = {
   concierge_name?: string;
   quote_id?: string | null;
   quote_number?: string | null;
+  quote_status?: string | null;
 };
 
 type OwnerServiceRequestRow = {
@@ -68,6 +70,8 @@ type OwnerServiceRequestRow = {
   currency?: string | null;
   requested_services?: string[] | null;
   status?: string | null;
+  workflow_status?: string | null;
+  mission_id?: string | null;
   recipients?: OwnerServiceRequestRecipient[];
 };
 
@@ -248,11 +252,14 @@ function OwnerQuotesContent() {
       if (targetQuoteId && quote.id !== targetQuoteId) return false;
       if (targetRequestId && getRequestIdFromQuote(quote) !== targetRequestId) return false;
 
-      const matchesStatus = statusFilter === "all" || (quote.status ?? "draft") === statusFilter;
+      const request = requestById.get(getRequestIdFromQuote(quote) ?? "");
+      const matchesStatus =
+        statusFilter === "all" ||
+        quote.workflow_status === statusFilter ||
+        request?.workflow_status === statusFilter ||
+        (quote.status ?? "draft") === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
-
-      const request = requestById.get(getRequestIdFromQuote(quote) ?? "");
 
       const haystack = [
         quote.quote_number,
@@ -457,10 +464,13 @@ function OwnerQuotesContent() {
             className={styles.select}
           >
             <option value="all">Tous statuts</option>
-            <option value="draft">Brouillons</option>
-            <option value="sent">Envoyés</option>
-            <option value="accepted">Acceptés</option>
-            <option value="rejected">Refusés</option>
+            <option value="NEW">Nouveau</option>
+            <option value="IN_DISCUSSION">En discussion</option>
+            <option value="QUOTE_SENT">Devis envoyé</option>
+            <option value="ACCEPTED">Accepté</option>
+            <option value="MISSION_CREATED">Mission créée</option>
+            <option value="IN_PROGRESS">En cours</option>
+            <option value="COMPLETED">Terminée</option>
           </select>
           <button
             type="button"
@@ -581,6 +591,8 @@ function OwnerQuotesContent() {
                       title={group.request.title}
                       subtitle={getRequestTypeLabel(group.request.request_type)}
                       status={group.request.status || null}
+                      workflowStatus={group.request.workflow_status}
+                      hasMission={Boolean(group.request.mission_id)}
                       primaryFacts={[
                         {
                           label: "Lieu",
@@ -674,7 +686,6 @@ function OwnerQuotesContent() {
                     style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}
                   >
                     {group.quotes.map((quote) => {
-                      const statusMeta = getWorkflowStatusMeta(quote.status || "draft");
                       const isCheapest = cheapestQuoteId === quote.id;
                       const isMostDetailed = mostDetailedQuoteId === quote.id;
                       const isFastest = fastestQuoteId === quote.id;
@@ -698,9 +709,10 @@ function OwnerQuotesContent() {
                           }
                           conciergeName={getPersonName(quote.concierge)}
                           status={quote.status || "-"}
+                          workflowStatus={quote.workflow_status}
+                          hasMission={Boolean(quote.mission_id)}
                           badges={
                             <>
-                              <Tag tone="status" className={styles.conciergeRecipientChip}>{statusMeta.label}</Tag>
                               {isCheapest ? (
                                 <Tag tone="gold" className={styles.conciergeRecipientChip}>Meilleur prix</Tag>
                               ) : null}

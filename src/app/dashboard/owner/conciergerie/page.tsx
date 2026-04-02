@@ -7,6 +7,7 @@ import {
   isOwnerReplyStatus,
   markOwnerReplySignaturesAsSeen,
 } from "@/app/components/dashboard/notifications/serviceRequestNotifications";
+import { OwnerRequestSummaryCard } from "@/features/owner-dashboard";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
 import pageStyles from "../OwnerDashboardPages.module.scss";
@@ -66,13 +67,17 @@ type OwnerServiceRequestRow = {
   title: string;
   description?: string | null;
   request_type: "ponctuel" | "renfort" | "durable";
+  property_name?: string | null;
   city?: string | null;
   postal_code?: string | null;
   desired_date?: string | null;
+  requested_services?: string[] | null;
   urgency?: boolean;
   budget_max?: number | null;
   currency?: string | null;
   status: string;
+  workflow_status?: string | null;
+  mission_id?: string | null;
   created_at?: string | null;
   selected_concierge_profile_id?: string | null;
   selected_concierge_name?: string | null;
@@ -102,28 +107,6 @@ function formatRequestType(value: OwnerServiceRequestRow["request_type"]) {
   return "Besoin ponctuel";
 }
 
-function formatRequestStatus(status: string) {
-  switch (status) {
-    case "sent":
-      return "Envoyée";
-    case "viewed":
-      return "Consultée";
-    case "in_review":
-      return "En cours d'examen";
-    case "interested":
-      return "Intérêt reçu";
-    case "quoted":
-      return "Devis reçu";
-    case "accepted":
-    case "selected":
-      return "Concierge retenu";
-    case "closed":
-      return "Clôturée";
-    default:
-      return status || "En cours";
-  }
-}
-
 function formatRecipientStatus(status: string) {
   switch (status) {
     case "sent":
@@ -143,6 +126,10 @@ function formatRecipientStatus(status: string) {
     default:
       return status || "En cours";
   }
+}
+
+function getUnifiedRequestStatus(request: OwnerServiceRequestRow) {
+  return request.workflow_status ?? request.status ?? "NEW";
 }
 
 function getSelectedRecipient(request: OwnerServiceRequestRow) {
@@ -176,15 +163,20 @@ function getRequestNextStep(request: OwnerServiceRequestRow) {
   return "Attendez les premiers retours ou poursuivez les echanges depuis la conversation liee.";
 }
 
-function getStatusTone(status: string, urgent?: boolean) {
-  if (urgent) return pageStyles.statusUrgent;
-  if (status === "accepted" || status === "selected" || status === "closed") {
-    return pageStyles.statusSuccess;
+function getRecipientResponseSummary(request: OwnerServiceRequestRow) {
+  const repliedRecipients = request.recipients.filter((recipient) =>
+    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
+  );
+
+  if (repliedRecipients.length === 0) {
+    return ["Aucune reponse recue pour le moment"];
   }
-  if (status === "quoted" || status === "interested" || status === "in_review") {
-    return pageStyles.statusInfo;
-  }
-  return pageStyles.statusPending;
+
+  return repliedRecipients.slice(0, 3).map((recipient) => {
+    const name = recipient.concierge_name?.trim() || "Concierge";
+    const respondedAt = recipient.responded_at ? ` le ${formatDateTime(recipient.responded_at)}` : "";
+    return `${name} a repondu : ${formatRecipientStatus(recipient.status)}${respondedAt}`;
+  });
 }
 
 function collectReplySignatures(rows: OwnerServiceRequestRow[]) {
@@ -561,162 +553,182 @@ export default function OwnerConciergeriePage() {
               </div>
             ) : (
               <div className={pageStyles.conciergeTimeline}>
-                {requests.map((request) => (
-                  <article key={request.id} className={pageStyles.conciergeRequestCard}>
-                    <div className={pageStyles.conciergeRequestTopline}>
-                      <div className={pageStyles.conciergeRequestHeading}>
-                        <span
-                          className={`${pageStyles.conciergeStatusPill} ${getStatusTone(request.status, request.urgency)}`}
-                        >
-                          {formatRequestStatus(request.status)}
-                        </span>
-                        <h3>{request.title}</h3>
-                        <p>
-                          {formatRequestType(request.request_type)}
-                          {request.urgency ? " · Urgent" : ""}
-                        </p>
-                      </div>
-                      <div className={pageStyles.conciergeRequestMeta}>
-                        <span>
-                          {request.city || "Ville à confirmer"}
-                          {request.postal_code ? ` ${request.postal_code}` : ""}
-                        </span>
-                        <span>Envoyée le {formatDateTime(request.created_at)}</span>
-                      </div>
-                    </div>
+                {requests.map((request) => {
+                  const selectedRecipient = getSelectedRecipient(request);
+                  const responseCount = request.recipients.filter((recipient) =>
+                    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
+                  ).length;
+                  const quotedCount = request.recipients.filter((recipient) => recipient.status === "quoted").length;
 
-                    <div className={pageStyles.conciergeFactRow}>
-                      <div className={pageStyles.conciergeFactCard}>
-                        <span>Budget</span>
-                        <strong>{formatBudget(request.budget_max, request.currency)}</strong>
+                  return (
+                    <OwnerRequestSummaryCard
+                      key={request.id}
+                      className={pageStyles.conciergeRequestCard}
+                      title={request.title}
+                      subtitle={formatRequestType(request.request_type)}
+                      status={request.status || "-"}
+                      workflowStatus={request.workflow_status}
+                      hasMission={Boolean(request.mission_id)}
+                      urgency={request.urgency}
+                      primaryFacts={[
+                        { label: "Appartement", value: request.property_name || "A preciser" },
+                        {
+                          label: "Localisation",
+                          value: [request.city, request.postal_code].filter(Boolean).join(" ") || "A preciser",
+                        },
+                        { label: "Echeance", value: formatDateTime(request.desired_date) },
+                        { label: "Budget", value: formatBudget(request.budget_max, request.currency) },
+                      ]}
+                      secondaryFacts={[
+                        { label: "Concierges proposes", value: request.recipients.length },
+                        { label: "Reponses", value: responseCount },
+                        { label: "Devis", value: quotedCount },
+                      ]}
+                      services={request.requested_services ?? []}
+                      emptyServicesLabel="Services a preciser"
+                      description={request.description}
+                      helperTexts={[
+                        `Creee le ${formatDateTime(request.created_at)}. ${getRequestNextStep(request)}`,
+                        ...getRecipientResponseSummary(request),
+                      ]}
+                    >
+                      <div className={pageStyles.conciergeRecipientsBlock}>
+                        <p className={pageStyles.conciergeSectionLabel}>Concierges proposes</p>
+                        <div className={pageStyles.conciergeRecipients}>
+                          {request.recipients.length > 0 ? (
+                            request.recipients.slice(0, 4).map((recipient) => (
+                              <span key={recipient.id} className={pageStyles.conciergeRecipientChip}>
+                                {recipient.concierge_name || "Concierge"} · {formatRecipientStatus(recipient.status)}
+                              </span>
+                            ))
+                          ) : (
+                            <span className={pageStyles.conciergeRecipientChip}>Aucun destinataire rattache</span>
+                          )}
+                        </div>
                       </div>
-                      <div className={pageStyles.conciergeFactCard}>
-                        <span>Échéance</span>
-                        <strong>{formatDateTime(request.desired_date)}</strong>
-                      </div>
-                      <div className={pageStyles.conciergeFactCard}>
-                        <span>Concierges contactés</span>
-                        <strong>{request.recipients.length}</strong>
-                      </div>
-                    </div>
 
-                    {request.description ? (
-                      <p className={pageStyles.conciergeRequestDescription}>{request.description}</p>
-                    ) : null}
-
-                    <p className={pageStyles.conciergeNextStep}>{getRequestNextStep(request)}</p>
-
-                    <div className={pageStyles.conciergeRecipients}>
                       {request.recipients.length > 0 ? (
-                        request.recipients.slice(0, 4).map((recipient) => (
-                          <span key={recipient.id} className={pageStyles.conciergeRecipientChip}>
-                            {recipient.concierge_name || "Concierge"} · {formatRequestStatus(recipient.status)}
-                          </span>
-                        ))
-                      ) : (
-                        <span className={pageStyles.conciergeRecipientChip}>Aucun destinataire rattaché</span>
-                      )}
-                    </div>
+                        <div className={pageStyles.conciergeRecipientsBlock}>
+                          <p className={pageStyles.conciergeSectionLabel}>Reponses des concierges</p>
+                          <div className={pageStyles.conciergeRecipientList}>
+                            {request.recipients.map((recipient) => {
+                              const isSelectedRecipient =
+                                recipient.status === "selected" ||
+                                recipient.concierge_profile_id === request.selected_concierge_profile_id;
+                              const canSelect =
+                                getUnifiedRequestStatus(request) !== "ACCEPTED" &&
+                                getUnifiedRequestStatus(request) !== "MISSION_CREATED" &&
+                                !isSelectedRecipient &&
+                                ["interested", "quoted"].includes(recipient.status);
 
-                    {request.recipients.length > 0 ? (
-                      <div className={pageStyles.conciergeRecipientList}>
-                        {request.recipients.map((recipient) => {
-                          const isSelectedRecipient =
-                            recipient.status === "selected" ||
-                            recipient.concierge_profile_id === request.selected_concierge_profile_id;
-                          const canSelect =
-                            request.status !== "selected" &&
-                            request.status !== "accepted" &&
-                            !isSelectedRecipient &&
-                            ["interested", "quoted"].includes(recipient.status);
+                              return (
+                                <div key={`${request.id}-${recipient.id}`} className={pageStyles.conciergeRecipientCard}>
+                                  <div className={pageStyles.conciergeRecipientSummary}>
+                                    <div className={pageStyles.conciergeRecipientIdentity}>
+                                      <strong>{recipient.concierge_name || "Concierge"}</strong>
+                                      <span>{formatRecipientStatus(recipient.status)}</span>
+                                    </div>
+                                    <div className={pageStyles.conciergeRecipientMeta}>
+                                      {recipient.quote_number ? (
+                                        <span className={pageStyles.conciergeRecipientMetaChip}>
+                                          Devis {recipient.quote_number}
+                                        </span>
+                                      ) : null}
+                                      {recipient.responded_at ? (
+                                        <span className={pageStyles.conciergeRecipientMetaChip}>
+                                          Reponse {formatDateTime(recipient.responded_at)}
+                                        </span>
+                                      ) : null}
+                                      {recipient.viewed_at && !recipient.responded_at ? (
+                                        <span className={pageStyles.conciergeRecipientMetaChip}>
+                                          Consultee {formatDateTime(recipient.viewed_at)}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                  <div className={pageStyles.inlineActions}>
+                                    <Link
+                                      href={getOwnerConversationHref(recipient.conversation_id)}
+                                      className={pageStyles.buttonSecondary}
+                                    >
+                                      Ouvrir la conversation
+                                    </Link>
+                                    {recipient.quote_id ? (
+                                      <Link
+                                        href={`/api/quotes/${recipient.quote_id}/document?print=1`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className={pageStyles.linkButton}
+                                      >
+                                        Voir le devis
+                                      </Link>
+                                    ) : null}
+                                    {isSelectedRecipient ? (
+                                      <Link
+                                        href={getOwnerConversationHref(recipient.conversation_id)}
+                                        className={pageStyles.buttonPrimary}
+                                      >
+                                        Suivre le concierge retenu
+                                      </Link>
+                                    ) : null}
+                                    {canSelect ? (
+                                      <button
+                                        type="button"
+                                        className={pageStyles.buttonPrimary}
+                                        onClick={() => void handleSelectConcierge(request.id, recipient.id)}
+                                        disabled={selectingRequestId === request.id}
+                                      >
+                                        {selectingRequestId === request.id
+                                          ? "Selection..."
+                                          : "Retenir ce concierge"}
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
 
-                          return (
-                            <div key={`${request.id}-${recipient.id}`} className={pageStyles.conciergeRecipientCard}>
-                              <div className={pageStyles.conciergeRecipientSummary}>
-                                <strong>{recipient.concierge_name || "Concierge"}</strong>
-                                <span>{formatRecipientStatus(recipient.status)}</span>
-                              </div>
-                              <div className={pageStyles.inlineActions}>
-                                <Link
-                                  href={getOwnerConversationHref(recipient.conversation_id)}
-                                  className={pageStyles.buttonSecondary}
-                                >
-                                  Ouvrir la conversation
-                                </Link>
-                                {recipient.quote_id ? (
-                                  <Link
-                                    href={`/api/quotes/${recipient.quote_id}/document?print=1`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={pageStyles.linkButton}
-                                  >
-                                    Voir le devis
-                                  </Link>
-                                ) : null}
-                                {isSelectedRecipient ? (
-                                  <Link
-                                    href={getOwnerConversationHref(recipient.conversation_id)}
-                                    className={pageStyles.buttonPrimary}
-                                  >
-                                    Suivre le concierge retenu
-                                  </Link>
-                                ) : null}
-                                {canSelect ? (
-                                  <button
-                                    type="button"
-                                    className={pageStyles.buttonPrimary}
-                                    onClick={() => void handleSelectConcierge(request.id, recipient.id)}
-                                    disabled={selectingRequestId === request.id}
-                                  >
-                                    {selectingRequestId === request.id
-                                      ? "Selection..."
-                                      : "Retenir ce concierge"}
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className={`${pageStyles.inlineActions} ${pageStyles.conciergeCardActions}`}>
+                        {selectedRecipient ? (
+                          <>
+                            <Link
+                              href={getOwnerConversationHref(selectedRecipient.conversation_id)}
+                              className={pageStyles.buttonSecondary}
+                            >
+                              Ouvrir la conversation retenue
+                            </Link>
+                            <Link href="/dashboard/owner/planning" className={pageStyles.buttonPrimary}>
+                              {request.mission_id ? "Suivre la mission" : "Voir le planning"}
+                            </Link>
+                          </>
+                        ) : request.recipients.some((recipient) =>
+                            ["interested", "quoted"].includes(recipient.status),
+                          ) ? (
+                          <>
+                            <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
+                              Comparer via les messages
+                            </Link>
+                            <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
+                              Contacter d'autres concierges
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
+                              Voir les messages
+                            </Link>
+                            <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
+                              Relancer une recherche
+                            </Link>
+                          </>
+                        )}
                       </div>
-                    ) : null}
-
-                    <div className={pageStyles.inlineActions}>
-                      {getSelectedRecipient(request) ? (
-                        <>
-                          <Link
-                            href={getOwnerConversationHref(getSelectedRecipient(request)?.conversation_id)}
-                            className={pageStyles.buttonSecondary}
-                          >
-                            Ouvrir la conversation retenue
-                          </Link>
-                          <Link href="/dashboard/owner/planning" className={pageStyles.buttonPrimary}>
-                            Suivre la mission
-                          </Link>
-                        </>
-                      ) : request.recipients.some((recipient) =>
-                          ["interested", "quoted"].includes(recipient.status),
-                        ) ? (
-                        <>
-                          <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
-                            Comparer via les messages
-                          </Link>
-                          <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                            Contacter d'autres concierges
-                          </Link>
-                        </>
-                      ) : (
-                        <>
-                          <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
-                            Voir les messages
-                          </Link>
-                          <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                            Relancer une recherche
-                          </Link>
-                        </>
-                      )}
-                    </div>
-                  </article>
-                ))}
+                    </OwnerRequestSummaryCard>
+                  );
+                })}
               </div>
             )}
           </section>

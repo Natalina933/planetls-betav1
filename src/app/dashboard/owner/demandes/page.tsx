@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Eye, Search } from "lucide-react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import pageStyles from "./OwnerRequestsPage.module.scss";
 import {
@@ -16,6 +16,7 @@ import {
   Select,
   Textarea,
 } from "@/components/ui";
+import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
 import { OwnerRequestSummaryCard } from "@/features/owner-dashboard";
 
@@ -28,6 +29,9 @@ type OwnerHousingRow = {
 type OwnerServiceRequestRecipient = {
   id: string;
   status: string;
+  concierge_name?: string | null;
+  responded_at?: string | null;
+  viewed_at?: string | null;
 };
 
 type OwnerServiceRequestRow = {
@@ -42,6 +46,8 @@ type OwnerServiceRequestRow = {
   budget_max?: number | null;
   currency?: string | null;
   status: string;
+  workflow_status?: string | null;
+  mission_id?: string | null;
   urgency?: boolean;
   created_at?: string | null;
   recipients: OwnerServiceRequestRecipient[];
@@ -51,6 +57,13 @@ type OwnerQuoteRow = {
   id: string;
   status: string | null;
   metadata?: Record<string, unknown> | null;
+};
+
+type CatalogServiceItem = {
+  id: number;
+  category: string;
+  service: string;
+  description?: string | null;
 };
 
 type OwnerRequestsPayload = {
@@ -126,10 +139,77 @@ function getRequestTypeLabel(value: OwnerServiceRequestRow["request_type"]) {
   return "Besoin ponctuel";
 }
 
-function getRecipientSummary(request: OwnerServiceRequestRow) {
-  const count = request.recipients?.length ?? 0;
-  if (count === 0) return "Aucun concierge ciblé";
-  return `${count} concierge${count > 1 ? "s" : ""} ciblé${count > 1 ? "s" : ""}`;
+function formatRecipientStatus(status: string) {
+  switch (status) {
+    case "sent":
+      return "Demande envoyée";
+    case "viewed":
+      return "Vue";
+    case "interested":
+      return "Intéressé";
+    case "quoted":
+      return "Devis envoyé";
+    case "selected":
+      return "Retenu";
+    case "not_selected":
+      return "Non retenu";
+    case "declined":
+      return "Refusé";
+    default:
+      return status || "En cours";
+  }
+}
+
+function getRecipientResponseSummary(request: OwnerServiceRequestRow) {
+  if (!Array.isArray(request.recipients) || request.recipients.length === 0) {
+    return ["Aucun concierge propose pour le moment"];
+  }
+
+  const repliedRecipients = request.recipients.filter((recipient) =>
+    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
+  );
+
+  if (repliedRecipients.length === 0) {
+    const viewedRecipients = request.recipients.filter((recipient) => recipient.status === "viewed");
+    if (viewedRecipients.length > 0) {
+      return viewedRecipients.slice(0, 3).map((recipient) => {
+        const name = recipient.concierge_name?.trim() || "Concierge";
+        return `${name} a consulte votre demande`;
+      });
+    }
+
+    return ["Aucune reponse recue pour le moment"];
+  }
+
+  return repliedRecipients.slice(0, 3).map((recipient) => {
+    const name = recipient.concierge_name?.trim() || "Concierge";
+    const respondedAt = recipient.responded_at ? ` le ${formatDateTime(recipient.responded_at)}` : "";
+    return `${name} a repondu : ${formatRecipientStatus(recipient.status)}${respondedAt}`;
+  });
+}
+
+function buildRequestTitleSuggestion(form: RequestFormState) {
+  const firstService = normalizeServices(form.requestedServices)[0];
+  const serviceLabel = firstService || "gestion";
+  const propertyLabel = form.propertyName.trim() || "appartement";
+  const cityLabel = form.city.trim();
+  const base = `${serviceLabel} - ${propertyLabel}`;
+  return cityLabel ? `${base} - ${cityLabel}` : base;
+}
+
+function normalizeSuggestionKey(value: string | null | undefined) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function matchesService(service: CatalogServiceItem, terms: string[]) {
+  const haystack = normalizeSuggestionKey(
+    `${service.service} ${service.category} ${service.description ?? ""}`,
+  );
+  return terms.some((term) => haystack.includes(normalizeSuggestionKey(term)));
 }
 
 function normalizeServices(rawValue: string) {
@@ -195,11 +275,15 @@ function summarizeQuotesByRequest(quotes: OwnerQuoteRow[]): RequestQuoteSummary 
   );
 }
 
+function getUnifiedRequestStatus(request: OwnerServiceRequestRow) {
+  return request.workflow_status ?? request.status ?? "NEW";
+}
+
 export default function OwnerRequestsPage() {
-  const router = useRouter();
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [housing, setHousing] = useState<OwnerHousingRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
+  const [catalogServices, setCatalogServices] = useState<CatalogServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -213,15 +297,17 @@ export default function OwnerRequestsPage() {
       setLoading(true);
       setError(null);
 
-      const [requestsResponse, housingResponse, quotesResponse] = await Promise.all([
+      const [requestsResponse, housingResponse, quotesResponse, servicesResponse] = await Promise.all([
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
         fetch("/api/quotes?limit=100", { cache: "no-store" }),
+        fetch("/api/services/services-catalog", { cache: "no-store" }),
       ]);
 
       const requestsPayload = (await requestsResponse.json()) as OwnerRequestsPayload;
       const housingPayload = await housingResponse.json();
       const quotesPayload = await quotesResponse.json();
+      const servicesPayload = await servicesResponse.json();
 
       if (!requestsResponse.ok) {
         throw new Error(requestsPayload?.error || "Impossible de charger les demandes.");
@@ -232,10 +318,14 @@ export default function OwnerRequestsPage() {
       if (!quotesResponse.ok) {
         throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
       }
+      if (!servicesResponse.ok) {
+        throw new Error(servicesPayload?.error || "Impossible de charger les services.");
+      }
 
       setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
       setHousing(Array.isArray(housingPayload) ? housingPayload : []);
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
+      setCatalogServices(Array.isArray(servicesPayload) ? servicesPayload : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger les demandes.");
     } finally {
@@ -273,7 +363,11 @@ export default function OwnerRequestsPage() {
   const filteredRequests = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
     return requests.filter((request) => {
-      const matchesStatus = statusFilter === "all" || request.status === statusFilter;
+      const workflowStatus = getUnifiedRequestStatus(request);
+      const matchesStatus =
+        statusFilter === "all" ||
+        workflowStatus === statusFilter ||
+        request.status === statusFilter;
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
 
@@ -293,18 +387,17 @@ export default function OwnerRequestsPage() {
   }, [requests, searchTerm, statusFilter]);
 
   const draftCount = useMemo(
-    () => requests.filter((request) => request.status === "draft").length,
+    () => requests.filter((request) => getUnifiedRequestStatus(request) === "NEW").length,
     [requests],
   );
 
   const sentCount = useMemo(
-    () =>
-      requests.filter((request) => request.status === "sent" || request.status === "in_review").length,
+    () => requests.filter((request) => getUnifiedRequestStatus(request) === "IN_DISCUSSION").length,
     [requests],
   );
 
   const quotedCount = useMemo(
-    () => requests.filter((request) => request.status === "quoted").length,
+    () => requests.filter((request) => getUnifiedRequestStatus(request) === "QUOTE_SENT").length,
     [requests],
   );
 
@@ -373,6 +466,114 @@ export default function OwnerRequestsPage() {
   }
 
   const normalizedServices = normalizeServices(form.requestedServices);
+  const titleSuggestion = buildRequestTitleSuggestion(form);
+  const normalizedCity = normalizeSuggestionKey(form.city);
+  const normalizedProperty = normalizeSuggestionKey(form.propertyName);
+  const quickServiceSuggestions = useMemo(() => {
+    if (catalogServices.length === 0) return [];
+    const historyCounts = requests.reduce<Map<string, number>>((accumulator, request) => {
+      (request.requested_services ?? []).forEach((serviceName) => {
+        const key = normalizeSuggestionKey(serviceName);
+        accumulator.set(key, (accumulator.get(key) ?? 0) + 1);
+      });
+      return accumulator;
+    }, new Map<string, number>());
+
+    const typeTermsByNeed: Record<RequestFormState["requestType"], string[]> = {
+      ponctuel: [
+        "check-in",
+        "check out",
+        "menage entre voyageurs",
+        "changement de linge",
+        "petites reparations",
+      ],
+      renfort: [
+        "communication voyageurs",
+        "gestion reservations",
+        "menage standard",
+        "blanchisserie",
+        "assistance voyageurs",
+      ],
+      durable: [
+        "conciergerie 24/7",
+        "gestion reservations",
+        "communication voyageurs",
+        "reporting mensuel",
+        "calendrier dynamique",
+      ],
+    };
+
+    const cityTerms =
+      normalizedCity.includes("paris") ||
+      normalizedCity.includes("nice") ||
+      normalizedCity.includes("cannes") ||
+      normalizedCity.includes("marseille") ||
+      normalizedCity.includes("lyon") ||
+      normalizedCity.includes("bordeaux")
+        ? ["check-in", "kit de bienvenue", "communication voyageurs"]
+        : normalizedCity.includes("chamonix") ||
+            normalizedCity.includes("megeve") ||
+            normalizedCity.includes("meribel")
+          ? ["deneigement", "intervention d'urgence", "check-in"]
+          : [];
+
+    const propertyTerms = [
+      ...(normalizedProperty.includes("villa") || normalizedProperty.includes("maison")
+        ? ["jardinage", "nettoyage terrasses", "entretien voirie"]
+        : []),
+      ...(normalizedProperty.includes("piscine") ? ["nettoyage piscine"] : []),
+      ...(normalizedProperty.includes("studio") || normalizedProperty.includes("appartement")
+        ? ["menage entre voyageurs", "check-in", "changement de linge"]
+        : []),
+    ];
+
+    const selectedKeys = new Set(normalizedServices.map((service) => normalizeSuggestionKey(service)));
+
+    const scored = catalogServices.map((service) => {
+      const key = normalizeSuggestionKey(service.service);
+      let score = historyCounts.get(key) ?? 0;
+
+      if (matchesService(service, typeTermsByNeed[form.requestType])) score += 6;
+      if (matchesService(service, propertyTerms)) score += 4;
+      if (matchesService(service, cityTerms)) score += 3;
+      if (selectedKeys.has(key)) score += 2;
+      if (service.category === "Accueil" || service.category === "Ménage") score += 1;
+
+      return { service, score };
+    });
+
+    return scored
+      .sort((left, right) => {
+        if (right.score !== left.score) return right.score - left.score;
+        return left.service.service.localeCompare(right.service.service, "fr");
+      })
+      .slice(0, 8)
+      .map((entry) => entry.service);
+  }, [catalogServices, requests, form.requestType, normalizedCity, normalizedProperty, normalizedServices]);
+  const recentRequestedServices = useMemo(() => {
+    const counts = requests.reduce<Map<string, number>>((accumulator, request) => {
+      (request.requested_services ?? []).forEach((serviceName) => {
+        accumulator.set(serviceName, (accumulator.get(serviceName) ?? 0) + 1);
+      });
+      return accumulator;
+    }, new Map<string, number>());
+
+    return Array.from(counts.entries())
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0], "fr"))
+      .slice(0, 8)
+      .map(([serviceName]) => serviceName);
+  }, [requests]);
+
+  function toggleQuickService(serviceName: string) {
+    const nextSelection = normalizedServices.includes(serviceName)
+      ? normalizedServices.filter((item) => item !== serviceName)
+      : [...normalizedServices, serviceName];
+
+    setForm((current) => ({
+      ...current,
+      requestedServices: nextSelection.join(", "),
+    }));
+  }
 
   return (
     <div className="dashboard-grid">
@@ -414,7 +615,8 @@ export default function OwnerRequestsPage() {
               <p className={pageStyles.intro}>Renseignez l’essentiel. Les détails pourront être affinés ensuite.</p>
 
               <form className={pageStyles.formGrid} onSubmit={handleSubmit}>
-                <div className={pageStyles.fieldGrid}>
+                <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
                   <label className={pageStyles.field}>
                     <span>Logement</span>
                     <Select value={form.propertyKey} onChange={(event) => handleHousingChange(event.target.value)}>
@@ -443,9 +645,11 @@ export default function OwnerRequestsPage() {
                       <option value="durable">Besoin durable</option>
                     </Select>
                   </label>
+                  </div>
                 </div>
 
-                <div className={pageStyles.fieldGrid}>
+                <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
                   <label className={pageStyles.field}>
                     <span>Date de début</span>
                     <Input
@@ -479,9 +683,11 @@ export default function OwnerRequestsPage() {
                     </div>
                     <small className={pageStyles.fieldHint}>Indicatif, sans engagement sur le tarif final.</small>
                   </label>
+                  </div>
                 </div>
 
-                <div className={pageStyles.fieldGrid}>
+                <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
                   <label className={pageStyles.field}>
                     <span>Ville</span>
                     <Input
@@ -500,8 +706,10 @@ export default function OwnerRequestsPage() {
                       inputMode="numeric"
                     />
                   </label>
+                  </div>
                 </div>
 
+                <div className={pageStyles.formSectionCard}>
                 <label className={pageStyles.fullField}>
                   <span>Titre</span>
                   <Input
@@ -509,17 +717,74 @@ export default function OwnerRequestsPage() {
                     onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
                     placeholder="Ex : check-in et ménage de lancement"
                   />
+                  <div className={pageStyles.titleSuggestionCard}>
+                    <div className={pageStyles.titleSuggestionCopy}>
+                      <strong>Titre conseillé</strong>
+                      <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
+                      <code>{titleSuggestion}</code>
+                    </div>
+                    <button
+                      type="button"
+                      className={pageStyles.inlineHintAction}
+                      onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
+                    >
+                      {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
+                    </button>
+                  </div>
                 </label>
+                </div>
 
+                <div className={`${pageStyles.formSectionCard} ${pageStyles.formSectionFeature}`}>
                 <label className={pageStyles.fullField}>
                   <span>Services demandés</span>
+                  <small className={pageStyles.fieldHint}>
+                    Sélectionne d'abord les services du catalogue, puis ajoute un besoin libre si nécessaire.
+                  </small>
+                  {quickServiceSuggestions.length > 0 ? (
+                    <div className={pageStyles.quickServicesBlock}>
+                      <p className={pageStyles.quickServicesTitle}>Suggestions rapides intelligentes</p>
+                      <p className={pageStyles.quickServicesHint}>
+                        Basées sur le type de besoin, le logement, la ville et les demandes déjà fréquentes.
+                      </p>
+                      <div className={pageStyles.quickServicesList}>
+                        {quickServiceSuggestions.map((service) => {
+                          const isSelected = normalizedServices.includes(service.service);
+                          return (
+                            <button
+                              key={service.id}
+                              type="button"
+                              className={`${pageStyles.quickServiceChip} ${
+                                isSelected ? pageStyles.quickServiceChipSelected : ""
+                              }`}
+                              onClick={() => toggleQuickService(service.service)}
+                            >
+                              {service.service}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className={pageStyles.catalogSelectorWrap}>
+                    <ServiceCatalogSelector
+                      selected={normalizedServices}
+                      onChange={(selected) =>
+                        setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))
+                      }
+                      introText=""
+                      searchPlaceholder="Rechercher un service pour cette demande"
+                      priorityCategories={["Accueil", "Ménage", "Linge", "Maintenance", "Administratif"]}
+                      initialCategoryCount={5}
+                      recentServices={recentRequestedServices}
+                    />
+                  </div>
                   <div className={pageStyles.chipsInputWrap}>
                     <Input
                       value={form.requestedServices}
                       onChange={(event) =>
                         setForm((current) => ({ ...current, requestedServices: event.target.value }))
                       }
-                      placeholder="Ex : check-in, ménage, blanchisserie"
+                      placeholder="Ajouter un besoin spécifique : ex. état des lieux, coordination artisan"
                     />
                     {normalizedServices.length > 0 ? (
                       <div className={pageStyles.serviceChips}>
@@ -532,7 +797,9 @@ export default function OwnerRequestsPage() {
                     ) : null}
                   </div>
                 </label>
+                </div>
 
+                <div className={pageStyles.formSectionCard}>
                 <label className={pageStyles.fullField}>
                   <span>Contexte</span>
                   <Textarea
@@ -542,7 +809,9 @@ export default function OwnerRequestsPage() {
                     placeholder="Précisez le contexte, l’urgence éventuelle et ce que vous attendez."
                   />
                 </label>
+                </div>
 
+                <div className={pageStyles.formSectionCard}>
                 <Checkbox
                   checked={form.urgency}
                   onChange={(event) => setForm((current) => ({ ...current, urgency: event.target.checked }))}
@@ -556,6 +825,7 @@ export default function OwnerRequestsPage() {
                   <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
                     Rechercher une conciergerie
                   </ButtonLink>
+                </div>
                 </div>
               </form>
             </CardBody>
@@ -579,12 +849,13 @@ export default function OwnerRequestsPage() {
               />
               <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
                 <option value="all">Tous statuts</option>
-                <option value="draft">Brouillons</option>
-                <option value="sent">Envoyées</option>
-                <option value="in_review">En cours d'examen</option>
-                <option value="quoted">Avec devis</option>
-                <option value="selected">Concierge retenu</option>
-                <option value="closed">Clôturées</option>
+                <option value="NEW">Nouvelles</option>
+                <option value="IN_DISCUSSION">En discussion</option>
+                <option value="QUOTE_SENT">Devis envoyés</option>
+                <option value="ACCEPTED">Acceptées</option>
+                <option value="MISSION_CREATED">Mission créée</option>
+                <option value="IN_PROGRESS">En cours</option>
+                <option value="COMPLETED">Terminées</option>
               </Select>
             </div>
 
@@ -611,41 +882,70 @@ export default function OwnerRequestsPage() {
                       title={request.title}
                       subtitle={getRequestTypeLabel(request.request_type)}
                       status={request.status || "-"}
+                      workflowStatus={request.workflow_status}
+                      hasMission={Boolean(request.mission_id)}
                       urgency={request.urgency}
-                      interactive
-                      onOpen={() => router.push(buildRequestQuotesHref(request.id))}
                       actions={
-                        <>
+                        <div className={pageStyles.compactActions}>
                           <ButtonLink
                             href={buildConciergeSearchHref(request)}
-                            variant="secondary"
+                            variant="ghost"
+                            size="sm"
+                            className={pageStyles.iconAction}
+                            aria-label={
+                              getUnifiedRequestStatus(request) === "NEW"
+                                ? "Lancer la recherche pour cette demande"
+                                : "Relancer la recherche pour cette demande"
+                            }
+                            title={
+                              getUnifiedRequestStatus(request) === "NEW"
+                                ? "Lancer la recherche"
+                                : "Relancer la recherche"
+                            }
                             onClick={(event) => event.stopPropagation()}
                           >
-                            {request.status === "draft" ? "Lancer la recherche" : "Relancer la recherche"}
+                            <Search size={16} aria-hidden="true" />
                           </ButtonLink>
                           <ButtonLink
                             href={buildRequestQuotesHref(request.id)}
                             variant="secondary"
+                            size="sm"
+                            className={pageStyles.iconActionPrimary}
+                            aria-label="Voir les devis liés à cette demande"
+                            title="Voir les devis"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            Voir les devis
+                            <Eye size={16} aria-hidden="true" />
                           </ButtonLink>
-                        </>
+                        </div>
                       }
                       primaryFacts={[
-                        { label: "Logement", value: request.property_name || "À préciser" },
+                        { label: "Appartement", value: request.property_name || "À préciser" },
+                        {
+                          label: "Localisation",
+                          value:
+                            [request.city, request.postal_code].filter(Boolean).join(" ") || "À préciser",
+                        },
                         { label: "Début", value: formatDateTime(request.desired_date) },
                         { label: "Budget", value: formatAmount(request.budget_max, request.currency ?? "EUR") },
                       ]}
                       secondaryFacts={[
+                        { label: "Concierges proposés", value: request.recipients.length },
+                        {
+                          label: "Réponses",
+                          value: request.recipients.filter((recipient) =>
+                            ["interested", "quoted", "selected", "not_selected", "declined"].includes(
+                              recipient.status,
+                            ),
+                          ).length,
+                        },
                         { label: "Devis", value: quoteSummary.total },
-                        { label: "À valider", value: quoteSummary.pending },
-                        { label: "Retenus", value: quoteSummary.accepted },
                       ]}
                       services={request.requested_services ?? []}
                       emptyServicesLabel="Services à préciser"
                       helperTexts={[
-                        `${getRecipientSummary(request)} · créée le ${formatDateTime(request.created_at)}`,
+                        `Créée le ${formatDateTime(request.created_at)}`,
+                        ...getRecipientResponseSummary(request),
                       ]}
                     />
                   );

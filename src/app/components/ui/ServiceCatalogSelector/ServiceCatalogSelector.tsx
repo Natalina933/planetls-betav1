@@ -17,6 +17,11 @@ interface ServiceCatalogSelectorProps {
     onChange: (selected: string[]) => void;
     disabled?: boolean;
     hints?: Record<string, string>;
+    introText?: string;
+    searchPlaceholder?: string;
+    priorityCategories?: string[];
+    initialCategoryCount?: number;
+    recentServices?: string[];
 }
 
 type GroupedCatalog = Record<string, ServiceItem[]>;
@@ -54,6 +59,11 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     onChange,
     disabled = false,
     hints,
+    introText,
+    searchPlaceholder = "Rechercher un service, une description...",
+    priorityCategories = [],
+    initialCategoryCount = 5,
+    recentServices = [],
 }) => {
     const [catalog, setCatalog] = useState<GroupedCatalog>({});
     const [loading, setLoading] = useState<boolean>(true);
@@ -61,6 +71,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string>("all");
+    const [showAllCategories, setShowAllCategories] = useState(false);
 
     const toggleCategory = (category: string) => {
         setOpenCategories((prev) => ({
@@ -154,6 +165,15 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     const orderedCategories = useMemo(() => {
         const categories = Object.keys(catalog);
         return categories.sort((a, b) => {
+            const priorityIndexA = priorityCategories.indexOf(a);
+            const priorityIndexB = priorityCategories.indexOf(b);
+
+            if (priorityIndexA !== -1 || priorityIndexB !== -1) {
+                if (priorityIndexA === -1) return 1;
+                if (priorityIndexB === -1) return -1;
+                return priorityIndexA - priorityIndexB;
+            }
+
             const indexA = CATEGORY_ORDER.indexOf(a);
             const indexB = CATEGORY_ORDER.indexOf(b);
 
@@ -162,7 +182,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
             if (indexB === -1) return -1;
             return indexA - indexB;
         });
-    }, [catalog]);
+    }, [catalog, priorityCategories]);
 
     useEffect(() => {
         if (activeCategory !== "all" && !orderedCategories.includes(activeCategory)) {
@@ -190,6 +210,24 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
             })
             .filter(([, services]) => services.length > 0);
     }, [orderedCategories, activeCategory, searchQuery, catalog]);
+
+    const visibleCatalogEntries = useMemo(() => {
+        if (searchQuery.trim() || activeCategory !== "all" || showAllCategories) {
+            return filteredCatalogEntries;
+        }
+
+        return filteredCatalogEntries.slice(0, initialCategoryCount);
+    }, [filteredCatalogEntries, searchQuery, activeCategory, showAllCategories, initialCategoryCount]);
+
+    const hiddenCategoryCount = Math.max(filteredCatalogEntries.length - visibleCatalogEntries.length, 0);
+    const selectedServicesPreview = useMemo(
+        () => selected.slice(0, 6),
+        [selected]
+    );
+    const recentServicesPreview = useMemo(
+        () => recentServices.filter((service) => !selected.includes(service)).slice(0, 6),
+        [recentServices, selected]
+    );
 
     if (loading) {
         return (
@@ -230,17 +268,19 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
 
     return (
         <div className={styles.serviceCatalog}>
+            {introText !== "" ? (
             <p className={styles.catalogIntro}>
                 Définissez avec précision les prestations de conciergerie que vous
                 proposez. Cette sélection constituera le fondement de votre offre
                 professionnelle auprès des propriétaires et de leur clientèle.
             </p>
+            ) : null}
 
             <div className={styles.catalogControls}>
                 <input
                     type="search"
                     className={styles.searchInput}
-                    placeholder="Rechercher un service, une description..."
+                    placeholder={searchPlaceholder}
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     disabled={disabled}
@@ -297,6 +337,59 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 </button>
             </div>
 
+            {hiddenCategoryCount > 0 ? (
+                <div className={styles.catalogPreviewRow}>
+                    <p className={styles.catalogPreviewText}>
+                        {visibleCatalogEntries.length} catÃ©gories affichÃ©es, {hiddenCategoryCount} masquÃ©e{hiddenCategoryCount > 1 ? "s" : ""}.
+                    </p>
+                    <button
+                        type="button"
+                        className={styles.catalogPreviewButton}
+                        onClick={() => setShowAllCategories((current) => !current)}
+                    >
+                        {showAllCategories ? "Afficher moins" : "Voir tout le catalogue"}
+                    </button>
+                </div>
+            ) : null}
+
+            {selectedServicesPreview.length > 0 ? (
+                <div className={styles.quickAccessBlock}>
+                    <p className={styles.quickAccessTitle}>Déjà sélectionnés</p>
+                    <div className={styles.quickAccessList}>
+                        {selectedServicesPreview.map((service) => (
+                            <button
+                                key={`selected-${service}`}
+                                type="button"
+                                className={`${styles.quickAccessChip} ${styles.quickAccessChipActive}`}
+                                onClick={() => toggle(service)}
+                                disabled={disabled}
+                            >
+                                {service}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+
+            {recentServicesPreview.length > 0 ? (
+                <div className={styles.quickAccessBlock}>
+                    <p className={styles.quickAccessTitle}>Plus utilisés récemment</p>
+                    <div className={styles.quickAccessList}>
+                        {recentServicesPreview.map((service) => (
+                            <button
+                                key={`recent-${service}`}
+                                type="button"
+                                className={styles.quickAccessChip}
+                                onClick={() => toggle(service)}
+                                disabled={disabled}
+                            >
+                                {service}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            ) : null}
+
             <div className={styles.catalogContent}>
                 {filteredCatalogEntries.length === 0 && (
                     <div className={styles.noResult}>
@@ -304,7 +397,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                     </div>
                 )}
 
-                {filteredCatalogEntries.map(([category, services]) => {
+                {visibleCatalogEntries.map(([category, services]) => {
                     const isOpen = openCategories[category] ?? false;
                     const totalServices = services.length;
                     const selectedCount = services.filter((item) =>

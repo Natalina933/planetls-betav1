@@ -1,6 +1,6 @@
 import type { KeyboardEvent, ReactNode } from "react";
 import { Card, CardBody, CardHeader, Tag } from "@/components/ui";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { RequestStatusBadge } from "@/components/ui";
 import styles from "./OwnerRequestSummaryCard.module.scss";
 
 type RequestFact = {
@@ -13,6 +13,9 @@ export type OwnerRequestSummaryCardProps = {
   title: string;
   subtitle?: string;
   status?: string | null;
+  workflowStatus?: string | null;
+  missionStatus?: string | null;
+  hasMission?: boolean;
   urgency?: boolean;
   primaryFacts: RequestFact[];
   secondaryFacts?: RequestFact[];
@@ -24,6 +27,7 @@ export type OwnerRequestSummaryCardProps = {
   className?: string;
   interactive?: boolean;
   onOpen?: () => void;
+  children?: ReactNode;
 };
 
 export function OwnerRequestSummaryCard({
@@ -31,6 +35,9 @@ export function OwnerRequestSummaryCard({
   title,
   subtitle,
   status,
+  workflowStatus,
+  missionStatus,
+  hasMission = false,
   urgency = false,
   primaryFacts,
   secondaryFacts = [],
@@ -42,7 +49,10 @@ export function OwnerRequestSummaryCard({
   className = "",
   interactive = false,
   onOpen,
+  children,
 }: OwnerRequestSummaryCardProps) {
+  const [metaText, ...responseTexts] = helperTexts;
+
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!interactive || !onOpen) return;
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -64,7 +74,14 @@ export function OwnerRequestSummaryCard({
       <CardHeader className={styles.header}>
         <div className={styles.heading}>
           <div className={styles.statusLine}>
-            {status ? <WorkflowStatusBadge value={status} /> : null}
+            {(status || workflowStatus || hasMission) ? (
+              <RequestStatusBadge
+                workflowStatus={workflowStatus}
+                serviceRequestStatus={status}
+                missionStatus={missionStatus}
+                hasMission={hasMission}
+              />
+            ) : null}
             {urgency ? (
               <Tag tone="gold" onClick={(event) => event.stopPropagation()}>
                 Urgent
@@ -87,9 +104,9 @@ export function OwnerRequestSummaryCard({
         ) : null}
       </CardHeader>
 
-      <CardBody className={styles.card}>
+      <CardBody className={styles.body}>
         {primaryFacts.length > 0 ? (
-          <div className={styles.facts}>
+          <div className={styles.primaryFacts}>
             {primaryFacts.map((fact) => (
               <div key={fact.label} className={styles.factCard}>
                 <span>{fact.label}</span>
@@ -100,9 +117,9 @@ export function OwnerRequestSummaryCard({
         ) : null}
 
         {secondaryFacts.length > 0 ? (
-          <div className={styles.facts}>
+          <div className={styles.secondaryFacts}>
             {secondaryFacts.map((fact) => (
-              <div key={fact.label} className={styles.factCard}>
+              <div key={fact.label} className={styles.secondaryFactCard}>
                 <span>{fact.label}</span>
                 <strong>{fact.value}</strong>
               </div>
@@ -110,31 +127,43 @@ export function OwnerRequestSummaryCard({
           </div>
         ) : null}
 
-        <div className={styles.services}>
-          {services.length > 0 ? (
-            services.map((service) => (
-              <Tag key={service} tone="status" onClick={(event) => event.stopPropagation()}>
-                {service}
-              </Tag>
-            ))
-          ) : (
-            <Tag tone="neutral" onClick={(event) => event.stopPropagation()}>
-              {emptyServicesLabel}
-            </Tag>
-          )}
+        <div className={styles.infoStack}>
+          <div className={styles.servicesBlock}>
+            <p className={styles.sectionLabel}>Services demandes</p>
+            <div className={styles.services}>
+              {services.length > 0 ? (
+                services.map((service) => (
+                  <Tag key={service} tone="status" onClick={(event) => event.stopPropagation()}>
+                    {service}
+                  </Tag>
+                ))
+              ) : (
+                <Tag tone="neutral" onClick={(event) => event.stopPropagation()}>
+                  {emptyServicesLabel}
+                </Tag>
+              )}
+            </div>
+          </div>
+
+          {description ? <p className={styles.description}>{description}</p> : null}
+
+          {metaText ? <p className={styles.metaText}>{metaText}</p> : null}
+
+          {responseTexts.length > 0 ? (
+            <div className={styles.responsesBlock}>
+              <p className={styles.sectionLabel}>Reponses des concierges</p>
+              <div className={styles.responseList}>
+                {responseTexts.map((text, index) => (
+                  <p key={index} className={styles.responseItem}>
+                    {text}
+                  </p>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {description ? <p className={styles.description}>{description}</p> : null}
-
-        {helperTexts.length > 0 ? (
-          <div className={styles.helperStack}>
-            {helperTexts.map((text, index) => (
-              <p key={index} className={styles.helperText}>
-                {text}
-              </p>
-            ))}
-          </div>
-        ) : null}
+        {children ? <div className={styles.extraContent}>{children}</div> : null}
       </CardBody>
     </Card>
   );
