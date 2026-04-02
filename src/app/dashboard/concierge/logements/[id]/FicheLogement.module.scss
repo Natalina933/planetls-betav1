@@ -49,6 +49,80 @@
   max-width: 760px;
 }
 
+.heroIdentity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.housingAvatar {
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.12);
+}
+
+.housingAvatarWrap {
+  position: relative;
+  width: fit-content;
+}
+
+.housingCameraButton {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(44, 36, 24, 0.9);
+  background: radial-gradient(circle at 30% 0, #ffdf9a, #c79a3b);
+  box-shadow:
+    0 14px 26px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #302312;
+  z-index: 2;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.housingGallery,
+.housingGalleryEditor {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.housingGalleryItem,
+.housingGalleryCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.7rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(184, 92, 72, 0.16);
+}
+
+.housingGalleryImage {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+}
+
+.housingGalleryActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 .eyebrow {
   margin: 0;
   color: #9f4838;
@@ -359,6 +433,72 @@
   gap: 1rem;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.sectionIntro {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 760px;
+}
+
+.tabEditButton,
+.tabEditBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.tabEditButton {
+  border: 1px solid rgba(184, 92, 72, 0.22);
+  background: rgba(255, 255, 255, 0.88);
+  color: #793528;
+  cursor: pointer;
+}
+
+.tabEditBadge {
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  background: rgba(184, 92, 72, 0.1);
+  color: #8a4030;
+}
+
+.subsectionDivider {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 244, 240, 0.9)),
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.12), transparent 40%);
+  border: 1px solid rgba(184, 92, 72, 0.16);
+}
+
+.subsectionTitle {
+  margin: 0;
+  color: #8a4030;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.subsectionText {
+  margin: 0;
+  color: #6f4338;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .panel {
   display: grid;
   gap: 0.8rem;
@@ -401,8 +541,10 @@
 }
 
 .field input,
+.field select,
 .field textarea,
 .fullField input,
+.fullField select,
 .fullField textarea,
 .content textarea {
   width: 100%;

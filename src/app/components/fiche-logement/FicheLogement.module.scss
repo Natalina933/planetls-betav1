@@ -1,131 +1,248 @@
-// @use "@/app/styles/base/mixins" as *;
-@use "sass:color";
-@use "@/app/styles/abstracts/mixins" as *;
-@use "@/app/styles/abstracts/functions" as *;
-@use "@/app/styles/abstracts/variables" as *;
-@use "@/app/styles/base/animations" as anim;
+.ficheLogement {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0.5rem 0 2rem;
+}
 
-.ficheLogementWrapper {
-  padding: $spacing-xl 0;
-  @include fadeIn(0.7s);
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.5rem;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.16), transparent 34%),
+    linear-gradient(180deg, #fff9f6, #f7e5de);
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  box-shadow: 0 18px 34px rgba(109, 53, 41, 0.08);
 
-  .headerSection {
-    @include container(1100px);
-    @include mucha-frame($gold, $radius-2xl);
-    padding: $spacing-xl;
-    margin-bottom: $spacing-lg;
-    background: var(--surface);
-    position: relative;
+  h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    color: #4a2018;
+  }
+}
 
-    .titleBar {
-      @include flex-between;
-      margin-bottom: $spacing-md;
+.headerIdentity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 
-      h1 {
-        @include heading-style(2);
-      }
+.housingAvatar {
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.12);
+}
 
-      .ownerInfo {
-        text-align: right;
+.address,
+.category {
+  margin: 0.35rem 0 0;
+  color: #6f4338;
+  line-height: 1.55;
+}
 
-        div {
-          font-weight: 600;
-        }
+.category {
+  font-weight: 700;
+}
 
-        span {
-          font-size: 0.9rem;
-          opacity: 0.7;
-        }
-      }
-    }
+.headerMeta {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
 
-    .mainInfos {
-      @include grid(3, $spacing-lg);
-      margin-top: $spacing-lg;
+.logementId,
+.digicode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.62rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  color: #6b3529;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
 
-      .infoItem {
-        padding: $spacing-md;
-        border-radius: $radius-lg;
-        @include backdrop-blur(
-          4px,
-          rgba(255, 255, 255, 0.65),
-          rgba(200, 200, 200, 0.25)
-        );
-        @include box-shadow(rgba(0, 0, 0, 0.06));
+.tabs {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
 
-        label {
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          opacity: 0.6;
-          display: block;
-        }
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 46px;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  background: rgba(255, 244, 240, 0.92);
+  color: #793528;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 
-        p {
-          font-weight: 600;
-          margin-top: 0.3rem;
-        }
-      }
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
 
-      @include mq("tablet") {
-        grid-template-columns: 1fr;
-      }
-    }
+.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, #b85c48, #9f4838);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(109, 53, 41, 0.18);
+}
+
+.tabIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.content {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.35rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fffdfa, #f8e7e0);
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.07);
+}
+
+.section {
+  display: grid;
+  gap: 1rem;
+
+  h2,
+  h3 {
+    margin: 0;
+    color: #4a2018;
+  }
+}
+
+.infoGrid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+  p {
+    margin: 0;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(184, 92, 72, 0.14);
+    color: #5c392f;
+    line-height: 1.5;
+  }
+}
+
+.photos {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+}
+
+.photoItem {
+  margin: 0;
+}
+
+.photo {
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  object-fit: cover;
+  box-shadow: 0 12px 22px rgba(109, 53, 41, 0.08);
+}
+
+.checklist,
+.docsList,
+.notesList {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.checklist li,
+.docItem,
+.noteItem,
+.event {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  color: #5f3a31;
+}
+
+.event {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.eventHeader,
+.eventMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.eventDate {
+  color: #4a2018;
+}
+
+.eventType,
+.eventStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.12);
+  color: #8a4030;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed rgba(184, 92, 72, 0.26);
+  color: #7a4d43;
+}
+
+@media (max-width: 768px) {
+  .header,
+  .content {
+    padding: 1.1rem;
   }
 
-  // -----------------------------
-  // 📌 Onglets
-  // -----------------------------
-  .tabsNav {
-    @include container(1100px);
-    display: flex;
-    gap: $spacing-md;
-    margin-bottom: $spacing-md;
-    padding-bottom: $spacing-sm;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-
-    button {
-      @include button(
-        $bg: transparent,
-        $color: var(--text),
-        $padding: 0.5rem 1.2rem,
-        $radius: $radius-pill
-      );
-      font-size: 1rem;
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.04);
-      }
-
-      &.active {
-        background: $gold-soft;
-        color: $gold-dark;
-        font-weight: 600;
-        border: 1px solid $gold;
-      }
-    }
-
-    @include mq("tablet") {
-      overflow-x: auto;
-      white-space: nowrap;
-    }
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
-  // -----------------------------
-  // 📌 Contenu Onglets
-  // -----------------------------
-  .tabContent {
-    @include container(1100px);
-    padding: $spacing-lg $spacing-md;
-    border-radius: $radius-xl;
-    @include mucha-frame($gold, $radius-xl);
-    background: var(--surface-2);
+  .tab {
+    width: 100%;
+    justify-content: center;
+  }
 
-    @include fadeIn(0.6s);
-
-    // Titres internes
-    h2 {
-      @include heading-style(3);
-      margin-bottom: $spacing-md;
-    }
+  .photos {
+    grid-template-columns: 1fr;
   }
 }

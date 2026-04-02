@@ -3,7 +3,9 @@
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { FiEdit2, FiFileText, FiHome, FiList, FiRotateCcw, FiSave } from "react-icons/fi";
+import { FiCamera, FiEdit2, FiFileText, FiHome, FiList, FiRotateCcw, FiSave } from "react-icons/fi";
+import { Avatar } from "@/components/ui/Avatar";
+import HousingPhotoManager from "@/app/components/dashboard/housing/HousingPhotoManager";
 import styles from "./LogementWorkspace.module.scss";
 import HousingStatusBadge from "./HousingStatusBadge";
 import HousingOwnerContactSection from "./HousingOwnerContactSection";
@@ -20,7 +22,7 @@ import {
   validateHousingDraft,
 } from "@/types/housing";
 
-type TabId = "infos" | "services" | "timeline" | "docs" | "quotes";
+type TabId = "synthese" | "infos" | "services" | "timeline" | "docs" | "quotes";
 
 type ConciergeProfileService = {
   label: string;
@@ -75,6 +77,7 @@ type PricingPackageRow = {
 type ServiceSelectionMode = "pack" | "manual";
 
 const tabs: Array<{ id: TabId; label: string }> = [
+  { id: "synthese", label: "Synthèse" },
   { id: "infos", label: "Infos" },
   { id: "services", label: "Services" },
   { id: "timeline", label: "Historique" },
@@ -88,10 +91,11 @@ export default function LogementPage() {
 
   const [housing, setHousing] = useState<ConciergeHousing | null>(null);
   const [draft, setDraft] = useState<ConciergeHousing | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>("infos");
+  const [activeTab, setActiveTab] = useState<TabId>("synthese");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [profileServices, setProfileServices] = useState<ConciergeProfileService[]>([]);
@@ -210,6 +214,10 @@ export default function LogementPage() {
   }, []);
 
   const completionRatio = useMemo(() => Math.round((draft?.completion.ratio ?? 0) * 100), [draft]);
+  const housingPhotos = useMemo(
+    () => draft?.characteristics.photos ?? (draft?.photo_principale ? [draft.photo_principale] : []),
+    [draft],
+  );
   const selectedHousingServiceLabels = useMemo(
     () => (draft?.services.items ?? []).map((service) => service.label).filter(Boolean),
     [draft?.services.items],
@@ -282,6 +290,68 @@ export default function LogementPage() {
 
   function updateDraft<T extends keyof ConciergeHousing>(key: T, value: ConciergeHousing[T]) {
     setDraft((current) => (current ? { ...current, [key]: value } : current));
+  }
+
+  async function uploadHousingPhotos(files: FileList | null) {
+    if (!files || files.length === 0 || !draft) return;
+
+    try {
+      setPhotoUploading(true);
+      setError("");
+
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("housingId", String(id));
+
+        const response = await fetch("/api/housing/photos", {
+          method: "POST",
+          body: formData,
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || typeof payload?.url !== "string") {
+          throw new Error(typeof payload?.error === "string" ? payload.error : "Upload photo impossible.");
+        }
+
+        uploadedUrls.push(payload.url);
+      }
+
+      updateDraft("characteristics", {
+        ...draft.characteristics,
+        photos: [...(draft.characteristics.photos ?? []), ...uploadedUrls],
+      });
+
+      if (!draft.photo_principale && uploadedUrls[0]) {
+        updateDraft("photo_principale", uploadedUrls[0]);
+      }
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Upload photo impossible.");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  function setPrimaryHousingPhoto(photo: string) {
+    if (!draft) return;
+    updateDraft("photo_principale", photo);
+    updateDraft("characteristics", {
+      ...draft.characteristics,
+      photos: [photo, ...(draft.characteristics.photos ?? []).filter((item) => item !== photo)],
+    });
+  }
+
+  function removeHousingPhoto(photo: string) {
+    if (!draft) return;
+    const nextPhotos = (draft.characteristics.photos ?? []).filter((item) => item !== photo);
+    updateDraft("characteristics", {
+      ...draft.characteristics,
+      photos: nextPhotos,
+    });
+    if (draft.photo_principale === photo) {
+      updateDraft("photo_principale", nextPhotos[0] ?? null);
+    }
   }
 
   function syncHousingServicesFromSelection(selectedLabels: string[]) {
@@ -383,12 +453,35 @@ export default function LogementPage() {
     <div className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.heroTop}>
-          <div>
-            <p className={styles.eyebrow}>Fiche logement</p>
-            <h1 className={styles.title}>{draft.nom_logement || "Logement sans nom"}</h1>
-            <p className={styles.muted}>
-              {[draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.city].filter(Boolean).join(", ")}
-            </p>
+          <div className={styles.heroIdentity}>
+            <div className={styles.housingAvatarWrap}>
+              <Avatar
+                src={draft.photo_principale}
+                name={draft.nom_logement || "Logement"}
+                alt={`Avatar du logement ${draft.nom_logement || ""}`}
+                size="lg"
+                className={styles.housingAvatar}
+              />
+              {editing ? (
+                <label className={styles.housingCameraButton}>
+                  <FiCamera />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    onChange={(event) => void uploadHousingPhotos(event.target.files)}
+                  />
+                </label>
+              ) : null}
+            </div>
+            <div>
+              <p className={styles.eyebrow}>Fiche logement</p>
+              <h1 className={styles.title}>{draft.nom_logement || "Logement sans nom"}</h1>
+              <p className={styles.muted}>
+                {[draft.locationInfo.addressLine1, draft.locationInfo.postalCode, draft.locationInfo.city].filter(Boolean).join(", ")}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -427,6 +520,7 @@ export default function LogementPage() {
 
         {success ? <p className={styles.messageSuccess}>{success}</p> : null}
         {error ? <p className={styles.messageError}>{error}</p> : null}
+        {photoUploading ? <p className={styles.messageSuccess}>Upload des photos en cours...</p> : null}
       </section>
 
       <div className={styles.layout}>
@@ -475,6 +569,57 @@ export default function LogementPage() {
               ))}
             </div>
 
+            {activeTab === "synthese" ? (
+              <div className={styles.page}>
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Synthèse</p>
+                      <h2 className={styles.cardTitle}>Tableau de bord du logement</h2>
+                    </div>
+                  </div>
+                  <div className={styles.statGrid}>
+                    <article className={styles.statCard}>
+                      <span className={styles.statLabel}>Statut</span>
+                      <strong className={styles.statValue}>{draft.statut || "À préciser"}</strong>
+                    </article>
+                    <article className={styles.statCard}>
+                      <span className={styles.statLabel}>Photos</span>
+                      <strong className={styles.statValue}>{housingPhotos.length}</strong>
+                    </article>
+                    <article className={styles.statCard}>
+                      <span className={styles.statLabel}>Services</span>
+                      <strong className={styles.statValue}>{draft.services.items.length}</strong>
+                    </article>
+                    <article className={styles.statCard}>
+                      <span className={styles.statLabel}>Complétion</span>
+                      <strong className={styles.statValue}>{completionRatio}%</strong>
+                    </article>
+                  </div>
+                </section>
+
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Galerie</p>
+                      <h2 className={styles.cardTitle}>Photos du logement</h2>
+                    </div>
+                  </div>
+                  {housingPhotos.length === 0 ? (
+                    <p className={styles.cardMeta}>Aucune photo du logement pour le moment.</p>
+                  ) : (
+                    <div className={styles.housingGallery}>
+                      {housingPhotos.map((photo, index) => (
+                        <div className={styles.housingGalleryItem} key={`${photo}-${index}`}>
+                          <img src={photo} alt={`Photo ${index + 1} du logement`} className={styles.housingGalleryImage} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+            ) : null}
+
             {activeTab === "infos" ? (
               <div className={styles.page}>
                 <section className={styles.panel}>
@@ -489,6 +634,16 @@ export default function LogementPage() {
                   </div>
 
                   <div className={styles.fieldGrid}>
+                    <label className={styles.label}>
+                      <span>Date de création</span>
+                      <input className={styles.field} value={draft.created_at ? new Date(draft.created_at).toLocaleString("fr-FR") : ""} disabled />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Id propriétaire</span>
+                      <input className={styles.field} value={draft.owner.profileId ?? ""} disabled />
+                    </label>
+
                     <label className={styles.label}>
                       <span>Nom logement</span>
                       <input
@@ -520,6 +675,20 @@ export default function LogementPage() {
                         ))}
                       </select>
                     </label>
+
+                    <div className={`${styles.label} ${styles.fieldFull}`}>
+                      <HousingPhotoManager
+                        editing={editing}
+                        photos={housingPhotos}
+                        primaryPhoto={draft.photo_principale}
+                        uploading={photoUploading}
+                        title="Galerie du logement"
+                        helperText="Ajoute plusieurs photos utiles pour la fiche logement, les demandes de mission et le suivi conciergerie."
+                        onUpload={uploadHousingPhotos}
+                        onSetPrimary={setPrimaryHousingPhoto}
+                        onRemove={removeHousingPhoto}
+                      />
+                    </div>
 
                     <label className={styles.label}>
                       <span>Statut</span>
@@ -571,6 +740,84 @@ export default function LogementPage() {
                     onOwnerSaved={(_, row) => applySavedOwner(row)}
                   />
 
+                  <div className={styles.fieldGrid}>
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Adresse propriétaire</span>
+                      <input
+                        className={styles.field}
+                        value={draft.owner.address}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("owner", {
+                            ...draft.owner,
+                            address: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Téléphone 2</span>
+                      <input
+                        className={styles.field}
+                        value={draft.owner.secondaryPhone}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("owner", {
+                            ...draft.owner,
+                            secondaryPhone: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Contact principal</span>
+                      <input
+                        className={styles.field}
+                        value={draft.owner.primaryContactName}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("owner", {
+                            ...draft.owner,
+                            primaryContactName: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Mail principal</span>
+                      <input
+                        className={styles.field}
+                        type="email"
+                        value={draft.owner.primaryContactEmail}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("owner", {
+                            ...draft.owner,
+                            primaryContactEmail: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Tél. principal</span>
+                      <input
+                        className={styles.field}
+                        value={draft.owner.primaryContactPhone}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("owner", {
+                            ...draft.owner,
+                            primaryContactPhone: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+
                   <OwnerInvitationPanel
                     housingId={id}
                     housingName={draft.nom_logement || undefined}
@@ -614,6 +861,21 @@ export default function LogementPage() {
                           updateDraft("locationInfo", {
                             ...draft.locationInfo,
                             addressLine2: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Infos / code Wifi</span>
+                      <input
+                        className={styles.field}
+                        value={draft.characteristics.wifiInfo}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("characteristics", {
+                            ...draft.characteristics,
+                            wifiInfo: event.target.value,
                           })
                         }
                       />
@@ -674,6 +936,23 @@ export default function LogementPage() {
                           updateDraft("locationInfo", {
                             ...draft.locationInfo,
                             accessCode: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Caution</span>
+                      <input
+                        className={styles.field}
+                        type="number"
+                        value={draft.pricing.securityDeposit ?? ""}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("pricing", {
+                            ...draft.pricing,
+                            securityDeposit: Number(event.target.value) || null,
+                            caution: Number(event.target.value) || null,
                           })
                         }
                       />
@@ -768,7 +1047,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Capacité voyageurs</span>
+                      <span>Nombre de couchages</span>
                       <input
                         className={styles.field}
                         value={draft.characteristics.guestCapacity ?? ""}
@@ -778,6 +1057,22 @@ export default function LogementPage() {
                             ...draft.characteristics,
                             guestCapacity: Number(event.target.value) || null,
                             capacite: Number(event.target.value) || null,
+                          })
+                        }
+                      />
+                    </label>
+
+                    <label className={styles.label}>
+                      <span>Nombre de clés</span>
+                      <input
+                        className={styles.field}
+                        type="number"
+                        value={draft.characteristics.keyCount ?? ""}
+                        disabled={!editing}
+                        onChange={(event) =>
+                          updateDraft("characteristics", {
+                            ...draft.characteristics,
+                            keyCount: Number(event.target.value) || null,
                           })
                         }
                       />
@@ -820,6 +1115,110 @@ export default function LogementPage() {
                         placeholder="Wifi, Climatisation, Parking..."
                       />
                     </label>
+
+                    <div className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Options et besoins du logement</span>
+                      <div className={styles.checkboxGroup}>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.terrace}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                terrace: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Terrasse</span>
+                        </label>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.stairs}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                stairs: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Escaliers</span>
+                        </label>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.pool}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                pool: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Piscine</span>
+                        </label>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.petsAllowed}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                petsAllowed: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Animaux acceptés</span>
+                        </label>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.nonSmoking}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                nonSmoking: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Non fumeur</span>
+                        </label>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.barbecue}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                barbecue: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Barbecue</span>
+                        </label>
+                        <label className={styles.checkboxCard}>
+                          <input
+                            type="checkbox"
+                            checked={draft.characteristics.chequeRequired}
+                            disabled={!editing}
+                            onChange={(event) =>
+                              updateDraft("characteristics", {
+                                ...draft.characteristics,
+                                chequeRequired: event.target.checked,
+                              })
+                            }
+                          />
+                          <span>Chèque de caution à demander</span>
+                        </label>
+                      </div>
+                    </div>
 
                     <label className={`${styles.label} ${styles.fieldFull}`}>
                       <span>Description</span>

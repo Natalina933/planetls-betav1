@@ -1,131 +1,272 @@
 "use client";
 
-import React, { useState } from "react";
-import { FiHome, FiClipboard, FiCalendar, FiFileText, FiMessageSquare } from "react-icons/fi";
+import { useMemo, useState } from "react";
 import Image from "next/image";
+import {
+  FiCalendar,
+  FiClipboard,
+  FiFileText,
+  FiHome,
+  FiMessageSquare,
+} from "react-icons/fi";
+import { Avatar } from "@/components/ui/Avatar";
 import styles from "./FicheLogement.module.scss";
 
-export default function FicheLogement() {
-  const [activeTab, setActiveTab] = useState("infos");
+export type FicheLogementPlanningEvent = {
+  date: string;
+  type: string;
+  guest?: string;
+  agent?: string;
+  status: string;
+};
 
-  const logement = {
-    id: 1,
-    name: "Appartement Haussmannien – Etoile",
-    address: "42 Avenue Carnot, 75017 Paris",
-    city: "Paris",
-    category: "Appartement Luxe",
-    digicode: "A472B - Porte 3B",
-    photos: ["/images/default-logement.jpg"],
-    notes: ["Attention parquet fragile dans le salon.", "Ne pas fermer la fenêtre de la cuisine (verrou cassé)."],
-    planning: [
-      { date: "2025-02-15", type: "Arrivée", guest: "Famille Dupont", status: "check-in 16h" },
-      { date: "2025-02-16", type: "Ménage", agent: "Sophie", status: "à faire" }
-    ],
-    documents: [
-      { name: "Mode d’emploi Lave-linge", file: "mode_emploi_lavelinge.pdf" },
-      { name: "Plan de l’appartement", file: "plan_appartement.pdf" }
-    ]
+export type FicheLogementDocumentItem = {
+  name: string;
+  file: string;
+};
+
+export type FicheLogementData = {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  category: string;
+  digicode: string;
+  photos: string[];
+  notes: string[];
+  planning: FicheLogementPlanningEvent[];
+  documents: FicheLogementDocumentItem[];
+  housekeeping: {
+    estimatedTime: string;
+    checklist: string[];
+    instructions: string;
   };
+};
 
-  const tabs = [
-    { id: "infos", label: "Infos générales", icon: FiHome },
-    { id: "menage", label: "Ménage & préparation", icon: FiClipboard },
-    { id: "planning", label: "Planning", icon: FiCalendar },
-    { id: "docs", label: "Documents", icon: FiFileText },
-    { id: "notes", label: "Notes internes", icon: FiMessageSquare }
-  ];
+type TabId = "infos" | "menage" | "planning" | "docs" | "notes";
+
+const TABS: Array<{ id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { id: "infos", label: "Infos générales", icon: FiHome },
+  { id: "menage", label: "Ménage & préparation", icon: FiClipboard },
+  { id: "planning", label: "Planning", icon: FiCalendar },
+  { id: "docs", label: "Documents", icon: FiFileText },
+  { id: "notes", label: "Notes internes", icon: FiMessageSquare },
+];
+
+function formatDisplayDate(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export default function FicheLogement({ logement }: { logement: FicheLogementData }) {
+  const [activeTab, setActiveTab] = useState<TabId>("infos");
+
+  const safePhotos = useMemo(
+    () => (Array.isArray(logement.photos) ? logement.photos.filter(Boolean) : []),
+    [logement.photos],
+  );
 
   return (
-    <div className={styles.ficheLogement}>
+    <section className={styles.ficheLogement} aria-labelledby="logement-title">
+      <header className={styles.header}>
+        <div className={styles.headerIdentity}>
+          <Avatar
+            src={safePhotos[0] ?? null}
+            name={logement.name}
+            alt={`Avatar du logement ${logement.name}`}
+            size="lg"
+            className={styles.housingAvatar}
+          />
+          <div>
+            <h1 id="logement-title">{logement.name}</h1>
+            <p className={styles.address}>
+              {logement.address} · {logement.city}
+            </p>
+            <p className={styles.category}>{logement.category}</p>
+          </div>
+        </div>
 
-      {/* HEADER */}
-      <div className={styles.header}>
-        <h1>{logement.name}</h1>
-        <p>{logement.address}</p>
+        <div className={styles.headerMeta}>
+          <span className={styles.logementId}>ID #{logement.id}</span>
+          <span className={styles.digicode}>
+            <strong>Accès :</strong> {logement.digicode || "Non renseigné"}
+          </span>
+        </div>
+      </header>
+
+      <div
+        className={styles.tabs}
+        role="tablist"
+        aria-label="Sections de la fiche logement"
+      >
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-selected={isActive}
+              aria-controls={`panel-${tab.id}`}
+              tabIndex={isActive ? 0 : -1}
+              className={`${styles.tab} ${isActive ? styles.active : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <Icon className={styles.tabIcon} />
+              <span className={styles.tabLabel}>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* TABS NAVIGATION */}
-      <div className={styles.tabs}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`${styles.tab} ${activeTab === tab.id ? styles.active : ""}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            <tab.icon />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* TAB CONTENT */}
       <div className={styles.content}>
-        {activeTab === "infos" && (
-          <div className={styles.section}>
-            <h2>Informations générales</h2>
-            <div className={styles.infoGrid}>
-              <p><strong>Nom :</strong> {logement.name}</p>
-              <p><strong>Adresse :</strong> {logement.address}</p>
-              <p><strong>Catégorie :</strong> {logement.category}</p>
-              <p><strong>Digicode :</strong> {logement.digicode}</p>
-            </div>
+        <div
+          role="tabpanel"
+          id="panel-infos"
+          aria-labelledby="tab-infos"
+          hidden={activeTab !== "infos"}
+          className={styles.section}
+        >
+          <h2>Informations générales</h2>
 
-            <h3>Photos</h3>
-            <div className={styles.photos}>
-              {logement.photos.map((src, i) => (
-                <Image key={i} src={src} width={200} height={140} alt="Photo logement" />
-              ))}
-            </div>
+          <div className={styles.infoGrid}>
+            <p>
+              <strong>Nom :</strong> {logement.name}
+            </p>
+            <p>
+              <strong>Adresse :</strong> {logement.address}
+            </p>
+            <p>
+              <strong>Ville :</strong> {logement.city}
+            </p>
+            <p>
+              <strong>Catégorie :</strong> {logement.category}
+            </p>
+            <p>
+              <strong>Code d&apos;accès :</strong> {logement.digicode || "Non renseigné"}
+            </p>
           </div>
-        )}
 
-        {activeTab === "menage" && (
-          <div className={styles.section}>
-            <h2>Ménage & Préparation</h2>
-            <ul>
-              <li>Temps estimé : 1h30</li>
-              <li>Check-list : Draps, Serviettes, Sols, Salle de bain, Cuisine</li>
-              <li>Instructions spéciales : Parquet fragile + Vérifier stores salon</li>
-            </ul>
-          </div>
-        )}
+          <h3>Photos</h3>
+          <div className={styles.photos}>
+            {safePhotos.length === 0 ? (
+              <p className={styles.emptyState}>Aucune photo pour le moment.</p>
+            ) : null}
 
-        {activeTab === "planning" && (
-          <div className={styles.section}>
-            <h2>Planning du logement</h2>
-            {logement.planning.map((event, i) => (
-              <div key={i} className={styles.event}>
-                <strong>{event.date}</strong> — {event.type}
-                {event.guest && <span> · {event.guest}</span>}
-                {event.agent && <span> · Agent : {event.agent}</span>}
-                <em> ({event.status})</em>
-              </div>
+            {safePhotos.map((src, index) => (
+              <figure key={`${src}-${index}`} className={styles.photoItem}>
+                <Image
+                  src={src}
+                  width={260}
+                  height={180}
+                  alt={`Photo du logement ${logement.name}`}
+                  className={styles.photo}
+                />
+              </figure>
             ))}
           </div>
-        )}
+        </div>
 
-        {activeTab === "docs" && (
-          <div className={styles.section}>
-            <h2>Documents</h2>
-            <ul>
-              {logement.documents.map((doc, i) => (
-                <li key={i}>{doc.name}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div
+          role="tabpanel"
+          id="panel-menage"
+          aria-labelledby="tab-menage"
+          hidden={activeTab !== "menage"}
+          className={styles.section}
+        >
+          <h2>Ménage & préparation</h2>
+          <ul className={styles.checklist}>
+            <li>
+              <strong>Temps estimé :</strong> {logement.housekeeping.estimatedTime || "Non renseigné"}
+            </li>
+            <li>
+              <strong>Check-list :</strong>{" "}
+              {logement.housekeeping.checklist.length > 0
+                ? logement.housekeeping.checklist.join(", ")
+                : "Aucune check-list renseignée"}
+            </li>
+            <li>
+              <strong>Instructions spéciales :</strong>{" "}
+              {logement.housekeeping.instructions || "Aucune instruction particulière"}
+            </li>
+          </ul>
+        </div>
 
-        {activeTab === "notes" && (
-          <div className={styles.section}>
-            <h2>Notes internes</h2>
-            <ul>
-              {logement.notes.map((note, i) => (
-                <li key={i}>{note}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div
+          role="tabpanel"
+          id="panel-planning"
+          aria-labelledby="tab-planning"
+          hidden={activeTab !== "planning"}
+          className={styles.section}
+        >
+          <h2>Planning du logement</h2>
+          {logement.planning.length === 0 ? (
+            <p className={styles.emptyState}>Aucun événement planifié pour ce logement.</p>
+          ) : null}
+
+          {logement.planning.map((event, index) => (
+            <article key={`${event.date}-${event.type}-${index}`} className={styles.event}>
+              <header className={styles.eventHeader}>
+                <strong className={styles.eventDate}>{formatDisplayDate(event.date)}</strong>
+                <span className={styles.eventType}>{event.type}</span>
+              </header>
+              <div className={styles.eventMeta}>
+                {event.guest ? <span>Client : {event.guest}</span> : null}
+                {event.agent ? <span>Agent : {event.agent}</span> : null}
+                <span className={styles.eventStatus}>{event.status}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div
+          role="tabpanel"
+          id="panel-docs"
+          aria-labelledby="tab-docs"
+          hidden={activeTab !== "docs"}
+          className={styles.section}
+        >
+          <h2>Documents</h2>
+          {logement.documents.length === 0 ? (
+            <p className={styles.emptyState}>Aucun document associé à ce logement.</p>
+          ) : null}
+          <ul className={styles.docsList}>
+            {logement.documents.map((doc) => (
+              <li key={doc.file || doc.name} className={styles.docItem}>
+                <span>{doc.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div
+          role="tabpanel"
+          id="panel-notes"
+          aria-labelledby="tab-notes"
+          hidden={activeTab !== "notes"}
+          className={styles.section}
+        >
+          <h2>Notes internes</h2>
+          {logement.notes.length === 0 ? (
+            <p className={styles.emptyState}>Aucune note interne pour ce logement.</p>
+          ) : null}
+          <ul className={styles.notesList}>
+            {logement.notes.map((note, index) => (
+              <li key={`${note}-${index}`} className={styles.noteItem}>
+                {note}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

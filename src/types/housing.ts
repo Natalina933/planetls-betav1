@@ -64,6 +64,11 @@ export interface HousingOwnerInfo {
   fullName: string;
   email: string;
   phone: string;
+  secondaryPhone: string;
+  address: string;
+  primaryContactName: string;
+  primaryContactEmail: string;
+  primaryContactPhone: string;
   companyName: string;
   city: string;
   notes: string;
@@ -86,6 +91,7 @@ export interface HousingCharacteristics {
   propertyType: string;
   categorie?: string;
   platforms?: string[];
+  photos: string[];
   surfaceSqm: number | null;
   superficie?: number | null;
   roomCount: number | null;
@@ -95,6 +101,15 @@ export interface HousingCharacteristics {
   bedCount: number | null;
   guestCapacity: number | null;
   capacite?: number | null;
+  wifiInfo: string;
+  keyCount: number | null;
+  terrace: boolean;
+  stairs: boolean;
+  pool: boolean;
+  petsAllowed: boolean;
+  nonSmoking: boolean;
+  barbecue: boolean;
+  chequeRequired: boolean;
   amenities: string[];
   equipements?: string[];
   description: string;
@@ -226,6 +241,27 @@ function toOptionalNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function toBoolean(value: unknown, fallback = false): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "oui", "yes"].includes(normalized)) return true;
+    if (["false", "0", "non", "no"].includes(normalized)) return false;
+  }
+  if (typeof value === "number") return value === 1;
+  return fallback;
+}
+
+function stringifyWifiInfo(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+
+  const record = value as Record<string, unknown>;
+  const name = cleanString(record.nom ?? record.name ?? record.ssid);
+  const password = cleanString(record.mdp ?? record.password ?? record.code);
+  return [name, password].filter(Boolean).join(" / ");
+}
+
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.map(cleanString).filter(Boolean);
@@ -348,6 +384,11 @@ export function normalizeOwnerFromProfile(
       cleanString(profile?.username),
     email: cleanString(profile?.email),
     phone: cleanString(profile?.phone),
+    secondaryPhone: "",
+    address: cleanString(profile?.street_address),
+    primaryContactName: "",
+    primaryContactEmail: "",
+    primaryContactPhone: "",
     companyName: cleanString(profile?.company_name),
     city: cleanString(profile?.city),
     notes: "",
@@ -390,8 +431,24 @@ export function normalizeHousingRow(row: HousingRow): ConciergeHousing {
         cleanString(proprietaire.full_name) ||
         buildName(proprietaire.first_name, proprietaire.last_name, proprietaire.nom) ||
         cleanString(proprietaire.company_name),
-      email: cleanString(proprietaire.email),
-      phone: cleanString(proprietaire.phone) || cleanString(proprietaire.telephone),
+      email: cleanString(proprietaire.email) || cleanString(proprietaire.email1),
+      phone:
+        cleanString(proprietaire.phone) ||
+        cleanString(proprietaire.telephone) ||
+        cleanString(proprietaire.tel1),
+      secondaryPhone: cleanString(proprietaire.secondary_phone) || cleanString(proprietaire.tel2),
+      address: cleanString(proprietaire.address) || cleanString(proprietaire.adresse),
+      primaryContactName:
+        cleanString(proprietaire.primary_contact_name) ||
+        cleanString(proprietaire.contact_principal) ||
+        cleanString(proprietaire.contactPrincipal),
+      primaryContactEmail:
+        cleanString(proprietaire.primary_contact_email) ||
+        cleanString(proprietaire.mail_principal) ||
+        cleanString(proprietaire.email_principal),
+      primaryContactPhone:
+        cleanString(proprietaire.primary_contact_phone) ||
+        cleanString(proprietaire.tel_principal),
       companyName: cleanString(proprietaire.company_name),
       city: cleanString(proprietaire.city),
       notes: cleanString(proprietaire.notes),
@@ -419,6 +476,7 @@ export function normalizeHousingRow(row: HousingRow): ConciergeHousing {
       propertyType: cleanString(infos.property_type) || cleanString(infos.categorie),
       categorie: cleanString(infos.property_type) || cleanString(infos.categorie),
       platforms: toStringArray(infos.platforms ?? [row.plateforme].filter(Boolean)),
+      photos: toStringArray(infos.photos ?? [row.photo_principale].filter(Boolean)),
       surfaceSqm: toOptionalNumber(infos.surface_sqm ?? infos.superficie),
       superficie: toOptionalNumber(infos.surface_sqm ?? infos.superficie),
       roomCount: toOptionalNumber(infos.room_count),
@@ -426,8 +484,22 @@ export function normalizeHousingRow(row: HousingRow): ConciergeHousing {
       nb_chambres: toOptionalNumber(infos.bedroom_count ?? infos.nb_chambres),
       bathroomCount: toOptionalNumber(infos.bathroom_count),
       bedCount: toOptionalNumber(infos.bed_count),
-      guestCapacity: toOptionalNumber(infos.guest_capacity ?? infos.capacite),
-      capacite: toOptionalNumber(infos.guest_capacity ?? infos.capacite),
+      guestCapacity: toOptionalNumber(infos.guest_capacity ?? infos.capacite ?? location.nbCouchages),
+      capacite: toOptionalNumber(infos.guest_capacity ?? infos.capacite ?? location.nbCouchages),
+      wifiInfo: cleanString(infos.wifi_info) || stringifyWifiInfo(infos.infosWifi ?? infos.infos_wifi),
+      keyCount: toOptionalNumber(infos.key_count ?? infos.nb_cles ?? location.nbCles),
+      terrace: toBoolean(infos.terrace ?? infos.terrasse ?? location.terrasse),
+      stairs: toBoolean(infos.stairs ?? infos.escaliers ?? location.escaliers),
+      pool: toBoolean(infos.pool ?? infos.piscine ?? location.piscine),
+      petsAllowed: toBoolean(infos.pets_allowed ?? infos.animaux_acceptes ?? location.animauxAcceptes),
+      nonSmoking: toBoolean(
+        infos.non_smoking ?? infos.non_fumeur,
+        typeof location.fumeur === "boolean" ? !location.fumeur : false,
+      ),
+      barbecue: toBoolean(infos.barbecue ?? location.barbecue),
+      chequeRequired: toBoolean(
+        infos.cheque_required ?? infos.cheque_a_demander ?? location.chequeDemande,
+      ),
       amenities: toStringArray(infos.amenities ?? infos.equipements),
       equipements: toStringArray(infos.amenities ?? infos.equipements),
       description: cleanString(infos.description),
@@ -539,6 +611,7 @@ export function buildHousingMutationPayload(
     infos: {
       creation_mode: housing.creationMode,
       property_type: cleanString(housing.characteristics.propertyType),
+      photos: housing.characteristics.photos,
       surface_sqm: housing.characteristics.surfaceSqm,
       platforms: housing.characteristics.platforms ?? [],
       room_count: housing.characteristics.roomCount,
@@ -546,6 +619,15 @@ export function buildHousingMutationPayload(
       bathroom_count: housing.characteristics.bathroomCount,
       bed_count: housing.characteristics.bedCount,
       guest_capacity: housing.characteristics.guestCapacity,
+      wifi_info: cleanString(housing.characteristics.wifiInfo),
+      key_count: housing.characteristics.keyCount,
+      terrace: housing.characteristics.terrace,
+      stairs: housing.characteristics.stairs,
+      pool: housing.characteristics.pool,
+      pets_allowed: housing.characteristics.petsAllowed,
+      non_smoking: housing.characteristics.nonSmoking,
+      barbecue: housing.characteristics.barbecue,
+      cheque_required: housing.characteristics.chequeRequired,
       amenities: housing.characteristics.amenities,
       description: cleanString(housing.characteristics.description),
     } as Json,
@@ -556,6 +638,11 @@ export function buildHousingMutationPayload(
       full_name: cleanString(housing.owner.fullName),
       email: cleanString(housing.owner.email),
       phone: cleanString(housing.owner.phone),
+      secondary_phone: cleanString(housing.owner.secondaryPhone),
+      address: cleanString(housing.owner.address),
+      primary_contact_name: cleanString(housing.owner.primaryContactName),
+      primary_contact_email: cleanString(housing.owner.primaryContactEmail),
+      primary_contact_phone: cleanString(housing.owner.primaryContactPhone),
       company_name: cleanString(housing.owner.companyName),
       city: cleanString(housing.owner.city),
       notes: cleanString(housing.owner.notes),
@@ -675,6 +762,11 @@ export function buildQuotePreviewFromData(input: {
         fullName: cleanString(metadata.owner_name) || "Proprietaire",
         email: cleanString(metadata.owner_email),
         phone: cleanString(metadata.owner_phone),
+        secondaryPhone: "",
+        address: "",
+        primaryContactName: "",
+        primaryContactEmail: "",
+        primaryContactPhone: "",
         companyName: cleanString(metadata.owner_company),
         city: cleanString(metadata.city),
         notes: "",
