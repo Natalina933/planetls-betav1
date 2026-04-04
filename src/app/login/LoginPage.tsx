@@ -9,6 +9,17 @@ import { Button, Input } from "@/components/ui";
 const validateEmail = (email: string): boolean =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+const maskEmail = (email: string): string => {
+  const [localPart = "", domainPart = ""] = email.split("@");
+  if (!localPart || !domainPart) {
+    return email;
+  }
+
+  const visibleLocal =
+    localPart.length <= 2 ? `${localPart.charAt(0)}*` : `${localPart.slice(0, 2)}***`;
+  return `${visibleLocal}@${domainPart}`;
+};
+
 const getDashboardPathFromRole = (role: string | null | undefined): string => {
   switch (role) {
     case "concierge":
@@ -60,6 +71,7 @@ export default function LoginPage() {
 
   const resolveRoleFromSession = async (): Promise<string | null> => {
     for (let attempt = 0; attempt < 6; attempt += 1) {
+      console.info("[LoginPage] resolving role from session", { attempt: attempt + 1 });
       const res = await fetch(`/api/auth/session?ts=${Date.now()}`, {
         cache: "no-store",
         credentials: "include",
@@ -67,14 +79,19 @@ export default function LoginPage() {
       const session = await res.json();
       const role = session?.user?.role;
       if (role) {
+        console.info("[LoginPage] role resolved from session", { role });
         return role;
       }
       await wait(250);
     }
+    console.warn("[LoginPage] no role found in session after retries");
     return null;
   };
 
   const resolveRoleFromLoginApi = async (): Promise<string | null> => {
+    console.info("[LoginPage] resolving role from fallback login api", {
+      email: maskEmail(formData.email),
+    });
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,10 +102,14 @@ export default function LoginPage() {
     });
 
     if (!res.ok) {
+      console.warn("[LoginPage] fallback login api failed", { status: res.status });
       return null;
     }
 
     const payload = await res.json();
+    console.info("[LoginPage] role resolved from fallback login api", {
+      role: payload?.user?.role ?? null,
+    });
     return payload?.user?.role ?? null;
   };
 
@@ -120,7 +141,15 @@ export default function LoginPage() {
     setFormData({ email, password });
     setErrors(nextErrors);
 
+    console.info("[LoginPage] submit", {
+      email: maskEmail(email),
+      hasEmail: Boolean(email),
+      passwordLength: password.length,
+      canSubmit: Boolean(email && password && !nextErrors.email && !nextErrors.password),
+    });
+
     if (!email || !password || nextErrors.email || nextErrors.password) {
+      console.warn("[LoginPage] blocked before signIn", { nextErrors });
       setErrors((prev) => ({ ...prev, auth: "Veuillez corriger les erreurs" }));
       return;
     }
@@ -132,6 +161,13 @@ export default function LoginPage() {
       redirect: false,
       email,
       password,
+    });
+
+    console.info("[LoginPage] signIn result", {
+      ok: result?.ok ?? false,
+      status: result?.status ?? null,
+      error: result?.error ?? null,
+      url: result?.url ?? null,
     });
 
     if (result?.error) {
@@ -146,8 +182,13 @@ export default function LoginPage() {
         }
 
         const targetPath = getDashboardPathFromRole(role);
+        console.info("[LoginPage] redirecting to dashboard", {
+          role,
+          targetPath,
+        });
         window.location.assign(targetPath);
       } catch (err) {
+        console.error("[LoginPage] redirect fallback after exception", err);
         window.location.assign("/dashboard/owner");
       }
     }

@@ -16,6 +16,21 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const isProduction = process.env.NODE_ENV === "production";
 const sessionMaxAgeSeconds = 60 * 60 * 8;
 
+const maskEmail = (email: string | null | undefined): string => {
+  if (!email) {
+    return "unknown";
+  }
+
+  const [localPart = "", domainPart = ""] = email.split("@");
+  if (!localPart || !domainPart) {
+    return email;
+  }
+
+  const visibleLocal =
+    localPart.length <= 2 ? `${localPart.charAt(0)}*` : `${localPart.slice(0, 2)}***`;
+  return `${visibleLocal}@${domainPart}`;
+};
+
 interface CustomUser {
   id: string;
   email: string;
@@ -44,8 +59,13 @@ const providers: NextAuthConfig["providers"] = [
     async authorize(credentials) {
       try {
         if (!credentials?.email || !credentials.password) {
+          console.warn("[NextAuth][credentials] missing credentials");
           return null;
         }
+
+        console.info("[NextAuth][credentials] authorize start", {
+          email: maskEmail(String(credentials.email)),
+        });
 
         const { data: authData, error } = await supabase.auth.signInWithPassword({
           email: credentials.email as string,
@@ -53,6 +73,10 @@ const providers: NextAuthConfig["providers"] = [
         });
 
         if (error || !authData.user) {
+          console.warn("[NextAuth][credentials] Supabase auth rejected", {
+            email: maskEmail(String(credentials.email)),
+            error: error?.message ?? "unknown",
+          });
           return null;
         }
 
@@ -63,10 +87,18 @@ const providers: NextAuthConfig["providers"] = [
           .single();
 
         if (profileError || !profile) {
+          console.error("[NextAuth][credentials] profile lookup failed", {
+            userId: authData.user.id,
+            error: profileError?.message ?? "profile_not_found",
+          });
           return null;
         }
 
         if (profile.status === "suspended" || profile.status === "deleted") {
+          console.warn("[NextAuth][credentials] profile status blocked", {
+            userId: profile.id,
+            status: profile.status,
+          });
           return null;
         }
 
@@ -94,6 +126,7 @@ const providers: NextAuthConfig["providers"] = [
           status: profile.status ?? "active",
         } satisfies CustomUser;
       } catch (error) {
+        console.error("[NextAuth][credentials] authorize exception", error);
         return null;
       }
     },

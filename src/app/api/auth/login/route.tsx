@@ -12,6 +12,21 @@ type LoginBody = z.infer<typeof loginSchema>;
 
 const loginAttempts = new Map<string, number[]>();
 
+function maskEmail(email: string | null | undefined): string {
+  if (!email) {
+    return "unknown";
+  }
+
+  const [localPart = "", domainPart = ""] = email.split("@");
+  if (!localPart || !domainPart) {
+    return email;
+  }
+
+  const visibleLocal =
+    localPart.length <= 2 ? `${localPart.charAt(0)}*` : `${localPart.slice(0, 2)}***`;
+  return `${visibleLocal}@${domainPart}`;
+}
+
 function checkRateLimit(ip: string) {
   const now = Date.now();
   const attempts = loginAttempts.get(ip) || [];
@@ -42,6 +57,7 @@ export async function POST(request: NextRequest) {
   const rateLimit = checkRateLimit(ip);
   if (!rateLimit.allowed) {
     const retryAfterStr = rateLimit.retryAfter?.toString() ?? "300";
+    console.warn("[POST /api/auth/login] rate limited", { ip, retryAfter: retryAfterStr });
     return NextResponse.json(
       { error: `Trop de tentatives. Reessayez dans ${retryAfterStr} secondes.` },
       { status: 429, headers: { "Retry-After": retryAfterStr } },
@@ -57,6 +73,13 @@ export async function POST(request: NextRequest) {
 
   const result = loginSchema.safeParse(body);
   if (!result.success) {
+    console.warn("[POST /api/auth/login] invalid payload", {
+      ip,
+      issues: result.error.issues.map((issue) => ({
+        field: issue.path.join("."),
+        message: issue.message,
+      })),
+    });
     return NextResponse.json(
       {
         error: "Donnees invalides",
@@ -73,12 +96,22 @@ export async function POST(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+  console.info("[POST /api/auth/login] start", {
+    ip,
+    email: maskEmail(result.data.email),
+  });
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email: result.data.email,
     password: result.data.password,
   });
 
   if (error || !data.user) {
+    console.warn("[POST /api/auth/login] Supabase auth rejected", {
+      ip,
+      email: maskEmail(result.data.email),
+      error: error?.message ?? "unknown",
+    });
     return NextResponse.json({ error: "Email ou mot de passe incorrect" }, { status: 401 });
   }
 
@@ -91,13 +124,27 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (profileError || !profile) {
+    console.error("[POST /api/auth/login] profile lookup failed", {
+      userId: data.user.id,
+      error: profileError?.message ?? "profile_not_found",
+    });
     return NextResponse.json({ error: "Impossible de recuperer le profil" }, { status: 500 });
   }
 
   const role = resolveUserRole(profile.role, profile.category);
   if (!role) {
+    console.warn("[POST /api/auth/login] unresolved role", {
+      userId: data.user.id,
+      role: profile.role,
+      category: profile.category,
+    });
     return NextResponse.json({ error: "Role inconnu, acces refuse" }, { status: 403 });
   }
+
+  console.info("[POST /api/auth/login] success", {
+    userId: data.user.id,
+    role,
+  });
 
   return NextResponse.json(
     {
