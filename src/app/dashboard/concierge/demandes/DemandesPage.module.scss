@@ -1,5 +1,4 @@
 @use "sass:color";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500&display=swap');
 
 $page-bg: #f6f1e8;
 $card-bg: #fffdf9;
@@ -14,7 +13,7 @@ $success: #4a7c59;
 .page {
   background: $page-bg;
   padding: 24px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), var(--font-text), sans-serif;
   color: $ink;
 }
 
@@ -67,7 +66,7 @@ $success: #4a7c59;
 
 .cardTitleBlock {
   h2 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-primary), var(--font-title), serif;
     font-size: 20px;
     margin: 4px 0;
     font-weight: 500;

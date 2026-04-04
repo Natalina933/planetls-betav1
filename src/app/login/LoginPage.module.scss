@@ -31,7 +31,7 @@ $page-width: 900px;
   position: relative;
   z-index: 10;
   color: $text-color;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-inter), var(--font-text), system-ui, sans-serif;
 }
 
 .headerBlock {

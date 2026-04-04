@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState, ChangeEvent, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
@@ -31,12 +30,33 @@ const getDashboardPathFromRole = (role: string | null | undefined): string => {
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function LoginPage() {
-  const router = useRouter();
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string; auth?: string }>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const syncAutofilledValues = () => {
+      const email = emailRef.current?.value ?? "";
+      const password = passwordRef.current?.value ?? "";
+
+      setFormData((prev) =>
+        prev.email === email && prev.password === password ? prev : { email, password },
+      );
+      setErrors((prev) => ({
+        ...prev,
+        email: email ? (validateEmail(email) ? "" : "Email invalide") : prev.email,
+        password: password ? (password.length >= 8 ? "" : "Minimum 8 caracteres") : prev.password,
+      }));
+    };
+
+    syncAutofilledValues();
+    const timeoutId = window.setTimeout(syncAutofilledValues, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const resolveRoleFromSession = async (): Promise<string | null> => {
     for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -90,7 +110,17 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!canSubmit()) {
+    const email = emailRef.current?.value?.trim() ?? formData.email.trim();
+    const password = passwordRef.current?.value ?? formData.password;
+    const nextErrors = {
+      email: validateEmail(email) ? "" : "Email invalide",
+      password: password.length >= 8 ? "" : "Minimum 8 caracteres",
+    };
+
+    setFormData({ email, password });
+    setErrors(nextErrors);
+
+    if (!email || !password || nextErrors.email || nextErrors.password) {
       setErrors((prev) => ({ ...prev, auth: "Veuillez corriger les erreurs" }));
       return;
     }
@@ -100,13 +130,12 @@ export default function LoginPage() {
 
     const result = await signIn("credentials", {
       redirect: false,
-      email: formData.email,
-      password: formData.password,
+      email,
+      password,
     });
 
-    setLoading(false);
-
     if (result?.error) {
+      setLoading(false);
       setErrors((prev) => ({ ...prev, auth: "Email ou mot de passe incorrect" }));
     } else {
       try {
@@ -117,10 +146,9 @@ export default function LoginPage() {
         }
 
         const targetPath = getDashboardPathFromRole(role);
-        router.refresh();
-        router.push(targetPath);
+        window.location.assign(targetPath);
       } catch (err) {
-        router.push("/dashboard/owner");
+        window.location.assign("/dashboard/owner");
       }
     }
   };
@@ -142,6 +170,7 @@ export default function LoginPage() {
           <Input
             bare
             suppressHydrationWarning
+            ref={emailRef}
             id="email"
             name="email"
             type="email"
@@ -171,6 +200,7 @@ export default function LoginPage() {
         <div className={styles.passwordInputWrapper}>
           <Input
             bare
+            ref={passwordRef}
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}

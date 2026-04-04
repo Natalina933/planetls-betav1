@@ -32,7 +32,7 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
   background: $bg-page;
   border-radius: $radius-lg;
   box-shadow: $shadow-soft;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-inter), var(--font-text), system-ui, sans-serif;
   color: $text-main;
 }
 
