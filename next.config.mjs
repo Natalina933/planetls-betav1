@@ -14,19 +14,39 @@ const supabaseHostname = (() => {
 
 const isProduction = process.env.NODE_ENV === "production";
 
+const normalizeUrl = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+};
+
 const allowedCorsOrigins = (() => {
   const configured = (process.env.CORS_ALLOWED_ORIGINS || "")
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const siteUrl =
+    normalizeUrl(process.env.NEXT_PUBLIC_SITE_URL) ||
+    normalizeUrl(process.env.NEXTAUTH_URL) ||
+    normalizeUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL);
 
   if (siteUrl) {
     configured.unshift(siteUrl);
   }
 
   if (configured.length === 0) {
-    configured.push("http://localhost:3000");
+    configured.push(isProduction ? "https://planetls-betav1.vercel.app" : "http://localhost:3000");
   }
 
   return Array.from(new Set(configured));
