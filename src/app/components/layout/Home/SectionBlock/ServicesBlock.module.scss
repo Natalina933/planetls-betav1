@@ -1,7 +1,7 @@
 @use "sass:color";
-@use "../../../../../styles/abstracts/mixins" as *;
-@use "../../../../../styles/abstracts/functions" as *;
-@use "../../../../../styles/abstracts/variables" as *;
+@use "../../../../styles/abstracts/mixins" as *;
+@use "../../../../styles/abstracts/functions" as *;
+@use "../../../../styles/abstracts/variables" as *;
 
 .section {
   margin: 0 auto 3rem;

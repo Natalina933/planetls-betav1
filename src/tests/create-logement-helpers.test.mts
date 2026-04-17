@@ -43,6 +43,7 @@ test("buildCreateLogementPayload maps the new manual form to legacy-compatible h
     bedroomCount: "2",
     amenities: "Wifi, Balcon",
     owner: {
+      ...createInitialManualForm("manager-1").owner,
       profileId: "owner-1",
       managerProfileId: "manager-1",
       fullName: "Jean Dupont",
@@ -84,6 +85,7 @@ test("buildCreateLogementSummary exposes the premium guided preview", () => {
     city: "Paris",
     surfaceSqm: "45",
     owner: {
+      ...createInitialManualForm("manager-1").owner,
       profileId: "owner-1",
       managerProfileId: "manager-1",
       fullName: "Jean Dupont",
