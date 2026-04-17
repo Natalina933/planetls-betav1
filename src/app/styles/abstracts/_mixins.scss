@@ -3,8 +3,8 @@
 @use "sass:color";
 @use "sass:math";
 @use "sass:meta";
-@use "app/styles/abstracts/variables" as *;
-@use "app/styles/base/animations" as anim;
+@use "./variables" as *;
+@use "../base/animations" as anim;
 
 // --------------------------------------------------
 // 📱 Media Queries

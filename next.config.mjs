@@ -1,3 +1,5 @@
+import path from "node:path";
+
 const supabaseHostname = (() => {
   const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 
@@ -84,6 +86,10 @@ const nextConfig = {
 
   experimental: {
     scrollRestoration: true,
+  },
+
+  sassOptions: {
+    includePaths: [path.join(process.cwd(), "src"), path.join(process.cwd())],
   },
 
   async redirects() {

@@ -5,6 +5,18 @@ import { buildPublicConciergeRecommendations } from "./shared";
 const isSchemaDriftError = (code: string | undefined): boolean =>
   code === "42P01" || code === "42703";
 
+const isNetworkResolutionError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    error.message.includes("fetch failed") ||
+    error.message.includes("ENOTFOUND") ||
+    error.message.includes("getaddrinfo")
+  );
+};
+
 export async function GET() {
   try {
     const { data: profiles, error: profilesError } = await db
@@ -101,6 +113,14 @@ export async function GET() {
 
     return NextResponse.json({ items });
   } catch (err) {
+    if (isNetworkResolutionError(err)) {
+      console.warn(
+        "[GET /api/profiles/public-concierges] Supabase unreachable, returning empty recommendations",
+        err,
+      );
+      return NextResponse.json({ items: [] });
+    }
+
     console.error("[GET /api/profiles/public-concierges] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

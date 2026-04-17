@@ -1,8 +1,8 @@
 @use "sass:color";
-@use "@/app/styles/abstracts/mixins" as *;
-@use "@/app/styles/abstracts/functions" as *;
-@use "@/app/styles/abstracts/variables" as *;
-@use "@/app/styles/base/animations" as anim;
+@use "../../../styles/abstracts/mixins" as *;
+@use "../../../styles/abstracts/functions" as *;
+@use "../../../styles/abstracts/variables" as *;
+@use "../../../styles/base/animations" as anim;
 
 .logementsPage {
     padding: $spacing-xl;

@@ -16,9 +16,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["./src/*"]
     },
     "plugins": [
       {

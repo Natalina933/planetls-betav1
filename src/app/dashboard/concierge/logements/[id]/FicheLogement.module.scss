@@ -1,5 +1,5 @@
-@use "@/app/styles/abstracts/_variables" as *;
-@use "@/app/styles/abstracts/_mixins" as *;
+@use "../../../../styles/abstracts/variables" as *;
+@use "../../../../styles/abstracts/mixins" as *;
 
 .ficheLogement {
   display: grid;
