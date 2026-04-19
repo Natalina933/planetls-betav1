@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Search } from "lucide-react";
+import { Bell, Eye, Search } from "lucide-react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import pageStyles from "./OwnerRequestsPage.module.scss";
 import {
@@ -19,6 +19,7 @@ import {
 import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
 import { OwnerRequestSummaryCard } from "@/features/owner-dashboard";
+import { loadOwnerConciergeSearchAlerts, type OwnerConciergeSearchAlert } from "../searchAlerts";
 
 type OwnerHousingRow = {
   id: number | string;
@@ -162,30 +163,45 @@ function formatRecipientStatus(status: string) {
 
 function getRecipientResponseSummary(request: OwnerServiceRequestRow) {
   if (!Array.isArray(request.recipients) || request.recipients.length === 0) {
-    return ["Aucun concierge propose pour le moment"];
+    return ["0 concierge contacté pour le moment", "Aucun concierge proposé sur cette demande."];
   }
 
-  const repliedRecipients = request.recipients.filter((recipient) =>
+  const recipients = request.recipients;
+  const viewedCount = recipients.filter((recipient) => recipient.status === "viewed").length;
+  const interestedCount = recipients.filter((recipient) => recipient.status === "interested").length;
+  const quotedCount = recipients.filter((recipient) => recipient.status === "quoted").length;
+  const selectedCount = recipients.filter((recipient) => recipient.status === "selected").length;
+  const declinedCount = recipients.filter((recipient) =>
+    ["declined", "not_selected"].includes(recipient.status),
+  ).length;
+  const repliedRecipients = recipients.filter((recipient) =>
     ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
   );
 
+  const summaryLine = `${recipients.length} envoyées • ${viewedCount} vues • ${interestedCount} intéressés • ${quotedCount} devis • ${selectedCount} retenu(s) • ${declinedCount} non retenu(s)`;
+
   if (repliedRecipients.length === 0) {
-    const viewedRecipients = request.recipients.filter((recipient) => recipient.status === "viewed");
-    if (viewedRecipients.length > 0) {
-      return viewedRecipients.slice(0, 3).map((recipient) => {
-        const name = recipient.concierge_name?.trim() || "Concierge";
-        return `${name} a consulte votre demande`;
-      });
+    if (viewedCount > 0) {
+      return [
+        summaryLine,
+        ...recipients
+          .filter((recipient) => recipient.status === "viewed")
+          .slice(0, 3)
+          .map((recipient) => {
+            const name = recipient.concierge_name?.trim() || "Concierge";
+            return `${name} a consulté votre demande`;
+          }),
+      ];
     }
 
-    return ["Aucune reponse recue pour le moment"];
+    return [summaryLine, "Aucune réponse reçue pour le moment."];
   }
 
-  return repliedRecipients.slice(0, 3).map((recipient) => {
+  return [summaryLine, ...repliedRecipients.slice(0, 4).map((recipient) => {
     const name = recipient.concierge_name?.trim() || "Concierge";
     const respondedAt = recipient.responded_at ? ` le ${formatDateTime(recipient.responded_at)}` : "";
     return `${name} a repondu : ${formatRecipientStatus(recipient.status)}${respondedAt}`;
-  });
+  })];
 }
 
 function buildRequestTitleSuggestion(form: RequestFormState) {
@@ -279,11 +295,31 @@ function getUnifiedRequestStatus(request: OwnerServiceRequestRow) {
   return request.workflow_status ?? request.status ?? "NEW";
 }
 
+function normalizeLocationToken(value: string | null | undefined) {
+  return normalizeSuggestionKey(value).replace(/\s+/g, "");
+}
+
+function hasSearchAlertForRequest(alerts: OwnerConciergeSearchAlert[], request: OwnerServiceRequestRow) {
+  if (alerts.length === 0) return false;
+
+  const requestCity = normalizeLocationToken(request.city);
+  const requestPostalCode = normalizeLocationToken(request.postal_code);
+
+  return alerts.some((alert) => {
+    const alertCity = normalizeLocationToken(alert.city);
+    const alertPostalCode = normalizeLocationToken(alert.postalCode);
+    const cityMatches = Boolean(requestCity && alertCity && requestCity === alertCity);
+    const postalMatches = Boolean(requestPostalCode && alertPostalCode && requestPostalCode === alertPostalCode);
+    return cityMatches || postalMatches;
+  });
+}
+
 export default function OwnerRequestsPage() {
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [housing, setHousing] = useState<OwnerHousingRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
   const [catalogServices, setCatalogServices] = useState<CatalogServiceItem[]>([]);
+  const [searchAlerts, setSearchAlerts] = useState<OwnerConciergeSearchAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -291,6 +327,7 @@ export default function OwnerRequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [form, setForm] = useState<RequestFormState>(initialForm);
+  const [serviceDraft, setServiceDraft] = useState("");
 
   const loadData = useCallback(async () => {
     try {
@@ -336,6 +373,10 @@ export default function OwnerRequestsPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    setSearchAlerts(loadOwnerConciergeSearchAlerts());
+  }, []);
 
   const housingOptions = useMemo(
     () =>
@@ -447,6 +488,7 @@ export default function OwnerRequestsPage() {
 
       setSuccess("Demande créée. Vous pouvez maintenant suivre les devis associés juste à droite.");
       setForm(initialForm);
+      setServiceDraft("");
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer la demande.");
@@ -467,6 +509,10 @@ export default function OwnerRequestsPage() {
 
   const normalizedServices = normalizeServices(form.requestedServices);
   const titleSuggestion = buildRequestTitleSuggestion(form);
+  const normalizedCurrentTitle = normalizeSuggestionKey(form.title);
+  const normalizedSuggestedTitle = normalizeSuggestionKey(titleSuggestion);
+  const showTitleSuggestion =
+    normalizedSuggestedTitle.length > 0 && normalizedCurrentTitle !== normalizedSuggestedTitle;
   const normalizedCity = normalizeSuggestionKey(form.city);
   const normalizedProperty = normalizeSuggestionKey(form.propertyName);
   const quickServiceSuggestions = useMemo(() => {
@@ -572,6 +618,31 @@ export default function OwnerRequestsPage() {
     setForm((current) => ({
       ...current,
       requestedServices: nextSelection.join(", "),
+    }));
+  }
+
+  function addCustomService() {
+    const candidate = serviceDraft.trim();
+    if (!candidate) return;
+    const candidateKey = normalizeSuggestionKey(candidate);
+    if (normalizedServices.some((service) => normalizeSuggestionKey(service) === candidateKey)) {
+      setServiceDraft("");
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      requestedServices: [...normalizeServices(current.requestedServices), candidate].join(", "),
+    }));
+    setServiceDraft("");
+  }
+
+  function removeSelectedService(serviceName: string) {
+    setForm((current) => ({
+      ...current,
+      requestedServices: normalizeServices(current.requestedServices)
+        .filter((service) => service !== serviceName)
+        .join(", "),
     }));
   }
 
@@ -717,20 +788,22 @@ export default function OwnerRequestsPage() {
                     onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
                     placeholder="Ex : check-in et ménage de lancement"
                   />
-                  <div className={pageStyles.titleSuggestionCard}>
-                    <div className={pageStyles.titleSuggestionCopy}>
-                      <strong>Titre conseillé</strong>
-                      <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
-                      <code>{titleSuggestion}</code>
+                  {showTitleSuggestion ? (
+                    <div className={pageStyles.titleSuggestionCard}>
+                      <div className={pageStyles.titleSuggestionCopy}>
+                        <strong>Titre conseillé</strong>
+                        <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
+                        <code>{titleSuggestion}</code>
+                      </div>
+                      <button
+                        type="button"
+                        className={pageStyles.inlineHintAction}
+                        onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
+                      >
+                        {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className={pageStyles.inlineHintAction}
-                      onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
-                    >
-                      {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
-                    </button>
-                  </div>
+                  ) : null}
                 </label>
                 </div>
 
@@ -779,19 +852,34 @@ export default function OwnerRequestsPage() {
                     />
                   </div>
                   <div className={pageStyles.chipsInputWrap}>
-                    <Input
-                      value={form.requestedServices}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, requestedServices: event.target.value }))
-                      }
-                      placeholder="Ajouter un besoin spécifique : ex. état des lieux, coordination artisan"
-                    />
+                    <div className={pageStyles.serviceDraftRow}>
+                      <Input
+                        value={serviceDraft}
+                        onChange={(event) => setServiceDraft(event.target.value)}
+                        placeholder="Ajouter un besoin libre : ex. état des lieux, coordination artisan"
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            addCustomService();
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="secondary" onClick={addCustomService} disabled={!serviceDraft.trim()}>
+                        Ajouter
+                      </Button>
+                    </div>
                     {normalizedServices.length > 0 ? (
                       <div className={pageStyles.serviceChips}>
                         {normalizedServices.map((service) => (
-                          <span key={service} className={pageStyles.serviceChip}>
-                            {service}
-                          </span>
+                          <button
+                            key={service}
+                            type="button"
+                            className={pageStyles.serviceChip}
+                            onClick={() => removeSelectedService(service)}
+                            title={`Retirer ${service}`}
+                          >
+                            {service} ×
+                          </button>
                         ))}
                       </div>
                     ) : null}
@@ -874,6 +962,7 @@ export default function OwnerRequestsPage() {
               <div className={pageStyles.rows}>
                 {filteredRequests.map((request) => {
                   const quoteSummary = summarizeQuotesByRequest(quotesByRequestId.get(request.id) ?? []);
+                  const hasActiveSearchAlert = hasSearchAlertForRequest(searchAlerts, request);
 
                   return (
                     <OwnerRequestSummaryCard
@@ -940,11 +1029,24 @@ export default function OwnerRequestsPage() {
                           ).length,
                         },
                         { label: "Devis", value: quoteSummary.total },
+                        {
+                          label: "Alerte",
+                          value: hasActiveSearchAlert ? (
+                            <span className={pageStyles.alertFactActive}>
+                              <Bell size={14} aria-hidden="true" /> Active
+                            </span>
+                          ) : (
+                            "-"
+                          ),
+                        },
                       ]}
                       services={request.requested_services ?? []}
                       emptyServicesLabel="Services à préciser"
                       helperTexts={[
                         `Créée le ${formatDateTime(request.created_at)}`,
+                        ...(hasActiveSearchAlert
+                          ? ["🔔 Alerte active sur cette zone : vous serez notifié des nouveaux profils."]
+                          : []),
                         ...getRecipientResponseSummary(request),
                       ]}
                     />
