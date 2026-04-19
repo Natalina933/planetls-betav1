@@ -3,9 +3,11 @@ import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
-type UntypedDb = typeof db & { from: (table: string) => ReturnType<typeof db.from> };
+type UntypedDb = {
+  from: (table: string) => any;
+};
 
-const untypedDb = db as UntypedDb;
+const untypedDb = db as unknown as UntypedDb;
 
 type QuoteStatus =
   | "draft"

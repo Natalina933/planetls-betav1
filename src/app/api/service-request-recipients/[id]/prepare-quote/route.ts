@@ -27,7 +27,9 @@ type PrepareQuoteBody = {
   force?: boolean;
 };
 
-type UntypedDb = typeof db & { from: (table: string) => ReturnType<typeof db.from> };
+type UntypedDb = {
+  from: (table: string) => any;
+};
 
 export async function POST(
   req: NextRequest,
@@ -50,7 +52,7 @@ export async function POST(
       return NextResponse.json({ error: "Recipient introuvable." }, { status: 400 });
     }
 
-    const dbAny = db as UntypedDb;
+    const dbAny = db as unknown as UntypedDb;
 
     const { data: recipient, error: recipientError } = await dbAny
       .from("service_request_recipients")

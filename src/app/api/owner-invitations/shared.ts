@@ -12,9 +12,11 @@ import {
   normalizeInvitationStatus,
 } from "@/types/ownerInvitations";
 
-type UntypedDb = typeof db & { from: (table: string) => ReturnType<typeof db.from> };
+type UntypedDb = {
+  from: (table: string) => any;
+};
 
-const dbAny = db as UntypedDb;
+const dbAny = db as unknown as UntypedDb;
 
 type HousingAccessRow = {
   id: number;

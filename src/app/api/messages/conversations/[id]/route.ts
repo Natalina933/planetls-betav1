@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import type { Json } from "@/types/supabase";
 import { setConversationSeenAt } from "../shared";
 import { z } from "zod";
 

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, Search } from "lucide-react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
-import pageStyles from "./OwnerRequestsPage.module.scss";
+import pageStyles from "../demandes/OwnerRequestsPage.module.scss";
 import {
   Button,
   ButtonLink,
