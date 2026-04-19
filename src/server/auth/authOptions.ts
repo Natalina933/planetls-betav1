@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { createClient } from "@supabase/supabase-js";
 import { UserRole } from "@/types/supabase";
 import { resolveUserRole } from "@/app/utils/roles";
+import { logAuthDebug } from "@/server/logging/authDebug";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,11 +60,11 @@ const providers: NextAuthConfig["providers"] = [
     async authorize(credentials) {
       try {
         if (!credentials?.email || !credentials.password) {
-          console.warn("[NextAuth][credentials] missing credentials");
+          logAuthDebug("[NextAuth][credentials] missing credentials");
           return null;
         }
 
-        console.info("[NextAuth][credentials] authorize start", {
+        logAuthDebug("[NextAuth][credentials] authorize start", {
           email: maskEmail(String(credentials.email)),
         });
 
@@ -73,7 +74,7 @@ const providers: NextAuthConfig["providers"] = [
         });
 
         if (error || !authData.user) {
-          console.warn("[NextAuth][credentials] Supabase auth rejected", {
+          logAuthDebug("[NextAuth][credentials] Supabase auth rejected", {
             email: maskEmail(String(credentials.email)),
             error: error?.message ?? "unknown",
           });
@@ -95,7 +96,7 @@ const providers: NextAuthConfig["providers"] = [
         }
 
         if (profile.status === "suspended" || profile.status === "deleted") {
-          console.warn("[NextAuth][credentials] profile status blocked", {
+          logAuthDebug("[NextAuth][credentials] profile status blocked", {
             userId: profile.id,
             status: profile.status,
           });

@@ -17,9 +17,10 @@
 }
 
 .header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 1rem;
   min-width: 0;
   padding-bottom: 0.25rem;
@@ -29,6 +30,7 @@
   display: grid;
   gap: 0.4rem;
   min-width: 0;
+  flex: 1 1 0;
 }
 
 .eyebrow {
@@ -89,10 +91,12 @@
 }
 
 .actions {
-  justify-content: flex-start;
+  justify-content: flex-end;
   max-width: 100%;
   padding-top: 0.35rem;
   border-top: 1px solid rgba(184, 92, 72, 0.12);
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .actions > * {
@@ -221,8 +225,16 @@
 }
 
 @media (max-width: 1100px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .actions {
     justify-content: flex-start;
+    margin-left: 0;
+    border-top: 0;
+    padding-top: 0;
   }
 }
 

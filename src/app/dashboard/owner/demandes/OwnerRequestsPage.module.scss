@@ -1,37 +1,78 @@
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+$primary-color: #b85c48;
+$primary-light: rgba(184, 92, 72, 0.1);
+$primary-dark: #5f342a;
+$secondary-color: #d4af37; // Or
+$text-color: #3a2c28;
+$text-muted: #7a6b65;
+$background: #fff9f5;
+$card-bg: rgba(255, 252, 248, 0.98);
+$border-color: rgba(184, 92, 72, 0.16);
+$shadow-sm: 0 4px 12px rgba(109, 53, 41, 0.08);
+$shadow-md: 0 8px 24px rgba(109, 53, 41, 0.12);
+$shadow-lg: 0 16px 32px rgba(109, 53, 41, 0.16);
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 24px;
+$transition: all 0.2s ease;
+
+// Espacements
+$card-padding: 2rem;
+$card-gap: 1.5rem;
+$layout-gap: 2rem;
+
+// ============================================
+// MIXINS
+// ============================================
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ============================================
+// LAYOUT PRINCIPAL
+// ============================================
 .page {
   display: grid;
   gap: 1.5rem;
-  width: min(100%, 1720px);
+  width: min(100%, 1800px); // Largeur max étendue
   margin-inline: auto;
+  padding: 1.5rem;
 }
 
 .layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.75rem;
+  gap: $layout-gap; // Espacement plus large entre les colonnes
   align-items: start;
 }
 
-.formPanel,
-.listPanel,
-.requestRow {
-  display: grid;
-  gap: 1.1rem;
-  padding: 1.3rem;
-  border-radius: 24px;
-  border: 1px solid rgba(184, 92, 72, 0.16);
-  background:
-    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(247, 236, 229, 0.96));
-  box-shadow: 0 16px 32px rgba(109, 53, 41, 0.06);
-}
-
-.formPanel,
+// ============================================
+// PANEL DE LISTE (Conteneur des articles)
+// ============================================
 .listPanel {
-  --ui-card-large-max: 100%;
+  display: grid;
+  gap: $card-gap;
+  padding: 1.5rem;
+  border-radius: $radius-xl;
+  border: 1px solid $border-color;
+  background:
+    radial-gradient(circle at top right, rgba($primary-color, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(247, 236, 229, 0.96));
+  box-shadow: $shadow-md;
   min-width: 0;
   width: 100%;
-  max-width: none;
+  max-width: none; // ✅ Pas de limite de largeur
   justify-self: stretch;
 }
 
@@ -386,101 +427,343 @@
   color: #9b1c1c;
 }
 
+// ============================================
+// BARRE D'OUTILS (Recherche + Filtre)
+// ============================================
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); // Meilleure répartition
+  gap: $card-gap;
   align-items: center;
+  margin-bottom: $card-gap;
+
+  // Style pour la barre de recherche
+  :global(.SearchBar-module-scss-module__LudPOW__searchBar) {
+    width: 100%;
+    max-width: none;
+
+    :global(.SearchBar-module-scss-module__LudPOW__input) {
+      border: 1px solid rgba($primary-color, 0.2);
+      border-radius: $radius-md;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.8);
+      transition: $transition;
+
+      &:focus {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+      }
+    }
+
+    :global(.SearchBar-module-scss-module__LudPOW__button) {
+      border-radius: $radius-md;
+      padding: 0.75rem 1.5rem;
+      background: $primary-color;
+      color: white;
+      border: none;
+      font-weight: 600;
+      transition: $transition;
+
+      &:hover:not(:disabled) {
+        background: $primary-dark;
+      }
+    }
+  }
+
+  // Style pour le select
+  :global(.Select-module-scss-module__1rbP5a__select) {
+    border: 1px solid rgba($primary-color, 0.2);
+    border-radius: $radius-md;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.8);
+    color: $text-color;
+    cursor: pointer;
+    transition: $transition;
+
+    &:focus {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+      outline: none;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
 }
 
-.searchField {
-  min-width: 0;
-}
-
+// ============================================
+// CONTENEUR DES ARTICLES (Cartes de demandes)
+// ============================================
 .rows {
   display: grid;
-  gap: 1.15rem;
+  gap: $card-gap;
   min-width: 0;
+  width: 100%;
 }
 
-.requestTopline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.85rem;
-}
+// ============================================
+// CARTES INDIVIDUELLES (OwnerRequestSummaryCard)
+// ============================================
+:global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__card) {
+  // ✅ ÉLARGISSEMENT DES CARTES
+  width: 100%; // Occupe toute la largeur du parent
+  max-width: none; // Pas de limite
+  border-radius: $radius-lg;
+  border: 1px solid rgba($primary-color, 0.12);
+  background: $card-bg;
+  box-shadow: $shadow-sm;
+  transition: $transition;
+  overflow: hidden;
 
-.requestHeading {
-  display: grid;
-  gap: 0.35rem;
-}
+  &:hover {
+    box-shadow: $shadow-md;
+    border-color: rgba($primary-color, 0.2);
+  }
 
-.requestHeading h3,
-.requestHeading p {
-  margin: 0;
-}
+  // En-tête de la carte
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__header) {
+    padding: $card-padding; // Padding augmenté
+    border-bottom: 1px solid rgba($primary-color, 0.08);
+    background: linear-gradient(to right, rgba($primary-color, 0.05), transparent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
 
-.requestHeading h3 {
-  font-size: 1.12rem;
-  color: var(--dash-text);
-}
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__heading) {
+      flex: 1;
+      min-width: 0; // Évite le débordement
+      display: grid;
+      gap: 0.75rem;
 
-.requestHeading p {
-  color: var(--dash-text-muted);
-}
+      // Statuts (Nouveau, En discussion, etc.)
+      :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__statusLine) {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
 
-.facts {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: 0.75rem;
-}
+        :global(.Badge-module-scss-module__2Wj2za__badge) {
+          padding: 0.35rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
 
-.factCard {
-  display: grid;
-  gap: 0.28rem;
-  padding: 0.8rem 0.9rem;
-  border-radius: 18px;
-  border: 1px solid rgba(184, 92, 72, 0.12);
-  background: rgba(255, 255, 255, 0.72);
-}
+          // Styles par statut
+          &.Badge-module-scss-module__2Wj2za__neutral {
+            background: rgba($text-muted, 0.1);
+            color: $text-muted;
+          }
 
-.factCard span {
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--dash-accent-strong);
-}
+          &.Badge-module-scss-module__2Wj2za__info {
+            background: rgba($primary-color, 0.1);
+            color: $primary-color;
+          }
 
-.factCard strong {
-  color: var(--dash-text);
-  font-size: 0.98rem;
-}
+          &.Badge-module-scss-module__2Wj2za__warning {
+            background: rgba($secondary-color, 0.1);
+            color: $secondary-color;
+          }
+        }
 
-.requestDescription {
-  margin: 0;
-  color: #574238;
-  line-height: 1.6;
-}
+        :global(.Tag-module-scss-module__8wnQpW__tag) {
+          padding: 0.25rem 0.65rem;
+          border-radius: 12px;
+          font-size: 0.7rem;
+          font-weight: 600;
 
-.listMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
+          &.Tag-module-scss-module__8wnQpW__gold {
+            background: rgba($secondary-color, 0.15);
+            color: $secondary-color;
+          }
 
-.statusLine {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  align-items: center;
-}
+          &.Tag-module-scss-module__8wnQpW__status {
+            background: rgba($primary-color, 0.1);
+            color: $primary-color;
+          }
 
-.helperText {
-  color: var(--dash-text-muted);
-  font-size: 0.9rem;
-}
+          &.Tag-module-scss-module__8wnQpW__neutral {
+            background: rgba($text-muted, 0.1);
+            color: $text-muted;
+          }
+        }
+      }
+
+      h3 {
+        margin: 0;
+        color: $text-color;
+        font-size: 1.2rem; // Titre plus grand
+        font-weight: 600;
+        @include text-truncate;
+      }
+
+      :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__eyebrow) {
+        margin: 0;
+        color: $text-muted;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__subtitle) {
+        margin: 0;
+        color: $text-muted;
+        font-size: 0.85rem;
+      }
+    }
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__actions) {
+      flex-shrink: 0;
+      margin-left: auto;
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: $radius-md;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: $transition;
+
+        svg {
+          flex-shrink: 0;
+        }
+
+        &.Button-module-scss-module__VLzsWq__ghost {
+          color: $primary-color;
+          background: rgba($primary-color, 0.08);
+
+          &:hover:not(:disabled) {
+            background: rgba($primary-color, 0.15);
+          }
+        }
+
+        &.Button-module-scss-module__VLzsWq__secondary {
+          color: white;
+          background: $primary-color;
+
+          &:hover:not(:disabled) {
+            background: $primary-dark;
+          }
+        }
+      }
+    }
+  }
+
+  // Corps de la carte
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__body) {
+    padding: $card-padding; // Padding augmenté
+    display: grid;
+    gap: $card-gap; // Espacement interne plus large
+  }
+
+  // Faits principaux (Logement, Début, Budget)
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__primaryFacts) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)); // 3 colonnes pour les faits
+    gap: $card-gap;
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__factCard) {
+      display: grid;
+      gap: 0.5rem;
+      padding: 1rem;
+      border-radius: $radius-md;
+      background: rgba(255, 255, 255, 0.7);
+
+      span {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      strong {
+        font-size: 1rem; // Texte plus grand
+        color: $text-color;
+        font-weight: 600;
+      }
+    }
+  }
+
+  // Faits secondaires (Devis)
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__secondaryFacts) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__secondaryFactCard) {
+      display: grid;
+      gap: 0.5rem;
+      padding: 1rem;
+      border-radius: $radius-md;
+      background: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  // Bloc d'informations (Services, Réponses)
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__infoStack) {
+    display: grid;
+    gap: $card-gap; // Espacement plus large
+  }
+
+  // Services demandés
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__servicesBlock) {
+    display: grid;
+    gap: 1rem;
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__sectionLabel) {
+      margin: 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__services) {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem; // Espacement entre les tags
+    }
+  }
+
+  // Réponses des concierges
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__responsesBlock) {
+    padding: 1rem;
+    border-radius: $radius-md;
+    background: rgba($primary-color, 0.05);
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__sectionLabel) {
+      margin: 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__responseList) {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__responseItem) {
+      margin: 0;
+      font-size: 0.85rem;
+      color: $text-color;
+      padding: 0.5rem;
+      border-radius: $radius-sm;
+      background: rgba(255, 255, 255, 0.5);
+    }
+  }
 
 .alertFactActive {
   display: inline-flex;
@@ -499,14 +782,29 @@
   background: rgba(255, 255, 255, 0.72);
 }
 
-.emptyState h3,
-.emptyState p {
-  margin: 0;
+// ============================================
+// FORMULAIRE (si présent dans la même feuille)
+// ============================================
+.formPanel {
+  position: sticky;
+  top: 1rem;
+  max-width: none;
+  padding: 1.5rem;
+  border: 1px solid rgba($primary-color, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 248, 0.82), rgba(247, 236, 229, 0.72));
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.05);
+  border-radius: $radius-xl;
+  gap: $card-gap;
+  overflow: hidden;
 }
 
-@media (max-width: 1100px) {
+// ============================================
+// RESPONSIVE
+// ============================================
+@media (max-width: 1400px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; // 1 colonne sur écrans moyens
   }
 
   .formPanel {
@@ -514,9 +812,9 @@
   }
 }
 
-@media (min-width: 1400px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+@media (max-width: 1024px) {
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__primaryFacts) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); // 2 colonnes sur tablette
   }
 }
 
@@ -528,63 +826,21 @@
   .serviceDraftRow {
     grid-template-columns: 1fr;
   }
-}
 
-:global([data-theme="mucha-dark"]) .formPanel,
-:global([data-theme="mucha-dark"]) .listPanel,
-:global([data-theme="mucha-dark"]) .requestRow,
-:global([data-theme="mucha-dark"]) .factCard,
-:global([data-theme="mucha-dark"]) .emptyState {
-  background:
-    radial-gradient(circle at top right, rgba(198, 167, 92, 0.1), transparent 32%),
-    linear-gradient(180deg, rgba(26, 22, 20, 0.98), rgba(39, 31, 25, 0.96));
-  border-color: rgba(198, 167, 92, 0.24);
-  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.28);
-}
+  .toolbar {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 
-:global([data-theme="mucha-dark"]) .formSectionCard,
-:global([data-theme="mucha-dark"]) .catalogSelectorWrap,
-:global([data-theme="mucha-dark"]) .titleSuggestionCard {
-  background:
-    radial-gradient(circle at top right, rgba(198, 167, 92, 0.08), transparent 32%),
-    linear-gradient(180deg, rgba(26, 22, 20, 0.96), rgba(39, 31, 25, 0.94));
-  border-color: rgba(198, 167, 92, 0.22);
-}
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__primaryFacts) {
+    grid-template-columns: 1fr; // 1 colonne sur mobile
+  }
 
-:global([data-theme="mucha-dark"]) .title,
-:global([data-theme="mucha-dark"]) .field span,
-:global([data-theme="mucha-dark"]) .fullField span,
-:global([data-theme="mucha-dark"]) .requestHeading h3,
-:global([data-theme="mucha-dark"]) .factCard strong {
-  color: #f6efe2;
-}
+  :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__secondaryFacts) {
+    grid-template-columns: 1fr;
+  }
 
-:global([data-theme="mucha-dark"]) .eyebrow,
-:global([data-theme="mucha-dark"]) .factCard span,
-:global([data-theme="mucha-dark"]) .serviceChip {
-  color: #c6a75c;
-}
-
-:global([data-theme="mucha-dark"]) .intro,
-:global([data-theme="mucha-dark"]) .fieldHint,
-:global([data-theme="mucha-dark"]) .requestHeading p,
-:global([data-theme="mucha-dark"]) .requestDescription,
-:global([data-theme="mucha-dark"]) .helperText,
-:global([data-theme="mucha-dark"]) .mutedChip {
-  color: #f6efe2;
-}
-
-:global([data-theme="art-deco"]) .formPanel,
-:global([data-theme="art-deco"]) .listPanel,
-:global([data-theme="art-deco"]) .requestRow,
-:global([data-theme="art-deco"]) .factCard {
-  border-radius: 4px;
-  border-color: #d5dbdf;
-}
-
-:global([data-theme="art-deco"]) .formSectionCard,
-:global([data-theme="art-deco"]) .catalogSelectorWrap,
-:global([data-theme="art-deco"]) .titleSuggestionCard {
-  border-radius: 4px;
-  border-color: #d5dbdf;
+  .listPanel {
+    padding: 1rem;
+  }
 }

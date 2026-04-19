@@ -1,107 +1,139 @@
 "use client";
 
-import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  getOwnerReplySignature,
-  isOwnerReplyStatus,
-  markOwnerReplySignaturesAsSeen,
-} from "@/app/components/dashboard/notifications/serviceRequestNotifications";
-import { OwnerRequestSummaryCard } from "@/features/owner-dashboard";
+import { Eye, Search } from "lucide-react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
-import workspaceStyles from "../_components/OwnerWorkspace.module.scss";
-import pageStyles from "../OwnerDashboardPages.module.scss";
+import pageStyles from "./OwnerRequestsPage.module.scss";
+import {
+  Button,
+  ButtonLink,
+  Card,
+  CardBody,
+  CardHeader,
+  Checkbox,
+  Input,
+  SearchBar,
+  Select,
+  Textarea,
+} from "@/components/ui";
+import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
+import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
+import { OwnerRequestSummaryCard } from "@/features/owner-dashboard";
 
-type OwnerMissionRow = {
-  id: string;
-  title: string | null;
-  status: string | null;
-  priority: string | null;
-  concierge_profile_id: string | null;
-};
-
-type OwnerConversationRow = {
-  id: string;
-  counterpart_name: string | null;
-  last_message_preview: string | null;
-  last_message_at: string | null;
-  unread_count?: number;
-};
-
-type ReviewRow = {
-  id: string;
-  mission_id: string;
-  rating: number | null;
-  comment: string | null;
-  created_at: string | null;
-  reviewed_profile_id: string | null;
-};
-
-type SpotlightConciergeProfile = {
-  profile: {
-    id: string;
-    display_name: string;
-    role: string | null;
-  };
-  stats: {
-    average_rating: number | null;
-    reviews_count: number;
-  };
+type OwnerHousingRow = {
+  id: number | string;
+  nom_logement?: string | null;
+  ville?: string | null;
 };
 
 type OwnerServiceRequestRecipient = {
   id: string;
   status: string;
-  concierge_profile_id?: string | null;
-  concierge_name?: string;
+  concierge_name?: string | null;
   responded_at?: string | null;
   viewed_at?: string | null;
-  conversation_id?: string | null;
-  quote_id?: string | null;
-  quote_number?: string | null;
-  quote_status?: string | null;
 };
 
 type OwnerServiceRequestRow = {
   id: string;
   title: string;
-  description?: string | null;
   request_type: "ponctuel" | "renfort" | "durable";
   property_name?: string | null;
   city?: string | null;
   postal_code?: string | null;
   desired_date?: string | null;
   requested_services?: string[] | null;
-  urgency?: boolean;
   budget_max?: number | null;
   currency?: string | null;
   status: string;
   workflow_status?: string | null;
   mission_id?: string | null;
+  urgency?: boolean;
   created_at?: string | null;
-  selected_concierge_profile_id?: string | null;
-  selected_concierge_name?: string | null;
   recipients: OwnerServiceRequestRecipient[];
 };
 
+type OwnerQuoteRow = {
+  id: string;
+  status: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type CatalogServiceItem = {
+  id: number;
+  category: string;
+  service: string;
+  description?: string | null;
+};
+
+type OwnerRequestsPayload = {
+  items?: OwnerServiceRequestRow[];
+  error?: string;
+};
+
+type RequestFormState = {
+  propertyKey: string;
+  propertyName: string;
+  requestType: "ponctuel" | "renfort" | "durable";
+  title: string;
+  desiredDate: string;
+  city: string;
+  postalCode: string;
+  requestedServices: string;
+  budgetMax: string;
+  currency: string;
+  description: string;
+  urgency: boolean;
+};
+
+type RequestQuoteSummary = {
+  total: number;
+  pending: number;
+  accepted: number;
+  closed: number;
+};
+
+const initialForm: RequestFormState = {
+  propertyKey: "",
+  propertyName: "",
+  requestType: "ponctuel",
+  title: "",
+  desiredDate: "",
+  city: "",
+  postalCode: "",
+  requestedServices: "",
+  budgetMax: "",
+  currency: "EUR",
+  description: "",
+  urgency: false,
+};
+
+const currencyOptions = [
+  { value: "EUR", label: "€" },
+  { value: "USD", label: "$" },
+  { value: "GBP", label: "£" },
+  { value: "CHF", label: "CHF" },
+] as const;
+
 function formatDateTime(value: string | null | undefined) {
-  if (!value) return "Date à définir";
+  if (!value) return "Date à confirmer";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
 }
 
-function formatBudget(value: number | null | undefined, currency: string | null | undefined) {
-  if (typeof value !== "number") return "Budget non renseigné";
-  return `${value.toFixed(0)} ${currency || "EUR"} max`;
+function formatAmount(value: number | null | undefined, currency = "EUR") {
+  if (typeof value !== "number") return "Sur devis";
+  return `${value.toFixed(0)} ${currency}`;
 }
 
-function formatRequestType(value: OwnerServiceRequestRow["request_type"]) {
+function getRequestTypeLabel(value: OwnerServiceRequestRow["request_type"]) {
   if (value === "durable") return "Besoin durable";
   if (value === "renfort") return "Renfort / remplacement";
   return "Besoin ponctuel";
@@ -110,765 +142,843 @@ function formatRequestType(value: OwnerServiceRequestRow["request_type"]) {
 function formatRecipientStatus(status: string) {
   switch (status) {
     case "sent":
-      return "Envoyee";
+      return "Demande envoyée";
     case "viewed":
-      return "Consultee";
+      return "Vue";
     case "interested":
-      return "Interessee";
+      return "Intéressé";
     case "quoted":
-      return "Devis prepare";
+      return "Devis envoyé";
     case "selected":
       return "Retenu";
     case "not_selected":
       return "Non retenu";
     case "declined":
-      return "Refusee";
+      return "Refusé";
     default:
       return status || "En cours";
   }
+}
+
+function getRecipientResponseSummary(request: OwnerServiceRequestRow) {
+  if (!Array.isArray(request.recipients) || request.recipients.length === 0) {
+    return ["Aucun concierge proposé pour le moment"];
+  }
+
+  const repliedRecipients = request.recipients.filter((recipient) =>
+    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
+  );
+
+  if (repliedRecipients.length === 0) {
+    const viewedRecipients = request.recipients.filter((recipient) => recipient.status === "viewed");
+    if (viewedRecipients.length > 0) {
+      return viewedRecipients.slice(0, 3).map((recipient) => {
+        const name = recipient.concierge_name?.trim() || "Concierge";
+        return `${name} a consulté votre demande`;
+      });
+    }
+
+    return ["Aucune réponse reçue pour le moment"];
+  }
+
+  return repliedRecipients.slice(0, 3).map((recipient) => {
+    const name = recipient.concierge_name?.trim() || "Concierge";
+    const respondedAt = recipient.responded_at ? ` le ${formatDateTime(recipient.responded_at)}` : "";
+    return `${name} a répondu : ${formatRecipientStatus(recipient.status)}${respondedAt}`;
+  });
+}
+
+function buildRequestTitleSuggestion(form: RequestFormState) {
+  const firstService = normalizeServices(form.requestedServices)[0];
+  const serviceLabel = firstService || "gestion";
+  const propertyLabel = form.propertyName.trim() || "appartement";
+  const cityLabel = form.city.trim();
+  const base = `${serviceLabel} - ${propertyLabel}`;
+  return cityLabel ? `${base} - ${cityLabel}` : base;
+}
+
+function normalizeSuggestionKey(value: string | null | undefined) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function matchesService(service: CatalogServiceItem, terms: string[]) {
+  const haystack = normalizeSuggestionKey(
+    `${service.service} ${service.category} ${service.description ?? ""}`,
+  );
+  return terms.some((term) => haystack.includes(normalizeSuggestionKey(term)));
+}
+
+function normalizeServices(rawValue: string) {
+  return Array.from(
+    new Set(
+      rawValue
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function buildConciergeSearchHref(request: OwnerServiceRequestRow) {
+  const params = new URLSearchParams();
+
+  if (request.city?.trim()) params.set("city", request.city.trim());
+  if (request.postal_code?.trim()) params.set("postalCode", request.postal_code.trim());
+  if ((request.requested_services ?? []).length > 0) {
+    params.set("services", (request.requested_services ?? []).join(","));
+  }
+  if (typeof request.budget_max === "number" && Number.isFinite(request.budget_max)) {
+    params.set("budgetMax", String(Math.round(request.budget_max)));
+  }
+
+  const query = params.toString();
+  return query ? `/dashboard/owner/concierges?${query}` : "/dashboard/owner/concierges";
+}
+
+function getRequestIdFromQuote(quote: OwnerQuoteRow) {
+  const metadata =
+    quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
+      ? quote.metadata
+      : null;
+  return metadata && typeof metadata.service_request_id === "string"
+    ? metadata.service_request_id
+    : null;
+}
+
+function buildRequestQuotesHref(requestId: string) {
+  return `/dashboard/owner/devis?request=${encodeURIComponent(requestId)}`;
+}
+
+function summarizeQuotesByRequest(quotes: OwnerQuoteRow[]): RequestQuoteSummary {
+  return quotes.reduce<RequestQuoteSummary>(
+    (accumulator, quote) => {
+      accumulator.total += 1;
+
+      if (quote.status === "accepted") {
+        accumulator.accepted += 1;
+        return accumulator;
+      }
+
+      if (["rejected", "expired", "canceled"].includes(quote.status ?? "")) {
+        accumulator.closed += 1;
+        return accumulator;
+      }
+
+      accumulator.pending += 1;
+      return accumulator;
+    },
+    { total: 0, pending: 0, accepted: 0, closed: 0 },
+  );
 }
 
 function getUnifiedRequestStatus(request: OwnerServiceRequestRow) {
   return request.workflow_status ?? request.status ?? "NEW";
 }
 
-function getSelectedRecipient(request: OwnerServiceRequestRow) {
-  return (
-    request.recipients.find((recipient) => recipient.status === "selected") ??
-    request.recipients.find(
-      (recipient) => recipient.concierge_profile_id === request.selected_concierge_profile_id,
-    ) ??
-    null
-  );
-}
+/**
+ * Logique d'actions dynamiques basée sur les réponses reçues
+ */
+function getRequestActions(request: OwnerServiceRequestRow) {
+  const recipients = Array.isArray(request.recipients) ? request.recipients : [];
 
-function getRequestNextStep(request: OwnerServiceRequestRow) {
-  const selectedRecipient = getSelectedRecipient(request);
-  if (selectedRecipient) {
-    return `Concierge retenu : ${selectedRecipient.concierge_name || "concierge"}. La suite se joue dans la conversation et la mission active.`;
-  }
-
-  if (request.recipients.some((recipient) => recipient.status === "quoted")) {
-    return "Des devis sont disponibles. Comparez les retours puis retenez un concierge.";
-  }
-
-  if (request.recipients.some((recipient) => recipient.status === "interested")) {
-    return "Des concierges ont confirme leur interet. Ouvrez la conversation et demandez un chiffrage si besoin.";
-  }
-
-  if (request.recipients.every((recipient) => recipient.status === "declined")) {
-    return "Tous les concierges ont decline cette demande. Relancez une nouvelle recherche.";
-  }
-
-  return "Attendez les premiers retours ou poursuivez les echanges depuis la conversation liee.";
-}
-
-function getRecipientResponseSummary(request: OwnerServiceRequestRow) {
-  const repliedRecipients = request.recipients.filter((recipient) =>
+  const hasResponse = recipients.some((recipient) =>
     ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
   );
 
-  if (repliedRecipients.length === 0) {
-    return ["Aucune reponse recue pour le moment"];
-  }
+  const hasQuote = recipients.some((recipient) =>
+    ["quoted", "selected"].includes(recipient.status),
+  );
 
-  return repliedRecipients.slice(0, 3).map((recipient) => {
-    const name = recipient.concierge_name?.trim() || "Concierge";
-    const respondedAt = recipient.responded_at ? ` le ${formatDateTime(recipient.responded_at)}` : "";
-    return `${name} a repondu : ${formatRecipientStatus(recipient.status)}${respondedAt}`;
-  });
+  const isAccepted = request.status === "ACCEPTED" || request.workflow_status === "ACCEPTED" || !!request.mission_id;
+
+  return {
+    showRelaunch: !hasResponse && !isAccepted,
+    showQuotes: hasResponse || request.status === "QUOTE_SENT" || request.workflow_status === "QUOTE_SENT" || isAccepted,
+    primaryLabel: isAccepted
+      ? "Ouvrir le devis"
+      : hasQuote
+        ? "Voir les propositions"
+        : hasResponse
+          ? "Voir les réponses"
+          : "Relancer la demande",
+  };
 }
 
-function collectReplySignatures(rows: OwnerServiceRequestRow[]) {
-  return rows
-    .filter(
-      (request) =>
-        Array.isArray(request.recipients) &&
-        request.recipients.some((recipient) => isOwnerReplyStatus(recipient.status)),
-    )
-    .map((request) => getOwnerReplySignature(request));
-}
-
-export default function OwnerConciergeriePage() {
-  const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
-  const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
-  const [reviews, setReviews] = useState<ReviewRow[]>([]);
+export default function OwnerRequestsPage() {
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
-  const [spotlightProfile, setSpotlightProfile] = useState<SpotlightConciergeProfile | null>(null);
+  const [housing, setHousing] = useState<OwnerHousingRow[]>([]);
+  const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
+  const [catalogServices, setCatalogServices] = useState<CatalogServiceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
-  const [reviewError, setReviewError] = useState<string | null>(null);
-  const [reviewSuccess, setReviewSuccess] = useState<string | null>(null);
-  const [selectedMissionId, setSelectedMissionId] = useState("");
-  const [rating, setRating] = useState("5");
-  const [comment, setComment] = useState("");
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [selectingRequestId, setSelectingRequestId] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [form, setForm] = useState<RequestFormState>(initialForm);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setError(null);
-
-        const [missionsRes, conversationsRes, reviewsRes, requestsRes] = await Promise.all([
-          fetch("/api/missions?scope=owner&limit=8", { cache: "no-store" }),
-          fetch("/api/messages/conversations?role=owner&limit=8", { cache: "no-store" }),
-          fetch("/api/reviews?limit=6", { cache: "no-store" }),
-          fetch("/api/service-requests?limit=8", { cache: "no-store" }),
-        ]);
-
-        const missionsPayload = await missionsRes.json();
-        const conversationsPayload = await conversationsRes.json();
-        const reviewsPayload = await reviewsRes.json();
-        const requestsPayload = await requestsRes.json();
-
-        if (!missionsRes.ok) {
-          throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
-        }
-        if (!conversationsRes.ok) {
-          throw new Error(conversationsPayload?.error || "Impossible de charger les conversations.");
-        }
-        if (!reviewsRes.ok) {
-          throw new Error(reviewsPayload?.error || "Impossible de charger les avis.");
-        }
-        if (!requestsRes.ok) {
-          throw new Error(requestsPayload?.error || "Impossible de charger les demandes envoyées.");
-        }
-
-        setMissions(Array.isArray(missionsPayload) ? missionsPayload : []);
-        setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
-        setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
-        const nextRequests = Array.isArray(requestsPayload?.items) ? requestsPayload.items : [];
-        setRequests(nextRequests);
-        markOwnerReplySignaturesAsSeen(collectReplySignatures(nextRequests));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger la conciergerie.");
-      }
-    }
-
-    void loadData();
-  }, []);
-
-  const reloadRequests = useCallback(async () => {
-    const response = await fetch("/api/service-requests?limit=8", { cache: "no-store" });
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload?.error || "Impossible de recharger les demandes.");
-    }
-
-    const nextRequests = Array.isArray(payload?.items) ? payload.items : [];
-    setRequests(nextRequests);
-    markOwnerReplySignaturesAsSeen(collectReplySignatures(nextRequests));
-  }, []);
-
-  const getOwnerConversationHref = useCallback((conversationId?: string | null) => {
-    if (conversationId) {
-      return `/dashboard/owner/messages?conversation=${encodeURIComponent(conversationId)}`;
-    }
-    return "/dashboard/owner/messages";
-  }, []);
-
-  async function handleSelectConcierge(requestId: string, recipientId: string) {
+  const loadData = useCallback(async () => {
     try {
-      setSelectingRequestId(requestId);
-      setRequestSuccess(null);
+      setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/service-requests/${requestId}/select`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipient_id: recipientId }),
-      });
-      const payload = await response.json();
+      const [requestsResponse, housingResponse, quotesResponse, servicesResponse] = await Promise.all([
+        fetch("/api/service-requests?limit=100", { cache: "no-store" }),
+        fetch("/api/housing", { cache: "no-store" }),
+        fetch("/api/quotes?limit=100", { cache: "no-store" }),
+        fetch("/api/services/services-catalog", { cache: "no-store" }),
+      ]);
 
-      if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de retenir ce concierge.");
+      const requestsPayload = (await requestsResponse.json()) as OwnerRequestsPayload;
+      const housingPayload = await housingResponse.json();
+      const quotesPayload = await quotesResponse.json();
+      const servicesPayload = await servicesResponse.json();
+
+      if (!requestsResponse.ok) {
+        throw new Error(requestsPayload?.error || "Impossible de charger les demandes.");
+      }
+      if (!housingResponse.ok) {
+        throw new Error(housingPayload?.error || "Impossible de charger les logements.");
+      }
+      if (!quotesResponse.ok) {
+        throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
+      }
+      if (!servicesResponse.ok) {
+        throw new Error(servicesPayload?.error || "Impossible de charger les services.");
       }
 
-      await reloadRequests();
-      setRequestSuccess("Le concierge a ete retenu et la demande a ete transformee en mission active.");
+      setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
+      setHousing(Array.isArray(housingPayload) ? housingPayload : []);
+      setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
+      setCatalogServices(Array.isArray(servicesPayload) ? servicesPayload : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
+      setError(err instanceof Error ? err.message : "Impossible de charger les demandes.");
     } finally {
-      setSelectingRequestId(null);
+      setLoading(false);
     }
-  }
-
-  const ongoingCount = useMemo(
-    () =>
-      missions.filter(
-        (mission) => mission.status === "accepted" || mission.status === "in_progress",
-      ).length,
-    [missions],
-  );
-
-  const openRequestsCount = useMemo(
-    () =>
-      requests.filter((request) =>
-        request.recipients.some((recipient) =>
-          ["sent", "viewed", "interested", "quoted", "in_review"].includes(recipient.status),
-        ),
-      ).length,
-    [requests],
-  );
-
-  const repliedRequestsCount = useMemo(
-    () =>
-      requests.filter((request) =>
-        request.recipients.some((recipient) =>
-          ["interested", "quoted", "selected", "in_review", "accepted"].includes(recipient.status),
-        ),
-      ).length,
-    [requests],
-  );
-
-  const selectedConciergeCount = useMemo(
-    () => requests.filter((request) => Boolean(request.selected_concierge_name)).length,
-    [requests],
-  );
-
-  const averageRating = useMemo(() => {
-    const validRatings = reviews
-      .map((review) => review.rating)
-      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-
-    if (validRatings.length === 0) return null;
-    return (validRatings.reduce((sum, value) => sum + value, 0) / validRatings.length).toFixed(1);
-  }, [reviews]);
-
-  const reviewedMissionIds = useMemo(() => new Set(reviews.map((review) => review.mission_id)), [reviews]);
-
-  const reviewableMissions = useMemo(
-    () =>
-      missions.filter(
-        (mission) =>
-          mission.status === "completed" &&
-          !!mission.concierge_profile_id &&
-          !reviewedMissionIds.has(mission.id),
-      ),
-    [missions, reviewedMissionIds],
-  );
+  }, []);
 
   useEffect(() => {
-    if (!selectedMissionId && reviewableMissions.length > 0) {
-      setSelectedMissionId(reviewableMissions[0].id);
-    }
-  }, [reviewableMissions, selectedMissionId]);
+    void loadData();
+  }, [loadData]);
 
-  const selectedMission = useMemo(
-    () => reviewableMissions.find((mission) => mission.id === selectedMissionId) ?? null,
-    [reviewableMissions, selectedMissionId],
+  const housingOptions = useMemo(
+    () =>
+      housing.map((item) => ({
+        key: String(item.id),
+        label:
+          item.nom_logement?.trim() || (item.ville ? `Logement à ${item.ville}` : "") || "Logement",
+        city: item.ville?.trim() || "",
+      })),
+    [housing],
   );
 
-  const spotlightConciergeProfileId = useMemo(() => {
-    const withConcierge = missions.find((mission) => !!mission.concierge_profile_id);
-    return withConcierge?.concierge_profile_id ?? null;
-  }, [missions]);
+  const quotesByRequestId = useMemo(() => {
+    const nextMap = new Map<string, OwnerQuoteRow[]>();
+    quotes.forEach((quote) => {
+      const requestId = getRequestIdFromQuote(quote);
+      if (!requestId) return;
+      const current = nextMap.get(requestId) ?? [];
+      current.push(quote);
+      nextMap.set(requestId, current);
+    });
+    return nextMap;
+  }, [quotes]);
 
-  useEffect(() => {
-    if (!spotlightConciergeProfileId) {
-      setSpotlightProfile(null);
+  const filteredRequests = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return requests.filter((request) => {
+      const workflowStatus = getUnifiedRequestStatus(request);
+      const matchesStatus =
+        statusFilter === "all" ||
+        workflowStatus === statusFilter ||
+        request.status === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+
+      const haystack = [
+        request.title,
+        request.property_name,
+        request.city,
+        request.status,
+        ...(request.requested_services ?? []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearch);
+    });
+  }, [requests, searchTerm, statusFilter]);
+
+  const draftCount = useMemo(
+    () => requests.filter((request) => getUnifiedRequestStatus(request) === "NEW").length,
+    [requests],
+  );
+
+  const sentCount = useMemo(
+    () => requests.filter((request) => getUnifiedRequestStatus(request) === "IN_DISCUSSION").length,
+    [requests],
+  );
+
+  const quotedCount = useMemo(
+    () => requests.filter((request) => getUnifiedRequestStatus(request) === "QUOTE_SENT").length,
+    [requests],
+  );
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!form.title.trim()) {
+      setError("Ajoutez un titre clair à votre demande.");
       return;
     }
 
-    let cancelled = false;
-
-    async function loadSpotlightProfile() {
-      try {
-        const response = await fetch(`/api/profiles/public/${spotlightConciergeProfileId}`, {
-          cache: "no-store",
-        });
-        const payload = await response.json();
-        if (!response.ok || cancelled) return;
-        setSpotlightProfile(payload);
-      } catch {
-        if (!cancelled) {
-          setSpotlightProfile(null);
-        }
-      }
-    }
-
-    void loadSpotlightProfile();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [spotlightConciergeProfileId]);
-
-  async function handleSubmitReview(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedMission?.concierge_profile_id) {
-      setReviewError("Impossible d'identifier le concierge à évaluer.");
+    const normalizedServices = normalizeServices(form.requestedServices);
+    if (normalizedServices.length === 0) {
+      setError("Ajoutez au moins un service demandé.");
       return;
     }
 
     try {
-      setSubmittingReview(true);
-      setReviewError(null);
-      setReviewSuccess(null);
+      setSubmitting(true);
+      setError(null);
+      setSuccess(null);
 
-      const response = await fetch("/api/reviews", {
+      const payload = {
+        request_type: form.requestType,
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        property_name: form.propertyName.trim() || null,
+        requested_services: normalizedServices,
+        city: form.city.trim() || null,
+        postal_code: form.postalCode.trim() || null,
+        desired_date: form.desiredDate ? new Date(form.desiredDate).toISOString() : null,
+        urgency: form.urgency,
+        budget_max: form.budgetMax ? Number(form.budgetMax) : null,
+        currency: form.currency,
+      };
+
+      const response = await fetch("/api/service-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mission_id: selectedMission.id,
-          reviewed_profile_id: selectedMission.concierge_profile_id,
-          rating: Number(rating),
-          comment,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const payload = await response.json();
+      const responsePayload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible d'enregistrer votre avis.");
+        throw new Error(responsePayload?.error || "Impossible de créer la demande.");
       }
 
-      setReviews((prev) => [payload, ...prev]);
-      setReviewSuccess("Votre avis a bien été enregistré.");
-      setComment("");
-      setRating("5");
-      setSelectedMissionId("");
+      setSuccess("Demande créée. Vous pouvez maintenant suivre les devis associés juste à droite.");
+      setForm(initialForm);
+      await loadData();
     } catch (err) {
-      setReviewError(err instanceof Error ? err.message : "Impossible d'enregistrer votre avis.");
+      setError(err instanceof Error ? err.message : "Impossible de créer la demande.");
     } finally {
-      setSubmittingReview(false);
+      setSubmitting(false);
     }
+  }
+
+  function handleHousingChange(value: string) {
+    const selectedHousing = housingOptions.find((item) => item.key === value) ?? null;
+    setForm((current) => ({
+      ...current,
+      propertyKey: value,
+      propertyName: selectedHousing?.label ?? "",
+      city: current.city || selectedHousing?.city || "",
+    }));
+  }
+
+  const normalizedServices = normalizeServices(form.requestedServices);
+  const titleSuggestion = buildRequestTitleSuggestion(form);
+  const normalizedCity = normalizeSuggestionKey(form.city);
+  const normalizedProperty = normalizeSuggestionKey(form.propertyName);
+
+  const quickServiceSuggestions = useMemo(() => {
+    if (catalogServices.length === 0) return [];
+    const historyCounts = requests.reduce<Map<string, number>>((accumulator, request) => {
+      (request.requested_services ?? []).forEach((serviceName) => {
+        const key = normalizeSuggestionKey(serviceName);
+        accumulator.set(key, (accumulator.get(key) ?? 0) + 1);
+      });
+      return accumulator;
+    }, new Map<string, number>());
+
+    const typeTermsByNeed: Record<RequestFormState["requestType"], string[]> = {
+      ponctuel: [
+        "check-in",
+        "check out",
+        "menage entre voyageurs",
+        "changement de linge",
+        "petites reparations",
+      ],
+      renfort: [
+        "communication voyageurs",
+        "gestion reservations",
+        "menage standard",
+        "blanchisserie",
+        "assistance voyageurs",
+      ],
+      durable: [
+        "conciergerie 24/7",
+        "gestion reservations",
+        "communication voyageurs",
+        "reporting mensuel",
+        "calendrier dynamique",
+      ],
+    };
+
+    const cityTerms =
+      normalizedCity.includes("paris") ||
+        normalizedCity.includes("nice") ||
+        normalizedCity.includes("cannes") ||
+        normalizedCity.includes("marseille") ||
+        normalizedCity.includes("lyon") ||
+        normalizedCity.includes("bordeaux")
+        ? ["check-in", "kit de bienvenue", "communication voyageurs"]
+        : normalizedCity.includes("chamonix") ||
+          normalizedCity.includes("megeve") ||
+          normalizedCity.includes("meribel")
+          ? ["deneigement", "intervention d'urgence", "check-in"]
+          : [];
+
+    const propertyTerms = [
+      ...(normalizedProperty.includes("villa") || normalizedProperty.includes("maison")
+        ? ["jardinage", "nettoyage terrasses", "entretien voirie"]
+        : []),
+      ...(normalizedProperty.includes("piscine") ? ["nettoyage piscine"] : []),
+      ...(normalizedProperty.includes("studio") || normalizedProperty.includes("appartement")
+        ? ["menage entre voyageurs", "check-in", "changement de linge"]
+        : []),
+    ];
+
+    const selectedKeys = new Set(normalizedServices.map((service) => normalizeSuggestionKey(service)));
+
+    const scored = catalogServices.map((service) => {
+      const key = normalizeSuggestionKey(service.service);
+      let score = historyCounts.get(key) ?? 0;
+
+      if (matchesService(service, typeTermsByNeed[form.requestType])) score += 6;
+      if (matchesService(service, propertyTerms)) score += 4;
+      if (matchesService(service, cityTerms)) score += 3;
+      if (selectedKeys.has(key)) score += 2;
+      if (service.category === "Accueil" || service.category === "Ménage") score += 1;
+
+      return { service, score };
+    });
+
+    return scored
+      .sort((left, right) => {
+        if (right.score !== left.score) return right.score - left.score;
+        return left.service.service.localeCompare(right.service.service, "fr");
+      })
+      .slice(0, 8)
+      .map((entry) => entry.service);
+  }, [catalogServices, requests, form.requestType, normalizedCity, normalizedProperty, normalizedServices]);
+
+  const recentRequestedServices = useMemo(() => {
+    const counts = requests.reduce<Map<string, number>>((accumulator, request) => {
+      (request.requested_services ?? []).forEach((serviceName) => {
+        accumulator.set(serviceName, (accumulator.get(serviceName) ?? 0) + 1);
+      });
+      return accumulator;
+    }, new Map<string, number>());
+
+    return Array.from(counts.entries())
+      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0], "fr"))
+      .slice(0, 8)
+      .map(([serviceName]) => serviceName);
+  }, [requests]);
+
+  function toggleQuickService(serviceName: string) {
+    const nextSelection = normalizedServices.includes(serviceName)
+      ? normalizedServices.filter((item) => item !== serviceName)
+      : [...normalizedServices, serviceName];
+
+    setForm((current) => ({
+      ...current,
+      requestedServices: nextSelection.join(", "),
+    }));
   }
 
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
-        eyebrow="Conciergerie"
-        title="Suivi de mes demandes concierge"
+        eyebrow="Demandes"
+        title="Demandes de mission"
         description={
-          error
-            ? error
-            : "Un espace de pilotage synthétique pour suivre vos demandes, vos échanges actifs et la qualité de la relation concierge."
+          loading
+            ? "Chargement des demandes..."
+            : error || "Créez une demande puis comparez les devis reçus pour le bon logement."
         }
-        chips={[
-          `${requests.length} demande(s) envoyée(s)`,
-          `${openRequestsCount} en attente`,
-          `${repliedRequestsCount} réponse(s) reçue(s)`,
-          `${ongoingCount} mission(s) en cours`,
-          averageRating ? `${averageRating}/5 de satisfaction` : "Avis en cours de collecte",
-          spotlightProfile?.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge standard",
+        metrics={[
+          { label: "Demandes", value: loading ? "..." : String(requests.length) },
+          { label: "Brouillons", value: loading ? "..." : String(draftCount) },
+          { label: "Envoyées", value: loading ? "..." : String(sentCount) },
+          { label: "Avec devis", value: loading ? "..." : String(quotedCount) },
         ]}
-        actions={[
-          { label: "Ouvrir les messages", href: "/dashboard/owner/messages" },
-          { label: "Voir le planning", href: "/dashboard/owner/planning" },
-          { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
-          ...(spotlightConciergeProfileId
-            ? [{ label: "Voir le profil concierge", href: `/concierges/${spotlightConciergeProfileId}` }]
-            : []),
-        ]}
-        cards={[
-          {
-            title: "Vue opérationnelle",
-            text:
-              requests.length > 0
-                ? `${openRequestsCount} demande(s) encore à qualifier, ${repliedRequestsCount} avec un retour exploitable et ${selectedConciergeCount} déjà transformée(s) en relation active.`
-                : "Aucune demande envoyée pour le moment.",
-          },
-          {
-            title: "Missions récentes",
-            text:
-              missions.length > 0
-                ? missions
-                    .slice(0, 3)
-                    .map((mission) => `${mission.title || "Mission"} (${mission.status || "-"})`)
-                    .join(" | ")
-                : "Aucune mission chargée pour le moment.",
-          },
-          {
-            title: "Contacts actifs",
-            text:
-              conversations.length > 0
-                ? conversations
-                    .slice(0, 3)
-                    .map((conversation) => conversation.counterpart_name || "Contact")
-                    .join(" | ")
-                : "Aucun contact actif pour le moment.",
-          },
-          {
-            title: "Avis et notation",
-            text:
-              reviews.length > 0
-                ? `${averageRating || "-"} / 5 sur ${reviews.length} avis. Dernier retour : ${reviews[0]?.comment || "Évaluation recueillie sans commentaire."}`
-                : "Les avis laissés après les missions terminées apparaîtront ici.",
-          },
-          {
-            title: "Badge concierge",
-            text: spotlightProfile
-              ? `${spotlightProfile.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge standard"}${typeof spotlightProfile.stats.average_rating === "number" ? ` | ${spotlightProfile.stats.average_rating.toFixed(1)} / 5 sur ${spotlightProfile.stats.reviews_count} avis` : ""}`
-              : "Le statut PRO et la note du concierge apparaîtront ici dès qu&apos;un profil sera associé.",
-          },
-        ]}
+        actions={[]}
+        cards={[]}
       />
 
-      <section className={pageStyles.conciergeDashboardFlow}>
-        <div className={pageStyles.conciergeKpiGrid}>
-          <article className={pageStyles.conciergeKpiCard}>
-            <span className={pageStyles.conciergeKpiLabel}>Demandes envoyées</span>
-            <strong className={pageStyles.conciergeKpiValue}>{requests.length}</strong>
-            <p className={pageStyles.conciergeKpiHint}>Briefs déjà partis vers vos concierges ciblés.</p>
-          </article>
-          <article className={pageStyles.conciergeKpiCard}>
-            <span className={pageStyles.conciergeKpiLabel}>En attente</span>
-            <strong className={pageStyles.conciergeKpiValue}>{openRequestsCount}</strong>
-            <p className={pageStyles.conciergeKpiHint}>Demandes qui attendent encore une réponse exploitable.</p>
-          </article>
-          <article className={pageStyles.conciergeKpiCard}>
-            <span className={pageStyles.conciergeKpiLabel}>Réponses reçues</span>
-            <strong className={pageStyles.conciergeKpiValue}>{repliedRequestsCount}</strong>
-            <p className={pageStyles.conciergeKpiHint}>Concierges ayant consulté, répondu ou proposé un devis.</p>
-          </article>
-          <article className={pageStyles.conciergeKpiCard}>
-            <span className={pageStyles.conciergeKpiLabel}>Concierge retenu</span>
-            <strong className={pageStyles.conciergeKpiValue}>{selectedConciergeCount}</strong>
-            <p className={pageStyles.conciergeKpiHint}>Demandes déjà transformées en relation active.</p>
-          </article>
-        </div>
+      <section className={pageStyles.page}>
+        {success ? <p className={`${pageStyles.message} ${pageStyles.success}`}>{success}</p> : null}
+        {error ? <p className={`${pageStyles.message} ${pageStyles.error}`}>{error}</p> : null}
 
-        <div className={pageStyles.conciergeLayout}>
-          <section className={pageStyles.conciergeTimelinePanel}>
-            <div className={pageStyles.conciergeSectionHeader}>
+        <div className={pageStyles.layout}>
+          <Card className={pageStyles.formPanel} tone="soft" variant="large">
+            <CardHeader className={pageStyles.sectionHeader}>
               <div>
-                <p className={pageStyles.eyebrow}>Pilotage</p>
-                <h2 className={pageStyles.conciergeSectionTitle}>Timeline des demandes</h2>
+                <p className={pageStyles.eyebrow}>Nouvelle demande</p>
+                <h2 className={pageStyles.title}>Créer une mission claire et rapide</h2>
               </div>
-              <Link href="/dashboard/owner/concierges" className={pageStyles.linkButton}>
-                Trouver un concierge
-              </Link>
+            </CardHeader>
+
+            <CardBody className={pageStyles.formGrid}>
+              <p className={pageStyles.intro}>Renseignez l’essentiel. Les détails pourront être affinés ensuite.</p>
+
+              <form className={pageStyles.formGrid} onSubmit={handleSubmit}>
+                <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
+                    <label className={pageStyles.field}>
+                      <span>Logement</span>
+                      <Select value={form.propertyKey} onChange={(event) => handleHousingChange(event.target.value)}>
+                        <option value="">Choisir un logement</option>
+                        {housingOptions.map((item) => (
+                          <option key={item.key} value={item.key}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </label>
+
+                    <label className={pageStyles.field}>
+                      <span>Type de besoin</span>
+                      <Select
+                        value={form.requestType}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            requestType: event.target.value as RequestFormState["requestType"],
+                          }))
+                        }
+                      >
+                        <option value="ponctuel">Besoin ponctuel</option>
+                        <option value="renfort">Remplacement / renfort</option>
+                        <option value="durable">Besoin durable</option>
+                      </Select>
+                    </label>
+                  </div>
+                </div>
+
+                <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
+                    <label className={pageStyles.field}>
+                      <span>Date de début</span>
+                      <Input
+                        type="datetime-local"
+                        value={form.desiredDate}
+                        onChange={(event) => setForm((current) => ({ ...current, desiredDate: event.target.value }))}
+                      />
+                    </label>
+
+                    <label className={pageStyles.field}>
+                      <span>Budget indicatif du propriétaire</span>
+                      <div className={pageStyles.budgetRow}>
+                        <Input
+                          type="number"
+                          min="0"
+                          inputMode="numeric"
+                          value={form.budgetMax}
+                          onChange={(event) => setForm((current) => ({ ...current, budgetMax: event.target.value }))}
+                          placeholder="Sur devis"
+                        />
+                        <Select
+                          value={form.currency}
+                          onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value }))}
+                        >
+                          {currencyOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                      <small className={pageStyles.fieldHint}>Indicatif, sans engagement sur le tarif final.</small>
+                    </label>
+                  </div>
+                </div>
+
+                <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
+                    <label className={pageStyles.field}>
+                      <span>Ville</span>
+                      <Input
+                        value={form.city}
+                        onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))}
+                        placeholder="Paris"
+                      />
+                    </label>
+
+                    <label className={pageStyles.field}>
+                      <span>Code postal</span>
+                      <Input
+                        value={form.postalCode}
+                        onChange={(event) => setForm((current) => ({ ...current, postalCode: event.target.value }))}
+                        placeholder="75015"
+                        inputMode="numeric"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className={pageStyles.formSectionCard}>
+                  <label className={pageStyles.fullField}>
+                    <span>Titre</span>
+                    <Input
+                      value={form.title}
+                      onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                      placeholder="Ex : check-in et ménage de lancement"
+                    />
+                    <div className={pageStyles.titleSuggestionCard}>
+                      <div className={pageStyles.titleSuggestionCopy}>
+                        <strong>Titre conseillé</strong>
+                        <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
+                        <code>{titleSuggestion}</code>
+                      </div>
+                      <button
+                        type="button"
+                        className={pageStyles.inlineHintAction}
+                        onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
+                      >
+                        {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
+                      </button>
+                    </div>
+                  </label>
+                </div>
+
+                <div className={`${pageStyles.formSectionCard} ${pageStyles.formSectionFeature}`}>
+                  <label className={pageStyles.fullField}>
+                    <span>Services demandés</span>
+                    <small className={pageStyles.fieldHint}>
+                      Sélectionne d&apos;abord les services du catalogue, puis ajoute un besoin libre si nécessaire.
+                    </small>
+                    {quickServiceSuggestions.length > 0 ? (
+                      <div className={pageStyles.quickServicesBlock}>
+                        <p className={pageStyles.quickServicesTitle}>Suggestions rapides intelligentes</p>
+                        <p className={pageStyles.quickServicesHint}>
+                          Basées sur le type de besoin, le logement, la ville et les demandes déjà fréquentes.
+                        </p>
+                        <div className={pageStyles.quickServicesList}>
+                          {quickServiceSuggestions.map((service) => {
+                            const isSelected = normalizedServices.includes(service.service);
+                            return (
+                              <button
+                                key={service.id}
+                                type="button"
+                                className={`${pageStyles.quickServiceChip} ${isSelected ? pageStyles.quickServiceChipSelected : ""
+                                  }`}
+                                onClick={() => toggleQuickService(service.service)}
+                              >
+                                {service.service}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+                    <div className={pageStyles.catalogSelectorWrap}>
+                      <ServiceCatalogSelector
+                        selected={normalizedServices}
+                        onChange={(selected) =>
+                          setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))
+                        }
+                        introText=""
+                        searchPlaceholder="Rechercher un service pour cette demande"
+                        priorityCategories={["Accueil", "Ménage", "Linge", "Maintenance", "Administratif"]}
+                        initialCategoryCount={5}
+                        recentServices={recentRequestedServices}
+                      />
+                    </div>
+                    <div className={pageStyles.chipsInputWrap}>
+                      <Input
+                        value={form.requestedServices}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, requestedServices: event.target.value }))
+                        }
+                        placeholder="Ajouter un besoin spécifique : ex. état des lieux, coordination artisan"
+                      />
+                      {normalizedServices.length > 0 ? (
+                        <div className={pageStyles.serviceChips}>
+                          {normalizedServices.map((service) => (
+                            <span key={service} className={pageStyles.serviceChip}>
+                              {service}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </label>
+                </div>
+
+                <div className={pageStyles.formSectionCard}>
+                  <label className={pageStyles.fullField}>
+                    <span>Contexte</span>
+                    <Textarea
+                      rows={4}
+                      value={form.description}
+                      onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+                      placeholder="Précisez le contexte, l’urgence éventuelle et ce que vous attendez."
+                    />
+                  </label>
+                </div>
+
+                <div className={pageStyles.formSectionCard}>
+                  <Checkbox
+                    checked={form.urgency}
+                    onChange={(event) => setForm((current) => ({ ...current, urgency: event.target.checked }))}
+                    label="Mission urgente"
+                  />
+
+                  <div className={pageStyles.actions}>
+                    <Button type="submit" variant="primary" disabled={submitting}>
+                      {submitting ? "Enregistrement..." : "Créer ma demande"}
+                    </Button>
+                    <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
+                      Rechercher une conciergerie
+                    </ButtonLink>
+                  </div>
+                </div>
+              </form>
+            </CardBody>
+          </Card>
+
+          <Card className={pageStyles.listPanel} tone="soft" variant="large">
+            <CardHeader className={pageStyles.sectionHeader}>
+              <div>
+                <p className={pageStyles.eyebrow}>Suivi</p>
+                <h2 className={pageStyles.title}>Demandes et devis associés</h2>
+              </div>
+            </CardHeader>
+
+            <div className={pageStyles.toolbar}>
+              <SearchBar
+                defaultValue={searchTerm}
+                onSearch={setSearchTerm}
+                placeholder="Rechercher un logement, une mission ou un service"
+                className={pageStyles.searchField}
+                buttonLabel="Filtrer"
+              />
+              <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <option value="all">Tous statuts</option>
+                <option value="NEW">Nouvelles</option>
+                <option value="IN_DISCUSSION">En discussion</option>
+                <option value="QUOTE_SENT">Devis envoyés</option>
+                <option value="ACCEPTED">Acceptées</option>
+                <option value="MISSION_CREATED">Mission créée</option>
+                <option value="IN_PROGRESS">En cours</option>
+                <option value="COMPLETED">Terminées</option>
+              </Select>
             </div>
 
-            {requestSuccess ? (
-              <p className={`${pageStyles.message} ${pageStyles.messageSuccess}`}>{requestSuccess}</p>
+            {loading ? <p className={pageStyles.helperText}>Chargement des demandes...</p> : null}
+
+            {!loading && filteredRequests.length === 0 ? (
+              <EmptyState
+                title="Aucune demande à afficher"
+                description="Créez votre première demande pour commencer à suivre les devis."
+                className={pageStyles.emptyState}
+                primaryAction={<ButtonLink href="/dashboard/owner/concierges">Trouver un concierge</ButtonLink>}
+              />
             ) : null}
 
-            {requests.length === 0 ? (
-              <div className={pageStyles.conciergeEmptyState}>
-                <h3>Aucune demande envoyée pour le moment.</h3>
-                <p>Commencez une recherche puis envoyez un brief à des concierges pour suivre ici les retours.</p>
-              </div>
-            ) : (
-              <div className={pageStyles.conciergeTimeline}>
-                {requests.map((request) => {
-                  const selectedRecipient = getSelectedRecipient(request);
-                  const responseCount = request.recipients.filter((recipient) =>
-                    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
-                  ).length;
-                  const quotedCount = request.recipients.filter((recipient) => recipient.status === "quoted").length;
+            {!loading && filteredRequests.length > 0 ? (
+              <div className={pageStyles.rows}>
+                {filteredRequests.map((request) => {
+                  const quoteSummary = summarizeQuotesByRequest(quotesByRequestId.get(request.id) ?? []);
+                  const requestActions = getRequestActions(request);
 
                   return (
                     <OwnerRequestSummaryCard
                       key={request.id}
-                      className={pageStyles.conciergeRequestCard}
+                      className={pageStyles.requestRow}
                       title={request.title}
-                      subtitle={formatRequestType(request.request_type)}
+                      subtitle={getRequestTypeLabel(request.request_type)}
                       status={request.status || "-"}
                       workflowStatus={request.workflow_status}
                       hasMission={Boolean(request.mission_id)}
                       urgency={request.urgency}
-                      primaryFacts={[
-                        { label: "Appartement", value: request.property_name || "A preciser" },
-                        {
-                          label: "Localisation",
-                          value: [request.city, request.postal_code].filter(Boolean).join(" ") || "A preciser",
-                        },
-                        { label: "Echeance", value: formatDateTime(request.desired_date) },
-                        { label: "Budget", value: formatBudget(request.budget_max, request.currency) },
-                      ]}
-                      secondaryFacts={[
-                        { label: "Concierges proposes", value: request.recipients.length },
-                        { label: "Reponses", value: responseCount },
-                        { label: "Devis", value: quotedCount },
-                      ]}
-                      services={request.requested_services ?? []}
-                      emptyServicesLabel="Services a preciser"
-                      description={request.description}
-                      helperTexts={[
-                        `Creee le ${formatDateTime(request.created_at)}. ${getRequestNextStep(request)}`,
-                        ...getRecipientResponseSummary(request),
-                      ]}
-                    >
-                      <div className={pageStyles.conciergeRecipientsBlock}>
-                        <p className={pageStyles.conciergeSectionLabel}>Concierges proposes</p>
-                        <div className={pageStyles.conciergeRecipients}>
-                          {request.recipients.length > 0 ? (
-                            request.recipients.slice(0, 4).map((recipient) => (
-                              <span key={recipient.id} className={pageStyles.conciergeRecipientChip}>
-                                {recipient.concierge_name || "Concierge"} · {formatRecipientStatus(recipient.status)}
-                              </span>
-                            ))
-                          ) : (
-                            <span className={pageStyles.conciergeRecipientChip}>Aucun destinataire rattache</span>
+                      actions={
+                        <div className={pageStyles.compactActions}>
+                          {requestActions.showRelaunch && (
+                            <ButtonLink
+                              href={buildConciergeSearchHref(request)}
+                              variant="ghost"
+                              size="sm"
+                              className={pageStyles.iconAction}
+                              aria-label="Relancer la demande"
+                              title="Relancer la demande"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <Search size={16} aria-hidden="true" />
+                            </ButtonLink>
+                          )}
+                          {requestActions.showQuotes && (
+                            <ButtonLink
+                              href={buildRequestQuotesHref(request.id)}
+                              variant="secondary"
+                              size="sm"
+                              className={pageStyles.iconActionPrimary}
+                              aria-label={requestActions.primaryLabel}
+                              title={requestActions.primaryLabel}
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <Eye size={16} aria-hidden="true" />
+                              <span className={pageStyles.actionLabel}>{requestActions.primaryLabel}</span>
+                            </ButtonLink>
                           )}
                         </div>
-                      </div>
-
-                      {request.recipients.length > 0 ? (
-                        <div className={pageStyles.conciergeRecipientsBlock}>
-                          <p className={pageStyles.conciergeSectionLabel}>Reponses des concierges</p>
-                          <div className={pageStyles.conciergeRecipientList}>
-                            {request.recipients.map((recipient) => {
-                              const isSelectedRecipient =
-                                recipient.status === "selected" ||
-                                recipient.concierge_profile_id === request.selected_concierge_profile_id;
-                              const canSelect =
-                                getUnifiedRequestStatus(request) !== "ACCEPTED" &&
-                                getUnifiedRequestStatus(request) !== "MISSION_CREATED" &&
-                                !isSelectedRecipient &&
-                                ["interested", "quoted"].includes(recipient.status);
-
-                              return (
-                                <div key={`${request.id}-${recipient.id}`} className={pageStyles.conciergeRecipientCard}>
-                                  <div className={pageStyles.conciergeRecipientSummary}>
-                                    <div className={pageStyles.conciergeRecipientIdentity}>
-                                      <strong>{recipient.concierge_name || "Concierge"}</strong>
-                                      <span>{formatRecipientStatus(recipient.status)}</span>
-                                    </div>
-                                    <div className={pageStyles.conciergeRecipientMeta}>
-                                      {recipient.quote_number ? (
-                                        <span className={pageStyles.conciergeRecipientMetaChip}>
-                                          Devis {recipient.quote_number}
-                                        </span>
-                                      ) : null}
-                                      {recipient.responded_at ? (
-                                        <span className={pageStyles.conciergeRecipientMetaChip}>
-                                          Reponse {formatDateTime(recipient.responded_at)}
-                                        </span>
-                                      ) : null}
-                                      {recipient.viewed_at && !recipient.responded_at ? (
-                                        <span className={pageStyles.conciergeRecipientMetaChip}>
-                                          Consultee {formatDateTime(recipient.viewed_at)}
-                                        </span>
-                                      ) : null}
-                                    </div>
-                                  </div>
-                                  <div className={pageStyles.inlineActions}>
-                                    <Link
-                                      href={getOwnerConversationHref(recipient.conversation_id)}
-                                      className={pageStyles.buttonSecondary}
-                                    >
-                                      Ouvrir la conversation
-                                    </Link>
-                                    {recipient.quote_id ? (
-                                      <Link
-                                        href={`/api/quotes/${recipient.quote_id}/document?print=1`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className={pageStyles.linkButton}
-                                      >
-                                        Voir le devis
-                                      </Link>
-                                    ) : null}
-                                    {isSelectedRecipient ? (
-                                      <Link
-                                        href={getOwnerConversationHref(recipient.conversation_id)}
-                                        className={pageStyles.buttonPrimary}
-                                      >
-                                        Suivre le concierge retenu
-                                      </Link>
-                                    ) : null}
-                                    {canSelect ? (
-                                      <button
-                                        type="button"
-                                        className={pageStyles.buttonPrimary}
-                                        onClick={() => void handleSelectConcierge(request.id, recipient.id)}
-                                        disabled={selectingRequestId === request.id}
-                                      >
-                                        {selectingRequestId === request.id
-                                          ? "Selection..."
-                                          : "Retenir ce concierge"}
-                                      </button>
-                                    ) : null}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ) : null}
-
-                      <div className={`${pageStyles.inlineActions} ${pageStyles.conciergeCardActions}`}>
-                        {selectedRecipient ? (
-                          <>
-                            <Link
-                              href={getOwnerConversationHref(selectedRecipient.conversation_id)}
-                              className={pageStyles.buttonSecondary}
-                            >
-                              Ouvrir la conversation retenue
-                            </Link>
-                            <Link href="/dashboard/owner/planning" className={pageStyles.buttonPrimary}>
-                              {request.mission_id ? "Suivre la mission" : "Voir le planning"}
-                            </Link>
-                          </>
-                        ) : request.recipients.some((recipient) =>
-                            ["interested", "quoted"].includes(recipient.status),
-                          ) ? (
-                          <>
-                            <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
-                              Comparer via les messages
-                            </Link>
-                            <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                              Contacter d&apos;autres concierges
-                            </Link>
-                          </>
-                        ) : (
-                          <>
-                            <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
-                              Voir les messages
-                            </Link>
-                            <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                              Relancer une recherche
-                            </Link>
-                          </>
-                        )}
-                      </div>
-                    </OwnerRequestSummaryCard>
+                      }
+                      primaryFacts={[
+                        { label: "Appartement", value: request.property_name || "À préciser" },
+                        {
+                          label: "Localisation",
+                          value:
+                            [request.city, request.postal_code].filter(Boolean).join(" ") || "À préciser",
+                        },
+                        { label: "Début", value: formatDateTime(request.desired_date) },
+                        { label: "Budget", value: formatAmount(request.budget_max, request.currency ?? "EUR") },
+                      ]}
+                      secondaryFacts={[
+                        { label: "Concierges proposés", value: request.recipients.length },
+                        {
+                          label: "Réponses",
+                          value: request.recipients.filter((recipient) =>
+                            ["interested", "quoted", "selected", "not_selected", "declined"].includes(
+                              recipient.status,
+                            ),
+                          ).length,
+                        },
+                        { label: "Devis", value: quoteSummary.total },
+                      ]}
+                      services={request.requested_services ?? []}
+                      emptyServicesLabel="Services à préciser"
+                      helperTexts={[
+                        `Créée le ${formatDateTime(request.created_at)}`,
+                        ...getRecipientResponseSummary(request),
+                      ]}
+                    />
                   );
                 })}
               </div>
-            )}
-          </section>
-
-          <aside className={pageStyles.conciergeAside}>
-            <section className={pageStyles.conciergeSpotlightCard}>
-              <p className={pageStyles.eyebrow}>Actions rapides</p>
-              <h2 className={pageStyles.conciergeSectionTitle}>Prochaines actions</h2>
-              <div className={pageStyles.conciergeQuickActions}>
-                <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                  Trouver un concierge
-                </Link>
-                <Link href="/dashboard/owner/messages" className={pageStyles.buttonSecondary}>
-                  Ouvrir les messages
-                </Link>
-                <Link href="/dashboard/owner/planning" className={pageStyles.buttonSecondary}>
-                  Voir le planning
-                </Link>
-              </div>
-            </section>
-
-            <section className={pageStyles.conciergeSpotlightCard}>
-              <p className={pageStyles.eyebrow}>Relation</p>
-              <h2 className={pageStyles.conciergeSectionTitle}>Vue d&apos;ensemble concierge</h2>
-              <div className={pageStyles.conciergeSnapshotList}>
-                <div className={pageStyles.conciergeSnapshotRow}>
-                  <span>Badge</span>
-                  <strong>
-                    {spotlightProfile?.profile.role === "concierge_pro"
-                      ? "Concierge PRO"
-                      : "Concierge standard"}
-                  </strong>
-                </div>
-                <div className={pageStyles.conciergeSnapshotRow}>
-                  <span>Note moyenne</span>
-                  <strong>{averageRating ? `${averageRating} / 5` : "À construire"}</strong>
-                </div>
-                <div className={pageStyles.conciergeSnapshotRow}>
-                  <span>Conversations</span>
-                  <strong>{conversations.length}</strong>
-                </div>
-                <div className={pageStyles.conciergeSnapshotRow}>
-                  <span>Missions en cours</span>
-                  <strong>{ongoingCount}</strong>
-                </div>
-              </div>
-            </section>
-          </aside>
+            ) : null}
+          </Card>
         </div>
-      </section>
-
-      <section className={`${workspaceStyles.card} ${pageStyles.reviewCard}`}>
-        <div className={pageStyles.reviewCardHeader}>
-          <div className={pageStyles.reviewCardCopy}>
-            <p className={pageStyles.conciergeSectionEyebrow}>Confiance</p>
-            <h2 className={workspaceStyles.cardTitle}>Laisser un avis</h2>
-            <p className={workspaceStyles.cardText}>
-              Notez votre concierge après une mission terminée pour renforcer la confiance sur la
-              plateforme.
-            </p>
-          </div>
-          <div className={pageStyles.reviewBadgeGroup}>
-            <span className={pageStyles.reviewBadge}>Mission terminée</span>
-            <span className={pageStyles.reviewBadgeMuted}>Avis propriétaire</span>
-          </div>
-        </div>
-
-        {reviewSuccess ? (
-          <p className={`${pageStyles.message} ${pageStyles.messageSuccess}`}>{reviewSuccess}</p>
-        ) : null}
-        {reviewError ? (
-          <p className={`${pageStyles.message} ${pageStyles.messageError}`}>{reviewError}</p>
-        ) : null}
-
-        {reviewableMissions.length === 0 ? (
-          <div className={pageStyles.reviewEmptyState}>
-            <div className={pageStyles.reviewEmptyIcon} aria-hidden="true">
-              5
-            </div>
-            <div className={pageStyles.reviewEmptyCopy}>
-              <h3>Aucun avis en attente</h3>
-              <p className={workspaceStyles.cardText}>
-                Les missions terminées non encore notées apparaîtront ici.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmitReview} className={pageStyles.formGrid}>
-            <label className={pageStyles.label}>
-              <span className={workspaceStyles.cardText}>Mission terminée</span>
-              <select
-                value={selectedMissionId}
-                onChange={(event) => setSelectedMissionId(event.target.value)}
-                className={pageStyles.select}
-              >
-                {reviewableMissions.map((mission) => (
-                  <option key={mission.id} value={mission.id}>
-                    {mission.title || "Mission"} ({mission.priority || "normale"})
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className={pageStyles.label}>
-              <span className={workspaceStyles.cardText}>Note</span>
-              <select
-                value={rating}
-                onChange={(event) => setRating(event.target.value)}
-                className={pageStyles.select}
-              >
-                <option value="5">5 / 5</option>
-                <option value="4">4 / 5</option>
-                <option value="3">3 / 5</option>
-                <option value="2">2 / 5</option>
-                <option value="1">1 / 5</option>
-              </select>
-            </label>
-
-            <label className={pageStyles.label}>
-              <span className={workspaceStyles.cardText}>Commentaire</span>
-              <textarea
-                value={comment}
-                onChange={(event) => setComment(event.target.value)}
-                rows={4}
-                placeholder="Votre retour sur la réactivité, la qualité d'exécution ou la communication."
-                className={pageStyles.textarea}
-              />
-            </label>
-
-            <div className={workspaceStyles.cardActions}>
-              <button
-                type="submit"
-                disabled={submittingReview || !selectedMission}
-                className={pageStyles.buttonPrimary}
-              >
-                {submittingReview ? "Enregistrement..." : "Publier mon avis"}
-              </button>
-            </div>
-          </form>
-        )}
       </section>
     </div>
   );
