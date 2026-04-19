@@ -267,6 +267,32 @@ function getUnifiedRequestStatus(request: OwnerServiceRequestRow): string {
   return request.workflow_status ?? request.status ?? "NEW";
 }
 
+function getRequestActions(request: OwnerServiceRequestRow) {
+  const recipients = Array.isArray(request.recipients) ? request.recipients : [];
+
+  const hasResponse = recipients.some((recipient) =>
+    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
+  );
+
+  const hasQuote = recipients.some((recipient) =>
+    ["quoted", "selected"].includes(recipient.status),
+  );
+
+  const isAccepted = request.status === "ACCEPTED" || request.workflow_status === "ACCEPTED" || !!request.mission_id;
+
+  return {
+    showRelaunch: !hasResponse && !isAccepted,
+    showQuotes: hasResponse || request.status === "QUOTE_SENT" || request.workflow_status === "QUOTE_SENT" || isAccepted,
+    primaryLabel: isAccepted
+      ? "Ouvrir le devis"
+      : hasQuote
+        ? "Voir les propositions"
+        : hasResponse
+          ? "Voir les reponses"
+          : "Relancer la demande",
+  };
+}
+
 function normalizeLocationToken(value: string | null | undefined) {
   return normalizeSuggestionKey(value).replace(/\s+/g, "");
 }
@@ -421,16 +447,6 @@ export default function OwnerRequestsPage() {
     }));
   }, [housingOptions]);
 
-  const toggleQuickService = useCallback((serviceName: string) => {
-    setForm((prev) => {
-      const current = normalizeServices(prev.requestedServices);
-      const next = current.includes(serviceName)
-        ? current.filter((s) => s !== serviceName)
-        : [...current, serviceName];
-      return { ...prev, requestedServices: next.join(", ") };
-    });
-  }, []);
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validationError = validateForm(form);
@@ -475,8 +491,6 @@ export default function OwnerRequestsPage() {
   const normalizedSuggestedTitle = normalizeSuggestionKey(titleSuggestion);
   const showTitleSuggestion =
     normalizedSuggestedTitle.length > 0 && normalizedCurrentTitle !== normalizedSuggestedTitle;
-  const normalizedCity = normalizeSuggestionKey(form.city);
-  const normalizedProperty = normalizeSuggestionKey(form.propertyName);
   const quickServiceSuggestions = useMemo(() => {
     if (catalogServices.length === 0) return [];
     const typeTerms: Record<string, string[]> = {
@@ -676,35 +690,25 @@ export default function OwnerRequestsPage() {
                   </button>
                 </div>
 
-                {/* Sélecteur de services */}
-                <div className={pageStyles.field}>
-                  <label htmlFor="services">Services demandés</label>
-                  <ServiceCatalogSelector
-                    selected={normalizedServices}
-                    onChange={(s) => setForm({ ...form, requestedServices: s.join(", ") })}
-                    recentServices={recentRequestedServices}
-                  />
-                  {showTitleSuggestion ? (
-                    <div className={pageStyles.titleSuggestionCard}>
-                      <div className={pageStyles.titleSuggestionCopy}>
-                        <strong>Titre conseillé</strong>
-                        <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
-                        <code>{titleSuggestion}</code>
-                      </div>
-                      <button
-                        type="button"
-                        className={pageStyles.inlineHintAction}
-                        onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
-                      >
-                        {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
-                      </button>
+                {showTitleSuggestion ? (
+                  <div className={pageStyles.titleSuggestionCard}>
+                    <div className={pageStyles.titleSuggestionCopy}>
+                      <strong>Titre conseillé</strong>
+                      <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
+                      <code>{titleSuggestion}</code>
                     </div>
-                  ) : null}
-                </label>
-                </div>
+                    <button
+                      type="button"
+                      className={pageStyles.inlineHintAction}
+                      onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
+                    >
+                      {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
+                    </button>
+                  </div>
+                ) : null}
 
                 <div className={`${pageStyles.formSectionCard} ${pageStyles.formSectionFeature}`}>
-                <label className={pageStyles.fullField}>
+                  <label className={pageStyles.fullField}>
                   <span>Services demandés</span>
                   <small className={pageStyles.fieldHint}>
                     Sélectionne d&apos;abord les services du catalogue, puis ajoute un besoin libre si nécessaire.
@@ -844,6 +848,7 @@ export default function OwnerRequestsPage() {
                 {filteredRequests.map((request) => {
                   const quoteSummary = summarizeQuotesByRequest(quotesByRequestId.get(request.id) ?? []);
                   const hasActiveSearchAlert = hasSearchAlertForRequest(searchAlerts, request);
+                  const actions = getRequestActions(request);
 
                   return (
                     <OwnerRequestSummaryCard
