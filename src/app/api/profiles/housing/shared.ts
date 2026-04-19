@@ -1,33 +1,10 @@
 import { db } from "@/app/lib/dbServer";
-import type { Json } from "@/types/supabase";
 import {
   buildHousingMutationPayload,
   buildQuotePreviewFromData,
   type ProfileRow,
   type QuotePreview,
 } from "@/types/housing";
-
-type QuoteRow = {
-  id: string;
-  quote_number: string;
-  owner_profile_id: string | null;
-  concierge_profile_id: string;
-  status: string;
-  currency: string;
-  subtotal: number;
-  total_amount: number;
-  accepted_at: string | null;
-  metadata: Json;
-  quote_items?: Array<{
-    id: string;
-    label: string;
-    description: string | null;
-    quantity: number;
-    unit_price: number;
-    line_total: number;
-    metadata: Json;
-  }>;
-};
 
 const quoteSelect = `
   id,

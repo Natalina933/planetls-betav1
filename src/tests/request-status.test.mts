@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { deriveRequestWorkflowStatus } from "../app/lib/requestStatus";
+import { deriveRequestWorkflowStatus } from "../app/lib/requestStatus.ts";
 
 test("deriveRequestWorkflowStatus maps service request states to the shared workflow", () => {
   assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "sent" }), "NEW");

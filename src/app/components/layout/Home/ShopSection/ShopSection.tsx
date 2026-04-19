@@ -18,7 +18,7 @@ export function ShopSection() {
       >
         <ShoppingBag size={48} />
         <p>
-          Découvrez nos kits d'accueil, produits utiles et essentiels pensés pour les acteurs de la
+          Découvrez nos kits d&apos;accueil, produits utiles et essentiels pensés pour les acteurs de la
           location courte durée.
         </p>
         <ButtonLink href="/shop" variant="paper" className={styles.shopButton}>

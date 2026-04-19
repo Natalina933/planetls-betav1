@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
-import { deriveServiceRequestStatus } from "@/server/service-requests/workflow";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
 

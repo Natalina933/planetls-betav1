@@ -242,11 +242,11 @@ export default function OwnerInvitationPanel({
 
         <div className={styles.fieldGrid}>
           <label className={`${styles.label} ${styles.fieldFull}`}>
-            <span>Message d'invitation</span>
+            <span>Message d&apos;invitation</span>
             {!editingMessage ? (
               <div className={styles.messagePreviewCard}>
                 <div className={styles.emailPreviewHeader}>
-                  <strong className={styles.cardTitle}>Aperçu de l'email</strong>
+                  <strong className={styles.cardTitle}>Aperçu de l&apos;email</strong>
                   <span className={styles.pill}>Lien sécurisé inclus</span>
                 </div>
 
@@ -262,7 +262,7 @@ export default function OwnerInvitationPanel({
                 <p className={styles.cardMeta}>{previewMessage}</p>
 
                 <div className={styles.inlineHelper}>
-                  Le propriétaire recevra un lien d'inscription sécurisé valable 7 jours pour rejoindre la plateforme et se rattacher automatiquement à son concierge.
+                  Le propriétaire recevra un lien d&apos;inscription sécurisé valable 7 jours pour rejoindre la plateforme et se rattacher automatiquement à son concierge.
                 </div>
 
                 <div className={styles.invitationActions}>
@@ -315,7 +315,7 @@ export default function OwnerInvitationPanel({
                     disabled={disabled || savingTemplate}
                     onClick={() => setEditingMessage(false)}
                   >
-                    Revenir à l'aperçu
+                    Revenir à l&apos;aperçu
                   </button>
                 </div>
               </div>
@@ -333,7 +333,7 @@ export default function OwnerInvitationPanel({
             <FiSend /> {submitting ? "Envoi..." : "Envoyer l'invitation"}
           </button>
           <span className={styles.helper}>
-            Le lien sécurisé reste valable 7 jours et la relation concierge/propriétaire sera créée automatiquement à l'acceptation.
+            Le lien sécurisé reste valable 7 jours et la relation concierge/propriétaire sera créée automatiquement à l&apos;acceptation.
           </span>
         </div>
 
@@ -355,7 +355,7 @@ export default function OwnerInvitationPanel({
           <div className={styles.emptyState}>
             <strong className={styles.cardTitle}>Aucune invitation envoyée</strong>
             <p className={styles.cardMeta}>
-              Dès qu'une invitation partira, vous pourrez suivre ici son ouverture, son acceptation ou sa relance.
+              Dès qu&apos;une invitation partira, vous pourrez suivre ici son ouverture, son acceptation ou sa relance.
             </p>
           </div>
         ) : (
@@ -401,7 +401,7 @@ export default function OwnerInvitationPanel({
 
         {latestInvitation ? (
           <div className={styles.inlineHelper}>
-            Dernier état suivi : {OWNER_INVITATION_STATUS_META[latestInvitation.status].label}. Une fois acceptée, l'invitation servira de point d'entrée pour relier automatiquement le propriétaire à son concierge.
+            Dernier état suivi : {OWNER_INVITATION_STATUS_META[latestInvitation.status].label}. Une fois acceptée, l&apos;invitation servira de point d&apos;entrée pour relier automatiquement le propriétaire à son concierge.
           </div>
         ) : null}
       </div>

@@ -1554,7 +1554,7 @@ export default function OwnerHousingDetailPage() {
                   ))}
                 </ul>
               ) : (
-                <p>Aucun équipement n'est renseigné pour ce logement.</p>
+                <p>Aucun équipement n&apos;est renseigné pour ce logement.</p>
               )}
             </div>
           </div>
@@ -1643,7 +1643,7 @@ export default function OwnerHousingDetailPage() {
               </div>
             ) : (
               <div className={styles.panel}>
-                <p>Aucune mission n'est encore liée à ce logement.</p>
+                <p>Aucune mission n&apos;est encore liée à ce logement.</p>
               </div>
             )}
           </div>
@@ -1706,7 +1706,7 @@ export default function OwnerHousingDetailPage() {
                 <div className={styles.panel}>
                   <strong>Checklist anomalies</strong>
                   {issueChecklistItems.length === 0 ? (
-                    <p>Aucune anomalie checklist sur l'inspection.</p>
+                    <p>Aucune anomalie checklist sur l&apos;inspection.</p>
                   ) : (
                     <div className={styles.list}>
                       {issueChecklistItems.map((item) => (
@@ -1729,7 +1729,7 @@ export default function OwnerHousingDetailPage() {
                 <div className={styles.panel}>
                   <strong>Médias de preuve</strong>
                   {inspectionMedia.length === 0 ? (
-                    <p>Aucun média lié à l'inspection.</p>
+                    <p>Aucun média lié à l&apos;inspection.</p>
                   ) : (
                     <div className={styles.mediaList}>
                       {inspectionMedia.map((media) => (

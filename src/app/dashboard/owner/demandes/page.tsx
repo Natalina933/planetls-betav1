@@ -738,7 +738,7 @@ export default function OwnerRequestsPage() {
                 <label className={pageStyles.fullField}>
                   <span>Services demandés</span>
                   <small className={pageStyles.fieldHint}>
-                    Sélectionne d'abord les services du catalogue, puis ajoute un besoin libre si nécessaire.
+                    Sélectionne d&apos;abord les services du catalogue, puis ajoute un besoin libre si nécessaire.
                   </small>
                   {quickServiceSuggestions.length > 0 ? (
                     <div className={pageStyles.quickServicesBlock}>

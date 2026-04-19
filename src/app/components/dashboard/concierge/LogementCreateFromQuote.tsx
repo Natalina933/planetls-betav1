@@ -31,7 +31,7 @@ export default function LogementCreateFromQuote({
       <section className={styles.emptyState}>
         <h3 className={styles.cardTitle}>Aucun devis chargé</h3>
         <p className={styles.muted}>
-          Renseignez un devis accepté pour pré-remplir automatiquement le propriétaire, l'adresse,
+          Renseignez un devis accepté pour pré-remplir automatiquement le propriétaire, l&apos;adresse,
           les services et les tarifs du logement.
         </p>
       </section>
@@ -49,7 +49,7 @@ export default function LogementCreateFromQuote({
           <span className={styles.statusPill}>Actif - suivi en cours</span>
         </div>
         <p className={styles.muted}>
-          Le logement sera créé automatiquement avec le propriétaire demandeur du devis, l'adresse
+          Le logement sera créé automatiquement avec le propriétaire demandeur du devis, l&apos;adresse
           du devis et la liste de services associés.
         </p>
       </section>

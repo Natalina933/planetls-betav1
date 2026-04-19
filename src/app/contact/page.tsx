@@ -15,7 +15,7 @@ export default function ContactPage() {
         Email: <a href="mailto:contact@planetls.fr">contact@planetls.fr</a>
       </p>
       <p>
-        <Link href="/home">Retour a l'accueil</Link>
+        <Link href="/home">Retour a l&apos;accueil</Link>
       </p>
     </main>
   );

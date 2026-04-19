@@ -7,24 +7,6 @@ import {
   type ServiceRequestRecipientStatus,
 } from "@/server/service-requests/workflow";
 
-type RequestRecipientRow = {
-  id: string;
-  service_request_id: string;
-  concierge_profile_id: string;
-  status: ServiceRequestRecipientStatus;
-};
-
-type ServiceRequestRow = {
-  id: string;
-  owner_profile_id: string | null;
-  title: string | null;
-  description: string | null;
-  budget_max: number | null;
-  currency: string | null;
-  desired_date: string | null;
-  requested_services: string[] | null;
-};
-
 type QuoteRow = {
   id: string;
   quote_number: string | null;
@@ -41,12 +23,18 @@ const MISSING_TABLE_CODES = new Set(["42P01", "PGRST205", "PGRST204"]);
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+type PrepareQuoteBody = {
+  force?: boolean;
+};
+
+type UntypedDb = typeof db & { from: (table: string) => ReturnType<typeof db.from> };
+
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body: PrepareQuoteBody = await req.json().catch(() => ({}));
     const forceRefresh = body?.force === true;
 
     const { userId, role } = await getApiAuthContext(req);
@@ -62,7 +50,7 @@ export async function POST(
       return NextResponse.json({ error: "Recipient introuvable." }, { status: 400 });
     }
 
-    const dbAny = db as any;
+    const dbAny = db as UntypedDb;
 
     const { data: recipient, error: recipientError } = await dbAny
       .from("service_request_recipients")

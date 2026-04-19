@@ -197,11 +197,6 @@ export default function ConciergeDemandesPage() {
 
       const quoteId =
         payload?.quote && typeof payload.quote.id === "string" ? payload.quote.id : item.quote_id;
-      const quoteNumber =
-        payload?.quote && typeof payload.quote.quote_number === "string"
-          ? payload.quote.quote_number
-          : item.quote_number;
-
       setActionMessage(
         payload?.reused
           ? `Votre brouillon de devis est dÃ©jÃ  prÃªt. Vous pouvez lâ€™ouvrir et le finaliser.`

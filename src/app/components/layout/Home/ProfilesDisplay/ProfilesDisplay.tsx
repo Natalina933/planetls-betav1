@@ -59,7 +59,7 @@ export default function ProfilesDisplay({
       {visibleProfiles.length > 0 ? (
         <ul className={styles.profileList}>
           {visibleProfiles.map((profile) => {
-            const { id, name, type, photo, services = [], available, created_at } = profile;
+            const { id, name, type, services = [], available, created_at } = profile;
 
             const categoryInfo = categoriesMap[type] ?? {
               label: type,

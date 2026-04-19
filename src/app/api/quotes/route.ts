@@ -23,20 +23,6 @@ interface QuoteItemInput {
   metadata?: Json | null;
 }
 
-interface CreateQuoteBody {
-  owner_profile_id?: string | null;
-  mission_id?: string | null;
-  package_id?: string | null;
-  status?: QuoteStatus;
-  currency?: string | null;
-  discount_amount?: number | null;
-  tax_rate?: number | null;
-  valid_until?: string | null;
-  notes?: string | null;
-  metadata?: Json | null;
-  items?: QuoteItemInput[];
-}
-
 interface DbErrorLike {
   code?: string;
   message?: string;

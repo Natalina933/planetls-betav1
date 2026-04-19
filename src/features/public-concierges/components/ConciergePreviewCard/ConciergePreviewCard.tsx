@@ -89,7 +89,11 @@ export function ConciergePreviewCard({
           )}
         </div>
 
-        {latestReviewComment ? <blockquote className={styles.quote}>"{latestReviewComment}"</blockquote> : null}
+        {latestReviewComment ? (
+          <blockquote className={styles.quote}>
+            &ldquo;{latestReviewComment}&rdquo;
+          </blockquote>
+        ) : null}
       </CardBody>
 
       {primaryAction || secondaryAction ? (

@@ -712,7 +712,7 @@ export default function OwnerConciergeriePage() {
                               Comparer via les messages
                             </Link>
                             <Link href="/dashboard/owner/concierges" className={pageStyles.buttonPrimary}>
-                              Contacter d'autres concierges
+                              Contacter d&apos;autres concierges
                             </Link>
                           </>
                         ) : (

@@ -2518,7 +2518,7 @@ export default function ConciergeProfilePage() {
       city: payload.city ?? payload.label,
       postcode: payload.postcode ?? null,
     };
-  }, [editProfile?.location, missionAvailability?.zones]);
+  }, [editProfile?.location, editProfile?.postal_code, missionAvailability?.zones]);
 
   const handleSaveSection = useCallback(async (sectionTitle: string) => {
     if (!editProfile) return;

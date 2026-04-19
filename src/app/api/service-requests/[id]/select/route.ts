@@ -19,6 +19,8 @@ const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+type UntypedDb = typeof db & { from: (table: string) => ReturnType<typeof db.from> };
+
 const mapMissionInsertError = (error: { code?: string; message?: string; details?: string } | null) => {
   const code = error?.code ?? "";
 
@@ -65,7 +67,7 @@ export async function POST(
       return NextResponse.json({ error: "recipient_id requis." }, { status: 400 });
     }
 
-    const dbAny = db as any;
+    const dbAny = db as UntypedDb;
 
     const { data: requestRow, error: requestError } = await dbAny
       .from("service_requests")

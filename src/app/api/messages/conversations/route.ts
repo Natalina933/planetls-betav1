@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import type { Json } from "@/types/supabase";
 import { z } from "zod";
 import {
   getConversationSeenAt,
@@ -10,16 +10,6 @@ import {
 } from "./shared";
 
 type ConversationSource = "manual" | "search" | "mission" | "quote" | "invoice";
-
-interface CreateConversationBody {
-  owner_profile_id?: string;
-  concierge_profile_id?: string;
-  source?: ConversationSource;
-  source_reference?: string | null;
-  subject?: string | null;
-  prefill_message?: string | null;
-  metadata?: Json | null;
-}
 
 const VALID_SOURCES: ConversationSource[] = [
   "manual",

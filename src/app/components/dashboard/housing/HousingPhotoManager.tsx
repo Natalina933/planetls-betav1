@@ -1,6 +1,6 @@
 "use client";
 
-import { FiCamera, FiImage, FiStar, FiTrash2 } from "react-icons/fi";
+import { FiCamera, FiStar, FiTrash2 } from "react-icons/fi";
 import styles from "./HousingPhotoManager.module.scss";
 
 type Props = {

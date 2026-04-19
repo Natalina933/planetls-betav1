@@ -72,7 +72,7 @@ export default function ConciergeFinanceSimulationPage() {
             <input type="number" min={0} step={1} value={newListingsEstimate} onChange={(event) => setNewListingsEstimate(Math.max(0, Number(event.target.value || 0)))} />
           </label>
           <label>
-            <span>Services à l'acte / mois</span>
+            <span>Services à l&apos;acte / mois</span>
             <input type="number" min={0} step={1} value={actServicesEstimate} onChange={(event) => setActServicesEstimate(Math.max(0, Number(event.target.value || 0)))} />
           </label>
           <label>
@@ -84,7 +84,7 @@ export default function ConciergeFinanceSimulationPage() {
             <input type="number" min={0} step={1} value={setupFee} onChange={(event) => setSetupFee(Math.max(0, Number(event.target.value || 0)))} />
           </label>
           <label>
-            <span>Panier service à l'acte</span>
+            <span>Panier service à l&apos;acte</span>
             <input type="number" min={0} step={1} value={actAverage} onChange={(event) => setActAverage(Math.max(0, Number(event.target.value || 0)))} />
           </label>
         </div>

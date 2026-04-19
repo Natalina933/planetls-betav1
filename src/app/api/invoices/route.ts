@@ -23,22 +23,6 @@ interface InvoiceItemInput {
   metadata?: Json | null;
 }
 
-interface CreateInvoiceBody {
-  quote_id?: string | null;
-  owner_profile_id?: string | null;
-  mission_id?: string | null;
-  status?: InvoiceStatus;
-  issue_date?: string | null;
-  due_date?: string | null;
-  currency?: string | null;
-  discount_amount?: number | null;
-  tax_rate?: number | null;
-  paid_amount?: number | null;
-  notes?: string | null;
-  metadata?: Json | null;
-  items?: InvoiceItemInput[];
-}
-
 interface DbErrorLike {
   code?: string;
   message?: string;

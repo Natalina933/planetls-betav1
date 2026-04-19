@@ -44,7 +44,7 @@ export function ArtDecoMarketplaceShowcase() {
           <Tag tone="category" className={styles.kicker}>
             Marketplace SaaS Belle Epoque
           </Tag>
-          <h1>Plateforme Premium pour l'Ecosysteme de la Location Courte Duree</h1>
+          <h1>Plateforme Premium pour l&apos;Ecosysteme de la Location Courte Duree</h1>
           <p>
             Connectez proprietaires, concierges, artisans et prestataires dans une interface elegante,
             fiable et orientee performance operationnelle.

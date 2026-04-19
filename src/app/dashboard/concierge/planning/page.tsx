@@ -322,7 +322,7 @@ export default function ConciergePlanningPage() {
           <div className={profileStyles.missionsHeroStats}>
             <article className={`${profileStyles.missionStat} ${styles.planningStat}`}>
               <div className={`${profileStyles.missionStatTop} ${styles.planningStatTop}`}>
-                <span className={`${profileStyles.missionStatLabel} ${styles.planningStatLabel}`}>Aujourd'hui</span>
+                <span className={`${profileStyles.missionStatLabel} ${styles.planningStatLabel}`}>Aujourd&apos;hui</span>
                 {todayMissions.length > 0 ? <span className={styles.heroBadge}>À exécuter</span> : null}
               </div>
               <strong>{loading ? "..." : todayMissions.length}</strong>
@@ -478,7 +478,7 @@ export default function ConciergePlanningPage() {
           >
             <div className={profileStyles.missionMetaGrid}>
               <div className={profileStyles.missionMetaItem}>
-                <span>Aujourd'hui</span>
+                <span>Aujourd&apos;hui</span>
                 <strong>{loading ? "..." : todayMissions.length}</strong>
               </div>
               <div className={profileStyles.missionMetaItem}>

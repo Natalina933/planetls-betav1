@@ -1,6 +1,5 @@
 ﻿"use client";
 
-import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { FiCamera, FiEdit2, FiFileText, FiHome, FiList, FiRotateCcw, FiSave } from "react-icons/fi";
@@ -852,7 +851,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Complément d'adresse</span>
+                      <span>Complément d&apos;adresse</span>
                       <input
                         className={styles.field}
                         value={draft.locationInfo.addressLine2}
@@ -927,7 +926,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={styles.label}>
-                      <span>Code d'accès</span>
+                      <span>Code d&apos;accès</span>
                       <input
                         className={styles.field}
                         value={draft.locationInfo.accessCode}
@@ -959,7 +958,7 @@ export default function LogementPage() {
                     </label>
 
                     <label className={`${styles.label} ${styles.fieldFull}`}>
-                      <span>Consignes d'entrée</span>
+                      <span>Consignes d&apos;entrée</span>
                       <textarea
                         className={styles.textArea}
                         value={draft.locationInfo.entryInstructions}
@@ -1335,7 +1334,7 @@ export default function LogementPage() {
                 </div>
                 {draft.services.items.length === 0 ? (
                   <div className={styles.emptyState}>
-                    <p className={styles.muted}>Aucun service n'est encore rattaché à ce logement.</p>
+                    <p className={styles.muted}>Aucun service n&apos;est encore rattaché à ce logement.</p>
                   </div>
                 ) : (
                   <div className={styles.cardGrid}>
@@ -1503,7 +1502,7 @@ export default function LogementPage() {
         <aside className={styles.stickyAside}>
           <article className={styles.summaryCard}>
             <div className={styles.sectionHeader}>
-              <strong className={styles.cardTitle}>Vue d'ensemble</strong>
+              <strong className={styles.cardTitle}>Vue d&apos;ensemble</strong>
               <FiHome />
             </div>
             <p className={styles.cardMeta}>{draft.owner.fullName || "Propriétaire à compléter"}</p>

@@ -202,7 +202,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         }
 
         setLocationSuggestions(Array.isArray(payload.suggestions) ? payload.suggestions : []);
-      } catch (error) {
+      } catch {
         if (controller.signal.aborted) {
           return;
         }

@@ -69,7 +69,7 @@ export default function LogementFromQuoteFlow({ onCreated }: Props) {
           </div>
         </div>
         <p className={styles.muted}>
-          Saisissez l'identifiant du devis accepté pour vérifier le pré-remplissage avant création
+          Saisissez l&apos;identifiant du devis accepté pour vérifier le pré-remplissage avant création
           ou rejouer manuellement un logement déjà éligible.
         </p>
         <div className={styles.row}>
