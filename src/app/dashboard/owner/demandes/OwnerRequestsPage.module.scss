@@ -224,6 +224,13 @@
   gap: 0.75rem;
 }
 
+.serviceDraftRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
 .catalogSelectorWrap {
   min-width: 0;
   overflow: hidden;
@@ -298,6 +305,13 @@
   color: #7a3f32;
   font-size: 0.8rem;
   font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.serviceChip:hover {
+  border-color: rgba(184, 92, 72, 0.22);
+  background: rgba(184, 92, 72, 0.14);
 }
 
 .mutedChip {
@@ -502,7 +516,8 @@
   .toolbar,
   .budgetRow,
   .fieldGrid,
-  .facts {
+  .facts,
+  .serviceDraftRow {
     grid-template-columns: 1fr;
   }
 }

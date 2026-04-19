@@ -291,6 +291,7 @@ export default function OwnerRequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [form, setForm] = useState<RequestFormState>(initialForm);
+  const [serviceDraft, setServiceDraft] = useState("");
 
   const loadData = useCallback(async () => {
     try {
@@ -467,6 +468,10 @@ export default function OwnerRequestsPage() {
 
   const normalizedServices = normalizeServices(form.requestedServices);
   const titleSuggestion = buildRequestTitleSuggestion(form);
+  const normalizedCurrentTitle = normalizeSuggestionKey(form.title);
+  const normalizedSuggestedTitle = normalizeSuggestionKey(titleSuggestion);
+  const showTitleSuggestion =
+    normalizedSuggestedTitle.length > 0 && normalizedCurrentTitle !== normalizedSuggestedTitle;
   const normalizedCity = normalizeSuggestionKey(form.city);
   const normalizedProperty = normalizeSuggestionKey(form.propertyName);
   const quickServiceSuggestions = useMemo(() => {
@@ -572,6 +577,31 @@ export default function OwnerRequestsPage() {
     setForm((current) => ({
       ...current,
       requestedServices: nextSelection.join(", "),
+    }));
+  }
+
+  function addCustomService() {
+    const candidate = serviceDraft.trim();
+    if (!candidate) return;
+    const candidateKey = normalizeSuggestionKey(candidate);
+    if (normalizedServices.some((service) => normalizeSuggestionKey(service) === candidateKey)) {
+      setServiceDraft("");
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      requestedServices: [...normalizeServices(current.requestedServices), candidate].join(", "),
+    }));
+    setServiceDraft("");
+  }
+
+  function removeSelectedService(serviceName: string) {
+    setForm((current) => ({
+      ...current,
+      requestedServices: normalizeServices(current.requestedServices)
+        .filter((service) => service !== serviceName)
+        .join(", "),
     }));
   }
 
@@ -717,20 +747,22 @@ export default function OwnerRequestsPage() {
                     onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
                     placeholder="Ex : check-in et ménage de lancement"
                   />
-                  <div className={pageStyles.titleSuggestionCard}>
-                    <div className={pageStyles.titleSuggestionCopy}>
-                      <strong>Titre conseillé</strong>
-                      <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
-                      <code>{titleSuggestion}</code>
+                  {showTitleSuggestion ? (
+                    <div className={pageStyles.titleSuggestionCard}>
+                      <div className={pageStyles.titleSuggestionCopy}>
+                        <strong>Titre conseillé</strong>
+                        <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
+                        <code>{titleSuggestion}</code>
+                      </div>
+                      <button
+                        type="button"
+                        className={pageStyles.inlineHintAction}
+                        onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
+                      >
+                        {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className={pageStyles.inlineHintAction}
-                      onClick={() => setForm((current) => ({ ...current, title: titleSuggestion }))}
-                    >
-                      {form.title.trim() ? "Remplacer par cette suggestion" : "Utiliser cette suggestion"}
-                    </button>
-                  </div>
+                  ) : null}
                 </label>
                 </div>
 
@@ -779,19 +811,34 @@ export default function OwnerRequestsPage() {
                     />
                   </div>
                   <div className={pageStyles.chipsInputWrap}>
-                    <Input
-                      value={form.requestedServices}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, requestedServices: event.target.value }))
-                      }
-                      placeholder="Ajouter un besoin spécifique : ex. état des lieux, coordination artisan"
-                    />
+                    <div className={pageStyles.serviceDraftRow}>
+                      <Input
+                        value={serviceDraft}
+                        onChange={(event) => setServiceDraft(event.target.value)}
+                        placeholder="Ajouter un besoin libre : ex. état des lieux, coordination artisan"
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            addCustomService();
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="secondary" onClick={addCustomService} disabled={!serviceDraft.trim()}>
+                        Ajouter
+                      </Button>
+                    </div>
                     {normalizedServices.length > 0 ? (
                       <div className={pageStyles.serviceChips}>
                         {normalizedServices.map((service) => (
-                          <span key={service} className={pageStyles.serviceChip}>
-                            {service}
-                          </span>
+                          <button
+                            key={service}
+                            type="button"
+                            className={pageStyles.serviceChip}
+                            onClick={() => removeSelectedService(service)}
+                            title={`Retirer ${service}`}
+                          >
+                            {service} ×
+                          </button>
                         ))}
                       </div>
                     ) : null}
