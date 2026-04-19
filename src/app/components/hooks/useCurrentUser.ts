@@ -17,12 +17,13 @@ export interface CurrentUser {
 
 export function useCurrentUser() {
   const { data: session, status } = useSession();
+  const sessionUser = session?.user;
 
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchUser = useCallback(async () => {
-    if (!session?.user?.id) {
+    if (!sessionUser?.id) {
       setUser(null);
       setLoading(false);
       return;
@@ -30,14 +31,14 @@ export function useCurrentUser() {
 
     // Expose session data immediately so the navbar doesn't flash fallback labels.
     setUser((current) => ({
-      id: session.user.id,
-      email: session.user.email ?? current?.email ?? null,
-      username: session.user.username ?? current?.username ?? null,
-      firstName: session.user.firstName ?? current?.firstName ?? null,
-      lastName: session.user.lastName ?? current?.lastName ?? null,
-      role: session.user.role ?? current?.role ?? null,
-      company_name: session.user.company_name ?? current?.company_name ?? null,
-      avatar_url: session.user.avatar_url ?? current?.avatar_url ?? null,
+      id: sessionUser.id,
+      email: sessionUser.email ?? current?.email ?? null,
+      username: sessionUser.username ?? current?.username ?? null,
+      firstName: sessionUser.firstName ?? current?.firstName ?? null,
+      lastName: sessionUser.lastName ?? current?.lastName ?? null,
+      role: sessionUser.role ?? current?.role ?? null,
+      company_name: sessionUser.company_name ?? current?.company_name ?? null,
+      avatar_url: sessionUser.avatar_url ?? current?.avatar_url ?? null,
     }));
     setLoading(true);
 
@@ -65,7 +66,7 @@ export function useCurrentUser() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [sessionUser]);
 
   useEffect(() => {
     fetchUser();

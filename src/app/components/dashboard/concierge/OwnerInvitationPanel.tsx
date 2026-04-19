@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiMail, FiRefreshCcw, FiSend } from "react-icons/fi";
 import styles from "./LogementWorkspace.module.scss";
 import OwnerInvitationStatusBadge from "./OwnerInvitationStatusBadge";
@@ -86,7 +86,7 @@ export default function OwnerInvitationPanel({
     return `${base.slice(0, 167).trim()}...`;
   }, [note, suggestedMessage]);
 
-  async function loadInvitations() {
+  const loadInvitations = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -103,11 +103,11 @@ export default function OwnerInvitationPanel({
     } finally {
       setLoading(false);
     }
-  }
+  }, [housingId]);
 
   useEffect(() => {
     void loadInvitations();
-  }, [housingId]);
+  }, [loadInvitations]);
 
   const latestInvitation = useMemo(() => items[0] ?? null, [items]);
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -679,7 +680,14 @@ export default function OwnerHousingDetailPage() {
                 <div className={styles.housingGallery}>
                   {housingPhotos.map((photo, index) => (
                     <div className={styles.housingGalleryItem} key={`${photo}-${index}`}>
-                      <img src={photo} alt={`Photo ${index + 1} du logement`} className={styles.housingGalleryImage} />
+                      <Image
+                        src={photo}
+                        alt={`Photo ${index + 1} du logement`}
+                        className={styles.housingGalleryImage}
+                        width={800}
+                        height={600}
+                        unoptimized
+                      />
                     </div>
                   ))}
                 </div>
@@ -1736,10 +1744,13 @@ export default function OwnerHousingDetailPage() {
                         <label key={media.id} className={styles.mediaRow}>
                           <div className={styles.mediaPreviewWrap}>
                             {media.media_type === "photo" && buildMediaPreviewUrl(media.storage_path) ? (
-                              <img
+                              <Image
                                 src={buildMediaPreviewUrl(media.storage_path) ?? ""}
                                 alt={`Preuve ${media.id}`}
                                 className={styles.mediaThumb}
+                                width={800}
+                                height={600}
+                                unoptimized
                               />
                             ) : null}
                             {media.media_type === "video" && buildMediaPreviewUrl(media.storage_path) ? (

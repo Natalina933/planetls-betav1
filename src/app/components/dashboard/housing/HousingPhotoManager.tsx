@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FiCamera, FiStar, FiTrash2 } from "react-icons/fi";
 import styles from "./HousingPhotoManager.module.scss";
 
@@ -58,7 +59,14 @@ export default function HousingPhotoManager({
 
             return (
               <div className={styles.card} key={`${photo}-${index}`}>
-                <img src={photo} alt={`Photo ${index + 1} du logement`} className={styles.image} />
+                <Image
+                  src={photo}
+                  alt={`Photo ${index + 1} du logement`}
+                  className={styles.image}
+                  width={800}
+                  height={600}
+                  unoptimized
+                />
                 {isPrimary ? <span className={styles.badge}>Principale</span> : <span className={styles.badge}>Photo</span>}
                 <div className={styles.actions}>
                   <button

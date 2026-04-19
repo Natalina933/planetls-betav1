@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { FiCamera, FiEdit2, FiFileText, FiHome, FiList, FiRotateCcw, FiSave } from "react-icons/fi";
@@ -610,7 +611,14 @@ export default function LogementPage() {
                     <div className={styles.housingGallery}>
                       {housingPhotos.map((photo, index) => (
                         <div className={styles.housingGalleryItem} key={`${photo}-${index}`}>
-                          <img src={photo} alt={`Photo ${index + 1} du logement`} className={styles.housingGalleryImage} />
+                          <Image
+                            src={photo}
+                            alt={`Photo ${index + 1} du logement`}
+                            className={styles.housingGalleryImage}
+                            width={800}
+                            height={600}
+                            unoptimized
+                          />
                         </div>
                       ))}
                     </div>

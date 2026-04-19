@@ -381,42 +381,46 @@ const PricingGridManager = ({
     setLinkToPackage(Boolean(linkedPackageId));
   };
 
-  const buildPricingSignature = ({
-    label,
-    type,
-    amount,
-    propertyType,
-    includePropertyType = true,
-  }: {
-    label: string;
-    type: PricingType;
-    amount: number;
-    propertyType?: string | null;
-    includePropertyType?: boolean;
-  }) =>
-    [
-      normalizeServiceText(label),
+  const buildPricingSignature = useCallback(
+    ({
+      label,
       type,
-      Number(amount).toFixed(2),
-      includePropertyType ? propertyType ?? "" : "",
-    ].join("__");
+      amount,
+      propertyType,
+      includePropertyType = true,
+    }: {
+      label: string;
+      type: PricingType;
+      amount: number;
+      propertyType?: string | null;
+      includePropertyType?: boolean;
+    }) => {
+      return [
+        normalizeServiceText(label),
+        type,
+        Number(amount).toFixed(2),
+        includePropertyType ? propertyType ?? "" : "",
+      ].join("__");
+    },
+    [],
+  );
 
-  const getPricingSignature = (pricing: Pricing) =>
+  const getPricingSignature = useCallback((pricing: Pricing) =>
     buildPricingSignature({
       label: pricing.label,
       type: pricing.type,
       amount: pricing.amount,
       propertyType: pricing.property_type ?? null,
-    });
+    }), [buildPricingSignature]);
 
-  const getLoosePricingSignature = (pricing: Pricing) =>
+  const getLoosePricingSignature = useCallback((pricing: Pricing) =>
     buildPricingSignature({
       label: pricing.label,
       type: pricing.type,
       amount: pricing.amount,
       propertyType: pricing.property_type ?? null,
       includePropertyType: false,
-    });
+    }), [buildPricingSignature]);
 
   const linkedPricingMap = useMemo(() => {
     return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
@@ -430,7 +434,7 @@ const PricingGridManager = ({
       acc[signature].push(item);
       return acc;
     }, {});
-  }, [linkedPricingPackages]);
+  }, [buildPricingSignature, linkedPricingPackages]);
 
   const linkedPricingLooseMap = useMemo(() => {
     return linkedPricingPackages.reduce<Record<string, LinkedPricingPackage[]>>((acc, item) => {
@@ -445,7 +449,7 @@ const PricingGridManager = ({
       acc[signature].push(item);
       return acc;
     }, {});
-  }, [linkedPricingPackages]);
+  }, [buildPricingSignature, linkedPricingPackages]);
 
   const linkedPricingSignatures = useMemo(
     () => new Set(Object.keys(linkedPricingMap)),
@@ -476,7 +480,7 @@ const PricingGridManager = ({
 
       return acc;
     }, {});
-  }, [linkedPricingPackages]);
+  }, [buildPricingSignature, linkedPricingPackages]);
 
   const dedupeLinkedPricingRows = useCallback((rows: LinkedPricingPackage[]) => {
     const seen = new Set<string>();
@@ -499,7 +503,7 @@ const PricingGridManager = ({
         allPricingPackageMap[getLoosePricingSignature(editingPricing)] ??
         [],
     );
-  }, [allPricingPackageMap, dedupeLinkedPricingRows, editingPricing]);
+  }, [allPricingPackageMap, dedupeLinkedPricingRows, editingPricing, getLoosePricingSignature, getPricingSignature]);
 
   const getPricingLinkedPackages = useCallback(
     (pricing: Pricing) => {
@@ -518,7 +522,7 @@ const PricingGridManager = ({
         return acc;
       }, []);
     },
-    [allPricingPackageMap, dedupeLinkedPricingRows],
+    [allPricingPackageMap, dedupeLinkedPricingRows, getLoosePricingSignature, getPricingSignature],
   );
 
   const getPricingLinkedRows = useCallback(
@@ -528,7 +532,7 @@ const PricingGridManager = ({
           allPricingPackageMap[getLoosePricingSignature(pricing)] ??
           [],
       ),
-    [allPricingPackageMap, dedupeLinkedPricingRows],
+    [allPricingPackageMap, dedupeLinkedPricingRows, getLoosePricingSignature, getPricingSignature],
   );
 
   const togglePricingSelectionForPack = (pricingId: string) => {
@@ -1176,6 +1180,7 @@ const PricingGridManager = ({
                           step="0.01"
                           className={styles.priorityInput}
                           value={Number(pricingV2?.base.hourlyRate ?? 0).toFixed(2)}
+                          aria-label={`Tarif de base pour ${serviceRow.label}`}
                           disabled
                           readOnly
                         />
@@ -1206,6 +1211,7 @@ const PricingGridManager = ({
                               step="0.01"
                               className={styles.priorityInput}
                               value={computedPrice.toFixed(2)}
+                              aria-label={`${column.label} pour ${serviceRow.label}`}
                               disabled={disabled}
                               onChange={(e) =>
                                 handlePriceOverrideChange(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AsyncState,
   Badge,
@@ -136,7 +136,7 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setErrorMsg(null);
     try {
@@ -172,11 +172,11 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
     } finally {
       setLoading(false);
     }
-  };
+  }, [initialSelectedQuoteId]);
 
   useEffect(() => {
     void load();
-  }, [initialSelectedQuoteId]);
+  }, [load]);
 
   useEffect(() => {
     if (!selectedQuoteId) {
