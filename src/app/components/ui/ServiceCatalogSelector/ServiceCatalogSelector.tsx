@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { LucideLoader2 } from "lucide-react";
-import { ChevronsDown, ChevronsUp } from "lucide-react";
+import { LucideLoader2, ChevronsDown, ChevronsUp } from "lucide-react";
 import styles from "./ServiceCatalogSelector.module.scss";
 
 interface ServiceItem {
@@ -39,7 +38,7 @@ const CATEGORY_ORDER = [
     "Éco",
 ];
 
-const normalizeText = (value: string) =>
+const normalizeText = (value: string): string =>
     value
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -146,7 +145,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
         [selected, onChange, disabled]
     );
 
-    const normalizeHintKey = (value: string) =>
+    const normalizeHintKey = (value: string): string =>
         value
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
@@ -220,10 +219,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     }, [filteredCatalogEntries, searchQuery, activeCategory, showAllCategories, initialCategoryCount]);
 
     const hiddenCategoryCount = Math.max(filteredCatalogEntries.length - visibleCatalogEntries.length, 0);
-    const selectedServicesPreview = useMemo(
-        () => selected.slice(0, 6),
-        [selected]
-    );
+    const selectedServicesPreview = useMemo(() => selected.slice(0, 6), [selected]);
     const recentServicesPreview = useMemo(
         () => recentServices.filter((service) => !selected.includes(service)).slice(0, 6),
         [recentServices, selected]
@@ -233,9 +229,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
         return (
             <div className={styles.loadingContainer}>
                 <LucideLoader2 className={styles.loadingSpinner} />
-                <p className={styles.loadingText}>
-                    Chargement du catalogue de services...
-                </p>
+                <p className={styles.loadingText}>Chargement du catalogue de services...</p>
             </div>
         );
     }
@@ -243,13 +237,8 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     if (error) {
         return (
             <div className={styles.errorContainer}>
-                <p className={styles.errorText}>
-                    ⚠️ Erreur lors du chargement du catalogue : {error}
-                </p>
-                <button
-                    onClick={() => window.location.reload()}
-                    className={styles.retryButton}
-                >
+                <p className={styles.errorText}>⚠️ Erreur lors du chargement du catalogue : {error}</p>
+                <button onClick={() => window.location.reload()} className={styles.retryButton}>
                     Réessayer
                 </button>
             </div>
@@ -259,24 +248,25 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     if (Object.keys(catalog).length === 0) {
         return (
             <div className={styles.emptyContainer}>
-                <p className={styles.emptyText}>
-                    Aucun service disponible dans le catalogue.
-                </p>
+                <p className={styles.emptyText}>Aucun service disponible dans le catalogue.</p>
             </div>
         );
     }
 
     return (
         <div className={styles.serviceCatalog}>
-            {introText !== "" ? (
-            <p className={styles.catalogIntro}>
-                Définissez avec précision les prestations de conciergerie que vous
-                proposez. Cette sélection constituera le fondement de votre offre
-                professionnelle auprès des propriétaires et de leur clientèle.
-            </p>
-            ) : null}
+            {introText && (
+                <p className={styles.catalogIntro}>
+                    Définissez avec précision les prestations de conciergerie que vous proposez.
+                    Cette sélection constituera le fondement de votre offre professionnelle auprès
+                    des propriétaires et de leur clientèle.
+                </p>
+            )}
 
             <div className={styles.catalogControls}>
+                <label htmlFor="category-filter" className={styles.visuallyHidden}>
+                    Filtrer par catégorie
+                </label>
                 <input
                     type="search"
                     className={styles.searchInput}
@@ -286,6 +276,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                     disabled={disabled}
                 />
                 <select
+                    id="category-filter"
                     className={styles.categoryFilter}
                     value={activeCategory}
                     onChange={(event) => setActiveCategory(event.target.value)}
@@ -337,10 +328,11 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 </button>
             </div>
 
-            {hiddenCategoryCount > 0 ? (
+            {hiddenCategoryCount > 0 && (
                 <div className={styles.catalogPreviewRow}>
                     <p className={styles.catalogPreviewText}>
-                        {visibleCatalogEntries.length} catÃ©gories affichÃ©es, {hiddenCategoryCount} masquÃ©e{hiddenCategoryCount > 1 ? "s" : ""}.
+                        {visibleCatalogEntries.length} catégories affichées, {hiddenCategoryCount} masquée
+                        {hiddenCategoryCount > 1 ? "s" : ""}.
                     </p>
                     <button
                         type="button"
@@ -350,9 +342,9 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                         {showAllCategories ? "Afficher moins" : "Voir tout le catalogue"}
                     </button>
                 </div>
-            ) : null}
+            )}
 
-            {selectedServicesPreview.length > 0 ? (
+            {selectedServicesPreview.length > 0 && (
                 <div className={styles.quickAccessBlock}>
                     <p className={styles.quickAccessTitle}>Déjà sélectionnés</p>
                     <div className={styles.quickAccessList}>
@@ -369,9 +361,9 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                         ))}
                     </div>
                 </div>
-            ) : null}
+            )}
 
-            {recentServicesPreview.length > 0 ? (
+            {recentServicesPreview.length > 0 && (
                 <div className={styles.quickAccessBlock}>
                     <p className={styles.quickAccessTitle}>Plus utilisés récemment</p>
                     <div className={styles.quickAccessList}>
@@ -388,93 +380,72 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                         ))}
                     </div>
                 </div>
-            ) : null}
+            )}
 
             <div className={styles.catalogContent}>
-                {filteredCatalogEntries.length === 0 && (
-                    <div className={styles.noResult}>
-                        Aucun service ne correspond à votre recherche.
-                    </div>
-                )}
+                {filteredCatalogEntries.length === 0 ? (
+                    <div className={styles.noResult}>Aucun service ne correspond à votre recherche.</div>
+                ) : (
+                    visibleCatalogEntries.map(([category, services]) => {
+                        const isOpen = openCategories[category] ?? false;
+                        const totalServices = services.length;
+                        const selectedCount = services.filter((item) => selected.includes(item.service)).length;
 
-                {visibleCatalogEntries.map(([category, services]) => {
-                    const isOpen = openCategories[category] ?? false;
-                    const totalServices = services.length;
-                    const selectedCount = services.filter((item) =>
-                        selected.includes(item.service)
-                    ).length;
-                    return (
-                        <div key={category} className={styles.categorySection}>
-                            <button
-                                type="button"
-                                className={`${styles.categoryHeader} ${isOpen ? styles.categoryHeaderOpen : ""
-                                    }`}
-                                onClick={() => toggleCategory(category)}
-                            >
-                                <span className={styles.categoryTitle}>{category}</span>
-
-                                <span className={styles.categoryStats}>
-                                    {selectedCount} / {totalServices}
-                                </span>
-
-                                <span
-                                    className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""
-                                        }`}
+                        return (
+                            <div key={category} className={styles.categorySection}>
+                                <button
+                                    type="button"
+                                    className={`${styles.categoryHeader} ${isOpen ? styles.categoryHeaderOpen : ""}`}
+                                    onClick={() => toggleCategory(category)}
                                 >
-                                    ▾
-                                </span>
-                            </button>
+                                    <span className={styles.categoryTitle}>{category}</span>
+                                    <span className={styles.categoryStats}>
+                                        {selectedCount} / {totalServices}
+                                    </span>
+                                    <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}>▾</span>
+                                </button>
 
-                            {isOpen && (
-                                <div className={styles.serviceGrid}>
-                                    {services.map((item) => {
-                                        const isSelected = selected.includes(item.service);
-                                        const hint = getHintForItem(item);
+                                {isOpen && (
+                                    <div className={styles.serviceGrid}>
+                                        {services.map((item) => {
+                                            const isSelected = selected.includes(item.service);
+                                            const hint = getHintForItem(item);
 
-                                        return (
-                                            <label
-                                                key={item.id}
-                                                className={`${styles.serviceItem} ${isSelected ? styles.selected : ""
-                                                    } ${disabled ? styles.disabled : ""}`}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isSelected}
-                                                    onChange={() => toggle(item.service)}
-                                                    disabled={disabled}
-                                                    className={styles.serviceCheckbox}
-                                                />
-                                                <div className={styles.serviceContent}>
-                                                    <div className={styles.serviceLabelRow}>
-                                                        <span className={styles.serviceLabel}>
-                                                            {item.service}
-                                                        </span>
-                                                        {hint && (
-                                                            <span
-                                                                className={styles.serviceHintBadge}
-                                                                title={hint}
-                                                            >
-                                                                ?
-                                                            </span>
-                                                        )}
+                                            return (
+                                                <label
+                                                    key={item.id}
+                                                    className={`${styles.serviceItem} ${isSelected ? styles.selected : ""
+                                                        } ${disabled ? styles.disabled : ""}`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => toggle(item.service)}
+                                                        disabled={disabled}
+                                                        className={styles.serviceCheckbox}
+                                                    />
+                                                    <div className={styles.serviceContent}>
+                                                        <div className={styles.serviceLabelRow}>
+                                                            <span className={styles.serviceLabel}>{item.service}</span>
+                                                            {hint && (
+                                                                <span className={styles.serviceHintBadge} title={hint}>
+                                                                    ?
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className={styles.serviceDescription}>{item.description}</p>
+                                                        {hint && <p className={styles.serviceHintText}>{hint}</p>}
                                                     </div>
-                                                    <p className={styles.serviceDescription}>
-                                                        {item.description}
-                                                    </p>
-                                                    {hint && (
-                                                        <p className={styles.serviceHintText}>{hint}</p>
-                                                    )}
-                                                </div>
-                                            </label>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
             </div>
-
         </div>
     );
 };

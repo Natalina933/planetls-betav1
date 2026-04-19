@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { logProxyDebug } from "@/server/logging/authDebug";
 
 const ROLE_FOLDER_MAP: Record<string, string> = {
   admin: "admin",
@@ -37,7 +38,7 @@ async function getProxyToken(req: NextRequest) {
     });
 
     if (token) {
-      console.info("[PROXY] token resolved", {
+      logProxyDebug("[PROXY] token resolved", {
         pathname: req.nextUrl.pathname,
         cookieName,
         role: token.role ?? null,
@@ -46,7 +47,7 @@ async function getProxyToken(req: NextRequest) {
     }
   }
 
-  console.warn("[PROXY] token missing", {
+  logProxyDebug("[PROXY] token missing", {
     pathname: req.nextUrl.pathname,
     cookies: SESSION_COOKIE_NAMES.filter((name) => Boolean(req.cookies.get(name)?.value)),
   });
@@ -70,7 +71,7 @@ export async function proxy(req: NextRequest) {
     }
 
     if (pathname.startsWith("/dashboard")) {
-      console.warn("[PROXY] dashboard access denied without token", { pathname });
+      logProxyDebug("[PROXY] dashboard access denied without token", { pathname });
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
@@ -88,7 +89,7 @@ export async function proxy(req: NextRequest) {
   const dashboardPrefix = `/dashboard/${targetFolder}`;
 
   if (pathname.startsWith("/dashboard") && !pathname.startsWith(dashboardPrefix)) {
-    console.info("[PROXY] redirecting to role dashboard", {
+    logProxyDebug("[PROXY] redirecting to role dashboard", {
       pathname,
       dashboardPrefix,
       role,
