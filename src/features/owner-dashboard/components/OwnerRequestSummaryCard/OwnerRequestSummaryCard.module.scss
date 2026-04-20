@@ -207,21 +207,14 @@
 
 .responseItem {
   position: relative;
-  padding: 0.8rem 0.9rem 0.8rem 1.1rem;
+  padding: 0.8rem 0.9rem;
   border-radius: 16px;
   border: 1px solid rgba(184, 92, 72, 0.12);
   background: rgba(255, 255, 255, 0.72);
 }
 
 .responseItem::before {
-  content: "";
-  position: absolute;
-  left: 0.55rem;
-  top: 0.95rem;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(184, 92, 72, 0.85);
+  content: none;
 }
 
 @media (max-width: 1100px) {
