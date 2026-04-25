@@ -8,7 +8,7 @@
 }
 
 .popupContent {
-  @include common.container(520px, 1.45rem);
+  @include common.container(680px, 1.45rem);
   @include common.mobileBottomSheet(1.15rem);
   text-align: center;
 
@@ -16,6 +16,17 @@
     @include common.title;
     margin-bottom: 0.9rem;
   }
+}
+
+.stepIndicator {
+  align-self: center;
+  margin: 0 0 0.55rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.14);
+  color: #8f6a00;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .content {
@@ -39,15 +50,22 @@
 
   span {
     text-align: left;
-    color: #202532;
+    color: #111827;
     font-weight: 600;
     line-height: 1.25;
   }
 
   @media (prefers-color-scheme: dark) {
     span {
-      color: #f4f6fa;
+      color: #ffffff;
     }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .stepIndicator {
+    background: rgba(240, 205, 103, 0.18);
+    color: #ffe9a3;
   }
 }
 
@@ -66,4 +84,19 @@
 
 .actions button:not(.closeButton) {
   @include common.primaryButton;
+}
+
+:global(body[data-readability="on"]) {
+  .popupContent {
+    font-size: 1.08rem;
+  }
+
+  .optionLabel {
+    min-height: 58px;
+
+    span {
+      font-size: 1rem;
+      line-height: 1.42;
+    }
+  }
 }

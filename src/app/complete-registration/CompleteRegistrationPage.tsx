@@ -29,6 +29,17 @@ interface ProfileData {
   email: string;
   phone: string;
   additionalInfo: string;
+  companyName: string;
+  legalForm: string;
+  serviceRadiusKm: string;
+  availability: string;
+  missionPreference: string;
+  signupMode: string;
+  onboardingGoal: string;
+  supportNeed: string;
+  existingTools: string[];
+  businessLink: string;
+  propertyTypes: string[];
 
   experienceLevel: ExperienceLevel | "";
   yearsExperience: string;
@@ -44,6 +55,46 @@ interface GeocodeLookupPayload {
   error?: string;
   label?: string;
 }
+
+const getDashboardPathFromCategory = (category: string): string => {
+  switch (category) {
+    case "concierge":
+      return "/dashboard/concierge";
+    case "artisan":
+      return "/dashboard/provider";
+    case "proprietaire":
+    default:
+      return "/dashboard/owner";
+  }
+};
+
+const formatChoice = (value: string): string => {
+  const labels: Record<string, string> = {
+    creation: "Je demarre mon activite",
+    micro_entreprise: "Micro-entreprise",
+    societe: "Societe deja creee",
+    particulier: "Particulier / complement d'activite",
+    temps_plein: "Temps plein",
+    temps_partiel: "Temps partiel",
+    soirs_weekends: "Soirs et week-ends",
+    sur_demande: "Sur demande selon les missions",
+    ponctuelles: "Missions ponctuelles",
+    regulieres: "Contrats reguliers",
+    les_deux: "Missions ponctuelles et contrats reguliers",
+    simple: "Mode simple",
+    business: "Mode business",
+    premieres_missions: "Trouver mes premieres missions",
+    complement_revenu: "Completer mes revenus",
+    structurer_activite: "Structurer mon activite de conciergerie",
+    developper_portefeuille: "Developper mon portefeuille clients",
+    guidage_simple: "Guidage simple pour bien demarrer",
+    modeles_outils: "Modeles, tarifs et outils de gestion",
+    missions_qualifiees: "Priorite aux demandes qualifiees",
+    autonome: "Je suis autonome",
+  };
+
+  return labels[value] ?? value;
+};
 
 // ============================================================================
 // HELPERS
@@ -82,6 +133,17 @@ export default function CompleteRegistrationPage() {
     email: "",
     phone: "",
     additionalInfo: "",
+    companyName: "",
+    legalForm: "",
+    serviceRadiusKm: "",
+    availability: "",
+    missionPreference: "",
+    signupMode: "simple",
+    onboardingGoal: "",
+    supportNeed: "",
+    existingTools: [],
+    businessLink: "",
+    propertyTypes: [],
     experienceLevel: "",
     yearsExperience: "",
   });
@@ -104,6 +166,7 @@ export default function CompleteRegistrationPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
   const [locationError, setLocationError] = useState("");
+  const [readabilityMode, setReadabilityMode] = useState(false);
 
 
   // --------------------------------------------------------------------------
@@ -125,10 +188,41 @@ export default function CompleteRegistrationPage() {
       email: searchParams.get("email") ?? "",
       phone: searchParams.get("phone") ?? "",
       additionalInfo: searchParams.get("additionalInfo") ?? "",
+      companyName: searchParams.get("companyName") ?? "",
+      legalForm: searchParams.get("legalForm") ?? "",
+      serviceRadiusKm: searchParams.get("serviceRadiusKm") ?? "",
+      availability: searchParams.get("availability") ?? "",
+      missionPreference: searchParams.get("missionPreference") ?? "",
+      signupMode: searchParams.get("signupMode") ?? "simple",
+      onboardingGoal: searchParams.get("onboardingGoal") ?? "",
+      supportNeed: searchParams.get("supportNeed") ?? "",
+      existingTools: (searchParams.get("existingTools") ?? "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      businessLink: searchParams.get("businessLink") ?? "",
+      propertyTypes: (searchParams.get("propertyTypes") ?? "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
       experienceLevel: (searchParams.get("experienceLevel") as ExperienceLevel) || "",
       yearsExperience: searchParams.get("yearsExperience") || "",
     }));
   }, [searchParams]);
+
+  useEffect(() => {
+    const enabled = window.localStorage.getItem("planetls-readability-mode") === "1";
+    setReadabilityMode(enabled);
+  }, []);
+
+  useEffect(() => {
+    document.body.dataset.readability = readabilityMode ? "on" : "off";
+    window.localStorage.setItem("planetls-readability-mode", readabilityMode ? "1" : "0");
+
+    return () => {
+      document.body.dataset.readability = "off";
+    };
+  }, [readabilityMode]);
 
   // --------------------------------------------------------------------------
   // FORM HANDLERS
@@ -236,7 +330,18 @@ export default function CompleteRegistrationPage() {
         lastName: profile.lastName,
         email: profile.email,
         phone: profile.phone,
-        additional_info: profile.additionalInfo,
+        additionalInfo: profile.additionalInfo,
+        companyName: profile.companyName,
+        legalForm: profile.legalForm,
+        serviceRadiusKm: profile.serviceRadiusKm,
+        availability: profile.availability,
+        missionPreference: profile.missionPreference,
+        signupMode: profile.signupMode,
+        onboardingGoal: profile.onboardingGoal,
+        supportNeed: profile.supportNeed,
+        existingTools: profile.existingTools,
+        businessLink: profile.businessLink,
+        propertyTypes: profile.propertyTypes,
         category: profile.category,
         search_target: profile.searchTarget,
         option: profile.option,
@@ -255,9 +360,21 @@ export default function CompleteRegistrationPage() {
 
     setShowConfetti(true);
 
-    await signIn("credentials", { email: profile.email, password: form.password, redirect: false });
+    const loginResult = await signIn("credentials", {
+      email: profile.email,
+      password: form.password,
+      redirect: false,
+    });
 
-    router.replace("/dashboard/owner");
+    if (loginResult?.error) {
+      setLoading(false);
+      alert("Compte créé, mais la connexion automatique a échoué. Merci de vous connecter manuellement.");
+      router.replace("/login");
+      return;
+    }
+
+    const targetPath = getDashboardPathFromCategory(profile.category);
+    router.replace(targetPath);
 
   };
 
@@ -268,6 +385,19 @@ export default function CompleteRegistrationPage() {
   return (
     <div className={styles.pageContainer}>
       {showConfetti && <Confetti />}
+
+      <div className={styles.onboardingMeta}>
+        <span className={styles.stepIndicator}>Etape 5/5 - Creation du compte</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className={readabilityMode ? styles.readabilityActive : styles.readabilityButton}
+          onClick={() => setReadabilityMode((value) => !value)}
+        >
+          Lisibilite +
+        </Button>
+      </div>
 
       <h1 className={styles.title}>Dernière étape avant de commencer</h1>
 
@@ -308,8 +438,84 @@ export default function CompleteRegistrationPage() {
                 : "Non renseignée"}
             </p>
           </div>
+          {profile.category === "concierge" && (
+            <>
+              <div>
+                <strong>Structure</strong>
+                <p>{profile.companyName || "A preciser"}</p>
+              </div>
+              <div>
+                <strong>Statut</strong>
+                <p>{profile.legalForm ? formatChoice(profile.legalForm) : "A preciser"}</p>
+              </div>
+              <div>
+                <strong>Rayon</strong>
+                <p>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "A preciser"}</p>
+              </div>
+              <div>
+                <strong>Disponibilite</strong>
+                <p>{profile.availability ? formatChoice(profile.availability) : "A definir"}</p>
+              </div>
+              <div>
+                <strong>Collaboration</strong>
+                <p>
+                  {profile.missionPreference
+                    ? formatChoice(profile.missionPreference)
+                    : "Ouverte aux opportunites"}
+                </p>
+              </div>
+              <div>
+                <strong>Parcours</strong>
+                <p>{formatChoice(profile.signupMode || "simple")}</p>
+              </div>
+              <div>
+                <strong>Objectif</strong>
+                <p>{profile.onboardingGoal ? formatChoice(profile.onboardingGoal) : "A preciser"}</p>
+              </div>
+              <div>
+                <strong>Accompagnement</strong>
+                <p>{profile.supportNeed ? formatChoice(profile.supportNeed) : "A definir"}</p>
+              </div>
+              {profile.signupMode === "business" && (
+                <>
+                  <div>
+                    <strong>Outils</strong>
+                    <p>{profile.existingTools.length ? profile.existingTools.join(", ") : "A connecter plus tard"}</p>
+                  </div>
+                  <div>
+                    <strong>Lien pro</strong>
+                    <p>{profile.businessLink || "A ajouter plus tard"}</p>
+                  </div>
+                </>
+              )}
+              <div>
+                <strong>Biens geres</strong>
+                <p>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "A preciser"}</p>
+              </div>
+            </>
+          )}
         </div>
       </section>
+
+      {profile.category === "concierge" && (
+        <section className={styles.nextActionsSection}>
+          <h2>Apres inscription, choisissez votre premiere action</h2>
+          <div className={styles.nextActionsGrid}>
+            <div>
+              <strong>Creer un bien</strong>
+              <p>Ajoutez votre premier logement ou une zone de mission proche.</p>
+            </div>
+            <div>
+              <strong>Creer une offre</strong>
+              <p>Transformez vos services en packs simples a proposer.</p>
+            </div>
+            <div>
+              <strong>Inviter un proprietaire</strong>
+              <p>Retrouvez vite vos premiers contacts dans l'espace concierge.</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* PROFIL PRO */}
       <section className={styles.section}>
@@ -318,6 +524,25 @@ export default function CompleteRegistrationPage() {
         <p><strong>Type :</strong> {profile.category}</p>
         <p><strong>Recherche :</strong> {profile.searchTarget}</p>
         <p><strong>Localisation :</strong> {profile.location}</p>
+        {profile.category === "concierge" && (
+          <ul className={styles.profileList}>
+            <li><strong>Structure :</strong> {profile.companyName || "A preciser"}</li>
+            <li><strong>Statut :</strong> {profile.legalForm ? formatChoice(profile.legalForm) : "A preciser"}</li>
+            <li><strong>Zone :</strong> {profile.serviceRadiusKm ? `${profile.location} + ${profile.serviceRadiusKm} km` : profile.location}</li>
+            <li><strong>Disponibilite :</strong> {profile.availability ? formatChoice(profile.availability) : "A definir"}</li>
+            <li><strong>Collaboration :</strong> {profile.missionPreference ? formatChoice(profile.missionPreference) : "Ouverte aux opportunites"}</li>
+            <li><strong>Parcours :</strong> {formatChoice(profile.signupMode || "simple")}</li>
+            <li><strong>Objectif :</strong> {profile.onboardingGoal ? formatChoice(profile.onboardingGoal) : "A preciser"}</li>
+            <li><strong>Accompagnement :</strong> {profile.supportNeed ? formatChoice(profile.supportNeed) : "A definir"}</li>
+            {profile.signupMode === "business" && (
+              <>
+                <li><strong>Outils :</strong> {profile.existingTools.length ? profile.existingTools.join(", ") : "A connecter plus tard"}</li>
+                <li><strong>Lien pro :</strong> {profile.businessLink || "A ajouter plus tard"}</li>
+              </>
+            )}
+            <li><strong>Types de biens :</strong> {profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "A preciser"}</li>
+          </ul>
+        )}
 
         <div className={styles.experienceBlock}>
           <strong>Expérience</strong>
@@ -438,4 +663,3 @@ export default function CompleteRegistrationPage() {
     </div>
   );
 }
-

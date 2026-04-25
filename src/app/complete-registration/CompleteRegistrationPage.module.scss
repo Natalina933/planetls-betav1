@@ -80,6 +80,37 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
   }
 }
 
+.onboardingMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 1.25rem;
+}
+
+.stepIndicator {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba($gold, 0.14);
+  color: $gold-dark;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.readabilityButton,
+.readabilityActive {
+  border-radius: 999px;
+}
+
+.readabilityActive {
+  background: $gold-dark;
+  color: #ffffff;
+  border-color: $gold-dark;
+}
+
 .locationError {
   margin: 0 0 1rem;
   padding: 0.85rem 1rem;
@@ -113,6 +144,45 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
       margin: 0;
       font-size: 0.95rem;
     }
+  }
+}
+
+.nextActionsSection {
+  background: $bg-card;
+  border-radius: $radius-lg;
+  padding: 1.6rem;
+  margin-bottom: 2.2rem;
+  border: 1px solid rgba($gold, 0.14);
+
+  h2 {
+    margin: 0 0 1rem;
+    color: $gold-dark;
+    font-size: 1.15rem;
+  }
+}
+
+.nextActionsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+
+  div {
+    border: 1px solid $border-soft;
+    border-radius: $radius-md;
+    padding: 0.95rem;
+    background: $bg-page;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: $gold-dark;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
   }
 }
 
@@ -336,5 +406,33 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
   .form,
   .avatarSection {
     padding: 1.4rem;
+  }
+
+  .onboardingMeta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nextActionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+:global(body[data-readability="on"]) {
+  .pageContainer {
+    font-size: 1.08rem;
+    background: #ffffff;
+  }
+
+  .title {
+    font-size: 2.35rem;
+  }
+
+  .recapGrid div p,
+  .profileList li,
+  .nextActionsGrid p,
+  .form input {
+    font-size: 1.04rem;
+    line-height: 1.5;
   }
 }

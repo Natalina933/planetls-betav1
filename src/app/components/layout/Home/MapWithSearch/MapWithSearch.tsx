@@ -41,6 +41,17 @@ interface AccessFormData {
   email: string;
   phone: string;
   additionalInfo: string;
+  companyName: string;
+  legalForm: string;
+  serviceRadiusKm: string;
+  availability: string;
+  missionPreference: string;
+  signupMode: string;
+  onboardingGoal: string;
+  supportNeed: string;
+  existingTools: string[];
+  businessLink: string;
+  propertyTypes: string[];
 }
 
 interface LocationSuggestion {
@@ -106,6 +117,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [readabilityMode, setReadabilityMode] = useState(false);
   const isMainModalVisible =
     !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
 
@@ -141,6 +153,20 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
+
+  useEffect(() => {
+    const enabled = window.localStorage.getItem("planetls-readability-mode") === "1";
+    setReadabilityMode(enabled);
+  }, []);
+
+  useEffect(() => {
+    document.body.dataset.readability = readabilityMode ? "on" : "off";
+    window.localStorage.setItem("planetls-readability-mode", readabilityMode ? "1" : "0");
+
+    return () => {
+      document.body.dataset.readability = "off";
+    };
+  }, [readabilityMode]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -319,6 +345,17 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         email: formData.email,
         phone: formData.phone,
         additionalInfo: formData.additionalInfo,
+        companyName: formData.companyName,
+        legalForm: formData.legalForm,
+        serviceRadiusKm: formData.serviceRadiusKm,
+        availability: formData.availability,
+        missionPreference: formData.missionPreference,
+        signupMode: formData.signupMode,
+        onboardingGoal: formData.onboardingGoal,
+        supportNeed: formData.supportNeed,
+        existingTools: formData.existingTools.join(","),
+        businessLink: formData.businessLink,
+        propertyTypes: formData.propertyTypes.join(","),
         category: selectedCategory,
         searchTarget,
         option: selectedOptions.join(","),
@@ -403,6 +440,17 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
             </Button>
 
             <section className={styles.categorySearchSection}>
+              <div className={styles.onboardingMeta}>
+                <span className={styles.stepIndicator}>Etape 1/5 - Votre profil</span>
+                <button
+                  type="button"
+                  className={readabilityMode ? styles.readabilityActive : styles.readabilityButton}
+                  onClick={() => setReadabilityMode((value) => !value)}
+                >
+                  Lisibilite +
+                </button>
+              </div>
+
               <h2 id="modal-title">
                 Inscrivez-vous et connectez-vous aux bons partenaires
               </h2>

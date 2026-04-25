@@ -37,7 +37,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(10, 10, 20, 0.55);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(31, 41, 55, 0.8));
   backdrop-filter: blur(10px);
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -52,20 +52,50 @@
   max-height: 90dvh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #ffffff, #f9f9fb);
-  border-radius: 20px;
+  background: #f7f4ee;
+  color: #111827;
+  border: 2px solid rgba(212, 175, 55, 0.22);
+  border-radius: 24px;
   padding: $padding;
   overflow: hidden;
   animation: popupPopIn 0.35s ease-out;
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+    0 25px 60px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(212, 175, 55, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("/textures/mucha-background-pattern.png");
+    background-size: 280px;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #d4af37, #f4d03f, #d4af37, transparent);
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   @media (prefers-color-scheme: dark) {
     background: linear-gradient(135deg, #1e222a, #23272f);
+    color: #f8fafc;
+    border-color: rgba(212, 175, 55, 0.28);
     box-shadow:
       0 12px 40px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(0, 0, 0, 0.4) inset;
+      0 0 0 1px rgba(212, 175, 55, 0.2);
   }
 }
 
@@ -90,12 +120,13 @@
 @mixin title {
   margin: 0;
   text-align: center;
-  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  font-size: clamp(1.18rem, 2.4vw, 1.45rem);
   font-weight: 700;
-  background: linear-gradient(90deg, #b89226, #d4af37, #e2c874);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #4a3410;
+
+  @media (prefers-color-scheme: dark) {
+    color: #f8e7a5;
+  }
 }
 
 @mixin optionCard($check-shape: "round") {
@@ -103,10 +134,12 @@
   grid-template-columns: 20px 1fr;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.72rem 0.82rem;
+  padding: 0.85rem 0.95rem;
   border-radius: 12px;
-  background: #fff;
-  border: 1.5px solid #ddd;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  border: 1.5px solid rgba(212, 175, 55, 0.22);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: all 0.25s ease;
 
@@ -149,6 +182,7 @@
   @media (prefers-color-scheme: dark) {
     background: #1a1f2b;
     border-color: #3a4254;
+    color: #f8fafc;
 
     &:hover {
       background: #252c3b;
@@ -192,7 +226,7 @@
 
 @mixin secondaryButton {
   background: #f2f2f2;
-  color: #555;
+  color: #1f2937;
 
   &:hover {
     background: #e0e0e0;
@@ -200,14 +234,14 @@
   }
 
   @media (prefers-color-scheme: dark) {
-    background: #2a2d37;
-    color: #f5f5f5;
+    background: #f4f6fa;
+    color: #111827;
   }
 }
 
 @mixin primaryButton {
   background: linear-gradient(90deg, #d4af37, #e7c65a);
-  color: #fff;
+  color: #211805;
   box-shadow: 0 0 8px rgba(212, 175, 55, 0.35);
 
   &:hover {

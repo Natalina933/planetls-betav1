@@ -17,6 +17,56 @@ const mapYearsToInt = (years?: string | null): number | null => {
   return null;
 };
 
+const mapRadiusToInt = (radius?: string | null): number | null => {
+  if (!radius) return null;
+  const parsed = Number(radius);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.min(Math.round(parsed), 100);
+};
+
+const buildAvailabilityPayload = (data: {
+  availability?: string | null;
+  missionPreference?: string | null;
+  signupMode?: string | null;
+  onboardingGoal?: string | null;
+  supportNeed?: string | null;
+  existingTools?: string[] | null;
+  propertyTypes?: string[] | null;
+  location?: string | null;
+  serviceRadiusKm?: string | null;
+}) => {
+  const radiusKm = mapRadiusToInt(data.serviceRadiusKm);
+
+  return JSON.stringify({
+    onboarding: {
+      availability: data.availability ?? null,
+      missionPreference: data.missionPreference ?? null,
+      signupMode: data.signupMode ?? "simple",
+      onboardingGoal: data.onboardingGoal ?? null,
+      supportNeed: data.supportNeed ?? null,
+      existingTools: data.existingTools ?? [],
+      propertyTypes: data.propertyTypes ?? [],
+    },
+    preferences: {
+      availability: data.availability ?? null,
+      missionPreference: data.missionPreference ?? null,
+      signupMode: data.signupMode ?? "simple",
+      onboardingGoal: data.onboardingGoal ?? null,
+      supportNeed: data.supportNeed ?? null,
+      existingTools: data.existingTools ?? [],
+      propertyTypes: data.propertyTypes ?? [],
+    },
+    zones: data.location
+      ? [
+          {
+            label: data.location,
+            radiusKm: radiusKm ?? 30,
+          },
+        ]
+      : [],
+  });
+};
+
 const resolveKnownLocation = async (location: string | null) => {
   if (!location) return null;
 
@@ -77,6 +127,17 @@ const registerSchema = z.object({
   option: z.string().optional().nullable().transform(cleanString),
   location: z.string().optional().nullable().transform(cleanString),
   additionalInfo: z.string().optional().nullable().transform(cleanString),
+  companyName: z.string().optional().nullable().transform(cleanString),
+  legalForm: z.string().optional().nullable().transform(cleanString),
+  serviceRadiusKm: z.string().optional().nullable().transform(cleanString),
+  availability: z.string().optional().nullable().transform(cleanString),
+  missionPreference: z.string().optional().nullable().transform(cleanString),
+  signupMode: z.string().optional().nullable().transform(cleanString),
+  onboardingGoal: z.string().optional().nullable().transform(cleanString),
+  supportNeed: z.string().optional().nullable().transform(cleanString),
+  existingTools: z.array(z.string().transform(cleanString)).optional().default([]),
+  businessLink: z.string().optional().nullable().transform(cleanString),
+  propertyTypes: z.array(z.string().transform(cleanString)).optional().default([]),
   experienceLevel: z.string().optional().nullable().transform(cleanString),
   yearsExperience: z.string().optional().nullable(),
 });
@@ -109,6 +170,21 @@ export async function POST(req: NextRequest) {
       );
     }
     const role = categoryToRole(data.category || "");
+    const isConcierge = role === "concierge" || role === "concierge_pro" || data.category === "concierge";
+    const serviceRadiusKm = isConcierge ? mapRadiusToInt(data.serviceRadiusKm) : null;
+    const availabilityHours = isConcierge
+      ? buildAvailabilityPayload({
+          availability: data.availability,
+          missionPreference: data.missionPreference,
+          signupMode: data.signupMode,
+          onboardingGoal: data.onboardingGoal,
+          supportNeed: data.supportNeed,
+          existingTools: data.existingTools.filter(Boolean) as string[],
+          propertyTypes: data.propertyTypes.filter(Boolean) as string[],
+          location: resolvedLocation ?? data.location,
+          serviceRadiusKm: data.serviceRadiusKm,
+        })
+      : null;
 
     // 1. Vérification unique de l'username (la DB s'occupe de l'email)
     const { data: existingUser } = await supabase
@@ -161,6 +237,12 @@ export async function POST(req: NextRequest) {
         option: data.option,
         location: resolvedLocation ?? data.location,
         additional_info: data.additionalInfo,
+        company_name: isConcierge ? data.companyName : null,
+        legal_form: isConcierge ? data.legalForm : null,
+        service_area: isConcierge ? resolvedLocation ?? data.location : null,
+        service_radius_km: serviceRadiusKm,
+        availability_hours: availabilityHours,
+        website: isConcierge ? data.businessLink : null,
         experience_level: data.experienceLevel,
         years_experience: mapYearsToInt(data.yearsExperience),
       });

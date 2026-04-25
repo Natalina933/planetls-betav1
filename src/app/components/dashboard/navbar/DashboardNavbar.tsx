@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Bell, User, CheckCircle, Palette } from "lucide-react";
+import { Menu, Bell, User, CheckCircle, Palette, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import {
   getOwnerReplySignature,
@@ -127,6 +128,34 @@ const getNotificationsPageHref = (role?: string | null) => {
   return "/dashboard";
 };
 
+const getDashboardHomeHref = (role?: string | null) => {
+  if (role === "owner" || role === "owner_pro") return "/dashboard/owner";
+  if (role === "concierge" || role === "concierge_pro") return "/dashboard/concierge";
+  if (
+    role === "provider" ||
+    role === "provider_pro" ||
+    role === "artisan" ||
+    role === "artisan_pro"
+  ) {
+    return "/dashboard/provider";
+  }
+  return "/dashboard";
+};
+
+const getProfileHref = (role?: string | null) => {
+  if (role === "owner" || role === "owner_pro") return "/dashboard/owner/settings?tab=overview";
+  if (role === "concierge" || role === "concierge_pro") return "/dashboard/concierge/profile?tab=overview";
+  if (
+    role === "provider" ||
+    role === "provider_pro" ||
+    role === "artisan" ||
+    role === "artisan_pro"
+  ) {
+    return "/dashboard/provider/settings?tab=overview";
+  }
+  return "/dashboard";
+};
+
 const PAGE_LABELS: Record<string, string> = {
   owner: "Espace propriétaire",
   concierge: "Espace concierge",
@@ -167,9 +196,11 @@ export default function DashboardNavbar({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState<NotificationFilter>("all");
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const notificationRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
 
   const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
@@ -182,6 +213,8 @@ export default function DashboardNavbar({
   const timeBasedGreeting = getTimeBasedGreeting();
   const userRole = user?.role ?? null;
   const notificationsPageHref = useMemo(() => getNotificationsPageHref(userRole), [userRole]);
+  const dashboardHomeHref = useMemo(() => getDashboardHomeHref(userRole), [userRole]);
+  const profileHref = useMemo(() => getProfileHref(userRole), [userRole]);
   const pageTitle = useMemo(() => {
     const segments = (pathname || "")
       .split("/")
@@ -199,8 +232,25 @@ export default function DashboardNavbar({
   }, [pathname]);
 
   const handleProfileClick = useCallback(() => {
-    router.push("/dashboard/profile");
-  }, [router]);
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+    setAccountMenuOpen((current) => !current);
+  }, [isAuthenticated, router]);
+
+  const handleAccountNavigate = useCallback(
+    (href: string) => {
+      setAccountMenuOpen(false);
+      router.push(href);
+    },
+    [router],
+  );
+
+  const handleLogout = useCallback(() => {
+    setAccountMenuOpen(false);
+    void signOut({ callbackUrl: "/" });
+  }, []);
 
   const handleNotificationClick = useCallback(() => {
     setIsNotificationsOpen((current) => !current);
@@ -482,6 +532,29 @@ export default function DashboardNavbar({
     }
   }, [themeMenuOpen]);
 
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [accountMenuOpen]);
+
   const filteredNotificationItems = useMemo(() => {
     if (notificationFilter === "all") return notificationItems;
     return notificationItems.filter((item) => item.kind === notificationFilter);
@@ -675,12 +748,15 @@ export default function DashboardNavbar({
           </div>
         )}
 
+        <div className={styles.accountMenuWrapper} ref={accountMenuRef}>
         <button
           type="button"
           className={styles.userProfile}
           onClick={handleProfileClick}
-          aria-label={`Profil de ${userName}`}
-          title={`Profil de ${userName}`}
+          aria-label={`Menu du compte de ${userName}`}
+          title={`Compte de ${userName}`}
+          aria-haspopup="menu"
+          aria-expanded={accountMenuOpen}
         >
           {loading ? (
             <div className={styles.avatarSkeleton} role="status" aria-label="Chargement du profil" />
@@ -701,6 +777,56 @@ export default function DashboardNavbar({
             </div>
           )}
         </button>
+
+          {accountMenuOpen && isAuthenticated ? (
+            <div className={styles.accountDropdown} role="menu" aria-label="Menu du compte">
+              <div className={styles.accountHeader}>
+                <strong className={styles.accountName}>{userName}</strong>
+                {user?.email ? <span className={styles.accountEmail}>{user.email}</span> : null}
+                <span className={styles.accountRole}>{roleLabel}</span>
+              </div>
+
+              <div className={styles.accountActions}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.accountAction}
+                  onClick={() => handleAccountNavigate(profileHref)}
+                >
+                  <UserCircle size={18} aria-hidden="true" />
+                  <span>Mon profil</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.accountAction}
+                  onClick={() => handleAccountNavigate(dashboardHomeHref)}
+                >
+                  <LayoutDashboard size={18} aria-hidden="true" />
+                  <span>Mon espace</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.accountAction}
+                  onClick={() => handleAccountNavigate(notificationsPageHref)}
+                >
+                  <Bell size={18} aria-hidden="true" />
+                  <span>Notifications</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={`${styles.accountAction} ${styles.accountLogout}`}
+                  onClick={handleLogout}
+                >
+                  <LogOut size={18} aria-hidden="true" />
+                  <span>Se déconnecter</span>
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </header>
   );

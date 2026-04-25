@@ -8,7 +8,7 @@
 }
 
 .popupContent {
-  @include common.container(520px, 1.1rem);
+  @include common.container(680px, 1.35rem);
   @include common.mobileBottomSheet(1rem);
 
   h3 {
@@ -16,6 +16,17 @@
     margin-bottom: 0.75rem;
     font-size: clamp(1.02rem, 2vw, 1.18rem);
   }
+}
+
+.stepIndicator {
+  align-self: center;
+  margin: 0 0 0.55rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.14);
+  color: #8f6a00;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .optionList {
@@ -49,7 +60,7 @@
 }
 
 .optionLabel strong {
-  color: #161922;
+  color: #111827;
   font-size: 0.92rem;
 }
 
@@ -59,12 +70,12 @@
   font-size: 0.79rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: #8f6a00;
+  color: #6f4f00;
 }
 
 .optionLabel p {
   margin: 0.18rem 0 0;
-  color: #303642;
+  color: #1f2937;
   font-size: 0.81rem;
 }
 
@@ -73,7 +84,7 @@
 }
 
 .optionLabel input:checked + span strong {
-  color: #8f6a00;
+  color: #5f4300;
 }
 
 .actions {
@@ -105,19 +116,44 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  .stepIndicator {
+    background: rgba(240, 205, 103, 0.18);
+    color: #ffe9a3;
+  }
+
   .optionLabel strong {
-    color: #f7f8fb;
+    color: #ffffff;
   }
 
   .years {
-    color: #f0cd67;
+    color: #ffe9a3;
   }
 
   .optionLabel p {
-    color: #cfd6e4;
+    color: #eef2ff;
   }
 
   .optionLabel input:checked + span strong {
-    color: #f0cd67;
+    color: #ffe9a3;
+  }
+}
+
+:global(body[data-readability="on"]) {
+  .popupContent {
+    font-size: 1.08rem;
+  }
+
+  .optionLabel {
+    min-height: 64px;
+    font-size: 1rem;
+  }
+
+  .optionLabel strong {
+    font-size: 1.04rem;
+  }
+
+  .optionLabel p {
+    font-size: 0.94rem;
+    line-height: 1.42;
   }
 }

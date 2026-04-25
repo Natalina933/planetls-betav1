@@ -13,21 +13,21 @@ const POPUP_CONTENT: Record<string, { title: string; options: string[] }> = {
   proprietaire: {
     title: "Quel type de service recherchez-vous ?",
     options: [
-      "Accueil et check-in/check-out", // Harmonisé avec concierge
-      "Ménage", 
+      "Accueil et check-in/check-out",
+      "Ménage",
       "Gestion complète",
       "Maintenance et petites réparations",
       "Gestion des clés",
       "Services ponctuels",
       "Conciergerie digitale",
-      "Autres services"
+      "Autres services",
     ],
   },
   concierge: {
     title: "Quel type de service proposez-vous ?",
     options: [
-      "Ménage", 
-      "Linge", 
+      "Ménage",
+      "Linge",
       "Accueil et check-in/check-out",
       "Maintenance et petites réparations",
       "Courses et intendance",
@@ -35,17 +35,17 @@ const POPUP_CONTENT: Record<string, { title: string; options: string[] }> = {
       "Entretien extérieur",
       "Sécurité du logement",
       "Services de confort",
-      "Conciergerie digitale"
+      "Conciergerie digitale",
     ],
   },
   artisan: {
-    title: "Quel est votre domaine d’activité ?",
+    title: "Quel est votre domaine d'activité ?",
     options: [
       "Plomberie",
       "Électricité",
       "Jardinage et espaces verts",
       "Petits travaux et rénovation",
-      "Services commerciaux"
+      "Services commerciaux",
     ],
   },
 };
@@ -62,10 +62,10 @@ export default function CategoryPopup({ category, onClose, onNext }: CategoryPop
   return (
     <div className={styles.popupOverlay}>
       <div className={styles.popupContent}>
+        <p className={styles.stepIndicator}>Étape 3/5 - Services</p>
         <h3>{content.title}</h3>
 
         <div className={styles.content}>
-
           <ul className={styles.optionList}>
             {content.options.map((option) => (
               <li key={option}>
@@ -82,14 +82,12 @@ export default function CategoryPopup({ category, onClose, onNext }: CategoryPop
           </ul>
         </div>
         <div className={styles.actions}>
-          <button className={styles.closeButton} onClick={onClose}>Annuler</button>
-          <button
-            type="button"
-            onClick={() => onNext(selected)}
-          >
+          <button className={styles.closeButton} onClick={onClose}>
+            Annuler
+          </button>
+          <button type="button" onClick={() => onNext(selected)}>
             Valider ma sélection ({selected.length})
           </button>
-
         </div>
       </div>
     </div>

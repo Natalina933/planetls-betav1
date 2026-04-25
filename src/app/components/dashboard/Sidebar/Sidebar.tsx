@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { FiLogOut } from "react-icons/fi";
-import { signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
 import {
   getOwnerReplySignature,
@@ -189,17 +187,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           )}
         </nav>
 
-        <div className={styles.footer}>
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className={styles.logout}
-            aria-label="Se deconnecter"
-          >
-            <FiLogOut className={styles.icon} />
-            <span>Se deconnecter</span>
-          </button>
-        </div>
       </aside>
     </>
   );

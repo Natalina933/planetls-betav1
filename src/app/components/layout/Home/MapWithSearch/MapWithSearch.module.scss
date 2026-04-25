@@ -129,6 +129,47 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   }
 }
 
+.onboardingMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+.stepIndicator {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.35rem 0.7rem;
+  border-radius: $radius-pill;
+  background: rgba($gold-main, 0.14);
+  color: color.scale($gold-main, $lightness: -30%);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.readabilityButton,
+.readabilityActive {
+  min-height: 34px;
+  padding: 0.38rem 0.8rem;
+  border-radius: $radius-pill;
+  border: 1px solid rgba($gold-main, 0.38);
+  background: rgba(255, 255, 255, 0.8);
+  color: $ink-main;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.readabilityActive {
+  background: $ink-main;
+  color: #ffffff;
+  border-color: $ink-main;
+}
+
 /* -------------------------------------------------------
 🌟 TOGGLE CATEGORIES
 ------------------------------------------------------- */
@@ -656,4 +697,29 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 ------------------------------------------------------- */
 .fadeIn {
   animation: fadeInScale 0.5s ease-out;
+}
+
+:global(body[data-readability="on"]) {
+  .mapWithSearchContainer {
+    background: #ffffff;
+  }
+
+  .categorySearchSection h2 {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    line-height: 1.25;
+  }
+
+  .categoryTextBubble1900,
+  .locationHint,
+  .suggestionBtn span {
+    font-size: 1.05rem;
+    line-height: 1.5;
+  }
+
+  .tripleToggleButton,
+  .stepIndicator,
+  .readabilityButton,
+  .readabilityActive {
+    font-size: 1rem;
+  }
 }

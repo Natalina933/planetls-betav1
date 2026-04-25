@@ -19,17 +19,17 @@ const EXPERIENCE_LEVELS: {
   years: string;
 }[] = [
   {
-    label: "Debutant",
+    label: "Débutant",
     value: "debutant",
     years: "0-1 an",
   },
   {
-    label: "Intermediaire",
+    label: "Intermédiaire",
     value: "intermediaire",
     years: "1-3 ans",
   },
   {
-    label: "Experimente",
+    label: "Expérimenté",
     value: "experimente",
     years: "+3 ans",
   },
@@ -48,29 +48,29 @@ const PROFILE_CONTENT: Record<
   }
 > = {
   proprietaire: {
-    title: "Quel niveau d'experience recherchez-vous ?",
+    title: "Quel niveau d'expérience recherchez-vous ?",
     descriptions: {
-      debutant: "Vous acceptez un partenaire qui debute.",
-      intermediaire: "Vous visez un partenaire avec une experience confirmee.",
-      experimente: "Vous recherchez un partenaire tres experimente.",
-      peu_importe: "Le niveau d'experience n'est pas un critere bloquant.",
+      debutant: "Vous acceptez un partenaire qui débute.",
+      intermediaire: "Vous visez un partenaire avec une expérience confirmée.",
+      experimente: "Vous recherchez un partenaire très expérimenté.",
+      peu_importe: "Le niveau d'expérience n'est pas un critère bloquant.",
     },
   },
   concierge: {
-    title: "Quel est votre niveau d'experience en conciergerie ?",
+    title: "Quel est votre niveau d'expérience en conciergerie ?",
     descriptions: {
-      debutant: "Je decouvre la conciergerie ou un domaine similaire.",
-      intermediaire: "J'ai deja une premiere experience operationnelle.",
-      experimente: "J'ai une experience solide et reguliere avec des clients.",
-      peu_importe: "Je suis ouvert a toutes les opportunites.",
+      debutant: "Je découvre la conciergerie ou un domaine similaire.",
+      intermediaire: "J'ai déjà une première expérience opérationnelle.",
+      experimente: "J'ai une expérience solide et régulière avec des clients.",
+      peu_importe: "Je suis ouvert à toutes les opportunités.",
     },
   },
   artisan: {
-    title: "Quel est votre niveau d'experience dans votre metier ?",
+    title: "Quel est votre niveau d'expérience dans votre métier ?",
     descriptions: {
-      debutant: "Je debute mon activite ou je viens de me lancer.",
-      intermediaire: "Je realise des chantiers reguliers depuis plusieurs mois.",
-      experimente: "J'interviens depuis plusieurs annees avec une expertise confirmee.",
+      debutant: "Je débute mon activité ou je viens de me lancer.",
+      intermediaire: "Je réalise des chantiers réguliers depuis plusieurs mois.",
+      experimente: "J'interviens depuis plusieurs années avec une expertise confirmée.",
       peu_importe: "Je suis flexible selon les besoins.",
     },
   },
@@ -122,6 +122,7 @@ export default function ExperiencePopup({ category, onClose, onValidate }: Exper
   return (
     <div className={styles.popupOverlay} role="dialog" aria-modal="true">
       <div className={styles.popupContent} ref={popupRef}>
+        <p className={styles.stepIndicator}>Étape 2/5 - Expérience</p>
         <h3>{profileContent.title}</h3>
 
         <ul className={styles.optionList}>
