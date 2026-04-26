@@ -114,6 +114,9 @@ export default function AccessPopup({
 
   const profileKey = getProfileKey(recap.category);
   const copy = PROFILE_COPY[profileKey];
+  const isSimpleMode = form.signupMode === "simple";
+  const isExpressMode = form.signupMode === "express";
+  const isBusinessMode = form.signupMode === "business";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -161,7 +164,12 @@ export default function AccessPopup({
           X
         </button>
 
-        <p className={styles.stepIndicator}>Étape 4/5 - Coordonnées</p>
+        <div className={styles.stepperMeta}>
+          <p className={styles.stepIndicator}>Étape 4/5 - Coordonnées</p>
+          <div className={styles.stepperTrack} role="progressbar" aria-valuemin={1} aria-valuemax={5} aria-valuenow={4}>
+            <span className={styles.stepperFill} style={{ width: "80%" }} />
+          </div>
+        </div>
         <h2>{copy.title}</h2>
 
         <section className={styles.recapBox}>
@@ -214,36 +222,52 @@ export default function AccessPopup({
               <div className={styles.modeSwitch} role="group" aria-label="Mode d'inscription concierge">
                 <button
                   type="button"
-                  className={form.signupMode === "simple" ? styles.modeActive : ""}
+                  className={isSimpleMode ? styles.modeActive : ""}
                   onClick={() => setForm((prev) => ({ ...prev, signupMode: "simple" }))}
                 >
-                  Simple
+                  Simple (Lynda)
                 </button>
                 <button
                   type="button"
-                  className={form.signupMode === "business" ? styles.modeActive : ""}
+                  className={isExpressMode ? styles.modeActive : ""}
+                  onClick={() => setForm((prev) => ({ ...prev, signupMode: "express" }))}
+                >
+                  Express (Christa)
+                </button>
+                <button
+                  type="button"
+                  className={isBusinessMode ? styles.modeActive : ""}
                   onClick={() => setForm((prev) => ({ ...prev, signupMode: "business" }))}
                 >
-                  Business
+                  Business +
                 </button>
               </div>
 
-              {form.signupMode === "simple" ? (
+              {isSimpleMode ? (
                 <div className={styles.localPromise}>
-                  <strong>On vous proposera des missions proches de chez vous.</strong>
+                  <strong>Parcours guidé et rassurant.</strong>
                   <span>
-                    Votre ville de départ : {recap.location || "à préciser"}. Vous choisissez maintenant le rayon maximum
-                    dans lequel vous souhaitez recevoir des demandes.
+                    On vous propose des missions proches de {recap.location || "votre ville"} et un paramétrage simple.
                   </span>
                   <ul>
-                    <li>Zone claire</li>
-                    <li>Missions adaptées</li>
-                    <li>Profil modifiable</li>
+                    <li>Étapes claires</li>
+                    <li>Zone locale</li>
+                    <li>Facile à modifier</li>
+                  </ul>
+                </div>
+              ) : isExpressMode ? (
+                <div className={styles.expressPromise}>
+                  <strong>Mode rapide expert (2 minutes).</strong>
+                  <span>Configurez l’essentiel maintenant, puis activez vos 3 actions métier après inscription.</span>
+                  <ul>
+                    <li>Créer 1 bien</li>
+                    <li>Créer 1 offre</li>
+                    <li>Inviter 1 propriétaire</li>
                   </ul>
                 </div>
               ) : (
                 <div className={styles.businessPromise}>
-                  <strong>Transformez votre savoir-faire en activité visible</strong>
+                  <strong>Construisez une activité concierge structurée.</strong>
                   <span>Ajoutez vos outils et vos objectifs pour préparer le dashboard, les missions et les futurs tarifs.</span>
                 </div>
               )}
@@ -282,20 +306,22 @@ export default function AccessPopup({
                   <option value="creation">Je démarre mon activité</option>
                   <option value="micro_entreprise">Micro-entreprise</option>
                   <option value="societe">Société déjà créée</option>
-                  <option value="particulier">Particulier / complément d'activité</option>
+                  <option value="particulier">Particulier / complément d&apos;activité</option>
                 </select>
               </label>
 
-              <label>
-                Disponibilité principale
-                <select name="availability" value={form.availability} onChange={handleSelectChange}>
-                  <option value="">À définir</option>
-                  <option value="temps_plein">Temps plein</option>
-                  <option value="temps_partiel">Temps partiel</option>
-                  <option value="soirs_weekends">Soirs et week-ends</option>
-                  <option value="sur_demande">Sur demande selon les missions</option>
-                </select>
-              </label>
+              {!isExpressMode && (
+                <label>
+                  Disponibilité principale
+                  <select name="availability" value={form.availability} onChange={handleSelectChange}>
+                    <option value="">À définir</option>
+                    <option value="temps_plein">Temps plein</option>
+                    <option value="temps_partiel">Temps partiel</option>
+                    <option value="soirs_weekends">Soirs et week-ends</option>
+                    <option value="sur_demande">Sur demande selon les missions</option>
+                  </select>
+                </label>
+              )}
 
               <label>
                 Objectif principal
@@ -312,18 +338,20 @@ export default function AccessPopup({
                 </select>
               </label>
 
-              <label>
-                Accompagnement souhaité
-                <select name="supportNeed" value={form.supportNeed} onChange={handleSelectChange}>
-                  <option value="">Aucun choix pour le moment</option>
-                  <option value="guidage_simple">Guidage simple pour bien démarrer</option>
-                  <option value="modeles_outils">Modèles, tarifs et outils de gestion</option>
-                  <option value="missions_qualifiees">Priorité aux demandes qualifiées</option>
-                  <option value="autonome">Je suis autonome</option>
-                </select>
-              </label>
+              {!isExpressMode && (
+                <label>
+                  Accompagnement souhaité
+                  <select name="supportNeed" value={form.supportNeed} onChange={handleSelectChange}>
+                    <option value="">Aucun choix pour le moment</option>
+                    <option value="guidage_simple">Guidage simple pour bien démarrer</option>
+                    <option value="modeles_outils">Modèles, tarifs et outils de gestion</option>
+                    <option value="missions_qualifiees">Priorité aux demandes qualifiées</option>
+                    <option value="autonome">Je suis autonome</option>
+                  </select>
+                </label>
+              )}
 
-              {form.signupMode === "business" && (
+              {(isBusinessMode || isExpressMode) && (
                 <>
                   <fieldset className={styles.checkboxGroup}>
                     <legend>Outils déjà utilisés</legend>

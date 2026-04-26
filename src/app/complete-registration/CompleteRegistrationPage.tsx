@@ -13,6 +13,8 @@ import ExperiencePopup, { ExperienceLevel } from "../components/popups/Experienc
 import styles from "./CompleteRegistrationPage.module.scss";
 
 const DEFAULT_AVATAR_URL = "/icons/account-svgrepo-com.svg";
+const ONBOARDING_TOTAL_STEPS = 5;
+const FINAL_STEP = 5;
 
 // ============================================================================
 // TYPES
@@ -82,6 +84,7 @@ const formatChoice = (value: string): string => {
     regulieres: "Contrats reguliers",
     les_deux: "Missions ponctuelles et contrats reguliers",
     simple: "Mode simple",
+    express: "Mode express",
     business: "Mode business",
     premieres_missions: "Trouver mes premieres missions",
     complement_revenu: "Completer mes revenus",
@@ -168,6 +171,7 @@ export default function CompleteRegistrationPage() {
   const [locationError, setLocationError] = useState("");
   const [readabilityMode, setReadabilityMode] = useState(false);
 
+  const progressPercent = Math.round((FINAL_STEP / ONBOARDING_TOTAL_STEPS) * 100);
 
   // --------------------------------------------------------------------------
   // INIT FROM URL (une seule fois)
@@ -223,6 +227,11 @@ export default function CompleteRegistrationPage() {
       document.body.dataset.readability = "off";
     };
   }, [readabilityMode]);
+
+  useEffect(() => {
+    if (profile.category !== "concierge" || profile.serviceRadiusKm) return;
+    setProfile((prev) => ({ ...prev, serviceRadiusKm: "15" }));
+  }, [profile.category, profile.serviceRadiusKm]);
 
   // --------------------------------------------------------------------------
   // FORM HANDLERS
@@ -387,7 +396,19 @@ export default function CompleteRegistrationPage() {
       {showConfetti && <Confetti />}
 
       <div className={styles.onboardingMeta}>
-        <span className={styles.stepIndicator}>Etape 5/5 - Creation du compte</span>
+        <div className={styles.stepperBlock}>
+          <span className={styles.stepIndicator}>Etape 5/5 - Creation du compte</span>
+          <div
+            className={styles.stepperTrack}
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={ONBOARDING_TOTAL_STEPS}
+            aria-valuenow={FINAL_STEP}
+            aria-label="Progression de l’inscription"
+          >
+            <span className={styles.stepperFill} style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -400,6 +421,11 @@ export default function CompleteRegistrationPage() {
       </div>
 
       <h1 className={styles.title}>Dernière étape avant de commencer</h1>
+      {profile.category === "concierge" && (
+        <p className={styles.localPromise}>
+          Nous vous proposerons en priorité des missions proches de votre zone ({profile.serviceRadiusKm || "15"} km).
+        </p>
+      )}
 
       {/* RÉCAP */}
       <section className={styles.recapSection}>
@@ -511,7 +537,7 @@ export default function CompleteRegistrationPage() {
             </div>
             <div>
               <strong>Inviter un proprietaire</strong>
-              <p>Retrouvez vite vos premiers contacts dans l'espace concierge.</p>
+              <p>Retrouvez vite vos premiers contacts dans l&apos;espace concierge.</p>
             </div>
           </div>
         </section>

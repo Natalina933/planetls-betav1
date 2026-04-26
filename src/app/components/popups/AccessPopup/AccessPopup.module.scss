@@ -159,6 +159,28 @@
   font-weight: 800;
 }
 
+.stepperMeta {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+}
+
+.stepperTrack {
+  width: 220px;
+  height: 8px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.2);
+  overflow: hidden;
+}
+
+.stepperFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d4af37, #f0cd67);
+}
+
 .conciergeFields {
   display: grid;
   gap: 0.45rem;
@@ -185,7 +207,7 @@
 
 .modeSwitch {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.25rem;
   padding: 0.25rem;
   border: 1px solid #d5d9e2;
@@ -220,6 +242,7 @@
 }
 
 .localPromise,
+.expressPromise,
 .businessPromise {
   display: grid;
   gap: 0.32rem;
@@ -273,6 +296,24 @@
 
   @media (prefers-color-scheme: dark) {
     border-color: rgba(112, 140, 210, 0.3);
+  }
+}
+
+.expressPromise {
+  border-color: rgba(80, 103, 170, 0.25);
+
+  li {
+    background: rgba(80, 103, 170, 0.13);
+    color: #2d477f;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-color: rgba(121, 151, 230, 0.32);
+
+    li {
+      background: rgba(121, 151, 230, 0.26);
+      color: #f1f6ff;
+    }
   }
 }
 
@@ -389,6 +430,7 @@
   }
 
   .localPromise span,
+  .expressPromise span,
   .businessPromise span {
     font-size: 0.96rem;
   }
