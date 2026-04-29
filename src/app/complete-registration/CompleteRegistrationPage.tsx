@@ -511,7 +511,7 @@ export default function CompleteRegistrationPage() {
             </div>
             <div>
               <strong>Inviter un proprietaire</strong>
-              <p>Retrouvez vite vos premiers contacts dans l'espace concierge.</p>
+              <p>Retrouvez vite vos premiers contacts dans l&apos;espace concierge.</p>
             </div>
           </div>
         </section>
