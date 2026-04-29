@@ -15,7 +15,6 @@ import { Button, SearchBar } from "@/components/ui";
 
 import iconMap from "../../../../lib/iconMap";
 import styles from "./MapWithSearch.module.scss";
-import "react-toastify/dist/ReactToastify.css";
 
 import CategoryPopup from "../../../popups/CategoryPopup/CategoryPopup";
 import AccessPopup from "../../../popups/AccessPopup/AccessPopup";

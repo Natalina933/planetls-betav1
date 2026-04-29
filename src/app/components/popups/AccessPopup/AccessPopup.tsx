@@ -166,7 +166,14 @@ export default function AccessPopup({
 
         <div className={styles.stepperMeta}>
           <p className={styles.stepIndicator}>Étape 4/5 - Coordonnées</p>
-          <div className={styles.stepperTrack} role="progressbar" aria-valuemin={1} aria-valuemax={5} aria-valuenow={4}>
+          <div
+            className={styles.stepperTrack}
+            role="progressbar"
+            aria-label="Progression de l'inscription"
+            aria-valuemin={1}
+            aria-valuemax={5}
+            aria-valuenow={4}
+          >
             <span className={styles.stepperFill} style={{ width: "80%" }} />
           </div>
         </div>
