@@ -19,7 +19,6 @@ const mapYearsToInt = (years?: string | null): number | null => {
 
 const mapRadiusToInt = (radius?: string | null): number | null => {
   if (!radius) return null;
-<<<<<<< ours
   const parsed = Number(radius);
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
   return Math.min(Math.round(parsed), 100);
@@ -66,11 +65,6 @@ const buildAvailabilityPayload = (data: {
         ]
       : [],
   });
-=======
-  const parsed = Number.parseInt(radius, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return Math.min(parsed, 200);
->>>>>>> theirs
 };
 
 const resolveKnownLocation = async (location: string | null) => {
@@ -146,7 +140,6 @@ const registerSchema = z.object({
   propertyTypes: z.array(z.string().transform(cleanString)).optional().default([]),
   experienceLevel: z.string().optional().nullable().transform(cleanString),
   yearsExperience: z.string().optional().nullable(),
-  serviceRadiusKm: z.string().optional().nullable(),
 });
 
 // --- Handler API ---
@@ -244,16 +237,12 @@ export async function POST(req: NextRequest) {
         option: data.option,
         location: resolvedLocation ?? data.location,
         additional_info: data.additionalInfo,
-<<<<<<< ours
         company_name: isConcierge ? data.companyName : null,
         legal_form: isConcierge ? data.legalForm : null,
         service_area: isConcierge ? resolvedLocation ?? data.location : null,
         service_radius_km: serviceRadiusKm,
         availability_hours: availabilityHours,
         website: isConcierge ? data.businessLink : null,
-=======
-        service_radius_km: mapRadiusToInt(data.serviceRadiusKm),
->>>>>>> theirs
         experience_level: data.experienceLevel,
         years_experience: mapYearsToInt(data.yearsExperience),
       });
