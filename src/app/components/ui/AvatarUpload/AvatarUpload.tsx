@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { FaCamera } from "react-icons/fa";
+import {
+  FaArrowsAltH,
+  FaArrowsAltV,
+  FaCamera,
+  FaExpandArrowsAlt,
+  FaRedoAlt,
+  FaUpload,
+} from "react-icons/fa";
 import styles from "./AvatarUpload.module.scss";
 
 interface AvatarUploadProps {
@@ -45,7 +52,6 @@ export default function AvatarUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
 
-  // Cleanup URL au démontage
   useEffect(() => {
     return () => {
       if (previewUrlRef.current && previewUrlRef.current !== existingUrl) {
@@ -54,7 +60,6 @@ export default function AvatarUpload({
     };
   }, [existingUrl]);
 
-  // Gestion URL de prévisualisation
   useEffect(() => {
     if (value) {
       const url = URL.createObjectURL(value);
@@ -66,7 +71,22 @@ export default function AvatarUpload({
     }
   }, [value, existingUrl]);
 
-  // Reset des transformations si nouvelle image
+  useEffect(() => {
+    setScale(existingScale);
+  }, [existingScale]);
+
+  useEffect(() => {
+    setOffsetX(existingOffsetX);
+  }, [existingOffsetX]);
+
+  useEffect(() => {
+    setOffsetY(existingOffsetY);
+  }, [existingOffsetY]);
+
+  useEffect(() => {
+    setRotation(existingRotation);
+  }, [existingRotation]);
+
   const resetTransformations = useCallback(() => {
     setScale(1);
     setOffsetX(0);
@@ -77,7 +97,6 @@ export default function AvatarUpload({
 
   const openModal = useCallback(() => {
     setIsModalOpen(true);
-    // Délai pour laisser le modal s'afficher
     setTimeout(() => fileInputRef.current?.click(), 100);
   }, []);
 
@@ -85,36 +104,34 @@ export default function AvatarUpload({
     setIsModalOpen(false);
   }, []);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
     if (!file) return;
 
-    // Validation fichier image
-    if (!file.type.startsWith('image/')) {
-      alert('Veuillez sélectionner une image valide.');
+    if (!file.type.startsWith("image/")) {
+      alert("Veuillez sélectionner une image valide.");
       return;
     }
 
-    // Validation taille (5Mo max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('L\'image ne doit pas dépasser 5 Mo.');
+      alert("L'image ne doit pas dépasser 5 Mo.");
       return;
     }
 
     onChange(file);
     setHasChanged(true);
-    e.target.value = ''; // Reset input pour permettre re-sélection du même fichier
+    event.target.value = "";
   }, [onChange]);
 
   const handleValidate = useCallback(() => {
-    if (onSave) onSave();
+    onSave?.();
     closeModal();
-    resetTransformations();
-  }, [onSave, closeModal, resetTransformations]);
+    setHasChanged(false);
+  }, [closeModal, onSave]);
 
   const handleRemove = useCallback(() => {
     onChange(null);
-    if (onRemove) onRemove();
+    onRemove?.();
     resetTransformations();
   }, [onChange, onRemove, resetTransformations]);
 
@@ -145,7 +162,6 @@ export default function AvatarUpload({
 
   return (
     <div className={styles.container}>
-      {/* AVATAR PRINCIPAL */}
       <div className={styles.imageWrapper}>
         {previewUrl ? (
           <Image
@@ -154,10 +170,7 @@ export default function AvatarUpload({
             fill
             sizes="(max-width: 640px) 96px, 130px"
             className={styles.image}
-            style={{
-              objectFit: "cover",
-              transform: imageTransform,
-            }}
+            style={{ objectFit: "cover", transform: imageTransform }}
             priority={false}
             draggable={false}
           />
@@ -188,7 +201,6 @@ export default function AvatarUpload({
         />
       </div>
 
-      {/* MODALE D'ÉDITION */}
       {isModalOpen && (
         <>
           <div
@@ -219,19 +231,15 @@ export default function AvatarUpload({
             </div>
 
             <div className={styles.modalContent}>
-              {/* Prévisualisation grande */}
               <div className={styles.previewLarge}>
                 {previewUrl ? (
                   <Image
                     src={previewUrl}
                     alt="Prévisualisation de l'avatar"
                     fill
-                    sizes="500px"
+                    sizes="640px"
                     className={styles.image}
-                    style={{
-                      objectFit: "cover",
-                      transform: imageTransform,
-                    }}
+                    style={{ objectFit: "cover", transform: imageTransform }}
                     draggable={false}
                   />
                 ) : (
@@ -241,19 +249,20 @@ export default function AvatarUpload({
                 )}
               </div>
 
-              {/* CONTRÔLES */}
               <div className={styles.controls}>
                 <button
                   type="button"
                   className={styles.uploadButton}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  📁 Télécharger une image
+                  <FaUpload aria-hidden="true" />
+                  <span>Changer l&apos;image</span>
                 </button>
 
                 <div className={styles.controlGroup}>
                   <label htmlFor="avatar-scale" className={styles.controlLabel}>
-                    Zoom
+                    <span className={styles.controlLabelIcon}><FaExpandArrowsAlt /></span>
+                    <span>Zoom</span>
                   </label>
                   <input
                     id="avatar-scale"
@@ -263,7 +272,7 @@ export default function AvatarUpload({
                     step="0.01"
                     value={scale}
                     className={styles.rangeSlider}
-                    onChange={(e) => updateScale(Number(e.target.value))}
+                    onChange={(event) => updateScale(Number(event.target.value))}
                     aria-label="Zoom de l'image"
                   />
                 </div>
@@ -271,7 +280,8 @@ export default function AvatarUpload({
                 <div className={styles.offsetControls}>
                   <div className={styles.controlGroup}>
                     <label htmlFor="avatar-offset-x" className={styles.controlLabel}>
-                      ↔️ Horizontal
+                      <span className={styles.controlLabelIcon}><FaArrowsAltH /></span>
+                      <span>Horizontal</span>
                     </label>
                     <input
                       id="avatar-offset-x"
@@ -280,17 +290,15 @@ export default function AvatarUpload({
                       max="50"
                       value={offsetX}
                       className={styles.rangeSlider}
-                      onChange={(e) => updateOffset(
-                        Number(e.target.value),
-                        offsetY
-                      )}
+                      onChange={(event) => updateOffset(Number(event.target.value), offsetY)}
                       aria-label="Déplacement horizontal"
                     />
                   </div>
 
                   <div className={styles.controlGroup}>
                     <label htmlFor="avatar-offset-y" className={styles.controlLabel}>
-                      ↕️ Vertical
+                      <span className={styles.controlLabelIcon}><FaArrowsAltV /></span>
+                      <span>Vertical</span>
                     </label>
                     <input
                       id="avatar-offset-y"
@@ -299,10 +307,7 @@ export default function AvatarUpload({
                       max="50"
                       value={offsetY}
                       className={styles.rangeSlider}
-                      onChange={(e) => updateOffset(
-                        offsetX,
-                        Number(e.target.value)
-                      )}
+                      onChange={(event) => updateOffset(offsetX, Number(event.target.value))}
                       aria-label="Déplacement vertical"
                     />
                   </div>
@@ -310,7 +315,8 @@ export default function AvatarUpload({
 
                 <div className={styles.controlGroup}>
                   <label htmlFor="avatar-rotation" className={styles.controlLabel}>
-                    🔄 Rotation
+                    <span className={styles.controlLabelIcon}><FaRedoAlt /></span>
+                    <span>Rotation</span>
                   </label>
                   <input
                     id="avatar-rotation"
@@ -319,7 +325,7 @@ export default function AvatarUpload({
                     max="45"
                     value={rotation}
                     className={styles.rangeSlider}
-                    onChange={(e) => updateRotation(Number(e.target.value))}
+                    onChange={(event) => updateRotation(Number(event.target.value))}
                     aria-label="Rotation de l'image"
                   />
                 </div>
@@ -343,12 +349,11 @@ export default function AvatarUpload({
               </button>
               <button
                 type="button"
-                className={`${styles.validate} ${!hasChanged ? styles.validateDisabled : ""
-                  }`}
+                className={`${styles.validate} ${!hasChanged ? styles.validateDisabled : ""}`}
                 onClick={handleValidate}
                 disabled={!hasChanged}
               >
-                Valider les modifications
+                Enregistrer
               </button>
             </div>
           </div>

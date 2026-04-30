@@ -8,25 +8,111 @@
 }
 
 .popupContent {
-  @include common.container(680px, 1.45rem);
-  @include common.mobileBottomSheet(1.15rem);
-  text-align: center;
+  @include common.container(820px, 1.3rem);
+  @include common.mobileBottomSheet(1rem);
 
   h3 {
     @include common.title;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0.7rem;
+    font-size: clamp(1.08rem, 2vw, 1.22rem);
   }
 }
 
+.closeButton {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #3b2d0e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #fff7dd;
+    border-color: #d4af37;
+    transform: translateY(-1px);
+  }
+}
+
+.onboardingMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+  padding-right: 3rem;
+}
+
+.readabilityControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .stepIndicator {
-  align-self: center;
-  margin: 0 0 0.55rem;
-  padding: 0.32rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.35rem 0.7rem;
   border-radius: 999px;
   background: rgba(212, 175, 55, 0.14);
   color: #8f6a00;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 800;
+}
+
+.stepperTrack {
+  position: relative;
+  overflow: hidden;
+  height: 10px;
+  margin-bottom: 0.9rem;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.18);
+}
+
+.stepperFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d4af37, #f4d03f);
+}
+
+.readabilityButton,
+.readabilityActive {
+  min-width: 52px;
+  min-height: 34px;
+  padding: 0.38rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.38);
+  background: rgba(255, 255, 255, 0.8);
+  color: #1f2937;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.readabilityActive {
+  background: #1f2937;
+  color: #ffffff;
+  border-color: #1f2937;
+}
+
+.introText {
+  margin: 0 0 0.95rem;
+  text-align: center;
+  color: #5b6578;
+  font-size: 0.95rem;
 }
 
 .content {
@@ -34,7 +120,6 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #d4af37 transparent;
 }
 
 .optionList {
@@ -42,23 +127,68 @@
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 0.6rem;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (max-width: 780px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .optionLabel {
   @include common.optionCard("square");
+  align-items: flex-start;
+  min-height: 122px;
+  padding: 1rem 1rem 1.05rem;
 
-  span {
-    text-align: left;
-    color: #111827;
-    font-weight: 600;
-    line-height: 1.25;
+  input {
+    margin-top: 0.22rem;
   }
 
-  @media (prefers-color-scheme: dark) {
-    span {
-      color: #ffffff;
-    }
+  span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.28;
+  }
+}
+
+.optionLabel strong {
+  color: #111827;
+  font-size: 1rem;
+}
+
+.optionLabel p {
+  margin: 0.28rem 0 0;
+  color: #1f2937;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.optionLabel:focus-within {
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
+}
+
+.actions {
+  @include common.actionsBar;
+
+  button {
+    @include common.actionButtonBase;
+    flex: 1;
+  }
+}
+
+.actions button:first-child {
+  @include common.secondaryButton;
+}
+
+.actions button:last-child {
+  @include common.primaryButton;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 }
 
@@ -67,36 +197,88 @@
     background: rgba(240, 205, 103, 0.18);
     color: #ffe9a3;
   }
-}
 
-.actions {
-  @include common.actionsBar;
-  justify-content: flex-end;
+  .closeButton {
+    background: rgba(30, 34, 42, 0.92);
+    color: #fff3c0;
+    border-color: rgba(240, 205, 103, 0.3);
+  }
 
-  button {
-    @include common.actionButtonBase;
+  .optionLabel strong {
+    color: #ffffff;
+  }
+
+  .optionLabel p {
+    color: #eef2ff;
+  }
+
+  .introText {
+    color: #d5dcef;
   }
 }
 
-.closeButton {
-  @include common.secondaryButton;
-}
-
-.actions button:not(.closeButton) {
-  @include common.primaryButton;
+@media (max-width: 700px) {
+  .onboardingMeta {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 :global(body[data-readability="on"]) {
+  .popupContent {
+    background: #ffffff;
+  }
+}
+
+:global(body[data-readability-scale="large"]) {
   .popupContent {
     font-size: 1.08rem;
   }
 
   .optionLabel {
-    min-height: 58px;
+    min-height: 142px;
+  }
 
-    span {
-      font-size: 1rem;
-      line-height: 1.42;
-    }
+  .optionLabel strong,
+  .stepIndicator,
+  .readabilityButton,
+  .readabilityActive {
+    font-size: 1rem;
+  }
+
+  .optionLabel p {
+    font-size: 0.98rem;
+    line-height: 1.52;
+  }
+
+  .introText {
+    font-size: 1.02rem;
+  }
+}
+
+:global(body[data-readability-scale="xlarge"]) {
+  .popupContent {
+    font-size: 1.16rem;
+  }
+
+  .optionLabel {
+    min-height: 162px;
+  }
+
+  .optionLabel strong,
+  .stepIndicator,
+  .readabilityButton,
+  .readabilityActive {
+    font-size: 1.08rem;
+  }
+
+  .optionLabel p {
+    font-size: 1.08rem;
+    line-height: 1.6;
+  }
+
+  .introText {
+    font-size: 1.12rem;
+    line-height: 1.5;
   }
 }

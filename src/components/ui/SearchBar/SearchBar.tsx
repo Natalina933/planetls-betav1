@@ -7,8 +7,10 @@ import styles from "./SearchBar.module.scss";
 
 export type SearchBarProps = {
   defaultValue?: string;
+  value?: string;
   placeholder?: string;
   buttonLabel?: string;
+  buttonClassName?: string;
   onSearch: (query: string) => void;
   className?: string;
   inputRef?: Ref<HTMLInputElement>;
@@ -17,22 +19,28 @@ export type SearchBarProps = {
 
 export function SearchBar({
   defaultValue = "",
+  value,
   placeholder = "Rechercher...",
   buttonLabel = "Rechercher",
+  buttonClassName = "",
   onSearch,
   className = "",
   inputRef,
   inputProps,
 }: SearchBarProps) {
   const [query, setQuery] = useState(defaultValue);
+  const isControlled = typeof value === "string";
+  const currentValue = isControlled ? value : query;
 
   useEffect(() => {
-    setQuery(defaultValue);
-  }, [defaultValue]);
+    if (!isControlled) {
+      setQuery(defaultValue);
+    }
+  }, [defaultValue, isControlled]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSearch(query.trim());
+    onSearch(currentValue.trim());
   };
 
   return (
@@ -41,15 +49,17 @@ export function SearchBar({
         ref={inputRef}
         className={styles.input}
         {...inputProps}
-        value={query}
+        value={currentValue}
         onChange={(event) => {
-          setQuery(event.target.value);
+          if (!isControlled) {
+            setQuery(event.target.value);
+          }
           inputProps?.onChange?.(event);
         }}
         placeholder={placeholder}
         aria-label={placeholder}
       />
-      <Button type="submit" variant="primary" className={styles.button}>
+      <Button type="submit" variant="primary" className={[styles.button, buttonClassName].filter(Boolean).join(" ")}>
         {buttonLabel}
       </Button>
     </form>

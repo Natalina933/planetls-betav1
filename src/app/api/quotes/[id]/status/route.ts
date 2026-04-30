@@ -4,7 +4,7 @@ import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
 type UntypedDb = {
-  from: (table: string) => any;
+  from: (table: string) => ReturnType<typeof db.from>;
 };
 
 const untypedDb = db as unknown as UntypedDb;

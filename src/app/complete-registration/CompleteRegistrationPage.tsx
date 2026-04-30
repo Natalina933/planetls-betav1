@@ -1,31 +1,43 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent, FormEvent, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaEdit } from "react-icons/fa";
+import {
+  FaBriefcase,
+  FaBullseye,
+  FaCheckCircle,
+  FaClipboardList,
+  FaEdit,
+  FaEye,
+  FaEyeSlash,
+  FaMapMarkerAlt,
+  FaSearch,
+  FaTimesCircle,
+  FaTools,
+  FaUser,
+} from "react-icons/fa";
 import { Button, Input } from "@/components/ui";
+import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
+import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
 
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
 import ExperiencePopup, { ExperienceLevel } from "../components/popups/ExperiencePopup/ExperiencePopup";
-
+import CategoryPopup from "../components/popups/CategoryPopup/CategoryPopup";
+import AccessPopup, { FormData as AccessFormData } from "../components/popups/AccessPopup/AccessPopup";
 import styles from "./CompleteRegistrationPage.module.scss";
 
 const DEFAULT_AVATAR_URL = "/icons/account-svgrepo-com.svg";
 const ONBOARDING_TOTAL_STEPS = 5;
 const FINAL_STEP = 5;
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface ProfileData {
   category: string;
   searchTarget: string;
   option: string;
   location: string;
-
   firstName: string;
   lastName: string;
   email: string;
@@ -42,7 +54,6 @@ interface ProfileData {
   existingTools: string[];
   businessLink: string;
   propertyTypes: string[];
-
   experienceLevel: ExperienceLevel | "";
   yearsExperience: string;
 }
@@ -66,65 +77,102 @@ const getDashboardPathFromCategory = (category: string): string => {
       return "/dashboard/provider";
     case "proprietaire":
     default:
-      return "/dashboard/owner";
+      return "Votre profil est prêt à être présenté de façon claire avant validation.";
   }
 };
 
 const formatChoice = (value: string): string => {
   const labels: Record<string, string> = {
-    creation: "Je demarre mon activite",
+    creation: "Je d\u00e9marre mon activit\u00e9",
     micro_entreprise: "Micro-entreprise",
-    societe: "Societe deja creee",
-    particulier: "Particulier / complement d'activite",
+    societe: "Soci\u00e9t\u00e9 d\u00e9j\u00e0 cr\u00e9\u00e9e",
+    particulier: "Particulier / compl\u00e9ment d'activit\u00e9",
     temps_plein: "Temps plein",
     temps_partiel: "Temps partiel",
     soirs_weekends: "Soirs et week-ends",
     sur_demande: "Sur demande selon les missions",
     ponctuelles: "Missions ponctuelles",
-    regulieres: "Contrats reguliers",
-    les_deux: "Missions ponctuelles et contrats reguliers",
+    regulieres: "Contrats r\u00e9guliers",
+    les_deux: "Missions ponctuelles et contrats r\u00e9guliers",
     simple: "Mode simple",
     express: "Mode express",
     business: "Mode business",
-    premieres_missions: "Trouver mes premieres missions",
-    complement_revenu: "Completer mes revenus",
-    structurer_activite: "Structurer mon activite de conciergerie",
-    developper_portefeuille: "Developper mon portefeuille clients",
-    guidage_simple: "Guidage simple pour bien demarrer",
-    modeles_outils: "Modeles, tarifs et outils de gestion",
-    missions_qualifiees: "Priorite aux demandes qualifiees",
+    premieres_missions: "Trouver mes premi\u00e8res missions",
+    complement_revenu: "Compl\u00e9ter mes revenus",
+    structurer_activite: "Structurer mon activit\u00e9 de conciergerie",
+    developper_portefeuille: "D\u00e9velopper mon portefeuille clients",
+    guidage_simple: "Guidage simple pour bien d\u00e9marrer",
+    modeles_outils: "Mod\u00e8les, tarifs et outils de gestion",
+    missions_qualifiees: "Priorit\u00e9 aux demandes qualifi\u00e9es",
     autonome: "Je suis autonome",
   };
 
   return labels[value] ?? value;
 };
 
-// ============================================================================
-// HELPERS
-// ============================================================================
+const formatCategoryLabel = (category: string): string => {
+  switch (category) {
+    case "proprietaire":
+      return "Propri\u00e9taire";
+    case "concierge":
+      return "Conciergerie";
+    case "artisan":
+      return "Artisan";
+    default:
+      return category || "\u2014";
+  }
+};
+
+const formatExperienceLevel = (level: string): string => {
+  const labels: Record<string, string> = {
+    debutant: "d\u00e9butant",
+    intermediaire: "interm\u00e9diaire",
+    experimente: "exp\u00e9riment\u00e9",
+  };
+
+  return labels[level] ?? level;
+};
+
+const getServicesLabel = (category: string): string => {
+  return category === "proprietaire" ? "Services recherch\u00e9s" : "Services propos\u00e9s";
+};
+
+const getServicesList = (value: string): string[] => {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const getProfileSummaryText = (profile: ProfileData): string => {
+  const targetLabel = formatCategoryLabel(profile.searchTarget);
+  const servicesCount = getServicesList(profile.option).length;
+
+  switch (profile.category) {
+    case "concierge":
+      return `Vous avez un profil de conciergerie. Vous recherchez des ${targetLabel.toLowerCase()} cherchant un partenaire local fiable${servicesCount > 0 ? " pour ces services" : ""}.`;
+    case "proprietaire":
+      return `Vous avez un profil de propriétaire. Vous recherchez une ${targetLabel.toLowerCase()} capable de vous accompagner${servicesCount > 0 ? " sur les services sélectionnés" : ""}.`;
+    case "artisan":
+      return `Vous avez un profil d'artisan. Vous recherchez des ${targetLabel.toLowerCase()} ayant besoin d'un professionnel de confiance${servicesCount > 0 ? " pour vos prestations" : ""}.`;
+    default:
+      return "Votre profil est prêt à être présenté de façon claire avant validation.";
+  }
+};
 
 const validatePassword = (password: string): string => {
-  if (password.length < 8) return "Minimum 8 caractères";
+  if (password.length < 8) return "Minimum 8 caract\u00e8res";
   if (!/[A-Z]/.test(password)) return "1 majuscule requise";
   if (!/[a-z]/.test(password)) return "1 minuscule requise";
   if (!/[0-9]/.test(password)) return "1 chiffre requis";
-  if (!/[!@#$%^&*(),.?":{}|<>_\-+=]/.test(password))
-    return "1 caractère spécial requis";
+  if (!/[!@#$%^&*(),.?\":{}|<>_\-+=]/.test(password)) return "1 caract\u00e8re sp\u00e9cial requis";
   return "";
 };
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
 
 export default function CompleteRegistrationPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isInitialized = useRef(false);
-
-  // --------------------------------------------------------------------------
-  // STATE
-  // --------------------------------------------------------------------------
 
   const [profile, setProfile] = useState<ProfileData>({
     category: "",
@@ -156,26 +204,23 @@ export default function CompleteRegistrationPage() {
     password: "",
     confirmPassword: "",
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showExperiencePopup, setShowExperiencePopup] = useState(false);
+  const [showCategoryPopup, setShowCategoryPopup] = useState(false);
+  const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
+  const [avatarScale, setAvatarScale] = useState(1);
+  const [avatarOffsetX, setAvatarOffsetX] = useState(0);
+  const [avatarOffsetY, setAvatarOffsetY] = useState(0);
+  const [avatarRotation, setAvatarRotation] = useState(0);
   const [locationError, setLocationError] = useState("");
-  const [readabilityMode, setReadabilityMode] = useState(false);
-
-  const progressPercent = Math.round((FINAL_STEP / ONBOARDING_TOTAL_STEPS) * 100);
-
-  // --------------------------------------------------------------------------
-  // INIT FROM URL (une seule fois)
-  // --------------------------------------------------------------------------
+  const { readabilityScale, setReadabilityScale } = useReadabilityScale();
 
   useEffect(() => {
     if (isInitialized.current) return;
@@ -215,27 +260,9 @@ export default function CompleteRegistrationPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    const enabled = window.localStorage.getItem("planetls-readability-mode") === "1";
-    setReadabilityMode(enabled);
-  }, []);
-
-  useEffect(() => {
-    document.body.dataset.readability = readabilityMode ? "on" : "off";
-    window.localStorage.setItem("planetls-readability-mode", readabilityMode ? "1" : "0");
-
-    return () => {
-      document.body.dataset.readability = "off";
-    };
-  }, [readabilityMode]);
-
-  useEffect(() => {
     if (profile.category !== "concierge" || profile.serviceRadiusKm) return;
     setProfile((prev) => ({ ...prev, serviceRadiusKm: "15" }));
   }, [profile.category, profile.serviceRadiusKm]);
-
-  // --------------------------------------------------------------------------
-  // FORM HANDLERS
-  // --------------------------------------------------------------------------
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -253,11 +280,6 @@ export default function CompleteRegistrationPage() {
     }
   };
 
-  // --------------------------------------------------------------------------
-  // EXPERIENCE POPUP
-  // --------------------------------------------------------------------------
-
-  // Popup expérience
   const handleExperienceValidate = (level: ExperienceLevel, years: string) => {
     setProfile((prev) => ({
       ...prev,
@@ -267,9 +289,36 @@ export default function CompleteRegistrationPage() {
     setShowExperiencePopup(false);
   };
 
-  // --------------------------------------------------------------------------
-  // AVATAR HANDLER
-  // --------------------------------------------------------------------------
+  const handleServicesValidate = (selectedOptions: string[]) => {
+    setProfile((prev) => ({
+      ...prev,
+      option: selectedOptions.join(","),
+    }));
+    setShowCategoryPopup(false);
+  };
+
+  const handleAccessValidate = (data: AccessFormData) => {
+    setProfile((prev) => ({
+      ...prev,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      additionalInfo: data.additionalInfo,
+      companyName: data.companyName,
+      legalForm: data.legalForm,
+      serviceRadiusKm: data.serviceRadiusKm,
+      availability: data.availability,
+      missionPreference: data.missionPreference,
+      signupMode: data.signupMode,
+      onboardingGoal: data.onboardingGoal,
+      supportNeed: data.supportNeed,
+      existingTools: data.existingTools,
+      businessLink: data.businessLink,
+      propertyTypes: data.propertyTypes,
+    }));
+    setShowAccessPopup(false);
+  };
 
   const handleAvatarChange = async (file: File | null) => {
     if (!file) return;
@@ -286,9 +335,15 @@ export default function CompleteRegistrationPage() {
     if (data?.url) setUploadedAvatarUrl(data.url);
   };
 
-  // --------------------------------------------------------------------------
-  // SUBMIT
-  // --------------------------------------------------------------------------
+  const handleAvatarRemove = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    setUploadedAvatarUrl(null);
+    setAvatarScale(1);
+    setAvatarOffsetX(0);
+    setAvatarOffsetY(0);
+    setAvatarRotation(0);
+  };
 
   const canSubmit =
     form.username.length >= 3 &&
@@ -304,13 +359,14 @@ export default function CompleteRegistrationPage() {
     setLocationError("");
 
     let resolvedLocation = profile.location.trim();
+
     try {
       const geocodeResponse = await fetch(`/api/geocode?q=${encodeURIComponent(resolvedLocation)}`);
       const geocodePayload = (await geocodeResponse.json()) as GeocodeLookupPayload;
 
       if (!geocodeResponse.ok || typeof geocodePayload.label !== "string") {
         throw new Error(
-          geocodePayload.error || "Veuillez sélectionner une ville reconnue pour finaliser l'inscription.",
+          geocodePayload.error || "Veuillez s\u00e9lectionner une ville reconnue pour finaliser l'inscription."
         );
       }
 
@@ -322,7 +378,7 @@ export default function CompleteRegistrationPage() {
       setLocationError(
         error instanceof Error
           ? error.message
-          : "Veuillez sélectionner une ville reconnue pour finaliser l'inscription.",
+          : "Veuillez s\u00e9lectionner une ville reconnue pour finaliser l'inscription."
       );
       setLoading(false);
       return;
@@ -335,6 +391,10 @@ export default function CompleteRegistrationPage() {
         username: form.username,
         password: form.password,
         avatar_url: uploadedAvatarUrl,
+        avatar_scale: avatarScale,
+        avatar_offset_x: avatarOffsetX,
+        avatar_offset_y: avatarOffsetY,
+        avatar_rotation: avatarRotation,
         firstName: profile.firstName,
         lastName: profile.lastName,
         email: profile.email,
@@ -377,236 +437,199 @@ export default function CompleteRegistrationPage() {
 
     if (loginResult?.error) {
       setLoading(false);
-      alert("Compte créé, mais la connexion automatique a échoué. Merci de vous connecter manuellement.");
+      alert("Compte cr\u00e9\u00e9, mais la connexion automatique a \u00e9chou\u00e9. Merci de vous connecter manuellement.");
       router.replace("/login");
       return;
     }
 
-    const targetPath = getDashboardPathFromCategory(profile.category);
-    router.replace(targetPath);
-
+    router.replace(getDashboardPathFromCategory(profile.category));
   };
-
-  // --------------------------------------------------------------------------
-  // RENDER
-  // --------------------------------------------------------------------------
 
   return (
     <div className={styles.pageContainer}>
       {showConfetti && <Confetti />}
 
-      <div className={styles.onboardingMeta}>
-        <div className={styles.stepperBlock}>
-          <span className={styles.stepIndicator}>Etape 5/5 - Creation du compte</span>
-          <div
-            className={styles.stepperTrack}
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={ONBOARDING_TOTAL_STEPS}
-            aria-valuenow={FINAL_STEP}
-            aria-label="Progression de l’inscription"
-          >
-            <span className={styles.stepperFill} style={{ width: `${progressPercent}%` }} />
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className={readabilityMode ? styles.readabilityActive : styles.readabilityButton}
-          onClick={() => setReadabilityMode((value) => !value)}
-        >
-          Lisibilite +
-        </Button>
-      </div>
+      <OnboardingStepHeader
+        title={"Étape 5/5 - Création du compte"}
+        step={FINAL_STEP}
+        totalSteps={ONBOARDING_TOTAL_STEPS}
+        progressPercent={100}
+        readabilityScale={readabilityScale}
+        onReadabilityChange={setReadabilityScale}
+      />
 
-      <h1 className={styles.title}>Dernière étape avant de commencer</h1>
+      <h1 className={styles.title}>{"Dernière étape avant de commencer"}</h1>
+
       {profile.category === "concierge" && (
         <p className={styles.localPromise}>
           Nous vous proposerons en priorité des missions proches de votre zone ({profile.serviceRadiusKm || "15"} km).
         </p>
       )}
 
-      {/* RÉCAP */}
-      <section className={styles.recapSection}>
-        <h2>🧾 Récapitulatif de votre demande</h2>
-        {locationError ? <p className={styles.locationError}>{locationError}</p> : null}
-        <div className={styles.recapGrid}>
-          <div>
-            <strong>Catégorie</strong>
-            <p>{profile.category || "—"}</p>
+
+      <section className={styles.avatarSection}>
+        <h3>Aperçu de votre profil</h3>
+        <div className={styles.avatarSectionLayout}>
+          <div className={styles.avatarUploadPane}>
+            <AvatarUpload
+              value={avatarFile}
+              existingUrl={uploadedAvatarUrl ?? avatarPreview ?? DEFAULT_AVATAR_URL}
+              existingScale={avatarScale}
+              existingOffsetX={avatarOffsetX}
+              existingOffsetY={avatarOffsetY}
+              existingRotation={avatarRotation}
+              isEditing
+              onChange={handleAvatarChange}
+              onScaleChange={setAvatarScale}
+              onOffsetChange={(x, y) => {
+                setAvatarOffsetX(x);
+                setAvatarOffsetY(y);
+              }}
+              onRotationChange={setAvatarRotation}
+              onRemove={handleAvatarRemove}
+            />
           </div>
-          <div>
-            <strong>Recherche</strong>
-            <p>{profile.searchTarget || "—"}</p>
-          </div>
-          <div>
-            <strong>Option</strong>
-            <p>{profile.option || "—"}</p>
-          </div>
-          <div>
-            <strong>Localisation</strong>
-            <p>{profile.location || "—"}</p>
-          </div>
-          <div>
-            <strong>Nom</strong>
-            <p>{profile.firstName} {profile.lastName}</p>
-          </div>
-          <div>
-            <strong>Email</strong>
-            <p>{profile.email}</p>
-          </div>
-          <div>
-            <strong>Expérience</strong>
-            <p>
-              {profile.experienceLevel
-                ? `${profile.yearsExperience} — ${profile.experienceLevel}`
-                : "Non renseignée"}
-            </p>
-          </div>
-          {profile.category === "concierge" && (
-            <>
-              <div>
-                <strong>Structure</strong>
-                <p>{profile.companyName || "A preciser"}</p>
+
+          <div className={styles.avatarSummaryPane}>
+            <div className={styles.recapBlock}>
+              <div className={styles.recapBlockTitle}>
+                <span className={styles.recapIcon}>
+                  <FaUser />
+                </span>
+                <strong>Votre profil</strong>
               </div>
-              <div>
-                <strong>Statut</strong>
-                <p>{profile.legalForm ? formatChoice(profile.legalForm) : "A preciser"}</p>
-              </div>
-              <div>
-                <strong>Rayon</strong>
-                <p>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "A preciser"}</p>
-              </div>
-              <div>
-                <strong>Disponibilite</strong>
-                <p>{profile.availability ? formatChoice(profile.availability) : "A definir"}</p>
-              </div>
-              <div>
-                <strong>Collaboration</strong>
-                <p>
-                  {profile.missionPreference
-                    ? formatChoice(profile.missionPreference)
-                    : "Ouverte aux opportunites"}
+
+              {/* <p className={styles.recapMiniBadge}>Profil en construction ✨</p> */}
+
+              <div className={styles.recapIdentityCopy}>
+                <p className={styles.recapIdentityEyebrow}> j&apos;ai un profil de  
+                  {formatCategoryLabel(profile.category)}
+                </p>
+
+                <p className={styles.recapIdentityMeta}> je recherche des missions de
+                  {formatCategoryLabel(profile.searchTarget)}
+                </p>
+
+                <p className={styles.recapIdentityMeta}>
+                  {profile.location || "à définir"}
+                </p>
+
+                <p className={styles.recapIdentityMeta}>
+                  {profile.experienceLevel
+                    ? `${profile.yearsExperience} — ${formatExperienceLevel(profile.experienceLevel)}`
+                    : "Expérience à préciser"}
+                </p>
+
+                <p className={styles.recapIdentityDescription}>
+                  {getProfileSummaryText(profile)}
                 </p>
               </div>
-              <div>
-                <strong>Parcours</strong>
-                <p>{formatChoice(profile.signupMode || "simple")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className={styles.recapSection}>
+        <h2>Votre profil avant validation</h2>
+        {locationError ? <p className={styles.locationError}>{locationError}</p> : null}
+
+        <div className={styles.recapTopline}>
+          <span className={styles.recapPill}><FaBriefcase /> {formatCategoryLabel(profile.category)}</span>
+          <span className={styles.recapPill}><FaSearch /> {formatCategoryLabel(profile.searchTarget)}</span>
+          <span className={styles.recapPill}><FaMapMarkerAlt /> {profile.location || "à définir"}</span>
+          <span className={styles.recapPill}><FaBullseye /> {profile.experienceLevel ? `${profile.yearsExperience} \u2014 ${formatExperienceLevel(profile.experienceLevel)}` : "Expérience à préciser"}</span>
+        </div>
+
+        <div className={styles.recapActions}>
+          <Button type="button" variant="outline" size="sm" className={styles.editButton} onClick={() => setShowCategoryPopup(true)}>
+            <FaEdit /> Modifier les services
+          </Button>
+          <Button type="button" variant="outline" size="sm" className={styles.editButton} onClick={() => setShowAccessPopup(true)}>
+            <FaEdit /> {"Modifier les coordonn\u00e9es"}
+          </Button>
+          <Button type="button" variant="outline" size="sm" className={styles.editButton} onClick={() => setShowExperiencePopup(true)}>
+            <FaEdit /> {"Modifier l'exp\u00e9rience"}
+          </Button>
+        </div>
+
+        <div className={styles.recapCompact}>
+          <div className={styles.recapBlock}>
+            <div className={styles.recapBlockTitle}>
+              <span className={styles.recapIcon}><FaUser /></span>
+              <strong>{"Aperçu photo"}</strong>
+            </div>
+            <div className={styles.recapAvatarOnly}>
+              <Image
+                src={uploadedAvatarUrl ?? avatarPreview ?? DEFAULT_AVATAR_URL}
+                alt="Photo de profil"
+                className={styles.recapAvatar}
+                width={72}
+                height={72}
+                style={{
+                  transform: `translate(${avatarOffsetX}%, ${avatarOffsetY}%) scale(${avatarScale}) rotate(${avatarRotation}deg)`,
+                  transformOrigin: "center",
+                }}
+              />
+            </div>
+          </div>
+
+          <div className={styles.recapBlock}>
+            <div className={styles.recapBlockTitle}>
+              <span className={styles.recapIcon}><FaClipboardList /></span>
+              <strong>{getServicesLabel(profile.category)}</strong>
+            </div>
+            {getServicesList(profile.option).length > 0 ? (
+              <ul className={styles.serviceList}>
+                {getServicesList(profile.option).map((service) => (
+                  <li key={service}>{service}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.recapMuted}>Aucun service sélectionné pour le moment.</p>
+            )}
+          </div>
+
+          {profile.category === "concierge" && (
+            <div className={styles.recapBlock}>
+              <div className={styles.recapBlockTitle}>
+                <span className={styles.recapIcon}><FaTools /></span>
+                <strong>{"Activité"}</strong>
               </div>
-              <div>
-                <strong>Objectif</strong>
-                <p>{profile.onboardingGoal ? formatChoice(profile.onboardingGoal) : "A preciser"}</p>
-              </div>
-              <div>
-                <strong>Accompagnement</strong>
-                <p>{profile.supportNeed ? formatChoice(profile.supportNeed) : "A definir"}</p>
-              </div>
-              {profile.signupMode === "business" && (
-                <>
-                  <div>
-                    <strong>Outils</strong>
-                    <p>{profile.existingTools.length ? profile.existingTools.join(", ") : "A connecter plus tard"}</p>
-                  </div>
-                  <div>
-                    <strong>Lien pro</strong>
-                    <p>{profile.businessLink || "A ajouter plus tard"}</p>
-                  </div>
-                </>
-              )}
-              <div>
-                <strong>Biens geres</strong>
-                <p>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "A preciser"}</p>
-              </div>
-            </>
+              <ul className={styles.detailList}>
+                <li><span>Structure</span><strong>{profile.companyName || "préciser"}</strong></li>
+                <li><span>Parcours</span><strong>{formatChoice(profile.signupMode || "simple")}</strong></li>
+                <li><span>Rayon</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "préciser"}</strong></li>
+                <li><span>{"Disponibilité"}</span><strong>{profile.availability ? formatChoice(profile.availability) : "préciser"}</strong></li>
+                <li><span>Collaboration</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "Ouverte aux opportunités"}</strong></li>
+                <li><span>{"Biens gérés"}</span><strong>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "préciser"}</strong></li>
+              </ul>
+            </div>
           )}
         </div>
       </section>
 
       {profile.category === "concierge" && (
         <section className={styles.nextActionsSection}>
-          <h2>Apres inscription, choisissez votre premiere action</h2>
+          <h2>{"Après inscription, choisissez votre première action"}</h2>
           <div className={styles.nextActionsGrid}>
             <div>
-              <strong>Creer un bien</strong>
+              <strong>{"Créer un bien"}</strong>
               <p>Ajoutez votre premier logement ou une zone de mission proche.</p>
             </div>
             <div>
-              <strong>Creer une offre</strong>
-              <p>Transformez vos services en packs simples a proposer.</p>
+              <strong>{"Créer une offre"}</strong>
+              <p>Transformez vos services en packs simples \u00e0 proposer.</p>
             </div>
             <div>
-              <strong>Inviter un proprietaire</strong>
+              <strong>{"Inviter un propriétaire"}</strong>
               <p>Retrouvez vite vos premiers contacts dans l&apos;espace concierge.</p>
             </div>
           </div>
         </section>
       )}
 
-      {/* PROFIL PRO */}
-      <section className={styles.section}>
-        <h2>👤 Profil professionnel</h2>
 
-        <p><strong>Type :</strong> {profile.category}</p>
-        <p><strong>Recherche :</strong> {profile.searchTarget}</p>
-        <p><strong>Localisation :</strong> {profile.location}</p>
-        {profile.category === "concierge" && (
-          <ul className={styles.profileList}>
-            <li><strong>Structure :</strong> {profile.companyName || "A preciser"}</li>
-            <li><strong>Statut :</strong> {profile.legalForm ? formatChoice(profile.legalForm) : "A preciser"}</li>
-            <li><strong>Zone :</strong> {profile.serviceRadiusKm ? `${profile.location} + ${profile.serviceRadiusKm} km` : profile.location}</li>
-            <li><strong>Disponibilite :</strong> {profile.availability ? formatChoice(profile.availability) : "A definir"}</li>
-            <li><strong>Collaboration :</strong> {profile.missionPreference ? formatChoice(profile.missionPreference) : "Ouverte aux opportunites"}</li>
-            <li><strong>Parcours :</strong> {formatChoice(profile.signupMode || "simple")}</li>
-            <li><strong>Objectif :</strong> {profile.onboardingGoal ? formatChoice(profile.onboardingGoal) : "A preciser"}</li>
-            <li><strong>Accompagnement :</strong> {profile.supportNeed ? formatChoice(profile.supportNeed) : "A definir"}</li>
-            {profile.signupMode === "business" && (
-              <>
-                <li><strong>Outils :</strong> {profile.existingTools.length ? profile.existingTools.join(", ") : "A connecter plus tard"}</li>
-                <li><strong>Lien pro :</strong> {profile.businessLink || "A ajouter plus tard"}</li>
-              </>
-            )}
-            <li><strong>Types de biens :</strong> {profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "A preciser"}</li>
-          </ul>
-        )}
-
-        <div className={styles.experienceBlock}>
-          <strong>Expérience</strong>
-          {profile.experienceLevel ? (
-            <p>
-              {profile.yearsExperience} —{" "}
-              <span className={styles.experienceBadge}>{profile.experienceLevel}</span>
-            </p>
-          ) : (
-            <p>Aucune expérience renseignée</p>
-          )}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={styles.editButton}
-            onClick={() => setShowExperiencePopup(true)}
-          >
-            <FaEdit /> Modifier mon expérience
-          </Button>
-        </div>
-      </section>
-
-      {/* AVATAR */}
-      <section className={styles.avatarSection}>
-        <h3>📷 Photo de profil</h3>
-        <AvatarUpload
-          value={avatarFile}
-          existingUrl={uploadedAvatarUrl ?? avatarPreview ?? DEFAULT_AVATAR_URL}
-          isEditing
-          onChange={handleAvatarChange}
-        />
-      </section>
-
-      {/* FORMULAIRE COMPTE */}
       <form onSubmit={handleSubmit} className={styles.form}>
-        <h2>🔐 Création du compte</h2>
+        <h2>{"Création du compte"}</h2>
 
         <Input
           bare
@@ -649,12 +672,7 @@ export default function CompleteRegistrationPage() {
             autoComplete="new-password"
             required
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowConfirmPassword((v) => !v)}
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={() => setShowConfirmPassword((v) => !v)}>
             {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
           </Button>
         </div>
@@ -678,12 +696,54 @@ export default function CompleteRegistrationPage() {
         </Button>
       </form>
 
-      {/* POPUP EXPERIENCE */}
       {showExperiencePopup && (
         <ExperiencePopup
           category={profile.category}
           onClose={() => setShowExperiencePopup(false)}
           onValidate={handleExperienceValidate}
+        />
+      )}
+
+      {showCategoryPopup && (
+        <CategoryPopup
+          category={profile.category}
+          initialSelectedOptions={getServicesList(profile.option)}
+          onClose={() => setShowCategoryPopup(false)}
+          onNext={handleServicesValidate}
+        />
+      )}
+
+      {showAccessPopup && (
+        <AccessPopup
+          selectedOptions={getServicesList(profile.option)}
+          initialData={{
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            email: profile.email,
+            phone: profile.phone,
+            additionalInfo: profile.additionalInfo,
+            companyName: profile.companyName,
+            legalForm: profile.legalForm,
+            serviceRadiusKm: profile.serviceRadiusKm,
+            availability: profile.availability,
+            missionPreference: profile.missionPreference,
+            signupMode: profile.signupMode,
+            onboardingGoal: profile.onboardingGoal,
+            supportNeed: profile.supportNeed,
+            existingTools: profile.existingTools,
+            businessLink: profile.businessLink,
+            propertyTypes: profile.propertyTypes,
+          }}
+          recap={{
+            category: profile.category,
+            searchTarget: profile.searchTarget,
+            location: profile.location,
+            experienceLevel: profile.experienceLevel,
+            yearsExperience: profile.yearsExperience,
+          }}
+          onBack={() => setShowAccessPopup(false)}
+          onClose={() => setShowAccessPopup(false)}
+          onValidate={handleAccessValidate}
         />
       )}
     </div>

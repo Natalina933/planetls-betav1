@@ -20,7 +20,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 type UntypedDb = {
-  from: (table: string) => any;
+  from: (table: string) => ReturnType<typeof db.from>;
 };
 
 const mapMissionInsertError = (error: { code?: string; message?: string; details?: string } | null) => {

@@ -41,7 +41,8 @@
   backdrop-filter: blur(10px);
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   z-index: $z-index;
   animation: popupFadeIn 0.25s ease forwards;
 }
@@ -57,7 +58,8 @@
   border: 2px solid rgba(212, 175, 55, 0.22);
   border-radius: 24px;
   padding: $padding;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   animation: popupPopIn 0.35s ease-out;
   box-shadow:
     0 25px 60px rgba(0, 0, 0, 0.25),
@@ -88,6 +90,9 @@
     position: relative;
     z-index: 1;
   }
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.75) transparent;
 
   @media (prefers-color-scheme: dark) {
     background: linear-gradient(135deg, #1e222a, #23272f);

@@ -45,7 +45,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   position: relative;
   width: min(920px, 95%);
   max-height: 90vh;
-  padding: 4rem 8rem;
+  padding: 4.15rem 3.5rem 3rem;
   border-radius: $radius-3xl;
   background:
 
@@ -84,7 +84,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   }
 
   @include mq(md) {
-    padding: $spacing-2xl $spacing-xl;
+    padding: 3.5rem $spacing-xl $spacing-xl;
     max-height: 95vh;
   }
 
@@ -105,7 +105,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 1rem;
 
   h2 {
     font-family: $font-elegant;
@@ -139,6 +139,14 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   margin: 0 auto;
 }
 
+.readabilityControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .stepIndicator {
   display: inline-flex;
   align-items: center;
@@ -147,12 +155,19 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   border-radius: $radius-pill;
   background: rgba($gold-main, 0.14);
   color: color.scale($gold-main, $lightness: -30%);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 800;
+}
+
+.scrollEnabled {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .readabilityButton,
 .readabilityActive {
+  min-width: 52px;
   min-height: 34px;
   padding: 0.38rem 0.8rem;
   border-radius: $radius-pill;
@@ -162,6 +177,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   font-size: 0.84rem;
   font-weight: 800;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .readabilityActive {
@@ -175,11 +191,11 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 ------------------------------------------------------- */
 .tripleToggleGroup {
   display: flex;
-  gap: 0.625rem;
+  gap: 0.7rem;
   width: 100%;
   max-width: 750px;
   margin: 0 auto;
-  padding: 0.5rem;
+  padding: 0.45rem;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6)),
     rgba($gold-main, 0.08);
@@ -207,11 +223,11 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.625rem;
-  padding: 1rem 1.5rem;
+  gap: 0.75rem;
+  padding: 1.02rem 1.4rem;
   font-family: $font-elegant;
-  font-size: 0.975rem;
-  font-weight: 600;
+  font-size: 1.12rem;
+  font-weight: 700;
   background: transparent;
   border: none;
   border-radius: $radius-pill;
@@ -234,7 +250,14 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   }
 
   .toggleIcon {
-    font-size: 1.3rem;
+    font-size: 1.7rem;
+    transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .toggleLogo {
+    width: 1.7rem;
+    height: 1.7rem;
+    object-fit: contain;
     transition: transform 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
@@ -250,6 +273,10 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
     .toggleIcon {
       transform: scale(1.15) rotate(-5deg);
     }
+
+    .toggleLogo {
+      transform: scale(1.12) rotate(-4deg);
+    }
   }
 
   &.active {
@@ -264,6 +291,12 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
     .toggleIcon {
       transform: scale(1.1);
       animation: iconBounce 0.6s ease;
+    }
+
+    .toggleLogo {
+      transform: scale(1.08);
+      animation: iconBounce 0.6s ease;
+      filter: brightness(0) invert(1);
     }
 
     &::after {
@@ -286,7 +319,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 
   @include mq(sm) {
     padding: 0.875rem 1.25rem;
-    font-size: 0.925rem;
+    font-size: 1rem;
   }
 }
 
@@ -297,11 +330,11 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   position: relative;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
   border-left: 5px solid $gold-main;
-  padding: 1.25rem 1.75rem;
+  padding: 1rem 1.4rem;
   border-radius: $radius-lg;
   color: $ink-soft;
-  font-size: 1.025rem;
-  line-height: 1.6;
+  font-size: 0.99rem;
+  line-height: 1.52;
   font-style: italic;
   max-width: 680px;
   margin: 0 auto;
@@ -353,7 +386,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   align-items: stretch;
   width: 100%;
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0.15rem auto 0;
   animation: fadeInUp 0.6s ease-out 0.5s both;
 
   @include mq(sm) {
@@ -361,10 +394,27 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   }
 }
 
+.searchButtonReady {
+  background: linear-gradient(135deg, $gold-main, $gold-light) !important;
+  border-color: rgba($gold-hover, 0.95) !important;
+  color: #1f1605 !important;
+  box-shadow:
+    0 12px 28px rgba($gold-main, 0.28),
+    0 0 0 1px rgba($gold-hover, 0.2) !important;
+
+  &:hover {
+    background: linear-gradient(135deg, $gold-light, color.scale($gold-main, $lightness: 6%)) !important;
+    color: #120d03 !important;
+    box-shadow:
+      0 16px 34px rgba($gold-main, 0.36),
+      0 0 0 1px rgba($gold-hover, 0.28) !important;
+  }
+}
+
 .locationHint {
   width: 100%;
   max-width: 600px;
-  margin: 0.55rem auto 0;
+  margin: 0.35rem auto 0;
   font-size: 0.88rem;
   line-height: 1.45;
   color: $ink-soft;
@@ -374,7 +424,7 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 .suggestionsPanel {
   width: 100%;
   max-width: 600px;
-  margin: 0.7rem auto 0;
+  margin: 0.45rem auto 0;
   display: grid;
   gap: 0.45rem;
 }
@@ -416,8 +466,8 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
 ------------------------------------------------------- */
 .closeButton {
   position: absolute;
-  top: $spacing-lg;
-  right: $spacing-lg;
+  top: 0.7rem;
+  right: 0.7rem;
   width: 44px;
   height: 44px;
   min-height: 0;
@@ -451,8 +501,8 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   }
 
   @include mq(sm) {
-    top: $spacing-md;
-    right: $spacing-md;
+    top: 0.45rem;
+    right: 0.45rem;
     width: 40px;
     height: 40px;
   }
@@ -721,5 +771,52 @@ $shadow-strong: 0 25px 60px rgba(0, 0, 0, 0.25);
   .readabilityButton,
   .readabilityActive {
     font-size: 1rem;
+  }
+}
+
+:global(body[data-readability-scale="large"]) {
+  .categorySearchSection h2 {
+    font-size: clamp(1.9rem, 4.2vw, 2.45rem);
+  }
+
+  .categoryTextBubble1900,
+  .locationHint,
+  .suggestionBtn span {
+    font-size: 1.08rem;
+    line-height: 1.58;
+  }
+
+  .tripleToggleButton,
+  .stepIndicator,
+  .readabilityButton,
+  .readabilityActive,
+  .suggestionBtn strong {
+    font-size: 1rem;
+  }
+}
+
+:global(body[data-readability-scale="xlarge"]) {
+  .categorySearchSection h2 {
+    font-size: clamp(2.05rem, 4.5vw, 2.7rem);
+    line-height: 1.22;
+  }
+
+  .categoryTextBubble1900,
+  .locationHint,
+  .suggestionBtn span {
+    font-size: 1.18rem;
+    line-height: 1.65;
+  }
+
+  .tripleToggleButton,
+  .stepIndicator,
+  .readabilityButton,
+  .readabilityActive,
+  .suggestionBtn strong {
+    font-size: 1.08rem;
+  }
+
+  .tripleToggleButton {
+    padding: 1.08rem 1.5rem;
   }
 }

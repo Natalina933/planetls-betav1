@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FaTimes } from "react-icons/fa";
+import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
+import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
 import styles from "./AccessPopup.module.scss";
 
 export interface FormData {
@@ -24,6 +27,7 @@ export interface FormData {
 
 interface AccessPopupProps {
   selectedOptions: string[];
+  initialData?: Partial<FormData>;
   recap: {
     category: string;
     searchTarget: string;
@@ -42,38 +46,35 @@ const PROFILE_COPY: Record<
   ProfileKey,
   {
     title: string;
+    intro: string;
     needLabel: string;
     targetLabel: string;
   }
 > = {
   proprietaire: {
-    title: "Accès propriétaire",
+    title: "Étape 4/5 - Vos coordonnées",
+    intro: "Renseignez vos informations pour que nous puissions vous recontacter et préparer la suite.",
     needLabel: "Votre besoin",
     targetLabel: "Vous recherchez",
   },
   concierge: {
-    title: "Accès concierge",
-    needLabel: "Vos services",
+    title: "Étape 4/5 - Vos coordonnées",
+    intro: "Renseignez vos informations et précisez votre activité pour recevoir des demandes adaptées.",
+    needLabel: "Vos services ou précisions",
     targetLabel: "Vous souhaitez collaborer avec",
   },
   artisan: {
-    title: "Accès artisan",
-    needLabel: "Votre spécialité",
+    title: "Étape 4/5 - Vos coordonnées",
+    intro: "Renseignez vos informations pour présenter votre activité et faciliter les premiers contacts.",
+    needLabel: "Votre spécialité ou précisions",
     targetLabel: "Vous souhaitez collaborer avec",
   },
-};
-
-const getProfileKey = (category: string): ProfileKey => {
-  if (category === "proprietaire" || category === "artisan" || category === "concierge") {
-    return category;
-  }
-  return "concierge";
 };
 
 const CONCIERGE_PROPERTY_TYPES = [
   "Location courte durée",
   "Résidence secondaire",
-  "Residence principale",
+  "Résidence principale",
   "Immeuble ou multi-logements",
 ];
 
@@ -86,41 +87,113 @@ const CONCIERGE_TOOLS = [
   "Smoobu / Guesty",
 ];
 
+const getProfileKey = (category: string): ProfileKey => {
+  if (category === "proprietaire" || category === "artisan" || category === "concierge") {
+    return category;
+  }
+  return "concierge";
+};
+
+const formatProfileLabel = (category: string) => {
+  switch (category) {
+    case "proprietaire":
+      return "Propriétaire";
+    case "concierge":
+      return "Conciergerie";
+    case "artisan":
+      return "Artisan";
+    default:
+      return category;
+  }
+};
+
 export default function AccessPopup({
   selectedOptions,
+  initialData,
   recap,
   onBack,
   onClose,
   onValidate,
 }: AccessPopupProps) {
   const [form, setForm] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    additionalInfo: "",
-    companyName: "",
-    legalForm: "",
-    serviceRadiusKm: "30",
-    availability: "",
-    missionPreference: "",
-    signupMode: "simple",
-    onboardingGoal: "",
-    supportNeed: "",
-    existingTools: [],
-    businessLink: "",
-    propertyTypes: [],
+    firstName: initialData?.firstName ?? "",
+    lastName: initialData?.lastName ?? "",
+    email: initialData?.email ?? "",
+    phone: initialData?.phone ?? "",
+    additionalInfo: initialData?.additionalInfo ?? "",
+    companyName: initialData?.companyName ?? "",
+    legalForm: initialData?.legalForm ?? "",
+    serviceRadiusKm: initialData?.serviceRadiusKm ?? "30",
+    availability: initialData?.availability ?? "",
+    missionPreference: initialData?.missionPreference ?? "",
+    signupMode: initialData?.signupMode ?? "simple",
+    onboardingGoal: initialData?.onboardingGoal ?? "",
+    supportNeed: initialData?.supportNeed ?? "",
+    existingTools: initialData?.existingTools ?? [],
+    businessLink: initialData?.businessLink ?? "",
+    propertyTypes: initialData?.propertyTypes ?? [],
   });
-
+  const { readabilityScale, setReadabilityScale } = useReadabilityScale();
+  const [submitError, setSubmitError] = useState("");
+  const popupRef = useRef<HTMLDivElement>(null);
   const profileKey = getProfileKey(recap.category);
   const copy = PROFILE_COPY[profileKey];
   const isSimpleMode = form.signupMode === "simple";
   const isExpressMode = form.signupMode === "express";
   const isBusinessMode = form.signupMode === "business";
+  const titleId = "access-popup-title";
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!initialData) return;
+    setForm({
+      firstName: initialData.firstName ?? "",
+      lastName: initialData.lastName ?? "",
+      email: initialData.email ?? "",
+      phone: initialData.phone ?? "",
+      additionalInfo: initialData.additionalInfo ?? "",
+      companyName: initialData.companyName ?? "",
+      legalForm: initialData.legalForm ?? "",
+      serviceRadiusKm: initialData.serviceRadiusKm ?? "30",
+      availability: initialData.availability ?? "",
+      missionPreference: initialData.missionPreference ?? "",
+      signupMode: initialData.signupMode ?? "simple",
+      onboardingGoal: initialData.onboardingGoal ?? "",
+      supportNeed: initialData.supportNeed ?? "",
+      existingTools: initialData.existingTools ?? [],
+      businessLink: initialData.businessLink ?? "",
+      propertyTypes: initialData.propertyTypes ?? [],
+    });
+  }, [initialData]);
+
+  const handleOutsideClick = useCallback(
+    (e: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [handleOutsideClick]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (submitError) {
+      setSubmitError("");
+    }
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -146,11 +219,27 @@ export default function AccessPopup({
     }));
   };
 
+  const quickContext = useMemo(
+    () => [
+      { label: "Profil", value: formatProfileLabel(recap.category) },
+      { label: copy.targetLabel, value: recap.searchTarget || "À définir" },
+      { label: "Ville", value: recap.location || "À définir" },
+      {
+        label: "Services",
+        value:
+          selectedOptions.length > 0
+            ? `${selectedOptions.length} sélection${selectedOptions.length > 1 ? "s" : ""}`
+            : "À définir",
+      },
+    ],
+    [copy.targetLabel, recap.category, recap.location, recap.searchTarget, selectedOptions.length]
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.firstName || !form.lastName || !form.email) {
-      alert("Veuillez remplir tous les champs obligatoires");
+      setSubmitError("Veuillez renseigner au minimum votre prénom, votre nom et votre email.");
       return;
     }
 
@@ -158,88 +247,74 @@ export default function AccessPopup({
   };
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
-      <div className={styles.popup}>
-        <button className={styles.close} onClick={onClose} aria-label="Fermer la fenêtre" type="button">
-          X
+    <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+      <div className={styles.popup} ref={popupRef}>
+        <button type="button" className={styles.close} onClick={onClose} aria-label="Fermer la fenêtre">
+          <FaTimes />
         </button>
 
-        <div className={styles.stepperMeta}>
-          <p className={styles.stepIndicator}>Étape 4/5 - Coordonnées</p>
-          <div
-            className={styles.stepperTrack}
-            role="progressbar"
-            aria-label="Progression de l'inscription"
-            aria-valuemin={1}
-            aria-valuemax={5}
-            aria-valuenow={4}
-          >
-            <span className={styles.stepperFill} style={{ width: "80%" }} />
-          </div>
-        </div>
-        <h2>{copy.title}</h2>
+        <OnboardingStepHeader
+          title={"Étape 4/5 - Vos coordonnées"}
+          step={4}
+          readabilityScale={readabilityScale}
+          onReadabilityChange={setReadabilityScale}
+        />
 
-        <section className={styles.recapBox}>
-          <h3>Récapitulatif</h3>
+        <h2 id={titleId}>{copy.title}</h2>
+        <p className={styles.introText}>{copy.intro}</p>
 
-          <ul>
-            <li>
-              <strong>Catégorie :</strong> {recap.category}
-            </li>
-            <li>
-              <strong>{copy.targetLabel} :</strong> {recap.searchTarget}
-            </li>
-            <li>
-              <strong>Localisation :</strong> {recap.location}
-            </li>
-            <li>
-              <strong>Expérience :</strong> {recap.yearsExperience} - {recap.experienceLevel}
-            </li>
-            <li>
-              <strong>Options :</strong> {selectedOptions.length ? selectedOptions.join(" - ") : "Aucune"}
-            </li>
-          </ul>
+        <section className={styles.contextPanel} aria-label="Contexte rapide">
+          {quickContext.map((item) => (
+            <div key={item.label} className={styles.contextCard}>
+              <strong>{item.label}</strong>
+              <span>{item.value}</span>
+            </div>
+          ))}
         </section>
 
         <form className={styles.form} onSubmit={handleSubmit}>
-          <label>
-            Prénom *
-            <input name="firstName" value={form.firstName} onChange={handleChange} required />
-          </label>
+          {submitError ? <p className={styles.formAlert}>{submitError}</p> : null}
 
-          <label>
-            Nom *
-            <input name="lastName" value={form.lastName} onChange={handleChange} required />
-          </label>
+          <div className={styles.identityGrid}>
+            <label>
+              Prénom *
+              <input name="firstName" value={form.firstName} onChange={handleChange} required />
+            </label>
 
-          <label>
-            Email *
-            <input name="email" type="email" value={form.email} onChange={handleChange} required />
-          </label>
+            <label>
+              Nom *
+              <input name="lastName" value={form.lastName} onChange={handleChange} required />
+            </label>
 
-          <label>
-            Téléphone
-            <input name="phone" value={form.phone} onChange={handleChange} />
-          </label>
+            <label>
+              Email *
+              <input name="email" type="email" value={form.email} onChange={handleChange} required />
+            </label>
+
+            <label>
+              Téléphone
+              <input name="phone" value={form.phone} onChange={handleChange} />
+            </label>
+          </div>
 
           {profileKey === "concierge" && (
             <section className={styles.conciergeFields}>
-              <h3>Votre activité de concierge</h3>
+              <h3>Votre activité de conciergerie</h3>
 
-              <div className={styles.modeSwitch} role="group" aria-label="Mode d'inscription concierge">
+              <div className={styles.modeSwitch} role="group" aria-label="Mode d&apos;inscription concierge">
                 <button
                   type="button"
                   className={isSimpleMode ? styles.modeActive : ""}
                   onClick={() => setForm((prev) => ({ ...prev, signupMode: "simple" }))}
                 >
-                  Simple (Lynda)
+                  Simple
                 </button>
                 <button
                   type="button"
                   className={isExpressMode ? styles.modeActive : ""}
                   onClick={() => setForm((prev) => ({ ...prev, signupMode: "express" }))}
                 >
-                  Express (Christa)
+                  Express
                 </button>
                 <button
                   type="button"
@@ -253,19 +328,17 @@ export default function AccessPopup({
               {isSimpleMode ? (
                 <div className={styles.localPromise}>
                   <strong>Parcours guidé et rassurant.</strong>
-                  <span>
-                    On vous propose des missions proches de {recap.location || "votre ville"} et un paramétrage simple.
-                  </span>
+                  <span>Nous vous proposerons des missions proches de {recap.location || "votre ville"} avec un réglage simple.</span>
                   <ul>
                     <li>Étapes claires</li>
                     <li>Zone locale</li>
-                    <li>Facile à modifier</li>
+                    <li>Réglages faciles</li>
                   </ul>
                 </div>
               ) : isExpressMode ? (
                 <div className={styles.expressPromise}>
-                  <strong>Mode rapide expert (2 minutes).</strong>
-                  <span>Configurez l’essentiel maintenant, puis activez vos 3 actions métier après inscription.</span>
+                  <strong>Mode rapide expert.</strong>
+                  <span>Configurez l&apos;essentiel maintenant, puis activez vos premières actions métier après inscription.</span>
                   <ul>
                     <li>Créer 1 bien</li>
                     <li>Créer 1 offre</li>
@@ -274,21 +347,17 @@ export default function AccessPopup({
                 </div>
               ) : (
                 <div className={styles.businessPromise}>
-                  <strong>Construisez une activité concierge structurée.</strong>
-                  <span>Ajoutez vos outils et vos objectifs pour préparer le dashboard, les missions et les futurs tarifs.</span>
+                  <strong>Activité structurée.</strong>
+                  <span>Ajoutez vos outils et vos objectifs pour préparer votre dashboard, vos missions et votre développement.</span>
                 </div>
               )}
 
               <label className={styles.radiusField}>
                 <span>
-                  Rayon max
+                  Rayon maximum
                   <small>Autour de {recap.location || "votre ville"} pour recevoir des missions réalistes.</small>
                 </span>
-                <select
-                  name="serviceRadiusKm"
-                  value={form.serviceRadiusKm}
-                  onChange={handleSelectChange}
-                >
+                <select name="serviceRadiusKm" value={form.serviceRadiusKm} onChange={handleSelectChange}>
                   <option value="10">10 km maximum</option>
                   <option value="20">20 km maximum</option>
                   <option value="30">30 km maximum</option>
@@ -302,7 +371,7 @@ export default function AccessPopup({
                   name="companyName"
                   value={form.companyName}
                   onChange={handleChange}
-                  placeholder="Ex : Lynda Services, Christa Conciergerie..."
+                  placeholder="Ex : Maison Clés, Horizon Concierge..."
                 />
               </label>
 
@@ -332,16 +401,12 @@ export default function AccessPopup({
 
               <label>
                 Objectif principal
-                <select
-                  name="onboardingGoal"
-                  value={form.onboardingGoal}
-                  onChange={handleSelectChange}
-                >
+                <select name="onboardingGoal" value={form.onboardingGoal} onChange={handleSelectChange}>
                   <option value="">À préciser plus tard</option>
                   <option value="premieres_missions">Trouver mes premières missions</option>
                   <option value="complement_revenu">Compléter mes revenus</option>
                   <option value="structurer_activite">Structurer mon activité de conciergerie</option>
-                  <option value="developper_portefeuille">Developper mon portefeuille clients</option>
+                  <option value="developper_portefeuille">Développer mon portefeuille clients</option>
                 </select>
               </label>
 
@@ -388,11 +453,7 @@ export default function AccessPopup({
 
               <label>
                 Type de collaboration recherchée
-                <select
-                  name="missionPreference"
-                  value={form.missionPreference}
-                  onChange={handleSelectChange}
-                >
+                <select name="missionPreference" value={form.missionPreference} onChange={handleSelectChange}>
                   <option value="">Ouverte aux opportunités</option>
                   <option value="ponctuelles">Missions ponctuelles</option>
                   <option value="regulieres">Contrats réguliers</option>
@@ -418,14 +479,18 @@ export default function AccessPopup({
 
           <label>
             {copy.needLabel}
-            <textarea name="additionalInfo" value={form.additionalInfo} onChange={handleChange} />
+            <textarea
+              name="additionalInfo"
+              value={form.additionalInfo}
+              onChange={handleChange}
+              placeholder="Ajoutez ici une précision utile pour la suite."
+            />
           </label>
 
           <div className={styles.actions}>
             <button type="button" className={styles.secondaryButton} onClick={onBack}>
               Retour
             </button>
-
             <button type="submit" className={styles.primaryButton}>
               Continuer
             </button>

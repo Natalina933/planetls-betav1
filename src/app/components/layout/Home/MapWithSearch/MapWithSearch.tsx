@@ -8,6 +8,7 @@ import React, {
   useRef,
   JSX,
 } from "react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { FaTimes } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -58,6 +59,14 @@ interface LocationSuggestion {
   label: string;
   displayName: string;
 }
+
+interface GeocodeLookupPayload {
+  error?: string;
+  label?: string;
+  displayName?: string;
+}
+
+type ReadabilityScale = "normal" | "large" | "xlarge";
 
 const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
@@ -116,9 +125,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [readabilityMode, setReadabilityMode] = useState(false);
+  const [readabilityScale, setReadabilityScale] = useState<ReadabilityScale>("normal");
   const isMainModalVisible =
     !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
+  const shouldEnableMainScroll =
+    readabilityScale !== "normal" || locationSearching || locationSuggestions.length > 0;
 
   // ACCESSIBILITÉ & UX
   useEffect(() => {
@@ -154,18 +165,29 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   }, []);
 
   useEffect(() => {
-    const enabled = window.localStorage.getItem("planetls-readability-mode") === "1";
-    setReadabilityMode(enabled);
+    const savedScale = window.localStorage.getItem("planetls-readability-scale");
+    const legacyMode = window.localStorage.getItem("planetls-readability-mode") === "1";
+
+    if (savedScale === "large" || savedScale === "xlarge" || savedScale === "normal") {
+      setReadabilityScale(savedScale);
+      return;
+    }
+
+    setReadabilityScale(legacyMode ? "large" : "normal");
   }, []);
 
   useEffect(() => {
-    document.body.dataset.readability = readabilityMode ? "on" : "off";
-    window.localStorage.setItem("planetls-readability-mode", readabilityMode ? "1" : "0");
+    const isReadable = readabilityScale !== "normal";
+    document.body.dataset.readability = isReadable ? "on" : "off";
+    document.body.dataset.readabilityScale = readabilityScale;
+    window.localStorage.setItem("planetls-readability-mode", isReadable ? "1" : "0");
+    window.localStorage.setItem("planetls-readability-scale", readabilityScale);
 
     return () => {
       document.body.dataset.readability = "off";
+      delete document.body.dataset.readabilityScale;
     };
-  }, [readabilityMode]);
+  }, [readabilityScale]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -203,7 +225,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   useEffect(() => {
     const query = location.trim();
 
-    if (!isMainModalVisible || query.length < 2) {
+    if (!isMainModalVisible || query.length < 2 || (validatedLocation && query === validatedLocation)) {
       setLocationSuggestions([]);
       setLocationSearching(false);
       return;
@@ -243,7 +265,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [isMainModalVisible, location]);
+  }, [isMainModalVisible, location, validatedLocation]);
 
   const handleCategoryChange = useCallback((key: CategoryKey) => {
     setSelectedCategory(key);
@@ -254,16 +276,16 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
   const resolveLocationLabel = useCallback(async (query: string) => {
     const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-    const payload = (await response.json()) as {
-      error?: string;
-      label?: string;
-    };
+    const payload = (await response.json()) as GeocodeLookupPayload;
 
-    if (!response.ok || typeof payload.label !== "string") {
+    if (
+      !response.ok ||
+      (typeof payload.displayName !== "string" && typeof payload.label !== "string")
+    ) {
       throw new Error(payload.error || "Veuillez sélectionner une ville reconnue.");
     }
 
-    return payload.label;
+    return payload.displayName ?? payload.label!;
   }, []);
 
   const handleSearch = useCallback(
@@ -395,16 +417,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={styles.globalCloseButton}
-        onClick={onClose}
-        aria-label="Fermer"
-        type="button"
-      >
-        <FaTimes />
-      </Button>
       {isMainModalVisible && (
         <div
           className={styles.searchOverlay}
@@ -413,7 +425,10 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         >
           <div
             ref={containerRef}
-            className={styles.mapWithSearchContainer}
+            className={[
+              styles.mapWithSearchContainer,
+              shouldEnableMainScroll ? styles.scrollEnabled : "",
+            ].filter(Boolean).join(" ")}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
@@ -440,14 +455,39 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
             <section className={styles.categorySearchSection}>
               <div className={styles.onboardingMeta}>
-                <span className={styles.stepIndicator}>Etape 1/5 - Votre profil</span>
-                <button
-                  type="button"
-                  className={readabilityMode ? styles.readabilityActive : styles.readabilityButton}
-                  onClick={() => setReadabilityMode((value) => !value)}
-                >
-                  Lisibilite +
-                </button>
+                <span className={styles.stepIndicator}>Étape 1/5 - Votre région</span>
+                <div className={styles.readabilityControls} role="group" aria-label="Taille du texte">
+                  <button
+                    type="button"
+                    className={
+                      readabilityScale === "normal" ? styles.readabilityActive : styles.readabilityButton
+                    }
+                    onClick={() => setReadabilityScale("normal")}
+                    aria-pressed={readabilityScale === "normal"}
+                  >
+                    A
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      readabilityScale === "large" ? styles.readabilityActive : styles.readabilityButton
+                    }
+                    onClick={() => setReadabilityScale("large")}
+                    aria-pressed={readabilityScale === "large"}
+                  >
+                    A+
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      readabilityScale === "xlarge" ? styles.readabilityActive : styles.readabilityButton
+                    }
+                    onClick={() => setReadabilityScale("xlarge")}
+                    aria-pressed={readabilityScale === "xlarge"}
+                  >
+                    A++
+                  </button>
+                </div>
               </div>
 
               <h2 id="modal-title">
@@ -476,7 +516,18 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                       }`}
                       onClick={() => handleCategoryChange(key)}
                     >
-                      {Icon && <Icon className={styles.toggleIcon} />}
+                      {key === "concierge" ? (
+                        <Image
+                          src="/icons/Mini_logo.svg"
+                          alt=""
+                          className={styles.toggleLogo}
+                          aria-hidden="true"
+                          width={20}
+                          height={20}
+                        />
+                      ) : (
+                        Icon && <Icon className={styles.toggleIcon} />
+                      )}
                       <span>{label}</span>
                     </Button>
                   );
@@ -491,9 +542,10 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
 
               <SearchBar
                 className={styles.searchBar}
-                defaultValue={location}
-                placeholder="Ville ou arrondissement"
+                value={location}
+                placeholder="Votre ville ou arrondissement"
                 buttonLabel="Rechercher"
+                buttonClassName={validatedLocation ? styles.searchButtonReady : ""}
                 inputRef={searchInputRef}
                 onSearch={handleSearch}
                 inputProps={{
@@ -512,7 +564,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                 <p className={styles.locationHint}>Recherche de villes reconnues...</p>
               ) : null}
 
-              {locationSuggestions.length > 0 ? (
+              {!validatedLocation && locationSuggestions.length > 0 ? (
                 <div className={styles.suggestionsPanel}>
                   {locationSuggestions.map((suggestion) => (
                     <button
@@ -520,8 +572,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                       type="button"
                       className={styles.suggestionBtn}
                       onClick={() => {
-                        setLocation(suggestion.label);
-                        setValidatedLocation(suggestion.label);
+                        setLocation(suggestion.displayName);
+                        setValidatedLocation(suggestion.displayName);
                         setLocationSuggestions([]);
                       }}
                     >
@@ -532,10 +584,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
                 </div>
               ) : null}
 
-              <p className={styles.locationHint}>
-                Sélectionnez une ville reconnue. Les grandes villes avec arrondissement sont
-                prises en charge, par exemple Paris 16e ou Marseille 8e.
-              </p>
             </section>
           </div>
         </div>

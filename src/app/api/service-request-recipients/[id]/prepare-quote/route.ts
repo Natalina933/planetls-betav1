@@ -28,7 +28,7 @@ type PrepareQuoteBody = {
 };
 
 type UntypedDb = {
-  from: (table: string) => any;
+  from: (table: string) => ReturnType<typeof db.from>;
 };
 
 export async function POST(

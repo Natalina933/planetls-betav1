@@ -13,7 +13,7 @@ import {
 } from "@/types/ownerInvitations";
 
 type UntypedDb = {
-  from: (table: string) => any;
+  from: (table: string) => ReturnType<typeof db.from>;
 };
 
 const dbAny = db as unknown as UntypedDb;

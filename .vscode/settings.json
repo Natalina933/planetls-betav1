@@ -2,6 +2,28 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "cSpell.enabled": false,
+  "cSpell.language": "en,fr",
+  "cSpell.words": [
+    "categorie",
+    "Complexite",
+    "conciergerie",
+    "Defaut",
+    "Deplacement",
+    "equipe",
+    "experimente",
+    "Generer",
+    "intermediaire",
+    "kbis",
+    "linkedin",
+    "proprietaire",
+    "proprietaires",
+    "planetls",
+    "simulee",
+    "siret",
+    "svgrepo",
+    "xlarge"
+  ],
   "deno.enablePaths": ["supabase/functions"],
   "deno.lint": true,
   "deno.unstable": [

@@ -1,0 +1,97 @@
+.header {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.stepBlock {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.stepIndicator {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.14);
+  color: #7a5c10;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.stepperTrack {
+  width: 210px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.14);
+  overflow: hidden;
+}
+
+.stepperFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d4af37, #e5c867);
+}
+
+.readabilityControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.readabilityButton,
+.readabilityActive {
+  min-width: 52px;
+  min-height: 36px;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: #fff;
+  color: #6d5520;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.16s ease-out,
+    color 0.16s ease-out,
+    border-color 0.16s ease-out,
+    transform 0.12s ease-out;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(212, 175, 55, 0.45);
+  }
+}
+
+.readabilityActive {
+  background: #7a5c10;
+  color: #fff;
+  border-color: #7a5c10;
+}
+
+@media (max-width: 640px) {
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .readabilityControls {
+    justify-content: flex-start;
+  }
+
+  .stepperTrack {
+    width: 100%;
+  }
+}
