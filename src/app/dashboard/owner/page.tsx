@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AsyncState } from "@/components/ui";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
@@ -8,6 +8,14 @@ import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { takeFirst } from "../shared";
 import type { DashboardUserIdentity } from "../shared";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
+import {
+  FirstLoginOnboardingPopup,
+  OnboardingPromptCard,
+  shouldShowDashboardReminder,
+  shouldShowFirstLoginPopup,
+  type OnboardingActionStatus,
+  type OnboardingPath,
+} from "@/features/onboarding-assistant";
 import { getOwnerHousingStatusLabel, useOwnerDashboardData } from "./useOwnerDashboardData";
 import {
   OWNER_DASHBOARD_CONFIG,
@@ -55,6 +63,41 @@ export default function OwnerDashboardPage() {
       href: "/dashboard/owner/planning",
     })),
   ];
+
+
+
+  const onboardingPath: OnboardingPath = "business+";
+  const [firstLoginOpen, setFirstLoginOpen] = useState(false);
+  const [reminderDismissed, setReminderDismissed] = useState(false);
+  const actionStatus = useMemo<Record<string, OnboardingActionStatus>>(() => ({
+    "configure-packs": properties.length > 0 ? "done" : "todo",
+    "set-pricing": latestQuotes.length > 0 ? "done" : "todo",
+    "prepare-docs": latestInvoices.length > 0 ? "done" : "todo",
+  }), [latestInvoices.length, latestQuotes.length, properties.length]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const seenFlag = window.localStorage.getItem(`owner-onboarding-first-login-seen:${user.id}`);
+    const shouldOpen = shouldShowFirstLoginPopup({
+      firstLogin: !seenFlag,
+      completionState: "in_progress",
+      actionStatus,
+    });
+    setFirstLoginOpen(shouldOpen);
+  }, [actionStatus, user?.id]);
+
+  const showDashboardReminder = shouldShowDashboardReminder(onboardingPath, {
+    firstLogin: false,
+    completionState: "in_progress",
+    actionStatus,
+  }) && !reminderDismissed;
+
+  const handleCloseFirstLogin = () => {
+    if (user?.id) {
+      window.localStorage.setItem(`owner-onboarding-first-login-seen:${user.id}`, "1");
+    }
+    setFirstLoginOpen(false);
+  };
 
   if (userLoading || !isAuthenticated) {
     return <DashboardLoadingScreen label="Chargement de votre espace propriétaire..." />;
@@ -118,6 +161,12 @@ export default function OwnerDashboardPage() {
         badge: averageRating ? `${averageRating.toFixed(1)} / 5` : "Profil actif",
       }}
     >
+      <FirstLoginOnboardingPopup path={onboardingPath} open={firstLoginOpen} onClose={handleCloseFirstLogin} />
+
+      {showDashboardReminder ? (
+        <OnboardingPromptCard path={onboardingPath} actionStatus={actionStatus} onDismiss={() => setReminderDismissed(true)} />
+      ) : null}
+
       <DashboardPanel title="Vue d’ensemble">
         <AsyncState loading={loading} error={error}>
           <p>
