@@ -22,6 +22,8 @@ import AccessPopup from "../../../popups/AccessPopup/AccessPopup";
 import ExperiencePopup, {
   ExperienceLevel,
 } from "@/app/components/popups/ExperiencePopup/ExperiencePopup";
+import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
+import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
 
 type CategoryKey = "proprietaire" | "concierge" | "artisan";
 
@@ -65,8 +67,6 @@ interface GeocodeLookupPayload {
   label?: string;
   displayName?: string;
 }
-
-type ReadabilityScale = "normal" | "large" | "xlarge";
 
 const DESCRIPTIONS: Record<CategoryKey, JSX.Element> = {
   proprietaire: (
@@ -125,7 +125,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  const [readabilityScale, setReadabilityScale] = useState<ReadabilityScale>("normal");
+  const [signupMode, setSignupMode] = useState("simple");
+  const { readabilityScale, setReadabilityScale } = useReadabilityScale();
   const isMainModalVisible =
     !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
   const shouldEnableMainScroll =
@@ -163,31 +164,6 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       document.body.style.overflow = originalOverflow;
     };
   }, []);
-
-  useEffect(() => {
-    const savedScale = window.localStorage.getItem("planetls-readability-scale");
-    const legacyMode = window.localStorage.getItem("planetls-readability-mode") === "1";
-
-    if (savedScale === "large" || savedScale === "xlarge" || savedScale === "normal") {
-      setReadabilityScale(savedScale);
-      return;
-    }
-
-    setReadabilityScale(legacyMode ? "large" : "normal");
-  }, []);
-
-  useEffect(() => {
-    const isReadable = readabilityScale !== "normal";
-    document.body.dataset.readability = isReadable ? "on" : "off";
-    document.body.dataset.readabilityScale = readabilityScale;
-    window.localStorage.setItem("planetls-readability-mode", isReadable ? "1" : "0");
-    window.localStorage.setItem("planetls-readability-scale", readabilityScale);
-
-    return () => {
-      document.body.dataset.readability = "off";
-      delete document.body.dataset.readabilityScale;
-    };
-  }, [readabilityScale]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -333,13 +309,18 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     (level: ExperienceLevel, years: string) => {
       setExperienceLevel(level);
       setYearsExperience(years);
+      setSignupMode((current) =>
+        selectedCategory === "concierge" && level === "experimente" && current === "simple"
+          ? "express"
+          : current
+      );
       setShowExperiencePopup(false);
 
       setTimeout(() => {
         setShowCategoryPopup(true);
       }, 150);
     },
-    []
+    [selectedCategory]
   );
 
   const handleOptionSelect = useCallback((options: string[]) => {
@@ -415,6 +396,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     return CATEGORY_ORDER.filter((key) => map[key]).map((key) => map[key]);
   }, [categories]);
 
+  const accessInitialData = useMemo(() => ({ signupMode }), [signupMode]);
+
   return (
     <>
       {isMainModalVisible && (
@@ -454,41 +437,12 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
             </Button>
 
             <section className={styles.categorySearchSection}>
-              <div className={styles.onboardingMeta}>
-                <span className={styles.stepIndicator}>Étape 1/5 - Votre région</span>
-                <div className={styles.readabilityControls} role="group" aria-label="Taille du texte">
-                  <button
-                    type="button"
-                    className={
-                      readabilityScale === "normal" ? styles.readabilityActive : styles.readabilityButton
-                    }
-                    onClick={() => setReadabilityScale("normal")}
-                    aria-pressed={readabilityScale === "normal"}
-                  >
-                    A
-                  </button>
-                  <button
-                    type="button"
-                    className={
-                      readabilityScale === "large" ? styles.readabilityActive : styles.readabilityButton
-                    }
-                    onClick={() => setReadabilityScale("large")}
-                    aria-pressed={readabilityScale === "large"}
-                  >
-                    A+
-                  </button>
-                  <button
-                    type="button"
-                    className={
-                      readabilityScale === "xlarge" ? styles.readabilityActive : styles.readabilityButton
-                    }
-                    onClick={() => setReadabilityScale("xlarge")}
-                    aria-pressed={readabilityScale === "xlarge"}
-                  >
-                    A++
-                  </button>
-                </div>
-              </div>
+              <OnboardingStepHeader
+                title="Étape 1/5 - Votre région"
+                step={1}
+                readabilityScale={readabilityScale}
+                onReadabilityChange={setReadabilityScale}
+              />
 
               <h2 id="modal-title">
                 Inscrivez-vous et connectez-vous aux bons partenaires
@@ -600,6 +554,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       {showCategoryPopup && selectedCategory && (
         <CategoryPopup
           category={selectedCategory}
+          experienceLevel={experienceLevel}
+          signupMode={signupMode}
+          onSignupModeChange={setSignupMode}
           onClose={() => setShowCategoryPopup(false)}
           onNext={handleOptionSelect}
         />
@@ -608,6 +565,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       {showAccessPopup && (
         <AccessPopup
           selectedOptions={selectedOptions}
+          initialData={accessInitialData}
           recap={{
             category: selectedCategory,
             searchTarget,

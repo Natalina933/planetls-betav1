@@ -105,6 +105,16 @@ const formatChoice = (value: string): string => {
     modeles_outils: "Mod\u00e8les, tarifs et outils de gestion",
     missions_qualifiees: "Priorit\u00e9 aux demandes qualifi\u00e9es",
     autonome: "Je suis autonome",
+    deleguer_location: "Déléguer la gestion locative",
+    trouver_concierge: "Trouver une conciergerie fiable",
+    securiser_interventions: "Sécuriser les interventions",
+    optimiser_revenus: "Optimiser mes revenus",
+    besoin_ponctuel: "Besoin ponctuel",
+    suivi_regulier: "Suivi régulier",
+    urgence_24h: "Urgences sous 24 h",
+    interventions_planifiees: "Interventions planifiées",
+    assurance_ok: "Assurance professionnelle à jour",
+    assurance_a_preciser: "Assurance à préciser plus tard",
   };
 
   return labels[value] ?? value;
@@ -454,6 +464,7 @@ export default function CompleteRegistrationPage() {
         step={FINAL_STEP}
         totalSteps={ONBOARDING_TOTAL_STEPS}
         progressPercent={100}
+        isFinalStep
         readabilityScale={readabilityScale}
         onReadabilityChange={setReadabilityScale}
       />
@@ -708,6 +719,11 @@ export default function CompleteRegistrationPage() {
         <CategoryPopup
           category={profile.category}
           initialSelectedOptions={getServicesList(profile.option)}
+          experienceLevel={profile.experienceLevel}
+          signupMode={profile.signupMode}
+          onSignupModeChange={(signupMode) => {
+            setProfile((prev) => ({ ...prev, signupMode }));
+          }}
           onClose={() => setShowCategoryPopup(false)}
           onNext={handleServicesValidate}
         />

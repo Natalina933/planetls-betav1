@@ -13,6 +13,7 @@ export interface CurrentUser {
   role?: string | null;
   company_name?: string | null;
   avatar_url?: string | null;
+  availability_hours?: string | null;
 }
 
 export function useCurrentUser() {
@@ -39,6 +40,7 @@ export function useCurrentUser() {
       role: sessionUser.role ?? current?.role ?? null,
       company_name: sessionUser.company_name ?? current?.company_name ?? null,
       avatar_url: sessionUser.avatar_url ?? current?.avatar_url ?? null,
+      availability_hours: current?.availability_hours ?? null,
     }));
     setLoading(true);
 
@@ -94,6 +96,7 @@ export function useCurrentUser() {
         role: user?.role ?? session.user.role ?? null,
         company_name: user?.company_name ?? session.user.company_name ?? null,
         avatar_url: user?.avatar_url ?? session.user.avatar_url ?? null,
+        availability_hours: user?.availability_hours ?? null,
       }
     : user;
 

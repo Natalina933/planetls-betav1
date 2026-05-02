@@ -1,0 +1,95 @@
+.welcomePanel {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 28%, var(--dash-border));
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--dash-accent) 20%, transparent), transparent 38%),
+    linear-gradient(135deg, var(--dash-bg-panel), var(--dash-bg-panel-soft));
+}
+
+.welcomeBody {
+  display: grid;
+  gap: var(--dash-space-3);
+}
+
+.headline {
+  display: grid;
+  gap: var(--dash-space-2);
+}
+
+.modeBadge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.headline h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+}
+
+.headline p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--dash-space-2);
+}
+
+.actionCard {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 112px;
+  padding: var(--dash-space-3);
+  border-radius: var(--dash-radius-sm);
+  border: 1px solid var(--dash-border);
+  background: color-mix(in srgb, var(--dash-bg-panel) 86%, white);
+  text-decoration: none;
+  transition:
+    border-color 0.16s ease-out,
+    transform 0.16s ease-out,
+    box-shadow 0.16s ease-out;
+}
+
+.actionCard:hover {
+  border-color: color-mix(in srgb, var(--dash-accent) 42%, var(--dash-border));
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.actionCard strong {
+  color: var(--dash-text);
+  font-size: 0.95rem;
+}
+
+.actionCard span {
+  color: var(--dash-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.dismissButton {
+  border: 0;
+  background: transparent;
+  color: var(--dash-text-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.dismissButton:hover {
+  color: var(--dash-accent-strong);
+}

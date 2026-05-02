@@ -9,6 +9,7 @@ import { takeFirst } from "../shared";
 import type { DashboardUserIdentity, ExperienceLevel } from "../shared";
 import { formatDateValue } from "@/app/utils/formatters";
 import { useConciergeDashboardData } from "./useConciergeDashboardData";
+import ConciergeWelcomeNextStep from "./ConciergeWelcomeNextStep";
 import {
   CONCIERGERIE_DASHBOARD_CONFIG,
   CONCIERGERIE_NAV_ITEMS,
@@ -19,6 +20,7 @@ import {
 interface ConciergeUser extends DashboardUserIdentity {
   experience_level?: ExperienceLevel | null;
   years_experience?: number | null;
+  availability_hours?: string | null;
 }
 
 export default function ConciergeDashboardPage() {
@@ -107,6 +109,8 @@ export default function ConciergeDashboardPage() {
         badge: averageRating ? `${averageRating.toFixed(1)} / 5` : undefined,
       }}
     >
+      <ConciergeWelcomeNextStep availabilityHours={user?.availability_hours} />
+
       <DashboardPanel title="Vue d’ensemble">
         <AsyncState
           loading={matchesLoading}

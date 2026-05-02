@@ -11,6 +11,7 @@ interface OnboardingStepHeaderProps {
   readabilityScale: ReadabilityScale;
   onReadabilityChange: (scale: ReadabilityScale) => void;
   progressPercent?: number;
+  isFinalStep?: boolean;
 }
 
 export default function OnboardingStepHeader({
@@ -20,8 +21,11 @@ export default function OnboardingStepHeader({
   readabilityScale,
   onReadabilityChange,
   progressPercent,
+  isFinalStep = false,
 }: OnboardingStepHeaderProps) {
   const computedProgress = progressPercent ?? Math.max(0, Math.min(100, (step / totalSteps) * 100));
+  const trackClassName = isFinalStep ? `${styles.stepperTrack} ${styles.stepperTrackFinal}` : styles.stepperTrack;
+  const fillClassName = isFinalStep ? `${styles.stepperFill} ${styles.stepperFillFinal}` : styles.stepperFill;
 
   return (
     <div className={styles.header}>
@@ -29,14 +33,14 @@ export default function OnboardingStepHeader({
         <div className={styles.stepBlock}>
           <p className={styles.stepIndicator}>{title}</p>
           <div
-            className={styles.stepperTrack}
+            className={trackClassName}
             role="progressbar"
             aria-label="Progression de l'inscription"
             aria-valuemin={1}
             aria-valuemax={totalSteps}
             aria-valuenow={step}
           >
-            <span className={styles.stepperFill} style={{ width: `${computedProgress}%` }} />
+            <span className={fillClassName} style={{ width: `${computedProgress}%` }} />
           </div>
         </div>
 

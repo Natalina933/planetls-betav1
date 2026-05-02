@@ -17,6 +17,9 @@ type ServiceOption = {
 interface CategoryPopupProps {
   category: string;
   initialSelectedOptions?: string[];
+  experienceLevel?: string;
+  signupMode?: string;
+  onSignupModeChange?: (mode: string) => void;
   onClose: () => void;
   onNext: (selectedOptions: string[]) => void;
 }
@@ -146,12 +149,23 @@ const getProfileKey = (category: string): ProfileKey => {
   return "concierge";
 };
 
-export default function CategoryPopup({ category, initialSelectedOptions = [], onClose, onNext }: CategoryPopupProps) {
-  const [selected, setSelected] = useState<string[]>(initialSelectedOptions);
+export default function CategoryPopup({
+  category,
+  initialSelectedOptions = [],
+  experienceLevel,
+  signupMode = "simple",
+  onSignupModeChange,
+  onClose,
+  onNext,
+}: CategoryPopupProps) {
+  const initialSelectedKey = initialSelectedOptions.join("\u001f");
+  const [selected, setSelected] = useState<string[]>(() => initialSelectedOptions);
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
   const popupRef = useRef<HTMLDivElement>(null);
   const profileKey = getProfileKey(category);
   const content = PROFILE_CONTENT[profileKey];
+  const showConciergeModeSuggestion =
+    profileKey === "concierge" && experienceLevel === "experimente" && Boolean(onSignupModeChange);
   const titleId = "category-popup-title";
 
   useEffect(() => {
@@ -162,8 +176,8 @@ export default function CategoryPopup({ category, initialSelectedOptions = [], o
   }, []);
 
   useEffect(() => {
-    setSelected(initialSelectedOptions);
-  }, [initialSelectedOptions]);
+    setSelected(initialSelectedKey ? initialSelectedKey.split("\u001f") : []);
+  }, [initialSelectedKey]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
@@ -212,6 +226,38 @@ export default function CategoryPopup({ category, initialSelectedOptions = [], o
         <p className={styles.introText}>{content.intro}</p>
 
         <div className={styles.content}>
+          {showConciergeModeSuggestion ? (
+            <section className={styles.modeSuggestion} aria-label="Mode d'inscription recommandé">
+              <div>
+                <strong>Mode express recommandé</strong>
+                <span>Votre expérience permet de préparer un profil plus vite, sans vous imposer tous les champs longs.</span>
+              </div>
+              <div className={styles.modeSwitch} role="group" aria-label="Mode d'inscription concierge">
+                <button
+                  type="button"
+                  className={signupMode === "simple" ? styles.modeActive : ""}
+                  onClick={() => onSignupModeChange?.("simple")}
+                >
+                  Simple
+                </button>
+                <button
+                  type="button"
+                  className={signupMode === "express" ? styles.modeActive : ""}
+                  onClick={() => onSignupModeChange?.("express")}
+                >
+                  Express
+                </button>
+                <button
+                  type="button"
+                  className={signupMode === "business" ? styles.modeActive : ""}
+                  onClick={() => onSignupModeChange?.("business")}
+                >
+                  Business +
+                </button>
+              </div>
+            </section>
+          ) : null}
+
           <ul className={styles.optionList}>
             {content.options.map((option) => (
               <li key={option.value}>

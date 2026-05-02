@@ -42,72 +42,6 @@
   }
 }
 
-.onboardingMeta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.55rem;
-  padding-right: 3rem;
-}
-
-.readabilityControls {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.stepIndicator {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(212, 175, 55, 0.14);
-  color: #8f6a00;
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.stepperTrack {
-  position: relative;
-  overflow: hidden;
-  height: 10px;
-  margin-bottom: 0.9rem;
-  border-radius: 999px;
-  background: rgba(212, 175, 55, 0.18);
-}
-
-.stepperFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #d4af37, #f4d03f);
-}
-
-.readabilityButton,
-.readabilityActive {
-  min-width: 52px;
-  min-height: 34px;
-  padding: 0.38rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 175, 55, 0.38);
-  background: rgba(255, 255, 255, 0.8);
-  color: #1f2937;
-  font-size: 0.84rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.readabilityActive {
-  background: #1f2937;
-  color: #ffffff;
-  border-color: #1f2937;
-}
-
 .introText {
   margin: 0 0 0.95rem;
   text-align: center;
@@ -195,11 +129,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .stepIndicator {
-    background: rgba(240, 205, 103, 0.18);
-    color: #ffe9a3;
-  }
-
   .closeButton {
     background: rgba(30, 34, 42, 0.92);
     color: #fff3c0;
@@ -223,13 +152,6 @@
   }
 }
 
-@media (max-width: 700px) {
-  .onboardingMeta {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}
-
 :global(body[data-readability="on"]) {
   .popupContent {
     background: #ffffff;
@@ -245,10 +167,7 @@
     min-height: 150px;
   }
 
-  .optionLabel strong,
-  .stepIndicator,
-  .readabilityButton,
-  .readabilityActive {
+  .optionLabel strong {
     font-size: 1rem;
   }
 
@@ -271,10 +190,7 @@
     min-height: 168px;
   }
 
-  .optionLabel strong,
-  .stepIndicator,
-  .readabilityButton,
-  .readabilityActive {
+  .optionLabel strong {
     font-size: 1.08rem;
   }
 

@@ -42,72 +42,6 @@
   }
 }
 
-.onboardingMeta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.55rem;
-  padding-right: 3rem;
-}
-
-.readabilityControls {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.stepIndicator {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(212, 175, 55, 0.14);
-  color: #8f6a00;
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.stepperTrack {
-  position: relative;
-  overflow: hidden;
-  height: 10px;
-  margin-bottom: 0.9rem;
-  border-radius: 999px;
-  background: rgba(212, 175, 55, 0.18);
-}
-
-.stepperFill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #d4af37, #f4d03f);
-}
-
-.readabilityButton,
-.readabilityActive {
-  min-width: 52px;
-  min-height: 34px;
-  padding: 0.38rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 175, 55, 0.38);
-  background: rgba(255, 255, 255, 0.8);
-  color: #1f2937;
-  font-size: 0.84rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.readabilityActive {
-  background: #1f2937;
-  color: #ffffff;
-  border-color: #1f2937;
-}
-
 .introText {
   margin: 0 0 0.95rem;
   text-align: center;
@@ -120,6 +54,60 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
+}
+
+.modeSuggestion {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(80, 103, 170, 0.22);
+  border-radius: 14px;
+  background: rgba(80, 103, 170, 0.08);
+
+  > div:first-child {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  strong {
+    color: #1f2d55;
+    font-size: 0.95rem;
+  }
+
+  span {
+    color: #34415d;
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+}
+
+.modeSwitch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  padding: 0.28rem;
+  border: 1px solid #d5d9e2;
+  border-radius: 12px;
+  background: #ffffff;
+
+  button {
+    min-height: 38px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #323a49;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+}
+
+.modeActive {
+  background: #d4af37 !important;
+  color: #211805 !important;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.22);
 }
 
 .optionList {
@@ -193,11 +181,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .stepIndicator {
-    background: rgba(240, 205, 103, 0.18);
-    color: #ffe9a3;
-  }
-
   .closeButton {
     background: rgba(30, 34, 42, 0.92);
     color: #fff3c0;
@@ -212,15 +195,26 @@
     color: #eef2ff;
   }
 
+  .modeSuggestion {
+    background: rgba(80, 103, 170, 0.16);
+
+    strong,
+    span {
+      color: #ffffff;
+    }
+  }
+
+  .modeSwitch {
+    background: #171c28;
+    border-color: #3a4254;
+
+    button {
+      color: #ffffff;
+    }
+  }
+
   .introText {
     color: #d5dcef;
-  }
-}
-
-@media (max-width: 700px) {
-  .onboardingMeta {
-    align-items: stretch;
-    flex-direction: column;
   }
 }
 
@@ -239,10 +233,7 @@
     min-height: 142px;
   }
 
-  .optionLabel strong,
-  .stepIndicator,
-  .readabilityButton,
-  .readabilityActive {
+  .optionLabel strong {
     font-size: 1rem;
   }
 
@@ -251,7 +242,8 @@
     line-height: 1.52;
   }
 
-  .introText {
+  .introText,
+  .modeSuggestion span {
     font-size: 1.02rem;
   }
 }
@@ -265,10 +257,7 @@
     min-height: 162px;
   }
 
-  .optionLabel strong,
-  .stepIndicator,
-  .readabilityButton,
-  .readabilityActive {
+  .optionLabel strong {
     font-size: 1.08rem;
   }
 
@@ -277,7 +266,8 @@
     line-height: 1.6;
   }
 
-  .introText {
+  .introText,
+  .modeSuggestion span {
     font-size: 1.12rem;
     line-height: 1.5;
   }

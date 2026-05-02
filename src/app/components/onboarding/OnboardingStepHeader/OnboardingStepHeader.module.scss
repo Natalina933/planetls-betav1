@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.8rem;
+  gap: 3.6rem;
 }
 
 .stepBlock {
@@ -29,6 +29,7 @@
 }
 
 .stepperTrack {
+  position: relative;
   width: 210px;
   height: 8px;
   border-radius: 999px;
@@ -43,12 +44,36 @@
   background: linear-gradient(90deg, #d4af37, #e5c867);
 }
 
+.stepperTrackFinal {
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.12), 0 0 18px rgba(212, 175, 55, 0.18);
+}
+
+.stepperFillFinal {
+  position: relative;
+  background: linear-gradient(90deg, #c8951f, #e5c867 64%, #fff1a8);
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle, #fff7bf 0 18%, #f1cf62 42%, rgba(212, 175, 55, 0) 72%);
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.7));
+    transform: translateY(-50%);
+    animation: finalSpark 1.8s ease-in-out infinite;
+  }
+}
+
 .readabilityControls {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+  padding-right: 3.2rem;
 }
 
 .readabilityButton,
@@ -89,9 +114,23 @@
 
   .readabilityControls {
     justify-content: flex-start;
+    padding-right: 0;
   }
 
   .stepperTrack {
     width: 100%;
+  }
+}
+
+@keyframes finalSpark {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translateY(-50%) scale(0.88);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.12);
   }
 }

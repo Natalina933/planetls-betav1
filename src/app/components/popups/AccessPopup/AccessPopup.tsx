@@ -87,6 +87,31 @@ const CONCIERGE_TOOLS = [
   "Smoobu / Guesty",
 ];
 
+const OWNER_GOALS = [
+  { value: "deleguer_location", label: "Déléguer la gestion locative" },
+  { value: "trouver_concierge", label: "Trouver une conciergerie fiable" },
+  { value: "securiser_interventions", label: "Sécuriser les interventions" },
+  { value: "optimiser_revenus", label: "Optimiser mes revenus" },
+];
+
+const ARTISAN_URGENCY_LEVELS = [
+  { value: "urgence_24h", label: "Urgences sous 24 h" },
+  { value: "interventions_planifiees", label: "Interventions planifiées" },
+  { value: "les_deux", label: "Les deux" },
+];
+
+const ARTISAN_INSURANCE_OPTIONS = [
+  { value: "assurance_ok", label: "Assurance professionnelle à jour" },
+  { value: "assurance_a_preciser", label: "À préciser plus tard" },
+];
+
+const ARTISAN_SLOTS = [
+  "Matin",
+  "Après-midi",
+  "Soir",
+  "Week-end",
+];
+
 const getProfileKey = (category: string): ProfileKey => {
   if (category === "proprietaire" || category === "artisan" || category === "concierge") {
     return category;
@@ -115,6 +140,9 @@ export default function AccessPopup({
   onClose,
   onValidate,
 }: AccessPopupProps) {
+  const profileKey = getProfileKey(recap.category);
+  const defaultSignupMode =
+    profileKey === "concierge" && recap.experienceLevel === "experimente" ? "express" : "simple";
   const [form, setForm] = useState<FormData>({
     firstName: initialData?.firstName ?? "",
     lastName: initialData?.lastName ?? "",
@@ -126,7 +154,7 @@ export default function AccessPopup({
     serviceRadiusKm: initialData?.serviceRadiusKm ?? "30",
     availability: initialData?.availability ?? "",
     missionPreference: initialData?.missionPreference ?? "",
-    signupMode: initialData?.signupMode ?? "simple",
+    signupMode: initialData?.signupMode ?? defaultSignupMode,
     onboardingGoal: initialData?.onboardingGoal ?? "",
     supportNeed: initialData?.supportNeed ?? "",
     existingTools: initialData?.existingTools ?? [],
@@ -136,7 +164,6 @@ export default function AccessPopup({
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
   const [submitError, setSubmitError] = useState("");
   const popupRef = useRef<HTMLDivElement>(null);
-  const profileKey = getProfileKey(recap.category);
   const copy = PROFILE_COPY[profileKey];
   const isSimpleMode = form.signupMode === "simple";
   const isExpressMode = form.signupMode === "express";
@@ -163,14 +190,14 @@ export default function AccessPopup({
       serviceRadiusKm: initialData.serviceRadiusKm ?? "30",
       availability: initialData.availability ?? "",
       missionPreference: initialData.missionPreference ?? "",
-      signupMode: initialData.signupMode ?? "simple",
+      signupMode: initialData.signupMode ?? defaultSignupMode,
       onboardingGoal: initialData.onboardingGoal ?? "",
       supportNeed: initialData.supportNeed ?? "",
       existingTools: initialData.existingTools ?? [],
       businessLink: initialData.businessLink ?? "",
       propertyTypes: initialData.propertyTypes ?? [],
     });
-  }, [initialData]);
+  }, [defaultSignupMode, initialData]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
@@ -471,6 +498,98 @@ export default function AccessPopup({
                       onChange={() => togglePropertyType(propertyType)}
                     />
                     <span>{propertyType}</span>
+                  </label>
+                ))}
+              </fieldset>
+            </section>
+          )}
+
+          {profileKey === "proprietaire" && (
+            <section className={styles.profileVariantFields}>
+              <h3>Votre objectif propriétaire</h3>
+              <label>
+                Priorité au démarrage
+                <select name="onboardingGoal" value={form.onboardingGoal} onChange={handleSelectChange}>
+                  <option value="">À préciser plus tard</option>
+                  {OWNER_GOALS.map((goal) => (
+                    <option key={goal.value} value={goal.value}>
+                      {goal.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Type de besoin
+                <select name="missionPreference" value={form.missionPreference} onChange={handleSelectChange}>
+                  <option value="">À définir</option>
+                  <option value="besoin_ponctuel">Besoin ponctuel</option>
+                  <option value="suivi_regulier">Suivi régulier</option>
+                  <option value="les_deux">Les deux</option>
+                </select>
+              </label>
+            </section>
+          )}
+
+          {profileKey === "artisan" && (
+            <section className={styles.profileVariantFields}>
+              <h3>Votre activité artisan</h3>
+              <div className={styles.identityGrid}>
+                <label>
+                  Urgence acceptée
+                  <select name="missionPreference" value={form.missionPreference} onChange={handleSelectChange}>
+                    <option value="">À définir</option>
+                    {ARTISAN_URGENCY_LEVELS.map((urgency) => (
+                      <option key={urgency.value} value={urgency.value}>
+                        {urgency.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  Assurance
+                  <select name="supportNeed" value={form.supportNeed} onChange={handleSelectChange}>
+                    <option value="">À définir</option>
+                    {ARTISAN_INSURANCE_OPTIONS.map((insurance) => (
+                      <option key={insurance.value} value={insurance.value}>
+                        {insurance.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  SIRET
+                  <input
+                    name="businessLink"
+                    value={form.businessLink}
+                    onChange={handleChange}
+                    inputMode="numeric"
+                    placeholder="14 chiffres"
+                  />
+                </label>
+
+                <label>
+                  Zone d&apos;intervention
+                  <select name="serviceRadiusKm" value={form.serviceRadiusKm} onChange={handleSelectChange}>
+                    <option value="10">10 km maximum</option>
+                    <option value="20">20 km maximum</option>
+                    <option value="30">30 km maximum</option>
+                    <option value="50">50 km maximum</option>
+                  </select>
+                </label>
+              </div>
+
+              <fieldset className={styles.checkboxGroup}>
+                <legend>Créneaux habituels</legend>
+                {ARTISAN_SLOTS.map((slot) => (
+                  <label key={slot}>
+                    <input
+                      type="checkbox"
+                      checked={form.propertyTypes.includes(slot)}
+                      onChange={() => togglePropertyType(slot)}
+                    />
+                    <span>{slot}</span>
                   </label>
                 ))}
               </fieldset>
