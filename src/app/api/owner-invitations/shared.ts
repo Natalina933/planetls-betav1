@@ -13,7 +13,7 @@ import {
 } from "@/types/ownerInvitations";
 
 type UntypedDb = {
-  from: (table: string) => ReturnType<typeof db.from>;
+  from: (table: string) => any;
 };
 
 const dbAny = db as unknown as UntypedDb;
@@ -204,7 +204,7 @@ export async function loadHousingInvitations(housingId: string | number, concier
     throw new Error("Impossible de charger les invitations.");
   }
 
-  return (data ?? []) as InvitationRow[];
+  return (data ?? []) as unknown as InvitationRow[];
 }
 
 export async function loadInvitationById(id: string) {
@@ -214,7 +214,7 @@ export async function loadInvitationById(id: string) {
     throw new Error("Impossible de charger l'invitation.");
   }
 
-  return (data ?? null) as InvitationRow | null;
+  return (data ?? null) as unknown as InvitationRow | null;
 }
 
 export async function findReusableInvitation(
@@ -238,7 +238,7 @@ export async function findReusableInvitation(
     return null;
   }
 
-  return (data ?? null) as InvitationRow | null;
+  return (data ?? null) as unknown as InvitationRow | null;
 }
 
 export async function insertInvitationEvent(

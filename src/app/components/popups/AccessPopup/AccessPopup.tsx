@@ -72,10 +72,11 @@ const PROFILE_COPY: Record<
 };
 
 const CONCIERGE_PROPERTY_TYPES = [
-  "Location courte durée",
+  "Appartement",
+  "Maison",
+  "Immeuble multi-lots",
+  "Villa haut de gamme",
   "Résidence secondaire",
-  "Résidence principale",
-  "Immeuble ou multi-logements",
 ];
 
 const CONCIERGE_TOOLS = [
@@ -465,21 +466,11 @@ export default function AccessPopup({
                       </label>
                     ))}
                   </fieldset>
-
-                  <label>
-                    Site, page ou lien professionnel
-                    <input
-                      name="businessLink"
-                      value={form.businessLink}
-                      onChange={handleChange}
-                      placeholder="https://..."
-                    />
-                  </label>
                 </>
               )}
 
               <label>
-                Type de collaboration recherchée
+Type de collaboration recherchée (retravaillé)
                 <select name="missionPreference" value={form.missionPreference} onChange={handleSelectChange}>
                   <option value="">Ouverte aux opportunités</option>
                   <option value="ponctuelles">Missions ponctuelles</option>
