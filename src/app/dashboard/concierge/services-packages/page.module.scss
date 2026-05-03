@@ -1,29 +1,65 @@
+@use "@/app/styles/abstracts/variables" as var;
+
 .page {
+  --ui-color-bg: #f4f6f8;
+  --ui-color-surface: #ffffff;
+  --ui-color-surface-soft: #ebeff2;
+  --ui-color-border: #d5dbdf;
+  --ui-color-text: #2c3e50;
+  --ui-color-text-muted: #5d6d7e;
+  --ui-color-primary: #d4af37;
+  --ui-color-primary-strong: #b5a642;
+  --ui-color-accent: #1a2530;
+  --ui-button-radius: 4px;
+  --ui-card-radius: 4px;
+  --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
+  --ui-shadow-md: 0 12px 24px rgba(44, 62, 80, 0.09);
+
   display: grid;
   gap: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent 38%),
+    linear-gradient(180deg, #f7f8fa 0%, var(--ui-color-bg) 100%);
+}
+
+.hero,
+.workspaceMain {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.hero::before,
+.workspaceMain::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border: 1px solid rgba(212, 175, 55, 0.36);
 }
 
 .hero {
   display: grid;
   gap: 1.25rem;
-  padding: 1.5rem;
-  border-radius: 28px;
-  border: 1px solid rgba(184, 92, 72, 0.18);
+  padding: clamp(1.25rem, 2vw, 1.8rem);
   background:
-    radial-gradient(circle at top right, rgba(184, 92, 72, 0.12), transparent 34%),
-    linear-gradient(145deg, #fffdf8 0%, #f7ece5 100%);
-  box-shadow: 0 18px 40px rgba(109, 53, 41, 0.08);
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 34%),
+    var(--ui-color-surface);
 }
 
 .eyebrow {
-  font-size: 0.8rem;
+  color: var(--ui-color-primary-strong);
+  font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #8a4f3f;
 }
 
 .heroTop {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -37,15 +73,29 @@
   max-width: 72ch;
 }
 
-.heroTitle {
+.heroTitle,
+.sectionTitle {
   margin: 0;
-  color: #3f2f14;
+  color: var(--ui-color-accent);
+  font-family: var.$font-elegant;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.heroText {
+.heroTitle {
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+}
+
+.sectionTitle {
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.heroText,
+.sectionText {
   margin: 0;
-  color: #5f5237;
-  line-height: 1.6;
+  color: var(--ui-color-text-muted);
+  line-height: 1.65;
 }
 
 .heroActions {
@@ -55,30 +105,37 @@
 }
 
 .heroLink {
-  color: #7b5b23;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-button-radius);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.heroLink:hover {
+  border-color: rgba(212, 175, 55, 0.62);
+  box-shadow: var(--ui-shadow-md);
+  transform: translateY(-1px);
 }
 
 .metricsGrid {
+  position: relative;
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .sectionHeader {
+  position: relative;
   display: grid;
   gap: 0.4rem;
-}
-
-.sectionTitle {
-  margin: 0;
-  color: #3f2f14;
-}
-
-.sectionText {
-  margin: 0;
-  color: #5f5237;
-  line-height: 1.6;
 }
 
 .workspace {
@@ -92,10 +149,6 @@
   display: grid;
   gap: 1rem;
   padding: 1rem;
-  border-radius: 22px;
-  border: 1px solid rgba(184, 92, 72, 0.14);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(109, 53, 41, 0.06);
 }
 
 .workspaceAside {
@@ -107,6 +160,12 @@
 
 .copyLine {
   margin: 0;
+  color: var(--ui-color-text-muted);
+  line-height: 1.55;
+}
+
+.copyLine strong {
+  color: var(--ui-color-accent);
 }
 
 @media (max-width: 960px) {

@@ -21,7 +21,12 @@ import type { PricingModifierKey, PricingOverrideValue, PricingV2Config } from '
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
 type PricingType = 'hourly' | 'fixed' | 'monthly' | 'custom';
-type PropertyType = 'appartement' | 'maison' | 'villa' | 'studio' | 'bureau';
+type PropertyType =
+  | 'appartement'
+  | 'maison'
+  | 'immeuble_multi_lots'
+  | 'villa_haut_de_gamme'
+  | 'residence_secondaire';
 
 interface ServiceCatalogItem {
   id: string;
@@ -157,9 +162,9 @@ const PricingGridManager = ({
   const propertyTypes: Array<{ value: PropertyType; label: string }> = [
     { value: 'appartement', label: 'Appartement' },
     { value: 'maison', label: 'Maison' },
-    { value: 'villa', label: 'Villa' },
-    { value: 'studio', label: 'Studio' },
-    { value: 'bureau', label: 'Bureau' }
+    { value: 'immeuble_multi_lots', label: 'Immeuble multi-lots' },
+    { value: 'villa_haut_de_gamme', label: 'Villa haut de gamme' },
+    { value: 'residence_secondaire', label: 'Résidence secondaire' },
   ];
 
   const pricingTypes: Array<{ value: PricingType; label: string }> = [
@@ -167,6 +172,68 @@ const PricingGridManager = ({
     { value: 'fixed', label: 'Forfait' },
     { value: 'monthly', label: 'Mensuel' },
     { value: 'custom', label: 'Personnalisé' }
+  ];
+
+  const suggestedPricingRules: Array<{
+    label: string;
+    propertyType: PropertyType;
+    type: PricingType;
+    surfaceMin: string;
+    surfaceMax: string;
+    amount: string;
+    duration: string;
+    note: string;
+  }> = [
+    {
+      label: 'Ménage appartement 2 pièces',
+      propertyType: 'appartement',
+      type: 'fixed',
+      surfaceMin: '0',
+      surfaceMax: '50',
+      amount: '45',
+      duration: '2',
+      note: 'Base simple pour petites surfaces.',
+    },
+    {
+      label: 'Ménage maison familiale',
+      propertyType: 'maison',
+      type: 'fixed',
+      surfaceMin: '50',
+      surfaceMax: '120',
+      amount: '90',
+      duration: '3.5',
+      note: 'Forfait courant avant état des lieux.',
+    },
+    {
+      label: 'Suivi immeuble multi-lots',
+      propertyType: 'immeuble_multi_lots',
+      type: 'monthly',
+      surfaceMin: '120',
+      surfaceMax: '500',
+      amount: '280',
+      duration: '6',
+      note: 'Pilotage récurrent par ensemble.',
+    },
+    {
+      label: 'Préparation villa haut de gamme',
+      propertyType: 'villa_haut_de_gamme',
+      type: 'fixed',
+      surfaceMin: '120',
+      surfaceMax: '300',
+      amount: '180',
+      duration: '5',
+      note: 'Niveau premium avec contrôle renforcé.',
+    },
+    {
+      label: 'Entretien résidence secondaire',
+      propertyType: 'residence_secondaire',
+      type: 'monthly',
+      surfaceMin: '60',
+      surfaceMax: '180',
+      amount: '160',
+      duration: '4',
+      note: 'Forfait mensuel de surveillance.',
+    },
   ];
 
   /* -------------------------------------------------------------------------- */
@@ -360,6 +427,19 @@ const PricingGridManager = ({
     });
     setEditingId(pricing.id);
     setShowAddForm(true);
+  };
+
+  const applySuggestedPricingRule = (rule: (typeof suggestedPricingRules)[number]) => {
+    setFormData((current) => ({
+      ...current,
+      label: rule.label,
+      type: rule.type,
+      property_type: rule.propertyType,
+      surface_min: rule.surfaceMin,
+      surface_max: rule.surfaceMax,
+      amount: rule.amount,
+      estimated_duration: rule.duration,
+    }));
   };
 
   const handleDelete = async (id: string) => {
@@ -1284,6 +1364,32 @@ const PricingGridManager = ({
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
               />
             </div>
+
+            {!editingId && (
+              <div className={styles.suggestedPricingBlock}>
+                <div className={styles.suggestedPricingHeader}>
+                  <span>Tarifs proposés</span>
+                  <p>Préremplissez la règle avec un type de bien que vous pouvez gérer.</p>
+                </div>
+                <div className={styles.suggestedPricingGrid}>
+                  {suggestedPricingRules.map((rule) => (
+                    <button
+                      key={rule.propertyType}
+                      type="button"
+                      className={styles.suggestedPricingCard}
+                      onClick={() => applySuggestedPricingRule(rule)}
+                    >
+                      <strong>{propertyTypes.find((type) => type.value === rule.propertyType)?.label}</strong>
+                      <span>{rule.label}</span>
+                      <small>
+                        {rule.amount} EUR · {rule.duration} h · {rule.surfaceMin}-{rule.surfaceMax} m²
+                      </small>
+                      <em>{rule.note}</em>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className={styles.formGrid}>
               {/* Type de bien */}

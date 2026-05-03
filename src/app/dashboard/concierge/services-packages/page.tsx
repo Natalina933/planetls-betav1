@@ -132,10 +132,7 @@ export default function ServicesPackagesPage() {
           <div className={styles.heroCopy}>
             <h1 className={styles.heroTitle}>Packs de services concierge</h1>
             <p className={styles.heroText}>
-              Structurez des offres simples à réutiliser dans vos logements : un pack prêt à
-              l&apos;emploi pour aller vite, ou quelques services à la carte quand le besoin est
-              plus spécifique. Les tarifs et modèles de contrat restent directement liés à vos
-              packs.
+              Regroupez vos services en offres lisibles, puis rattachez tarifs et contrats.
             </p>
           </div>
 
@@ -170,9 +167,7 @@ export default function ServicesPackagesPage() {
             <span className={styles.eyebrow}>Construction des offres</span>
             <h2 className={styles.sectionTitle}>Créer des packs clairs et réutilisables</h2>
             <p className={styles.sectionText}>
-              Commencez par sélectionner les services actifs de votre conciergerie,
-              regroupez-les dans un pack lisible, puis rattachez un tarif pour accélérer la
-              configuration des logements.
+              Choisissez les services, nommez l&apos;offre, puis reliez les prix utiles.
             </p>
           </div>
 
@@ -180,14 +175,6 @@ export default function ServicesPackagesPage() {
         </section>
 
         <aside className={styles.workspaceAside}>
-          <OfferInfoCard title="Parcours recommandé">
-            <p className={styles.copyLine}>1. Activez vos services dans Missions.</p>
-            <p className={styles.copyLine}>2. Regroupez-les dans un pack simple.</p>
-            <p className={styles.copyLine}>
-              3. Liez un tarif pour rendre le pack exploitable dans les logements.
-            </p>
-          </OfferInfoCard>
-
           <OfferInfoCard title="Lecture rapide">
             {highlightedPack ? (
               <>
@@ -200,8 +187,7 @@ export default function ServicesPackagesPage() {
               </>
             ) : (
               <p className={styles.copyLine}>
-                Aucun pack créé pour le moment. Préparez votre premier pack pour simplifier la
-                configuration des logements.
+                Aucun pack créé pour le moment.
               </p>
             )}
             <p className={styles.copyLine}>

@@ -73,6 +73,7 @@
 .headerActions {
   justify-content: space-between;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .modeSwitch {
@@ -103,6 +104,7 @@
 }
 
 .iconButton {
+  position: relative;
   width: 42px;
   height: 42px;
   border: 1px solid var(--dash-border);
@@ -110,6 +112,23 @@
   background: var(--dash-bg-panel);
   color: var(--dash-text);
   text-decoration: none;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -0.28rem;
+  right: -0.28rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #a83b30;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 900;
 }
 
 .todaySection,
@@ -178,9 +197,23 @@
 }
 
 .kpiBody p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   font-size: 0.82rem;
   font-weight: 900;
   text-transform: uppercase;
+
+  span {
+    flex: 0 0 auto;
+    min-height: 24px;
+    padding: 0.22rem 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+    color: var(--dash-accent-strong);
+    font-size: 0.68rem;
+  }
 }
 
 .kpiBody strong {
@@ -252,10 +285,35 @@
   font-size: 0.9rem;
 }
 
+.statusBadge,
+.missionCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 30px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.statusBadge {
+  padding: 0.28rem 0.62rem;
+  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+  color: var(--dash-accent-strong);
+}
+
+.missionCta {
+  margin-top: auto;
+  padding: 0.42rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 46%, var(--dash-border));
+  background: var(--dash-bg-panel);
+  color: var(--dash-text);
+}
+
 .missionMeta {
   justify-content: space-between;
   gap: 0.5rem;
-  margin-top: auto;
 
   span {
     min-width: 0;

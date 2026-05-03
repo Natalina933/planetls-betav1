@@ -17,9 +17,24 @@ export const OWNER_NAV_ITEMS: DashboardNavItem[] = [
 ];
 
 export const OWNER_QUICK_ACTIONS: DashboardQuickAction[] = [
-  { label: "Ajouter un logement", href: "/dashboard/owner/logements/create" },
-  { label: "Trouver une conciergerie", href: "/dashboard/owner/concierges" },
-  { label: "Demander une intervention", href: "/dashboard/owner/mission-urgente" },
+  {
+    label: "Ajouter mon logement",
+    href: "/dashboard/owner/logements/create",
+    badge: "A faire en premier",
+    description: "Creez la fiche du bien pour lancer le suivi, les demandes et les futures mises en relation.",
+  },
+  {
+    label: "Trouver une conciergerie",
+    href: "/dashboard/owner/concierges",
+    badge: "Mise en relation",
+    description: "Comparez les profils disponibles et gardez un interlocuteur clair pour votre bien.",
+  },
+  {
+    label: "Demander une intervention",
+    href: "/dashboard/owner/mission-urgente",
+    badge: "Besoin urgent",
+    description: "Signalez une demande terrain quand un point bloque l'exploitation ou la satisfaction.",
+  },
 ];
 
 export const OWNER_SHORTCUTS: DashboardShortcutItem[] = [

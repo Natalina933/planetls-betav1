@@ -82,6 +82,7 @@ const asStringArray = (value: unknown): string[] =>
 
 const parseSignupMode = (value: unknown): SignupMode => {
   if (value === "express" || value === "business") return value;
+  if (value === "business+") return "business";
   return "simple";
 };
 

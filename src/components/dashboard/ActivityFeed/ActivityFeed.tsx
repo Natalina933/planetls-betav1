@@ -19,12 +19,13 @@ export function ActivityFeed({ items, title = "Activité récente" }: ActivityFe
         {items.map((item) => (
           <article key={item.id} className={styles.item}>
             <div>
+              {item.statusLabel ? <span className={styles.statusBadge}>{item.statusLabel}</span> : null}
               <h3>{item.title}</h3>
               {item.description ? <p>{item.description}</p> : null}
             </div>
             <div className={styles.meta}>
               {item.dateLabel ? <span>{item.dateLabel}</span> : null}
-              {item.href ? <Link href={item.href}>Ouvrir</Link> : null}
+              {item.href ? <Link href={item.href}>{item.actionLabel ?? "Ouvrir"}</Link> : null}
             </div>
           </article>
         ))}

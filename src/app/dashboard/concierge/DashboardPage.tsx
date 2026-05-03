@@ -17,13 +17,14 @@ import {
   WalletCards,
   Zap,
 } from "lucide-react";
-import { DashboardLoadingScreen } from "@/components/dashboard";
+import { DashboardLoadingScreen, ReadabilityControls } from "@/components/dashboard";
 import { AsyncState, Badge, Card, CardBody } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue } from "@/app/utils/formatters";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { parseOnboardingDetails } from "@/features/onboarding-assistant";
 import { useConciergeDashboardData } from "./useConciergeDashboardData";
+import ConciergeWelcomeNextStep from "./ConciergeWelcomeNextStep";
 import NextStepsPopup from "./NextStepsPopup";
 import type { ConciergeOwnerMatch } from "./dashboardClient";
 import styles from "./Dashboard.module.scss";
@@ -96,6 +97,7 @@ export default function DashboardPage() {
       label: "Revenu jour",
       value: mode === "expert" ? `${kpis?.completed ?? 0}` : "--",
       hint: mode === "expert" ? "missions terminées" : "à connecter",
+      delta: mode === "expert" ? "+5%" : "Setup",
       icon: WalletCards,
       tone: "gold",
     },
@@ -104,6 +106,7 @@ export default function DashboardPage() {
       label: "Urgences",
       value: `${urgentCount}`,
       hint: `${plannedNow.length} mission(s) planifiée(s)`,
+      delta: urgentCount > 0 ? "Priorite" : "Stable",
       icon: Zap,
       tone: urgentCount > 0 ? "danger" : "success",
     },
@@ -112,6 +115,7 @@ export default function DashboardPage() {
       label: "Messages",
       value: formatMinutes(kpis?.avg_response_minutes),
       hint: "temps réponse",
+      delta: "SLA",
       icon: MessageSquareText,
       tone: "info",
     },
@@ -144,6 +148,7 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.headerActions}>
+          <ReadabilityControls />
           <div className={styles.modeSwitch} role="group" aria-label="Mode dashboard">
             <button
               type="button"
@@ -158,6 +163,7 @@ export default function DashboardPage() {
           </div>
           <Link href="/dashboard/concierge/alertes" className={styles.iconButton} aria-label="Notifications">
             <Bell size={22} aria-hidden="true" />
+            {urgentCount > 0 ? <span className={styles.notificationBadge}>{urgentCount}</span> : null}
           </Link>
         </div>
       </header>
@@ -185,7 +191,10 @@ export default function DashboardPage() {
                     <Icon size={30} strokeWidth={2.2} aria-hidden="true" />
                   </span>
                   <div>
-                    <p>{item.label}</p>
+                    <p>
+                      {item.label}
+                      <span>{item.delta}</span>
+                    </p>
                     <strong>{item.value}</strong>
                     <small>{item.hint}</small>
                   </div>
@@ -195,6 +204,8 @@ export default function DashboardPage() {
           })}
         </div>
       </section>
+
+      <ConciergeWelcomeNextStep availabilityHours={user?.availability_hours} />
 
       <section className={styles.missionsSection} aria-labelledby="missions-title">
         <div className={styles.sectionHeader}>
@@ -220,11 +231,15 @@ export default function DashboardPage() {
                     <Home size={34} strokeWidth={2.1} aria-hidden="true" />
                   </span>
                   <strong>{match.title}</strong>
+                  <span className={styles.statusBadge}>
+                    {match.compatibility_score >= 80 ? "Prioritaire" : "A qualifier"}
+                  </span>
                   <p>{match.city || "Ville à préciser"}</p>
                   <div className={styles.missionMeta}>
                     <span>{match.compatibility_score}%</span>
                     <span>{match.distance_km ? `${match.distance_km.toFixed(1)} km` : "local"}</span>
                   </div>
+                  <span className={styles.missionCta}>Accepter</span>
                 </Link>
               ))
             ) : (
@@ -234,11 +249,15 @@ export default function DashboardPage() {
                     <CalendarClock size={34} strokeWidth={2.1} aria-hidden="true" />
                   </span>
                   <strong>{String(event.title || "Mission")}</strong>
+                  <span className={styles.statusBadge}>
+                    {event.type === "reminder" ? "Urgent" : "Planifie"}
+                  </span>
                   <p>{formatDateValue(event.start, { day: "2-digit", month: "short", hour: "2-digit" })}</p>
                   <div className={styles.missionMeta}>
                     <span>{event.type === "reminder" ? "urgent" : "prévu"}</span>
                     <span>planning</span>
                   </div>
+                  <span className={styles.missionCta}>Voir</span>
                 </Link>
               ))
             )}

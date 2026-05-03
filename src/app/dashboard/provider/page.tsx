@@ -38,21 +38,25 @@ export default function ProviderDashboardPage() {
           label: "Interventions en cours",
           value: `${stats?.inProgress ?? 0}`,
           hint: `${stats?.interventions ?? 0} intervention(s) suivie(s)`,
+          trend: (stats?.inProgress ?? 0) > 0 ? "Terrain" : "OK",
         },
         {
           label: "Alertes urgentes",
           value: `${stats?.urgentAlerts ?? 0}`,
           hint: `${stats?.alerts ?? 0} alerte(s) ouvertes`,
+          trend: (stats?.urgentAlerts ?? 0) > 0 ? "Priorite" : "Stable",
         },
         {
           label: "Clients actifs",
           value: `${stats?.activeClients ?? 0}`,
           hint: `${stats?.clients ?? 0} client(s) total`,
+          trend: "Portefeuille",
         },
         {
           label: "Conversations",
           value: `${stats?.conversations ?? 0}`,
           hint: "Suivi relationnel en continu",
+          trend: "SLA",
         },
       ]}
       actions={ARTISAN_QUICK_ACTIONS}
@@ -65,12 +69,16 @@ export default function ProviderDashboardPage() {
             emptyLabel: "Budget à confirmer",
           })}`,
           href: `/dashboard/provider/interventions?intervention=${item.id}`,
+          statusLabel: "Intervention",
+          actionLabel: "Accepter",
         })),
         ...highlightedClients.map((item) => ({
           id: `client-${item.id}`,
           title: item.client_name || item.company_name || "Client",
           description: item.city || "Ville non renseignée",
           href: `/dashboard/provider/clients?client=${item.id}`,
+          statusLabel: "Client",
+          actionLabel: "Voir",
         })),
       ]}
       notifications={[

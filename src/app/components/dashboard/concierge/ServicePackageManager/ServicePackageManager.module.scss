@@ -1,4 +1,21 @@
+@use "@/app/styles/abstracts/variables" as var;
+
 .container {
+  --ui-color-bg: #f4f6f8;
+  --ui-color-surface: #ffffff;
+  --ui-color-surface-soft: #ebeff2;
+  --ui-color-border: #d5dbdf;
+  --ui-color-text: #2c3e50;
+  --ui-color-text-muted: #5d6d7e;
+  --ui-color-primary: #d4af37;
+  --ui-color-primary-strong: #b5a642;
+  --ui-color-accent: #1a2530;
+  --ui-button-radius: 4px;
+  --ui-input-radius: 4px;
+  --ui-card-radius: 4px;
+  --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
+  --ui-shadow-md: 0 12px 24px rgba(44, 62, 80, 0.09);
+
   padding: 2rem;
   background:
     radial-gradient(circle at top left, rgba(117, 172, 173, 0.14), transparent 28rem),
@@ -775,4 +792,193 @@
   .packDetails {
     max-height: none;
   }
+}
+
+/* Art deco cards ----------------------------------------------------------- */
+.container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-sm);
+  color: var(--ui-color-text);
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.header {
+  position: relative;
+  border-bottom-color: rgba(212, 175, 55, 0.32);
+}
+
+.header h2,
+.listHeader h3,
+.newPackForm h4,
+.templatesHeader h5,
+.templateTitle,
+.packItemHeader h4,
+.detailsHeader h3,
+.detailsSection h4 {
+  color: var(--ui-color-accent);
+  font-family: var.$font-elegant;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.header p,
+.hint,
+.serviceDesc,
+.emptyContent p,
+.templatesHeader p,
+.templateDescription,
+.templatePromise,
+.serviceCount,
+.packDescription,
+.detailsDescription,
+.emptyState {
+  color: var(--ui-color-text-muted);
+}
+
+.addButton,
+.saveButton,
+.templateButton {
+  border-radius: var(--ui-button-radius);
+  background: var(--ui-color-accent);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.addButton:hover,
+.saveButton:hover:not(:disabled),
+.templateButton:hover:not(:disabled) {
+  box-shadow: var(--ui-shadow-md);
+  transform: translateY(-1px);
+}
+
+.cancelButton,
+.linkButton,
+.serviceCheckbox,
+.categoryGroup,
+.newPackForm,
+.empty,
+.emptyHero,
+.templatesPanel,
+.templateCard,
+.packItem,
+.packDetails,
+.serviceItem,
+.linkedList li,
+.emptyState,
+.infoBox {
+  border-color: var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
+}
+
+.newPackForm,
+.templatesPanel,
+.templateCard,
+.packItem,
+.packDetails {
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.templateCard,
+.packItem {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.templateCard::before,
+.packItem::before,
+.packDetails::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border: 1px solid rgba(212, 175, 55, 0.26);
+}
+
+.templateCard:hover,
+.packItem:hover {
+  border-color: rgba(212, 175, 55, 0.62);
+  box-shadow: var(--ui-shadow-md);
+  transform: translateY(-2px);
+}
+
+.packItem.active {
+  border-color: rgba(212, 175, 55, 0.7);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.12), transparent 34%),
+    var(--ui-color-surface);
+}
+
+.templateCategory,
+.templateRecommended,
+.templateState,
+.badgeCategory,
+.serviceCategory,
+.templateHints span {
+  border: 1px solid rgba(212, 175, 55, 0.36);
+  border-radius: var(--ui-button-radius);
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--ui-color-accent);
+}
+
+.formGroup label,
+.serviceSelection label,
+.serviceName,
+.serviceItem,
+.linkedList li {
+  color: var(--ui-color-text);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  border-color: var(--ui-color-border);
+  border-radius: var(--ui-input-radius);
+  color: var(--ui-color-text);
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: rgba(212, 175, 55, 0.72);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+}
+
+.linkButton {
+  color: var(--ui-color-accent);
+}
+
+.linkButton:hover {
+  background: var(--ui-color-accent);
+  color: #ffffff;
+}
+
+.deleteButton {
+  border-radius: var(--ui-button-radius);
+}
+
+.infoBox {
+  border-left-color: var(--ui-color-primary);
+}
+
+.infoBox svg {
+  color: var(--ui-color-primary-strong);
+}
+
+.container :is(button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.32);
+  outline-offset: 2px;
 }

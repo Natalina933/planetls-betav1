@@ -131,7 +131,7 @@
 @media (max-width: 992px) {
   .grid {
     grid-template-columns: 1fr;
-    min-height: auto;
+    min-height: 0;
     padding-top: 4rem;
     padding-bottom: 3rem;
   }
@@ -157,7 +157,7 @@
 
 @media (max-width: 640px) {
   .hero {
-    min-height: auto;
+    min-height: 0;
   }
 
   .grid {

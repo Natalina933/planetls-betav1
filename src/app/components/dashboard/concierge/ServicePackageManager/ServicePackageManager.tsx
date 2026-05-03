@@ -433,7 +433,7 @@ const ServicePackageManager: React.FC<Props> = ({
         <h2>
           <Package size={24} /> Packs de services
         </h2>
-        <p>Groupez vos services proposés pour créer des packages tarifaires et contractuels.</p>
+        <p>Composez vos offres, puis reliez prix et contrats.</p>
       </div>
 
       <div className={styles.content}>
@@ -471,8 +471,9 @@ const ServicePackageManager: React.FC<Props> = ({
               </div>
 
               <div className={styles.formGroup}>
-                <label>Catégorie principale *</label>
+                <label htmlFor="service-package-category">Catégorie principale *</label>
                 <select
+                  id="service-package-category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
@@ -488,10 +489,7 @@ const ServicePackageManager: React.FC<Props> = ({
               <div className={styles.serviceSelection}>
                 <label>Services du pack *</label>
                 <p className={styles.hint}>
-                  Sélectionnez au moins un service proposé actif dans Missions :
-                </p>
-                <p className={styles.hint}>
-                  {availableServices.length} service(s) disponible(s) selon vos services actifs.
+                  {availableServices.length} service(s) disponible(s). Sélectionnez ceux du pack.
                 </p>
 
                 {availableServices.length === 0 && (
@@ -578,8 +576,7 @@ const ServicePackageManager: React.FC<Props> = ({
                   <div className={styles.emptyContent}>
                     <strong>Construisez votre première offre prête à vendre</strong>
                     <p>
-                      Commencez avec un modèle conciergerie, puis ajustez les services,
-                      les tarifs et les contrats selon votre façon de travailler.
+                      Choisissez un modèle, puis ajustez services, tarifs et contrats.
                     </p>
                   </div>
                 </div>
@@ -591,7 +588,7 @@ const ServicePackageManager: React.FC<Props> = ({
                 <div className={styles.templatesHeader}>
                   <div>
                     <h5>{packages.length === 0 ? "Modèles proposés" : "Autres modèles disponibles"}</h5>
-                    <p>Des offres déjà structurées pour aller plus vite sans repartir de zéro.</p>
+                    <p>Des bases prêtes à adapter.</p>
                   </div>
                 </div>
                 <div className={styles.templateGrid}>
@@ -659,10 +656,12 @@ const ServicePackageManager: React.FC<Props> = ({
             <div className={styles.detailsHeader}>
               <h3>{selectedPackage.name}</h3>
               <button
+                type="button"
                 onClick={() => {
                   handleRemovePackage(selectedPackage.id);
                 }}
                 className={styles.deleteButton}
+                aria-label={`Supprimer le pack ${selectedPackage.name}`}
               >
                 <X size={18} />
               </button>
@@ -748,7 +747,11 @@ const ServicePackageManager: React.FC<Props> = ({
                   {selectedPackage.attached_contract_ids.map((contractId) => (
                     <li key={contractId}>
                       <span>Contrat #{contractId}</span>
-                      <button className={styles.unlinkButton}>
+                      <button
+                        className={styles.unlinkButton}
+                        type="button"
+                        aria-label={`Détacher le modèle de contrat ${contractId}`}
+                      >
                         <Unlink size={14} />
                       </button>
                     </li>
@@ -760,8 +763,7 @@ const ServicePackageManager: React.FC<Props> = ({
             <div className={styles.infoBox}>
               <AlertCircle size={18} />
               <p>
-                Ce pack regroupe vos services proposés. Vous pouvez le lier à des tarifs
-                spécifiques et à des modèles de contrats.
+                Reliez ce pack à ses tarifs et contrats.
               </p>
             </div>
           </div>

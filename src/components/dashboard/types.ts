@@ -15,6 +15,8 @@ export interface DashboardStatItem {
 export interface DashboardQuickAction {
   label: string;
   href: string;
+  description?: string;
+  badge?: string;
 }
 
 export interface DashboardActivityItem {
@@ -23,6 +25,8 @@ export interface DashboardActivityItem {
   description?: string;
   href?: string;
   dateLabel?: string;
+  statusLabel?: string;
+  actionLabel?: string;
 }
 
 export interface DashboardNotificationItem {

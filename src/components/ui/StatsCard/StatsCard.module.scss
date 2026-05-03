@@ -1,10 +1,12 @@
 .statsCard {
-  border: 1px solid var(--ds-color-border);
-  background: linear-gradient(140deg, var(--ds-color-surface-soft), var(--ds-color-surface));
+  min-height: 132px;
+  border: 1px solid var(--dash-border, var(--ds-color-border));
+  border-radius: 16px;
+  background: var(--dash-bg-panel, var(--ds-color-surface));
 }
 
 .soft {
-  background: linear-gradient(140deg, var(--ds-color-surface-soft), var(--ds-color-surface));
+  background: var(--dash-bg-panel, var(--ds-color-surface));
 }
 
 .dark {
@@ -22,8 +24,10 @@
 .label {
   margin: 0;
   font-size: 0.82rem;
-  color: var(--ds-color-text-muted);
-  letter-spacing: 0.01em;
+  color: var(--dash-text-muted, var(--ds-color-text-muted));
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .trend {
@@ -38,14 +42,14 @@
 .value {
   margin: 8px 0 0;
   display: block;
-  font-size: 1.42rem;
-  line-height: 1.1;
-  color: var(--ds-color-text);
+  font-size: clamp(1.65rem, 4vw, 2rem);
+  line-height: 1;
+  color: var(--dash-text, var(--ds-color-text));
 }
 
 .hint {
   margin: 8px 0 0;
-  color: var(--ds-color-text-muted);
+  color: var(--dash-text-muted, var(--ds-color-text-muted));
   font-size: 0.82rem;
   line-height: 1.3;
 }

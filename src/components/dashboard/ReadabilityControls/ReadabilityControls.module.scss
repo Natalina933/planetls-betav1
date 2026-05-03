@@ -1,0 +1,45 @@
+.controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.35rem;
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-sm);
+  background: var(--dash-bg-panel);
+}
+
+.controls span {
+  padding: 0 0.35rem;
+  color: var(--dash-text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.button,
+.active {
+  min-width: 38px;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.button {
+  background: transparent;
+  color: var(--dash-text-muted);
+}
+
+.active {
+  background: color-mix(in srgb, var(--dash-accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--dash-accent) 42%, var(--dash-border));
+  color: var(--dash-accent-strong);
+}
+
+.button:hover {
+  color: var(--dash-text);
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+}

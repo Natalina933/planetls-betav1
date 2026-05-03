@@ -53,6 +53,8 @@ export default function OwnerDashboardPage() {
       title: property.nom_logement || "Logement sans nom",
       description: `${property.ville || "Ville non renseignée"} · ${getOwnerHousingStatusLabel(property.statut)}`,
       href: `/dashboard/owner/logements/${property.id}`,
+      statusLabel: property.statut === "Actif - suivi en cours" ? "Actif" : "A finaliser",
+      actionLabel: "Voir",
     })),
     ...takeFirst(ongoingMissions, 2).map((mission) => ({
       id: `mission-${mission.id}`,
@@ -63,6 +65,8 @@ export default function OwnerDashboardPage() {
         year: "numeric",
       })} · ${formatEuroAmountLabel(mission.amount)}`,
       href: "/dashboard/owner/planning",
+      statusLabel: "Mission",
+      actionLabel: "Suivre",
     })),
   ];
 
@@ -117,21 +121,25 @@ export default function OwnerDashboardPage() {
           label: "Logements actifs",
           value: `${activeCount}/${properties.length}`,
           hint: draftCount > 0 ? `${draftCount} fiche(s) à finaliser` : "Parc opérationnel",
+          trend: draftCount > 0 ? "Setup" : "Stable",
         },
         {
           label: "Opérations ouvertes",
           value: `${ongoingMissions.length}`,
           hint: `${completedMissions.length} intervention(s) terminée(s)`,
+          trend: ongoingMissions.length > 0 ? "A suivre" : "OK",
         },
         {
           label: "Factures à régler",
           value: `${pendingInvoices.length}`,
           hint: `${latestInvoices.length} facture(s) récente(s)`,
+          trend: pendingInvoices.length > 0 ? "Priorite" : "OK",
         },
         {
           label: "Satisfaction",
           value: averageRating ? `${averageRating.toFixed(1)} / 5` : "--",
           hint: `${unreadConversationCount} message(s) non lu(s)`,
+          trend: unreadConversationCount > 0 ? "Message" : "Stable",
         },
       ]}
       actions={OWNER_QUICK_ACTIONS}
