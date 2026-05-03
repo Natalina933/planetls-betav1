@@ -7,7 +7,18 @@
 .planningHeroProgressHint,
 .planningStatLabel,
 .heroStatHint {
-  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+@supports (text-wrap: balance) {
+  .planningHeroHeading,
+  .planningHeroLead,
+  .planningHeroProgressHint,
+  .planningStatLabel,
+  .heroStatHint {
+    overflow-wrap: normal;
+    text-wrap: balance;
+  }
 }
 
 .planningHeroProgressMeta strong,

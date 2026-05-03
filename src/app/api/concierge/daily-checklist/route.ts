@@ -3,6 +3,12 @@ import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 
+const conciergeDb = db as unknown as {
+  // The migration adds this table; generated Supabase types can be refreshed later.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from(table: "concierge_daily_checklist"): any;
+};
+
 const checklistQuerySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
@@ -38,7 +44,7 @@ export async function GET(req: NextRequest) {
     }
 
     const taskDate = parsed.data.date ?? getTodayIsoDate();
-    const { data, error } = await db
+    const { data, error } = await conciergeDb
       .from("concierge_daily_checklist")
       .select("id, task_key, completed, completed_at, updated_at")
       .eq("profile_id", auth.userId)
@@ -73,7 +79,7 @@ export async function PATCH(req: NextRequest) {
 
     const { date, taskKey, completed } = parsed.data;
     const now = new Date().toISOString();
-    const { data, error } = await db
+    const { data, error } = await conciergeDb
       .from("concierge_daily_checklist")
       .upsert(
         {

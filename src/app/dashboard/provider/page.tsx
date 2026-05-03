@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
+import { DashboardOnboardingSummary } from "@/features/onboarding-assistant";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import {
   ARTISAN_DASHBOARD_CONFIG,
@@ -99,6 +100,13 @@ export default function ProviderDashboardPage() {
         badge: workspace?.summary.is_pro ? "Artisan PRO" : "Artisan Standard",
       }}
     >
+      <DashboardOnboardingSummary
+        role="provider"
+        availabilityHours={workspace?.profile.availability_hours}
+        serviceArea={workspace?.profile.service_area}
+        serviceRadiusKm={workspace?.profile.service_radius_km}
+      />
+
       <DashboardPanel title="Vue d’ensemble">
         <AsyncState
           loading={isLoading}

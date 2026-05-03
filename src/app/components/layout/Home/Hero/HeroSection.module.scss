@@ -62,9 +62,16 @@
   line-height: 1.02;
   font-weight: 700;
   letter-spacing: -0.04em;
-  text-wrap: balance;
+  overflow-wrap: anywhere;
   color: #2f2418;
   text-shadow: none;
+}
+
+@supports (text-wrap: balance) {
+  .content h1 {
+    overflow-wrap: normal;
+    text-wrap: balance;
+  }
 }
 
 .highlight {

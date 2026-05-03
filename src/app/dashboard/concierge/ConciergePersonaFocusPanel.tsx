@@ -50,7 +50,7 @@ export default function ConciergePersonaFocusPanel({ mode }: ConciergePersonaFoc
 
   return (
     <DashboardPanel
-      title={isEssential ? "Mode Lynda: essentiel" : "Mode Christa: expert"}
+      title={isEssential ? "Mode essentiel" : "Mode expert"}
       bodyClassName={styles.body}
       action={
         <Link href="/dashboard/concierge/profile?tab=missions" className={styles.panelAction}>
@@ -64,7 +64,7 @@ export default function ConciergePersonaFocusPanel({ mode }: ConciergePersonaFoc
           return (
             <article key={item.title} className={styles.focusCard}>
               <span className={styles.icon}>
-                <Icon size={20} />
+                <Icon size={30} strokeWidth={2.2} />
               </span>
               <strong>{item.title}</strong>
               <p>{item.text}</p>

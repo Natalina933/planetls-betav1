@@ -6,7 +6,7 @@ _Note de reprise: voir `docs/ux-onboarding-audit-reprise-2026-04-29.md` pour l'e
 
 ## Contexte
 Cette synthèse reprend les constats déjà produits dans:
-- `docs/concierge-signup-ux-audit-lynda-christa-2026-04-25.md`
+- `docs/concierge-signup-ux-audit-Persona simplicit�-Persona expert-2026-04-25.md`
 - `docs/concierge-ux-personas-analysis-2026-04-25.md`
 
 Objectif: clarifier **ce qu'il reste à faire** au démarrage de l'expérience utilisateur, pour les 3 catégories:
@@ -36,8 +36,8 @@ Les bases du tunnel sont correctes:
 2. **Activer un mode lisibilité** (contraste + taille texte) dès la première étape.
 3. **Demander le rayon d'intervention** pendant l'inscription (pas après).
 4. **Créer un mode express vs guidé**:
-   - Guidé pour profils type Lynda,
-   - Express pour profils type Christa.
+   - Guidé pour profils type Persona simplicit�,
+   - Express pour profils type Persona expert.
 
 ## 2.2 Priorité moyenne
 1. **Libellés simplifiés** (moins jargon métier, plus terrain).

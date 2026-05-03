@@ -1,4 +1,4 @@
-# Suite de l'audit UX concierge — Lynda & Christa
+# Suite de l'audit UX concierge — Persona simplicit� & Persona expert
 
 _Date: 26 avril 2026_
 
@@ -9,7 +9,7 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
 
 ## 1) Parcours cible par persona (version opérationnelle)
 
-## A. Lynda (simplicité, confiance, proximité)
+## A. Persona simplicit� (simplicité, confiance, proximité)
 
 ### Parcours cible (J0 → J7)
 1. **Inscription guidée avec stepper visible** ("Étape 1 sur 5").
@@ -21,14 +21,14 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
    - publier 1 offre,
    - répondre à 1 demande.
 
-### Critères UX pour Lynda
+### Critères UX pour Persona simplicit�
 - Temps de complétion onboarding < 8 min.
 - Taux d'abandon entre étapes < 12%.
 - Taux d'activation du mode lisibilité > 30% chez les profils débutants.
 
 ---
 
-## B. Christa (rapidité, contrôle, projection business)
+## B. Persona expert (rapidité, contrôle, projection business)
 
 ### Parcours cible (J0 → J7)
 1. **Choix d'entrée**: mode standard ou **onboarding express**.
@@ -42,7 +42,7 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
    - inviter 1 propriétaire.
 4. **Nudge post-signup**: "Importer vos données" (CSV/API) en tâche différée.
 
-### Critères UX pour Christa
+### Critères UX pour Persona expert
 - Temps de complétion mode express < 3 min 30.
 - Taux d'accès à un CTA métier dans les 5 min > 60%.
 - Taux de création de premier actif (bien/offre) à J1 > 45%.
@@ -79,7 +79,7 @@ Transformer les constats de l'audit initial en **plan d'exécution produit**: pa
 - `concierge_first_asset_created`
 
 Propriétés clés:
-- `persona_hint` (`lynda_like`, `christa_like`),
+- `persona_hint` (`Persona simplicit�_like`, `Persona expert_like`),
 - `experience_level`,
 - `onboarding_variant`,
 - `step_index`,
@@ -119,7 +119,7 @@ Propriétés clés:
 
 ## Décision produit recommandée
 Prioriser un **double démarrage persona-driven**:
-- **Parcours rassurant et lisible** pour profils type Lynda.
-- **Parcours express orienté business** pour profils type Christa.
+- **Parcours rassurant et lisible** pour profils type Persona simplicit�.
+- **Parcours express orienté business** pour profils type Persona expert.
 
 Ce choix maximise la conversion sans complexifier excessivement l'architecture existante.

@@ -64,6 +64,17 @@
     box-shadow 0.16s ease-out;
 }
 
+.actionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
+  color: var(--dash-accent-strong);
+}
+
 .actionCard:hover {
   border-color: color-mix(in srgb, var(--dash-accent) 42%, var(--dash-border));
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);

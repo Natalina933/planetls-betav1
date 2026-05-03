@@ -57,11 +57,11 @@ const inferPersonaHint = (payload: OnboardingEventPayload) => {
   const signupMode = payload.metadata?.signupMode;
 
   if (signupMode === "express" || signupMode === "business" || level === "experimente") {
-    return "christa_like";
+    return "expert_like";
   }
 
   if (level === "debutant" || payload.metadata?.supportNeed === "guidage_simple") {
-    return "lynda_like";
+    return "simplicity_like";
   }
 
   return undefined;

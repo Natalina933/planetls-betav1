@@ -12,6 +12,7 @@ import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import {
   FirstLoginOnboardingPopup,
   OnboardingPromptCard,
+  DashboardOnboardingSummary,
   shouldShowDashboardReminder,
   shouldShowFirstLoginPopup,
   type OnboardingActionStatus,
@@ -27,7 +28,7 @@ import {
 
 export default function OwnerDashboardPage() {
   const { user, loading: userLoading, isAuthenticated } = useCurrentUser() as {
-    user: (DashboardUserIdentity & Pick<CurrentUser, "id">) | null;
+    user: (DashboardUserIdentity & Pick<CurrentUser, "id" | "availability_hours" | "service_area" | "service_radius_km">) | null;
     loading: boolean;
     isAuthenticated: boolean;
   };
@@ -167,6 +168,13 @@ export default function OwnerDashboardPage() {
       {showDashboardReminder ? (
         <OnboardingPromptCard path={onboardingPath} actionStatus={actionStatus} onDismiss={() => setReminderDismissed(true)} />
       ) : null}
+
+      <DashboardOnboardingSummary
+        role="owner"
+        availabilityHours={user?.availability_hours}
+        serviceArea={user?.service_area}
+        serviceRadiusKm={user?.service_radius_km}
+      />
 
       <DashboardPanel title="Vue d’ensemble">
         <AsyncState loading={loading} error={error}>

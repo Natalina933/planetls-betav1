@@ -91,7 +91,7 @@ $border-radius: 20px;
     font-size: clamp(1.35rem, 2vw, 1.55rem);
     font-weight: 700;
     line-height: 1.12;
-    text-wrap: balance;
+    overflow-wrap: anywhere;
   }
 
   p {
@@ -187,7 +187,7 @@ $border-radius: 20px;
   font-weight: 600;
   line-height: 1.42;
   text-align: left;
-  text-wrap: balance;
+  overflow-wrap: anywhere;
   box-shadow:
     0 10px 20px rgba(18, 10, 3, 0.14);
   backdrop-filter: blur(5px);
@@ -200,6 +200,14 @@ $border-radius: 20px;
     color: rgba(255, 224, 164, 0.72);
     font-size: 2.2rem;
     line-height: 1;
+  }
+}
+
+@supports (text-wrap: balance) {
+  .content h3,
+  .quote {
+    overflow-wrap: normal;
+    text-wrap: balance;
   }
 }
 
