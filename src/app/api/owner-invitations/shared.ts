@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { Json } from "@/types/supabase";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { canAccessHousing } from "@/types/housing";
 import {
@@ -12,11 +13,7 @@ import {
   normalizeInvitationStatus,
 } from "@/types/ownerInvitations";
 
-type UntypedDb = {
-  from: (table: string) => any;
-};
-
-const dbAny = db as unknown as UntypedDb;
+const dbAny = asLooseSupabaseClient(db);
 
 type HousingAccessRow = {
   id: number;

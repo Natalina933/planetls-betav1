@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import {
@@ -15,8 +16,7 @@ import {
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 // Legacy Supabase typing is incomplete on urgent mission tables in this project.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const dbAny = db as any;
+const dbAny = asLooseSupabaseClient(db);
 
 type UrgentMissionRow = {
   property_address: string;

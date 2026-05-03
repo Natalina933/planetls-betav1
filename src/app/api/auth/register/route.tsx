@@ -32,6 +32,11 @@ const buildAvailabilityPayload = (data: {
   supportNeed?: string | null;
   existingTools?: string[] | null;
   propertyTypes?: string[] | null;
+  propertyType?: string | null;
+  needVolume?: string | null;
+  tradeBody?: string | null;
+  startingPriceRange?: string | null;
+  firstRequestTemplate?: string | null;
   location?: string | null;
   serviceRadiusKm?: string | null;
 }) => {
@@ -46,6 +51,11 @@ const buildAvailabilityPayload = (data: {
       supportNeed: data.supportNeed ?? null,
       existingTools: data.existingTools ?? [],
       propertyTypes: data.propertyTypes ?? [],
+      propertyType: data.propertyType ?? null,
+      needVolume: data.needVolume ?? null,
+      tradeBody: data.tradeBody ?? null,
+      startingPriceRange: data.startingPriceRange ?? null,
+      firstRequestTemplate: data.firstRequestTemplate ?? null,
     },
     preferences: {
       availability: data.availability ?? null,
@@ -55,6 +65,11 @@ const buildAvailabilityPayload = (data: {
       supportNeed: data.supportNeed ?? null,
       existingTools: data.existingTools ?? [],
       propertyTypes: data.propertyTypes ?? [],
+      propertyType: data.propertyType ?? null,
+      needVolume: data.needVolume ?? null,
+      tradeBody: data.tradeBody ?? null,
+      startingPriceRange: data.startingPriceRange ?? null,
+      firstRequestTemplate: data.firstRequestTemplate ?? null,
     },
     zones: data.location
       ? [
@@ -142,6 +157,11 @@ const registerSchema = z.object({
   existingTools: z.array(z.string().transform(cleanString)).optional().default([]),
   businessLink: z.string().optional().nullable().transform(cleanString),
   propertyTypes: z.array(z.string().transform(cleanString)).optional().default([]),
+  propertyType: z.string().optional().nullable().transform(cleanString),
+  needVolume: z.string().optional().nullable().transform(cleanString),
+  tradeBody: z.string().optional().nullable().transform(cleanString),
+  startingPriceRange: z.string().optional().nullable().transform(cleanString),
+  firstRequestTemplate: z.string().optional().nullable().transform(cleanString),
   experienceLevel: z.string().optional().nullable().transform(cleanString),
   yearsExperience: z.string().optional().nullable(),
 });
@@ -175,9 +195,9 @@ export async function POST(req: NextRequest) {
     }
     const role = categoryToRole(data.category || "");
     const isConcierge = role === "concierge" || role === "concierge_pro" || data.category === "concierge";
-    const serviceRadiusKm = isConcierge ? mapRadiusToInt(data.serviceRadiusKm) : null;
-    const availabilityHours = isConcierge
-      ? buildAvailabilityPayload({
+    const serviceRadiusKm = mapRadiusToInt(data.serviceRadiusKm);
+    const availabilityHours =
+      buildAvailabilityPayload({
           availability: data.availability,
           missionPreference: data.missionPreference,
           signupMode: data.signupMode,
@@ -185,10 +205,14 @@ export async function POST(req: NextRequest) {
           supportNeed: data.supportNeed,
           existingTools: data.existingTools.filter(Boolean) as string[],
           propertyTypes: data.propertyTypes.filter(Boolean) as string[],
+          propertyType: data.propertyType,
+          needVolume: data.needVolume,
+          tradeBody: data.tradeBody,
+          startingPriceRange: data.startingPriceRange,
+          firstRequestTemplate: data.firstRequestTemplate,
           location: resolvedLocation ?? data.location,
           serviceRadiusKm: data.serviceRadiusKm,
-        })
-      : null;
+        });
 
     // 1. Vérification unique de l'username (la DB s'occupe de l'email)
     const { data: existingUser } = await supabase
@@ -245,12 +269,12 @@ export async function POST(req: NextRequest) {
         option: data.option,
         location: resolvedLocation ?? data.location,
         additional_info: data.additionalInfo,
-        company_name: isConcierge ? data.companyName : null,
+        company_name: isConcierge ? data.companyName : data.tradeBody ?? data.companyName ?? null,
         legal_form: isConcierge ? data.legalForm : null,
-        service_area: isConcierge ? resolvedLocation ?? data.location : null,
+        service_area: resolvedLocation ?? data.location,
         service_radius_km: serviceRadiusKm,
         availability_hours: availabilityHours,
-        website: isConcierge ? data.businessLink : null,
+        website: data.businessLink,
         experience_level: data.experienceLevel,
         years_experience: mapYearsToInt(data.yearsExperience),
       });

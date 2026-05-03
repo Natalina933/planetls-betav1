@@ -50,6 +50,8 @@ export default function OnboardingStepHeader({
             className={readabilityScale === "normal" ? styles.readabilityActive : styles.readabilityButton}
             onClick={() => onReadabilityChange("normal")}
             aria-pressed={readabilityScale === "normal"}
+            aria-label="Taille de texte normale"
+            title="Taille normale"
           >
             A
           </button>
@@ -58,6 +60,8 @@ export default function OnboardingStepHeader({
             className={readabilityScale === "large" ? styles.readabilityActive : styles.readabilityButton}
             onClick={() => onReadabilityChange("large")}
             aria-pressed={readabilityScale === "large"}
+            aria-label="Grande taille de texte"
+            title="Texte plus grand"
           >
             A+
           </button>
@@ -66,6 +70,8 @@ export default function OnboardingStepHeader({
             className={readabilityScale === "xlarge" ? styles.readabilityActive : styles.readabilityButton}
             onClick={() => onReadabilityChange("xlarge")}
             aria-pressed={readabilityScale === "xlarge"}
+            aria-label="Très grande taille de texte"
+            title="Texte très grand"
           >
             A++
           </button>

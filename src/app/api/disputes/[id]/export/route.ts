@@ -1,5 +1,6 @@
-﻿import { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { isUuidLike } from "@/app/api/inspections/shared";
 
@@ -34,8 +35,7 @@ const formatAmount = (value: number | null | undefined, currency = "EUR"): strin
 };
 
 // Legacy Supabase typing is incomplete on new dispute tables.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const dbAny = db as any;
+const dbAny = asLooseSupabaseClient(db);
 
 export async function GET(
   req: NextRequest,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/server/db/dbServer";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
 import { deriveServiceRequestStatus } from "@/server/service-requests/workflow";
@@ -18,10 +19,6 @@ type QuoteLookupRow = {
 const OWNER_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-
-type UntypedDb = {
-  from: (table: string) => any;
-};
 
 const mapMissionInsertError = (error: { code?: string; message?: string; details?: string } | null) => {
   const code = error?.code ?? "";
@@ -69,7 +66,7 @@ export async function POST(
       return NextResponse.json({ error: "recipient_id requis." }, { status: 400 });
     }
 
-    const dbAny = db as unknown as UntypedDb;
+    const dbAny = asLooseSupabaseClient(db);
 
     const { data: requestRow, error: requestError } = await dbAny
       .from("service_requests")

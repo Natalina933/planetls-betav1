@@ -18,6 +18,7 @@ type ExperienceOption = {
 
 interface ExperiencePopupProps {
   category?: string;
+  onBack?: () => void;
   onClose: () => void;
   onValidate: (level: ExperienceLevel, years: string) => void;
 }
@@ -111,7 +112,7 @@ const getProfileKey = (category?: string): ProfileKey => {
   return "concierge";
 };
 
-export default function ExperiencePopup({ category, onClose, onValidate }: ExperiencePopupProps) {
+export default function ExperiencePopup({ category, onBack, onClose, onValidate }: ExperiencePopupProps) {
   const [selected, setSelected] = useState<VisibleExperienceLevel | null>(null);
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
   const popupRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,20 @@ export default function ExperiencePopup({ category, onClose, onValidate }: Exper
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [handleOutsideClick]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose]);
 
   const handleValidate = () => {
     if (!selected) return;
@@ -191,7 +206,7 @@ export default function ExperiencePopup({ category, onClose, onValidate }: Exper
         </ul>
 
         <div className={styles.actions}>
-          <button type="button" onClick={onClose}>
+          <button type="button" onClick={onBack ?? onClose}>
             Retour
           </button>
           <button type="button" onClick={handleValidate} disabled={!selected}>

@@ -21,6 +21,7 @@ import {
 import { Button, Input } from "@/components/ui";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
+import { trackOnboardingEvent } from "@/app/lib/onboardingAnalytics";
 
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
@@ -54,6 +55,11 @@ interface ProfileData {
   existingTools: string[];
   businessLink: string;
   propertyTypes: string[];
+  propertyType: string;
+  needVolume: string;
+  tradeBody: string;
+  startingPriceRange: string;
+  firstRequestTemplate: string;
   experienceLevel: ExperienceLevel | "";
   yearsExperience: string;
 }
@@ -77,7 +83,7 @@ const getDashboardPathFromCategory = (category: string): string => {
       return "/dashboard/provider";
     case "proprietaire":
     default:
-      return "Votre profil est prêt à être présenté de façon claire avant validation.";
+      return "/dashboard/owner";
   }
 };
 
@@ -115,6 +121,16 @@ const formatChoice = (value: string): string => {
     interventions_planifiees: "Interventions planifiées",
     assurance_ok: "Assurance professionnelle à jour",
     assurance_a_preciser: "Assurance à préciser plus tard",
+    gestion_complete: "Déléguer la gestion complète",
+    comparer_concierges: "Comparer plusieurs concierges",
+    occasionnel: "Occasionnel",
+    regulier: "Régulier",
+    saisonnier: "Saisonnier",
+    urgent: "Besoin urgent",
+    sur_devis: "Sur devis",
+    moins_50: "Moins de 50 € / h",
+    "50_80": "50 à 80 € / h",
+    "80_plus": "80 € / h et +",
   };
 
   return labels[value] ?? value;
@@ -170,6 +186,43 @@ const getProfileSummaryText = (profile: ProfileData): string => {
   }
 };
 
+const getReadinessScore = (profile: ProfileData): number => {
+  const checks = [
+    profile.location,
+    profile.option,
+    profile.serviceRadiusKm,
+    profile.missionPreference,
+    profile.category === "proprietaire" ? profile.onboardingGoal : profile.availability || profile.supportNeed,
+    profile.category === "artisan" ? profile.tradeBody : profile.propertyType || profile.propertyTypes.length > 0,
+  ];
+
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+};
+
+const getNextActions = (profile: ProfileData) => {
+  switch (profile.category) {
+    case "proprietaire":
+      return [
+        { title: "Envoyer ma première demande", text: "Votre demande peut être pré-remplie avec l'objectif choisi." },
+        { title: "Comparer 3 concierges", text: "Repérez les profils proches de votre bien avant d'engager la conversation." },
+        { title: "Ajouter mon bien", text: "Complétez le type de bien et le volume de besoin pour affiner le matching." },
+      ];
+    case "artisan":
+      return [
+        { title: "Publier mon profil", text: "Mettez en avant métier, zone, urgences et créneaux disponibles." },
+        { title: "Préparer un devis type", text: "Gagnez du temps avec une réponse rapide pour les demandes fréquentes." },
+        { title: "Ajouter mes preuves", text: "SIRET, assurance et photos rassurent les propriétaires et conciergeries." },
+      ];
+    case "concierge":
+    default:
+      return [
+        { title: "Configurer mes services", text: "Transformez vos prestations en offres lisibles et faciles à demander." },
+        { title: "Ajouter mon premier bien", text: "Ajoutez votre premier logement ou une zone de mission proche." },
+        { title: "Répondre à une demande", text: "Retrouvez vite vos premières opportunités depuis l'espace concierge." },
+      ];
+  }
+};
+
 const validatePassword = (password: string): string => {
   if (password.length < 8) return "Minimum 8 caract\u00e8res";
   if (!/[A-Z]/.test(password)) return "1 majuscule requise";
@@ -205,6 +258,11 @@ export default function CompleteRegistrationPage() {
     existingTools: [],
     businessLink: "",
     propertyTypes: [],
+    propertyType: "",
+    needVolume: "",
+    tradeBody: "",
+    startingPriceRange: "",
+    firstRequestTemplate: "",
     experienceLevel: "",
     yearsExperience: "",
   });
@@ -264,6 +322,11 @@ export default function CompleteRegistrationPage() {
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean),
+      propertyType: searchParams.get("propertyType") ?? "",
+      needVolume: searchParams.get("needVolume") ?? "",
+      tradeBody: searchParams.get("tradeBody") ?? "",
+      startingPriceRange: searchParams.get("startingPriceRange") ?? "",
+      firstRequestTemplate: searchParams.get("firstRequestTemplate") ?? "",
       experienceLevel: (searchParams.get("experienceLevel") as ExperienceLevel) || "",
       yearsExperience: searchParams.get("yearsExperience") || "",
     }));
@@ -326,6 +389,11 @@ export default function CompleteRegistrationPage() {
       existingTools: data.existingTools,
       businessLink: data.businessLink,
       propertyTypes: data.propertyTypes,
+      propertyType: data.propertyType,
+      needVolume: data.needVolume,
+      tradeBody: data.tradeBody,
+      startingPriceRange: data.startingPriceRange,
+      firstRequestTemplate: data.firstRequestTemplate,
     }));
     setShowAccessPopup(false);
   };
@@ -357,6 +425,7 @@ export default function CompleteRegistrationPage() {
 
   const canSubmit =
     form.username.length >= 3 &&
+    validatePassword(form.password) === "" &&
     !errors.password &&
     !errors.confirmPassword &&
     form.password === form.confirmPassword;
@@ -421,6 +490,11 @@ export default function CompleteRegistrationPage() {
         existingTools: profile.existingTools,
         businessLink: profile.businessLink,
         propertyTypes: profile.propertyTypes,
+        propertyType: profile.propertyType,
+        needVolume: profile.needVolume,
+        tradeBody: profile.tradeBody,
+        startingPriceRange: profile.startingPriceRange,
+        firstRequestTemplate: profile.firstRequestTemplate,
         category: profile.category,
         search_target: profile.searchTarget,
         option: profile.option,
@@ -432,6 +506,12 @@ export default function CompleteRegistrationPage() {
 
     const data = await res.json();
     if (!res.ok) {
+      trackOnboardingEvent({
+        step: FINAL_STEP,
+        category: profile.category,
+        action: "onboarding_account_creation_failed",
+        metadata: { reason: data.error || "unknown", signupMode: profile.signupMode },
+      });
       alert(data.error || "Erreur lors de l'inscription");
       setLoading(false);
       return;
@@ -447,11 +527,29 @@ export default function CompleteRegistrationPage() {
 
     if (loginResult?.error) {
       setLoading(false);
+      trackOnboardingEvent({
+        step: FINAL_STEP,
+        category: profile.category,
+        action: "onboarding_auto_login_failed",
+        metadata: { signupMode: profile.signupMode, onboardingVariant: profile.signupMode },
+      });
       alert("Compte cr\u00e9\u00e9, mais la connexion automatique a \u00e9chou\u00e9. Merci de vous connecter manuellement.");
       router.replace("/login");
       return;
     }
 
+    trackOnboardingEvent({
+      step: FINAL_STEP,
+      category: profile.category,
+      action: profile.category === "concierge" ? "concierge_onboarding_step_completed" : "onboarding_account_created",
+      metadata: {
+        signupMode: profile.signupMode,
+        onboardingVariant: profile.signupMode,
+        onboardingGoal: profile.onboardingGoal,
+        readinessScore: getReadinessScore(profile),
+        timeToCompleteSeconds: null,
+      },
+    });
     router.replace(getDashboardPathFromCategory(profile.category));
   };
 
@@ -513,11 +611,11 @@ export default function CompleteRegistrationPage() {
               {/* <p className={styles.recapMiniBadge}>Profil en construction ✨</p> */}
 
               <div className={styles.recapIdentityCopy}>
-                <p className={styles.recapIdentityEyebrow}> j&apos;ai un profil de  
+                <p className={styles.recapIdentityEyebrow}>J&apos;ai un profil de{" "}
                   {formatCategoryLabel(profile.category)}
                 </p>
 
-                <p className={styles.recapIdentityMeta}> je recherche des missions de
+                <p className={styles.recapIdentityMeta}>Je recherche des missions de{" "}
                   {formatCategoryLabel(profile.searchTarget)}
                 </p>
 
@@ -606,37 +704,60 @@ export default function CompleteRegistrationPage() {
                 <strong>{"Activité"}</strong>
               </div>
               <ul className={styles.detailList}>
-                <li><span>Structure</span><strong>{profile.companyName || "préciser"}</strong></li>
+                <li><span>Structure</span><strong>{profile.companyName || "à préciser"}</strong></li>
                 <li><span>Parcours</span><strong>{formatChoice(profile.signupMode || "simple")}</strong></li>
-                <li><span>Rayon</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "préciser"}</strong></li>
-                <li><span>{"Disponibilité"}</span><strong>{profile.availability ? formatChoice(profile.availability) : "préciser"}</strong></li>
+                <li><span>Rayon</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "à préciser"}</strong></li>
+                <li><span>{"Disponibilité"}</span><strong>{profile.availability ? formatChoice(profile.availability) : "à préciser"}</strong></li>
                 <li><span>Collaboration</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "Ouverte aux opportunités"}</strong></li>
-                <li><span>{"Biens gérés"}</span><strong>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "préciser"}</strong></li>
+                <li><span>{"Biens gérés"}</span><strong>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "à préciser"}</strong></li>
+              </ul>
+            </div>
+          )}
+
+          {profile.category === "proprietaire" && (
+            <div className={styles.recapBlock}>
+              <div className={styles.recapBlockTitle}>
+                <span className={styles.recapIcon}><FaBullseye /></span>
+                <strong>{"Votre projet"}</strong>
+              </div>
+              <ul className={styles.detailList}>
+                <li><span>Objectif</span><strong>{profile.onboardingGoal ? formatChoice(profile.onboardingGoal) : "À préciser"}</strong></li>
+                <li><span>Type de bien</span><strong>{profile.propertyType || "À préciser"}</strong></li>
+                <li><span>Volume</span><strong>{profile.needVolume ? formatChoice(profile.needVolume) : "À définir"}</strong></li>
+                <li><span>Besoin</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "À définir"}</strong></li>
+              </ul>
+            </div>
+          )}
+
+          {profile.category === "artisan" && (
+            <div className={styles.recapBlock}>
+              <div className={styles.recapBlockTitle}>
+                <span className={styles.recapIcon}><FaTools /></span>
+                <strong>{"Profil mission"}</strong>
+              </div>
+              <ul className={styles.detailList}>
+                <li><span>Métier</span><strong>{profile.tradeBody || "À définir"}</strong></li>
+                <li><span>Zone</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "À préciser"}</strong></li>
+                <li><span>Urgences</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "À définir"}</strong></li>
+                <li><span>Confiance</span><strong>{profile.supportNeed ? formatChoice(profile.supportNeed) : "Assurance à préciser"}</strong></li>
+                <li><span>Tarif</span><strong>{profile.startingPriceRange ? formatChoice(profile.startingPriceRange) : "Sur devis"}</strong></li>
               </ul>
             </div>
           )}
         </div>
       </section>
-
-      {profile.category === "concierge" && (
-        <section className={styles.nextActionsSection}>
-          <h2>{"Après inscription, choisissez votre première action"}</h2>
-          <div className={styles.nextActionsGrid}>
-            <div>
-              <strong>{"Créer un bien"}</strong>
-              <p>Ajoutez votre premier logement ou une zone de mission proche.</p>
+      <section className={styles.nextActionsSection}>
+        <h2>{"Après inscription, choisissez votre première action"}</h2>
+        <p className={styles.readinessText}>Profil prêt à recevoir des opportunités : {getReadinessScore(profile)}%</p>
+        <div className={styles.nextActionsGrid}>
+          {getNextActions(profile).map((action) => (
+            <div key={action.title}>
+              <strong>{action.title}</strong>
+              <p>{action.text}</p>
             </div>
-            <div>
-              <strong>{"Créer une offre"}</strong>
-              <p>Transformez vos services en packs simples \u00e0 proposer.</p>
-            </div>
-            <div>
-              <strong>{"Inviter un propriétaire"}</strong>
-              <p>Retrouvez vite vos premiers contacts dans l&apos;espace concierge.</p>
-            </div>
-          </div>
-        </section>
-      )}
+          ))}
+        </div>
+      </section>
 
 
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -670,6 +791,9 @@ export default function CompleteRegistrationPage() {
 
         {errors.password && (
           <small className={styles.errorMsg}><FaTimesCircle /> {errors.password}</small>
+        )}
+        {!errors.password && form.password && (
+          <small className={styles.successMsg}><FaCheckCircle /> Mot de passe assez sécurisé</small>
         )}
 
         <div className={styles.passwordWrapper}>
@@ -721,8 +845,12 @@ export default function CompleteRegistrationPage() {
           initialSelectedOptions={getServicesList(profile.option)}
           experienceLevel={profile.experienceLevel}
           signupMode={profile.signupMode}
+          onboardingGoal={profile.onboardingGoal}
           onSignupModeChange={(signupMode) => {
             setProfile((prev) => ({ ...prev, signupMode }));
+          }}
+          onOnboardingGoalChange={(onboardingGoal) => {
+            setProfile((prev) => ({ ...prev, onboardingGoal }));
           }}
           onClose={() => setShowCategoryPopup(false)}
           onNext={handleServicesValidate}
@@ -749,6 +877,11 @@ export default function CompleteRegistrationPage() {
             existingTools: profile.existingTools,
             businessLink: profile.businessLink,
             propertyTypes: profile.propertyTypes,
+            propertyType: profile.propertyType,
+            needVolume: profile.needVolume,
+            tradeBody: profile.tradeBody,
+            startingPriceRange: profile.startingPriceRange,
+            firstRequestTemplate: profile.firstRequestTemplate,
           }}
           recap={{
             category: profile.category,

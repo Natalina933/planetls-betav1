@@ -24,6 +24,7 @@ import ExperiencePopup, {
 } from "@/app/components/popups/ExperiencePopup/ExperiencePopup";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
+import { trackOnboardingEvent } from "@/app/lib/onboardingAnalytics";
 
 type CategoryKey = "proprietaire" | "concierge" | "artisan";
 
@@ -54,6 +55,11 @@ interface AccessFormData {
   existingTools: string[];
   businessLink: string;
   propertyTypes: string[];
+  propertyType: string;
+  needVolume: string;
+  tradeBody: string;
+  startingPriceRange: string;
+  firstRequestTemplate: string;
 }
 
 interface LocationSuggestion {
@@ -126,6 +132,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
   const [showAccessPopup, setShowAccessPopup] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [signupMode, setSignupMode] = useState("simple");
+  const [onboardingGoal, setOnboardingGoal] = useState("");
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
   const isMainModalVisible =
     !showExperiencePopup && !showCategoryPopup && !showAccessPopup;
@@ -283,8 +290,9 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         return;
       }
 
+      let resolvedLocation = trimmedLocation;
       try {
-        const resolvedLocation = await resolveLocationLabel(trimmedLocation);
+        resolvedLocation = await resolveLocationLabel(trimmedLocation);
         if (resolvedLocation !== location) {
           setLocation(resolvedLocation);
         }
@@ -301,14 +309,26 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       }
 
       setShowExperiencePopup(true);
+      trackOnboardingEvent({
+        step: 1,
+        category: selectedCategory,
+        action: selectedCategory === "concierge" ? "concierge_onboarding_started" : "onboarding_started",
+        metadata: { location: resolvedLocation, onboardingVariant: signupMode },
+      });
     },
-    [location, resolveLocationLabel, selectedCategory]
+    [location, resolveLocationLabel, selectedCategory, signupMode]
   );
 
   const handleExperienceSelect = useCallback(
     (level: ExperienceLevel, years: string) => {
       setExperienceLevel(level);
       setYearsExperience(years);
+      trackOnboardingEvent({
+        step: 2,
+        category: selectedCategory,
+        action: selectedCategory === "concierge" ? "concierge_onboarding_step_completed" : "onboarding_step_completed",
+        metadata: { level, experienceLevel: level, years, onboardingVariant: signupMode },
+      });
       setSignupMode((current) =>
         selectedCategory === "concierge" && level === "experimente" && current === "simple"
           ? "express"
@@ -320,15 +340,28 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         setShowCategoryPopup(true);
       }, 150);
     },
-    [selectedCategory]
+    [selectedCategory, signupMode]
   );
 
   const handleOptionSelect = useCallback((options: string[]) => {
     setSelectedOptions(options);
     setShowCategoryPopup(false);
+    trackOnboardingEvent({
+      step: 3,
+      category: selectedCategory,
+      action: selectedCategory === "concierge" ? "concierge_onboarding_step_completed" : "onboarding_step_completed",
+      metadata: { count: options.length, onboardingGoal, signupMode, onboardingVariant: signupMode },
+    });
 
     setTimeout(() => {
       setShowAccessPopup(true);
+    }, 150);
+  }, [onboardingGoal, selectedCategory, signupMode]);
+
+  const handleBackToExperiencePopup = useCallback(() => {
+    setShowCategoryPopup(false);
+    setTimeout(() => {
+      setShowExperiencePopup(true);
     }, 150);
   }, []);
 
@@ -353,11 +386,16 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
         availability: formData.availability,
         missionPreference: formData.missionPreference,
         signupMode: formData.signupMode,
-        onboardingGoal: formData.onboardingGoal,
+        onboardingGoal: formData.onboardingGoal || onboardingGoal,
         supportNeed: formData.supportNeed,
         existingTools: formData.existingTools.join(","),
         businessLink: formData.businessLink,
         propertyTypes: formData.propertyTypes.join(","),
+        propertyType: formData.propertyType,
+        needVolume: formData.needVolume,
+        tradeBody: formData.tradeBody,
+        startingPriceRange: formData.startingPriceRange,
+        firstRequestTemplate: formData.firstRequestTemplate,
         category: selectedCategory,
         searchTarget,
         option: selectedOptions.join(","),
@@ -367,6 +405,41 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       }).toString();
 
       router.push(`/complete-registration?${params}`);
+      if (selectedCategory === "concierge" && formData.serviceRadiusKm) {
+        trackOnboardingEvent({
+          step: 4,
+          category: selectedCategory,
+          action: "concierge_onboarding_radius_set",
+          metadata: {
+            serviceRadiusKm: formData.serviceRadiusKm,
+            signupMode: formData.signupMode,
+            onboardingVariant: formData.signupMode,
+          },
+        });
+      }
+      if (selectedCategory === "concierge" && formData.signupMode === "express") {
+        trackOnboardingEvent({
+          step: 4,
+          category: selectedCategory,
+          action: "concierge_onboarding_express_selected",
+          metadata: {
+            experienceLevel,
+            serviceRadiusKm: formData.serviceRadiusKm,
+            onboardingVariant: formData.signupMode,
+          },
+        });
+      }
+      trackOnboardingEvent({
+        step: 4,
+        category: selectedCategory,
+        action: selectedCategory === "concierge" ? "concierge_onboarding_step_completed" : "onboarding_step_completed",
+        metadata: {
+          signupMode: formData.signupMode,
+          onboardingVariant: formData.signupMode,
+          onboardingGoal: formData.onboardingGoal || onboardingGoal,
+          serviceRadiusKm: formData.serviceRadiusKm,
+        },
+      });
       onClose();
     },
     [
@@ -377,6 +450,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       validatedLocation,
       experienceLevel,
       yearsExperience,
+      onboardingGoal,
       router,
       onClose,
     ]
@@ -396,7 +470,7 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     return CATEGORY_ORDER.filter((key) => map[key]).map((key) => map[key]);
   }, [categories]);
 
-  const accessInitialData = useMemo(() => ({ signupMode }), [signupMode]);
+  const accessInitialData = useMemo(() => ({ signupMode, onboardingGoal }), [signupMode, onboardingGoal]);
 
   return (
     <>
@@ -546,7 +620,8 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
       {showExperiencePopup && (
         <ExperiencePopup
           category={selectedCategory || undefined}
-          onClose={() => setShowExperiencePopup(false)}
+          onBack={() => setShowExperiencePopup(false)}
+          onClose={onClose}
           onValidate={handleExperienceSelect}
         />
       )}
@@ -556,8 +631,11 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
           category={selectedCategory}
           experienceLevel={experienceLevel}
           signupMode={signupMode}
+          onboardingGoal={onboardingGoal}
           onSignupModeChange={setSignupMode}
-          onClose={() => setShowCategoryPopup(false)}
+          onOnboardingGoalChange={setOnboardingGoal}
+          onBack={handleBackToExperiencePopup}
+          onClose={onClose}
           onNext={handleOptionSelect}
         />
       )}
@@ -584,5 +662,3 @@ export default function MapWithSearch({ onClose }: MapWithSearchProps) {
     </>
   );
 }
-
-

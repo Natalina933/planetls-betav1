@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db/dbServer";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { prepareQuoteDraftFromRequest } from "@/features/concierge-commercial/server/quoteDraftFromRequest";
 import {
   deriveServiceRequestStatus,
@@ -27,10 +28,6 @@ type PrepareQuoteBody = {
   force?: boolean;
 };
 
-type UntypedDb = {
-  from: (table: string) => any;
-};
-
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -52,7 +49,7 @@ export async function POST(
       return NextResponse.json({ error: "Recipient introuvable." }, { status: 400 });
     }
 
-    const dbAny = db as unknown as UntypedDb;
+    const dbAny = asLooseSupabaseClient(db);
 
     const { data: recipient, error: recipientError } = await dbAny
       .from("service_request_recipients")
