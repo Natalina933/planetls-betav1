@@ -45,9 +45,9 @@ $layout-gap: 2rem;
 .page {
   display: grid;
   gap: 1.5rem;
-  width: min(100%, 1800px); // Largeur max étendue
+  width: min(100%, 2200px); // Largeur max plus large
   margin-inline: auto;
-  padding: 1.5rem;
+  padding: 1.5rem 1.25rem 2rem;
 }
 
 .layout {
@@ -55,6 +55,44 @@ $layout-gap: 2rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $layout-gap; // Espacement plus large entre les colonnes
   align-items: start;
+  width: 100%;
+  margin-inline: auto;
+  position: relative;
+}
+
+.layout::after {
+  content: "";
+  position: absolute;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(184, 92, 72, 0),
+    rgba(184, 92, 72, 0.12) 12%,
+    rgba(184, 92, 72, 0.18) 50%,
+    rgba(184, 92, 72, 0.12) 88%,
+    rgba(184, 92, 72, 0)
+  );
+  pointer-events: none;
+}
+
+.layoutSplit {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.layoutSplitWide {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 1700px);
+  margin-inline: auto;
+}
+
+.pageFull {
+  width: min(100%, 2200px);
+  max-width: 2200px;
+  margin-inline: auto;
 }
 
 // ============================================
@@ -62,8 +100,9 @@ $layout-gap: 2rem;
 // ============================================
 .listPanel {
   display: grid;
+  grid-template-rows: auto 1fr;
   gap: $card-gap;
-  padding: 1.5rem;
+  padding: 1.25rem;
   border-radius: $radius-xl;
   border: 1px solid $border-color;
   background:
@@ -72,26 +111,278 @@ $layout-gap: 2rem;
   box-shadow: $shadow-md;
   min-width: 0;
   width: 100%;
-  max-width: none; // ✅ Pas de limite de largeur
+  max-width: none; // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Pas de limite de largeur
   justify-self: stretch;
+  overflow: hidden;
 }
 
 .formPanel {
   position: sticky;
   top: 1rem;
+  display: grid;
+  grid-template-rows: auto 1fr;
   max-width: none;
-  padding: 1rem;
+  padding: 1.25rem;
   border: 1px solid rgba(184, 92, 72, 0.12);
   background:
     linear-gradient(180deg, rgba(255, 252, 248, 0.82), rgba(247, 236, 229, 0.72));
   box-shadow: 0 14px 28px rgba(109, 53, 41, 0.05);
   gap: 1rem;
   overflow: hidden;
+  min-width: 0;
+}
+
+.formCompact {
+  max-width: 100%;
+  width: 100%;
 }
 
 .listPanel {
   align-content: start;
   min-width: 0;
+}
+
+.listExpanded {
+  min-height: 100%;
+  width: 100%;
+}
+
+.requestsWorkspace {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.requestDetailPanel {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.15rem;
+  min-height: 20rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 238, 231, 0.94));
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.06);
+}
+
+.requestDetailHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.requestDetailHeading {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.requestDetailEyebrow {
+  margin: 0;
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.requestDetailHeading h3,
+.requestDetailHeading p {
+  margin: 0;
+}
+
+.requestDetailHeading h3 {
+  color: var(--dash-text);
+  font-size: 1.4rem;
+  overflow-wrap: anywhere;
+}
+
+.requestDetailHeading p {
+  color: var(--dash-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.requestDetailStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.requestDetailStat {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  padding: 0.85rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.requestDetailStat span {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  color: var(--dash-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.requestDetailStat strong {
+  color: var(--dash-text);
+  font-size: 0.96rem;
+  overflow-wrap: anywhere;
+}
+
+.requestDetailDescription {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.requestDetailResponses {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.requestDetailResponseItem {
+  margin: 0;
+  padding: 0.82rem 0.92rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--dash-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.compactRequestList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.compactRequestCard {
+  display: grid;
+  gap: 0.85rem;
+  width: 100%;
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(252, 247, 243, 0.92));
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+}
+
+.compactRequestCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(184, 92, 72, 0.2);
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.08);
+}
+
+.compactRequestCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(184, 92, 72, 0.2), rgba(212, 175, 55, 0.28));
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.compactRequestCardActive {
+  border-color: rgba(184, 92, 72, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 239, 233, 0.96));
+  box-shadow: 0 16px 32px rgba(109, 53, 41, 0.1);
+}
+
+.compactRequestCard:hover::before,
+.compactRequestCardActive::before {
+  opacity: 1;
+}
+
+.compactRequestTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.compactRequestTop > div {
+  min-width: 0;
+}
+
+.compactRequestStatus,
+.compactRequestTitle,
+.compactRequestMeta span,
+.compactRequestFooter span {
+  margin: 0;
+}
+
+.compactRequestStatus {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #874638;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.compactRequestTitle {
+  color: var(--dash-text);
+  font-size: 1.05rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.compactRequestMeta,
+.compactRequestFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+}
+
+.compactRequestMeta span {
+  color: #75665f;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.compactRequestFooter span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.24rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  color: #7a4a3c;
+  font-size: 0.78rem;
+  font-weight: 750;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .requestRow {
@@ -117,6 +408,8 @@ $layout-gap: 2rem;
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.9rem;
+  min-height: 4.5rem;
+  align-content: start;
 }
 
 .eyebrow {
@@ -203,6 +496,7 @@ $layout-gap: 2rem;
   align-items: center;
   justify-content: space-between;
   gap: 0.85rem;
+  min-width: 0;
   padding: 0.9rem 1rem;
   border-radius: 18px;
   border: 1px solid rgba(184, 92, 72, 0.16);
@@ -214,6 +508,7 @@ $layout-gap: 2rem;
 .titleSuggestionCopy {
   display: grid;
   gap: 0.3rem;
+  min-width: 0;
 }
 
 .titleSuggestionCopy strong,
@@ -234,13 +529,14 @@ $layout-gap: 2rem;
 }
 
 .titleSuggestionCopy code {
-  width: fit-content;
+  width: 100%;
   padding: 0.32rem 0.55rem;
   border-radius: 10px;
   background: rgba(184, 92, 72, 0.08);
   color: #7a3f32;
   font-size: 0.82rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .inlineHintAction {
@@ -378,14 +674,25 @@ $layout-gap: 2rem;
   flex-wrap: wrap;
   gap: 0.6rem;
   align-items: center;
+  max-width: 100%;
 }
 
 .iconAction,
 .iconActionPrimary {
   min-width: 42px;
-  width: 42px;
   padding-inline: 0;
   border-radius: 14px;
+}
+
+.iconAction {
+  width: 42px;
+}
+
+.iconActionPrimary {
+  width: auto;
+  min-width: 42px;
+  max-width: 100%;
+  padding-inline: 0.75rem;
 }
 
 .iconAction svg,
@@ -432,7 +739,7 @@ $layout-gap: 2rem;
 // ============================================
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); // Meilleure répartition
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); // Meilleure rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©partition
   gap: $card-gap;
   align-items: center;
   margin-bottom: $card-gap;
@@ -505,11 +812,15 @@ $layout-gap: 2rem;
   width: 100%;
 }
 
+.rows > * {
+  position: relative;
+}
+
 // ============================================
 // CARTES INDIVIDUELLES (OwnerRequestSummaryCard)
 // ============================================
 :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__card) {
-  // ✅ ÉLARGISSEMENT DES CARTES
+  // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°LARGISSEMENT DES CARTES
   width: 100%; // Occupe toute la largeur du parent
   max-width: none; // Pas de limite
   border-radius: $radius-lg;
@@ -522,11 +833,12 @@ $layout-gap: 2rem;
   &:hover {
     box-shadow: $shadow-md;
     border-color: rgba($primary-color, 0.2);
+    transform: translateY(-2px);
   }
 
-  // En-tête de la carte
+  // En-tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte de la carte
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__header) {
-    padding: $card-padding; // Padding augmenté
+    padding: $card-padding; // Padding augmentÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
     border-bottom: 1px solid rgba($primary-color, 0.08);
     background: linear-gradient(to right, rgba($primary-color, 0.05), transparent);
     display: flex;
@@ -537,7 +849,7 @@ $layout-gap: 2rem;
 
     :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__heading) {
       flex: 1;
-      min-width: 0; // Évite le débordement
+      min-width: 0; // ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°vite le dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©bordement
       display: grid;
       gap: 0.75rem;
 
@@ -659,12 +971,12 @@ $layout-gap: 2rem;
 
   // Corps de la carte
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__body) {
-    padding: $card-padding; // Padding augmenté
+    padding: $card-padding; // Padding augmentÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
     display: grid;
     gap: $card-gap; // Espacement interne plus large
   }
 
-  // Faits principaux (Logement, Début, Budget)
+  // Faits principaux (Logement, DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©but, Budget)
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__primaryFacts) {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr)); // 3 colonnes pour les faits
@@ -708,13 +1020,13 @@ $layout-gap: 2rem;
     }
   }
 
-  // Bloc d'informations (Services, Réponses)
+  // Bloc d'informations (Services, RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ponses)
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__infoStack) {
     display: grid;
     gap: $card-gap; // Espacement plus large
   }
 
-  // Services demandés
+  // Services demandÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__servicesBlock) {
     display: grid;
     gap: 1rem;
@@ -735,7 +1047,7 @@ $layout-gap: 2rem;
     }
   }
 
-  // Réponses des concierges
+  // RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ponses des concierges
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__responsesBlock) {
     padding: 1rem;
     border-radius: $radius-md;
@@ -774,6 +1086,53 @@ $layout-gap: 2rem;
   font-weight: 700;
 }
 
+.factLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.requestOverview {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.overviewPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.overviewPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 34px;
+  padding: 0.42rem 0.78rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  color: #6d473d;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.inlineAlert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.72rem 0.92rem;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: rgba(212, 175, 55, 0.12);
+  color: #7a5a0b;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .emptyState {
   display: grid;
   gap: 0.5rem;
@@ -784,7 +1143,7 @@ $layout-gap: 2rem;
 }
 
 // ============================================
-// FORMULAIRE (si présent dans la même feuille)
+// FORMULAIRE (si prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sent dans la mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªme feuille)
 // ============================================
 .formPanel {
   position: sticky;
@@ -804,8 +1163,10 @@ $layout-gap: 2rem;
 // RESPONSIVE
 // ============================================
 @media (max-width: 1400px) {
-  .layout {
-    grid-template-columns: 1fr; // 1 colonne sur écrans moyens
+  .layout,
+  .layoutSplit,
+  .layoutSplitWide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .formPanel {
@@ -814,6 +1175,14 @@ $layout-gap: 2rem;
 }
 
 @media (max-width: 1024px) {
+  .requestDetailStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .requestDetailStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   :global(.OwnerRequestSummaryCard-module-scss-module__60JtBG__primaryFacts) {
     grid-template-columns: repeat(2, minmax(0, 1fr)); // 2 colonnes sur tablette
   }
@@ -824,7 +1193,8 @@ $layout-gap: 2rem;
   .budgetRow,
   .fieldGrid,
   .facts,
-  .serviceDraftRow {
+  .serviceDraftRow,
+  .requestDetailStats {
     grid-template-columns: 1fr;
   }
 
@@ -843,5 +1213,17 @@ $layout-gap: 2rem;
 
   .listPanel {
     padding: 1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .layout,
+  .layoutSplit,
+  .layoutSplitWide {
+    grid-template-columns: 1fr;
+  }
+
+  .layout::after {
+    display: none;
   }
 }

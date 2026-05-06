@@ -1,10 +1,11 @@
 import type { KeyboardEvent, ReactNode } from "react";
+import { BriefcaseBusiness, CalendarClock, MessageSquareQuote, Sparkles, Tags } from "lucide-react";
 import { Card, CardBody, CardHeader, Tag } from "@/components/ui";
 import { RequestStatusBadge } from "@/components/ui";
 import styles from "./OwnerRequestSummaryCard.module.scss";
 
 type RequestFact = {
-  label: string;
+  label: ReactNode;
   value: ReactNode;
 };
 
@@ -31,7 +32,7 @@ export type OwnerRequestSummaryCardProps = {
 };
 
 export function OwnerRequestSummaryCard({
-  eyebrow = "Demande",
+  eyebrow,
   title,
   subtitle,
   status,
@@ -88,7 +89,12 @@ export function OwnerRequestSummaryCard({
               </Tag>
             ) : null}
           </div>
-          <h3>{title}</h3>
+          <div className={styles.titleRow}>
+            <span className={styles.titleIcon} aria-hidden="true">
+              <BriefcaseBusiness size={18} />
+            </span>
+            <h3>{title}</h3>
+          </div>
           {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
           {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
         </div>
@@ -129,7 +135,10 @@ export function OwnerRequestSummaryCard({
 
         <div className={styles.infoStack}>
           <div className={styles.servicesBlock}>
-            <p className={styles.sectionLabel}>Services demandes</p>
+            <p className={styles.sectionLabel}>
+              <Tags size={14} aria-hidden="true" />
+              Services demandes
+            </p>
             <div className={styles.services}>
               {services.length > 0 ? (
                 services.map((service) => (
@@ -147,11 +156,19 @@ export function OwnerRequestSummaryCard({
 
           {description ? <p className={styles.description}>{description}</p> : null}
 
-          {metaText ? <p className={styles.metaText}>{metaText}</p> : null}
+          {metaText ? (
+            <p className={styles.metaText}>
+              <CalendarClock size={14} aria-hidden="true" />
+              {metaText}
+            </p>
+          ) : null}
 
           {responseTexts.length > 0 ? (
             <div className={styles.responsesBlock}>
-              <p className={styles.sectionLabel}>Reponses des concierges</p>
+              <p className={styles.sectionLabel}>
+                <MessageSquareQuote size={14} aria-hidden="true" />
+                Reponses des concierges
+              </p>
               <div className={styles.responseList}>
                 {responseTexts.map((text, index) => (
                   <p key={index} className={styles.responseItem}>
@@ -163,7 +180,15 @@ export function OwnerRequestSummaryCard({
           ) : null}
         </div>
 
-        {children ? <div className={styles.extraContent}>{children}</div> : null}
+        {children ? (
+          <div className={styles.extraContent}>
+            <p className={styles.sectionLabel}>
+              <Sparkles size={14} aria-hidden="true" />
+              Synthese rapide
+            </p>
+            {children}
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

@@ -1,7 +1,18 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Search } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronRight,
+  CircleDollarSign,
+  Eye,
+  FileText,
+  MapPin,
+  MessageSquareText,
+  Search,
+  Send,
+  Users,
+} from "lucide-react";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import pageStyles from "../demandes/OwnerRequestsPage.module.scss";
 import {
@@ -18,7 +29,6 @@ import {
 } from "@/components/ui";
 import ServiceCatalogSelector from "@/app/components/ui/ServiceCatalogSelector/ServiceCatalogSelector";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
-import { OwnerRequestSummaryCard } from "@/features/owner-dashboard";
 
 type OwnerHousingRow = {
   id: number | string;
@@ -279,6 +289,33 @@ function getUnifiedRequestStatus(request: OwnerServiceRequestRow) {
   return request.workflow_status ?? request.status ?? "NEW";
 }
 
+function getWorkflowLabel(value: string | null | undefined) {
+  switch (value) {
+    case "NEW":
+      return "Nouvelle";
+    case "IN_DISCUSSION":
+      return "En discussion";
+    case "QUOTE_SENT":
+      return "Devis reçus";
+    case "ACCEPTED":
+      return "Acceptée";
+    case "MISSION_CREATED":
+      return "Mission créée";
+    case "IN_PROGRESS":
+      return "En cours";
+    case "COMPLETED":
+      return "Terminée";
+    default:
+      return "En suivi";
+  }
+}
+
+function getResponseCount(request: OwnerServiceRequestRow) {
+  return request.recipients.filter((recipient) =>
+    ["interested", "quoted", "selected", "not_selected", "declined"].includes(recipient.status),
+  ).length;
+}
+
 /**
  * Logique d'actions dynamiques basée sur les réponses reçues
  */
@@ -320,6 +357,7 @@ export default function OwnerRequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [form, setForm] = useState<RequestFormState>(initialForm);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -428,6 +466,22 @@ export default function OwnerRequestsPage() {
   const quotedCount = useMemo(
     () => requests.filter((request) => getUnifiedRequestStatus(request) === "QUOTE_SENT").length,
     [requests],
+  );
+
+  useEffect(() => {
+    if (filteredRequests.length === 0) {
+      setSelectedRequestId(null);
+      return;
+    }
+
+    setSelectedRequestId((current) =>
+      current && filteredRequests.some((request) => request.id === current) ? current : filteredRequests[0]?.id ?? null,
+    );
+  }, [filteredRequests]);
+
+  const selectedRequest = useMemo(
+    () => filteredRequests.find((request) => request.id === selectedRequestId) ?? filteredRequests[0] ?? null,
+    [filteredRequests, selectedRequestId],
   );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -626,22 +680,20 @@ export default function OwnerRequestsPage() {
         cards={[]}
       />
 
-      <section className={pageStyles.page}>
+      <section className={`${pageStyles.page} ${pageStyles.pageFull}`}>
         {success ? <p className={`${pageStyles.message} ${pageStyles.success}`}>{success}</p> : null}
         {error ? <p className={`${pageStyles.message} ${pageStyles.error}`}>{error}</p> : null}
 
-        <div className={pageStyles.layout}>
-          <Card className={pageStyles.formPanel} tone="soft" variant="large">
+        <div className={`${pageStyles.layout} ${pageStyles.layoutSplit} ${pageStyles.layoutSplitWide}`}>
+          <Card className={`${pageStyles.formPanel} ${pageStyles.formCompact}`} tone="soft" variant="large">
             <CardHeader className={pageStyles.sectionHeader}>
               <div>
                 <p className={pageStyles.eyebrow}>Nouvelle demande</p>
-                <h2 className={pageStyles.title}>Créer une mission claire et rapide</h2>
+                <h2 className={pageStyles.title}>Nouvelle demande</h2>
               </div>
             </CardHeader>
 
             <CardBody className={pageStyles.formGrid}>
-              <p className={pageStyles.intro}>Renseignez l’essentiel. Les détails pourront être affinés ensuite.</p>
-
               <form className={pageStyles.formGrid} onSubmit={handleSubmit}>
                 <div className={pageStyles.formSectionCard}>
                   <div className={pageStyles.fieldGrid}>
@@ -715,29 +767,6 @@ export default function OwnerRequestsPage() {
                 </div>
 
                 <div className={pageStyles.formSectionCard}>
-                  <div className={pageStyles.fieldGrid}>
-                    <label className={pageStyles.field}>
-                      <span>Ville</span>
-                      <Input
-                        value={form.city}
-                        onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))}
-                        placeholder="Paris"
-                      />
-                    </label>
-
-                    <label className={pageStyles.field}>
-                      <span>Code postal</span>
-                      <Input
-                        value={form.postalCode}
-                        onChange={(event) => setForm((current) => ({ ...current, postalCode: event.target.value }))}
-                        placeholder="75015"
-                        inputMode="numeric"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className={pageStyles.formSectionCard}>
                   <label className={pageStyles.fullField}>
                     <span>Titre</span>
                     <Input
@@ -747,8 +776,7 @@ export default function OwnerRequestsPage() {
                     />
                     <div className={pageStyles.titleSuggestionCard}>
                       <div className={pageStyles.titleSuggestionCopy}>
-                        <strong>Titre conseillé</strong>
-                        <p>Format utile pour retrouver vite la demande : service - logement - ville.</p>
+                        <strong>Titre suggéré</strong>
                         <code>{titleSuggestion}</code>
                       </div>
                       <button
@@ -765,15 +793,9 @@ export default function OwnerRequestsPage() {
                 <div className={`${pageStyles.formSectionCard} ${pageStyles.formSectionFeature}`}>
                   <label className={pageStyles.fullField}>
                     <span>Services demandés</span>
-                    <small className={pageStyles.fieldHint}>
-                      Sélectionne d&apos;abord les services du catalogue, puis ajoute un besoin libre si nécessaire.
-                    </small>
                     {quickServiceSuggestions.length > 0 ? (
                       <div className={pageStyles.quickServicesBlock}>
-                        <p className={pageStyles.quickServicesTitle}>Suggestions rapides intelligentes</p>
-                        <p className={pageStyles.quickServicesHint}>
-                          Basées sur le type de besoin, le logement, la ville et les demandes déjà fréquentes.
-                        </p>
+                        <p className={pageStyles.quickServicesTitle}>Suggestions rapides</p>
                         <div className={pageStyles.quickServicesList}>
                           {quickServiceSuggestions.map((service) => {
                             const isSelected = normalizedServices.includes(service.service);
@@ -827,42 +849,56 @@ export default function OwnerRequestsPage() {
                 </div>
 
                 <div className={pageStyles.formSectionCard}>
+                  <div className={pageStyles.fieldGrid}>
+                    <label className={pageStyles.field}>
+                      <span>Ville</span>
+                      <Input
+                        value={form.city}
+                        onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))}
+                        placeholder="Paris"
+                      />
+                    </label>
+
+                    <label className={pageStyles.field}>
+                      <span>Code postal</span>
+                      <Input
+                        value={form.postalCode}
+                        onChange={(event) => setForm((current) => ({ ...current, postalCode: event.target.value }))}
+                        placeholder="75015"
+                        inputMode="numeric"
+                      />
+                    </label>
+                  </div>
+
                   <label className={pageStyles.fullField}>
-                    <span>Contexte</span>
+                    <span>Détails</span>
                     <Textarea
                       rows={4}
                       value={form.description}
                       onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-                      placeholder="Précisez le contexte, l’urgence éventuelle et ce que vous attendez."
+                      placeholder="Contexte, accès, urgence, attente principale..."
                     />
                   </label>
-                </div>
 
-                <div className={pageStyles.formSectionCard}>
                   <Checkbox
                     checked={form.urgency}
                     onChange={(event) => setForm((current) => ({ ...current, urgency: event.target.checked }))}
-                    label="Mission urgente"
+                    label="Urgente"
                   />
 
-                  <div className={pageStyles.actions}>
-                    <Button type="submit" variant="primary" disabled={submitting}>
-                      {submitting ? "Enregistrement..." : "Créer ma demande"}
-                    </Button>
-                    <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
-                      Rechercher une conciergerie
-                    </ButtonLink>
-                  </div>
+                  <Button type="submit" variant="primary" disabled={submitting}>
+                    {submitting ? "Enregistrement..." : "Publier la demande"}
+                  </Button>
                 </div>
               </form>
             </CardBody>
           </Card>
 
-          <Card className={pageStyles.listPanel} tone="soft" variant="large">
+          <Card className={`${pageStyles.listPanel} ${pageStyles.listExpanded}`} tone="soft" variant="large">
             <CardHeader className={pageStyles.sectionHeader}>
               <div>
-                <p className={pageStyles.eyebrow}>Suivi</p>
-                <h2 className={pageStyles.title}>Demandes et devis associés</h2>
+                <p className={pageStyles.eyebrow}>Demandes</p>
+                <h2 className={pageStyles.title}>Toutes vos demandes</h2>
               </div>
             </CardHeader>
 
@@ -870,7 +906,7 @@ export default function OwnerRequestsPage() {
               <SearchBar
                 defaultValue={searchTerm}
                 onSearch={setSearchTerm}
-                placeholder="Rechercher un logement, une mission ou un service"
+                placeholder="Rechercher une demande"
                 className={pageStyles.searchField}
                 buttonLabel="Filtrer"
               />
@@ -890,91 +926,120 @@ export default function OwnerRequestsPage() {
 
             {!loading && filteredRequests.length === 0 ? (
               <EmptyState
-                title="Aucune demande à afficher"
-                description="Créez votre première demande pour commencer à suivre les devis."
+                title="Aucune demande"
+                description="Créez une demande pour commencer."
                 className={pageStyles.emptyState}
                 primaryAction={<ButtonLink href="/dashboard/owner/concierges">Trouver un concierge</ButtonLink>}
               />
             ) : null}
 
             {!loading && filteredRequests.length > 0 ? (
-              <div className={pageStyles.rows}>
-                {filteredRequests.map((request) => {
-                  const quoteSummary = summarizeQuotesByRequest(quotesByRequestId.get(request.id) ?? []);
-                  const requestActions = getRequestActions(request);
+              <div className={pageStyles.requestsWorkspace}>
+                {selectedRequest ? (
+                  <div className={pageStyles.requestDetailPanel}>
+                    <div className={pageStyles.requestDetailHeader}>
+                      <div className={pageStyles.requestDetailHeading}>
+                        <p className={pageStyles.requestDetailEyebrow}>{getWorkflowLabel(getUnifiedRequestStatus(selectedRequest))}</p>
+                        <h3>{selectedRequest.title}</h3>
+                        <p>{getRequestTypeLabel(selectedRequest.request_type)}</p>
+                      </div>
+                      <div className={pageStyles.compactActions}>
+                        {getRequestActions(selectedRequest).showRelaunch ? (
+                          <ButtonLink href={buildConciergeSearchHref(selectedRequest)} variant="ghost" size="sm">
+                            <Search size={16} /> Relancer
+                          </ButtonLink>
+                        ) : null}
+                        {getRequestActions(selectedRequest).showQuotes ? (
+                          <ButtonLink href={buildRequestQuotesHref(selectedRequest.id)} variant="secondary" size="sm">
+                            <Eye size={16} /> {getRequestActions(selectedRequest).primaryLabel}
+                          </ButtonLink>
+                        ) : null}
+                      </div>
+                    </div>
 
-                  return (
-                    <OwnerRequestSummaryCard
-                      key={request.id}
-                      className={pageStyles.requestRow}
-                      title={request.title}
-                      subtitle={getRequestTypeLabel(request.request_type)}
-                      status={request.status || "-"}
-                      workflowStatus={request.workflow_status}
-                      hasMission={Boolean(request.mission_id)}
-                      urgency={request.urgency}
-                      actions={
-                        <div className={pageStyles.compactActions}>
-                          {requestActions.showRelaunch && (
-                            <ButtonLink
-                              href={buildConciergeSearchHref(request)}
-                              variant="ghost"
-                              size="sm"
-                              className={pageStyles.iconAction}
-                              aria-label="Relancer la demande"
-                              title="Relancer la demande"
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              <Search size={16} aria-hidden="true" />
-                            </ButtonLink>
-                          )}
-                          {requestActions.showQuotes && (
-                            <ButtonLink
-                              href={buildRequestQuotesHref(request.id)}
-                              variant="secondary"
-                              size="sm"
-                              className={pageStyles.iconActionPrimary}
-                              aria-label={requestActions.primaryLabel}
-                              title={requestActions.primaryLabel}
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              <Eye size={16} aria-hidden="true" />
-                              <span className={pageStyles.actionLabel}>{requestActions.primaryLabel}</span>
-                            </ButtonLink>
-                          )}
+                    <div className={pageStyles.requestDetailStats}>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><FileText size={14} /> Logement</span>
+                        <strong>{selectedRequest.property_name || "À préciser"}</strong>
+                      </div>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><MapPin size={14} /> Zone</span>
+                        <strong>{[selectedRequest.city, selectedRequest.postal_code].filter(Boolean).join(" ") || "À préciser"}</strong>
+                      </div>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><CalendarClock size={14} /> Début</span>
+                        <strong>{formatDateTime(selectedRequest.desired_date)}</strong>
+                      </div>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><CircleDollarSign size={14} /> Budget</span>
+                        <strong>{formatAmount(selectedRequest.budget_max, selectedRequest.currency ?? "EUR")}</strong>
+                      </div>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><Send size={14} /> Diffusion</span>
+                        <strong>{selectedRequest.recipients.length}</strong>
+                      </div>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><Users size={14} /> Réponses</span>
+                        <strong>{getResponseCount(selectedRequest)}</strong>
+                      </div>
+                      <div className={pageStyles.requestDetailStat}>
+                        <span><MessageSquareText size={14} /> Devis</span>
+                        <strong>{summarizeQuotesByRequest(quotesByRequestId.get(selectedRequest.id) ?? []).total}</strong>
+                      </div>
+                    </div>
+
+                    {selectedRequest.description ? (
+                      <p className={pageStyles.requestDetailDescription}>{selectedRequest.description}</p>
+                    ) : null}
+
+                    {(selectedRequest.requested_services ?? []).length > 0 ? (
+                      <div className={pageStyles.serviceChips}>
+                        {(selectedRequest.requested_services ?? []).map((service) => (
+                          <span key={service} className={pageStyles.serviceChip}>{service}</span>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <div className={pageStyles.requestDetailResponses}>
+                      {getRecipientResponseSummary(selectedRequest).map((item, index) => (
+                        <p key={`${selectedRequest.id}-${index}`} className={pageStyles.requestDetailResponseItem}>{item}</p>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className={pageStyles.compactRequestList}>
+                  {filteredRequests.map((request) => {
+                    const quoteSummary = summarizeQuotesByRequest(quotesByRequestId.get(request.id) ?? []);
+                    const isActive = request.id === selectedRequest?.id;
+
+                    return (
+                      <button
+                        key={request.id}
+                        type="button"
+                        className={`${pageStyles.compactRequestCard} ${isActive ? pageStyles.compactRequestCardActive : ""}`}
+                        onClick={() => setSelectedRequestId(request.id)}
+                      >
+                        <div className={pageStyles.compactRequestTop}>
+                          <div>
+                            <p className={pageStyles.compactRequestStatus}>{getWorkflowLabel(getUnifiedRequestStatus(request))}</p>
+                            <h3 className={pageStyles.compactRequestTitle}>{request.title}</h3>
+                          </div>
+                          <ChevronRight size={18} aria-hidden="true" />
                         </div>
-                      }
-                      primaryFacts={[
-                        { label: "Appartement", value: request.property_name || "À préciser" },
-                        {
-                          label: "Localisation",
-                          value:
-                            [request.city, request.postal_code].filter(Boolean).join(" ") || "À préciser",
-                        },
-                        { label: "Début", value: formatDateTime(request.desired_date) },
-                        { label: "Budget", value: formatAmount(request.budget_max, request.currency ?? "EUR") },
-                      ]}
-                      secondaryFacts={[
-                        { label: "Concierges proposés", value: request.recipients.length },
-                        {
-                          label: "Réponses",
-                          value: request.recipients.filter((recipient) =>
-                            ["interested", "quoted", "selected", "not_selected", "declined"].includes(
-                              recipient.status,
-                            ),
-                          ).length,
-                        },
-                        { label: "Devis", value: quoteSummary.total },
-                      ]}
-                      services={request.requested_services ?? []}
-                      emptyServicesLabel="Services à préciser"
-                      helperTexts={[
-                        `Créée le ${formatDateTime(request.created_at)}`,
-                        ...getRecipientResponseSummary(request),
-                      ]}
-                    />
-                  );
-                })}
+                        <div className={pageStyles.compactRequestMeta}>
+                          <span>{request.property_name || "Logement à préciser"}</span>
+                          <span>{formatDateTime(request.desired_date)}</span>
+                        </div>
+                        <div className={pageStyles.compactRequestFooter}>
+                          <span>{getResponseCount(request)} réponse{getResponseCount(request) > 1 ? "s" : ""}</span>
+                          <span>{quoteSummary.total} devis</span>
+                          <span>{formatAmount(request.budget_max, request.currency ?? "EUR")}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : null}
           </Card>
