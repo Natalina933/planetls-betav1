@@ -304,6 +304,7 @@
 }
 
 .missionCta {
+  gap: 0.35rem;
   margin-top: auto;
   padding: 0.42rem 0.75rem;
   border: 1px solid color-mix(in srgb, var(--dash-accent) 46%, var(--dash-border));
@@ -316,6 +317,9 @@
   gap: 0.5rem;
 
   span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
     min-width: 0;
     padding: 0.34rem 0.55rem;
     border-radius: 999px;

@@ -15,15 +15,24 @@ import {
   normalizePlanningStatus,
   toTimestamp,
 } from "./planningHelpers";
+import OptimizedRoutePlanner from "./OptimizedRoutePlanner";
+import type { Json } from "@/types/supabase";
 import profileStyles from "../profile/ConciergeProfilePage.module.scss";
 import styles from "./page.module.scss";
 
 type MissionRow = {
   id: string;
+  concierge_profile_id?: string | null;
+  owner_profile_id?: string | null;
+  property_id?: string | null;
+  service_id?: number | null;
   title: string | null;
+  description?: string | null;
   status: string | null;
   priority: string | null;
   scheduled_start: string | null;
+  scheduled_end?: string | null;
+  metadata?: Json | null;
 };
 
 function getStartOfToday() {
@@ -444,6 +453,25 @@ export default function ConciergePlanningPage() {
               "warning",
             )}
           </div>
+        </EditableProfileSection>
+
+        <EditableProfileSection
+          styles={profileStyles}
+          title="Optimisation de tournée"
+          icon={<FiTarget />}
+          canEdit={false}
+          collapsible={false}
+          isOpen
+          isEditing={false}
+          isDirty={false}
+          isLoading={false}
+          onToggle={() => {}}
+          onHeaderKeyDown={() => {}}
+          onBeginEdit={() => {}}
+          onSave={() => {}}
+          onCancel={() => {}}
+        >
+          <OptimizedRoutePlanner missions={missions} />
         </EditableProfileSection>
 
         <EditableProfileSection

@@ -1,13 +1,13 @@
+@use "../../../styles/mixins" as *;
+
 .card {
   display: grid;
   gap: var(--ui-space-4);
   position: relative;
   isolation: isolate;
-  border: 1px solid var(--ds-color-border);
-  border-radius: var(--ui-card-radius, var(--ds-radius-lg));
-  box-shadow: var(--ds-shadow-sm);
-  color: var(--ds-color-text);
-  animation: ui-fade-in-up 180ms ease-out;
+  overflow: hidden;
+  @include ui-card-shell;
+  animation: ui-fade-in-up var(--ds-motion-base) ease-out;
 }
 
 .elevated {
@@ -51,14 +51,12 @@
 }
 
 .interactive {
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+  @include ui-hover-lift(-2px);
 }
 
 .interactive:hover {
-  transform: translateY(-2px);
   box-shadow: var(--ds-shadow-md);
+  border-color: color-mix(in srgb, var(--ds-color-gold) 34%, var(--ds-color-border));
 }
 
 .header {

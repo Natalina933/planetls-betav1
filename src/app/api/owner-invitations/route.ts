@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import {
   buildConciergeInvitationSummary,
   createOrRefreshInvitation,
@@ -19,13 +19,9 @@ const ALLOWED_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_p
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
-      return NextResponse.json({ error: "Non authentifie." }, { status: 401 });
-    }
-    if (!ALLOWED_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse." }, { status: 403 });
-    }
+    const guard = await requireApiRole(req, ALLOWED_ROLES);
+    if (!guard.ok) return guard.response;
+    const auth = guard.auth;
 
     const url = new URL(req.url);
     const housingId = url.searchParams.get("housingId")?.trim() || "";
@@ -52,13 +48,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
-      return NextResponse.json({ error: "Non authentifie." }, { status: 401 });
-    }
-    if (!ALLOWED_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse." }, { status: 403 });
-    }
+    const guard = await requireApiRole(req, ALLOWED_ROLES);
+    if (!guard.ok) return guard.response;
+    const auth = guard.auth;
 
     const body = (await req.json()) as CreateOwnerInvitationPayload;
     const housingId = typeof body.housingId === "string" ? body.housingId.trim() : "";

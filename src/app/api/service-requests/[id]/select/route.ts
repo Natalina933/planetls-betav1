@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/server/db/dbServer";
-import { getApiAuthContext } from "@/server/auth/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import { deriveServiceRequestStatus } from "@/server/service-requests/workflow";
 
 interface SelectRequestBody {
@@ -47,13 +47,9 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-    if (!OWNER_ROLES.has(role)) {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
-    }
+    const guard = await requireApiRole(req, OWNER_ROLES);
+    if (!guard.ok) return guard.response;
+    const { userId } = guard.auth;
 
     const { id } = await context.params;
     if (!id) {
@@ -118,7 +114,7 @@ export async function POST(
 
     if (candidateQuotesError) {
       console.error("[service-requests/select] quotes lookup error:", candidateQuotesError);
-      return NextResponse.json({ error: "Impossible de charger le devis lie." }, { status: 500 });
+      return NextResponse.json({ error: "Impossible de charger le devis lié." }, { status: 500 });
     }
 
     const selectedQuote =
@@ -190,6 +186,8 @@ export async function POST(
         .from("missions")
         .select("id, title, status, concierge_profile_id, owner_profile_id")
         .eq("id", existingMissionId)
+        .eq("owner_profile_id", requestRow.owner_profile_id ?? userId)
+        .eq("concierge_profile_id", selectedRecipient.concierge_profile_id)
         .maybeSingle();
       missionRow = existingMission ?? null;
     }
@@ -261,11 +259,13 @@ export async function POST(
       const { error: quoteUpdateError } = await db
         .from("quotes")
         .update(quoteUpdatePayload)
-        .eq("id", selectedQuote.id);
+        .eq("id", selectedQuote.id)
+        .eq("owner_profile_id", requestRow.owner_profile_id ?? userId)
+        .eq("concierge_profile_id", selectedRecipient.concierge_profile_id);
 
       if (quoteUpdateError) {
         console.error("[service-requests/select] quote update error:", quoteUpdateError);
-        return NextResponse.json({ error: "Impossible de relier le devis a la mission." }, { status: 500 });
+        return NextResponse.json({ error: "Impossible de relier le devis à la mission." }, { status: 500 });
       }
 
       const { error: quoteEventError } = await db.from("quote_events").insert({
@@ -302,6 +302,7 @@ export async function POST(
         metadata: updatedMetadata,
       })
       .eq("id", id)
+      .eq("owner_profile_id", userId)
       .select("*")
       .single();
 

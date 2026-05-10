@@ -1,5 +1,9 @@
+@use "../../../styles/mixins" as *;
+
 .card {
   border: 1px solid var(--dash-border);
+  background: var(--dash-bg-panel, var(--ds-color-surface));
+  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
 }
 
 .header {
@@ -14,7 +18,7 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(240px, 78%);
-  gap: 0.85rem;
+  gap: var(--dash-space-3, var(--ds-space-3));
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding-bottom: 0.15rem;
@@ -29,14 +33,24 @@
 
 .item {
   border: 1px solid var(--dash-border);
-  border-radius: 18px;
-  padding: 1rem;
+  border-radius: var(--dash-radius-lg, var(--ds-radius-lg));
+  padding: var(--dash-space-4, var(--ds-space-4));
   display: grid;
-  gap: 0.65rem;
+  gap: var(--dash-space-2, var(--ds-space-2));
   min-height: 176px;
   background:
     linear-gradient(150deg, color-mix(in srgb, var(--dash-accent) 10%, transparent), transparent 42%),
     var(--dash-bg-panel);
+  transition:
+    transform var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--dash-accent) 34%, var(--dash-border));
+  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
 }
 
 .item h3 {
@@ -72,10 +86,14 @@
   min-height: 30px;
   padding: 0.34rem 0.7rem;
   border: 1px solid color-mix(in srgb, var(--dash-accent) 46%, var(--dash-border));
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   color: var(--dash-text);
   text-decoration: none;
   font-weight: 900;
+}
+
+.meta a:focus-visible {
+  @include ui-focus-ring;
 }
 
 .statusBadge {
@@ -85,7 +103,7 @@
   width: fit-content;
   min-height: 30px;
   padding: 0.28rem 0.62rem;
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
   color: var(--dash-accent-strong);
   font-size: 0.76rem;

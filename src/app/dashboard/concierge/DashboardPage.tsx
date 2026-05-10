@@ -6,16 +6,25 @@ import {
   Bell,
   BriefcaseBusiness,
   CalendarClock,
+  Clock,
+  DoorOpen,
+  FileText,
   GripVertical,
   Home,
+  KeyRound,
+  MapPinned,
   MessageSquareText,
   PackagePlus,
+  Route,
   Search,
   Settings2,
   SlidersHorizontal,
+  Sparkles,
   UserRound,
   WalletCards,
+  Wrench,
   Zap,
+  type LucideIcon,
 } from "lucide-react";
 import { DashboardLoadingScreen, ReadabilityControls } from "@/components/dashboard";
 import { AsyncState, Badge, Card, CardBody } from "@/components/ui";
@@ -55,7 +64,24 @@ const readKpiOrder = (): KpiId[] => {
 const getMatchHref = (match: ConciergeOwnerMatch) =>
   match.listing_source === "housing" && match.listing_id
     ? `/dashboard/concierge/logements/${match.listing_id}`
-    : "/dashboard/concierge/recherche";
+    : "/dashboard/concierge/demandes";
+
+const getRequestCta = (status: string) => {
+  if (status === "quoted") return "Ouvrir le devis";
+  if (status === "interested") return "Préparer un devis";
+  if (status === "selected") return "Voir la mission";
+  return "Voir la demande";
+};
+
+const getMissionTypeIcon = (title: string): LucideIcon => {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("clé") || normalized.includes("cle")) return KeyRound;
+  if (normalized.includes("check-in") || normalized.includes("arrivée") || normalized.includes("arrivee")) return DoorOpen;
+  if (normalized.includes("ménage") || normalized.includes("menage")) return Sparkles;
+  if (normalized.includes("maintenance") || normalized.includes("réparation") || normalized.includes("reparation")) return Wrench;
+  if (normalized.includes("tournée") || normalized.includes("tournee")) return Route;
+  return BriefcaseBusiness;
+};
 
 export default function DashboardPage() {
   const [mode, setMode] = useState<DashboardMode>("essential");
@@ -71,7 +97,7 @@ export default function DashboardPage() {
     loading: boolean;
     isAuthenticated: boolean;
   };
-  const { matches, matchesLoading, matchesError, kpis, plannedNow } =
+  const { matches, matchesLoading, matchesError, requests, requestsLoading, requestsError, kpis, plannedNow } =
     useConciergeDashboardData(isAuthenticated);
 
   useEffect(() => {
@@ -106,7 +132,7 @@ export default function DashboardPage() {
       label: "Urgences",
       value: `${urgentCount}`,
       hint: `${plannedNow.length} mission(s) planifiée(s)`,
-      delta: urgentCount > 0 ? "Priorite" : "Stable",
+      delta: urgentCount > 0 ? "Priorité" : "Stable",
       icon: Zap,
       tone: urgentCount > 0 ? "danger" : "success",
     },
@@ -171,7 +197,7 @@ export default function DashboardPage() {
       <section className={styles.todaySection} aria-labelledby="today-title">
         <div className={styles.sectionHeader}>
           <div>
-            <Badge variant="gold">Aujourd'hui</Badge>
+            <Badge variant="gold">Aujourd&apos;hui</Badge>
             <h2 id="today-title">Vue rapide</h2>
           </div>
           <button type="button" className={styles.reorderButton} onClick={rotateKpis}>
@@ -219,12 +245,48 @@ export default function DashboardPage() {
         </div>
 
         <AsyncState
-          loading={matchesLoading}
-          error={matchesError}
+          loading={requestsLoading || matchesLoading}
+          error={requestsError || matchesError}
           loadingLabel="Chargement des missions proches..."
         >
           <div className={styles.missionRail}>
-            {matches.length > 0 ? (
+            {requests.length > 0 ? (
+              requests.slice(0, mode === "expert" ? 6 : 3).map((request) => {
+                const RequestIcon = getMissionTypeIcon(request.title);
+                return (
+                  <Link
+                    key={request.recipient_id}
+                    href={`/dashboard/concierge/demandes?recipient=${encodeURIComponent(request.recipient_id)}`}
+                    className={styles.missionCard}
+                  >
+                    <span className={styles.missionIllustration}>
+                      <RequestIcon size={34} strokeWidth={2.1} aria-hidden="true" />
+                    </span>
+                    <strong>{request.title}</strong>
+                    <span className={styles.statusBadge}>
+                      {request.urgency ? "Urgent" : request.quote_id ? "Devis en cours" : "À qualifier"}
+                    </span>
+                    <p>{request.property_name || request.city || "Logement à préciser"}</p>
+                    <div className={styles.missionMeta}>
+                      <span>
+                        <MapPinned size={14} aria-hidden="true" />
+                        {request.city || request.postal_code || "zone à préciser"}
+                      </span>
+                      <span>
+                        <Clock size={14} aria-hidden="true" />
+                        {request.desired_date
+                          ? formatDateValue(request.desired_date, { day: "2-digit", month: "short" })
+                          : "à planifier"}
+                      </span>
+                    </div>
+                    <span className={styles.missionCta}>
+                      <FileText size={14} aria-hidden="true" />
+                      {getRequestCta(request.recipient_status)}
+                    </span>
+                  </Link>
+                );
+              })
+            ) : matches.length > 0 ? (
               matches.slice(0, mode === "expert" ? 6 : 3).map((match) => (
                 <Link key={match.id} href={getMatchHref(match)} className={styles.missionCard}>
                   <span className={styles.missionIllustration}>
@@ -232,14 +294,16 @@ export default function DashboardPage() {
                   </span>
                   <strong>{match.title}</strong>
                   <span className={styles.statusBadge}>
-                    {match.compatibility_score >= 80 ? "Prioritaire" : "A qualifier"}
+                    {match.compatibility_score >= 80 ? "Prioritaire" : "À qualifier"}
                   </span>
                   <p>{match.city || "Ville à préciser"}</p>
                   <div className={styles.missionMeta}>
                     <span>{match.compatibility_score}%</span>
                     <span>{match.distance_km ? `${match.distance_km.toFixed(1)} km` : "local"}</span>
                   </div>
-                  <span className={styles.missionCta}>Accepter</span>
+                  <span className={styles.missionCta}>
+                    {match.listing_source === "housing" ? "Voir le bien" : "Voir la demande"}
+                  </span>
                 </Link>
               ))
             ) : (
@@ -250,7 +314,7 @@ export default function DashboardPage() {
                   </span>
                   <strong>{String(event.title || "Mission")}</strong>
                   <span className={styles.statusBadge}>
-                    {event.type === "reminder" ? "Urgent" : "Planifie"}
+                    {event.type === "reminder" ? "Urgent" : "Planifié"}
                   </span>
                   <p>{formatDateValue(event.start, { day: "2-digit", month: "short", hour: "2-digit" })}</p>
                   <div className={styles.missionMeta}>

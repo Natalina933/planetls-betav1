@@ -47,6 +47,7 @@ type OwnerServiceRequestRecipient = {
 type OwnerServiceRequestRow = {
   id: string;
   title: string;
+  description?: string | null;
   request_type: "ponctuel" | "renfort" | "durable";
   property_name?: string | null;
   city?: string | null;
@@ -158,7 +159,7 @@ function formatRecipientStatus(status: string) {
     case "interested":
       return "Intéressé";
     case "quoted":
-      return "Devis envoyé";
+      return "Proposition envoyée";
     case "selected":
       return "Retenu";
     case "not_selected":
@@ -296,15 +297,17 @@ function getWorkflowLabel(value: string | null | undefined) {
     case "IN_DISCUSSION":
       return "En discussion";
     case "QUOTE_SENT":
-      return "Devis reçus";
+      return "Propositions reçues";
     case "ACCEPTED":
       return "Acceptée";
     case "MISSION_CREATED":
-      return "Mission créée";
-    case "IN_PROGRESS":
-      return "En cours";
-    case "COMPLETED":
-      return "Terminée";
+      return "Demande archivée";
+    case "DECLINED":
+      return "Refusée";
+    case "EXPIRED":
+      return "Expirée";
+    case "ARCHIVED":
+      return "Archivée";
     default:
       return "En suivi";
   }
@@ -663,12 +666,12 @@ export default function OwnerRequestsPage() {
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
-        eyebrow="Demandes"
-        title="Demandes de mission"
+        eyebrow="Recherche concierge"
+        title="Demandes envoyées aux conciergeries"
         description={
           loading
             ? "Chargement des demandes..."
-            : error || "Créez une demande puis comparez les devis reçus pour le bon logement."
+            : error || "Créez une demande relationnelle, comparez les propositions, puis activez une collaboration avant les missions."
         }
         metrics={[
           { label: "Demandes", value: loading ? "..." : String(requests.length) },
@@ -914,11 +917,12 @@ export default function OwnerRequestsPage() {
                 <option value="all">Tous statuts</option>
                 <option value="NEW">Nouvelles</option>
                 <option value="IN_DISCUSSION">En discussion</option>
-                <option value="QUOTE_SENT">Devis envoyés</option>
+                <option value="SENT">Envoyées</option>
+                <option value="VIEWED">Consultées</option>
+                <option value="QUOTE_SENT">Propositions reçues</option>
                 <option value="ACCEPTED">Acceptées</option>
-                <option value="MISSION_CREATED">Mission créée</option>
-                <option value="IN_PROGRESS">En cours</option>
-                <option value="COMPLETED">Terminées</option>
+                <option value="DECLINED">Refusées</option>
+                <option value="EXPIRED">Expirées</option>
               </Select>
             </div>
 

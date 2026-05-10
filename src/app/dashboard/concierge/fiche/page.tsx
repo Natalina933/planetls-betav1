@@ -111,7 +111,7 @@ export default function FicheConciergeriePage() {
       <section className={styles.header}>
         <div>
           <p>Fiche conciergerie</p>
-          <h1>Zone d'intervention</h1>
+          <h1>Zone d&apos;intervention</h1>
           <span>
             Cadrez votre périmètre local pour recevoir des opportunités plus réalistes et lisibles.
           </span>
@@ -151,7 +151,7 @@ export default function FicheConciergeriePage() {
           </label>
 
           <label className={styles.field}>
-            <span>Rayon d'intervention</span>
+            <span>Rayon d&apos;intervention</span>
             <div className={styles.radiusRow}>
               <input
                 type="range"
@@ -190,7 +190,7 @@ export default function FicheConciergeriePage() {
             </p>
             <p>
               <CheckCircle2 size={26} aria-hidden="true" />
-              En mode Essentiel, ce réglage devient un garde-fou quotidien plutôt qu'un tableau complexe.
+              En mode Essentiel, ce réglage devient un garde-fou quotidien plutôt qu&apos;un tableau complexe.
             </p>
           </div>
         </DashboardPanel>

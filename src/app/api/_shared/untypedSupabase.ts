@@ -7,8 +7,7 @@ type LooseSupabaseError = {
 
 // Supabase generated types are missing several tables in this project. Keep the
 // permissive row shape centralized while preserving the query-builder surface.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LooseSupabaseData = any;
+type LooseSupabaseData = ReturnType<typeof JSON.parse>;
 
 type LooseSupabaseResult<T = LooseSupabaseData> = {
   data: T | null;

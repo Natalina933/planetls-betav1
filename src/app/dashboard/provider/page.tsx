@@ -44,7 +44,7 @@ export default function ProviderDashboardPage() {
           label: "Alertes urgentes",
           value: `${stats?.urgentAlerts ?? 0}`,
           hint: `${stats?.alerts ?? 0} alerte(s) ouvertes`,
-          trend: (stats?.urgentAlerts ?? 0) > 0 ? "Priorite" : "Stable",
+          trend: (stats?.urgentAlerts ?? 0) > 0 ? "Priorité" : "Stable",
         },
         {
           label: "Clients actifs",
@@ -115,7 +115,7 @@ export default function ProviderDashboardPage() {
         serviceRadiusKm={workspace?.profile.service_radius_km}
       />
 
-      <DashboardPanel title="Vue d’ensemble">
+      <DashboardPanel title="Vue d'ensemble">
         <AsyncState
           loading={isLoading}
           error={error}
@@ -127,8 +127,8 @@ export default function ProviderDashboardPage() {
           </p>
           <p>
             {highlightedInterventions[0]
-              ? `${highlightedInterventions[0].title || highlightedInterventions[0].service_label || "Intervention"} est le dossier terrain le plus exposé aujourd’hui.`
-              : "Aucune intervention prioritaire remontée aujourd’hui."}
+              ? `${highlightedInterventions[0].title || highlightedInterventions[0].service_label || "Intervention"} est le dossier terrain le plus exposé aujourd'hui.`
+              : "Aucune intervention prioritaire remontée aujourd'hui."}
           </p>
           <Link href="/dashboard/provider/interventions/overview">Ouvrir la vue synthèse des interventions</Link>
         </AsyncState>
@@ -142,7 +142,7 @@ export default function ProviderDashboardPage() {
         >
           <p>
             {workspace?.summary.is_pro
-              ? "Le compte PRO est actif pour valoriser l’offre et accélérer la relation client."
+              ? "Le compte PRO est actif pour valoriser l'offre et accélérer la relation client."
               : "Le compte est en mode standard. Une montée en gamme peut renforcer la visibilité et la conversion."}
           </p>
           <p>

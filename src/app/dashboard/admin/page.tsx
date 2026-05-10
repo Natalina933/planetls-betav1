@@ -161,7 +161,7 @@ export default function AdminDashboard() {
                   <li key={checkpoint}>{checkpoint}</li>
                 ))}
               </ul>
-              <span className={styles.categoryLink}>Voir l'espace</span>
+              <span className={styles.categoryLink}>Voir l&apos;espace</span>
             </Link>
           ))}
         </div>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
           La plateforme consolide actuellement {stats.users} utilisateur(s), {stats.activeProviders} prestataire(s)
           actif(s) et {stats.bookings} réservation(s) dans le périmètre de suivi.
         </p>
-        <p>Cette page sert de poste d'arbitrage entre acquisition, qualité d'exécution et continuité de service.</p>
+        <p>Cette page sert de poste d&apos;arbitrage entre acquisition, qualité d&apos;exécution et continuité de service.</p>
       </DashboardPanel>
 
       <DashboardPanel title="Pilotage stratégique">

@@ -1,8 +1,21 @@
+@use "../../../styles/mixins" as *;
+
 .statsCard {
   min-height: 132px;
   border: 1px solid var(--dash-border, var(--ds-color-border));
-  border-radius: 16px;
+  border-radius: var(--dash-radius-lg, var(--ds-radius-lg));
   background: var(--dash-bg-panel, var(--ds-color-surface));
+  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
+  transition:
+    transform var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.statsCard:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--dash-accent, var(--ds-color-gold)) 36%, var(--dash-border, var(--ds-color-border)));
+  box-shadow: var(--dash-shadow-md, var(--ds-shadow-md));
 }
 
 .soft {
@@ -35,7 +48,7 @@
   font-weight: 700;
   color: var(--ds-color-success);
   background: color-mix(in srgb, var(--ds-color-success) 15%, transparent);
-  border-radius: 999px;
+  border-radius: var(--ds-radius-pill);
   padding: 4px 8px;
 }
 

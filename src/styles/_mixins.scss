@@ -1,13 +1,66 @@
 @mixin ui-focus-ring {
-  outline: 2px solid rgba(184, 135, 70, 0.45);
+  outline: 2px solid color-mix(in srgb, var(--ds-color-gold) 58%, transparent);
   outline-offset: 2px;
+  box-shadow: var(--ds-shadow-focus);
 }
 
 @mixin ui-card-shell {
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-lg);
-  box-shadow: var(--ui-shadow-sm);
+  background: var(--ds-color-surface);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ui-card-radius, var(--ds-radius-lg));
+  box-shadow: var(--ds-shadow-sm);
+  color: var(--ds-color-text);
+}
+
+@mixin ui-control-shell {
+  width: 100%;
+  min-height: var(--ds-control-height-md);
+  border: var(--ds-border-subtle);
+  border-radius: var(--ui-input-radius, var(--ds-radius-md));
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text);
+  font: 400 0.92rem / 1.35 var(--ds-font-body);
+  transition:
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast),
+    background-color var(--ds-motion-fast);
+}
+
+@mixin ui-control-focus {
+  border-color: color-mix(in srgb, var(--ds-color-gold) 58%, var(--ds-color-border));
+  @include ui-focus-ring;
+}
+
+@mixin ui-label {
+  color: var(--ds-color-text-soft);
+  font-family: var(--ds-font-ui);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+@mixin ui-hover-lift($distance: -1px) {
+  transition:
+    transform var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast),
+    background-color var(--ds-motion-fast),
+    color var(--ds-motion-fast);
+
+  &:hover {
+    transform: translateY($distance);
+  }
+}
+
+@mixin ui-deco-frame($inset: 4px, $mix: 42%) {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: $inset;
+    border: 1px solid color-mix(in srgb, var(--ds-color-gold) $mix, transparent);
+    border-radius: inherit;
+    pointer-events: none;
+  }
 }
 
 @mixin ui-truncate {
@@ -18,6 +71,12 @@
 
 @mixin ui-mobile {
   @media (max-width: 768px) {
+    @content;
+  }
+}
+
+@mixin ui-tablet {
+  @media (max-width: 1024px) {
     @content;
   }
 }

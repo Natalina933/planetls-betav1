@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 import { setConversationSeenAt } from "../shared";
 import { z } from "zod";
@@ -35,6 +35,15 @@ const canAccessConversation = (userId: string, conversation: {
   owner_profile_id: string;
 }) => conversation.concierge_profile_id === userId || conversation.owner_profile_id === userId;
 
+const MESSAGE_ROLES = new Set([
+  "admin",
+  "super_admin",
+  "concierge",
+  "concierge_pro",
+  "owner",
+  "owner_pro",
+]);
+
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
@@ -48,7 +57,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId } = await getApiAuthContext(req);
+    const guard = await requireApiRole(req, MESSAGE_ROLES);
+    if (!guard.ok) return guard.response;
+
+    const { userId } = guard.auth;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -137,7 +149,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId } = await getApiAuthContext(req);
+    const guard = await requireApiRole(req, MESSAGE_ROLES);
+    if (!guard.ok) return guard.response;
+
+    const { userId } = guard.auth;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }

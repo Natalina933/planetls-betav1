@@ -1,8 +1,11 @@
+@use "../../../styles/mixins" as *;
+
 .card {
   border: 1px solid color-mix(in srgb, var(--dash-accent) 34%, var(--dash-border));
   background:
     radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--dash-accent) 18%, transparent), transparent 38%),
     linear-gradient(135deg, var(--dash-bg-panel), var(--dash-bg-panel-soft));
+  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
 }
 
 .header {
@@ -27,7 +30,7 @@
 .body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: var(--dash-space-2);
+  gap: var(--dash-space-3, var(--ds-space-3));
 }
 
 .action {
@@ -38,13 +41,13 @@
   color: var(--dash-text);
   background: color-mix(in srgb, var(--dash-bg-panel) 88%, white);
   border: 1px solid color-mix(in srgb, var(--dash-accent) 35%, var(--dash-border));
-  border-radius: var(--dash-radius-sm);
+  border-radius: var(--dash-radius-md, var(--ds-radius-md));
   padding: var(--dash-space-3);
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  @include ui-hover-lift;
+}
+
+.action:focus-visible {
+  @include ui-focus-ring;
 }
 
 .actionPrimary {
@@ -75,8 +78,7 @@
 .action:hover {
   background: color-mix(in srgb, var(--dash-accent) 24%, transparent);
   border-color: color-mix(in srgb, var(--dash-accent) 62%, var(--dash-border));
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
-  transform: translateY(-1px);
+  box-shadow: var(--dash-shadow-md, var(--ds-shadow-md));
 }
 
 :global(body[data-readability="on"]) {

@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import type { LooseSupabaseQuery } from "@/app/api/_shared/untypedSupabase";
+
+type ChecklistRow = {
+  id: string;
+  task_key: string;
+  completed: boolean;
+  completed_at: string | null;
+  updated_at: string | null;
+};
 
 const conciergeDb = db as unknown as {
   // The migration adds this table; generated Supabase types can be refreshed later.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from(table: "concierge_daily_checklist"): any;
+  from(table: "concierge_daily_checklist"): LooseSupabaseQuery<ChecklistRow[]>;
 };
 
 const checklistQuerySchema = z.object({
@@ -93,7 +101,7 @@ export async function PATCH(req: NextRequest) {
         { onConflict: "profile_id,task_date,task_key" },
       )
       .select("id, task_key, completed, completed_at, updated_at")
-      .single();
+      .single<ChecklistRow>();
 
     if (error) {
       console.error("[PATCH /api/concierge/daily-checklist] DB error:", error);

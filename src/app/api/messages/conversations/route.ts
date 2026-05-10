@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
 import {
@@ -57,7 +57,10 @@ const conversationSelect = `
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await getApiAuthContext(req);
+    const guard = await requireApiRole(req, ALLOWED_CONVERSATION_CREATOR_ROLES);
+    if (!guard.ok) return guard.response;
+
+    const { userId } = guard.auth;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
@@ -197,12 +200,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
+    const guard = await requireApiRole(req, ALLOWED_CONVERSATION_CREATOR_ROLES);
+    if (!guard.ok) return guard.response;
+
+    const { userId, role } = guard.auth;
     if (!userId || !isUuidLike(userId)) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!ALLOWED_CONVERSATION_CREATOR_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
     const rawBody: unknown = await req.json();

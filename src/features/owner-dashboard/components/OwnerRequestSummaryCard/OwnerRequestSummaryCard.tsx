@@ -113,8 +113,8 @@ export function OwnerRequestSummaryCard({
       <CardBody className={styles.body}>
         {primaryFacts.length > 0 ? (
           <div className={styles.primaryFacts}>
-            {primaryFacts.map((fact) => (
-              <div key={fact.label} className={styles.factCard}>
+            {primaryFacts.map((fact, index) => (
+              <div key={`primary-${index}`} className={styles.factCard}>
                 <span>{fact.label}</span>
                 <strong>{fact.value}</strong>
               </div>
@@ -124,8 +124,8 @@ export function OwnerRequestSummaryCard({
 
         {secondaryFacts.length > 0 ? (
           <div className={styles.secondaryFacts}>
-            {secondaryFacts.map((fact) => (
-              <div key={fact.label} className={styles.secondaryFactCard}>
+            {secondaryFacts.map((fact, index) => (
+              <div key={`secondary-${index}`} className={styles.secondaryFactCard}>
                 <span>{fact.label}</span>
                 <strong>{fact.value}</strong>
               </div>

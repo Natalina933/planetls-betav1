@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import type { LooseSupabaseQuery } from "@/app/api/_shared/untypedSupabase";
+
+type InterventionZoneRow = {
+  service_area: string | null;
+  service_radius_km: number | null;
+  city: string | null;
+  postal_code: string | null;
+  intervention_zone_locked: boolean | null;
+};
 
 const profilesDb = db as unknown as {
   // The migration adds intervention_zone_locked; generated Supabase types can be refreshed later.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  from(table: "profiles"): any;
+  from(table: "profiles"): LooseSupabaseQuery<InterventionZoneRow>;
 };
 
 const zonePatchSchema = z.object({
@@ -38,6 +46,9 @@ export async function GET(req: NextRequest) {
     if (error) {
       console.error("[GET /api/concierge/intervention-zone] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
+    }
+    if (!data) {
+      return NextResponse.json({ error: "Profil introuvable" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -86,6 +97,9 @@ export async function PATCH(req: NextRequest) {
     if (error) {
       console.error("[PATCH /api/concierge/intervention-zone] DB error:", error);
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
+    }
+    if (!data) {
+      return NextResponse.json({ error: "Profil introuvable" }, { status: 404 });
     }
 
     return NextResponse.json({

@@ -1,19 +1,50 @@
+@use "../../../styles/mixins" as *;
+
 .panel {
   width: 100%;
+  border-color: var(--dash-border, var(--ds-color-border));
+  background: var(--dash-bg-panel, var(--ds-color-surface));
+  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--dash-space-3, var(--ds-space-3));
 }
 
 .title {
   margin: 0;
+  color: var(--dash-text, var(--ds-color-text));
+  font-size: clamp(1rem, 1.4vw, 1.12rem);
+  line-height: 1.25;
+  letter-spacing: 0;
 }
 
 .body {
   display: grid;
-  gap: 12px;
+  gap: var(--dash-space-3, var(--ds-space-3));
+  color: var(--dash-text-muted, var(--ds-color-text-soft));
+  line-height: 1.55;
+}
+
+.body p {
+  margin: 0;
+}
+
+.body a {
+  width: fit-content;
+  color: var(--dash-accent-strong, var(--ds-color-gold-strong));
+  font-weight: 800;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--dash-accent, var(--ds-color-gold)) 34%, transparent);
+}
+
+.body a:hover {
+  color: var(--dash-accent, var(--ds-color-gold));
+}
+
+.body a:focus-visible {
+  @include ui-focus-ring;
 }

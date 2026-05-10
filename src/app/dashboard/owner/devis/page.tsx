@@ -426,25 +426,25 @@ function OwnerQuotesContent() {
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
-        eyebrow="Devis"
-        title="Devis reçus"
+        eyebrow="Conciergeries"
+        title="Propositions reçues"
         description={
           loading
             ? "Chargement des devis..."
             : error ||
               (targetRequestId
-                ? "Retrouvez ici uniquement les devis liés à cette demande pour ce logement."
-                : "Retrouvez chaque demande, comparez clairement les réponses des concierges et retenez la proposition la plus adaptée.")
+                ? "Retrouvez ici uniquement les propositions liées à cette demande pour ce logement."
+                : "Comparez les propositions des conciergeries et retenez le partenaire le plus adapté.")
         }
         chips={undefined}
         metrics={[
-          { label: "Devis", value: loading ? "..." : String(filteredQuotes.length) },
+          { label: "Propositions", value: loading ? "..." : String(filteredQuotes.length) },
           { label: "Logements suivis", value: loading ? "..." : String(propertyCountWithQuotes) },
           { label: "À arbitrer", value: loading ? "..." : String(pendingQuotes.length) },
         ]}
         actions={[
-          { label: "Voir mes demandes", href: "/dashboard/owner/demandes" },
-          { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
+          { label: "Voir les demandes", href: "/dashboard/owner/demandes" },
+          { label: "Rechercher", href: "/dashboard/owner/concierges" },
         ]}
         cards={[]}
       />
@@ -462,15 +462,15 @@ function OwnerQuotesContent() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
             className={styles.select}
+            aria-label="Filtrer les devis par statut"
           >
             <option value="all">Tous statuts</option>
             <option value="NEW">Nouveau</option>
             <option value="IN_DISCUSSION">En discussion</option>
-            <option value="QUOTE_SENT">Devis envoyé</option>
-            <option value="ACCEPTED">Accepté</option>
-            <option value="MISSION_CREATED">Mission créée</option>
-            <option value="IN_PROGRESS">En cours</option>
-            <option value="COMPLETED">Terminée</option>
+            <option value="QUOTE_SENT">Proposition reçue</option>
+            <option value="ACCEPTED">Acceptée</option>
+            <option value="DECLINED">Refusée</option>
+            <option value="EXPIRED">Expirée</option>
           </select>
           <button
             type="button"

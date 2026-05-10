@@ -24,12 +24,35 @@ type DashboardMissionRow = {
   scheduled_end?: string | null;
 };
 
+export type ConciergeDashboardRequest = {
+  id: string;
+  title: string;
+  city: string | null;
+  postal_code: string | null;
+  property_name?: string | null;
+  desired_date: string | null;
+  urgency: boolean;
+  recipient_id: string;
+  recipient_status: string;
+  quote_id?: string | null;
+  quote_status?: string | null;
+  mission_id?: string | null;
+};
+
+type ConciergeRequestsPayload = {
+  items?: ConciergeDashboardRequest[];
+  error?: string;
+};
+
 export function useConciergeDashboardData(isAuthenticated: boolean) {
   const [matches, setMatches] = useState<ConciergeOwnerMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [matchesError, setMatchesError] = useState<string | null>(null);
   const [kpis, setKpis] = useState<ConciergeKpis | null>(null);
   const [planningEvents, setPlanningEvents] = useState<DashboardEvent[]>([]);
+  const [requests, setRequests] = useState<ConciergeDashboardRequest[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [requestsError, setRequestsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -51,6 +74,40 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
     };
 
     void fetchMatchesData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isMounted = true;
+
+    const fetchRequests = async () => {
+      try {
+        setRequestsLoading(true);
+        setRequestsError(null);
+        const payload = await fetchJsonOrFallback<ConciergeRequestsPayload>(
+          "/api/service-requests?view=concierge&limit=6",
+          { items: [] },
+        );
+        if (!isMounted) return;
+        if (payload.error) {
+          throw new Error(payload.error);
+        }
+        setRequests(Array.isArray(payload.items) ? payload.items : []);
+      } catch (err) {
+        if (!isMounted) return;
+        setRequestsError(err instanceof Error ? err.message : "Erreur de chargement des demandes");
+        setRequests([]);
+      } finally {
+        if (isMounted) setRequestsLoading(false);
+      }
+    };
+
+    void fetchRequests();
 
     return () => {
       isMounted = false;
@@ -146,6 +203,9 @@ export function useConciergeDashboardData(isAuthenticated: boolean) {
     matches,
     matchesLoading,
     matchesError,
+    requests,
+    requestsLoading,
+    requestsError,
     kpis,
     planningEvents,
     averageRating,

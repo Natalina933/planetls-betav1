@@ -48,6 +48,7 @@ type RenderSection = (
   showEditTop?: boolean,
 ) => React.ReactNode;
 
+type DynamicValue = ReturnType<typeof JSON.parse>;
 type RenderField = (label: string, ...args: unknown[]) => React.ReactNode;
 type TabIconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
 type MissionProgressStepItem = {
@@ -73,11 +74,41 @@ type MissionProfileItem = {
   urgentMultiplier: number;
 };
 type MissionPayloadState = {
-  missionProfile: { missions: MissionProfileItem[] };
+  missionProfile: {
+    missions: MissionProfileItem[];
+    specialConditions?: {
+      acceptHighSeasonInterventions?: boolean;
+    };
+  };
   missionCatalog: MissionCatalogItem[];
-  preferences: unknown;
+  preferences: {
+    priorityFlags: {
+      urgent: boolean;
+    };
+  };
 };
 type MissionAvailabilityState = MissionAvailability;
+type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
+type ConciergeProfileDraft = {
+  availability_hours?: string | null;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  avatar_url?: string | null;
+  avatar_scale?: number | null;
+  avatar_offset_x?: number | null;
+  avatar_offset_y?: number | null;
+  avatar_rotation?: number | null;
+  years_experience?: number | string | null;
+  experience_level?: ExperienceLevel | null;
+  website?: string | null;
+  linkedin?: string | null;
+  instagram?: string | null;
+  facebook?: string | null;
+};
 type EditProfileStateLike = {
   availability_hours?: string | null;
   [key: string]: unknown;
@@ -89,7 +120,7 @@ type TariffOverviewControlsLike = {
   scrollToTariffSection: (sectionId: string) => void;
   handleTabChange: (tabId: ConciergeTabId) => void;
 };
-type SetEditProfile = React.Dispatch<React.SetStateAction<EditProfileStateLike>>;
+type SetEditProfile = React.Dispatch<React.SetStateAction<ConciergeProfileDraft | null>>;
 type PricingModalState = {
   id?: string;
   serviceId: string;
@@ -150,6 +181,55 @@ type PricingScenario = {
   id: string;
   name: string;
   is_default: boolean;
+};
+type PricingV2State = {
+  base: {
+    hourlyRate: number;
+    travelFee: number;
+    minimumInvoice: number;
+  };
+  globalModifiers: {
+    urgentPercent: number;
+    nightPercent: number;
+    weekendPercent: number;
+    highSeasonPercent: number;
+  };
+};
+type PricingMetaState = {
+  commissionRatePct: number;
+  setupFee: number;
+};
+type PricingProjection = {
+  commissionEffectivePct: number;
+  total: number;
+  commissionAmount: number;
+  setupAmount: number;
+  actAmount: number;
+  narrative: string;
+};
+type CatalogService = {
+  id: number;
+  service: string;
+};
+type ConciergeTariffsTabContentProps = {
+  styles: Record<string, string>;
+  renderSection: RenderSection;
+  sectionIds: Record<string, string>;
+  mode?: "tarifs" | "devis";
+  tariffOverviewControls: TariffOverviewControlsLike;
+  tariffFoundationControls: DynamicValue;
+  tariffConfigControls: DynamicValue;
+  editingSection: string | null;
+  pricingCatalogRows: DynamicValue;
+  activeMissionServiceLabels: string[];
+  renderField: RenderField;
+  tariffCatalogControls: DynamicValue;
+  pricingSegmentsControls: DynamicValue;
+  pricingRulesControls: DynamicValue;
+  pricingScenarioControls: DynamicValue;
+  pricingModalControls: DynamicValue;
+  billingDeskSectionProps: DynamicValue;
+  formatExperienceLabel: (level: ExperienceLevel | null) => string;
 };
 
 const DAY_LABELS: Record<WeekDay, string> = {
@@ -278,7 +358,7 @@ interface DocumentsTabSectionProps {
 interface FicheTabSectionProps {
   styles: Record<string, string>;
   ficheControls: {
-    profile: any;
+    profile: ConciergeProfileDraft | null;
     avatarFile: File | null;
     defaultAvatar: string;
     sectionIds: {
@@ -292,7 +372,7 @@ interface FicheTabSectionProps {
     ) => void;
     errors: Record<string, string>;
   };
-  editProfile: any;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   renderSection: RenderSection;
   renderField: RenderField;
@@ -304,8 +384,8 @@ interface FicheTabSectionProps {
 
 interface FicheSidebarCardProps {
   styles: Record<string, string>;
-  profile: any;
-  editProfile: any;
+  profile: ConciergeProfileDraft | null;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   avatarFile: File | null;
   defaultAvatar: string;
@@ -327,7 +407,7 @@ interface FichePersonalInfoSectionProps {
   styles: Record<string, string>;
   renderSection: RenderSection;
   renderField: RenderField;
-  editProfile: any;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   sectionId: string;
   setEditProfile: SetEditProfile;
@@ -341,7 +421,7 @@ interface FicheSimpleSectionProps {
 
 interface FicheSocialSectionProps {
   renderSection: RenderSection;
-  editProfile: any;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   beginSectionEdit: (sectionId: string) => void;
   handleSocialChange: (
@@ -353,7 +433,7 @@ interface FicheSocialSectionProps {
 
 interface FicheStaticSidebarSectionProps {
   styles: Record<string, string>;
-  profile: any;
+  profile: ConciergeProfileDraft;
   renderSection: RenderSection;
 }
 
@@ -700,15 +780,15 @@ interface ConciergeProfileActiveTabContentProps {
     activeMissionServiceLabels: string[];
   };
   tariffOverviewControls: TariffOverviewControlsLike;
-  tariffFoundationControls: unknown;
-  tariffConfigControls: unknown;
-  pricingCatalogRows: unknown;
-  tariffCatalogControls: unknown;
-  pricingSegmentsControls: unknown;
-  pricingRulesControls: unknown;
-  pricingScenarioControls: unknown;
-  pricingModalControls: unknown;
-  billingDeskSectionProps: unknown;
+  tariffFoundationControls: ConciergeTariffsTabContentProps["tariffFoundationControls"];
+  tariffConfigControls: ConciergeTariffsTabContentProps["tariffConfigControls"];
+  pricingCatalogRows: DynamicValue;
+  tariffCatalogControls: ConciergeTariffsTabContentProps["tariffCatalogControls"];
+  pricingSegmentsControls: ConciergeTariffsTabContentProps["pricingSegmentsControls"];
+  pricingRulesControls: ConciergeTariffsTabContentProps["pricingRulesControls"];
+  pricingScenarioControls: ConciergeTariffsTabContentProps["pricingScenarioControls"];
+  pricingModalControls: ConciergeTariffsTabContentProps["pricingModalControls"];
+  billingDeskSectionProps: ConciergeTariffsTabContentProps["billingDeskSectionProps"];
 }
 
 interface ConciergeMissionsTabContentProps {
@@ -1228,12 +1308,12 @@ function FicheSidebarCard({
           existingRotation={editProfile.avatar_rotation ?? 0}
           onAvatarChange={setAvatarFile}
           onAvatarScaleChange={(scale) =>
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev ? { ...prev, avatar_scale: scale } : prev,
             )
           }
           onAvatarOffsetChange={(offsetX, offsetY) =>
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev
                 ? {
                     ...prev,
@@ -1244,14 +1324,14 @@ function FicheSidebarCard({
             )
           }
           onAvatarRotationChange={(rotation) =>
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev ? { ...prev, avatar_rotation: rotation } : prev,
             )
           }
           onAvatarSave={() => handleSaveSection("Photo de profil")}
           onAvatarRemove={() => {
             setAvatarFile(null);
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev
                 ? {
                     ...prev,
@@ -1278,7 +1358,7 @@ function FicheSidebarCard({
           <div className={styles.profileStatItem}>
             <p className={styles.profileStatLabel}>Expérience</p>
             <p className={styles.profileStatValue}>
-              {profile.years_experience != null
+              {profile?.years_experience != null
                 ? `${profile.years_experience} ans`
                 : "Non renseigné"}
             </p>
@@ -1381,7 +1461,7 @@ function FichePersonalInfoSection({
             value={editProfile.experience_level ?? ""}
             onChange={(e) => {
               const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
-              setEditProfile((prev: EditProfileStateLike) =>
+              setEditProfile((prev) =>
                 prev
                   ? {
                       ...prev,
@@ -1399,7 +1479,7 @@ function FichePersonalInfoSection({
           </select>
         ) : (
           <span className={styles.fieldValue}>
-            {formatExperienceLabel(editProfile.experience_level)}
+            {formatExperienceLabel(editProfile.experience_level ?? null)}
           </span>
         )}
       </div>
@@ -1546,7 +1626,12 @@ function FicheSummarySection({
   profile,
   renderSection,
 }: Pick<FicheStaticSidebarSectionProps, "profile" | "renderSection">) {
-  return renderSection("Résumé du profil", <FiBarChart />, <ProfileSummary profile={profile} />, false);
+  return renderSection(
+    "Résumé du profil",
+    <FiBarChart />,
+    profile ? <ProfileSummary profile={profile as React.ComponentProps<typeof ProfileSummary>["profile"]} /> : null,
+    false,
+  );
 }
 
 export function FicheTabSection({
@@ -1586,7 +1671,9 @@ export function FicheTabSection({
         />
 
         <FicheBadgeSection styles={styles} />
-        <FicheSummarySection profile={ficheControls.profile} renderSection={renderSection} />
+        {ficheControls.profile ? (
+          <FicheSummarySection profile={ficheControls.profile} renderSection={renderSection} />
+        ) : null}
       </aside>
 
       <section className={styles.rightColumn}>
@@ -3486,7 +3573,7 @@ export function ConciergeTariffsTabContent({
   pricingModalControls,
   billingDeskSectionProps,
   formatExperienceLabel,
-}: any) {
+}: ConciergeTariffsTabContentProps) {
   if (mode === "devis") {
     return (
       <div className={styles.financeGrid}>
@@ -3554,7 +3641,7 @@ export function ConciergeTariffsTabContent({
         <div className={styles.tariffSimpleGrid}>
           <TariffContextSection
             styles={styles}
-            experienceLabel={tariffFoundationControls.formatExperienceLabel(tariffFoundationControls.editProfile.experience_level)}
+            experienceLabel={tariffFoundationControls.formatExperienceLabel(tariffFoundationControls.editProfile.experience_level ?? null)}
             locationLabel={tariffConfigControls.tariffLocationLabel}
             radiusKm={tariffFoundationControls.missionAvailability?.radiusKm ?? 0}
             urgentEnabled={tariffFoundationControls.missionPayload.preferences.priorityFlags.urgent}

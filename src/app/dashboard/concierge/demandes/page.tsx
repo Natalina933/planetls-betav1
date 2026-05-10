@@ -1,8 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  BadgeCheck,
+  CalendarPlus,
+  CheckCircle,
+  CircleDollarSign,
+  ClipboardList,
+  Clock,
+  FileText,
+  Home,
+  MapPinned,
+  MessageSquare,
+  Send,
+  Sparkles,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { RequestStatusBadge } from "@/components/ui";
 import { deriveRequestWorkflowStatus } from "@/app/lib/requestStatus";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
@@ -36,6 +52,15 @@ type ConciergeRequestRow = {
   mission_id?: string | null;
 };
 
+type RequestFilter = "active" | "quote" | "selected" | "closed";
+
+const FILTER_ICONS: Record<RequestFilter, LucideIcon> = {
+  active: ClipboardList,
+  quote: FileText,
+  selected: BadgeCheck,
+  closed: XCircle,
+};
+
 function formatDate(value: string | null) {
   if (!value) return "Date à définir";
   const date = new Date(value);
@@ -59,9 +84,60 @@ function formatType(value: ConciergeRequestRow["request_type"]) {
   return "Besoin ponctuel";
 }
 
-export default function ConciergeDemandesPage() {
+function getWorkflow(item: ConciergeRequestRow) {
+  return deriveRequestWorkflowStatus({
+    workflowStatus: item.workflow_status,
+    serviceRequestStatus: item.status,
+    recipientStatus: item.recipient_status,
+    quoteStatus: item.quote_status,
+    missionStatus: item.mission_status,
+    hasMission: Boolean(item.mission_id),
+  });
+}
+
+function getRequestFilter(item: ConciergeRequestRow): RequestFilter {
+  if (item.recipient_status === "declined" || item.recipient_status === "not_selected") return "closed";
+  if (item.recipient_status === "selected" || item.mission_id) return "selected";
+  if (item.quote_id || item.recipient_status === "quoted") return "quote";
+  return "active";
+}
+
+function getNextStepLabel(item: ConciergeRequestRow) {
+  if (item.recipient_status === "selected" || item.mission_id) return "Collaboration acceptée";
+  if (item.recipient_status === "quoted") return "Devis à suivre";
+  if (item.recipient_status === "interested") return "Préparer le devis";
+  if (item.recipient_status === "declined") return "Refusée";
+  if (item.recipient_status === "not_selected") return "Non retenue";
+  return "Qualifier la demande";
+}
+
+function getNextStepIcon(item: ConciergeRequestRow): LucideIcon {
+  if (item.recipient_status === "selected" || item.mission_id) return CalendarPlus;
+  if (item.recipient_status === "quoted") return Send;
+  if (item.recipient_status === "interested") return FileText;
+  if (item.recipient_status === "declined" || item.recipient_status === "not_selected") return XCircle;
+  return ClipboardList;
+}
+
+function getNextStepDescription(item: ConciergeRequestRow) {
+  if (item.recipient_status === "selected" || item.mission_id) {
+    return "Le devis a été accepté. La demande commerciale est archivée, les futures tâches passent dans le module Missions.";
+  }
+  if (item.recipient_status === "quoted") {
+    return "Le devis est prêt côté concierge. Suivez la réponse du propriétaire.";
+  }
+  if (item.recipient_status === "interested") {
+    return "Vous avez confirmé votre intérêt. Finalisez maintenant le devis.";
+  }
+  return "Commencez par qualifier la demande ou préparez directement un devis.";
+}
+
+function ConciergeDemandesContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const focusedRecipientId = searchParams.get("recipient");
   const [items, setItems] = useState<ConciergeRequestRow[]>([]);
+  const [filter, setFilter] = useState<RequestFilter>("active");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -143,6 +219,25 @@ export default function ConciergeDemandesPage() {
             hasMission: Boolean(item.mission_id),
           }) === "QUOTE_SENT",
       ).length,
+    [items],
+  );
+
+  const filteredItems = useMemo(
+    () =>
+      items.filter((item) => {
+        if (focusedRecipientId && item.recipient_id === focusedRecipientId) return true;
+        return getRequestFilter(item) === filter;
+      }),
+    [filter, focusedRecipientId, items],
+  );
+
+  const filterCounts = useMemo(
+    () => ({
+      active: items.filter((item) => getRequestFilter(item) === "active").length,
+      quote: items.filter((item) => getRequestFilter(item) === "quote").length,
+      selected: items.filter((item) => getRequestFilter(item) === "selected").length,
+      closed: items.filter((item) => getRequestFilter(item) === "closed").length,
+    }),
     [items],
   );
 
@@ -236,9 +331,11 @@ export default function ConciergeDemandesPage() {
       return (
         <>
           <Link href={getConversationHref(item)} className={styles.linkBtn}>
+            <MessageSquare size={15} aria-hidden="true" />
             Ouvrir la conversation
           </Link>
           <Link href={quoteHref} className={styles.secondaryBtn}>
+            <FileText size={15} aria-hidden="true" />
             Ouvrir le devis
           </Link>
           <button
@@ -247,6 +344,7 @@ export default function ConciergeDemandesPage() {
             disabled={isBusy}
             onClick={() => void prepareQuote(item, { force: true })}
           >
+            <FileText size={15} aria-hidden="true" />
             {isBusy ? "Mise à jour..." : "Relancer la préparation"}
           </button>
         </>
@@ -257,10 +355,16 @@ export default function ConciergeDemandesPage() {
       return (
         <>
           <Link href={getConversationHref(item)} className={styles.linkBtn}>
+            <MessageSquare size={15} aria-hidden="true" />
             Ouvrir la conversation
           </Link>
           <Link href={quoteHref} className={styles.secondaryBtn}>
+            <FileText size={15} aria-hidden="true" />
             Ouvrir devis / facturation
+          </Link>
+          <Link href="/dashboard/concierge/planning" className={styles.primaryBtn}>
+            <CalendarPlus size={15} aria-hidden="true" />
+            Planifier la mission
           </Link>
         </>
       );
@@ -269,6 +373,7 @@ export default function ConciergeDemandesPage() {
     if (item.recipient_status === "declined" || item.recipient_status === "not_selected") {
       return (
         <Link href={getConversationHref(item)} className={styles.linkBtn}>
+          <MessageSquare size={15} aria-hidden="true" />
           Ouvrir la conversation
         </Link>
       );
@@ -278,6 +383,7 @@ export default function ConciergeDemandesPage() {
       return (
         <>
           <Link href={getConversationHref(item)} className={styles.linkBtn}>
+            <MessageSquare size={15} aria-hidden="true" />
             Ouvrir la conversation
           </Link>
           <button
@@ -286,6 +392,7 @@ export default function ConciergeDemandesPage() {
             disabled={isBusy}
             onClick={() => void prepareQuote(item)}
           >
+            <FileText size={15} aria-hidden="true" />
             {isBusy ? "Préparation..." : "Préparer un devis"}
           </button>
           <button
@@ -308,9 +415,11 @@ export default function ConciergeDemandesPage() {
           disabled={isBusy}
           onClick={() => void respond(item.recipient_id, "interested")}
         >
+          <CheckCircle size={15} aria-hidden="true" />
             {isBusy ? "Mise à jour..." : "Je suis intéressée"}
         </button>
         <Link href={getConversationHref(item)} className={styles.linkBtn}>
+          <MessageSquare size={15} aria-hidden="true" />
           Ouvrir la conversation
         </Link>
         <button
@@ -319,6 +428,7 @@ export default function ConciergeDemandesPage() {
           disabled={isBusy}
           onClick={() => void prepareQuote(item)}
         >
+          <FileText size={15} aria-hidden="true" />
           {isBusy ? "Préparation..." : "Préparer un devis"}
         </button>
         <button
@@ -335,13 +445,13 @@ export default function ConciergeDemandesPage() {
 
   return (
     <ConciergeWorkspacePage
-      eyebrow="Missions"
-      title="Demandes reçues"
+      eyebrow="Demandes concierge"
+      title="Demandes propriétaires reçues"
       description={
         loading
           ? "Chargement des demandes..."
           : error ||
-            "Traitez les nouvelles demandes propriétaires avant qu'elles ne deviennent de vraies missions."
+            "Qualifiez les demandes propriétaires, préparez un devis, puis basculez uniquement les dossiers acceptés en missions opérationnelles."
       }
       chips={[`${items.length} demande(s)`, `${urgentCount} urgente(s)`, `${quotedCount} à chiffrer`]}
       metrics={[
@@ -382,7 +492,7 @@ export default function ConciergeDemandesPage() {
         },
         {
           title: "3. Convertir",
-           text: "Une fois choisie par le propriétaire, la demande devient une mission à planifier proprement.",
+           text: "Une fois le devis accepté par le propriétaire, la demande est archivée et la collaboration peut recevoir des missions.",
         },
       ]}
     >
@@ -390,13 +500,55 @@ export default function ConciergeDemandesPage() {
         {actionMessage ? <p className={styles.successBox}>{actionMessage}</p> : null}
         {error ? <p className={styles.errorBox}>{error}</p> : null}
 
+        <div className={styles.workflowBar} aria-label="Parcours de conversion">
+          <span>1. Demande reçue</span>
+          <span>2. Devis préparé</span>
+          <span>3. Propriétaire accepte</span>
+          <span>4. Collaboration active</span>
+        </div>
+
+        <div className={styles.filterBar} role="tablist" aria-label="Filtrer les demandes">
+          {[
+            ["active", "À qualifier", filterCounts.active],
+            ["quote", "Devis", filterCounts.quote],
+            ["selected", "Acceptées", filterCounts.selected],
+            ["closed", "Clôturées", filterCounts.closed],
+          ].map(([key, label, count]) => {
+            const filterKey = key as RequestFilter;
+            const Icon = FILTER_ICONS[filterKey];
+            return (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={filter === key}
+                className={filter === key ? styles.filterActive : ""}
+                onClick={() => setFilter(filterKey)}
+              >
+                <Icon size={15} aria-hidden="true" />
+                {label} <strong>{count}</strong>
+              </button>
+            );
+          })}
+        </div>
+
         <div className={styles.list}>
-          {items.map((item) => (
-            <article key={item.recipient_id} className={styles.card}>
+          {filteredItems.map((item) => {
+            const NextStepIcon = getNextStepIcon(item);
+
+            return (
+              <article
+                key={item.recipient_id}
+                id={`request-${item.recipient_id}`}
+                className={`${styles.card} ${focusedRecipientId === item.recipient_id ? styles.cardFocused : ""}`}
+              >
               <div className={styles.cardHead}>
                 <div className={styles.cardTitleBlock}>
                   <p className={styles.ownerName}>{item.owner_name}</p>
-                  <h2>{item.title}</h2>
+                  <h2>
+                    <Sparkles size={18} aria-hidden="true" />
+                    {item.title}
+                  </h2>
                   <p className={styles.meta}>
                     {formatType(item.request_type)} | {item.property_name || item.city || "Logement à préciser"} |{" "}
                     {formatDate(item.desired_date)}
@@ -417,11 +569,56 @@ export default function ConciergeDemandesPage() {
 
               {item.description ? <p className={styles.description}>{item.description}</p> : null}
 
+              <div className={styles.requestBrief} aria-label="Resume professionnel">
+                <div>
+                  <span>Logement</span>
+                  <strong>{item.property_name || "A preciser"}</strong>
+                </div>
+                <div>
+                  <span>Services</span>
+                  <strong>{item.requested_services.length || "A qualifier"}</strong>
+                </div>
+                <div>
+                  <span>Decision</span>
+                  <strong>{getNextStepLabel(item)}</strong>
+                </div>
+              </div>
+
+              <div className={styles.nextStepBox}>
+                <strong>
+                  <NextStepIcon size={16} aria-hidden="true" />
+                  {getNextStepLabel(item)}
+                </strong>
+                <span>{getNextStepDescription(item)}</span>
+              </div>
+
+              {item.recipient_status === "selected" || item.mission_id ? (
+                <div className={styles.partnershipStart}>
+                  <BadgeCheck size={18} aria-hidden="true" />
+                  <div>
+                    <strong>Partenariat actif</strong>
+                    <span>Le proprietaire vous a retenue : les informations logement, la conversation et la planification deviennent le centre de travail.</span>
+                  </div>
+                </div>
+              ) : null}
+
               <div className={styles.metaGrid}>
-                <span>{formatAmount(item.budget_max, item.currency)}</span>
-                <span>{item.property_name || "Logement non renseigné"}</span>
-                <span>{item.postal_code || "Code postal non renseigné"}</span>
-                <span>{item.status}</span>
+                <span>
+                  <CircleDollarSign size={15} aria-hidden="true" />
+                  {formatAmount(item.budget_max, item.currency)}
+                </span>
+                <span>
+                  <Home size={15} aria-hidden="true" />
+                  {item.property_name || "Logement non renseigné"}
+                </span>
+                <span>
+                  <MapPinned size={15} aria-hidden="true" />
+                  {item.postal_code || item.city || "Zone à préciser"}
+                </span>
+                <span>
+                  <Clock size={15} aria-hidden="true" />
+                  {getWorkflow(item)}
+                </span>
               </div>
 
               <div className={styles.tags}>
@@ -437,15 +634,24 @@ export default function ConciergeDemandesPage() {
               </div>
 
               <div className={styles.actions}>{renderActions(item)}</div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
 
-          {!loading && !error && items.length === 0 ? (
-            <p className={styles.emptyState}>Aucune demande reçue pour le moment.</p>
+          {!loading && !error && filteredItems.length === 0 ? (
+            <p className={styles.emptyState}>Aucune demande dans cette étape pour le moment.</p>
           ) : null}
         </div>
       </div>
     </ConciergeWorkspacePage>
+  );
+}
+
+export default function ConciergeDemandesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConciergeDemandesContent />
+    </Suspense>
   );
 }
 

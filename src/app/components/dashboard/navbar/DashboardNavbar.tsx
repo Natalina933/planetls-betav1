@@ -167,7 +167,7 @@ const PAGE_LABELS: Record<string, string> = {
   devis: "Devis",
   logements: "Logements",
   contacts: "Contacts",
-  conciergerie: "Conciergerie",
+  conciergerie: "Conciergeries",
   recherche: "Recherche",
   demandes: "Demandes",
   objectifs: "Objectifs",
@@ -352,7 +352,7 @@ export default function DashboardNavbar({
                   id: item.id,
                   title: repliedRecipient?.concierge_name || item.title || "Réponse concierge",
                   description: `${responseLabel}${item.city ? ` • ${item.city}` : ""}`,
-                  href: "/dashboard/owner/conciergerie",
+                  href: "/dashboard/owner/demandes",
                   count: 1,
                   kind: repliedRecipient?.status === "quoted" ? "quote" : "request",
                 } satisfies NotificationItem;

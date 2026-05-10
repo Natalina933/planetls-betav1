@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
 const untypedDb = asLooseSupabaseClient(db);
@@ -52,13 +52,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!ALLOWED_BILLING_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
-    }
+    const guard = await requireApiRole(req, ALLOWED_BILLING_ROLES);
+    if (!guard.ok) return guard.response;
+    const { userId } = guard.auth;
 
     const { id } = await params;
     const body: UpdateQuoteStatusBody = await req.json();

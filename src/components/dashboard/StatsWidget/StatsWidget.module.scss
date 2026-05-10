@@ -5,7 +5,7 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.75rem;
+  gap: var(--dash-space-3, var(--ds-space-3));
 }
 
 @media (min-width: 680px) {

@@ -1,6 +1,9 @@
+@use "../../../styles/mixins" as *;
+
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   min-height: 24px;
   padding: 0.2rem 0.55rem;
   border-radius: var(--ds-radius-pill);
@@ -10,6 +13,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-family: var(--ds-font-ui);
+  white-space: nowrap;
 }
 
 .neutral {
@@ -71,10 +75,11 @@
 :global([data-theme="art-deco"]) .success::before,
 :global([data-theme="art-deco"]) .warning::before,
 :global([data-theme="art-deco"]) .gold::before {
-  content: "?";
-  font-size: 0.58rem;
-  margin-right: 0.35rem;
-  color: #b5a642;
+  content: "";
+  width: 0.38rem;
+  height: 0.38rem;
+  background: var(--ds-color-gold-strong);
+  transform: rotate(45deg);
 }
 
 :global([data-theme="mucha-dark"]) .gold,

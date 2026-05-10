@@ -158,9 +158,9 @@ export default function SimpleOverviewWorkspace({
             <div className={styles.sectionIntro}>
               <span className={styles.sectionLabel}>A finaliser</span>
               <div className={styles.sectionHeading}>
-                <h2 className={styles.sectionTitle}>Missions a finaliser</h2>
+                <h2 className={styles.sectionTitle}>Actions a finaliser</h2>
                 <p className={styles.sectionDescription}>
-                  Cette section met en avant les missions necessitant encore une action ou une validation.
+                  Cette section met en avant les elements necessitant encore une action ou une validation.
                 </p>
               </div>
             </div>

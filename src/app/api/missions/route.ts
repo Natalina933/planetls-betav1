@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 
 type MissionStatus =
@@ -14,6 +14,7 @@ type MissionStatus =
 type MissionPriority = "low" | "normal" | "high" | "urgent";
 
 interface CreateMissionBody {
+  concierge_profile_id?: string | null;
   owner_profile_id?: string | null;
   property_id?: string | null;
   service_id?: number | null;
@@ -43,6 +44,16 @@ const CONCIERGE_MISSION_ROLES = new Set([
   "super_admin",
   "concierge",
   "concierge_pro",
+]);
+const OWNER_MISSION_ROLES = new Set(["owner", "owner_pro"]);
+const MISSION_READER_ROLES = new Set([
+  ...CONCIERGE_MISSION_ROLES,
+  "owner",
+  "owner_pro",
+]);
+const MISSION_CREATOR_ROLES = new Set([
+  ...CONCIERGE_MISSION_ROLES,
+  ...OWNER_MISSION_ROLES,
 ]);
 
 const isUuidLike = (value: string): boolean =>
@@ -97,9 +108,11 @@ const mapMissionInsertError = (error: {
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId || !isUuidLike(auth.userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    const guard = await requireApiRole(req, MISSION_READER_ROLES);
+    if (!guard.ok) return guard.response;
+    const auth = guard.auth;
+    if (!isUuidLike(auth.userId)) {
+      return NextResponse.json({ error: "Utilisateur invalide" }, { status: 401 });
     }
 
     const url = new URL(req.url);
@@ -147,13 +160,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId || !isUuidLike(auth.userId)) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-
-    if (!CONCIERGE_MISSION_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
+    const guard = await requireApiRole(req, MISSION_CREATOR_ROLES);
+    if (!guard.ok) return guard.response;
+    const auth = guard.auth;
+    if (!isUuidLike(auth.userId)) {
+      return NextResponse.json({ error: "Utilisateur invalide" }, { status: 401 });
     }
 
     const body: CreateMissionBody = await req.json();
@@ -168,12 +179,22 @@ export async function POST(req: NextRequest) {
     const priority: MissionPriority = VALID_PRIORITY.includes(body.priority as MissionPriority)
       ? (body.priority as MissionPriority)
       : "normal";
+    const isOwnerCreator = OWNER_MISSION_ROLES.has(auth.role);
+    const conciergeProfileId = isOwnerCreator ? body.concierge_profile_id : auth.userId;
+    const ownerProfileId = isOwnerCreator ? auth.userId : body.owner_profile_id ?? null;
+
+    if (!conciergeProfileId || !isUuidLike(conciergeProfileId)) {
+      return NextResponse.json(
+        { error: "Selectionnez une conciergerie partenaire pour cette mission." },
+        { status: 400 },
+      );
+    }
 
     const { data, error } = await db
       .from("missions")
       .insert({
-        concierge_profile_id: auth.userId,
-        owner_profile_id: body.owner_profile_id ?? null,
+        concierge_profile_id: conciergeProfileId,
+        owner_profile_id: ownerProfileId,
         property_id: body.property_id ?? null,
         service_id: body.service_id ?? null,
         title,
