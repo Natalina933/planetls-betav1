@@ -9,7 +9,7 @@ export type RequestWorkflowStatus =
   | "EXPIRED"
   | "ARCHIVED";
 
-type RequestWorkflowTone = "neutral" | "info" | "warning" | "success";
+type RequestWorkflowTone = "neutral" | "info" | "warning" | "success" | "danger" | "progress";
 
 type RequestWorkflowMeta = {
   label: string;
@@ -20,10 +20,10 @@ const REQUEST_WORKFLOW_META: Record<RequestWorkflowStatus, RequestWorkflowMeta> 
   NEW: { label: "Brouillon", variant: "neutral" },
   SENT: { label: "Envoyée", variant: "info" },
   VIEWED: { label: "Consultée", variant: "info" },
-  IN_DISCUSSION: { label: "En discussion", variant: "info" },
-  QUOTE_SENT: { label: "Proposition reçue", variant: "warning" },
+  IN_DISCUSSION: { label: "En discussion", variant: "progress" },
+  QUOTE_SENT: { label: "Proposition reçue", variant: "progress" },
   ACCEPTED: { label: "Acceptée", variant: "success" },
-  DECLINED: { label: "Refusée", variant: "neutral" },
+  DECLINED: { label: "Refusée", variant: "danger" },
   EXPIRED: { label: "Expirée", variant: "warning" },
   ARCHIVED: { label: "Archivée", variant: "success" },
 };

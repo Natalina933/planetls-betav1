@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { DashboardSectionShell } from "@/components/dashboard";
@@ -277,7 +278,9 @@ export default function OwnerPlanningPage() {
             <ul>
               {visibleMissions.map((mission) => (
                 <li key={mission.id} className={styles.listItem}>
-                  <strong>{mission.title || "Mission sans titre"}</strong>
+                  <Link href={`/dashboard/owner/missions/${mission.id}`}>
+                    <strong>{mission.title || "Mission sans titre"}</strong>
+                  </Link>
                   <br />
                   Début : {formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} | Fin : {formatDateValue(mission.scheduled_end, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   <br />
@@ -300,7 +303,9 @@ export default function OwnerPlanningPage() {
                     bucket.items.map((mission) => (
                       <article key={mission.id} className={styles.weekEventCard}>
                         <strong>{formatShortTime(mission.scheduled_start)}</strong>
-                        <span>{mission.title || "Mission sans titre"}</span>
+                        <Link href={`/dashboard/owner/missions/${mission.id}`}>
+                          {mission.title || "Mission sans titre"}
+                        </Link>
                         <div className={styles.inlineActions}>
                           <WorkflowStatusBadge value={mission.status || "pending"} />
                           <WorkflowStatusBadge value={mission.priority || "normal"} />
@@ -320,7 +325,9 @@ export default function OwnerPlanningPage() {
             <div className={styles.sectionGrid}>
               {visibleMissions.map((mission) => (
                 <article key={mission.id} className={styles.panel}>
-                  <strong>{mission.title || "Mission sans titre"}</strong>
+                  <Link href={`/dashboard/owner/missions/${mission.id}`}>
+                    <strong>{mission.title || "Mission sans titre"}</strong>
+                  </Link>
                   <span>{formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                   <div className={styles.inlineActions}>
                     <WorkflowStatusBadge value={mission.status || "pending"} />

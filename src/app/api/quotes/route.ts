@@ -46,6 +46,10 @@ const ALLOWED_BILLING_ROLES = new Set([
   "super_admin",
   "concierge",
   "concierge_pro",
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
   "owner",
   "owner_pro",
 ]);

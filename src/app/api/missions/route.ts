@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
 import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
@@ -29,6 +30,30 @@ interface CreateMissionBody {
   metadata?: Json | null;
 }
 
+type CreatedMissionRow = {
+  id: string;
+  concierge_profile_id: string | null;
+  owner_profile_id: string | null;
+  property_id: string | null;
+  service_id: number | null;
+  title: string | null;
+  description?: string | null;
+  status: string | null;
+  priority: string | null;
+  amount: number | null;
+  currency: string | null;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  response_time_minutes?: number | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  canceled_at?: string | null;
+  cancel_reason?: string | null;
+  metadata?: Json | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 const VALID_STATUS: MissionStatus[] = [
   "draft",
   "assigned",
@@ -58,6 +83,64 @@ const MISSION_CREATOR_ROLES = new Set([
 
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+async function createMissionConversationNotification(input: {
+  missionId: string;
+  ownerProfileId: string | null;
+  conciergeProfileId: string | null;
+  actorProfileId: string;
+  title: string | null;
+  body: string;
+}) {
+  if (!input.ownerProfileId || !input.conciergeProfileId) return;
+
+  const { data: existing } = await db
+    .from("contact_conversations")
+    .select("id")
+    .eq("owner_profile_id", input.ownerProfileId)
+    .eq("concierge_profile_id", input.conciergeProfileId)
+    .eq("source", "mission")
+    .eq("source_reference", input.missionId)
+    .limit(1);
+
+  let conversationId = existing?.[0]?.id ?? null;
+  if (!conversationId) {
+    const { data: conversation, error } = await db
+      .from("contact_conversations")
+      .insert({
+        owner_profile_id: input.ownerProfileId,
+        concierge_profile_id: input.conciergeProfileId,
+        source: "mission",
+        source_reference: input.missionId,
+        subject: input.title || "Mission",
+        metadata: {
+          mission_id: input.missionId,
+          notification_reason: "mission_created",
+        },
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("[POST /api/missions] conversation notification error:", error);
+      return;
+    }
+    conversationId = conversation?.id ?? null;
+  }
+
+  if (conversationId) {
+    await db.from("contact_messages").insert({
+      conversation_id: conversationId,
+      sender_profile_id: input.actorProfileId,
+      message_type: "text",
+      body: input.body,
+      metadata: {
+        mission_id: input.missionId,
+        notification_reason: "mission_created",
+      },
+    });
+  }
+}
 
 const mapMissionInsertError = (error: {
   code?: string;
@@ -190,9 +273,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data, error } = await db
-      .from("missions")
-      .insert({
+    const { data, error } = await insertMissionWithOptionalMetadata<CreatedMissionRow>(
+      db,
+      {
         concierge_profile_id: conciergeProfileId,
         owner_profile_id: ownerProfileId,
         property_id: body.property_id ?? null,
@@ -206,11 +289,10 @@ export async function POST(req: NextRequest) {
         scheduled_start: body.scheduled_start ?? null,
         scheduled_end: body.scheduled_end ?? null,
         metadata: body.metadata ?? {},
-      })
-      .select(
-        "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at",
-      )
-      .single();
+      },
+      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, created_at, updated_at",
+      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, created_at, updated_at",
+    );
 
     if (error || !data) {
       console.error("[POST /api/missions] DB error:", error);
@@ -230,6 +312,15 @@ export async function POST(req: NextRequest) {
     if (eventError) {
       console.error("[POST /api/missions] mission_events error:", eventError);
     }
+
+    await createMissionConversationNotification({
+      missionId: data.id,
+      ownerProfileId: data.owner_profile_id,
+      conciergeProfileId: data.concierge_profile_id,
+      actorProfileId: auth.userId,
+      title: data.title,
+      body: `Nouvelle mission creee: ${data.title || "Mission"}.`,
+    });
 
     return NextResponse.json(data, { status: 201 });
   } catch (err) {

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   canConciergeManageQuote,
+  canOwnerUpdateQuoteStatus,
   canOwnerSelectQuote,
   isCrossProfileAccessDenied,
   quoteBelongsToServiceRequest,
@@ -54,4 +55,30 @@ test("unrelated profile is denied cross-access to owner/concierge resource", () 
   assert.equal(isCrossProfileAccessDenied("owner-1", resource), false);
   assert.equal(isCrossProfileAccessDenied("concierge-1", resource), false);
   assert.equal(isCrossProfileAccessDenied("owner-2", resource), true);
+});
+
+test("owner can accept or reject only their own quote", () => {
+  const quote = {
+    id: "quote-4",
+    owner_profile_id: "owner-1",
+    concierge_profile_id: "concierge-1",
+    metadata: {},
+  };
+
+  assert.equal(canOwnerUpdateQuoteStatus("owner-1", quote, "accepted"), true);
+  assert.equal(canOwnerUpdateQuoteStatus("owner-1", quote, "rejected"), true);
+  assert.equal(canOwnerUpdateQuoteStatus("owner-2", quote, "accepted"), false);
+});
+
+test("owner cannot move quote back to service-side statuses", () => {
+  const quote = {
+    id: "quote-5",
+    owner_profile_id: "owner-1",
+    concierge_profile_id: "concierge-1",
+    metadata: {},
+  };
+
+  assert.equal(canOwnerUpdateQuoteStatus("owner-1", quote, "sent"), false);
+  assert.equal(canOwnerUpdateQuoteStatus("owner-1", quote, "draft"), false);
+  assert.equal(canOwnerUpdateQuoteStatus("owner-1", quote, "canceled"), false);
 });

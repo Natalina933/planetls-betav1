@@ -98,7 +98,7 @@ const statusLabel = (status?: string | null) =>
 
 const statusVariant = (status?: string | null) => {
   if (status === "accepted" || status === "paid") return "success" as const;
-  if (status === "sent" || status === "issued") return "info" as const;
+  if (["draft", "sent", "issued"].includes(String(status ?? ""))) return "progress" as const;
   if (status === "rejected" || status === "canceled") return "danger" as const;
   if (status === "expired" || status === "overdue") return "warning" as const;
   return "neutral" as const;

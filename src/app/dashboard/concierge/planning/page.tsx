@@ -255,7 +255,9 @@ export default function ConciergePlanningPage() {
           {items.slice(0, 4).map((mission) => (
             <article key={mission.id} className={styles.priorityItem}>
               <div className={styles.priorityMain}>
-                <strong className={styles.priorityTitle}>{mission.title || "Mission sans titre"}</strong>
+                <Link className={styles.priorityTitle} href={`/dashboard/concierge/missions/${mission.id}`}>
+                  {mission.title || "Mission sans titre"}
+                </Link>
                 <span className={styles.priorityMeta}>
                   {mission.scheduled_start ? getShortTime(mission.scheduled_start) : "À caler"} ·{" "}
                   {normalizePlanningStatus(mission.status)}
@@ -531,7 +533,9 @@ export default function ConciergePlanningPage() {
                         <div key={mission.id} className={styles.weekEvent}>
                           <span className={styles.weekEventTime}>{getShortTime(mission.scheduled_start)}</span>
                           <div className={styles.weekEventContent}>
-                            <strong className={styles.weekEventTitle}>{mission.title || "Mission sans titre"}</strong>
+                            <Link className={styles.weekEventTitle} href={`/dashboard/concierge/missions/${mission.id}`}>
+                              {mission.title || "Mission sans titre"}
+                            </Link>
                             <span className={styles.weekEventMeta}>{normalizePlanningStatus(mission.status)}</span>
                           </div>
                         </div>

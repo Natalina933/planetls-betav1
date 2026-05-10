@@ -62,7 +62,7 @@ export default function OwnerConciergerieOverviewPage() {
             completion.percentage < 100
               ? "Completez d'abord les elements manquants pour comparer les conciergeries avec plus de confiance."
               : "Vos partenaires acceptes peuvent varier selon les logements et les lieux. Les prochaines operations doivent etre creees depuis Missions.",
-          actions: [{ label: "Voir les partenaires", href: "/dashboard/owner/conciergerie", variant: "primary" }],
+          actions: [{ label: "Voir les partenaires", href: "/dashboard/owner/conciergerie/partenaires", variant: "primary" }],
         },
       ]}
     />

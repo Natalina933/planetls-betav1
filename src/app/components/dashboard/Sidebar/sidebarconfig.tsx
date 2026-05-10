@@ -80,7 +80,7 @@ export const sidebarConfig: Record<UserType, SidebarItem[]> = {
         },
         {
           label: "Partenaires acceptés",
-          path: "/dashboard/owner/conciergerie",
+          path: "/dashboard/owner/conciergerie/partenaires",
           icon: FiUsers,
           notificationKey: "owner-service-replies",
         },

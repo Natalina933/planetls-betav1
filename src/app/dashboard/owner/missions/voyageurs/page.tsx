@@ -1,21 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Bell,
   CalendarClock,
+  CheckCircle2,
   Copy,
   Home,
   Mail,
   MessageSquareText,
   Phone,
   Plus,
+  Send,
+  ShieldCheck,
   Users,
 } from "lucide-react";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
-import { DashboardSectionShell } from "@/components/dashboard";
-import { Button, Input, Select, Textarea } from "@/components/ui";
+import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { formatDateValue } from "@/app/utils/formatters";
-import styles from "../../OwnerDashboardPages.module.scss";
+import styles from "./OwnerTravelerMissionsPage.module.scss";
+import { isAcceptedMissionPartner, isUuidLike } from "../missionPartnerUtils";
 
 type HousingRow = {
   id: string | number;
@@ -33,6 +37,8 @@ type PartnerRequestRow = {
   selected_concierge_name?: string | null;
   status?: string | null;
   workflow_status?: string | null;
+  mission_id?: string | null;
+  recipients?: Array<{ status?: string | null }> | null;
 };
 
 type MissionRow = {
@@ -117,13 +123,10 @@ const statusOptions = [
   { value: "canceled", label: "Annulé" },
 ];
 
-function isUuidLike(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
 function buildDateTime(date: string, time: string) {
   if (!date) return null;
-  return new Date(`${date}T${time || "00:00"}`).toISOString();
+  const parsed = new Date(`${date}T${time || "00:00"}`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function getMetadataString(mission: MissionRow, key: string) {
@@ -134,6 +137,11 @@ function getMetadataString(mission: MissionRow, key: string) {
 function getPropertyLabel(housing: HousingRow[], propertyId: string | null) {
   const property = housing.find((item) => String(item.id) === String(propertyId ?? ""));
   return property?.nom_logement || property?.ville || "Logement à préciser";
+}
+
+function getMissionHousingId(mission: MissionRow) {
+  const housingId = mission.metadata?.housing_id;
+  return mission.property_id || (typeof housingId === "string" ? housingId : null);
 }
 
 function getGuestCount(mission: MissionRow) {
@@ -200,9 +208,7 @@ export default function OwnerTravelerMissionsPage() {
 
       const nextHousing = Array.isArray(housingPayload) ? housingPayload : [];
       const acceptedPartners = (Array.isArray(requestsPayload?.items) ? requestsPayload.items : []).filter(
-        (request: PartnerRequestRow) =>
-          Boolean(request.selected_concierge_profile_id) &&
-          ["ACCEPTED", "ARCHIVED", "MISSION_CREATED"].includes(request.workflow_status || request.status || ""),
+        isAcceptedMissionPartner,
       );
 
       setMissions(
@@ -245,6 +251,19 @@ export default function OwnerTravelerMissionsPage() {
     [missions],
   );
 
+  const completedCount = useMemo(
+    () => missions.filter((mission) => mission.status === "completed").length,
+    [missions],
+  );
+
+  const stats = [
+    { label: "Séjours", value: loading ? "..." : String(missions.length), icon: <Users size={18} /> },
+    { label: "À venir", value: loading ? "..." : String(upcomingCount), icon: <CalendarClock size={18} /> },
+    { label: "Urgences", value: loading ? "..." : String(urgentCount), icon: <Bell size={18} /> },
+    { label: "Terminées", value: loading ? "..." : String(completedCount), icon: <CheckCircle2 size={18} /> },
+    { label: "Partenaires", value: loading ? "..." : String(partners.length), icon: <ShieldCheck size={18} /> },
+  ];
+
   function updateForm<K extends keyof TravelerMissionForm>(key: K, value: TravelerMissionForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
@@ -269,7 +288,7 @@ export default function OwnerTravelerMissionsPage() {
       children: String(mission.metadata?.guest_children ?? "0"),
       hasBaby: mission.metadata?.guest_baby === true ? "yes" : "no",
       language: getMetadataString(mission, "guest_language") || "fr",
-      propertyId: String(mission.property_id ?? ""),
+      propertyId: String(getMissionHousingId(mission) ?? ""),
       conciergeProfileId: getMetadataString(mission, "concierge_profile_id"),
       bookingPlatform: getMetadataString(mission, "booking_platform") || "Airbnb",
       actions: Array.isArray(mission.metadata?.requested_actions)
@@ -297,6 +316,10 @@ export default function OwnerTravelerMissionsPage() {
       setError("Renseignez les dates d'arrivée et de départ.");
       return;
     }
+    if (partners.length === 0) {
+      setError("Aucune conciergerie partenaire acceptée n'est disponible. Acceptez d'abord un devis ou une demande partenaire.");
+      return;
+    }
     if (!isUuidLike(form.conciergeProfileId)) {
       setError("Sélectionnez une conciergerie partenaire acceptée.");
       return;
@@ -318,6 +341,7 @@ export default function OwnerTravelerMissionsPage() {
           scheduled_end: buildDateTime(form.departureDate, form.departureTime),
           metadata: {
             mission_kind: "traveler_stay",
+            housing_id: form.propertyId || null,
             concierge_profile_id: form.conciergeProfileId,
             guest_first_name: form.firstName.trim(),
             guest_last_name: form.lastName.trim(),
@@ -355,23 +379,54 @@ export default function OwnerTravelerMissionsPage() {
   }
 
   return (
-    <DashboardSectionShell
-      persona="owner"
-      title="Missions voyageurs"
-      subtitle="Transmettez à votre conciergerie les informations séjour qui partaient avant par WhatsApp."
-      stats={[
-        { label: "Séjours", value: loading ? "..." : String(missions.length) },
-        { label: "À venir", value: loading ? "..." : String(upcomingCount) },
-        { label: "Urgences", value: loading ? "..." : String(urgentCount) },
-      ]}
-      actions={[
-        { label: "Planning", href: "/dashboard/owner/planning" },
-        { label: "Partenaires acceptés", href: "/dashboard/owner/conciergerie" },
-      ]}
-    >
-      <div className={styles.travelerMissionPage}>
-        {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
-        {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.heroContent}>
+          <p className={styles.eyebrow}>Missions voyageurs</p>
+          <h1>Séjours voyageurs</h1>
+          <p>
+            Transmettez à votre conciergerie les arrivées, départs, voyageurs, consignes et actions terrain dans
+            un espace clair, séparé des demandes commerciales.
+          </p>
+          <div className={styles.heroActions}>
+            <a href="#nouvelle-mission-voyageur" className={styles.primaryLink}>
+              <Plus size={16} aria-hidden="true" /> Nouveau séjour
+            </a>
+            <ButtonLink href="/dashboard/owner/planning" variant="secondary">
+              <CalendarClock size={16} aria-hidden="true" /> Planning
+            </ButtonLink>
+            <ButtonLink href="/dashboard/owner/conciergerie/partenaires" variant="secondary">
+              <ShieldCheck size={16} aria-hidden="true" /> Partenaires acceptés
+            </ButtonLink>
+          </div>
+        </div>
+        <div className={styles.heroSnapshot}>
+          <span><Send size={16} /> Séjours transmis</span>
+          <strong>{loading ? "..." : upcomingCount}</strong>
+          <p>missions à venir</p>
+          <div className={styles.heroProgress}>
+            <span style={{ width: `${Math.min(100, Math.max(12, missions.length * 18))}%` }} />
+          </div>
+        </div>
+      </header>
+
+      {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
+      {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
+
+      <section className={styles.statsGrid} aria-label="Statistiques missions voyageurs">
+        {stats.map((stat) => (
+          <article key={stat.label} className={styles.statCard}>
+            <span className={styles.statIcon}>{stat.icon}</span>
+            <div>
+              <strong>{stat.value}</strong>
+              <p>{stat.label}</p>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section id="nouvelle-mission-voyageur" className={styles.creationPanel}>
+        <div className={styles.travelerMissionPage}>
 
         <section className={styles.travelerMissionHero}>
           <div>
@@ -482,6 +537,9 @@ export default function OwnerTravelerMissionsPage() {
                       </option>
                     ))}
                   </Select>
+                  {partners.length === 0 ? (
+                    <span className={styles.meta}>Aucun partenaire accepté trouvé pour le moment.</span>
+                  ) : null}
                 </label>
                 <label className={styles.label}>
                   Plateforme
@@ -593,10 +651,12 @@ export default function OwnerTravelerMissionsPage() {
                     <p className={styles.cardLabel}>{getMetadataString(mission, "booking_platform") || "Séjour"}</p>
                     <h3>{getTravelerName(mission)}</h3>
                   </div>
-                  <WorkflowStatusBadge value={mission.priority === "urgent" ? "urgent" : mission.status || "assigned"} />
+                  <span className={mission.priority === "urgent" ? styles.statusUrgent : styles.statusBubble}>
+                    {mission.priority === "urgent" ? "Urgent" : statusOptions.find((item) => item.value === (mission.status || "assigned"))?.label || "Assignée"}
+                  </span>
                 </div>
                 <div className={styles.travelerMissionFacts}>
-                  <span><Home size={14} /> {getPropertyLabel(housing, mission.property_id)}</span>
+                  <span><Home size={14} /> {getPropertyLabel(housing, getMissionHousingId(mission))}</span>
                   <span><CalendarClock size={14} /> {formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                   <span><Users size={14} /> {getGuestCount(mission)} voyageur(s)</span>
                   <span><Phone size={14} /> {getMetadataString(mission, "guest_phone") || "-"}</span>
@@ -614,11 +674,15 @@ export default function OwnerTravelerMissionsPage() {
                   <Copy size={15} aria-hidden="true" />
                   Dupliquer
                 </button>
+                <Link className={styles.buttonSecondary} href={`/dashboard/owner/missions/${mission.id}`}>
+                  Ouvrir la mission
+                </Link>
               </article>
             ))}
           </div>
         </section>
-      </div>
-    </DashboardSectionShell>
+        </div>
+      </section>
+    </div>
   );
 }

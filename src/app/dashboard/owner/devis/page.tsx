@@ -198,6 +198,8 @@ function OwnerQuotesContent() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [compareSelection, setCompareSelection] = useState<Record<string, string[]>>({});
   const [selectingRequestId, setSelectingRequestId] = useState<string | null>(null);
+  const [busyQuoteAction, setBusyQuoteAction] = useState<string | null>(null);
+  const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
   const targetQuoteId = searchParams.get("quote");
   const targetRequestId = searchParams.get("request");
 
@@ -420,6 +422,35 @@ function OwnerQuotesContent() {
       setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
     } finally {
       setSelectingRequestId(null);
+    }
+  }
+
+  async function handleUpdateQuoteStatus(quoteId: string, status: "accepted" | "rejected") {
+    try {
+      setBusyQuoteAction(`${quoteId}:${status}`);
+      setSuccess(null);
+      setError(null);
+
+      const response = await fetch(`/api/quotes/${quoteId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          reason: status === "rejected" ? rejectReasons[quoteId]?.trim() || undefined : undefined,
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Impossible de mettre à jour ce devis.");
+      }
+
+      await loadData();
+      setSuccess(status === "accepted" ? "Le devis a été accepté." : "Le devis a été refusé.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de mettre à jour ce devis.");
+    } finally {
+      setBusyQuoteAction(null);
     }
   }
 
@@ -668,12 +699,28 @@ function OwnerQuotesContent() {
                             <button
                               type="button"
                               className={styles.buttonPrimary}
-                              disabled={selectingRequestId === group.request.id}
+                              disabled={
+                                selectingRequestId === group.request.id ||
+                                quote.status === "accepted" ||
+                                quote.status === "rejected"
+                              }
                               onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
                             >
-                              {selectingRequestId === group.request.id
+                              {quote.status === "accepted"
+                                ? "Accepté"
+                                : selectingRequestId === group.request.id
                                 ? "Sélection..."
                                 : "Retenir ce concierge"}
+                            </button>
+                          ) : null}
+                          {quote.status !== "accepted" && quote.status !== "rejected" ? (
+                            <button
+                              type="button"
+                              className={styles.buttonSecondary}
+                              disabled={busyQuoteAction === `${quote.id}:rejected`}
+                              onClick={() => void handleUpdateQuoteStatus(quote.id, "rejected")}
+                            >
+                              {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser"}
                             </button>
                           ) : null}
                         </>
@@ -762,13 +809,54 @@ function OwnerQuotesContent() {
                                 <button
                                   type="button"
                                   className={styles.buttonPrimary}
-                                  disabled={selectingRequestId === group.request.id}
+                                  disabled={
+                                    selectingRequestId === group.request.id ||
+                                    quote.status === "accepted" ||
+                                    quote.status === "rejected"
+                                  }
                                   onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
                                 >
-                                  {selectingRequestId === group.request.id
+                                  {quote.status === "accepted"
+                                    ? "Accepté"
+                                    : selectingRequestId === group.request.id
                                     ? "Sélection..."
                                     : "Retenir ce concierge"}
                                 </button>
+                              ) : null}
+                              {!group.request?.id && quote.status !== "accepted" && quote.status !== "rejected" ? (
+                                <button
+                                  type="button"
+                                  className={styles.buttonPrimary}
+                                  disabled={busyQuoteAction === `${quote.id}:accepted`}
+                                  onClick={() => void handleUpdateQuoteStatus(quote.id, "accepted")}
+                                >
+                                  {busyQuoteAction === `${quote.id}:accepted` ? "Acceptation..." : "Accepter le devis"}
+                                </button>
+                              ) : null}
+                              {quote.status !== "accepted" && quote.status !== "rejected" ? (
+                                <>
+                                  <input
+                                    type="text"
+                                    className={styles.field}
+                                    value={rejectReasons[quote.id] ?? ""}
+                                    onChange={(event) =>
+                                      setRejectReasons((current) => ({
+                                        ...current,
+                                        [quote.id]: event.target.value,
+                                      }))
+                                    }
+                                    placeholder="Motif de refus optionnel"
+                                    aria-label="Motif de refus du devis"
+                                  />
+                                <button
+                                  type="button"
+                                  className={styles.buttonSecondary}
+                                  disabled={busyQuoteAction === `${quote.id}:rejected`}
+                                  onClick={() => void handleUpdateQuoteStatus(quote.id, "rejected")}
+                                >
+                                  {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser le devis"}
+                                </button>
+                                </>
                               ) : null}
                             </>
                           }

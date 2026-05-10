@@ -30,13 +30,19 @@
 }
 
 .success {
-  background: rgba(47, 135, 91, 0.12);
-  border-color: rgba(47, 135, 91, 0.18);
-  color: #2c6c47;
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
 }
 
 .danger {
-  background: rgba(191, 76, 57, 0.12);
-  border-color: rgba(191, 76, 57, 0.18);
-  color: #a24333;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.progress {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
 }

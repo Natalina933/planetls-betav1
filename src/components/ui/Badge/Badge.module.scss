@@ -35,9 +35,9 @@
 }
 
 .success {
-  background: color-mix(in srgb, var(--ds-color-success) 14%, transparent);
-  border-color: color-mix(in srgb, var(--ds-color-success) 35%, transparent);
-  color: #245e4e;
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
 }
 
 .warning {
@@ -47,15 +47,21 @@
 }
 
 .danger {
-  background: color-mix(in srgb, var(--ds-color-danger) 14%, transparent);
-  border-color: color-mix(in srgb, var(--ds-color-danger) 34%, transparent);
-  color: #7f2d2d;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
 }
 
 .info {
   background: color-mix(in srgb, var(--ds-color-info) 14%, transparent);
   border-color: color-mix(in srgb, var(--ds-color-info) 34%, transparent);
   color: #35507b;
+}
+
+.progress {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
 }
 
 :global([data-theme="art-deco"]) .badge {

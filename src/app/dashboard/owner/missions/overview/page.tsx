@@ -3,37 +3,14 @@
 import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { buildOwnerMissionsCompletion } from "@/app/dashboard/shared";
+import { getMissionStatusLabel, normalizeMissionStatus } from "@/app/lib/missionStatus";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import { useOwnerDashboardData } from "../../useOwnerDashboardData";
 
-function getMissionStatusLabel(status: string | null) {
-  switch (status) {
-    case "pending":
-      return "Nouvelle";
-    case "assigned":
-      return "Assignée";
-    case "accepted":
-      return "Acceptée";
-    case "planned":
-      return "Planifiée";
-    case "in_progress":
-      return "En cours";
-    case "provider_intervention":
-      return "Intervention artisan";
-    case "completed":
-      return "Terminée";
-    case "validated":
-      return "Validée";
-    case "canceled":
-      return "Annulée";
-    default:
-      return "A qualifier";
-  }
-}
-
 function getMissionTone(status: string | null): "default" | "warning" | "success" {
-  if (status === "completed" || status === "validated") return "success";
-  if (status === "pending" || status === "assigned" || status === "in_progress") return "warning";
+  const normalized = normalizeMissionStatus(status);
+  if (normalized === "completed") return "success";
+  if (normalized === "draft" || normalized === "assigned" || normalized === "in_progress") return "warning";
   return "default";
 }
 
@@ -81,7 +58,7 @@ export default function OwnerMissionsOverviewPage() {
         {
           label: "En cours",
           value: loading ? "..." : String(ongoingMissions.length),
-          hint: "A suivre avec le concierge ou un intervenant.",
+          hint: "À suivre avec le concierge ou un intervenant.",
         },
         {
           label: "Validées",
@@ -98,7 +75,7 @@ export default function OwnerMissionsOverviewPage() {
         {
           title: "Créer une mission",
           text: "Décrivez le besoin terrain, choisissez le logement, ajoutez consignes, urgence, date et pièces jointes utiles.",
-          actions: [{ label: "Mission urgente", href: "/dashboard/owner/mission-urgente", variant: "primary" }],
+          actions: [{ label: "Créer une mission", href: "/dashboard/owner/missions/new", variant: "primary" }],
         },
         {
           title: "Suivre l'exécution",
@@ -132,7 +109,7 @@ export default function OwnerMissionsOverviewPage() {
               `Statut ${getMissionStatusLabel(mission.status)}`,
               `Budget ${formatEuroAmountLabel(mission.amount, "-")}`,
             ],
-            href: "/dashboard/owner/planning",
+            href: `/dashboard/owner/missions/${mission.id}`,
             actionLabel: "Ouvrir",
           })),
         },
@@ -143,7 +120,7 @@ export default function OwnerMissionsOverviewPage() {
           items: missionConversations.slice(0, 4).map((conversation) => ({
             id: conversation.id,
             title: conversation.subject || conversation.counterpart_name || "Conversation mission",
-            meta: conversation.unread_count ? `${conversation.unread_count} non lu(s)` : "A jour",
+            meta: conversation.unread_count ? `${conversation.unread_count} non lu(s)` : "À jour",
             tone: conversation.unread_count ? "warning" : "success",
             description: conversation.last_message_preview || "Dernier échange à consulter dans la messagerie.",
             facts: [

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Clock3, Dot, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, Dot, Info, Sparkle } from "lucide-react";
 import { getWorkflowStatusMeta } from "@/app/lib/workflowStatus";
 import styles from "./WorkflowStatusBadge.module.scss";
 
@@ -18,6 +18,8 @@ export default function WorkflowStatusBadge({ value }: WorkflowStatusBadgeProps)
       <CheckCircle2 size={14} aria-hidden="true" />
     ) : meta.tone === "warning" ? (
       <Clock3 size={14} aria-hidden="true" />
+    ) : meta.tone === "progress" ? (
+      <Sparkle size={14} aria-hidden="true" />
     ) : meta.tone === "info" ? (
       <Info size={14} aria-hidden="true" />
     ) : (

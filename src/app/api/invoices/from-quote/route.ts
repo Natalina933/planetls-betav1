@@ -23,6 +23,10 @@ const ALLOWED_BILLING_ROLES = new Set([
   "super_admin",
   "concierge",
   "concierge_pro",
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
 ]);
 
 const getDbErrorMessage = (error: DbErrorLike | null, fallback: string): string => {

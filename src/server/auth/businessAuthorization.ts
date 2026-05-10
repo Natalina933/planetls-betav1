@@ -35,6 +35,17 @@ export const canConciergeManageQuote = (
   quote: QuoteOwnership,
 ): boolean => Boolean(conciergeProfileId && quote.concierge_profile_id === conciergeProfileId);
 
+export const canOwnerUpdateQuoteStatus = (
+  ownerProfileId: string,
+  quote: QuoteOwnership,
+  nextStatus: string,
+): boolean =>
+  Boolean(
+    ownerProfileId &&
+      quote.owner_profile_id === ownerProfileId &&
+      (nextStatus === "accepted" || nextStatus === "rejected"),
+  );
+
 export const isCrossProfileAccessDenied = (
   profileId: string,
   resource: {

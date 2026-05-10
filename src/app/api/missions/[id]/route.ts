@@ -1,0 +1,432 @@
+import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { db } from "@/app/lib/dbServer";
+import {
+  canAccessMissionForRole,
+  canMutateMissionStatus,
+  canUpdateMissionFields,
+  CONCIERGE_MISSION_ROLES,
+  OWNER_MISSION_ROLES,
+} from "@/app/lib/missionPermissions";
+import {
+  getMissionActionTarget,
+  normalizeMissionPriority,
+  normalizeMissionStatus,
+  type MissionStatus,
+} from "@/app/lib/missionStatus";
+import { requireApiRole } from "@/server/auth/roleGuards";
+import type { Json } from "@/types/supabase";
+
+const dbAny = asLooseSupabaseClient(db);
+
+const MISSION_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro"]);
+type MissionRow = {
+  id: string;
+  concierge_profile_id: string | null;
+  owner_profile_id: string | null;
+  property_id: string | null;
+  service_id: number | null;
+  title: string | null;
+  description: string | null;
+  status: string | null;
+  priority: string | null;
+  amount: number | null;
+  currency: string | null;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  response_time_minutes?: number | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  canceled_at?: string | null;
+  cancel_reason?: string | null;
+  metadata: Json | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const missionSelect =
+  "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
+
+const isUuidLike = (value: string): boolean =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function canAccessMission(mission: MissionRow, userId: string, role: string) {
+  return canAccessMissionForRole({
+    role,
+    userId,
+    ownerProfileId: mission.owner_profile_id,
+    conciergeProfileId: mission.concierge_profile_id,
+  });
+}
+
+function buildStatusTimestamps(status: MissionStatus, reason: string | null) {
+  const now = new Date().toISOString();
+  if (status === "in_progress") return { started_at: now };
+  if (status === "completed") return { completed_at: now };
+  if (status === "canceled") return { canceled_at: now, cancel_reason: reason };
+  return {};
+}
+
+async function loadMission(id: string) {
+  const { data, error } = await dbAny.from("missions").select(missionSelect).eq("id", id).single<MissionRow>();
+  return { mission: data, error };
+}
+
+async function loadProfiles(profileIds: string[]) {
+  if (profileIds.length === 0) return new Map<string, unknown>();
+  const { data } = await dbAny
+    .from("profiles")
+    .select("id, first_name, last_name, username, company_name, role, city, phone, email")
+    .in("id", profileIds);
+  return new Map(((data ?? []) as Array<{ id: string }>).map((profile) => [profile.id, profile]));
+}
+
+async function loadMissionHousing(propertyId: string | null) {
+  if (!propertyId) return null;
+  const { data } = await dbAny
+    .from("housing")
+    .select("id, nom_logement, ville, adresse, photo_principale, proprietaire, location, documents")
+    .eq("id", propertyId)
+    .maybeSingle();
+  return data ?? null;
+}
+
+async function findOrCreateMissionConversation(mission: MissionRow, actorProfileId: string, prefill?: string) {
+  if (!mission.owner_profile_id || !mission.concierge_profile_id) return null;
+
+  const { data: existing } = await dbAny
+    .from("contact_conversations")
+    .select("id")
+    .eq("owner_profile_id", mission.owner_profile_id)
+    .eq("concierge_profile_id", mission.concierge_profile_id)
+    .eq("source", "mission")
+    .eq("source_reference", mission.id)
+    .limit(1);
+
+  let conversationId = existing?.[0]?.id ?? null;
+
+  if (!conversationId) {
+    const { data: conversation, error } = await dbAny
+      .from("contact_conversations")
+      .insert({
+        owner_profile_id: mission.owner_profile_id,
+        concierge_profile_id: mission.concierge_profile_id,
+        source: "mission",
+        source_reference: mission.id,
+        subject: mission.title || "Mission",
+        metadata: {
+          mission_id: mission.id,
+        },
+      })
+      .select("id")
+      .single<{ id: string }>();
+
+    if (error) {
+      console.error("[missions/[id]] conversation create error:", error);
+      return null;
+    }
+    conversationId = conversation?.id ?? null;
+  }
+
+  if (conversationId && prefill) {
+    await dbAny.from("contact_messages").insert({
+      conversation_id: conversationId,
+      sender_profile_id: actorProfileId,
+      message_type: "text",
+      body: prefill,
+      metadata: {
+        mission_id: mission.id,
+        system_context: "mission_status",
+      },
+    });
+  }
+
+  return conversationId;
+}
+
+async function notifyMissionParticipants(mission: MissionRow, actorProfileId: string, body: string, reason: string) {
+  const conversationId = await findOrCreateMissionConversation(mission, actorProfileId, body);
+  return conversationId
+    ? dbAny
+        .from("contact_conversations")
+        .update({
+          metadata: {
+            mission_id: mission.id,
+            notification_reason: reason,
+            last_mission_notification_at: new Date().toISOString(),
+          },
+        })
+        .eq("id", conversationId)
+    : null;
+}
+
+async function hydrateMissionDetail(mission: MissionRow) {
+  const profileIds = [mission.owner_profile_id, mission.concierge_profile_id].filter(
+    (value): value is string => Boolean(value),
+  );
+  const profiles = await loadProfiles(profileIds);
+
+  const [
+    { data: events },
+    { data: conversations },
+    { data: quotes },
+    { data: invoices },
+    { data: providerInterventions },
+    { data: providers },
+    property,
+  ] =
+    await Promise.all([
+      dbAny
+        .from("mission_events")
+        .select("id, actor_profile_id, event_type, payload, created_at")
+        .eq("mission_id", mission.id)
+        .order("created_at", { ascending: false })
+        .limit(40),
+      dbAny
+        .from("contact_conversations")
+        .select("id, subject, status, last_message_preview, last_message_at, source, source_reference")
+        .eq("source", "mission")
+        .eq("source_reference", mission.id)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(5),
+      dbAny
+        .from("quotes")
+        .select("id, quote_number, status, total_amount, currency, valid_until, created_at")
+        .eq("mission_id", mission.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      dbAny
+        .from("invoices")
+        .select("id, invoice_number, status, total_amount, balance_amount, currency, due_date, created_at")
+        .eq("mission_id", mission.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      dbAny
+        .from("provider_interventions")
+        .select("id, provider_profile_id, title, status, priority, scheduled_start, scheduled_end, budget_amount, currency, location_label, metadata, created_at, updated_at")
+        .contains("metadata", { mission_id: mission.id })
+        .order("created_at", { ascending: false })
+        .limit(10),
+      dbAny
+        .from("profiles")
+        .select("id, first_name, last_name, username, company_name, role, city")
+        .in("role", ["provider", "provider_pro", "artisan", "artisan_pro"])
+        .order("company_name", { ascending: true })
+        .limit(80),
+      loadMissionHousing(mission.property_id),
+    ]);
+
+  const metadata = toRecord(mission.metadata);
+  const proofLinks = Array.isArray(metadata.proof_links) ? metadata.proof_links : [];
+  const checklist = Array.isArray(metadata.checklist) ? metadata.checklist : [];
+  const conversationId = conversations?.[0]?.id ?? null;
+
+  return {
+    mission: {
+      ...mission,
+      status: normalizeMissionStatus(mission.status),
+      priority: normalizeMissionPriority(mission.priority),
+    },
+    participants: {
+      owner: mission.owner_profile_id ? profiles.get(mission.owner_profile_id) ?? null : null,
+      concierge: mission.concierge_profile_id ? profiles.get(mission.concierge_profile_id) ?? null : null,
+    },
+    property,
+    events: events ?? [],
+    conversations: conversations ?? [],
+    conversation_id: conversationId,
+    quotes: quotes ?? [],
+    invoices: invoices ?? [],
+    provider_interventions: providerInterventions ?? [],
+    providers: providers ?? [],
+    evidence: {
+      proof_links: proofLinks,
+      checklist,
+      signature: metadata.owner_signature ?? metadata.concierge_signature ?? null,
+    },
+    quick_links: {
+      messages: conversationId ? `/dashboard/messages?conversation=${conversationId}` : null,
+    },
+  };
+}
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const guard = await requireApiRole(req, MISSION_ROLES);
+    if (!guard.ok) return guard.response;
+    const { userId, role } = guard.auth;
+    const { id } = await params;
+
+    if (!isUuidLike(id)) {
+      return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
+    }
+
+    const { mission, error } = await loadMission(id);
+    if (error || !mission) {
+      return NextResponse.json({ error: "Mission introuvable" }, { status: 404 });
+    }
+    if (!canAccessMission(mission, userId, role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
+    return NextResponse.json(await hydrateMissionDetail(mission));
+  } catch (err) {
+    console.error("[GET /api/missions/[id]] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const guard = await requireApiRole(req, MISSION_ROLES);
+    if (!guard.ok) return guard.response;
+    const { userId, role } = guard.auth;
+    const { id } = await params;
+
+    if (!isUuidLike(id)) {
+      return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
+    }
+
+    const { mission, error } = await loadMission(id);
+    if (error || !mission) {
+      return NextResponse.json({ error: "Mission introuvable" }, { status: 404 });
+    }
+    if (!canAccessMission(mission, userId, role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
+    const body = (await req.json()) as Record<string, unknown>;
+    const action = typeof body.action === "string" ? body.action : "update";
+    const patch: Record<string, unknown> = {};
+    const eventPayload: Record<string, unknown> = { action };
+    let eventType = "updated";
+    let statusMessage: string | null = null;
+
+    const actionStatus = getMissionActionTarget(action);
+    const requestedStatus = actionStatus ?? (body.status ? normalizeMissionStatus(body.status) : null);
+
+    if (requestedStatus) {
+      if (!canMutateMissionStatus(role, mission.status, requestedStatus)) {
+        return NextResponse.json({ error: "Statut reserve a la conciergerie" }, { status: 403 });
+      }
+      patch.status = requestedStatus;
+      Object.assign(
+        patch,
+        buildStatusTimestamps(
+          requestedStatus,
+          typeof body.cancel_reason === "string" ? body.cancel_reason.trim() || null : null,
+        ),
+      );
+      eventType = requestedStatus === "accepted" ? "accepted" : requestedStatus === "in_progress" ? "started" : requestedStatus;
+      eventPayload.previous_status = mission.status;
+      eventPayload.next_status = requestedStatus;
+      statusMessage = `Statut mission mis a jour: ${requestedStatus}.`;
+    }
+
+    const fieldPatch: Record<string, unknown> = {};
+    if (typeof body.title === "string" && body.title.trim()) fieldPatch.title = body.title.trim();
+    if (typeof body.description === "string") fieldPatch.description = body.description.trim() || null;
+    if (typeof body.priority === "string") fieldPatch.priority = normalizeMissionPriority(body.priority);
+    if (typeof body.scheduled_start === "string") fieldPatch.scheduled_start = body.scheduled_start || null;
+    if (typeof body.scheduled_end === "string") fieldPatch.scheduled_end = body.scheduled_end || null;
+    if (typeof body.amount === "number") fieldPatch.amount = body.amount;
+
+    if (typeof body.concierge_profile_id === "string" && isUuidLike(body.concierge_profile_id)) {
+      fieldPatch.concierge_profile_id = body.concierge_profile_id;
+    }
+
+    const requestedFields = Object.keys(fieldPatch);
+    if (requestedFields.length > 0 && !canUpdateMissionFields(role, requestedFields)) {
+      return NextResponse.json({ error: "Modification non autorisee pour votre role" }, { status: 403 });
+    }
+    Object.assign(patch, fieldPatch);
+
+    const metadata = toRecord(mission.metadata);
+    if (action === "add_proof") {
+      if (!CONCIERGE_MISSION_ROLES.has(role)) {
+        return NextResponse.json({ error: "Preuves reservees a la conciergerie" }, { status: 403 });
+      }
+      const label = typeof body.label === "string" ? body.label.trim() : "";
+      const url = typeof body.url === "string" ? body.url.trim() : "";
+      const kind = typeof body.kind === "string" ? body.kind.trim() : "document";
+      if (!label || !url) {
+        return NextResponse.json({ error: "Titre et lien de preuve requis" }, { status: 400 });
+      }
+      patch.metadata = {
+        ...metadata,
+        proof_links: [
+          ...(Array.isArray(metadata.proof_links) ? metadata.proof_links : []),
+          { id: crypto.randomUUID(), label, url, kind, created_at: new Date().toISOString(), created_by: userId },
+        ],
+      } as Json;
+      eventType = "updated";
+      eventPayload.proof_added = label;
+    }
+
+    if (action === "update_checklist") {
+      if (!CONCIERGE_MISSION_ROLES.has(role)) {
+        return NextResponse.json({ error: "Checklist reservee a la conciergerie" }, { status: 403 });
+      }
+      const checklist = Array.isArray(body.checklist) ? body.checklist : [];
+      patch.metadata = {
+        ...metadata,
+        checklist: checklist.slice(0, 30),
+      } as Json;
+      eventPayload.checklist_updated = true;
+    }
+
+    if (action === "signoff") {
+      const signature = typeof body.signature === "string" ? body.signature.trim() : "";
+      if (!signature) {
+        return NextResponse.json({ error: "Signature requise" }, { status: 400 });
+      }
+      patch.metadata = {
+        ...metadata,
+        [OWNER_MISSION_ROLES.has(role) ? "owner_signature" : "concierge_signature"]: {
+          name: signature,
+          signed_at: new Date().toISOString(),
+          profile_id: userId,
+        },
+      } as Json;
+      eventPayload.signature_added = true;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return NextResponse.json({ error: "Aucune modification" }, { status: 400 });
+    }
+
+    const { data: updatedMission, error: updateError } = await dbAny
+      .from("missions")
+      .update(patch)
+      .eq("id", mission.id)
+      .select(missionSelect)
+      .single<MissionRow>();
+
+    if (updateError || !updatedMission) {
+      console.error("[PATCH /api/missions/[id]] update error:", updateError);
+      return NextResponse.json({ error: "Erreur mise a jour mission" }, { status: 500 });
+    }
+
+    await dbAny.from("mission_events").insert({
+      mission_id: mission.id,
+      actor_profile_id: userId,
+      event_type: eventType,
+      payload: eventPayload,
+    });
+
+    if (statusMessage) {
+      await notifyMissionParticipants(updatedMission, userId, statusMessage, "mission_status_changed");
+    }
+
+    return NextResponse.json(await hydrateMissionDetail(updatedMission));
+  } catch (err) {
+    console.error("[PATCH /api/missions/[id]] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
