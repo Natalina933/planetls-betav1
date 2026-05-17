@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bell,
@@ -1147,39 +1146,13 @@ export default function OwnerTravelerMissionsPage() {
 
           <div className={styles.travelerMissionGrid}>
             {filteredMissions.map((mission) => (
-              <article key={mission.id} className={styles.travelerMissionCard}>
-                <div className={styles.travelerMissionTopline}>
-                  <div>
-                    <p className={styles.cardLabel}>{getMetadataString(mission, "booking_platform") || "Séjour"}</p>
-                    <h3>{getTravelerName(mission)}</h3>
-                  </div>
-                  <span className={mission.priority === "urgent" ? styles.statusUrgent : styles.statusBubble}>
-                    {mission.priority === "urgent" ? "Urgent" : statusOptions.find((item) => item.value === (mission.status || "assigned"))?.label || "Assignée"}
-                  </span>
-                </div>
-                <div className={styles.travelerMissionFacts}>
-                  <span><Home size={14} /> {getPropertyLabel(housing, getMissionHousingId(mission))}</span>
-                  <span><CalendarClock size={14} /> {formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                  <span><Users size={14} /> {getGuestCount(mission)} voyageur(s)</span>
-                  <span><Phone size={14} /> {getMetadataString(mission, "guest_phone") || "-"}</span>
-                  <span><Mail size={14} /> {getMetadataString(mission, "guest_email") || "-"}</span>
-                  <span><MessageSquareText size={14} /> {mission.description ? "Notes" : "Sans note"}</span>
-                </div>
-                <div className={styles.travelerChecklist}>
-                  {(Array.isArray(mission.metadata?.requested_actions) ? mission.metadata?.requested_actions as string[] : []).map((action) => (
-                    <span key={`${mission.id}-${action}`} className={styles.travelerActionPill}>
-                      {actionOptions.find((item) => item.value === action)?.label || action}
-                    </span>
-                  ))}
-                </div>
-                <button type="button" className={styles.buttonSecondary} onClick={() => duplicateMission(mission)}>
-                  <Copy size={15} aria-hidden="true" />
-                  Dupliquer
-                </button>
-                <Link className={styles.buttonSecondary} href={`/dashboard/owner/missions/${mission.id}`}>
-                  Ouvrir la mission
-                </Link>
-              </article>
+              <TravelerMissionCard
+                key={mission.id}
+                mission={mission}
+                housing={housing}
+                partners={partners}
+                onDuplicate={duplicateMission}
+              />
             ))}
           </div>
         </section>
