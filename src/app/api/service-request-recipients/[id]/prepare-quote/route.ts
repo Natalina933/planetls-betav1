@@ -28,6 +28,38 @@ type PrepareQuoteBody = {
   force?: boolean;
 };
 
+async function syncRequestAfterQuoteDraft(input: {
+  dbAny: ReturnType<typeof asLooseSupabaseClient>;
+  recipientId: string;
+  serviceRequestId: string;
+}) {
+  await input.dbAny
+    .from("service_request_recipients")
+    .update({
+      status: "quoted",
+      responded_at: new Date().toISOString(),
+    })
+    .eq("id", input.recipientId);
+
+  const { data: relatedRecipients } = await input.dbAny
+    .from("service_request_recipients")
+    .select("status")
+    .eq("service_request_id", input.serviceRequestId);
+
+  const nextRequestStatus = deriveServiceRequestStatus(
+    Array.isArray(relatedRecipients)
+      ? relatedRecipients
+          .map((row: { status?: string | null }) => row.status)
+          .filter((status): status is ServiceRequestRecipientStatus => typeof status === "string")
+      : [],
+    null,
+  );
+
+  await input.dbAny.from("service_requests").update({ status: nextRequestStatus }).eq("id", input.serviceRequestId);
+
+  return nextRequestStatus;
+}
+
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -127,10 +159,20 @@ export async function POST(
     const preparedDraft = await prepareQuoteDraftFromRequest(userId, serviceRequest);
 
     if (matchedQuote && !forceRefresh) {
+      const nextRequestStatus = await syncRequestAfterQuoteDraft({
+        dbAny,
+        recipientId: recipient.id,
+        serviceRequestId: serviceRequest.id,
+      });
+
       return NextResponse.json(
         {
           quote: matchedQuote,
           reused: true,
+          completed_action: {
+            request_status: nextRequestStatus,
+            visible_in: ["devis_brouillon", "demandes", "messages"],
+          },
         },
         { status: 200 },
       );
@@ -222,6 +264,10 @@ export async function POST(
           reused: false,
           refreshed: true,
           summary: preparedDraft.summary,
+          completed_action: {
+            request_status: "quoted",
+            visible_in: ["devis_brouillon", "demandes", "billing"],
+          },
         },
         { status: 200 },
       );
@@ -306,35 +352,21 @@ export async function POST(
       console.error("[prepare-quote] quote event error:", eventError);
     }
 
-    await dbAny
-      .from("service_request_recipients")
-      .update({
-        status: "quoted",
-        responded_at: new Date().toISOString(),
-      })
-      .eq("id", recipient.id);
-
-    const { data: relatedRecipients } = await dbAny
-      .from("service_request_recipients")
-      .select("status")
-      .eq("service_request_id", serviceRequest.id);
-
-    const nextRequestStatus = deriveServiceRequestStatus(
-      Array.isArray(relatedRecipients)
-        ? relatedRecipients
-            .map((row: { status?: string | null }) => row.status)
-            .filter((status): status is ServiceRequestRecipientStatus => typeof status === "string")
-        : [],
-      null,
-    );
-
-    await dbAny.from("service_requests").update({ status: nextRequestStatus }).eq("id", serviceRequest.id);
+    const nextRequestStatus = await syncRequestAfterQuoteDraft({
+      dbAny,
+      recipientId: recipient.id,
+      serviceRequestId: serviceRequest.id,
+    });
 
     return NextResponse.json(
       {
         quote: createdQuote,
         reused: false,
         summary: preparedDraft.summary,
+        completed_action: {
+          request_status: nextRequestStatus,
+          visible_in: ["devis_brouillon", "demandes", "billing"],
+        },
       },
       { status: 201 },
     );

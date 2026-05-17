@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/server/db/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
@@ -177,13 +178,28 @@ export async function POST(
       selected_quote_id: selectedQuote?.id ?? null,
     };
 
+    let acceptedWorkflow: Awaited<ReturnType<typeof finalizeAcceptedQuoteWorkflow>> | null = null;
+    if (selectedQuote?.id) {
+      acceptedWorkflow = await finalizeAcceptedQuoteWorkflow({
+        db: dbAny,
+        quoteId: selectedQuote.id,
+        actorProfileId: userId,
+        serviceRequestId: requestRow.id,
+        serviceRequestRecipientId: selectedRecipient.id,
+      });
+    }
+
     const { data: updatedRequest, error: updateRequestError } = await dbAny
       .from("service_requests")
       .update({
         selected_concierge_profile_id: selectedRecipient.concierge_profile_id,
         status: nextRequestStatus,
-        mission_id: null,
-        metadata: updatedMetadata,
+        mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
+        metadata: {
+          ...updatedMetadata,
+          selected_mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
+          accepted_invoice_id: acceptedWorkflow?.invoice?.id ?? null,
+        },
       })
       .eq("id", id)
       .eq("owner_profile_id", userId)
@@ -199,6 +215,10 @@ export async function POST(
       {
         request: updatedRequest,
         selected_recipient_id: selectedRecipient.id,
+        accepted_workflow: {
+          mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
+          invoice_id: acceptedWorkflow?.invoice?.id ?? null,
+        },
       },
       { status: 200 },
     );

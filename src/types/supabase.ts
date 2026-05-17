@@ -690,6 +690,7 @@ export type Database = {
           name: string;
           description: string | null;
           category: string | null;
+          accent: string | null;
           created_at: string | null;
         };
         Insert: {
@@ -698,6 +699,7 @@ export type Database = {
           name: string;
           description?: string | null;
           category?: string | null;
+          accent?: string | null;
           created_at?: string | null;
         };
         Update: {
@@ -706,6 +708,7 @@ export type Database = {
           name?: string;
           description?: string | null;
           category?: string | null;
+          accent?: string | null;
           created_at?: string | null;
         };
         Relationships: [

@@ -1997,6 +1997,7 @@ export type Database = {
       }
       services_packages: {
         Row: {
+          accent: string | null
           category: string | null
           created_at: string
           description: string | null
@@ -2005,6 +2006,7 @@ export type Database = {
           profile_id: string
         }
         Insert: {
+          accent?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -2013,6 +2015,7 @@ export type Database = {
           profile_id: string
         }
         Update: {
+          accent?: string | null
           category?: string | null
           created_at?: string
           description?: string | null

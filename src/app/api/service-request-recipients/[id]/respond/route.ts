@@ -23,6 +23,79 @@ const VALID_STATUSES: RecipientStatus[] = ["viewed", "interested", "quoted", "de
 // Legacy Supabase typing is incomplete on these tables in this project.
 const dbAny = asLooseSupabaseClient(db);
 
+async function notifyOwnerAboutResponse(input: {
+  ownerProfileId?: string | null;
+  conciergeProfileId: string;
+  serviceRequestId: string;
+  recipientId: string;
+  actorProfileId: string;
+  status: RecipientStatus;
+  message?: string | null;
+}) {
+  if (!input.ownerProfileId) return null;
+
+  const subject = input.status === "interested" ? "Conciergerie intéressée" : "Réponse à votre demande";
+  const body =
+    input.message ||
+    (input.status === "interested"
+      ? "Une conciergerie est intéressée par votre demande. Vous pouvez échanger ou attendre son devis."
+      : input.status === "declined"
+        ? "Une conciergerie a décliné votre demande. Elle sort de votre comparaison active."
+        : "Votre demande a été consultée.");
+
+  const { data: existingConversation } = await dbAny
+    .from("contact_conversations")
+    .select("id")
+    .eq("owner_profile_id", input.ownerProfileId)
+    .eq("concierge_profile_id", input.conciergeProfileId)
+    .eq("source", "service_request")
+    .eq("source_reference", input.serviceRequestId)
+    .limit(1);
+
+  let conversationId = existingConversation?.[0]?.id ?? null;
+  if (!conversationId) {
+    const { data: createdConversation, error: conversationError } = await dbAny
+      .from("contact_conversations")
+      .insert({
+        owner_profile_id: input.ownerProfileId,
+        concierge_profile_id: input.conciergeProfileId,
+        source: "service_request",
+        source_reference: input.serviceRequestId,
+        subject,
+        metadata: {
+          service_request_id: input.serviceRequestId,
+          service_request_recipient_id: input.recipientId,
+          recipient_status: input.status,
+        },
+      })
+      .select("id")
+      .single();
+
+    if (conversationError) {
+      console.error("[respond] conversation create error:", conversationError);
+      return null;
+    }
+    conversationId = createdConversation?.id ?? null;
+  }
+
+  if (!conversationId || input.status === "viewed") return conversationId;
+
+  await dbAny.from("contact_messages").insert({
+    conversation_id: conversationId,
+    sender_profile_id: input.actorProfileId,
+    message_type: "text",
+    body,
+    metadata: {
+      service_request_id: input.serviceRequestId,
+      service_request_recipient_id: input.recipientId,
+      recipient_status: input.status,
+      system_context: "service_request_response",
+    },
+  });
+
+  return conversationId;
+}
+
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -104,7 +177,7 @@ export async function POST(
     } else {
       const { data: requestRow, error: requestRowError } = await dbAny
         .from("service_requests")
-        .select("id, selected_concierge_profile_id")
+        .select("id, owner_profile_id, selected_concierge_profile_id")
         .eq("id", updatedRecipient.service_request_id)
         .maybeSingle();
 
@@ -136,10 +209,26 @@ export async function POST(
             requestUpdateError,
           );
         }
+
+        await notifyOwnerAboutResponse({
+          ownerProfileId: requestRow.owner_profile_id,
+          conciergeProfileId: userId,
+          serviceRequestId: updatedRecipient.service_request_id,
+          recipientId: updatedRecipient.id,
+          actorProfileId: userId,
+          status: nextStatus,
+          message: updatePayload.response_message as string | null,
+        });
       }
     }
 
-    return NextResponse.json({ recipient: updatedRecipient });
+    return NextResponse.json({
+      recipient: updatedRecipient,
+      completed_action: {
+        request_status: nextStatus,
+        visible_in: nextStatus === "declined" ? ["demandes_cloturees", "messages"] : ["demandes", "messages"],
+      },
+    });
   } catch (err) {
     console.error("[POST /api/service-request-recipients/[id]/respond] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });

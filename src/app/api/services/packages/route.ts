@@ -11,12 +11,16 @@ interface ServicePackageBody {
   description?: string;
   service_ids: string[];
   category: string;
+  accent?: "teal" | "sand" | "gold" | "slate";
 }
 
 interface DbErrorLike {
   code?: string;
   message?: string;
 }
+
+const PACKAGE_SELECT: string =
+  "id, profile_id, name, description, category, accent, created_at, services_package_items(service_id)";
 
 const normalizePackageName = (value: string) =>
   value
@@ -50,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     let query = db
       .from("services_packages")
-      .select("id, profile_id, name, description, category, created_at, services_package_items(service_id)")
+      .select(PACKAGE_SELECT)
       .order("created_at", { ascending: false });
 
     if (!auth.isAdmin) {
@@ -123,8 +127,9 @@ export async function POST(req: NextRequest) {
         name: body.name.trim(),
         description: body.description ?? null,
         category: body.category,
+        accent: body.accent ?? "teal",
       })
-      .select("id, profile_id, name, description, category, created_at")
+      .select("id, profile_id, name, description, category, accent, created_at")
       .single();
 
     if (packageError || !createdPackage) {
@@ -151,7 +156,7 @@ export async function POST(req: NextRequest) {
 
     const { data: hydrated, error: hydratedError } = await db
       .from("services_packages")
-      .select("id, profile_id, name, description, category, created_at, services_package_items(service_id)")
+      .select(PACKAGE_SELECT)
       .eq("id", createdPackage.id)
       .single();
 

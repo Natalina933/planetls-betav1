@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
@@ -64,6 +65,15 @@ const VALID_STATUS: MissionStatus[] = [
 ];
 
 const VALID_PRIORITY: MissionPriority[] = ["low", "normal", "high", "urgent"];
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+function getMetadataString(metadata: Json | null | undefined, key: string) {
+  if (!isRecord(metadata)) return "";
+  const value = metadata[key];
+  return typeof value === "string" ? value : "";
+}
+
 const CONCIERGE_MISSION_ROLES = new Set([
   "admin",
   "super_admin",
@@ -311,6 +321,35 @@ export async function POST(req: NextRequest) {
 
     if (eventError) {
       console.error("[POST /api/missions] mission_events error:", eventError);
+    }
+
+    const serviceRequestId = getMetadataString(body.metadata, "service_request_id");
+    if (serviceRequestId && ownerProfileId) {
+      const dbAny = asLooseSupabaseClient(db);
+      const { data: serviceRequest } = await dbAny
+        .from("service_requests")
+        .select("metadata")
+        .eq("id", serviceRequestId)
+        .eq("owner_profile_id", ownerProfileId)
+        .maybeSingle();
+      const requestMetadata = isRecord(serviceRequest?.metadata) ? serviceRequest.metadata : {};
+      const { error: requestUpdateError } = await dbAny
+        .from("service_requests")
+        .update({
+          mission_id: data.id,
+          metadata: {
+            ...requestMetadata,
+            selected_mission_id: data.id,
+            next_mission_title: data.title,
+            next_mission_start: data.scheduled_start,
+          },
+        })
+        .eq("id", serviceRequestId)
+        .eq("owner_profile_id", ownerProfileId);
+
+      if (requestUpdateError) {
+        console.error("[POST /api/missions] service request link error:", requestUpdateError);
+      }
     }
 
     await createMissionConversationNotification({

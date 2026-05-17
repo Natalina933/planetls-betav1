@@ -22,13 +22,15 @@ export async function GET() {
     const { data: profiles, error: profilesError } = await db
       .from("profiles")
       .select(
-        "id, first_name, last_name, username, company_name, city, service_area, hourly_rate, monthly_rate, option, availability_hours, role, years_experience",
+        "id, avatar_url, image, first_name, last_name, username, company_name, city, service_area, hourly_rate, monthly_rate, option, availability_hours, role, years_experience",
       )
       .in("role", ["concierge", "concierge_pro"])
       .limit(18);
 
-    let conciergeRows = (profiles ?? []) as Array<{
+    let conciergeRows = ((profiles ?? []) as unknown) as Array<{
       id: string;
+      avatar_url: string | null;
+      image: string | null;
       first_name: string | null;
       last_name: string | null;
       username: string | null;
@@ -47,7 +49,7 @@ export async function GET() {
       const { data: fallbackProfiles, error: fallbackProfilesError } = await db
         .from("profiles")
         .select(
-          "id, first_name, last_name, username, company_name, city, service_area, hourly_rate, monthly_rate, option, role",
+          "id, avatar_url, first_name, last_name, username, company_name, city, service_area, hourly_rate, monthly_rate, option, role",
         )
         .in("role", ["concierge", "concierge_pro"])
         .limit(18);
@@ -56,8 +58,9 @@ export async function GET() {
         return NextResponse.json({ error: "Erreur lecture concierges." }, { status: 500 });
       }
 
-      conciergeRows = ((fallbackProfiles ?? []) as Array<{
+      conciergeRows = (((fallbackProfiles ?? []) as unknown) as Array<{
         id: string;
+        avatar_url?: string | null;
         first_name: string | null;
         last_name: string | null;
         username: string | null;
@@ -70,6 +73,8 @@ export async function GET() {
         role: string | null;
       }>).map((profile) => ({
         ...profile,
+        avatar_url: profile.avatar_url ?? null,
+        image: null,
         availability_hours: null,
         years_experience: null,
       }));

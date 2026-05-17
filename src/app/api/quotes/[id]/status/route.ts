@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
+import { deriveServiceRequestStatus, type ServiceRequestRecipientStatus } from "@/server/service-requests/workflow";
 import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
 const untypedDb = asLooseSupabaseClient(db);
@@ -147,6 +149,74 @@ async function notifyQuoteStatusChange(context: QuoteNotificationContext) {
     .eq("id", conversationId);
 
   return conversationId;
+}
+
+async function syncServiceRequestFromQuoteStatus(input: {
+  serviceRequestId: string | null;
+  serviceRequestRecipientId: string | null;
+  quoteId: string;
+  quoteStatus: QuoteStatus;
+}) {
+  if (!input.serviceRequestId) return null;
+
+  if (input.serviceRequestRecipientId) {
+    const recipientStatus =
+      input.quoteStatus === "sent"
+        ? "quoted"
+        : input.quoteStatus === "rejected" || input.quoteStatus === "expired" || input.quoteStatus === "canceled"
+          ? "declined"
+          : null;
+
+    if (recipientStatus) {
+      await untypedDb
+        .from("service_request_recipients")
+        .update({
+          status: recipientStatus,
+          responded_at: new Date().toISOString(),
+        })
+        .eq("id", input.serviceRequestRecipientId);
+    }
+  }
+
+  const { data: relatedRecipients } = await untypedDb
+    .from("service_request_recipients")
+    .select("status")
+    .eq("service_request_id", input.serviceRequestId);
+
+  const nextRequestStatus = deriveServiceRequestStatus(
+    Array.isArray(relatedRecipients)
+      ? relatedRecipients
+          .map((row: { status?: string | null }) => row.status)
+          .filter((status): status is ServiceRequestRecipientStatus => typeof status === "string")
+      : [],
+    null,
+  );
+
+  const { data: requestRow } = await untypedDb
+    .from("service_requests")
+    .select("metadata")
+    .eq("id", input.serviceRequestId)
+    .maybeSingle();
+
+  const requestMetadata =
+    requestRow?.metadata && typeof requestRow.metadata === "object" && !Array.isArray(requestRow.metadata)
+      ? requestRow.metadata
+      : {};
+
+  await untypedDb
+    .from("service_requests")
+    .update({
+      status: nextRequestStatus,
+      metadata: {
+        ...requestMetadata,
+        last_quote_status: input.quoteStatus,
+        last_quote_id: input.quoteId,
+        last_quote_status_at: new Date().toISOString(),
+      },
+    })
+    .eq("id", input.serviceRequestId);
+
+  return nextRequestStatus;
 }
 
 export async function PATCH(
@@ -319,6 +389,21 @@ export async function PATCH(
       }
     }
 
+    const metadata =
+      existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+        ? existing.metadata
+        : {};
+    const serviceRequestId =
+      typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
+    const serviceRequestRecipientId =
+      typeof metadata.service_request_recipient_id === "string" ? metadata.service_request_recipient_id : null;
+    const syncedRequestStatus = await syncServiceRequestFromQuoteStatus({
+      serviceRequestId,
+      serviceRequestRecipientId,
+      quoteId: id,
+      quoteStatus: nextStatus,
+    });
+
     let updateQuery = db
       .from("quotes")
       .update(updatePayload)
@@ -363,7 +448,14 @@ export async function PATCH(
     }
 
     let autoHousingResult: { housingId: number; created: boolean } | null = null;
+    let workflowResult: Awaited<ReturnType<typeof finalizeAcceptedQuoteWorkflow>> | null = null;
     if (nextStatus === "accepted") {
+      workflowResult = await finalizeAcceptedQuoteWorkflow({
+        db: untypedDb,
+        quoteId: id,
+        actorProfileId: userId,
+      });
+
       try {
         autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id);
       } catch (autoHousingError) {
@@ -385,6 +477,20 @@ export async function PATCH(
 
     return NextResponse.json({
       ...updated,
+      mission_id: workflowResult?.mission?.id ?? updated.mission_id,
+      accepted_workflow: {
+        mission_id: workflowResult?.mission?.id ?? updated.mission_id ?? null,
+        invoice_id: workflowResult?.invoice?.id ?? null,
+      },
+      completed_action: {
+        request_status: syncedRequestStatus,
+        visible_in:
+          nextStatus === "accepted"
+            ? ["planning", "missions", "finances", "partenaires"]
+            : nextStatus === "sent"
+              ? ["devis_recus", "demandes", "messages"]
+              : ["devis_clotures", "demandes", "messages"],
+      },
       auto_housing: autoHousingResult,
     });
   } catch (err) {

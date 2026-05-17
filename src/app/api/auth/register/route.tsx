@@ -9,6 +9,21 @@ import { categoryToRole } from "@/app/utils/roles";
 const cleanString = (val?: string | null) =>
   val ? val.replace(/[<>]/g, "").trim().substring(0, 1000) : null;
 
+const formatFirstName = (val?: string | null) => {
+  const cleaned = cleanString(val);
+  if (!cleaned) return cleaned;
+  return cleaned
+    .toLocaleLowerCase("fr-FR")
+    .replace(/(^|[\s'-])([\p{L}])/gu, (match, separator: string, letter: string) =>
+      `${separator}${letter.toLocaleUpperCase("fr-FR")}`
+    );
+};
+
+const formatLastName = (val?: string | null) => {
+  const cleaned = cleanString(val);
+  return cleaned ? cleaned.toLocaleUpperCase("fr-FR") : cleaned;
+};
+
 const mapYearsToInt = (years?: string | null): number | null => {
   if (!years) return null;
   if (years.startsWith("0-1")) return 1;
@@ -24,12 +39,19 @@ const mapRadiusToInt = (radius?: string | null): number | null => {
   return Math.min(Math.round(parsed), 100);
 };
 
+const splitSelectedServices = (option?: string | null): string[] =>
+  (option ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 const buildAvailabilityPayload = (data: {
   availability?: string | null;
   missionPreference?: string | null;
   signupMode?: string | null;
   onboardingGoal?: string | null;
   supportNeed?: string | null;
+  selectedServices?: string[] | null;
   existingTools?: string[] | null;
   propertyTypes?: string[] | null;
   propertyType?: string | null;
@@ -49,6 +71,7 @@ const buildAvailabilityPayload = (data: {
       signupMode: data.signupMode ?? "simple",
       onboardingGoal: data.onboardingGoal ?? null,
       supportNeed: data.supportNeed ?? null,
+      selectedServices: data.selectedServices ?? [],
       existingTools: data.existingTools ?? [],
       propertyTypes: data.propertyTypes ?? [],
       propertyType: data.propertyType ?? null,
@@ -63,6 +86,7 @@ const buildAvailabilityPayload = (data: {
       signupMode: data.signupMode ?? "simple",
       onboardingGoal: data.onboardingGoal ?? null,
       supportNeed: data.supportNeed ?? null,
+      selectedServices: data.selectedServices ?? [],
       existingTools: data.existingTools ?? [],
       propertyTypes: data.propertyTypes ?? [],
       propertyType: data.propertyType ?? null,
@@ -133,8 +157,8 @@ const registerSchema = z.object({
   username: z.string().min(3).max(30).trim(),
   password: z.string().min(8),
   email: z.string().email().toLowerCase().trim(),
-  firstName: z.string().min(1).max(50).transform(cleanString),
-  lastName: z.string().min(1).max(50).transform(cleanString),
+  firstName: z.string().min(1).max(50).transform(formatFirstName),
+  lastName: z.string().min(1).max(50).transform(formatLastName),
   phone: z.string().optional().nullable().transform(cleanString),
   avatar_url: z.string().url().optional().nullable(),
   avatar_scale: z.number().optional().nullable(),
@@ -195,6 +219,7 @@ export async function POST(req: NextRequest) {
     }
     const role = categoryToRole(data.category || "");
     const isConcierge = role === "concierge" || role === "concierge_pro" || data.category === "concierge";
+    const selectedServices = splitSelectedServices(data.option);
     const serviceRadiusKm = mapRadiusToInt(data.serviceRadiusKm);
     const availabilityHours =
       buildAvailabilityPayload({
@@ -203,6 +228,7 @@ export async function POST(req: NextRequest) {
           signupMode: data.signupMode,
           onboardingGoal: data.onboardingGoal,
           supportNeed: data.supportNeed,
+          selectedServices,
           existingTools: data.existingTools.filter(Boolean) as string[],
           propertyTypes: data.propertyTypes.filter(Boolean) as string[],
           propertyType: data.propertyType,

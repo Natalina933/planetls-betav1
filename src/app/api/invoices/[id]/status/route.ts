@@ -147,7 +147,44 @@ export async function PATCH(
       console.error("[PATCH /api/invoices/:id/status] event error:", eventError);
     }
 
-    return NextResponse.json(updated);
+    let completedAction: Record<string, unknown> | null = null;
+    if (updated.mission_id) {
+      const missionEventType =
+        nextStatus === "paid"
+          ? "invoice_paid"
+          : nextStatus === "issued"
+            ? "invoice_issued"
+            : nextStatus === "canceled"
+              ? "invoice_canceled"
+              : "invoice_status_changed";
+
+      await db.from("mission_events").insert({
+        mission_id: updated.mission_id,
+        actor_profile_id: userId,
+        event_type: missionEventType,
+        payload: {
+          invoice_id: updated.id,
+          invoice_number: updated.invoice_number,
+          invoice_status: nextStatus,
+          paid_amount: round2(nextPaidAmount),
+        },
+      });
+
+      completedAction = {
+        visible_in:
+          nextStatus === "paid"
+            ? ["finances", "factures_payees", "mission_detail"]
+            : nextStatus === "issued"
+              ? ["finances", "factures_a_regler", "mission_detail"]
+              : ["finances", "mission_detail"],
+        mission_id: updated.mission_id,
+      };
+    }
+
+    return NextResponse.json({
+      ...updated,
+      completed_action: completedAction,
+    });
   } catch (err) {
     console.error("[PATCH /api/invoices/:id/status] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

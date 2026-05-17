@@ -64,6 +64,12 @@ const createServiceRequestSchema = z.object({
   recipient_ids: z.array(z.string().uuid()).max(100).optional(),
 });
 
+const updateServiceRequestSchema = createServiceRequestSchema
+  .partial()
+  .extend({
+    id: z.string().uuid(),
+  });
+
 type ServiceRequestRecipientRow = {
   id: string;
   service_request_id: string;
@@ -802,6 +808,74 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     console.error("[POST /api/service-requests] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { userId, role } = await getApiAuthContext(req);
+    if (!userId || !isUuidLike(userId)) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!OWNER_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
+    const rawBody: unknown = await req.json();
+    const parsedBody = updateServiceRequestSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
+    }
+
+    const body = parsedBody.data as Partial<CreateServiceRequestBody> & { id: string };
+    const updatePayload: Record<string, unknown> = {};
+
+    if (typeof body.title === "string") {
+      const title = body.title.trim();
+      if (!title) return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
+      updatePayload.title = title;
+    }
+    if (typeof body.description === "string" || body.description === null) {
+      updatePayload.description = typeof body.description === "string" ? body.description.trim() || null : null;
+    }
+    if (typeof body.property_id === "string" || body.property_id === null) updatePayload.property_id = body.property_id ?? null;
+    if (typeof body.request_type === "string" && VALID_REQUEST_TYPES.includes(body.request_type)) updatePayload.request_type = body.request_type;
+    if (Array.isArray(body.requested_services)) updatePayload.requested_services = normalizeStringArray(body.requested_services);
+    if (typeof body.city === "string" || body.city === null) updatePayload.city = typeof body.city === "string" ? body.city.trim() || null : null;
+    if (typeof body.postal_code === "string" || body.postal_code === null) updatePayload.postal_code = typeof body.postal_code === "string" ? body.postal_code.trim() || null : null;
+    if (typeof body.desired_date === "string" || body.desired_date === null) updatePayload.desired_date = body.desired_date || null;
+    if (typeof body.urgency === "boolean") updatePayload.urgency = body.urgency;
+    if (typeof body.budget_max === "number" || body.budget_max === null) updatePayload.budget_max = body.budget_max ?? null;
+    if (typeof body.currency === "string" || body.currency === null) updatePayload.currency = normalizeCurrency(body.currency);
+
+    if (typeof body.property_name === "string" || body.property_name === null) {
+      updatePayload.metadata = {
+        property_label: typeof body.property_name === "string" ? body.property_name.trim() || null : null,
+        updated_from: "owner_requests_page",
+      } as Json;
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return NextResponse.json({ error: "Aucune donnee a mettre a jour." }, { status: 400 });
+    }
+
+    const { data: updatedRequest, error: updateError } = await dbAny
+      .from("service_requests")
+      .update(updatePayload)
+      .eq("id", body.id)
+      .eq("owner_profile_id", userId)
+      .select("*")
+      .single();
+
+    if (updateError || !updatedRequest) {
+      console.error("[PATCH /api/service-requests] update request error:", updateError);
+      return NextResponse.json({ error: "Impossible de modifier la demande." }, { status: 500 });
+    }
+
+    return NextResponse.json({ request: updatedRequest });
+  } catch (err) {
+    console.error("[PATCH /api/service-requests] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
 }

@@ -166,6 +166,92 @@ async function notifyMissionParticipants(mission: MissionRow, actorProfileId: st
     : null;
 }
 
+async function syncMissionOutcome(input: {
+  mission: MissionRow;
+  nextStatus: MissionStatus | null;
+  actorProfileId: string;
+}) {
+  if (!input.nextStatus) return null;
+
+  if (input.nextStatus === "completed") {
+    const { data: draftInvoices } = await dbAny
+      .from("invoices")
+      .select("id")
+      .eq("mission_id", input.mission.id)
+      .eq("status", "draft");
+
+    const invoiceIds = ((draftInvoices ?? []) as Array<{ id: string }>).map((invoice) => invoice.id);
+    if (invoiceIds.length > 0) {
+      await Promise.all(
+        invoiceIds.map((invoiceId) =>
+          dbAny
+            .from("invoices")
+            .update({
+              status: "issued",
+              issued_at: new Date().toISOString(),
+            })
+            .eq("id", invoiceId),
+        ),
+      );
+
+      await Promise.all(
+        invoiceIds.map((invoiceId) =>
+          dbAny.from("invoice_events").insert({
+            invoice_id: invoiceId,
+            actor_profile_id: input.actorProfileId,
+            event_type: "issued",
+            payload: {
+              source: "mission_completed",
+              mission_id: input.mission.id,
+            },
+          }),
+        ),
+      );
+    }
+
+    return {
+      visible_in: ["missions_terminees", "finances", "factures", "planning"],
+      issued_invoice_count: invoiceIds.length,
+    };
+  }
+
+  if (input.nextStatus === "canceled") {
+    const { data: draftInvoices } = await dbAny
+      .from("invoices")
+      .select("id")
+      .eq("mission_id", input.mission.id)
+      .eq("status", "draft");
+
+    const invoiceIds = ((draftInvoices ?? []) as Array<{ id: string }>).map((invoice) => invoice.id);
+    await Promise.all(
+      invoiceIds.map((invoiceId) =>
+        dbAny
+          .from("invoices")
+          .update({
+            status: "canceled",
+            canceled_at: new Date().toISOString(),
+          })
+          .eq("id", invoiceId),
+      ),
+    );
+
+    return {
+      visible_in: ["missions_annulees", "planning", "finances"],
+      canceled_invoice_count: invoiceIds.length,
+    };
+  }
+
+  if (input.nextStatus === "in_progress") {
+    return { visible_in: ["missions_en_cours", "planning", "messages"] };
+  }
+
+  if (input.nextStatus === "accepted") {
+    return { visible_in: ["missions_a_planifier", "planning", "messages"] };
+  }
+
+  return null;
+}
+
 async function hydrateMissionDetail(mission: MissionRow) {
   const profileIds = [mission.owner_profile_id, mission.concierge_profile_id].filter(
     (value): value is string => Boolean(value),
@@ -424,7 +510,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       await notifyMissionParticipants(updatedMission, userId, statusMessage, "mission_status_changed");
     }
 
-    return NextResponse.json(await hydrateMissionDetail(updatedMission));
+    const completedAction = await syncMissionOutcome({
+      mission: updatedMission,
+      nextStatus: requestedStatus,
+      actorProfileId: userId,
+    });
+
+    const hydrated = await hydrateMissionDetail(updatedMission);
+    return NextResponse.json({
+      ...hydrated,
+      completed_action: completedAction,
+    });
   } catch (err) {
     console.error("[PATCH /api/missions/[id]] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

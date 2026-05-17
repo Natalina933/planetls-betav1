@@ -6,7 +6,7 @@ import {
   parsePublicConciergeServices,
 } from "../app/api/profiles/public-concierges/shared.ts";
 
-test("parsePublicConciergeServices merges option and active mission labels", () => {
+test("parsePublicConciergeServices prefers active mission labels over legacy option", () => {
   const result = parsePublicConciergeServices(
     "Menage, Check-in",
     JSON.stringify({
@@ -19,7 +19,27 @@ test("parsePublicConciergeServices merges option and active mission labels", () 
     }),
   );
 
-  assert.deepEqual(result, ["Menage", "Check-in", "Maintenance"]);
+  assert.deepEqual(result, ["Maintenance"]);
+});
+
+test("parsePublicConciergeServices removes legacy JSON-like noise", () => {
+  const result = parsePublicConciergeServices(
+    '["Conciergerie complete (menage","accueil","gestion)","cleaning"]',
+    null,
+  );
+
+  assert.deepEqual(result, []);
+});
+
+test("parsePublicConciergeServices removes newline legacy noise", () => {
+  const result = parsePublicConciergeServices(
+    `["Conciergerie complete (menage"
+"accueil"
+"gestion)"`,
+    null,
+  );
+
+  assert.deepEqual(result, []);
 });
 
 test("buildPublicConciergeRecommendations ranks by rating, PRO badge and reviews", () => {
