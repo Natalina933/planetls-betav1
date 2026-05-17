@@ -1,0 +1,291 @@
+.page {
+  min-height: 100vh;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  background:
+    linear-gradient(180deg, rgba(248, 251, 252, 0.96), rgba(241, 236, 225, 0.92)),
+    url("/textures/elegant-fibers.png");
+  color: #263540;
+}
+
+.shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.backLink {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.45rem;
+  color: #38556a;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: center;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  border: 1px solid rgba(83, 112, 124, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 247, 0.94), rgba(239, 247, 248, 0.82)),
+    url("/textures/elegant-fibers.png");
+  box-shadow: 0 20px 52px rgba(32, 47, 56, 0.08);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 1rem;
+  align-content: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.45rem;
+  color: #8b6630;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 11ch;
+  margin: 0;
+  color: #1f180f;
+  font-family: var(--font-title), "Cormorant Garamond", serif;
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  font-weight: 800;
+  line-height: 0.95;
+}
+
+.hero p {
+  max-width: 60ch;
+  margin: 0;
+  color: rgba(38, 53, 64, 0.8);
+  font-size: clamp(1rem, 1.5vw, 1.12rem);
+  line-height: 1.7;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.profileCard {
+  min-width: 0;
+}
+
+.profileCard > * {
+  width: 100%;
+}
+
+.cardPlaceholder,
+.error,
+.emptyState {
+  padding: 1rem;
+  border: 1px solid rgba(155, 65, 65, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #6f3d32;
+  font-weight: 700;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.metrics article {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid rgba(83, 112, 124, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.metrics svg,
+.sectionTitle svg {
+  color: #8b6630;
+}
+
+.metrics span {
+  color: rgba(38, 53, 64, 0.66);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.metrics strong {
+  color: #263540;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.panel,
+.servicesSection,
+.reviewsSection {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgba(83, 112, 124, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle h2 {
+  margin: 0;
+  color: #1f180f;
+  font-family: var(--font-title), "Cormorant Garamond", serif;
+  font-size: 1.55rem;
+  line-height: 1.1;
+}
+
+.definitionList {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.definitionList div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.5fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(83, 112, 124, 0.12);
+}
+
+.definitionList div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.definitionList dt {
+  color: rgba(38, 53, 64, 0.58);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.definitionList dd {
+  margin: 0;
+  color: #263540;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.serviceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.58rem;
+}
+
+.serviceList span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.45rem 0.72rem;
+  border: 1px solid rgba(139, 102, 48, 0.18);
+  border-radius: 999px;
+  background: rgba(247, 251, 252, 0.9);
+  color: #38556a;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.muted {
+  margin: 0;
+  color: rgba(38, 53, 64, 0.68);
+}
+
+.reviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.reviewCard {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid rgba(83, 112, 124, 0.14);
+  border-radius: 8px;
+  background: rgba(248, 251, 252, 0.86);
+}
+
+.reviewCard strong {
+  color: #1f180f;
+}
+
+.reviewCard p {
+  margin: 0;
+  color: rgba(38, 53, 64, 0.78);
+  line-height: 1.6;
+}
+
+.reviewCard small {
+  color: #8b6630;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    max-width: 14ch;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 0.8rem;
+  }
+
+  .hero {
+    padding: 1rem;
+  }
+
+  .heroActions :global(a) {
+    width: 100%;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .definitionList div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}

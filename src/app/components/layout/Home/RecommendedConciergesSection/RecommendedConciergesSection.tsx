@@ -7,6 +7,8 @@ import styles from "./RecommendedConciergesSection.module.scss";
 
 type RecommendedConcierge = {
   id: string;
+  avatar_url: string | null;
+  image?: string | null;
   display_name: string;
   city: string | null;
   service_area: string | null;
@@ -84,6 +86,8 @@ export default function RecommendedConciergesSection() {
           <ConciergePreviewCard
             key={item.id}
             id={item.id}
+            avatarUrl={item.avatar_url}
+            coverImageUrl={item.image}
             displayName={item.display_name}
             city={item.city}
             serviceArea={item.service_area}

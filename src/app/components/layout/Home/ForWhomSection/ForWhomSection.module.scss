@@ -100,6 +100,36 @@
   }
 }
 
+.cardVisual {
+  position: relative;
+  overflow: hidden;
+  width: calc(100% + 0.8rem);
+  height: 180px;
+  margin: -1.4rem -0.4rem 1.35rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(163, 132, 89, 0.16);
+  background: #efe4d6;
+}
+
+.cardVisual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(49, 38, 29, 0.02), rgba(49, 38, 29, 0.36)),
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.16), transparent 44%);
+}
+
+.visualImage {
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s ease;
+}
+
+.block:hover .visualImage {
+  transform: scale(1.06);
+  filter: saturate(1.06);
+}
+
 .block.proprietaire {
   background:
     linear-gradient(180deg, rgba(255, 248, 244, 0.98), rgba(246, 227, 220, 0.92)),
@@ -157,8 +187,22 @@
   text-transform: uppercase;
 }
 
-.icon {
-  margin-bottom: 1rem;
+.featureList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.35rem;
+}
+
+.featureList span {
+  min-height: 34px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(143, 106, 51, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.76);
+  color: #5e4a38;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .CTAButton,
@@ -215,6 +259,41 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
+.productRibbon {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin: 1.1rem auto 0;
+  max-width: 1080px;
+}
+
+.productRibbon span {
+  display: flex;
+  min-height: 74px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(163, 132, 89, 0.16);
+  border-radius: 1rem;
+  background: rgba(255, 252, 247, 0.58);
+  color: #584634;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  transition:
+    transform 0.22s ease,
+    background 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.productRibbon span:hover {
+  transform: translateY(-3px);
+  border-color: rgba(183, 146, 90, 0.36);
+  background: rgba(255, 252, 247, 0.9);
+}
+
 .heroActions {
   display: flex;
   flex-direction: column;
@@ -234,6 +313,10 @@
   .blocks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .productRibbon {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -242,6 +325,10 @@
   }
 
   .blocks {
+    grid-template-columns: 1fr;
+  }
+
+  .productRibbon {
     grid-template-columns: 1fr;
   }
 

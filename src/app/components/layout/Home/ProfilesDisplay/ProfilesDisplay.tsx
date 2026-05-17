@@ -75,6 +75,7 @@ export default function ProfilesDisplay({
               >
                 <ConciergePreviewCard
                   id={id}
+                  coverImageUrl={profile.photo}
                   displayName={`${name} (${categoryInfo.label})`}
                   city={location}
                   serviceArea={categoryInfo.description}

@@ -3,55 +3,65 @@
 import Image, { type ImageProps } from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
+import { ArrowRight, CalendarCheck, FileText, MapPin, MessageSquare, Search, Sparkles } from "lucide-react";
 import { ButtonLink, SectionIntro } from "@/components/ui";
 import styles from "./ForWhomSection.module.scss";
 
 interface CardData {
   key: "proprietaire" | "concierge" | "artisan";
   title: string;
-  img: string;
-  alt: string;
+  visual: string;
   cta: string;
   href: string;
   eyebrow: string;
   description: string;
+  features: string[];
 }
 
 const CARDS: CardData[] = [
   {
     key: "proprietaire",
     title: "Propriétaires",
-    img: "/icons/proprio_belle_epoque.png",
-    alt: "Illustration propriétaire location saisonnière",
+    visual: "/images/carousel/planetls-private-proprietaires.png",
     cta: "Découvrir le parcours propriétaire",
     href: "/owner",
-    eyebrow: "Recherche et coordination",
+    eyebrow: "Confiance et simplicité",
     description:
-      "Trouvez une conciergerie adaptée à votre ville, à votre type de bien et à votre niveau d'accompagnement, puis suivez missions, documents et échanges depuis un même espace.",
+      "Recherchez une conciergerie selon votre ville, votre logement et vos attentes. Recevez des devis, comparez les profils et suivez les missions sans multiplier les outils.",
+    features: ["Recherche concierge", "Réception devis", "Suivi missions"],
   },
   {
     key: "concierge",
-    title: "Concierges et indépendants",
-    img: "/icons/concierges_belle_epoque.png",
-    alt: "Illustration conciergerie ou activité indépendante",
+    title: "Conciergeries",
+    visual: "/images/carousel/planetls-private-conciergeries.png",
     cta: "Développer mon activité",
     href: "/concierge",
-    eyebrow: "Activité flexible",
+    eyebrow: "Organisation terrain",
     description:
-      "Que vous gériez déjà une conciergerie ou que vous souhaitiez créer un complément de revenu, PlanetLS vous aide à présenter vos services, trouver des missions et vous organiser simplement.",
+      "Transformez les demandes entrantes en missions claires. Centralisez logements, planning, messages, interventions et documents depuis un dashboard conçu pour l'action.",
+    features: ["Demandes qualifiées", "Dashboard terrain", "Planning optimisé"],
   },
   {
     key: "artisan",
-    title: "Artisans et partenaires",
-    img: "/icons/artisans_belle_epoque.png",
-    alt: "Illustration artisan partenaire local",
+    title: "Artisans",
+    visual: "/images/carousel/planetls-private-artisans.png",
     cta: "Découvrir le parcours partenaire",
     href: "/provider",
-    eyebrow: "Visibilité locale",
+    eyebrow: "Opportunités locales",
     description:
-      "Rejoignez un écosystème de propriétaires, de conciergeries et d'indépendants qui cherchent des partenaires fiables pour l'entretien, la maintenance, le linge ou les urgences.",
+      "Soyez visible auprès des conciergeries et propriétaires actifs. Recevez des interventions contextualisées, validez vos passages et développez des partenariats durables.",
+    features: ["Missions locales", "Validation intervention", "Visibilité partenaire"],
   },
 ];
+
+const PREMIUM_FEATURES = [
+  [Search, "Recherche intelligente"],
+  [MapPin, "Carte interactive"],
+  [FileText, "Devis et documents"],
+  [CalendarCheck, "Missions et séjours"],
+  [MessageSquare, "Messages centralisés"],
+  [Sparkles, "Optimisation terrain"],
+] as const;
 
 interface CustomImageProps extends ImageProps {
   src: string;
@@ -65,21 +75,24 @@ const CustomImage: React.FC<CustomImageProps> = ({ src, alt, ...props }) => {
   return <Image src={imgSrc} alt={alt} onError={() => setImgSrc(fallbackSrc)} {...props} />;
 };
 
-const ActionCard: React.FC<{ data: CardData }> = ({ data }) => {
-  const { key, title, img, alt, cta, description, href, eyebrow } = data;
-
-  return (
-    <article className={`${styles.block} ${styles[key] || ""}`}>
-      <span className={styles.eyebrow}>{eyebrow}</span>
-      <CustomImage src={img} alt={alt} width={72} height={72} className={styles.icon} priority />
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <ButtonLink href={href} variant="primary" className={styles.CTAButton}>
-        {cta}
-      </ButtonLink>
-    </article>
-  );
-};
+const ActionCard: React.FC<{ data: CardData }> = ({ data }) => (
+  <article className={`${styles.block} ${styles[data.key] || ""}`}>
+    <div className={styles.cardVisual}>
+      <CustomImage src={data.visual} alt="" fill sizes="(max-width: 980px) 100vw, 33vw" className={styles.visualImage} />
+    </div>
+    <span className={styles.eyebrow}>{data.eyebrow}</span>
+    <h3>{data.title}</h3>
+    <p>{data.description}</p>
+    <div className={styles.featureList}>
+      {data.features.map((feature) => (
+        <span key={feature}>{feature}</span>
+      ))}
+    </div>
+    <ButtonLink href={data.href} variant="primary" className={styles.CTAButton}>
+      {data.cta} <ArrowRight size={16} />
+    </ButtonLink>
+  </article>
+);
 
 const ForWhomSection: React.FC = () => (
   <section id="pour-qui" className={styles.forWhomSection} aria-labelledby="for-whom-title">
@@ -88,8 +101,8 @@ const ForWhomSection: React.FC = () => (
         <SectionIntro
           titleId="for-whom-title"
           eyebrow="Pour qui ?"
-          title="Une plateforme conçue pour faire travailler chaque acteur plus simplement"
-          description="PlanetLS relie propriétaires, conciergeries, indépendants et partenaires terrain dans une expérience plus claire, plus fluide et plus simple à piloter au quotidien."
+          title="Trois rôles, une même expérience de pilotage"
+          description="PlanetLS donne à chaque acteur de la location saisonnière un parcours lisible : chercher, comparer, organiser, intervenir, valider."
         />
       </div>
 
@@ -101,8 +114,17 @@ const ForWhomSection: React.FC = () => (
 
       <div className={styles.sectionMission}>
         <strong>Notre mission :</strong> centraliser la mise en relation, la gestion des missions
-        et la coordination terrain pour professionnaliser la location courte durée sans fermer la
-        porte à ceux qui veulent démarrer progressivement.
+        et la coordination terrain pour professionnaliser la location saisonnière, sans perdre la
+        dimension humaine du métier.
+      </div>
+
+      <div className={styles.productRibbon} aria-label="Fonctionnalités premium PlanetLS">
+        {PREMIUM_FEATURES.map(([Icon, label]) => (
+          <span key={label}>
+            <Icon size={18} />
+            {label}
+          </span>
+        ))}
       </div>
 
       <div className={styles.heroActions}>
