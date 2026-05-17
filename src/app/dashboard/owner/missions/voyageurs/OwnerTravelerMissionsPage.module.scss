@@ -1,15 +1,15 @@
 .page {
-  --traveler-panel: var(--dash-bg-panel, #fff8f2);
-  --traveler-panel-soft: var(--dash-bg-panel-soft, #fff3ea);
-  --traveler-ink: var(--dash-text, #3b3126);
-  --traveler-muted: var(--dash-text-muted, #78675b);
-  --traveler-accent: var(--dash-accent, #b85c48);
-  --traveler-accent-strong: var(--dash-accent-strong, #6d3529);
-  --traveler-border: rgba(184, 92, 72, 0.2);
-  --traveler-border-soft: rgba(184, 92, 72, 0.13);
+  --traveler-panel: var(--dash-bg-panel, #fbfcfb);
+  --traveler-panel-soft: var(--dash-bg-panel-soft, #edf3f5);
+  --traveler-ink: var(--dash-text, #253241);
+  --traveler-muted: var(--dash-text-muted, #61707c);
+  --traveler-accent: var(--dash-accent, #4d7287);
+  --traveler-accent-strong: var(--dash-accent-strong, #253f52);
+  --traveler-border: rgba(77, 114, 135, 0.2);
+  --traveler-border-soft: rgba(77, 114, 135, 0.13);
   --traveler-gold: #d4af37;
-  --traveler-shadow: 0 14px 28px rgba(109, 53, 41, 0.08);
-  --traveler-shadow-hover: 0 18px 34px rgba(109, 53, 41, 0.12);
+  --traveler-shadow: 0 14px 28px rgba(37, 50, 65, 0.08);
+  --traveler-shadow-hover: 0 18px 34px rgba(37, 50, 65, 0.12);
 
   display: grid;
   gap: 1.15rem;
@@ -183,7 +183,7 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 0.75rem;
 }
 
@@ -255,6 +255,87 @@
   font-size: clamp(1.15rem, 2vw, 1.45rem);
 }
 
+.syncPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid rgba(77, 114, 135, 0.18);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(237, 243, 245, 0.82)),
+    color-mix(in srgb, var(--traveler-panel) 92%, white);
+  box-shadow: var(--traveler-shadow);
+}
+
+.syncMain {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.syncMain h2 {
+  margin: 0;
+  color: var(--traveler-ink);
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+}
+
+.syncBadgeReady,
+.syncBadgeWaiting {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: 0.42rem;
+  min-height: 34px;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 880;
+}
+
+.syncBadgeReady {
+  border: 1px solid rgba(40, 85, 64, 0.16);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.syncBadgeWaiting {
+  border: 1px solid rgba(176, 132, 37, 0.2);
+  background: #fff7df;
+  color: #7a5a17;
+}
+
+.syncSteps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.syncStepDone,
+.syncStepTodo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.55rem 0.45rem;
+  border-radius: 14px;
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.syncStepDone {
+  border: 1px solid rgba(40, 85, 64, 0.14);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.syncStepTodo {
+  border: 1px solid var(--traveler-border-soft);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--traveler-muted);
+}
+
 .assignmentWorkbench {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
@@ -311,9 +392,19 @@
 .assignmentCardActive {
   display: grid;
   gap: 0.35rem;
-  min-height: 118px;
+  min-height: 188px;
   padding: 0.9rem;
   border-radius: 18px;
+}
+
+.assignmentPhoto {
+  min-height: 72px;
+  margin: -0.2rem -0.2rem 0.25rem;
+  border-radius: 14px;
+  background-color: #d9e5ea;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
 }
 
 .assignmentCard span,
@@ -337,6 +428,9 @@
 .assignmentCardActive small,
 .platformCard span,
 .platformCardActive span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--traveler-muted);
   line-height: 1.35;
 }
@@ -592,7 +686,9 @@
 .travelerCheck,
 .travelerCheckActive,
 .travelerActionPill,
-.serviceChip {
+.serviceChip,
+.plannedChip,
+.pendingChip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -604,6 +700,18 @@
   color: var(--traveler-ink);
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.plannedChip {
+  border-color: rgba(40, 85, 64, 0.16);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.pendingChip {
+  border-color: rgba(176, 132, 37, 0.2);
+  background: #fff7df;
+  color: #7a5a17;
 }
 
 .travelerCheck,
@@ -698,6 +806,8 @@
 :global([data-theme="art-deco"]) .hero,
 :global([data-theme="art-deco"]) .creationPanel,
 :global([data-theme="art-deco"]) .creationLauncher,
+:global([data-theme="art-deco"]) .syncPanel,
+:global([data-theme="art-deco"]) .assignmentPanel,
 :global([data-theme="art-deco"]) .missionModal,
 :global([data-theme="art-deco"]) .travelerMissionHero,
 :global([data-theme="art-deco"]) .planningImportPanel,
@@ -728,9 +838,14 @@
   .hero,
   .travelerMissionHero,
   .planningImportGrid,
+  .syncPanel,
   .assignmentWorkbench,
   .travelerMissionLayout {
     grid-template-columns: 1fr;
+  }
+
+  .syncSteps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .heroSnapshot {
@@ -748,6 +863,7 @@
   }
 
   .statsGrid,
+  .syncSteps,
   .travelerFieldGrid,
   .travelerMissionFacts,
   .parsedStayCard,

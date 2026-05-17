@@ -2,18 +2,24 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  AlertTriangle,
   Bell,
   Building2,
+  CalendarCheck2,
   CalendarClock,
   CheckCircle2,
   ClipboardList,
   Copy,
+  Eye,
   FileText,
   Home,
   Mail,
+  MapPin,
+  MessageCircle,
   MessageSquareText,
   Phone,
   Plus,
+  Route,
   Send,
   ShieldCheck,
   Users,
@@ -29,6 +35,8 @@ type HousingRow = {
   id: string | number;
   nom_logement?: string | null;
   ville?: string | null;
+  adresse?: string | null;
+  photo_principale?: string | null;
 };
 
 type PartnerRequestRow = {
@@ -77,6 +85,9 @@ type TravelerMissionForm = {
   actions: string[];
   priority: "normal" | "high" | "urgent";
   specialWelcome: string;
+  accessInstructions: string;
+  parkingInstructions: string;
+  sensitiveTraveler: string;
   notes: string;
   internalNotes: string;
   issueFlag: string;
@@ -104,8 +115,11 @@ type AssignmentOption = {
   conciergeName: string;
   propertyId: string;
   propertyName: string;
+  propertyAddress: string;
+  propertyPhoto: string;
   city: string;
   requestTitle: string;
+  hasPartner: boolean;
 };
 
 type CreationMode = "platform" | "manual";
@@ -130,6 +144,9 @@ const initialForm: TravelerMissionForm = {
   actions: ["checkin", "cleaning", "linen"],
   priority: "normal",
   specialWelcome: "",
+  accessInstructions: "",
+  parkingInstructions: "",
+  sensitiveTraveler: "",
   notes: "",
   internalNotes: "",
   issueFlag: "none",
@@ -173,13 +190,19 @@ const actionOptions = [
   { value: "checkout", label: "Check-out" },
   { value: "cleaning", label: "Ménage" },
   { value: "linen", label: "Linge" },
+  { value: "groceries", label: "Courses" },
   { value: "quality_check", label: "Contrôle" },
   { value: "maintenance", label: "Maintenance" },
+  { value: "emergency", label: "Urgence" },
+  { value: "other", label: "Autre" },
   { value: "welcome", label: "Accueil spécifique" },
 ];
 
 const statusOptions = [
   { value: "all", label: "Tous les statuts" },
+  { value: "pending_planning", label: "En attente planning" },
+  { value: "planned", label: "Planifiees" },
+  { value: "urgent", label: "Urgences" },
   { value: "draft", label: "Nouveau séjour" },
   { value: "assigned", label: "Arrivée prévue" },
   { value: "accepted", label: "Acceptée" },
@@ -404,7 +427,7 @@ function getPartnerPropertyName(partner: PartnerRequestRow) {
   return partner.property_name || partner.city || "Appartement a preciser";
 }
 
-function buildAssignmentOptions(partners: PartnerRequestRow[]): AssignmentOption[] {
+function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingRow[] = []): AssignmentOption[] {
   const seen = new Set<string>();
 
   return partners
@@ -412,7 +435,8 @@ function buildAssignmentOptions(partners: PartnerRequestRow[]): AssignmentOption
     .map((partner) => {
       const conciergeId = partner.selected_concierge_profile_id || "";
       const propertyId = getPartnerPropertyId(partner);
-      const propertyName = getPartnerPropertyName(partner);
+      const property = housing.find((item) => String(item.id) === propertyId);
+      const propertyName = property?.nom_logement || getPartnerPropertyName(partner);
       const key = `${conciergeId}:${propertyId || propertyName}:${partner.id}`;
 
       return {
@@ -421,8 +445,11 @@ function buildAssignmentOptions(partners: PartnerRequestRow[]): AssignmentOption
         conciergeName: partner.selected_concierge_name || "Conciergerie",
         propertyId,
         propertyName,
+        propertyAddress: property?.adresse || partner.city || "Adresse a confirmer",
+        propertyPhoto: property?.photo_principale || "/images/default-logement.png",
         city: partner.city || "",
         requestTitle: partner.title || "Collaboration acceptee",
+        hasPartner: true,
       };
     })
     .filter((option) => {
@@ -437,15 +464,56 @@ function getAssignmentLabel(option: AssignmentOption) {
   return `${option.conciergeName} - ${option.propertyName}`;
 }
 
+function getMissionMetadataString(mission: MissionRow, keys: string[]) {
+  for (const key of keys) {
+    const value = mission.metadata?.[key];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return "";
+}
+
+function isMissionViewedByConcierge(mission: MissionRow) {
+  return Boolean(
+    getMissionMetadataString(mission, ["concierge_viewed_at", "viewed_at", "last_seen_by_concierge_at"]) ||
+      ["accepted", "in_progress", "completed"].includes(mission.status || ""),
+  );
+}
+
+function isMissionPlannedByConcierge(mission: MissionRow) {
+  return Boolean(
+    getMissionMetadataString(mission, ["planning_registered_at", "concierge_planned_at", "planned_at"]) ||
+      mission.metadata?.added_to_concierge_planning === true ||
+      mission.metadata?.concierge_planning_status === "planned" ||
+      ["in_progress", "completed"].includes(mission.status || ""),
+  );
+}
+
+function hasMissionIncident(mission: MissionRow) {
+  const issueFlag = getMetadataString(mission, "issue_flag");
+  return issueFlag === "incident" || mission.priority === "urgent" || issueFlag === "urgent";
+}
+
+function getMissionPlanningLabel(mission: MissionRow) {
+  if (isMissionPlannedByConcierge(mission)) return "Mission planifiée par la concierge";
+  if (isMissionViewedByConcierge(mission)) return "Consultée, en attente de planification";
+  return "En attente de planification";
+}
+
 function getMissionStatusLabel(mission: MissionRow) {
+  if (getMetadataString(mission, "issue_flag") === "incident") return "Incident";
   if (mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent") return "Urgent";
+  if (isMissionPlannedByConcierge(mission)) return "Planifiée";
+  if (isMissionViewedByConcierge(mission)) return "Consultée";
   return statusOptions.find((item) => item.value === (mission.status || "assigned"))?.label || "Assignée";
 }
 
 function getMissionCardTone(mission: MissionRow): ServiceRequestCardTone {
+  if (hasMissionIncident(mission)) return "expired";
   if (mission.status === "completed") return "accepted";
   if (mission.status === "canceled") return "expired";
   if (mission.status === "in_progress") return "discussion";
+  if (isMissionPlannedByConcierge(mission)) return "accepted";
+  if (isMissionViewedByConcierge(mission)) return "viewed";
   if (mission.status === "accepted") return "viewed";
   if (mission.status === "draft") return "draft";
   return "sent";
@@ -455,6 +523,8 @@ function getMissionCurrentDetail(mission: MissionRow) {
   const status = mission.status || "assigned";
   if (status === "completed") return "Mission terminée";
   if (status === "in_progress") return "Mission en cours sur le terrain";
+  if (isMissionPlannedByConcierge(mission)) return "Mission enregistrée dans le planning concierge";
+  if (isMissionViewedByConcierge(mission)) return "Mission consultée par la conciergerie";
   if (status === "accepted") return "Mission acceptée par la conciergerie";
   if (status === "draft") return "Mission à compléter";
   return "Mission proposée à la conciergerie";
@@ -462,6 +532,8 @@ function getMissionCurrentDetail(mission: MissionRow) {
 
 function getMissionGuidance(mission: MissionRow) {
   const status = mission.status || "assigned";
+  if (isMissionPlannedByConcierge(mission)) return "Vous avez la confirmation que la conciergerie a intégré ce séjour dans son organisation.";
+  if (isMissionViewedByConcierge(mission)) return "La conciergerie a pris connaissance de la mission. La prochaine étape est l'enregistrement planning.";
   if (status === "completed") return "Le séjour est archivé avec ses informations voyageur.";
   if (status === "in_progress") return "Suivez l'exécution depuis le détail de mission ou le planning.";
   if (status === "accepted") return "La conciergerie peut préparer l'accueil, le ménage et les actions prévues.";
@@ -470,14 +542,17 @@ function getMissionGuidance(mission: MissionRow) {
 
 function getMissionMilestones(mission: MissionRow): ServiceRequestMilestone[] {
   const status = mission.status || "assigned";
-  const accepted = ["accepted", "in_progress", "completed"].includes(status);
+  const viewed = isMissionViewedByConcierge(mission);
+  const planned = isMissionPlannedByConcierge(mission);
   const running = ["in_progress", "completed"].includes(status);
   const completed = status === "completed";
 
   return [
     { label: "Transmise", detail: "Mission envoyée", state: "done", Icon: Send },
-    { label: "Acceptation", detail: "Validation concierge", state: accepted ? "done" : "active", Icon: ShieldCheck },
-    { label: "Terrain", detail: "Exécution séjour", state: completed ? "done" : running ? "active" : "todo", Icon: Home },
+    { label: "Consultée", detail: "Vue concierge", state: viewed ? "done" : "active", Icon: Eye },
+    { label: "Planifiée", detail: "Planning concierge", state: planned ? "done" : viewed ? "active" : "todo", Icon: CalendarCheck2 },
+    { label: "En cours", detail: "Terrain", state: completed ? "done" : running ? "active" : "todo", Icon: Route },
+    { label: "Terminée", detail: "Séjour clôturé", state: completed ? "done" : "todo", Icon: CheckCircle2 },
   ];
 }
 
@@ -492,6 +567,7 @@ function getMissionFacts(mission: MissionRow, housing: HousingRow[]): ServiceReq
       Icon: CalendarClock,
     },
     { label: "Voyageurs", value: `${getGuestCount(mission)} voyageur(s)`, Icon: Users },
+    { label: "Planning concierge", value: getMissionPlanningLabel(mission), Icon: CalendarCheck2 },
     { label: "Contact", value: phone || email || "-", Icon: phone ? Phone : Mail },
   ];
 
@@ -560,8 +636,12 @@ function buildMissionPayload(form: TravelerMissionForm) {
       booking_code: form.bookingCode.trim(),
       requested_actions: form.actions,
       special_welcome: form.specialWelcome.trim(),
+      access_instructions: form.accessInstructions.trim(),
+      parking_instructions: form.parkingInstructions.trim(),
+      sensitive_traveler: form.sensitiveTraveler.trim(),
       internal_notes: form.internalNotes.trim(),
       issue_flag: form.issueFlag,
+      concierge_planning_status: "pending",
       notification_reason: "new_traveler_mission",
       assignment_flow: "owner_proposed_to_concierge",
       visible_in_owner_space: true,
@@ -630,6 +710,9 @@ function TravelerMissionCard({
       chips={
         <>
           <span className={styles.serviceChip}>{platform}</span>
+          <span className={isMissionPlannedByConcierge(mission) ? styles.plannedChip : styles.pendingChip}>
+            {isMissionPlannedByConcierge(mission) ? "Planning concierge confirmé" : "En attente planning"}
+          </span>
           {actionValues.slice(0, 3).map((action) => (
             <span key={`${mission.id}-${action}`} className={styles.serviceChip}>
               {actionOptions.find((item) => item.value === action)?.label || action}
@@ -646,6 +729,10 @@ function TravelerMissionCard({
           </button>
           <ButtonLink href={`/dashboard/owner/missions/${mission.id}`} variant="secondary" size="sm">
             Ouvrir
+          </ButtonLink>
+          <ButtonLink href={`/dashboard/owner/messages?mission=${encodeURIComponent(mission.id)}`} variant="ghost" size="sm">
+            <MessageCircle size={15} aria-hidden="true" />
+            Messages
           </ButtonLink>
         </>
       }
@@ -668,7 +755,7 @@ export default function OwnerTravelerMissionsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [planningText, setPlanningText] = useState("");
 
-  const assignmentOptions = useMemo(() => buildAssignmentOptions(partners), [partners]);
+  const assignmentOptions = useMemo(() => buildAssignmentOptions(partners, housing), [partners, housing]);
   const selectedAssignment = useMemo(
     () =>
       assignmentOptions.find(
@@ -707,7 +794,7 @@ export default function OwnerTravelerMissionsPage() {
       const acceptedPartners = (Array.isArray(requestsPayload?.items) ? requestsPayload.items : []).filter(
         isAcceptedMissionPartner,
       );
-      const nextAssignments = buildAssignmentOptions(acceptedPartners);
+      const nextAssignments = buildAssignmentOptions(acceptedPartners, nextHousing);
       const firstAssignment = nextAssignments[0];
 
       setMissions(
@@ -736,7 +823,13 @@ export default function OwnerTravelerMissionsPage() {
 
   const filteredMissions = useMemo(
     () =>
-      missions.filter((mission) => statusFilter === "all" || (mission.status ?? "draft") === statusFilter),
+      missions.filter((mission) => {
+        if (statusFilter === "all") return true;
+        if (statusFilter === "pending_planning") return !isMissionPlannedByConcierge(mission) && mission.status !== "completed";
+        if (statusFilter === "planned") return isMissionPlannedByConcierge(mission);
+        if (statusFilter === "urgent") return hasMissionIncident(mission);
+        return (mission.status ?? "draft") === statusFilter;
+      }),
     [missions, statusFilter],
   );
 
@@ -750,6 +843,16 @@ export default function OwnerTravelerMissionsPage() {
     [missions],
   );
 
+  const plannedCount = useMemo(
+    () => missions.filter(isMissionPlannedByConcierge).length,
+    [missions],
+  );
+
+  const pendingPlanningCount = useMemo(
+    () => missions.filter((mission) => !isMissionPlannedByConcierge(mission) && mission.status !== "completed").length,
+    [missions],
+  );
+
   const completedCount = useMemo(
     () => missions.filter((mission) => mission.status === "completed").length,
     [missions],
@@ -758,6 +861,8 @@ export default function OwnerTravelerMissionsPage() {
   const stats = [
     { label: "Séjours", value: loading ? "..." : String(missions.length), icon: <Users size={18} /> },
     { label: "À venir", value: loading ? "..." : String(upcomingCount), icon: <CalendarClock size={18} /> },
+    { label: "Planifiées", value: loading ? "..." : String(plannedCount), icon: <CalendarCheck2 size={18} /> },
+    { label: "À planifier", value: loading ? "..." : String(pendingPlanningCount), icon: <AlertTriangle size={18} /> },
     { label: "Urgences", value: loading ? "..." : String(urgentCount), icon: <Bell size={18} /> },
     { label: "Terminées", value: loading ? "..." : String(completedCount), icon: <CheckCircle2 size={18} /> },
     { label: "Partenaires", value: loading ? "..." : String(partners.length), icon: <ShieldCheck size={18} /> },
@@ -815,6 +920,9 @@ export default function OwnerTravelerMissionsPage() {
         : initialForm.actions,
       priority: (mission.priority as TravelerMissionForm["priority"]) || "normal",
       specialWelcome: getMetadataString(mission, "special_welcome"),
+      accessInstructions: getMetadataString(mission, "access_instructions"),
+      parkingInstructions: getMetadataString(mission, "parking_instructions"),
+      sensitiveTraveler: getMetadataString(mission, "sensitive_traveler"),
       notes: mission.description || "",
       internalNotes: getMetadataString(mission, "internal_notes"),
       issueFlag: getMetadataString(mission, "issue_flag") || "none",
@@ -966,6 +1074,26 @@ export default function OwnerTravelerMissionsPage() {
         ))}
       </section>
 
+      <section className={styles.syncPanel} aria-label="Synchronisation planning concierge">
+        <div className={styles.syncMain}>
+          <span className={plannedCount > 0 ? styles.syncBadgeReady : styles.syncBadgeWaiting}>
+            {plannedCount > 0 ? <CalendarCheck2 size={16} aria-hidden="true" /> : <AlertTriangle size={16} aria-hidden="true" />}
+            {plannedCount > 0 ? "Mission enregistrée dans le planning concierge" : "En attente de planification concierge"}
+          </span>
+          <h2>Suivi opérationnel propriétaire ↔ conciergerie</h2>
+          <p className={styles.meta}>
+            Chaque séjour transmis reste rattaché à un logement, une conciergerie et une timeline métier. Quand la conciergerie l’enregistre dans son planning, le retour devient visible ici.
+          </p>
+        </div>
+        <div className={styles.syncSteps} aria-label="Timeline de suivi">
+          {["Créée", "Envoyée", "Consultée", "Planifiée", "En cours", "Terminée"].map((step, index) => (
+            <span key={step} className={index <= 2 || plannedCount > 0 ? styles.syncStepDone : styles.syncStepTodo}>
+              {step}
+            </span>
+          ))}
+        </div>
+      </section>
+
       <section id="nouvelle-mission-voyageur" className={styles.creationLauncher}>
         <div>
           <p className={styles.eyebrow}>Création mission</p>
@@ -996,8 +1124,8 @@ export default function OwnerTravelerMissionsPage() {
           <section className={styles.assignmentPanel}>
             <div className={styles.sectionHeading}>
               <div>
-                <p className={styles.eyebrow}>1. Conciergerie et appartement</p>
-                <h2>Choisir le duo operationnel</h2>
+                <p className={styles.eyebrow}>1. Sélection logement</p>
+                <h2>Choisir le logement à confier</h2>
                 <p className={styles.meta}>
                   La mission sera envoyee a la conciergerie selectionnee et rattachee au logement gere.
                 </p>
@@ -1018,12 +1146,16 @@ export default function OwnerTravelerMissionsPage() {
                       className={selected ? styles.assignmentCardActive : styles.assignmentCard}
                       onClick={() => selectAssignment(option)}
                     >
+                      <div className={styles.assignmentPhoto} style={{ backgroundImage: `url("${option.propertyPhoto}")` }} />
                       <span>
                         <ShieldCheck size={15} aria-hidden="true" />
                         {option.conciergeName}
                       </span>
                       <strong>{option.propertyName}</strong>
-                      <small>{option.city || option.requestTitle}</small>
+                      <small>
+                        <MapPin size={13} aria-hidden="true" />
+                        {option.propertyAddress || option.city || option.requestTitle}
+                      </small>
                     </button>
                   );
                 })}
@@ -1291,6 +1423,20 @@ export default function OwnerTravelerMissionsPage() {
                 Accueil spécifique
                 <Input value={form.specialWelcome} onChange={(event) => updateForm("specialWelcome", event.target.value)} placeholder="Ex : champagne, lit bébé, arrivée tardive" />
               </label>
+              <div className={styles.travelerFieldGrid}>
+                <label className={styles.label}>
+                  Accès logement et codes
+                  <Textarea rows={3} value={form.accessInstructions} onChange={(event) => updateForm("accessInstructions", event.target.value)} />
+                </label>
+                <label className={styles.label}>
+                  Parking et arrivée
+                  <Textarea rows={3} value={form.parkingInstructions} onChange={(event) => updateForm("parkingInstructions", event.target.value)} />
+                </label>
+              </div>
+              <label className={styles.label}>
+                Voyageurs sensibles ou informations importantes
+                <Textarea rows={3} value={form.sensitiveTraveler} onChange={(event) => updateForm("sensitiveTraveler", event.target.value)} />
+              </label>
               <label className={styles.label}>
                 Remarques pour la conciergerie
                 <Textarea rows={4} value={form.notes} onChange={(event) => updateForm("notes", event.target.value)} />
@@ -1321,6 +1467,12 @@ export default function OwnerTravelerMissionsPage() {
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Notifications</p>
               <span>La conciergerie sera informée à la création, puis à chaque modification importante.</span>
+            </div>
+            <div className={styles.travelerSummaryCard}>
+              <p className={styles.eyebrow}>Côté concierge</p>
+              <span><Eye size={15} aria-hidden="true" /> Nouvelle mission dans le dashboard</span>
+              <span><CalendarCheck2 size={15} aria-hidden="true" /> Bouton Enregistrer dans mon planning</span>
+              <span><Users size={15} aria-hidden="true" /> Organisation équipe et journée terrain</span>
             </div>
           </aside>
         </div>
