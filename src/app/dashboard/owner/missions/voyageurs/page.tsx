@@ -751,12 +751,14 @@ export default function OwnerTravelerMissionsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [bulkCreating, setBulkCreating] = useState(false);
+  const [parsedStayCreatingId, setParsedStayCreatingId] = useState<string | null>(null);
   const [isComposerOpen, setComposerOpen] = useState(false);
   const [creationMode, setCreationMode] = useState<CreationMode>("platform");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [planningText, setPlanningText] = useState("");
   const [parsedStayDrafts, setParsedStayDrafts] = useState<Record<string, ParsedStayDraft>>({});
+  const [sentParsedStayIds, setSentParsedStayIds] = useState<Record<string, boolean>>({});
 
   const assignmentOptions = useMemo(() => buildAssignmentOptions(partners, housing), [partners, housing]);
   const selectedAssignment = useMemo(
@@ -778,7 +780,15 @@ export default function OwnerTravelerMissionsPage() {
     () => editableParsedStays.filter((stay) => stay.firstName.trim() && stay.arrivalDate && stay.departureDate),
     [editableParsedStays],
   );
-  const allParsedStaysReady = editableParsedStays.length > 0 && editableParsedStays.length === validParsedStays.length;
+  const pendingParsedStays = useMemo(
+    () => editableParsedStays.filter((stay) => !sentParsedStayIds[stay.id]),
+    [editableParsedStays, sentParsedStayIds],
+  );
+  const validPendingParsedStays = useMemo(
+    () => pendingParsedStays.filter((stay) => stay.firstName.trim() && stay.arrivalDate && stay.departureDate),
+    [pendingParsedStays],
+  );
+  const allParsedStaysReady = pendingParsedStays.length > 0 && pendingParsedStays.length === validPendingParsedStays.length;
 
   const loadData = useCallback(async () => {
     try {
@@ -831,6 +841,11 @@ export default function OwnerTravelerMissionsPage() {
 
   useEffect(() => {
     setParsedStayDrafts((current) => {
+      const allowedIds = new Set(parsedStays.map((stay) => stay.id));
+      const nextEntries = Object.entries(current).filter(([id]) => allowedIds.has(id));
+      return nextEntries.length === Object.keys(current).length ? current : Object.fromEntries(nextEntries);
+    });
+    setSentParsedStayIds((current) => {
       const allowedIds = new Set(parsedStays.map((stay) => stay.id));
       const nextEntries = Object.entries(current).filter(([id]) => allowedIds.has(id));
       return nextEntries.length === Object.keys(current).length ? current : Object.fromEntries(nextEntries);
@@ -979,20 +994,61 @@ export default function OwnerTravelerMissionsPage() {
     return payload;
   }
 
-  async function createParsedMissions() {
+  async function createParsedMission(stay: ParsedStay) {
     setError(null);
     setSuccess(null);
 
-    if (editableParsedStays.length === 0) {
-      setError("Collez d'abord les informations de planning reçues depuis la plateforme.");
-      return;
-    }
-    if (!allParsedStaysReady) {
-      setError("Complétez chaque séjour détecté avant de transférer les missions à la conciergerie.");
+    if (!stay.firstName.trim() || !stay.arrivalDate || !stay.departureDate) {
+      setError("Complétez le nom, la date d'arrivée et la date de départ avant d'envoyer ce séjour.");
       return;
     }
     if (partners.length === 0) {
       setError("Aucune conciergerie partenaire acceptée n'est disponible.");
+      return;
+    }
+    if (!form.propertyId) {
+      setError("Sélectionnez le logement concerné pour envoyer ce séjour à la bonne concierge.");
+      return;
+    }
+    if (!isUuidLike(form.conciergeProfileId)) {
+      setError("Sélectionnez le logement et la conciergerie concernée avant d'envoyer ce séjour.");
+      return;
+    }
+
+    try {
+      setParsedStayCreatingId(stay.id);
+      await createMissionFromForm(parsedStayToForm(stay, form));
+      setSentParsedStayIds((current) => ({ ...current, [stay.id]: true }));
+      const stayName = [stay.firstName, stay.lastName].filter(Boolean).join(" ").trim() || "ce séjour";
+      setSuccess(
+        `La mission de ${stayName} est enregistrée et envoyée à ${getSelectedConciergeName(partners, form.conciergeProfileId)}.`,
+      );
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible d'envoyer ce séjour à la conciergerie.");
+    } finally {
+      setParsedStayCreatingId(null);
+    }
+  }
+
+  async function createParsedMissions() {
+    setError(null);
+    setSuccess(null);
+
+    if (pendingParsedStays.length === 0) {
+      setError("Collez d'abord les informations de planning reçues depuis la plateforme.");
+      return;
+    }
+    if (!allParsedStaysReady) {
+      setError("Complétez chaque séjour non envoyé avant de transférer les missions restantes à la conciergerie.");
+      return;
+    }
+    if (partners.length === 0) {
+      setError("Aucune conciergerie partenaire acceptée n'est disponible.");
+      return;
+    }
+    if (!form.propertyId) {
+      setError("Sélectionnez le logement concerné pour envoyer les séjours à la bonne concierge.");
       return;
     }
     if (!isUuidLike(form.conciergeProfileId)) {
@@ -1002,14 +1058,15 @@ export default function OwnerTravelerMissionsPage() {
 
     try {
       setBulkCreating(true);
-      for (const stay of editableParsedStays) {
+      for (const stay of pendingParsedStays) {
         await createMissionFromForm(parsedStayToForm(stay, form));
       }
       setSuccess(
-        `${editableParsedStays.length} mission(s) voyageur validée(s) et transférée(s) à ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elles apparaissent côté concierge et dans votre planning.`,
+        `${pendingParsedStays.length} mission(s) voyageur validée(s) et transférée(s) à ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elles apparaissent côté concierge et dans votre planning.`,
       );
       setPlanningText("");
       setParsedStayDrafts({});
+      setSentParsedStayIds({});
       setComposerOpen(false);
       await loadData();
     } catch (err) {
@@ -1267,15 +1324,17 @@ export default function OwnerTravelerMissionsPage() {
               {bulkCreating
                 ? "Transfert..."
                 : allParsedStaysReady
-                  ? `Valider et transférer ${editableParsedStays.length} mission(s)`
+                  ? `Tout envoyer (${pendingParsedStays.length})`
                   : editableParsedStays.length === 0
                     ? "Coller un planning"
-                    : `Compléter ${editableParsedStays.length - validParsedStays.length} séjour(s)`}
+                    : pendingParsedStays.length === 0
+                      ? "Toutes envoyées"
+                      : `Compléter ${pendingParsedStays.length - validPendingParsedStays.length} séjour(s)`}
             </Button>
           </div>
           {editableParsedStays.length > 0 ? (
             <p className={styles.importReadiness}>
-              {validParsedStays.length}/{editableParsedStays.length} séjour(s) prêt(s). Chaque mission validée sera rattachée au logement sélectionné et transmise à la conciergerie concernée.
+              {validParsedStays.length}/{editableParsedStays.length} séjour(s) prêt(s), {editableParsedStays.length - pendingParsedStays.length} déjà envoyé(s). Vous pouvez valider chaque mission séparément pour l’enregistrer puis l’envoyer à la concierge du logement.
             </p>
           ) : null}
           <div className={styles.planningImportGrid}>
@@ -1287,6 +1346,7 @@ export default function OwnerTravelerMissionsPage() {
                 onChange={(event) => {
                   setPlanningText(event.target.value);
                   setParsedStayDrafts({});
+                  setSentParsedStayIds({});
                 }}
                 placeholder={selectedPlatform.placeholder}
               />
@@ -1297,17 +1357,25 @@ export default function OwnerTravelerMissionsPage() {
               ) : null}
               {editableParsedStays.map((stay, index) => {
                 const isComplete = Boolean(stay.firstName.trim() && stay.arrivalDate && stay.departureDate);
+                const isSent = Boolean(sentParsedStayIds[stay.id]);
+                const isCreating = parsedStayCreatingId === stay.id;
                 const totalGuests =
                   Number(stay.adults || 0) + Number(stay.children || 0) + (stay.hasBaby === "yes" ? 1 : 0);
                 return (
-                  <article key={stay.id} className={isComplete ? styles.parsedStayCard : styles.parsedStayCardMuted}>
+                  <article key={stay.id} className={isComplete || isSent ? styles.parsedStayCard : styles.parsedStayCardMuted}>
                     <div className={styles.parsedStayHeader}>
                       <div>
                         <strong>Séjour {index + 1}</strong>
-                        <span>{isComplete ? "Prêt à transférer" : "À compléter avant validation"}</span>
+                        <span>
+                          {isSent
+                            ? "Mission enregistrée et envoyée"
+                            : isComplete
+                              ? "Prêt à envoyer séparément"
+                              : "À compléter avant validation"}
+                        </span>
                       </div>
-                      <span className={isComplete ? styles.plannedChip : styles.pendingChip}>
-                        {isComplete ? "Complet" : "Incomplet"}
+                      <span className={isSent || isComplete ? styles.plannedChip : styles.pendingChip}>
+                        {isSent ? "Envoyée" : isComplete ? "Complet" : "Incomplet"}
                       </span>
                     </div>
                     <div className={styles.parsedStayEditor}>
@@ -1378,9 +1446,19 @@ export default function OwnerTravelerMissionsPage() {
                     <div className={styles.parsedStayFooter}>
                       <span>{totalGuests || 1} voyageur(s)</span>
                       {stay.note ? <span>{stay.note}</span> : null}
-                      <button type="button" className={styles.buttonSecondary} onClick={() => fillFormFromStay(stay)}>
-                        Ouvrir en détail
-                      </button>
+                      <div className={styles.parsedStayActions}>
+                        <button type="button" className={styles.buttonSecondary} onClick={() => fillFormFromStay(stay)}>
+                          Ouvrir en détail
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.buttonSecondary}
+                          disabled={!isComplete || isSent || bulkCreating || isCreating}
+                          onClick={() => createParsedMission(stay)}
+                        >
+                          {isCreating ? "Envoi..." : isSent ? "Déjà envoyée" : "Valider et envoyer"}
+                        </button>
+                      </div>
                     </div>
                   </article>
                 );

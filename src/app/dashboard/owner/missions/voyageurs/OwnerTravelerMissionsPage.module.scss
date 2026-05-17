@@ -670,6 +670,13 @@
   padding-top: 0.1rem;
 }
 
+.parsedStayActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 .parsedStayCard strong,
 .parsedStayCardMuted strong {
   color: var(--traveler-ink);
@@ -939,6 +946,11 @@
   background: color-mix(in srgb, var(--traveler-panel) 88%, white);
   color: var(--traveler-accent-strong);
   cursor: pointer;
+}
+
+.buttonSecondary:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 
 :global([data-theme="art-deco"]) .hero,
