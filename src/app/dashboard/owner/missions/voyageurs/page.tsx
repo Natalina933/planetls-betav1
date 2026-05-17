@@ -18,7 +18,6 @@ import {
   MessageCircle,
   MessageSquareText,
   Phone,
-  Plus,
   Route,
   Send,
   ShieldCheck,
@@ -143,7 +142,7 @@ const initialForm: TravelerMissionForm = {
   conciergeProfileId: "",
   bookingPlatform: "Airbnb",
   bookingCode: "",
-  actions: ["checkin", "cleaning", "linen"],
+  actions: ["checkin"],
   priority: "normal",
   specialWelcome: "",
   accessInstructions: "",
@@ -643,6 +642,7 @@ function buildMissionPayload(form: TravelerMissionForm) {
       sensitive_traveler: form.sensitiveTraveler.trim(),
       internal_notes: form.internalNotes.trim(),
       issue_flag: form.issueFlag,
+      notice_mode: "simple_stay_notification",
       concierge_planning_status: "pending",
       notification_reason: "new_traveler_mission",
       assignment_flow: "owner_proposed_to_concierge",
@@ -1046,7 +1046,7 @@ export default function OwnerTravelerMissionsPage() {
       await createMissionFromForm(form);
 
       setSuccess(
-        `Mission voyageur créée pour ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elle est disponible côté concierge et dans votre planning.`,
+        `La concierge ${getSelectedConciergeName(partners, form.conciergeProfileId)} a été prévenue du séjour. La fiche est disponible côté concierge et dans votre planning.`,
       );
       setForm((current) => buildResetForm(current));
       setComposerOpen(false);
@@ -1069,8 +1069,8 @@ export default function OwnerTravelerMissionsPage() {
             un espace clair, séparé des demandes commerciales.
           </p>
           <div className={styles.heroActions}>
-            <button type="button" className={styles.primaryLink} onClick={() => openComposer("platform")}>
-              <Plus size={16} aria-hidden="true" /> Nouvelle mission
+            <button type="button" className={styles.primaryLink} onClick={() => openComposer("manual")}>
+              <Bell size={16} aria-hidden="true" /> Prévenir la concierge
             </button>
             <ButtonLink href="/dashboard/owner/planning" variant="secondary">
               <CalendarClock size={16} aria-hidden="true" /> Planning
@@ -1127,15 +1127,15 @@ export default function OwnerTravelerMissionsPage() {
 
       <section id="nouvelle-mission-voyageur" className={styles.creationLauncher}>
         <div>
-          <p className={styles.eyebrow}>Création mission</p>
-          <h2>Proposer un séjour à la conciergerie concernée</h2>
+          <p className={styles.eyebrow}>Information séjour</p>
+          <h2>Prévenir rapidement la conciergerie concernée</h2>
           <p className={styles.meta}>
-            Créez une mission unique ou collez un planning Booking / Airbnb. La mission est enregistrée côté propriétaire, côté concierge et dans le planning.
+            Envoyez une fiche séjour courte et professionnelle. La concierge reçoit l’essentiel, confirme la prise en charge, puis l’ajoute à son planning.
           </p>
         </div>
-        <Button type="button" onClick={() => openComposer("platform")}>
-          <Plus size={16} aria-hidden="true" />
-          Créer une mission
+        <Button type="button" onClick={() => openComposer("manual")}>
+          <Bell size={16} aria-hidden="true" />
+          Prévenir la concierge
         </Button>
       </section>
 
@@ -1144,8 +1144,8 @@ export default function OwnerTravelerMissionsPage() {
           <div className={styles.travelerMissionPage}>
             <div className={styles.modalHeader}>
               <div>
-                <p className={styles.eyebrow}>Mission voyageur</p>
-                <h2 id="mission-modal-title">Créer une mission</h2>
+                <p className={styles.eyebrow}>Fiche séjour</p>
+                <h2 id="mission-modal-title">Prévenir la concierge</h2>
               </div>
               <button type="button" className={styles.iconButton} onClick={() => setComposerOpen(false)} aria-label="Fermer">
                 <X size={18} aria-hidden="true" />
@@ -1222,34 +1222,34 @@ export default function OwnerTravelerMissionsPage() {
         <div className={styles.creationModeTabs} role="tablist" aria-label="Mode de creation">
           <button
             type="button"
+            className={creationMode === "manual" ? styles.modeTabActive : styles.modeTab}
+            onClick={() => setCreationMode("manual")}
+          >
+            <Bell size={16} aria-hidden="true" />
+            Prévenir simplement
+          </button>
+          <button
+            type="button"
             className={creationMode === "platform" ? styles.modeTabActive : styles.modeTab}
             onClick={() => setCreationMode("platform")}
           >
             <ClipboardList size={16} aria-hidden="true" />
             Importer un planning
           </button>
-          <button
-            type="button"
-            className={creationMode === "manual" ? styles.modeTabActive : styles.modeTab}
-            onClick={() => setCreationMode("manual")}
-          >
-            <Plus size={16} aria-hidden="true" />
-            Ajouter une mission
-          </button>
         </div>
 
         <section className={styles.travelerMissionHero}>
           <div>
-            <p className={styles.eyebrow}>Séjour opérationnel</p>
-            <h1>Créer une mission voyageur en moins de 2 minutes</h1>
+            <p className={styles.eyebrow}>Notification séjour</p>
+            <h1>Prévenir la concierge sans friction</h1>
             <p className={styles.meta}>
-              Voyageurs, horaires, logement, checklist et notes restent centralisés dans la mission. Les demandes de conciergerie restent dans l&apos;espace Conciergeries.
+              Une fiche courte remplace les SMS et messages éparpillés. La concierge reçoit les dates, le logement, les voyageurs et confirme ensuite la prise en charge.
             </p>
           </div>
           <div className={styles.travelerHeroSteps}>
-            <span>1. Voyageurs</span>
+            <span>1. Logement</span>
             <span>2. Séjour</span>
-            <span>3. Actions</span>
+            <span>3. Envoyer</span>
           </div>
         </section>
 
@@ -1391,13 +1391,24 @@ export default function OwnerTravelerMissionsPage() {
 
         <div className={creationMode === "manual" ? styles.travelerMissionLayout : styles.hiddenPanel}>
           <form id="mission-voyageur-formulaire" className={styles.travelerMissionForm} onSubmit={handleSubmit}>
-            <section className={styles.travelerFormSection}>
-              <div className={styles.sectionHeading}>
-                <div>
-                  <p className={styles.eyebrow}>Voyageurs</p>
-                  <h2>Identité et contact</h2>
-                </div>
+            <section className={styles.quickNoticePanel}>
+              <div>
+                <p className={styles.eyebrow}>Fiche express</p>
+                <h2>Informer la concierge d’un séjour</h2>
+                <p className={styles.meta}>
+                  Remplissez uniquement l’essentiel. La conciergerie reçoit une notification claire et pourra confirmer la prise en charge.
+                </p>
               </div>
+              <div className={styles.quickNoticeSteps} aria-label="Suivi simplifié">
+                <span>Envoyé</span>
+                <span>Vu</span>
+                <span>Pris en charge</span>
+                <span>Planifié</span>
+              </div>
+            </section>
+
+            <section className={styles.travelerFormSection}>
+              <p className={styles.eyebrow}>Voyageur principal</p>
               <div className={styles.travelerFieldGrid}>
                 <label className={styles.label}>
                   Prénom
@@ -1408,15 +1419,7 @@ export default function OwnerTravelerMissionsPage() {
                   <Input value={form.lastName} onChange={(event) => updateForm("lastName", event.target.value)} />
                 </label>
                 <label className={styles.label}>
-                  Téléphone
-                  <Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} />
-                </label>
-                <label className={styles.label}>
-                  Email
-                  <Input type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} />
-                </label>
-                <label className={styles.label}>
-                  Adultes
+                  Nombre d’adultes
                   <Input type="number" min="0" value={form.adults} onChange={(event) => updateForm("adults", event.target.value)} />
                 </label>
                 <label className={styles.label}>
@@ -1424,27 +1427,24 @@ export default function OwnerTravelerMissionsPage() {
                   <Input type="number" min="0" value={form.children} onChange={(event) => updateForm("children", event.target.value)} />
                 </label>
                 <label className={styles.label}>
-                  Bébé
-                  <Select value={form.hasBaby} onChange={(event) => updateForm("hasBaby", event.target.value)}>
-                    <option value="no">Non</option>
-                    <option value="yes">Oui</option>
-                  </Select>
+                  Téléphone
+                  <Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} placeholder="Optionnel mais utile" />
                 </label>
                 <label className={styles.label}>
-                  Langue
-                  <Select value={form.language} onChange={(event) => updateForm("language", event.target.value)}>
-                    <option value="fr">Français</option>
-                    <option value="en">Anglais</option>
-                    <option value="es">Espagnol</option>
-                    <option value="de">Allemand</option>
-                    <option value="it">Italien</option>
+                  Plateforme
+                  <Select value={form.bookingPlatform} onChange={(event) => updateForm("bookingPlatform", event.target.value)}>
+                    <option>Airbnb</option>
+                    <option>Booking</option>
+                    <option>Abritel</option>
+                    <option>Direct</option>
+                    <option>Autre</option>
                   </Select>
                 </label>
               </div>
             </section>
 
             <section className={styles.travelerFormSection}>
-              <p className={styles.eyebrow}>Séjour</p>
+              <p className={styles.eyebrow}>Arrivée et départ</p>
               <div className={styles.travelerFieldGrid}>
                 <label className={styles.label}>
                   Date arrivée
@@ -1462,135 +1462,138 @@ export default function OwnerTravelerMissionsPage() {
                   Heure départ
                   <Input type="time" value={form.departureTime} onChange={(event) => updateForm("departureTime", event.target.value)} />
                 </label>
-                <label className={styles.label}>
-                  Logement
-                  <Select value={form.propertyId} onChange={(event) => updateForm("propertyId", event.target.value)}>
-                    <option value="">Choisir</option>
-                    {housing.map((item) => (
-                      <option key={String(item.id)} value={String(item.id)}>
-                        {item.nom_logement || item.ville || "Logement"}
-                      </option>
-                    ))}
-                  </Select>
-                </label>
-                <label className={styles.label}>
-                  Conciergerie partenaire
-                  <Select value={form.conciergeProfileId} onChange={(event) => updateForm("conciergeProfileId", event.target.value)}>
-                    <option value="">Choisir</option>
-                    {partners.map((partner) => (
-                      <option key={partner.id} value={partner.selected_concierge_profile_id || ""}>
-                        {partner.selected_concierge_name || "Conciergerie"} - {partner.property_name || partner.city || "partenaire"}
-                      </option>
-                    ))}
-                  </Select>
-                  {partners.length === 0 ? (
-                    <span className={styles.meta}>Aucun partenaire accepté trouvé pour le moment.</span>
-                  ) : null}
-                </label>
-                <label className={styles.label}>
-                  Plateforme
-                  <Select value={form.bookingPlatform} onChange={(event) => updateForm("bookingPlatform", event.target.value)}>
-                    <option>Airbnb</option>
-                    <option>Booking</option>
-                    <option>Abritel</option>
-                    <option>Direct</option>
-                    <option>Autre</option>
-                  </Select>
-                </label>
-                <label className={styles.label}>
-                  Code réservation
-                  <Input value={form.bookingCode} onChange={(event) => updateForm("bookingCode", event.target.value)} />
-                </label>
               </div>
+              <label className={styles.label}>
+                Message pour la concierge
+                <Textarea
+                  rows={4}
+                  value={form.notes}
+                  onChange={(event) => updateForm("notes", event.target.value)}
+                  placeholder="Ex : arrivée autonome, attention au lit bébé, voyageurs déjà informés des codes..."
+                />
+              </label>
             </section>
 
-            <section className={styles.travelerFormSection}>
-              <p className={styles.eyebrow}>Actions à réaliser</p>
-              <div className={styles.travelerChecklist}>
-                {actionOptions.map((action) => (
-                  <button
-                    key={action.value}
-                    type="button"
-                    className={form.actions.includes(action.value) ? styles.travelerCheckActive : styles.travelerCheck}
-                    onClick={() => toggleAction(action.value)}
-                  >
-                    {action.label}
-                  </button>
-                ))}
+            <details className={styles.advancedNoticeDetails}>
+              <summary>
+                <span>
+                  <ClipboardList size={16} aria-hidden="true" />
+                  Ajouter des détails opérationnels
+                </span>
+                <small>Optionnel</small>
+              </summary>
+              <div className={styles.advancedNoticeContent}>
+                <div className={styles.travelerFieldGrid}>
+                  <label className={styles.label}>
+                    Email voyageur
+                    <Input type="email" value={form.email} onChange={(event) => updateForm("email", event.target.value)} />
+                  </label>
+                  <label className={styles.label}>
+                    Bébé
+                    <Select value={form.hasBaby} onChange={(event) => updateForm("hasBaby", event.target.value)}>
+                      <option value="no">Non</option>
+                      <option value="yes">Oui</option>
+                    </Select>
+                  </label>
+                  <label className={styles.label}>
+                    Langue
+                    <Select value={form.language} onChange={(event) => updateForm("language", event.target.value)}>
+                      <option value="fr">Français</option>
+                      <option value="en">Anglais</option>
+                      <option value="es">Espagnol</option>
+                      <option value="de">Allemand</option>
+                      <option value="it">Italien</option>
+                    </Select>
+                  </label>
+                  <label className={styles.label}>
+                    Code réservation
+                    <Input value={form.bookingCode} onChange={(event) => updateForm("bookingCode", event.target.value)} />
+                  </label>
+                  <label className={styles.label}>
+                    Priorité
+                    <Select value={form.priority} onChange={(event) => updateForm("priority", event.target.value as TravelerMissionForm["priority"])}>
+                      <option value="normal">Normale</option>
+                      <option value="high">Haute</option>
+                      <option value="urgent">Urgente</option>
+                    </Select>
+                  </label>
+                  <label className={styles.label}>
+                    Statut particulier
+                    <Select value={form.issueFlag} onChange={(event) => updateForm("issueFlag", event.target.value)}>
+                      <option value="none">Aucun</option>
+                      <option value="watch">À surveiller</option>
+                      <option value="incident">Incident</option>
+                      <option value="urgent">Urgence</option>
+                    </Select>
+                  </label>
+                </div>
+                <div>
+                  <p className={styles.eyebrow}>À prévoir si nécessaire</p>
+                  <div className={styles.travelerChecklist}>
+                    {actionOptions.map((action) => (
+                      <button
+                        key={action.value}
+                        type="button"
+                        className={form.actions.includes(action.value) ? styles.travelerCheckActive : styles.travelerCheck}
+                        onClick={() => toggleAction(action.value)}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className={styles.label}>
+                  Accueil spécifique
+                  <Input value={form.specialWelcome} onChange={(event) => updateForm("specialWelcome", event.target.value)} placeholder="Ex : champagne, lit bébé, arrivée tardive" />
+                </label>
+                <div className={styles.travelerFieldGrid}>
+                  <label className={styles.label}>
+                    Accès logement et codes
+                    <Textarea rows={3} value={form.accessInstructions} onChange={(event) => updateForm("accessInstructions", event.target.value)} />
+                  </label>
+                  <label className={styles.label}>
+                    Parking et arrivée
+                    <Textarea rows={3} value={form.parkingInstructions} onChange={(event) => updateForm("parkingInstructions", event.target.value)} />
+                  </label>
+                </div>
+                <label className={styles.label}>
+                  Voyageurs sensibles ou informations importantes
+                  <Textarea rows={3} value={form.sensitiveTraveler} onChange={(event) => updateForm("sensitiveTraveler", event.target.value)} />
+                </label>
+                <label className={styles.label}>
+                  Notes internes
+                  <Textarea rows={3} value={form.internalNotes} onChange={(event) => updateForm("internalNotes", event.target.value)} />
+                </label>
               </div>
-              <div className={styles.travelerFieldGrid}>
-                <label className={styles.label}>
-                  Priorité
-                  <Select value={form.priority} onChange={(event) => updateForm("priority", event.target.value as TravelerMissionForm["priority"])}>
-                    <option value="normal">Normale</option>
-                    <option value="high">Haute</option>
-                    <option value="urgent">Urgente</option>
-                  </Select>
-                </label>
-                <label className={styles.label}>
-                  Statut particulier
-                  <Select value={form.issueFlag} onChange={(event) => updateForm("issueFlag", event.target.value)}>
-                    <option value="none">Aucun</option>
-                    <option value="watch">À surveiller</option>
-                    <option value="incident">Incident</option>
-                    <option value="urgent">Urgence</option>
-                  </Select>
-                </label>
-              </div>
-              <label className={styles.label}>
-                Accueil spécifique
-                <Input value={form.specialWelcome} onChange={(event) => updateForm("specialWelcome", event.target.value)} placeholder="Ex : champagne, lit bébé, arrivée tardive" />
-              </label>
-              <div className={styles.travelerFieldGrid}>
-                <label className={styles.label}>
-                  Accès logement et codes
-                  <Textarea rows={3} value={form.accessInstructions} onChange={(event) => updateForm("accessInstructions", event.target.value)} />
-                </label>
-                <label className={styles.label}>
-                  Parking et arrivée
-                  <Textarea rows={3} value={form.parkingInstructions} onChange={(event) => updateForm("parkingInstructions", event.target.value)} />
-                </label>
-              </div>
-              <label className={styles.label}>
-                Voyageurs sensibles ou informations importantes
-                <Textarea rows={3} value={form.sensitiveTraveler} onChange={(event) => updateForm("sensitiveTraveler", event.target.value)} />
-              </label>
-              <label className={styles.label}>
-                Remarques pour la conciergerie
-                <Textarea rows={4} value={form.notes} onChange={(event) => updateForm("notes", event.target.value)} />
-              </label>
-              <label className={styles.label}>
-                Notes internes
-                <Textarea rows={3} value={form.internalNotes} onChange={(event) => updateForm("internalNotes", event.target.value)} />
-              </label>
-              <Button type="submit" disabled={submitting}>
-                <Plus size={16} aria-hidden="true" />
-                {submitting ? "Création..." : "Créer la mission voyageur"}
-              </Button>
-            </section>
+            </details>
+
+            <Button type="submit" disabled={submitting} className={styles.noticeSubmitButton}>
+              <Send size={16} aria-hidden="true" />
+              {submitting ? "Envoi..." : "Envoyer à la concierge"}
+            </Button>
           </form>
 
           <aside className={styles.travelerMissionAside}>
             <div className={styles.travelerSummaryCard}>
-              <p className={styles.eyebrow}>Résumé intelligent</p>
+              <p className={styles.eyebrow}>Aperçu envoyé</p>
               <strong>{buildTitle(form)}</strong>
               <span>
                 <Building2 size={15} aria-hidden="true" />
-                {selectedAssignment ? getAssignmentLabel(selectedAssignment) : "Duo conciergerie/logement a choisir"}
+                {selectedAssignment ? getAssignmentLabel(selectedAssignment) : "Logement et conciergerie à choisir"}
               </span>
               <span>{form.arrivalDate || "Arrivée à préciser"} - {form.departureDate || "Départ à préciser"}</span>
               <span>{Number(form.adults || 0) + Number(form.children || 0) + (form.hasBaby === "yes" ? 1 : 0)} voyageur(s)</span>
-              <span>{form.actions.length} action(s) prévues</span>
+              <span>{form.bookingPlatform} · prise en charge à confirmer</span>
             </div>
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Notifications</p>
-              <span>La conciergerie sera informée à la création, puis à chaque modification importante.</span>
+              <span>La concierge reçoit une fiche séjour courte, puis le propriétaire voit le suivi : envoyé, vu, pris en charge, planifié.</span>
             </div>
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Côté concierge</p>
-              <span><Eye size={15} aria-hidden="true" /> Nouvelle mission dans le dashboard</span>
-              <span><CalendarCheck2 size={15} aria-hidden="true" /> Bouton Enregistrer dans mon planning</span>
-              <span><Users size={15} aria-hidden="true" /> Organisation équipe et journée terrain</span>
+              <span><Eye size={15} aria-hidden="true" /> Nouveau séjour à organiser</span>
+              <span><CheckCircle2 size={15} aria-hidden="true" /> Bouton Confirmer la prise en charge</span>
+              <span><CalendarCheck2 size={15} aria-hidden="true" /> Ajout au planning si nécessaire</span>
             </div>
           </aside>
         </div>

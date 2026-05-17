@@ -709,6 +709,45 @@
   padding: 1rem;
 }
 
+.quickNoticePanel,
+.advancedNoticeDetails {
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.quickNoticePanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.45fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+}
+
+.quickNoticePanel h2 {
+  margin: 0.15rem 0 0.3rem;
+  color: var(--traveler-ink);
+  font-size: 1.25rem;
+}
+
+.quickNoticeSteps {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.quickNoticeSteps span {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.36rem 0.62rem;
+  border: 1px solid rgba(40, 85, 64, 0.14);
+  border-radius: 999px;
+  background: #eef7f2;
+  color: #285540;
+  font-size: 0.78rem;
+  font-weight: 820;
+}
+
 .sectionHeading {
   display: flex;
   align-items: flex-end;
@@ -733,6 +772,53 @@
 
 .travelerChecklist {
   align-items: stretch;
+}
+
+.advancedNoticeDetails {
+  overflow: hidden;
+}
+
+.advancedNoticeDetails summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: 48px;
+  padding: 0.75rem 0.9rem;
+  color: var(--traveler-ink);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 850;
+}
+
+.advancedNoticeDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedNoticeDetails summary span,
+.advancedNoticeDetails summary small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.advancedNoticeDetails summary small {
+  padding: 0.25rem 0.52rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--traveler-panel-soft) 82%, white);
+  color: var(--traveler-muted);
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.advancedNoticeContent {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0 0.9rem 0.9rem;
+}
+
+.noticeSubmitButton {
+  justify-self: start;
 }
 
 .travelerCheck,
@@ -891,6 +977,7 @@
   .travelerMissionHero,
   .planningImportGrid,
   .syncPanel,
+  .quickNoticePanel,
   .assignmentWorkbench,
   .travelerMissionLayout {
     grid-template-columns: 1fr;
@@ -934,6 +1021,7 @@
   }
 
   .creationLauncher > button,
+  .noticeSubmitButton,
   .modeTab,
   .modeTabActive {
     width: 100%;
