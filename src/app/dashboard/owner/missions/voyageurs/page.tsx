@@ -109,6 +109,8 @@ type ParsedStay = {
   note: string;
 };
 
+type ParsedStayDraft = Partial<Omit<ParsedStay, "id" | "raw">>;
+
 type AssignmentOption = {
   key: string;
   conciergeId: string;
@@ -754,6 +756,7 @@ export default function OwnerTravelerMissionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [planningText, setPlanningText] = useState("");
+  const [parsedStayDrafts, setParsedStayDrafts] = useState<Record<string, ParsedStayDraft>>({});
 
   const assignmentOptions = useMemo(() => buildAssignmentOptions(partners, housing), [partners, housing]);
   const selectedAssignment = useMemo(
@@ -767,10 +770,15 @@ export default function OwnerTravelerMissionsPage() {
   );
   const selectedPlatform = platformOptions.find((platform) => platform.value === form.bookingPlatform) ?? platformOptions[0];
   const parsedStays = useMemo(() => parsePlanningText(planningText), [planningText]);
-  const validParsedStays = useMemo(
-    () => parsedStays.filter((stay) => stay.firstName && stay.arrivalDate && stay.departureDate),
-    [parsedStays],
+  const editableParsedStays = useMemo(
+    () => parsedStays.map((stay) => ({ ...stay, ...(parsedStayDrafts[stay.id] ?? {}) })),
+    [parsedStays, parsedStayDrafts],
   );
+  const validParsedStays = useMemo(
+    () => editableParsedStays.filter((stay) => stay.firstName.trim() && stay.arrivalDate && stay.departureDate),
+    [editableParsedStays],
+  );
+  const allParsedStaysReady = editableParsedStays.length > 0 && editableParsedStays.length === validParsedStays.length;
 
   const loadData = useCallback(async () => {
     try {
@@ -820,6 +828,14 @@ export default function OwnerTravelerMissionsPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    setParsedStayDrafts((current) => {
+      const allowedIds = new Set(parsedStays.map((stay) => stay.id));
+      const nextEntries = Object.entries(current).filter(([id]) => allowedIds.has(id));
+      return nextEntries.length === Object.keys(current).length ? current : Object.fromEntries(nextEntries);
+    });
+  }, [parsedStays]);
 
   const filteredMissions = useMemo(
     () =>
@@ -901,6 +917,16 @@ export default function OwnerTravelerMissionsPage() {
     setForm((current) => ({ ...current, bookingPlatform: platform }));
   }
 
+  function updateParsedStay(id: string, key: keyof ParsedStayDraft, value: string) {
+    setParsedStayDrafts((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        [key]: value,
+      },
+    }));
+  }
+
   function duplicateMission(mission: MissionRow) {
     setForm({
       ...initialForm,
@@ -957,8 +983,12 @@ export default function OwnerTravelerMissionsPage() {
     setError(null);
     setSuccess(null);
 
-    if (validParsedStays.length === 0) {
-      setError("Aucun séjour complet détecté. Il faut au minimum un nom, une date d'arrivée et une date de départ.");
+    if (editableParsedStays.length === 0) {
+      setError("Collez d'abord les informations de planning reçues depuis la plateforme.");
+      return;
+    }
+    if (!allParsedStaysReady) {
+      setError("Complétez chaque séjour détecté avant de transférer les missions à la conciergerie.");
       return;
     }
     if (partners.length === 0) {
@@ -972,13 +1002,14 @@ export default function OwnerTravelerMissionsPage() {
 
     try {
       setBulkCreating(true);
-      for (const stay of validParsedStays) {
+      for (const stay of editableParsedStays) {
         await createMissionFromForm(parsedStayToForm(stay, form));
       }
       setSuccess(
-        `${validParsedStays.length} mission(s) voyageur créée(s) pour ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elles apparaissent côté concierge et dans votre planning.`,
+        `${editableParsedStays.length} mission(s) voyageur validée(s) et transférée(s) à ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elles apparaissent côté concierge et dans votre planning.`,
       );
       setPlanningText("");
+      setParsedStayDrafts({});
       setComposerOpen(false);
       await loadData();
     } catch (err) {
@@ -1231,39 +1262,126 @@ export default function OwnerTravelerMissionsPage() {
                 Collez un message comme celui envoyé à votre concierge. Les séjours complets peuvent être créés en une fois.
               </p>
             </div>
-            <Button type="button" disabled={bulkCreating || validParsedStays.length === 0} onClick={createParsedMissions}>
+            <Button type="button" disabled={bulkCreating || !allParsedStaysReady} onClick={createParsedMissions}>
               <Send size={16} aria-hidden="true" />
-              {bulkCreating ? "Création..." : `Créer ${validParsedStays.length || ""} mission(s)`}
+              {bulkCreating
+                ? "Transfert..."
+                : allParsedStaysReady
+                  ? `Valider et transférer ${editableParsedStays.length} mission(s)`
+                  : editableParsedStays.length === 0
+                    ? "Coller un planning"
+                    : `Compléter ${editableParsedStays.length - validParsedStays.length} séjour(s)`}
             </Button>
           </div>
+          {editableParsedStays.length > 0 ? (
+            <p className={styles.importReadiness}>
+              {validParsedStays.length}/{editableParsedStays.length} séjour(s) prêt(s). Chaque mission validée sera rattachée au logement sélectionné et transmise à la conciergerie concernée.
+            </p>
+          ) : null}
           <div className={styles.planningImportGrid}>
             <label className={styles.label}>
               Message reçu
               <Textarea
                 rows={9}
                 value={planningText}
-                onChange={(event) => setPlanningText(event.target.value)}
+                onChange={(event) => {
+                  setPlanningText(event.target.value);
+                  setParsedStayDrafts({});
+                }}
                 placeholder={selectedPlatform.placeholder}
               />
             </label>
             <div className={styles.parsedStayList}>
-              {parsedStays.length === 0 ? (
+              {editableParsedStays.length === 0 ? (
                 <p className={styles.meta}>Les séjours détectés apparaîtront ici.</p>
               ) : null}
-              {parsedStays.map((stay) => {
-                const isComplete = Boolean(stay.firstName && stay.arrivalDate && stay.departureDate);
+              {editableParsedStays.map((stay, index) => {
+                const isComplete = Boolean(stay.firstName.trim() && stay.arrivalDate && stay.departureDate);
+                const totalGuests =
+                  Number(stay.adults || 0) + Number(stay.children || 0) + (stay.hasBaby === "yes" ? 1 : 0);
                 return (
                   <article key={stay.id} className={isComplete ? styles.parsedStayCard : styles.parsedStayCardMuted}>
-                    <div>
-                      <strong>{[stay.firstName, stay.lastName].filter(Boolean).join(" ") || "Nom à compléter"}</strong>
-                      <span>{stay.arrivalDate || "Arrivée manquante"} → {stay.departureDate || "Départ manquant"}</span>
-                      <span>{Number(stay.adults || 0) + Number(stay.children || 0) + (stay.hasBaby === "yes" ? 1 : 0)} voyageur(s)</span>
-                      {stay.phone ? <span>{stay.phone}</span> : null}
-                      {stay.email ? <span>{stay.email}</span> : null}
+                    <div className={styles.parsedStayHeader}>
+                      <div>
+                        <strong>Séjour {index + 1}</strong>
+                        <span>{isComplete ? "Prêt à transférer" : "À compléter avant validation"}</span>
+                      </div>
+                      <span className={isComplete ? styles.plannedChip : styles.pendingChip}>
+                        {isComplete ? "Complet" : "Incomplet"}
+                      </span>
                     </div>
-                    <button type="button" className={styles.buttonSecondary} onClick={() => fillFormFromStay(stay)}>
-                      Compléter
-                    </button>
+                    <div className={styles.parsedStayEditor}>
+                      <label className={styles.label}>
+                        Prénom
+                        <Input
+                          value={stay.firstName}
+                          onChange={(event) => updateParsedStay(stay.id, "firstName", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Nom
+                        <Input
+                          value={stay.lastName}
+                          onChange={(event) => updateParsedStay(stay.id, "lastName", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Arrivée
+                        <Input
+                          type="date"
+                          value={stay.arrivalDate}
+                          onChange={(event) => updateParsedStay(stay.id, "arrivalDate", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Départ
+                        <Input
+                          type="date"
+                          value={stay.departureDate}
+                          onChange={(event) => updateParsedStay(stay.id, "departureDate", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Adultes
+                        <Input
+                          type="number"
+                          min="0"
+                          value={stay.adults}
+                          onChange={(event) => updateParsedStay(stay.id, "adults", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Enfants
+                        <Input
+                          type="number"
+                          min="0"
+                          value={stay.children}
+                          onChange={(event) => updateParsedStay(stay.id, "children", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Téléphone
+                        <Input
+                          value={stay.phone}
+                          onChange={(event) => updateParsedStay(stay.id, "phone", event.target.value)}
+                        />
+                      </label>
+                      <label className={styles.label}>
+                        Email
+                        <Input
+                          type="email"
+                          value={stay.email}
+                          onChange={(event) => updateParsedStay(stay.id, "email", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <div className={styles.parsedStayFooter}>
+                      <span>{totalGuests || 1} voyageur(s)</span>
+                      {stay.note ? <span>{stay.note}</span> : null}
+                      <button type="button" className={styles.buttonSecondary} onClick={() => fillFormFromStay(stay)}>
+                        Ouvrir en détail
+                      </button>
+                    </div>
                   </article>
                 );
               })}

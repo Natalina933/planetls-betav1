@@ -599,6 +599,18 @@
   align-items: start;
 }
 
+.importReadiness {
+  margin: 0.8rem 0 0;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid rgba(40, 85, 64, 0.14);
+  border-radius: 14px;
+  background: #eef7f2;
+  color: #285540;
+  font-size: 0.86rem;
+  font-weight: 820;
+  line-height: 1.45;
+}
+
 .parsedStayList {
   display: grid;
   gap: 0.7rem;
@@ -609,7 +621,7 @@
 .parsedStayCard,
 .parsedStayCardMuted {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   align-items: start;
   padding: 0.85rem;
@@ -623,11 +635,39 @@
   border-style: dashed;
 }
 
-.parsedStayCard div,
-.parsedStayCardMuted div {
-  display: grid;
-  gap: 0.26rem;
+.parsedStayHeader,
+.parsedStayFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
   min-width: 0;
+}
+
+.parsedStayHeader {
+  align-items: flex-start;
+}
+
+.parsedStayHeader > div {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.parsedStayEditor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.parsedStayEditor .label {
+  gap: 0.34rem;
+  font-size: 0.76rem;
+}
+
+.parsedStayFooter {
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 0.1rem;
 }
 
 .parsedStayCard strong,
@@ -641,6 +681,18 @@
   font-size: 0.84rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
+}
+
+.parsedStayFooter > span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--traveler-muted);
+  font-size: 0.78rem;
+  font-weight: 760;
 }
 
 .travelerMissionLayout {
@@ -866,6 +918,7 @@
   .syncSteps,
   .travelerFieldGrid,
   .travelerMissionFacts,
+  .parsedStayEditor,
   .parsedStayCard,
   .parsedStayCardMuted {
     grid-template-columns: 1fr;
