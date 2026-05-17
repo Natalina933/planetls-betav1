@@ -36,20 +36,61 @@ type HousingRow = {
   ville?: string | null;
   adresse?: string | null;
   photo_principale?: string | null;
+  plateforme?: string | null;
+  infos?: Record<string, unknown> | null;
+  location?: Record<string, unknown> | null;
+  menage?: Record<string, unknown> | null;
+  tarifs?: Record<string, unknown> | null;
+  contrat?: Record<string, unknown> | null;
+  notes?: string[] | string | null;
 };
 
 type PartnerRequestRow = {
   id: string;
   title?: string | null;
+  description?: string | null;
   property_id?: string | null;
   property_name?: string | null;
   city?: string | null;
+  requested_services?: string[] | null;
   selected_concierge_profile_id?: string | null;
   selected_concierge_name?: string | null;
   status?: string | null;
   workflow_status?: string | null;
   mission_id?: string | null;
-  recipients?: Array<{ status?: string | null }> | null;
+  metadata?: Record<string, unknown> | null;
+  recipients?: Array<{
+    status?: string | null;
+    concierge_profile_id?: string | null;
+    quote_id?: string | null;
+    quote_number?: string | null;
+    quote_status?: string | null;
+  }> | null;
+};
+
+type OwnerQuoteRow = {
+  id: string;
+  quote_number: string | null;
+  concierge_profile_id?: string | null;
+  owner_profile_id?: string | null;
+  status: string | null;
+  total_amount?: number | null;
+  currency?: string | null;
+  notes?: string | null;
+  metadata?: Record<string, unknown> | null;
+  package?: {
+    id: string;
+    name: string | null;
+    description?: string | null;
+    category?: string | null;
+  } | null;
+  quote_items?: Array<{
+    id: string;
+    label: string;
+    description?: string | null;
+    quantity?: number | null;
+    line_total?: number | null;
+  }>;
 };
 
 type MissionRow = {
@@ -112,6 +153,7 @@ type ParsedStayDraft = Partial<Omit<ParsedStay, "id" | "raw">>;
 
 type AssignmentOption = {
   key: string;
+  requestId: string;
   conciergeId: string;
   conciergeName: string;
   propertyId: string;
@@ -120,7 +162,24 @@ type AssignmentOption = {
   propertyPhoto: string;
   city: string;
   requestTitle: string;
+  requestDescription: string;
+  requestedServices: string[];
+  selectedQuoteId: string;
   hasPartner: boolean;
+};
+
+type MissionOperationalContext = {
+  quote: OwnerQuoteRow | null;
+  housing: HousingRow | null;
+  quoteServiceLabels: string[];
+  housingServiceLabels: string[];
+  actionValues: string[];
+  accessInstructions: string;
+  parkingInstructions: string;
+  housekeepingInstructions: string;
+  housingInternalNotes: string;
+  contractSummary: string;
+  missionBrief: string;
 };
 
 type CreationMode = "platform" | "manual";
@@ -420,12 +479,45 @@ function getSelectedConciergeName(partners: PartnerRequestRow[], conciergeProfil
   return partner?.selected_concierge_name || "la conciergerie sélectionnée";
 }
 
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function uniqueStrings(values: string[]) {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
+function getGenericMetadataString(metadata: Record<string, unknown> | null | undefined, keys: string[]) {
+  for (const key of keys) {
+    const value = metadata?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
 function getPartnerPropertyId(partner: PartnerRequestRow) {
   return partner.property_id ? String(partner.property_id) : "";
 }
 
 function getPartnerPropertyName(partner: PartnerRequestRow) {
   return partner.property_name || partner.city || "Appartement a preciser";
+}
+
+function getPartnerSelectedQuoteId(partner: PartnerRequestRow, conciergeId: string) {
+  const metadataQuoteId = getGenericMetadataString(partner.metadata, ["selected_quote_id", "quote_id"]);
+  if (metadataQuoteId) return metadataQuoteId;
+
+  const acceptedRecipient = partner.recipients?.find(
+    (recipient) =>
+      (!recipient.concierge_profile_id || recipient.concierge_profile_id === conciergeId) &&
+      (recipient.quote_status === "accepted" || recipient.status === "selected" || recipient.status === "accepted") &&
+      recipient.quote_id,
+  );
+  return acceptedRecipient?.quote_id ?? "";
 }
 
 function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingRow[] = []): AssignmentOption[] {
@@ -438,10 +530,12 @@ function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingR
       const propertyId = getPartnerPropertyId(partner);
       const property = housing.find((item) => String(item.id) === propertyId);
       const propertyName = property?.nom_logement || getPartnerPropertyName(partner);
+      const selectedQuoteId = getPartnerSelectedQuoteId(partner, conciergeId);
       const key = `${conciergeId}:${propertyId || propertyName}:${partner.id}`;
 
       return {
         key,
+        requestId: partner.id,
         conciergeId,
         conciergeName: partner.selected_concierge_name || "Conciergerie",
         propertyId,
@@ -450,6 +544,9 @@ function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingR
         propertyPhoto: property?.photo_principale || "/images/default-logement.png",
         city: partner.city || "",
         requestTitle: partner.title || "Collaboration acceptee",
+        requestDescription: partner.description || "",
+        requestedServices: Array.isArray(partner.requested_services) ? partner.requested_services : [],
+        selectedQuoteId,
         hasPartner: true,
       };
     })
@@ -463,6 +560,159 @@ function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingR
 
 function getAssignmentLabel(option: AssignmentOption) {
   return `${option.conciergeName} - ${option.propertyName}`;
+}
+
+function getHousingContractQuoteId(housing: HousingRow | null | undefined) {
+  const contract = asRecord(housing?.contrat);
+  return getGenericMetadataString(contract, ["quote_id", "quoteId"]);
+}
+
+function getHousingServiceLabels(housing: HousingRow | null | undefined) {
+  const menage = asRecord(housing?.menage);
+  const infos = asRecord(housing?.infos);
+  const serviceSource = Array.isArray(menage.services)
+    ? menage.services
+    : Array.isArray(infos.services)
+      ? infos.services
+      : [];
+
+  return serviceSource
+    .map((service) => {
+      const item = asRecord(service);
+      const label = cleanString(item.label) || cleanString(item.name);
+      const frequency = cleanString(item.frequency);
+      return [label, frequency].filter(Boolean).join(" · ");
+    })
+    .filter(Boolean);
+}
+
+function getHousingAccessInstructions(housing: HousingRow | null | undefined) {
+  const location = asRecord(housing?.location);
+  const infos = asRecord(housing?.infos);
+  const lines = [
+    cleanString(location.entry_instructions),
+    cleanString(location.access_code) || cleanString(infos.digicode)
+      ? `Code accès : ${cleanString(location.access_code) || cleanString(infos.digicode)}`
+      : "",
+    cleanString(location.floor) ? `Étage : ${cleanString(location.floor)}` : "",
+    cleanString(infos.wifi_info) ? `Wi-Fi : ${cleanString(infos.wifi_info)}` : "",
+    cleanString(housing?.adresse) ? `Adresse : ${cleanString(housing?.adresse)}` : "",
+  ];
+  return lines.filter(Boolean).join("\n");
+}
+
+function getHousingParkingInstructions(housing: HousingRow | null | undefined) {
+  const location = asRecord(housing?.location);
+  const infos = asRecord(housing?.infos);
+  return (
+    cleanString(location.parking_instructions) ||
+    cleanString(location.parking) ||
+    cleanString(infos.parking_instructions) ||
+    cleanString(infos.parking)
+  );
+}
+
+function getHousingHousekeepingInstructions(housing: HousingRow | null | undefined) {
+  const menage = asRecord(housing?.menage);
+  const lines = [
+    cleanString(menage.instructions),
+    cleanString(menage.checklist) ? `Checklist : ${cleanString(menage.checklist)}` : "",
+    cleanString(menage.temps) ? `Temps prévu : ${cleanString(menage.temps)}` : "",
+  ];
+  return lines.filter(Boolean).join("\n");
+}
+
+function getHousingInternalNotes(housing: HousingRow | null | undefined) {
+  const menage = asRecord(housing?.menage);
+  const notes = Array.isArray(housing?.notes) ? housing?.notes.join("\n") : cleanString(housing?.notes);
+  return [cleanString(menage.internal_notes), notes].filter(Boolean).join("\n");
+}
+
+function inferActionFromLabel(label: string) {
+  const normalized = label.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  if (/(menage|clean|housekeep)/.test(normalized)) return "cleaning";
+  if (/(linge|linen|drap|serviette)/.test(normalized)) return "linen";
+  if (/(check.?out|depart|sortie)/.test(normalized)) return "checkout";
+  if (/(check.?in|accueil|arrivee|welcome)/.test(normalized)) return "checkin";
+  if (/(course|grocery|panier)/.test(normalized)) return "groceries";
+  if (/(controle|inspection|qualite|verification)/.test(normalized)) return "quality_check";
+  if (/(maintenance|reparation|technique|depannage)/.test(normalized)) return "maintenance";
+  if (/(urgence|urgent|incident)/.test(normalized)) return "emergency";
+  return "";
+}
+
+function findAcceptedQuoteForAssignment(quotes: OwnerQuoteRow[], option: AssignmentOption | null, housing: HousingRow | null) {
+  if (!option) return null;
+  const housingQuoteId = getHousingContractQuoteId(housing);
+  const acceptedQuotes = quotes.filter((quote) => quote.status === "accepted");
+  const byId = acceptedQuotes.find((quote) => quote.id === option.selectedQuoteId || quote.id === housingQuoteId);
+  if (byId) return byId;
+
+  const byRequest = acceptedQuotes.find((quote) => {
+    const metadata = asRecord(quote.metadata);
+    const requestId = getGenericMetadataString(metadata, ["service_request_id", "request_id"]);
+    return requestId === option.requestId && quote.concierge_profile_id === option.conciergeId;
+  });
+  if (byRequest) return byRequest;
+
+  const byProperty = acceptedQuotes.find((quote) => {
+    const metadata = asRecord(quote.metadata);
+    const quotePropertyId = getGenericMetadataString(metadata, ["property_id", "housing_id", "service_property_id"]);
+    return quotePropertyId && quotePropertyId === option.propertyId && quote.concierge_profile_id === option.conciergeId;
+  });
+  if (byProperty) return byProperty;
+
+  const sameConcierge = acceptedQuotes.filter((quote) => quote.concierge_profile_id === option.conciergeId);
+  return sameConcierge.length === 1 ? sameConcierge[0] : null;
+}
+
+function buildOperationalContext(input: {
+  form: TravelerMissionForm;
+  assignment: AssignmentOption | null;
+  housing: HousingRow[];
+  quotes: OwnerQuoteRow[];
+}): MissionOperationalContext {
+  const selectedHousing = input.housing.find((item) => String(item.id) === input.form.propertyId) ?? null;
+  const quote = findAcceptedQuoteForAssignment(input.quotes, input.assignment, selectedHousing);
+  const quoteItems = quote?.quote_items ?? [];
+  const quoteServiceLabels = uniqueStrings([
+    ...(input.assignment?.requestedServices ?? []),
+    ...quoteItems.map((item) => cleanString(item.label)),
+  ]);
+  const housingServiceLabels = uniqueStrings(getHousingServiceLabels(selectedHousing));
+  const allServiceLabels = uniqueStrings([...quoteServiceLabels, ...housingServiceLabels]);
+  const actionValues = uniqueStrings(allServiceLabels.map(inferActionFromLabel));
+  const packageLabel = cleanString(quote?.package?.name);
+  const contractParts = [
+    quote?.quote_number ? `Devis ${quote.quote_number}` : "",
+    packageLabel ? `Pack ${packageLabel}` : "",
+    typeof quote?.total_amount === "number" ? `Montant ${quote.total_amount.toFixed(2)} ${quote.currency ?? "EUR"}` : "",
+  ].filter(Boolean);
+  const accessInstructions = getHousingAccessInstructions(selectedHousing);
+  const parkingInstructions = getHousingParkingInstructions(selectedHousing);
+  const housekeepingInstructions = getHousingHousekeepingInstructions(selectedHousing);
+  const housingInternalNotes = getHousingInternalNotes(selectedHousing);
+  const missionBriefLines = [
+    contractParts.length ? `Base contractuelle : ${contractParts.join(" · ")}` : "",
+    quoteServiceLabels.length ? `Prestations devis : ${quoteServiceLabels.join(", ")}` : "",
+    housingServiceLabels.length ? `Infos logement : ${housingServiceLabels.join(", ")}` : "",
+    housekeepingInstructions ? `Consignes ménage/logement : ${housekeepingInstructions}` : "",
+    quote?.notes ? `Notes du devis : ${quote.notes}` : "",
+  ];
+
+  return {
+    quote,
+    housing: selectedHousing,
+    quoteServiceLabels,
+    housingServiceLabels,
+    actionValues,
+    accessInstructions,
+    parkingInstructions,
+    housekeepingInstructions,
+    housingInternalNotes,
+    contractSummary: contractParts.join(" · "),
+    missionBrief: missionBriefLines.filter(Boolean).join("\n"),
+  };
 }
 
 function getMissionMetadataString(mission: MissionRow, keys: string[]) {
@@ -607,12 +857,16 @@ function buildResetForm(current: TravelerMissionForm): TravelerMissionForm {
   };
 }
 
-function buildMissionPayload(form: TravelerMissionForm) {
+function buildMissionPayload(form: TravelerMissionForm, context?: MissionOperationalContext) {
+  const requestedActions = uniqueStrings([...form.actions, ...(context?.actionValues ?? [])]);
+  const description = [form.notes.trim(), context?.missionBrief ?? ""].filter(Boolean).join("\n\n");
+  const internalNotes = [form.internalNotes.trim(), context?.housingInternalNotes ?? ""].filter(Boolean).join("\n\n");
+
   return {
     concierge_profile_id: form.conciergeProfileId,
     property_id: isUuidLike(form.propertyId) ? form.propertyId : null,
     title: buildTitle(form),
-    description: form.notes.trim() || null,
+    description: description || null,
     status: "assigned",
     priority: form.issueFlag === "urgent" ? "urgent" : form.priority,
     scheduled_start: buildDateTime(form.arrivalDate, form.arrivalTime),
@@ -635,13 +889,23 @@ function buildMissionPayload(form: TravelerMissionForm) {
       departure_time: form.departureTime,
       booking_platform: form.bookingPlatform,
       booking_code: form.bookingCode.trim(),
-      requested_actions: form.actions,
+      requested_actions: requestedActions,
       special_welcome: form.specialWelcome.trim(),
-      access_instructions: form.accessInstructions.trim(),
-      parking_instructions: form.parkingInstructions.trim(),
+      access_instructions: form.accessInstructions.trim() || context?.accessInstructions || "",
+      parking_instructions: form.parkingInstructions.trim() || context?.parkingInstructions || "",
       sensitive_traveler: form.sensitiveTraveler.trim(),
-      internal_notes: form.internalNotes.trim(),
+      internal_notes: internalNotes,
       issue_flag: form.issueFlag,
+      source_quote_id: context?.quote?.id ?? null,
+      source_quote_number: context?.quote?.quote_number ?? null,
+      source_quote_package_name: context?.quote?.package?.name ?? null,
+      source_quote_services: context?.quoteServiceLabels ?? [],
+      source_housing_services: context?.housingServiceLabels ?? [],
+      source_housing_access_instructions: context?.accessInstructions ?? "",
+      source_housing_parking_instructions: context?.parkingInstructions ?? "",
+      source_housing_instructions: context?.housekeepingInstructions ?? "",
+      source_housing_internal_notes: context?.housingInternalNotes ?? "",
+      source_contract_summary: context?.contractSummary ?? "",
       notice_mode: "simple_stay_notification",
       concierge_planning_status: "pending",
       notification_reason: "new_traveler_mission",
@@ -746,6 +1010,7 @@ export default function OwnerTravelerMissionsPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [housing, setHousing] = useState<HousingRow[]>([]);
   const [partners, setPartners] = useState<PartnerRequestRow[]>([]);
+  const [acceptedQuotes, setAcceptedQuotes] = useState<OwnerQuoteRow[]>([]);
   const [form, setForm] = useState<TravelerMissionForm>(initialForm);
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -771,6 +1036,10 @@ export default function OwnerTravelerMissionsPage() {
     [assignmentOptions, form.conciergeProfileId, form.propertyId],
   );
   const selectedPlatform = platformOptions.find((platform) => platform.value === form.bookingPlatform) ?? platformOptions[0];
+  const operationalContext = useMemo(
+    () => buildOperationalContext({ form, assignment: selectedAssignment, housing, quotes: acceptedQuotes }),
+    [acceptedQuotes, form, housing, selectedAssignment],
+  );
   const parsedStays = useMemo(() => parsePlanningText(planningText), [planningText]);
   const editableParsedStays = useMemo(
     () => parsedStays.map((stay) => ({ ...stay, ...(parsedStayDrafts[stay.id] ?? {}) })),
@@ -794,19 +1063,22 @@ export default function OwnerTravelerMissionsPage() {
     try {
       setLoading(true);
       setError(null);
-      const [missionsResponse, housingResponse, requestsResponse] = await Promise.all([
+      const [missionsResponse, housingResponse, requestsResponse, quotesResponse] = await Promise.all([
         fetch("/api/missions?scope=owner&limit=100", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
+        fetch("/api/quotes?status=accepted&limit=100", { cache: "no-store" }),
       ]);
 
       const missionsPayload = await missionsResponse.json();
       const housingPayload = await housingResponse.json();
       const requestsPayload = await requestsResponse.json();
+      const quotesPayload = await quotesResponse.json();
 
       if (!missionsResponse.ok) throw new Error(missionsPayload?.error || "Impossible de charger les missions.");
       if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
       if (!requestsResponse.ok) throw new Error(requestsPayload?.error || "Impossible de charger les partenaires.");
+      if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis acceptés.");
 
       const nextHousing = Array.isArray(housingPayload) ? housingPayload : [];
       const acceptedPartners = (Array.isArray(requestsPayload?.items) ? requestsPayload.items : []).filter(
@@ -822,6 +1094,7 @@ export default function OwnerTravelerMissionsPage() {
       );
       setHousing(nextHousing);
       setPartners(acceptedPartners);
+      setAcceptedQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
       setForm((current) => ({
         ...current,
         propertyId: current.propertyId || firstAssignment?.propertyId || String(nextHousing[0]?.id ?? ""),
@@ -984,10 +1257,16 @@ export default function OwnerTravelerMissionsPage() {
   }
 
   async function createMissionFromForm(input: TravelerMissionForm) {
+    const context = buildOperationalContext({
+      form: input,
+      assignment: selectedAssignment,
+      housing,
+      quotes: acceptedQuotes,
+    });
     const response = await fetch("/api/missions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildMissionPayload(input)),
+      body: JSON.stringify(buildMissionPayload(input, context)),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload?.error || "Impossible de créer la mission voyageur.");
@@ -1662,6 +1941,38 @@ export default function OwnerTravelerMissionsPage() {
               <span>{form.arrivalDate || "Arrivée à préciser"} - {form.departureDate || "Départ à préciser"}</span>
               <span>{Number(form.adults || 0) + Number(form.children || 0) + (form.hasBaby === "yes" ? 1 : 0)} voyageur(s)</span>
               <span>{form.bookingPlatform} · prise en charge à confirmer</span>
+            </div>
+            <div className={styles.travelerSummaryCard}>
+              <p className={styles.eyebrow}>Base reprise</p>
+              {operationalContext.quote ? (
+                <span>
+                  <FileText size={15} aria-hidden="true" />
+                  {operationalContext.quote.quote_number
+                    ? `Devis ${operationalContext.quote.quote_number}`
+                    : "Devis accepté"}
+                  {operationalContext.quote.package?.name ? ` · Pack ${operationalContext.quote.package.name}` : ""}
+                </span>
+              ) : (
+                <span>Pas de devis accepté rattaché automatiquement à ce logement.</span>
+              )}
+              {operationalContext.quoteServiceLabels.slice(0, 4).map((label) => (
+                <span key={`quote-service-${label}`}>
+                  <CheckCircle2 size={15} aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
+              {operationalContext.housingServiceLabels.slice(0, 3).map((label) => (
+                <span key={`housing-service-${label}`}>
+                  <Home size={15} aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
+              {operationalContext.accessInstructions ? (
+                <span>
+                  <MapPin size={15} aria-hidden="true" />
+                  Consignes logement reprises
+                </span>
+              ) : null}
             </div>
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Notifications</p>
