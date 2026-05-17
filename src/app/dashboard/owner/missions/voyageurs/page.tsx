@@ -3,9 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bell,
+  Building2,
   CalendarClock,
   CheckCircle2,
+  ClipboardList,
   Copy,
+  FileText,
   Home,
   Mail,
   MessageSquareText,
@@ -95,6 +98,18 @@ type ParsedStay = {
   note: string;
 };
 
+type AssignmentOption = {
+  key: string;
+  conciergeId: string;
+  conciergeName: string;
+  propertyId: string;
+  propertyName: string;
+  city: string;
+  requestTitle: string;
+};
+
+type CreationMode = "platform" | "manual";
+
 const initialForm: TravelerMissionForm = {
   firstName: "",
   lastName: "",
@@ -119,6 +134,39 @@ const initialForm: TravelerMissionForm = {
   internalNotes: "",
   issueFlag: "none",
 };
+
+const platformOptions = [
+  {
+    value: "Airbnb",
+    label: "Airbnb",
+    hint: "Copier-coller les messages de reservation ou le planning exporte.",
+    placeholder: "Marie Dupont\n12 juin -> 16 juin\n2 adultes + 1 enfant\n+33 6 ...\nmarie@email.com",
+  },
+  {
+    value: "Booking",
+    label: "Booking",
+    hint: "Coller les blocs client avec dates, voyageurs et contact.",
+    placeholder: "Reservation BK-45821\nTimo Martin\n25 juillet -> 4 aout\n3 voyageurs\n07 ...",
+  },
+  {
+    value: "Abritel",
+    label: "Abritel",
+    hint: "Importer les sejours recenses pour une conciergerie et un logement.",
+    placeholder: "Famille Bernard\n3 aout -> 10 aout\n5 personnes\nArrivee tardive",
+  },
+  {
+    value: "Direct",
+    label: "Direct",
+    hint: "Ajouter les reservations directes, hors plateforme.",
+    placeholder: "Client direct\n18 septembre -> 22 septembre\n2 voyageurs\nAccueil autonome",
+  },
+  {
+    value: "Autre",
+    label: "Autre",
+    hint: "Utiliser un format libre, puis completer les sejours detectes.",
+    placeholder: "Nom voyageur\nDates\nNombre de voyageurs\nContact\nNotes",
+  },
+];
 
 const actionOptions = [
   { value: "checkin", label: "Check-in" },
@@ -348,6 +396,47 @@ function getSelectedConciergeName(partners: PartnerRequestRow[], conciergeProfil
   return partner?.selected_concierge_name || "la conciergerie sélectionnée";
 }
 
+function getPartnerPropertyId(partner: PartnerRequestRow) {
+  return partner.property_id ? String(partner.property_id) : "";
+}
+
+function getPartnerPropertyName(partner: PartnerRequestRow) {
+  return partner.property_name || partner.city || "Appartement a preciser";
+}
+
+function buildAssignmentOptions(partners: PartnerRequestRow[]): AssignmentOption[] {
+  const seen = new Set<string>();
+
+  return partners
+    .filter((partner) => isUuidLike(partner.selected_concierge_profile_id || ""))
+    .map((partner) => {
+      const conciergeId = partner.selected_concierge_profile_id || "";
+      const propertyId = getPartnerPropertyId(partner);
+      const propertyName = getPartnerPropertyName(partner);
+      const key = `${conciergeId}:${propertyId || propertyName}:${partner.id}`;
+
+      return {
+        key,
+        conciergeId,
+        conciergeName: partner.selected_concierge_name || "Conciergerie",
+        propertyId,
+        propertyName,
+        city: partner.city || "",
+        requestTitle: partner.title || "Collaboration acceptee",
+      };
+    })
+    .filter((option) => {
+      const dedupeKey = `${option.conciergeId}:${option.propertyId || option.propertyName}`;
+      if (seen.has(dedupeKey)) return false;
+      seen.add(dedupeKey);
+      return true;
+    });
+}
+
+function getAssignmentLabel(option: AssignmentOption) {
+  return `${option.conciergeName} - ${option.propertyName}`;
+}
+
 function getMissionStatusLabel(mission: MissionRow) {
   if (mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent") return "Urgent";
   return statusOptions.find((item) => item.value === (mission.status || "assigned"))?.label || "Assignée";
@@ -573,11 +662,23 @@ export default function OwnerTravelerMissionsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [bulkCreating, setBulkCreating] = useState(false);
-  const [isMissionModalOpen, setMissionModalOpen] = useState(false);
+  const [isComposerOpen, setComposerOpen] = useState(false);
+  const [creationMode, setCreationMode] = useState<CreationMode>("platform");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [planningText, setPlanningText] = useState("");
 
+  const assignmentOptions = useMemo(() => buildAssignmentOptions(partners), [partners]);
+  const selectedAssignment = useMemo(
+    () =>
+      assignmentOptions.find(
+        (option) =>
+          option.conciergeId === form.conciergeProfileId &&
+          (!option.propertyId || !form.propertyId || option.propertyId === form.propertyId),
+      ) ?? assignmentOptions.find((option) => option.conciergeId === form.conciergeProfileId) ?? null,
+    [assignmentOptions, form.conciergeProfileId, form.propertyId],
+  );
+  const selectedPlatform = platformOptions.find((platform) => platform.value === form.bookingPlatform) ?? platformOptions[0];
   const parsedStays = useMemo(() => parsePlanningText(planningText), [planningText]);
   const validParsedStays = useMemo(
     () => parsedStays.filter((stay) => stay.firstName && stay.arrivalDate && stay.departureDate),
@@ -606,6 +707,8 @@ export default function OwnerTravelerMissionsPage() {
       const acceptedPartners = (Array.isArray(requestsPayload?.items) ? requestsPayload.items : []).filter(
         isAcceptedMissionPartner,
       );
+      const nextAssignments = buildAssignmentOptions(acceptedPartners);
+      const firstAssignment = nextAssignments[0];
 
       setMissions(
         (Array.isArray(missionsPayload) ? missionsPayload : []).filter(
@@ -616,9 +719,9 @@ export default function OwnerTravelerMissionsPage() {
       setPartners(acceptedPartners);
       setForm((current) => ({
         ...current,
-        propertyId: current.propertyId || String(nextHousing[0]?.id ?? ""),
+        propertyId: current.propertyId || firstAssignment?.propertyId || String(nextHousing[0]?.id ?? ""),
         conciergeProfileId:
-          current.conciergeProfileId || acceptedPartners[0]?.selected_concierge_profile_id || "",
+          current.conciergeProfileId || firstAssignment?.conciergeId || "",
       }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger l'espace séjours.");
@@ -673,6 +776,26 @@ export default function OwnerTravelerMissionsPage() {
     }));
   }
 
+  function openComposer(mode: CreationMode = "platform") {
+    setCreationMode(mode);
+    setComposerOpen(true);
+    window.requestAnimationFrame(() => {
+      document.getElementById("atelier-mission-voyageur")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function selectAssignment(option: AssignmentOption) {
+    setForm((current) => ({
+      ...current,
+      conciergeProfileId: option.conciergeId,
+      propertyId: option.propertyId || current.propertyId,
+    }));
+  }
+
+  function selectPlatform(platform: string) {
+    setForm((current) => ({ ...current, bookingPlatform: platform }));
+  }
+
   function duplicateMission(mission: MissionRow) {
     setForm({
       ...initialForm,
@@ -696,12 +819,14 @@ export default function OwnerTravelerMissionsPage() {
       internalNotes: getMetadataString(mission, "internal_notes"),
       issueFlag: getMetadataString(mission, "issue_flag") || "none",
     });
-    setMissionModalOpen(true);
+    setCreationMode("manual");
+    setComposerOpen(true);
   }
 
   function fillFormFromStay(stay: ParsedStay) {
     setForm((current) => parsedStayToForm(stay, current));
-    setMissionModalOpen(true);
+    setCreationMode("manual");
+    setComposerOpen(true);
     setError(null);
     setSuccess("Séjour chargé dans le formulaire. Relisez puis créez la mission.");
     window.requestAnimationFrame(() => {
@@ -746,7 +871,7 @@ export default function OwnerTravelerMissionsPage() {
         `${validParsedStays.length} mission(s) voyageur créée(s) pour ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elles apparaissent côté concierge et dans votre planning.`,
       );
       setPlanningText("");
-      setMissionModalOpen(false);
+      setComposerOpen(false);
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer les missions depuis le planning.");
@@ -785,7 +910,7 @@ export default function OwnerTravelerMissionsPage() {
         `Mission voyageur créée pour ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elle est disponible côté concierge et dans votre planning.`,
       );
       setForm((current) => buildResetForm(current));
-      setMissionModalOpen(false);
+      setComposerOpen(false);
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer la mission voyageur.");
@@ -805,7 +930,7 @@ export default function OwnerTravelerMissionsPage() {
             un espace clair, séparé des demandes commerciales.
           </p>
           <div className={styles.heroActions}>
-            <button type="button" className={styles.primaryLink} onClick={() => setMissionModalOpen(true)}>
+            <button type="button" className={styles.primaryLink} onClick={() => openComposer("platform")}>
               <Plus size={16} aria-hidden="true" /> Nouvelle mission
             </button>
             <ButtonLink href="/dashboard/owner/planning" variant="secondary">
@@ -849,32 +974,106 @@ export default function OwnerTravelerMissionsPage() {
             Créez une mission unique ou collez un planning Booking / Airbnb. La mission est enregistrée côté propriétaire, côté concierge et dans le planning.
           </p>
         </div>
-        <Button type="button" onClick={() => setMissionModalOpen(true)}>
+        <Button type="button" onClick={() => openComposer("platform")}>
           <Plus size={16} aria-hidden="true" />
           Créer une mission
         </Button>
       </section>
 
-      {isMissionModalOpen ? (
-        <div className={styles.modalOverlay} role="presentation" onMouseDown={() => setMissionModalOpen(false)}>
-          <section
-            className={styles.missionModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mission-modal-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
+      {isComposerOpen ? (
+        <section id="atelier-mission-voyageur" className={styles.creationPanel}>
+          <div className={styles.travelerMissionPage}>
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.eyebrow}>Mission voyageur</p>
                 <h2 id="mission-modal-title">Créer une mission</h2>
               </div>
-              <button type="button" className={styles.iconButton} onClick={() => setMissionModalOpen(false)} aria-label="Fermer">
+              <button type="button" className={styles.iconButton} onClick={() => setComposerOpen(false)} aria-label="Fermer">
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
+        <div className={styles.assignmentWorkbench}>
+          <section className={styles.assignmentPanel}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>1. Conciergerie et appartement</p>
+                <h2>Choisir le duo operationnel</h2>
+                <p className={styles.meta}>
+                  La mission sera envoyee a la conciergerie selectionnee et rattachee au logement gere.
+                </p>
+              </div>
+            </div>
+            {assignmentOptions.length === 0 ? (
+              <p className={styles.meta}>Aucune conciergerie acceptee avec logement rattache pour le moment.</p>
+            ) : (
+              <div className={styles.assignmentGrid}>
+                {assignmentOptions.map((option) => {
+                  const selected =
+                    option.conciergeId === form.conciergeProfileId &&
+                    (!option.propertyId || option.propertyId === form.propertyId);
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      className={selected ? styles.assignmentCardActive : styles.assignmentCard}
+                      onClick={() => selectAssignment(option)}
+                    >
+                      <span>
+                        <ShieldCheck size={15} aria-hidden="true" />
+                        {option.conciergeName}
+                      </span>
+                      <strong>{option.propertyName}</strong>
+                      <small>{option.city || option.requestTitle}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
-        <div className={styles.travelerMissionPage}>
+          <section className={styles.assignmentPanel}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>2. Plateforme</p>
+                <h2>Indiquer la source des sejours</h2>
+                <p className={styles.meta}>{selectedPlatform.hint}</p>
+              </div>
+            </div>
+            <div className={styles.platformGrid}>
+              {platformOptions.map((platform) => (
+                <button
+                  key={platform.value}
+                  type="button"
+                  className={form.bookingPlatform === platform.value ? styles.platformCardActive : styles.platformCard}
+                  onClick={() => selectPlatform(platform.value)}
+                >
+                  <FileText size={16} aria-hidden="true" />
+                  <strong>{platform.label}</strong>
+                  <span>{platform.hint}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className={styles.creationModeTabs} role="tablist" aria-label="Mode de creation">
+          <button
+            type="button"
+            className={creationMode === "platform" ? styles.modeTabActive : styles.modeTab}
+            onClick={() => setCreationMode("platform")}
+          >
+            <ClipboardList size={16} aria-hidden="true" />
+            Importer un planning
+          </button>
+          <button
+            type="button"
+            className={creationMode === "manual" ? styles.modeTabActive : styles.modeTab}
+            onClick={() => setCreationMode("manual")}
+          >
+            <Plus size={16} aria-hidden="true" />
+            Ajouter une mission
+          </button>
+        </div>
 
         <section className={styles.travelerMissionHero}>
           <div>
@@ -891,7 +1090,7 @@ export default function OwnerTravelerMissionsPage() {
           </div>
         </section>
 
-        <section className={styles.planningImportPanel}>
+        <section className={creationMode === "platform" ? styles.planningImportPanel : styles.hiddenPanel}>
           <div className={styles.sectionHeading}>
             <div>
               <p className={styles.eyebrow}>Planning Airbnb / Booking</p>
@@ -912,7 +1111,7 @@ export default function OwnerTravelerMissionsPage() {
                 rows={9}
                 value={planningText}
                 onChange={(event) => setPlanningText(event.target.value)}
-                placeholder={`Isabelle\n\n4 mai → 23 juin\n4 personnes\n\nTimo\n\n25 juillet → 4 août\n3 voyageurs (2 adultes + 1 enfant)\n07 ...\nemail@exemple.com`}
+                placeholder={selectedPlatform.placeholder}
               />
             </label>
             <div className={styles.parsedStayList}>
@@ -940,7 +1139,7 @@ export default function OwnerTravelerMissionsPage() {
           </div>
         </section>
 
-        <div className={styles.travelerMissionLayout}>
+        <div className={creationMode === "manual" ? styles.travelerMissionLayout : styles.hiddenPanel}>
           <form id="mission-voyageur-formulaire" className={styles.travelerMissionForm} onSubmit={handleSubmit}>
             <section className={styles.travelerFormSection}>
               <div className={styles.sectionHeading}>
@@ -1111,6 +1310,10 @@ export default function OwnerTravelerMissionsPage() {
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Résumé intelligent</p>
               <strong>{buildTitle(form)}</strong>
+              <span>
+                <Building2 size={15} aria-hidden="true" />
+                {selectedAssignment ? getAssignmentLabel(selectedAssignment) : "Duo conciergerie/logement a choisir"}
+              </span>
               <span>{form.arrivalDate || "Arrivée à préciser"} - {form.departureDate || "Départ à préciser"}</span>
               <span>{Number(form.adults || 0) + Number(form.children || 0) + (form.hasBaby === "yes" ? 1 : 0)} voyageur(s)</span>
               <span>{form.actions.length} action(s) prévues</span>
@@ -1123,7 +1326,6 @@ export default function OwnerTravelerMissionsPage() {
         </div>
         </div>
           </section>
-        </div>
       ) : null}
 
         <section className={styles.travelerMissionListSection}>

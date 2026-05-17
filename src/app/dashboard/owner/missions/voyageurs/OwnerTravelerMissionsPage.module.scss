@@ -255,6 +255,153 @@
   font-size: clamp(1.15rem, 2vw, 1.45rem);
 }
 
+.assignmentWorkbench {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.assignmentPanel {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.assignmentPanel h2,
+.assignmentPanel h3 {
+  margin: 0.12rem 0 0;
+  color: var(--traveler-ink);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+}
+
+.assignmentGrid,
+.platformGrid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.assignmentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.platformGrid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.assignmentCard,
+.assignmentCardActive,
+.platformCard,
+.platformCardActive,
+.modeTab,
+.modeTabActive {
+  border: 1px solid var(--traveler-border-soft);
+  background: color-mix(in srgb, var(--traveler-panel) 92%, white);
+  color: var(--traveler-ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.assignmentCard,
+.assignmentCardActive {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 118px;
+  padding: 0.9rem;
+  border-radius: 18px;
+}
+
+.assignmentCard span,
+.assignmentCardActive span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--traveler-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.assignmentCard strong,
+.assignmentCardActive strong {
+  color: var(--traveler-ink);
+  font-size: 1rem;
+  line-height: 1.22;
+}
+
+.assignmentCard small,
+.assignmentCardActive small,
+.platformCard span,
+.platformCardActive span {
+  color: var(--traveler-muted);
+  line-height: 1.35;
+}
+
+.platformCard,
+.platformCardActive {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 126px;
+  padding: 0.85rem;
+  border-radius: 16px;
+}
+
+.platformCard svg,
+.platformCardActive svg {
+  color: var(--traveler-accent-strong);
+}
+
+.platformCard strong,
+.platformCardActive strong {
+  color: var(--traveler-ink);
+}
+
+.assignmentCard:hover,
+.platformCard:hover,
+.modeTab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(184, 92, 72, 0.34);
+  box-shadow: var(--traveler-shadow);
+}
+
+.assignmentCardActive,
+.platformCardActive,
+.modeTabActive {
+  border-color: rgba(40, 85, 64, 0.28);
+  background: #e8f3ed;
+  box-shadow: 0 12px 24px rgba(40, 85, 64, 0.08);
+}
+
+.creationModeTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.35rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.modeTab,
+.modeTabActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 14px;
+  font-weight: 850;
+}
+
+.hiddenPanel {
+  display: none;
+}
+
 .modalOverlay {
   position: fixed;
   z-index: 80;
@@ -581,6 +728,7 @@
   .hero,
   .travelerMissionHero,
   .planningImportGrid,
+  .assignmentWorkbench,
   .travelerMissionLayout {
     grid-template-columns: 1fr;
   }
@@ -609,13 +757,16 @@
 
   .travelerMissionTopline,
   .creationLauncher,
+  .creationModeTabs,
   .sectionHeading,
   .cardFooter {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .creationLauncher > button {
+  .creationLauncher > button,
+  .modeTab,
+  .modeTabActive {
     width: 100%;
   }
 }
