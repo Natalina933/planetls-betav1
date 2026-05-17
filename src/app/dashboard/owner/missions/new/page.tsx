@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import OwnerWorkspacePage from "../../_components/OwnerWorkspacePage";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import styles from "@/app/dashboard/missions/MissionDetailPage.module.scss";
@@ -21,7 +21,29 @@ type PartnerRow = {
 };
 
 export default function OwnerNewMissionPage() {
+  return (
+    <Suspense
+      fallback={
+        <OwnerWorkspacePage
+          eyebrow="Nouvelle mission"
+          title="Créer une mission classique"
+          description="Chargement des paramètres..."
+          cards={[]}
+        />
+      }
+    >
+      <OwnerNewMissionPageContent />
+    </Suspense>
+  );
+}
+
+function OwnerNewMissionPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const serviceRequestId = searchParams.get("service_request");
+  const conciergeParam = searchParams.get("concierge");
+  const propertyParam = searchParams.get("property");
+  const titleParam = searchParams.get("title");
   const [housing, setHousing] = useState<HousingRow[]>([]);
   const [partners, setPartners] = useState<PartnerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,15 +81,16 @@ export default function OwnerNewMissionPage() {
       setPartners(acceptedPartners);
       setForm((current) => ({
         ...current,
-        property_id: current.property_id || String(nextHousing[0]?.id ?? ""),
-        concierge_profile_id: current.concierge_profile_id || acceptedPartners[0]?.selected_concierge_profile_id || "",
+        title: current.title || titleParam || "",
+        property_id: current.property_id || propertyParam || String(nextHousing[0]?.id ?? ""),
+        concierge_profile_id: current.concierge_profile_id || conciergeParam || acceptedPartners[0]?.selected_concierge_profile_id || "",
       }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de préparer la mission.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [conciergeParam, propertyParam, titleParam]);
 
   useEffect(() => {
     void load();
@@ -99,6 +122,8 @@ export default function OwnerNewMissionPage() {
           metadata: {
             mission_kind: "classic",
             housing_id: form.property_id || null,
+            service_request_id: serviceRequestId || null,
+            source: serviceRequestId ? "owner_accepted_service_request" : "owner_manual",
             notification_reason: "new_classic_mission",
           },
         }),

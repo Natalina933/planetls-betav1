@@ -1,30 +1,32 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
-  Bell,
-  CalendarClock,
+  CalendarDays,
   CheckCircle2,
   Clock3,
+  FilePenLine,
   Eye,
   FileText,
   Handshake,
-  Home,
+  ListChecks,
+  MapPin,
+  Plus,
+  Route,
   Search,
   Send,
-  ShieldCheck,
   Sparkles,
-  Users,
-  XCircle,
+  X,
 } from "lucide-react";
-import { Button, ButtonLink, Checkbox, Input, Select, Textarea } from "@/components/ui";
+import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import { OwnerJourneyRail } from "@/features/owner-dashboard";
+import { ServiceRequestCard } from "@/features/service-requests";
 import styles from "./OwnerRequestsPage.module.scss";
 
 type RequestKind = "ponctuel" | "renfort" | "durable";
 type RelationStatus = "draft" | "sent" | "viewed" | "discussion" | "accepted" | "declined" | "expired";
 type SortMode = "recent" | "oldest" | "responses" | "quotes";
+type TimelineStepState = "done" | "active" | "todo";
 
 type OwnerHousingRow = {
   id: number | string;
@@ -97,46 +99,25 @@ type OwnerQuoteRow = {
   }> | null;
 };
 
-type OwnerMissionRow = {
-  id: string;
-  title: string | null;
-  description?: string | null;
-  status: string | null;
-  priority: string | null;
-  property_id: string | null;
-  scheduled_start: string | null;
-  scheduled_end: string | null;
-  metadata?: Record<string, unknown> | null;
-};
 
-type AcceptedPartnerRow = {
-  key: string;
-  conciergeId?: string | null;
-  conciergeName: string;
-  request?: OwnerServiceRequestRow;
-  quote: OwnerQuoteRow;
-  propertyName: string;
-  services: string[];
-};
 
 type RequestsPayload = {
   items?: OwnerServiceRequestRow[];
   error?: string;
 };
 
+
 type RequestFormState = {
   propertyKey: string;
   propertyName: string;
   requestType: RequestKind;
   title: string;
-  desiredDate: string;
   city: string;
   postalCode: string;
   requestedServices: string;
   budgetMax: string;
   currency: string;
   description: string;
-  urgency: boolean;
 };
 
 const initialForm: RequestFormState = {
@@ -144,14 +125,12 @@ const initialForm: RequestFormState = {
   propertyName: "",
   requestType: "ponctuel",
   title: "",
-  desiredDate: "",
   city: "",
   postalCode: "",
   requestedServices: "",
   budgetMax: "",
   currency: "EUR",
   description: "",
-  urgency: false,
 };
 
 const statusMeta: Record<RelationStatus, { label: string; className: string; detail: string }> = {
@@ -172,24 +151,7 @@ const requestTypeLabels: Record<RequestKind, string> = {
 
 const currencyOptions = ["EUR", "USD", "GBP", "CHF"];
 
-const travelerActionLabels: Record<string, string> = {
-  checkin: "Check-in",
-  checkout: "Check-out",
-  cleaning: "Ménage",
-  linen: "Linge",
-  quality_check: "Contrôle",
-  maintenance: "Maintenance",
-  welcome: "Accueil spécifique",
-};
 
-const missionStatusLabels: Record<string, string> = {
-  draft: "À préparer",
-  assigned: "Assignée",
-  accepted: "Acceptée",
-  in_progress: "En cours",
-  completed: "Terminée",
-  canceled: "Annulée",
-};
 
 function normalizeStatus(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -224,14 +186,6 @@ function formatDateTime(value: string | null | undefined) {
   }).format(date);
 }
 
-function formatAmount(value: number | null | undefined, currency = "EUR") {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "Sur devis";
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function getQuoteRequestId(quote: OwnerQuoteRow) {
   const metadata = quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
@@ -240,87 +194,8 @@ function getQuoteRequestId(quote: OwnerQuoteRow) {
   return metadata && typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
 }
 
-function getMetadataString(metadata: Record<string, unknown> | null | undefined, key: string) {
-  const value = metadata?.[key];
-  return typeof value === "string" ? value : "";
-}
 
-function getMetadataStringArray(metadata: Record<string, unknown> | null | undefined, key: string) {
-  const value = metadata?.[key];
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-}
 
-function getMissionHousingId(mission: OwnerMissionRow) {
-  const metadataHousingId = getMetadataString(mission.metadata, "housing_id");
-  return mission.property_id || metadataHousingId || null;
-}
-
-function getMissionConciergeId(mission: OwnerMissionRow) {
-  return getMetadataString(mission.metadata, "concierge_profile_id") || null;
-}
-
-function getMissionPropertyLabel(mission: OwnerMissionRow, housing: OwnerHousingRow[]) {
-  const housingId = getMissionHousingId(mission);
-  const property = housing.find((item) => String(item.id) === String(housingId ?? ""));
-  return property?.nom_logement || property?.ville || "Logement à préciser";
-}
-
-function getTravelerName(mission: OwnerMissionRow) {
-  return (
-    [
-      getMetadataString(mission.metadata, "guest_first_name"),
-      getMetadataString(mission.metadata, "guest_last_name"),
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .trim() ||
-    mission.title ||
-    "Voyageur"
-  );
-}
-
-function getGuestCount(mission: OwnerMissionRow) {
-  const adults = Number(mission.metadata?.guest_adults ?? 0);
-  const children = Number(mission.metadata?.guest_children ?? 0);
-  const baby = mission.metadata?.guest_baby === true ? 1 : 0;
-  const total = adults + children + baby;
-  return total > 0 ? `${total} voyageur${total > 1 ? "s" : ""}` : "Voyageurs à préciser";
-}
-
-function getMissionStatusLabel(status: string | null) {
-  return missionStatusLabels[normalizeStatus(status) || "draft"] || "À suivre";
-}
-
-function getMissionDateRange(mission: OwnerMissionRow) {
-  const arrival = getMetadataString(mission.metadata, "arrival_date") || mission.scheduled_start;
-  const departure = getMetadataString(mission.metadata, "departure_date") || mission.scheduled_end;
-  if (!arrival && !departure) return "Dates à confirmer";
-  return `${formatDate(arrival)} → ${formatDate(departure)}`;
-}
-
-function getMissionChecklist(mission: OwnerMissionRow) {
-  const actions = getMetadataStringArray(mission.metadata, "requested_actions");
-  return actions.map((action) => travelerActionLabels[action] || action).slice(0, 4);
-}
-
-function getMissionPartnerName(mission: OwnerMissionRow, partners: AcceptedPartnerRow[]) {
-  const conciergeId = getMissionConciergeId(mission);
-  const housingId = getMissionHousingId(mission);
-  const partner = partners.find((item) => {
-    const sameConcierge = conciergeId && (item.conciergeId === conciergeId || item.quote.concierge_profile_id === conciergeId);
-    const sameHousing = housingId && item.request && String(item.request.property_id ?? "") === String(housingId);
-    return Boolean(sameConcierge || sameHousing);
-  });
-  return partner?.conciergeName || "Partenaire à confirmer";
-}
-
-function getConciergeNameFromQuote(quote: OwnerQuoteRow) {
-  return (
-    quote.concierge?.company_name ||
-    [quote.concierge?.first_name, quote.concierge?.last_name].filter(Boolean).join(" ").trim() ||
-    "Conciergerie"
-  );
-}
 
 function getConciergeNames(request: OwnerServiceRequestRow) {
   return Array.from(
@@ -332,21 +207,13 @@ function getConciergeNames(request: OwnerServiceRequestRow) {
   );
 }
 
-function getAcceptedConciergeId(request: OwnerServiceRequestRow) {
-  return (
-    request.selected_concierge_profile_id ||
-    request.recipients.find((recipient) => normalizeStatus(recipient.status) === "selected")?.concierge_profile_id ||
-    null
-  );
-}
-
-function getAcceptedConciergeName(request: OwnerServiceRequestRow) {
+function getSelectedConciergeName(request: OwnerServiceRequestRow) {
   const selectedRecipient = request.recipients.find((recipient) => normalizeStatus(recipient.status) === "selected");
   return (
     request.selected_concierge_name?.trim() ||
     selectedRecipient?.concierge_name?.trim() ||
     getConciergeNames(request)[0] ||
-    "Conciergerie acceptée"
+    "Conciergerie retenue"
   );
 }
 
@@ -377,15 +244,6 @@ function getResponseCount(request: OwnerServiceRequestRow) {
   ).length;
 }
 
-function getViewedCount(request: OwnerServiceRequestRow) {
-  return request.recipients.filter((recipient) => Boolean(recipient.viewed_at) || normalizeStatus(recipient.status) === "viewed").length;
-}
-
-function getInitials(value: string) {
-  const words = value.split(/\s+/).filter(Boolean);
-  return words.slice(0, 2).map((word) => word[0]?.toUpperCase()).join("") || "C";
-}
-
 function getLastExchange(request: OwnerServiceRequestRow) {
   const lastRecipient = [...request.recipients]
     .filter((recipient) => recipient.responded_at || recipient.viewed_at)
@@ -394,18 +252,7 @@ function getLastExchange(request: OwnerServiceRequestRow) {
     )[0];
 
   if (!lastRecipient) return "Aucun échange récent";
-  return `${lastRecipient.concierge_name || "Conciergerie"} · ${formatDateTime(lastRecipient.responded_at || lastRecipient.viewed_at)}`;
-}
-
-function getTimeline(request: OwnerServiceRequestRow, quoteCount: number) {
-  const status = getRelationStatus(request);
-  return [
-    { label: "Envoyée", done: status !== "draft" },
-    { label: "Consultée", done: getViewedCount(request) > 0 || ["viewed", "discussion", "accepted"].includes(status) },
-    { label: "Discussion", done: getResponseCount(request) > 0 || ["discussion", "accepted"].includes(status) },
-    { label: "Devis reçu", done: quoteCount > 0 || status === "accepted" },
-    { label: "Acceptation", done: status === "accepted" },
-  ];
+  return formatDateTime(lastRecipient.responded_at || lastRecipient.viewed_at);
 }
 
 function buildRequestSearchHref(request: OwnerServiceRequestRow) {
@@ -417,43 +264,141 @@ function buildRequestSearchHref(request: OwnerServiceRequestRow) {
   return query ? `/dashboard/owner/concierges?${query}` : "/dashboard/owner/concierges";
 }
 
+function getRequestGuidance(status: RelationStatus, quoteCount: number) {
+  if (status === "draft") return "Complétez le besoin commercial, puis contactez une ou plusieurs conciergeries.";
+  if (status === "sent" || status === "viewed") return "Attendez les retours ou élargissez la recherche si besoin.";
+  if (status === "discussion") return quoteCount > 0 ? "Comparez les devis reçus avant de choisir votre partenaire." : "Échangez avec les conciergeries intéressées pour obtenir un devis clair.";
+  if (status === "accepted") return "Le partenaire est choisi. Créez ensuite la mission voyageur dans l’espace Missions.";
+  if (status === "expired") return "Reprenez cette base et relancez une recherche plus ciblée.";
+  return "Ajustez votre demande ou relancez une recherche avec d'autres critères.";
+}
+
+const milestoneIcons = [FilePenLine, FileText, CheckCircle2, Handshake] as const;
+
+function getRequestMilestones(request: OwnerServiceRequestRow, quotes: OwnerQuoteRow[]) {
+  const status = getRelationStatus(request);
+  const quoteCount = quotes.length;
+  const hasMission = Boolean(request.mission_id);
+  const hasAcceptedQuote = quotes.some((quote) => normalizeStatus(quote.status) === "accepted" || Boolean(quote.accepted_at));
+  const hasAccepted = status === "accepted" || hasAcceptedQuote || hasMission;
+  const steps = [
+    { label: "Demande", detail: status === "draft" ? "Demande à continuer" : "Demande envoyée", done: status !== "draft" },
+    { label: "Devis reçus", detail: quoteCount > 0 ? `${quoteCount} devis reçu${quoteCount > 1 ? "s" : ""}` : "En attente de devis", done: quoteCount > 0 },
+    { label: "Devis accepté", detail: hasAccepted ? "Devis validé" : "Choix à confirmer", done: hasAccepted },
+    { label: "Mission", detail: hasMission ? "Mission conclue" : "Mission à lancer", done: hasMission },
+  ];
+  const firstTodoIndex = steps.findIndex((step) => !step.done);
+
+  return steps.map((step, index) => ({
+    ...step,
+    Icon: milestoneIcons[index],
+    state: (step.done ? "done" : index === firstTodoIndex ? "active" : "todo") as TimelineStepState,
+  }));
+}
+
+function getAcceptedQuote(quotes: OwnerQuoteRow[]) {
+  return quotes.find((quote) => normalizeStatus(quote.status) === "accepted" || Boolean(quote.accepted_at));
+}
+
+function getRequestUsefulFacts(request: OwnerServiceRequestRow, quotes: OwnerQuoteRow[], status: RelationStatus) {
+  const facts: Array<{ label: string; value: string; hint?: string; Icon: typeof MapPin }> = [];
+  const location = [request.city, request.postal_code].filter(Boolean).join(" ");
+  const services = (request.requested_services ?? []).filter(Boolean).slice(0, 3).join(", ");
+  const lastExchange = getLastExchange(request);
+  const acceptedQuote = getAcceptedQuote(quotes);
+
+  if (status === "draft") {
+    if (request.property_name) facts.push({ label: "Logement", value: request.property_name, Icon: ListChecks });
+    if (location) facts.push({ label: "Localisation", value: location, Icon: MapPin });
+    if (services) facts.push({ label: "Services", value: services, Icon: Sparkles });
+    facts.push({ label: "Brouillon", value: formatDate(request.created_at), hint: "Dernière base enregistrée", Icon: FilePenLine });
+    return facts.slice(0, 4);
+  }
+
+  if (quotes.length > 0) {
+    facts.push({
+      label: "Devis reçus",
+      value: `${quotes.length} proposition${quotes.length > 1 ? "s" : ""}`,
+      hint: "À comparer avant validation",
+      Icon: FileText,
+    });
+  }
+
+  if (acceptedQuote) {
+    facts.push({
+      label: "Devis accepté",
+      value: acceptedQuote.quote_number || formatDate(acceptedQuote.accepted_at ?? acceptedQuote.created_at),
+      hint: acceptedQuote.accepted_at ? formatDate(acceptedQuote.accepted_at) : undefined,
+      Icon: CheckCircle2,
+    });
+  }
+
+  if (request.mission_id) {
+    facts.push({ label: "Mission", value: "Mission conclue", hint: "Suivi disponible", Icon: Handshake });
+  }
+
+  if (status === "accepted") {
+    facts.push({ label: "Partenaire", value: getSelectedConciergeName(request), hint: requestTypeLabels[request.request_type], Icon: Handshake });
+  }
+
+  if (location && facts.length < 4) facts.push({ label: "Localisation", value: location, Icon: MapPin });
+  if (services && facts.length < 4) facts.push({ label: "Services", value: services, Icon: Sparkles });
+  if (lastExchange !== "Aucun échange récent" && facts.length < 4) {
+    facts.push({ label: "Dernier échange", value: lastExchange, Icon: CalendarDays });
+  }
+  if (facts.length < 3) facts.push({ label: "Envoyée", value: formatDate(request.created_at), Icon: Send });
+
+  return facts.slice(0, 4);
+}
+
+function getRequestHeaderImage(request: OwnerServiceRequestRow) {
+  const services = (request.requested_services ?? []).join(" ").toLowerCase();
+  const content = `${services} ${request.title ?? ""} ${request.description ?? ""}`.toLowerCase();
+
+  if (content.includes("accueil") || content.includes("check-in") || content.includes("voyageur")) {
+    return "/images/carousel/planetls-card-header-accueil.png";
+  }
+
+  if (content.includes("linge") || content.includes("blanch")) {
+    return "/images/carousel/planetls-card-header-linge.png";
+  }
+
+  if (
+    content.includes("maintenance") ||
+    content.includes("répar") ||
+    content.includes("repar") ||
+    content.includes("dépann") ||
+    content.includes("depann")
+  ) {
+    return "/images/carousel/planetls-card-header-maintenance.png";
+  }
+
+  if (content.includes("jardin") || content.includes("piscin") || content.includes("extérieur") || content.includes("exterieur")) {
+    return "/images/carousel/planetls-card-header-exterieur.png";
+  }
+
+  if (content.includes("photo") || content.includes("staging") || content.includes("déco") || content.includes("deco")) {
+    return "/images/carousel/planetls-card-header-photo.png";
+  }
+
+  return "/images/carousel/planetls-card-header-menage.png";
+}
+
 function getRequestTitleSuggestion(form: RequestFormState) {
   const service = normalizeServices(form.requestedServices)[0] || "gestion conciergerie";
   const property = form.propertyName || "logement";
   return form.city ? `${service} - ${property} - ${form.city}` : `${service} - ${property}`;
 }
 
-function getQuoteStatusLabel(status: string) {
-  switch (status) {
-    case "accepted":
-      return "Accepté";
-    case "rejected":
-      return "Refusé";
-    case "expired":
-      return "Expiré";
-    case "canceled":
-      return "Annulé";
-    case "sent":
-      return "Envoyé";
-    case "draft":
-      return "Brouillon";
-    default:
-      return "À comparer";
-  }
-}
 
-function isQuoteActionable(quote: OwnerQuoteRow) {
-  return !["accepted", "rejected", "expired", "canceled"].includes(normalizeStatus(quote.status));
-}
+
 
 export default function OwnerRequestsPage() {
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [housing, setHousing] = useState<OwnerHousingRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
-  const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [busyQuoteId, setBusyQuoteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -462,34 +407,30 @@ export default function OwnerRequestsPage() {
   const [serviceFilter, setServiceFilter] = useState("all");
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [form, setForm] = useState<RequestFormState>(initialForm);
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const [requestsResponse, housingResponse, quotesResponse, missionsResponse] = await Promise.all([
+      const [requestsResponse, housingResponse, quotesResponse] = await Promise.all([
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
         fetch("/api/quotes?limit=100", { cache: "no-store" }),
-        fetch("/api/missions?scope=owner&limit=100", { cache: "no-store" }),
       ]);
 
       const requestsPayload = (await requestsResponse.json()) as RequestsPayload;
       const housingPayload = await housingResponse.json();
       const quotesPayload = await quotesResponse.json();
-      const missionsPayload = await missionsResponse.json();
 
       if (!requestsResponse.ok) throw new Error(requestsPayload?.error || "Impossible de charger les demandes.");
       if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
       if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
-      if (!missionsResponse.ok) {
-        console.warn("[owner/demandes] Missions voyageurs indisponibles", missionsPayload?.error);
-      }
 
       setRequests(Array.isArray(requestsPayload.items) ? requestsPayload.items : []);
       setHousing(Array.isArray(housingPayload) ? housingPayload : []);
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
-      setMissions(missionsResponse.ok && Array.isArray(missionsPayload) ? missionsPayload : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger les demandes.");
     } finally {
@@ -500,6 +441,19 @@ export default function OwnerRequestsPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (!isRequestModalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setEditingRequestId(null);
+      setForm(initialForm);
+      setSuccess(null);
+      setIsRequestModalOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isRequestModalOpen]);
 
   const housingOptions = useMemo(
     () =>
@@ -568,51 +522,8 @@ export default function OwnerRequestsPage() {
   const currentRequests = filteredRequests.filter((request) => ["draft", "sent", "viewed", "discussion"].includes(getRelationStatus(request)));
   const acceptedRequests = filteredRequests.filter((request) => getRelationStatus(request) === "accepted");
   const declinedRequests = filteredRequests.filter((request) => ["declined", "expired"].includes(getRelationStatus(request)));
-  const allAcceptedRequests = requests.filter((request) => getRelationStatus(request) === "accepted");
-  const allDeclinedRequests = requests.filter((request) => ["declined", "expired"].includes(getRelationStatus(request)));
-  const actionableQuotes = quotes.filter(isQuoteActionable);
-  const acceptedQuotes = quotes.filter((quote) => normalizeStatus(quote.status) === "accepted");
-  const travelerMissions = useMemo(
-    () => missions.filter((mission) => mission.metadata?.mission_kind === "traveler_stay"),
-    [missions],
-  );
-  const activeTravelerMissions = travelerMissions.filter(
-    (mission) => !["completed", "canceled"].includes(normalizeStatus(mission.status)),
-  );
-  const urgentTravelerMissions = travelerMissions.filter(
-    (mission) => mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent",
-  );
-
-  const partners = useMemo<AcceptedPartnerRow[]>(() => {
-    return acceptedQuotes.map((quote) => {
-      const requestId = getQuoteRequestId(quote);
-      const request = requestId ? requests.find((item) => item.id === requestId) : undefined;
-      const services = request?.requested_services ?? quote.quote_items?.map((item) => item.label || "").filter(Boolean) ?? [];
-
-      return {
-        key: quote.id,
-        conciergeId: quote.concierge_profile_id ?? (request ? getAcceptedConciergeId(request) : null),
-        conciergeName: request ? getAcceptedConciergeName(request) : getConciergeNameFromQuote(quote),
-        request,
-        quote,
-        propertyName: request?.property_name || request?.city || getMetadataString(quote.metadata, "property_name") || getMetadataString(quote.metadata, "city") || "Logement à préciser",
-        services,
-      };
-    });
-  }, [acceptedQuotes, requests]);
-
   const titleSuggestion = getRequestTitleSuggestion(form);
   const normalizedServices = normalizeServices(form.requestedServices);
-
-  const stats = [
-    { label: "Demandes envoyées", value: String(requests.length), icon: <Send size={18} /> },
-    { label: "En attente", value: String(requests.filter((request) => ["sent", "viewed"].includes(getRelationStatus(request))).length), icon: <Clock3 size={18} /> },
-    { label: "Acceptées", value: String(allAcceptedRequests.length), icon: <CheckCircle2 size={18} /> },
-    { label: "Refusées", value: String(allDeclinedRequests.length), icon: <XCircle size={18} /> },
-    { label: "Devis reçus", value: String(quotes.length), icon: <FileText size={18} /> },
-    { label: "Devis acceptés", value: String(partners.length), icon: <Handshake size={18} /> },
-    { label: "Séjours voyageurs", value: String(activeTravelerMissions.length), icon: <Users size={18} /> },
-  ];
 
   function handleHousingChange(value: string) {
     const selected = housingOptions.find((item) => item.key === value);
@@ -622,6 +533,40 @@ export default function OwnerRequestsPage() {
       propertyName: selected?.label || "",
       city: current.city || selected?.city || "",
     }));
+  }
+
+  function handleEditRequest(request: OwnerServiceRequestRow) {
+    setEditingRequestId(request.id);
+    setForm({
+      propertyKey: request.property_id ? String(request.property_id) : "",
+      propertyName: request.property_name ?? "",
+      requestType: request.request_type,
+      title: request.title ?? "",
+      city: request.city ?? "",
+      postalCode: request.postal_code ?? "",
+      requestedServices: (request.requested_services ?? []).join(", "),
+      budgetMax: typeof request.budget_max === "number" ? String(request.budget_max) : "",
+      currency: request.currency ?? "EUR",
+      description: request.description ?? "",
+    });
+    setSuccess(null);
+    setError(null);
+    setIsRequestModalOpen(true);
+  }
+
+  function cancelEditRequest() {
+    setEditingRequestId(null);
+    setForm(initialForm);
+    setSuccess(null);
+    setIsRequestModalOpen(false);
+  }
+
+  function openNewRequestModal() {
+    setEditingRequestId(null);
+    setForm(initialForm);
+    setError(null);
+    setSuccess(null);
+    setIsRequestModalOpen(true);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -641,9 +586,10 @@ export default function OwnerRequestsPage() {
       setError(null);
       setSuccess(null);
       const response = await fetch("/api/service-requests", {
-        method: "POST",
+        method: editingRequestId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: editingRequestId,
           request_type: form.requestType,
           title: form.title.trim(),
           description: form.description.trim() || null,
@@ -651,16 +597,17 @@ export default function OwnerRequestsPage() {
           requested_services: services,
           city: form.city.trim() || null,
           postal_code: form.postalCode.trim() || null,
-          desired_date: form.desiredDate ? new Date(form.desiredDate).toISOString() : null,
-          urgency: form.urgency,
+          urgency: false,
           budget_max: form.budgetMax ? Number(form.budgetMax) : null,
           currency: form.currency,
         }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || "Impossible de créer la demande.");
-      setSuccess("Demande créée. Vous pouvez maintenant contacter des conciergeries et suivre les retours.");
+      if (!response.ok) throw new Error(payload?.error || (editingRequestId ? "Impossible de modifier la demande." : "Impossible de créer la demande."));
+      setSuccess(editingRequestId ? "Demande mise à jour. Vous pouvez continuer le suivi." : "Demande créée. Vous pouvez maintenant contacter des conciergeries et suivre les retours.");
+      setEditingRequestId(null);
       setForm(initialForm);
+      setIsRequestModalOpen(false);
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer la demande.");
@@ -668,111 +615,85 @@ export default function OwnerRequestsPage() {
       setSubmitting(false);
     }
   }
-
-  async function updateQuoteStatus(quoteId: string, status: "accepted" | "rejected") {
-    try {
-      setBusyQuoteId(quoteId);
-      setError(null);
-      setSuccess(null);
-      const response = await fetch(`/api/quotes/${quoteId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || "Impossible de mettre à jour le devis.");
-      setSuccess(status === "accepted" ? "Devis accepté. La conciergerie est maintenant partenaire." : "Devis refusé.");
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre à jour le devis.");
-    } finally {
-      setBusyQuoteId(null);
-    }
-  }
-
   return (
     <div className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>Centre de relation conciergeries</p>
           <h1>Demandes de mise en relation</h1>
-          <p>
-            Pilotez la phase commerciale avant collaboration : demandes envoyées, retours conciergeries,
-            devis reçus et partenaires validés.
-          </p>
+          <p>Recherchez une conciergerie, comparez les retours, puis transformez le bon devis en mission.</p>
           <div className={styles.heroActions}>
-            <a href="#nouvelle-demande" className={styles.primaryLink}>
-              <Send size={16} aria-hidden="true" /> Nouvelle demande
-            </a>
+            <button type="button" className={styles.primaryLink} onClick={openNewRequestModal}>
+            <Plus size={16} aria-hidden="true" /> Lancer une recherche
+            </button>
             <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
-              <Search size={16} aria-hidden="true" /> Rechercher une conciergerie
+              <Search size={16} aria-hidden="true" /> Explorer les conciergeries
             </ButtonLink>
-            <ButtonLink href="/dashboard/owner/missions/voyageurs" variant="secondary">
-              <Users size={16} aria-hidden="true" /> Missions voyageurs
-            </ButtonLink>
-          </div>
-        </div>
-        <div className={styles.heroSnapshot}>
-          <span><Bell size={16} /> Suivi relationnel</span>
-          <strong>{actionableQuotes.length}</strong>
-          <p>devis à comparer</p>
-          <div className={styles.heroProgress}>
-            <span style={{ width: `${Math.min(100, Math.max(12, partners.length * 24))}%` }} />
           </div>
         </div>
       </header>
 
+      <OwnerJourneyRail activeStep="request" />
+
       {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
       {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
+      {loading ? <p className={styles.loadingHint}>Chargement des demandes...</p> : null}
 
-      <section className={styles.statsGrid} aria-label="Statistiques rapides">
-        {loading ? Array.from({ length: 7 }).map((_, index) => <SkeletonStat key={index} />) : stats.map((stat) => (
-          <article key={stat.label} className={styles.statCard}>
-            <span className={styles.statIcon}>{stat.icon}</span>
-            <div>
-              <strong>{stat.value}</strong>
-              <p>{stat.label}</p>
+      <section className={styles.searchWorkspace} aria-label="Recherche concierge">
+        <div className={styles.searchWorkspaceHeader}>
+          <div>
+            <p className={styles.eyebrow}>Recherche concierge</p>
+            <h2>Demandes et retours</h2>
+          </div>
+          <button type="button" className={styles.primaryLink} onClick={openNewRequestModal}>
+            <Plus size={16} aria-hidden="true" /> Lancer une recherche
+          </button>
+        </div>
+        <div className={styles.filtersPanel}>
+          <label className={styles.searchField}>
+            <Search size={17} aria-hidden="true" />
+            <Input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Concierge, ville, logement ou service..." />
+          </label>
+          <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrer par statut">
+            <option value="all">Tous statuts</option>
+            <option value="sent">En attente</option>
+            <option value="viewed">Consultée</option>
+            <option value="discussion">Discussion</option>
+            <option value="accepted">Acceptée</option>
+            <option value="declined">Refusée</option>
+            <option value="expired">Expirée</option>
+          </Select>
+          <Select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} aria-label="Filtrer par ville">
+            <option value="all">Toutes villes</option>
+            {cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}
+          </Select>
+          <Select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} aria-label="Filtrer par service">
+            <option value="all">Tous services</option>
+            {serviceOptions.map((service) => <option key={service} value={service}>{service}</option>)}
+          </Select>
+          <Select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)} aria-label="Trier">
+            <option value="recent">Plus récent</option>
+            <option value="responses">Réponses</option>
+            <option value="quotes">Devis</option>
+            <option value="oldest">Plus ancien</option>
+          </Select>
+        </div>
+      </section>
+
+      {isRequestModalOpen ? (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) cancelEditRequest();
+        }}>
+          <section className={styles.requestModal} role="dialog" aria-modal="true" aria-labelledby="request-modal-title">
+            <div className={styles.modalHeader}>
+              <div>
+                <p className={styles.eyebrow}>{editingRequestId ? "Modifier la recherche" : "Recherche concierge"}</p>
+                <h2 id="request-modal-title">{editingRequestId ? "Reprendre la recherche" : "Lancer une recherche concierge"}</h2>
+              </div>
+              <button type="button" className={styles.iconButton} onClick={cancelEditRequest} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
             </div>
-          </article>
-        ))}
-      </section>
-
-      <section className={styles.filtersPanel} aria-label="Filtres et recherche">
-        <label className={styles.searchField}>
-          <Search size={17} aria-hidden="true" />
-          <Input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Rechercher par concierge, ville, logement, service..." />
-        </label>
-        <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrer par statut">
-          <option value="all">Tous les statuts</option>
-          <option value="sent">En attente</option>
-          <option value="viewed">Consultée</option>
-          <option value="discussion">En discussion</option>
-          <option value="accepted">Acceptée</option>
-          <option value="declined">Refusée</option>
-          <option value="expired">Expirée</option>
-        </Select>
-        <Select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} aria-label="Filtrer par ville">
-          <option value="all">Toutes villes</option>
-          {cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}
-        </Select>
-        <Select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} aria-label="Filtrer par service">
-          <option value="all">Tous services</option>
-          {serviceOptions.map((service) => <option key={service} value={service}>{service}</option>)}
-        </Select>
-        <Select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)} aria-label="Trier">
-          <option value="recent">Plus récent</option>
-          <option value="oldest">Plus ancien</option>
-          <option value="responses">Plus de réponses</option>
-          <option value="quotes">Plus de devis</option>
-        </Select>
-      </section>
-
-      <section id="nouvelle-demande" className={styles.creationPanel}>
-        <SectionHeader
-          eyebrow="Recherche"
-          title="Créer une nouvelle demande"
-          description="Cette page concerne uniquement la recherche et la mise en relation avec des conciergeries."
-        />
         <form className={styles.formGrid} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span>Logement</span>
@@ -790,10 +711,6 @@ export default function OwnerRequestsPage() {
               <option value="renfort">Renfort / remplacement</option>
               <option value="durable">Collaboration durable</option>
             </Select>
-          </label>
-          <label className={styles.field}>
-            <span>Date souhaitée</span>
-            <Input type="datetime-local" value={form.desiredDate} onChange={(event) => setForm((current) => ({ ...current, desiredDate: event.target.value }))} />
           </label>
           <label className={styles.field}>
             <span>Budget indicatif</span>
@@ -821,7 +738,7 @@ export default function OwnerRequestsPage() {
           </label>
           <label className={`${styles.field} ${styles.fullField}`}>
             <span>Services recherchés</span>
-            <Input value={form.requestedServices} onChange={(event) => setForm((current) => ({ ...current, requestedServices: event.target.value }))} placeholder="check-in, ménage, linge, relation voyageurs..." />
+            <Input value={form.requestedServices} onChange={(event) => setForm((current) => ({ ...current, requestedServices: event.target.value }))} placeholder="ménage, linge, relation voyageurs, maintenance..." />
             {normalizedServices.length > 0 ? (
               <div className={styles.chipRow}>
                 {normalizedServices.map((service) => <span key={service} className={styles.serviceChip}>{service}</span>)}
@@ -829,22 +746,26 @@ export default function OwnerRequestsPage() {
             ) : null}
           </label>
           <label className={`${styles.field} ${styles.fullField}`}>
-            <span>Détails de la recherche</span>
-            <Textarea rows={5} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Contexte, attentes, contraintes, type de collaboration souhaitée..." />
+            <span>Détails utiles</span>
+            <Textarea rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Contexte du logement, services attendus, contraintes de collaboration..." />
           </label>
-          <div className={styles.fullField}>
-            <Checkbox checked={form.urgency} onChange={(event) => setForm((current) => ({ ...current, urgency: event.target.checked }))} label="Recherche urgente" />
-          </div>
           <div className={`${styles.formActions} ${styles.fullField}`}>
             <Button type="submit" disabled={submitting}>
-              <Send size={16} aria-hidden="true" /> {submitting ? "Création..." : "Créer la demande"}
+              {editingRequestId ? <Send size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />} {submitting ? "Enregistrement..." : editingRequestId ? "Enregistrer et continuer" : "Enregistrer la recherche"}
             </Button>
+            {editingRequestId ? (
+              <Button type="button" variant="secondary" onClick={cancelEditRequest}>
+                Annuler
+              </Button>
+            ) : null}
             <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
               <Search size={16} aria-hidden="true" /> Explorer les conciergeries
             </ButtonLink>
           </div>
         </form>
-      </section>
+          </section>
+        </div>
+      ) : null}
 
       <RequestSection
         id="demandes-en-cours"
@@ -855,6 +776,7 @@ export default function OwnerRequestsPage() {
         emptyText="Les demandes envoyées ou en discussion apparaîtront ici."
         requests={currentRequests}
         quotesByRequestId={quotesByRequestId}
+        onEditRequest={handleEditRequest}
       />
 
       <RequestSection
@@ -866,48 +788,9 @@ export default function OwnerRequestsPage() {
         emptyText="Une demande passera ici après validation d'une collaboration."
         requests={acceptedRequests}
         quotesByRequestId={quotesByRequestId}
+        onEditRequest={handleEditRequest}
       />
-
-      <section className={styles.sectionPanel} id="missions-voyageurs">
-        <SectionHeader
-          eyebrow="Missions voyageurs"
-          title="Séjours transmis aux partenaires"
-          description="Cette vue relie la relation commerciale aux séjours voyageurs déjà confiés aux conciergeries partenaires."
-        />
-        <div className={styles.travelerSummaryGrid}>
-          <Metric label="Séjours actifs" value={String(activeTravelerMissions.length)} />
-          <Metric label="Points sensibles" value={String(urgentTravelerMissions.length)} />
-          <Metric label="Partenaires mobilisés" value={String(partners.length)} />
-          <Metric label="Module dédié" value="Missions voyageurs" />
-        </div>
-        {loading ? <SkeletonList /> : null}
-        {!loading && travelerMissions.length === 0 ? (
-          <EmptyPanel
-            title="Aucune mission voyageur liée"
-            text="Les séjours créés depuis l'espace missions voyageurs apparaîtront ici pour donner du contexte à la relation conciergerie."
-          />
-        ) : null}
-        <div className={styles.travelerMissionGrid}>
-          {travelerMissions.slice(0, 6).map((mission) => (
-            <TravelerMissionCard
-              key={mission.id}
-              mission={mission}
-              housing={housing}
-              partnerName={getMissionPartnerName(mission, partners)}
-            />
-          ))}
-        </div>
-        <div className={styles.sectionActions}>
-          <ButtonLink href="/dashboard/owner/missions/voyageurs" variant="secondary">
-            <CalendarClock size={16} /> Créer ou gérer un séjour
-          </ButtonLink>
-          <ButtonLink href="/dashboard/owner/planning" variant="ghost">
-            <ArrowRight size={16} /> Voir le planning
-          </ButtonLink>
-        </div>
-      </section>
-
-      <RequestSection
+<RequestSection
         id="demandes-refusees"
         eyebrow="Demandes refusées"
         title="Demandes clôturées ou expirées"
@@ -916,66 +799,9 @@ export default function OwnerRequestsPage() {
         emptyText="Les refus et expirations apparaîtront ici."
         requests={declinedRequests}
         quotesByRequestId={quotesByRequestId}
+        onEditRequest={handleEditRequest}
       />
-
-      <section className={styles.sectionPanel} id="devis-recus">
-        <SectionHeader
-          eyebrow="Devis reçus"
-          title="Comparer les propositions"
-          description="Prix, pack, services inclus et décision sont séparés du suivi des demandes."
-        />
-        {loading ? <SkeletonList /> : null}
-        {!loading && quotes.length === 0 ? <EmptyPanel title="Aucun devis reçu" text="Les devis reçus par vos demandes apparaîtront ici." /> : null}
-        <div className={styles.quoteGrid}>
-          {quotes.map((quote) => (
-            <QuoteCard
-              key={quote.id}
-              quote={quote}
-              request={requests.find((request) => request.id === getQuoteRequestId(quote))}
-              busy={busyQuoteId === quote.id}
-              onAccept={() => updateQuoteStatus(quote.id, "accepted")}
-              onReject={() => updateQuoteStatus(quote.id, "rejected")}
-            />
-          ))}
-        </div>
-        {quotes.length > 1 ? <QuoteComparison quotes={quotes.slice(0, 4)} /> : null}
-      </section>
-
-      <section className={styles.sectionPanel} id="partenaires">
-        <SectionHeader
-          eyebrow="Partenaires acceptés"
-          title="Devis acceptés"
-          description="Cette section affiche uniquement les conciergeries dont un devis a été accepté."
-        />
-        {!loading && partners.length === 0 ? <EmptyPanel title="Aucun devis accepté" text="Les devis acceptés apparaîtront ici avec la conciergerie associée." /> : null}
-        <div className={styles.partnerGrid}>
-          {partners.map((partner) => (
-            <article key={partner.key} className={styles.partnerCard}>
-              <div className={styles.partnerTop}>
-                <div className={styles.avatar}>{getInitials(partner.conciergeName)}</div>
-                <div>
-                  <p className={styles.eyebrow}>Devis accepté</p>
-                  <h3>{partner.conciergeName}</h3>
-                  <span>{partner.propertyName}</span>
-                </div>
-              </div>
-              <div className={styles.partnerMetrics}>
-                <Metric label="Montant accepté" value={formatAmount(partner.quote.total_amount, partner.quote.currency ?? "EUR")} />
-                <Metric label="Devis" value={partner.quote.quote_number || partner.quote.id.slice(0, 8)} />
-                <Metric label="Pack" value={partner.quote.package?.name || "Sur mesure"} />
-                <Metric label="Services" value={partner.services.slice(0, 2).join(", ") || "À préciser"} />
-              </div>
-              <div className={styles.partnerFooter}>
-                <span className={styles.trustBadge}><ShieldCheck size={14} /> Accepté le {formatDate(partner.quote.accepted_at || partner.quote.created_at)}</span>
-                <Link href={`/dashboard/owner/devis?quote=${encodeURIComponent(partner.quote.id)}`} className={styles.textLink}>
-                  Voir le devis <ArrowRight size={14} />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-    </div>
+</div>
   );
 }
 
@@ -1000,6 +826,7 @@ function RequestSection({
   emptyText,
   requests,
   quotesByRequestId,
+  onEditRequest,
 }: {
   id: string;
   eyebrow: string;
@@ -1009,6 +836,7 @@ function RequestSection({
   emptyText: string;
   requests: OwnerServiceRequestRow[];
   quotesByRequestId: Map<string, OwnerQuoteRow[]>;
+  onEditRequest: (request: OwnerServiceRequestRow) => void;
 }) {
   return (
     <section className={styles.sectionPanel} id={id}>
@@ -1016,204 +844,87 @@ function RequestSection({
       {requests.length === 0 ? <EmptyPanel title={emptyTitle} text={emptyText} /> : null}
       <div className={styles.requestGrid}>
         {requests.map((request) => (
-          <RequestCard key={request.id} request={request} quotes={quotesByRequestId.get(request.id) ?? []} />
+          <RequestCard key={request.id} request={request} quotes={quotesByRequestId.get(request.id) ?? []} onEditRequest={onEditRequest} />
         ))}
       </div>
     </section>
   );
 }
 
-function RequestCard({ request, quotes }: { request: OwnerServiceRequestRow; quotes: OwnerQuoteRow[] }) {
+function RequestCard({
+  request,
+  quotes,
+  onEditRequest,
+}: {
+  request: OwnerServiceRequestRow;
+  quotes: OwnerQuoteRow[];
+  onEditRequest: (request: OwnerServiceRequestRow) => void;
+}) {
   const relationStatus = getRelationStatus(request);
   const meta = statusMeta[relationStatus];
   const names = getConciergeNames(request);
   const displayName = names[0] || "Conciergeries contactées";
-  const timeline = getTimeline(request, quotes.length);
+  const milestones = getRequestMilestones(request, quotes);
+  const usefulFacts = getRequestUsefulFacts(request, quotes, relationStatus);
+  const headerImage = getRequestHeaderImage(request);
+  const currentStep = milestones.find((step) => step.state === "active") ?? milestones[milestones.length - 1];
+  const hasQuotes = quotes.length > 0;
+  const hasMission = Boolean(request.mission_id);
+  const isDraft = relationStatus === "draft";
+  const isClosed = relationStatus === "declined" || relationStatus === "expired";
 
   return (
-    <article className={styles.requestCard}>
-      <div className={styles.cardTop}>
-        <div className={styles.identity}>
-          <div className={styles.avatar}>{getInitials(displayName)}</div>
-          <div>
-            <h3>{request.title}</h3>
-            <p>{displayName}{names.length > 1 ? ` +${names.length - 1}` : ""}</p>
-          </div>
-        </div>
-        <span className={`${styles.statusBubble} ${meta.className}`}>{meta.label}</span>
-      </div>
-      <p className={styles.cardSummary}>{meta.detail}</p>
-      <div className={styles.factGrid}>
-        <Metric label="Localisation" value={[request.city, request.postal_code].filter(Boolean).join(" ") || "À préciser"} />
-        <Metric label="Services" value={(request.requested_services ?? []).slice(0, 2).join(", ") || "À préciser"} />
-        <Metric label="Envoyée" value={formatDate(request.created_at)} />
-        <Metric label="Dernier échange" value={getLastExchange(request)} />
-      </div>
-      <div className={styles.timeline}>
-        {timeline.map((step) => (
-          <div key={step.label} className={step.done ? styles.timelineStepDone : styles.timelineStep}>
-            <span />
-            <small>{step.label}</small>
-          </div>
-        ))}
-      </div>
-      <div className={styles.cardFooter}>
-        <div className={styles.chipRow}>
+    <ServiceRequestCard
+      title={request.title}
+      actorName={displayName}
+      actorDetail={`${displayName}${names.length > 1 ? ` +${names.length - 1}` : ""}`}
+      statusLabel={meta.label}
+      statusTone={relationStatus}
+      typeLabel={requestTypeLabels[request.request_type]}
+      urgent={request.urgency}
+      summary={meta.detail}
+      currentStepDetail={currentStep.detail}
+      guidance={getRequestGuidance(relationStatus, quotes.length)}
+      headerImage={headerImage}
+      facts={usefulFacts}
+      milestones={milestones}
+      chips={
+        <>
           <span className={styles.serviceChip}>{requestTypeLabels[request.request_type]}</span>
           {request.urgency ? <span className={styles.warningChip}>Urgent</span> : null}
           {quotes.length > 0 ? <span className={styles.serviceChip}>{quotes.length} devis</span> : null}
-        </div>
-        <div className={styles.cardActions}>
-          <ButtonLink href={buildRequestSearchHref(request)} variant="ghost" size="sm">
-            <Search size={15} /> Relancer
-          </ButtonLink>
-          <ButtonLink href={`/dashboard/owner/devis?request=${encodeURIComponent(request.id)}`} variant="secondary" size="sm">
-            <Eye size={15} /> Voir les devis
-          </ButtonLink>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function TravelerMissionCard({
-  mission,
-  housing,
-  partnerName,
-}: {
-  mission: OwnerMissionRow;
-  housing: OwnerHousingRow[];
-  partnerName: string;
-}) {
-  const checklist = getMissionChecklist(mission);
-  const status = normalizeStatus(mission.status) || "draft";
-  const bookingPlatform = getMetadataString(mission.metadata, "booking_platform");
-  const bookingCode = getMetadataString(mission.metadata, "booking_code");
-  const isUrgent = mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent";
-
-  return (
-    <article className={styles.travelerMissionCard}>
-      <div className={styles.cardTop}>
-        <div className={styles.identity}>
-          <div className={styles.avatar}><Users size={18} /></div>
-          <div>
-            <h3>{getTravelerName(mission)}</h3>
-            <p>{partnerName}</p>
-          </div>
-        </div>
-        <span className={`${styles.statusBubble} ${status === "completed" ? styles.statusAccepted : styles.statusViewed}`}>
-          {getMissionStatusLabel(mission.status)}
-        </span>
-      </div>
-      <div className={styles.travelerRoute}>
-        <span><Home size={15} /> {getMissionPropertyLabel(mission, housing)}</span>
-        <span><CalendarClock size={15} /> {getMissionDateRange(mission)}</span>
-      </div>
-      <div className={styles.factGrid}>
-        <Metric label="Voyageurs" value={getGuestCount(mission)} />
-        <Metric label="Réservation" value={[bookingPlatform, bookingCode].filter(Boolean).join(" · ") || "À préciser"} />
-      </div>
-      <div className={styles.chipRow}>
-        {checklist.length > 0 ? checklist.map((action) => (
-          <span key={action} className={styles.serviceChip}>{action}</span>
-        )) : <span className={styles.serviceChip}>Checklist à préciser</span>}
-        {isUrgent ? <span className={styles.warningChip}>Attention requise</span> : null}
-      </div>
-      <div className={styles.cardFooter}>
-        <span className={styles.trustBadge}><ShieldCheck size={14} /> Reliée au suivi partenaire</span>
-        <Link href={`/dashboard/owner/missions/${encodeURIComponent(mission.id)}`} className={styles.textLink}>
-          Ouvrir <ArrowRight size={14} />
-        </Link>
-      </div>
-    </article>
-  );
-}
-
-function QuoteCard({
-  quote,
-  request,
-  busy,
-  onAccept,
-  onReject,
-}: {
-  quote: OwnerQuoteRow;
-  request?: OwnerServiceRequestRow;
-  busy: boolean;
-  onAccept: () => void;
-  onReject: () => void;
-}) {
-  const status = normalizeStatus(quote.status);
-  const canDecide = isQuoteActionable(quote);
-  const items = quote.quote_items ?? [];
-
-  return (
-    <article className={styles.quoteCard}>
-      <div className={styles.quoteHeader}>
-        <div>
-          <p className={styles.eyebrow}>{quote.quote_number || "Devis reçu"}</p>
-          <h3>{getConciergeNameFromQuote(quote)}</h3>
-          <span>{request?.title || request?.property_name || "Demande associée"}</span>
-        </div>
-        <strong>{formatAmount(quote.total_amount, quote.currency ?? "EUR")}</strong>
-      </div>
-      <div className={styles.quoteFacts}>
-        <Metric label="Pack" value={quote.package?.name || "Sur mesure"} />
-        <Metric label="Validité" value={formatDate(quote.valid_until)} />
-        <Metric label="Statut" value={getQuoteStatusLabel(status)} />
-      </div>
-      <div className={styles.includedList}>
-        {items.length > 0 ? items.slice(0, 5).map((item) => (
-          <span key={item.id}><CheckCircle2 size={14} /> {item.label || "Prestation"}</span>
-        )) : <span><Sparkles size={14} /> Prestations détaillées dans le devis</span>}
-      </div>
-      {quote.notes ? <p className={styles.quoteNote}>{quote.notes}</p> : null}
-      <div className={styles.quoteActions}>
-        {canDecide ? (
-          <>
-            <Button type="button" disabled={busy} onClick={onAccept}>
-              <CheckCircle2 size={16} /> Accepter
-            </Button>
-            <Button type="button" variant="secondary" disabled={busy} onClick={onReject}>
-              <XCircle size={16} /> Refuser
-            </Button>
-          </>
-        ) : (
-          <span className={styles.trustBadge}>{getQuoteStatusLabel(status)}</span>
-        )}
-        <Link href={`/dashboard/owner/devis?quote=${encodeURIComponent(quote.id)}`} className={styles.textLink}>
-          Détails <ArrowRight size={14} />
-        </Link>
-      </div>
-    </article>
-  );
-}
-
-function QuoteComparison({ quotes }: { quotes: OwnerQuoteRow[] }) {
-  return (
-    <div className={styles.comparisonPanel}>
-      <SectionHeader eyebrow="Comparateur" title="Vue comparative rapide" description="Comparez les écarts de prix, packs et services inclus sans quitter la page." />
-      <div className={styles.comparisonGrid} style={{ gridTemplateColumns: `minmax(130px, 0.55fr) repeat(${quotes.length}, minmax(180px, 1fr))` }}>
-        <strong>Critère</strong>
-        {quotes.map((quote) => <strong key={quote.id}>{getConciergeNameFromQuote(quote)}</strong>)}
-        <span>Prix</span>
-        {quotes.map((quote) => <span key={`${quote.id}-price`}>{formatAmount(quote.total_amount, quote.currency ?? "EUR")}</span>)}
-        <span>Pack</span>
-        {quotes.map((quote) => <span key={`${quote.id}-pack`}>{quote.package?.name || "Sur mesure"}</span>)}
-        <span>Services</span>
-        {quotes.map((quote) => <span key={`${quote.id}-items`}>{quote.quote_items?.length || 0} ligne(s)</span>)}
-        <span>Statut</span>
-        {quotes.map((quote) => <span key={`${quote.id}-status`}>{getQuoteStatusLabel(normalizeStatus(quote.status))}</span>)}
-      </div>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.metric}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
+        </>
+      }
+      actions={
+        <>
+          {isDraft ? (
+            <button type="button" className={styles.inlineAction} onClick={() => onEditRequest(request)}>
+              <FilePenLine size={15} /> Continuer le brouillon
+            </button>
+          ) : hasMission ? (
+            <ButtonLink href={`/dashboard/owner/missions/${encodeURIComponent(request.mission_id ?? "")}`} variant="secondary" size="sm">
+              <Route size={15} /> Voir la mission
+            </ButtonLink>
+          ) : relationStatus === "accepted" ? (
+            <ButtonLink href="/dashboard/owner/missions/voyageurs" variant="secondary" size="sm">
+              <Plus size={15} /> Créer une mission voyageur
+            </ButtonLink>
+          ) : hasQuotes ? (
+            <ButtonLink href={`/dashboard/owner/devis?request=${encodeURIComponent(request.id)}`} variant="secondary" size="sm">
+              <Eye size={15} /> Comparer les devis
+            </ButtonLink>
+          ) : isClosed ? (
+            <button type="button" className={styles.inlineAction} onClick={() => onEditRequest(request)}>
+              <FilePenLine size={15} /> Reprendre la base
+            </button>
+          ) : (
+            <ButtonLink href={buildRequestSearchHref(request)} variant="secondary" size="sm">
+              <Search size={15} /> Trouver des conciergeries
+            </ButtonLink>
+          )}
+        </>
+      }
+    />
   );
 }
 
@@ -1225,28 +936,6 @@ function EmptyPanel({ title, text }: { title: string; text: string }) {
         <h3>{title}</h3>
         <p>{text}</p>
       </div>
-    </div>
-  );
-}
-
-function SkeletonStat() {
-  return (
-    <article className={`${styles.statCard} ${styles.skeleton}`}>
-      <span />
-      <div>
-        <strong />
-        <p />
-      </div>
-    </article>
-  );
-}
-
-function SkeletonList() {
-  return (
-    <div className={styles.skeletonList}>
-      <span />
-      <span />
-      <span />
     </div>
   );
 }

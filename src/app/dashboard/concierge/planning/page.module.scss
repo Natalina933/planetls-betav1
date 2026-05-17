@@ -1,3 +1,29 @@
+.operationalPanel {
+  border-radius: 8px;
+}
+
+.calendarSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.85rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 88%, transparent);
+}
+
+.calendarSummary span {
+  color: var(--dash-text-muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.calendarSummary strong {
+  color: var(--dash-text);
+}
+
 .planningLayout {
   gap: 1.15rem;
 }

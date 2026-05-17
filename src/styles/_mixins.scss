@@ -5,9 +5,17 @@
 }
 
 @mixin ui-card-shell {
-  background: var(--ds-color-surface);
+  background: var(--ds-surface-raised, var(--ds-color-surface));
   border: var(--ds-border-subtle);
-  border-radius: var(--ui-card-radius, var(--ds-radius-lg));
+  border-radius: var(--ui-card-radius, var(--ds-radius-card));
+  box-shadow: var(--ds-shadow-sm);
+  color: var(--ds-color-text);
+}
+
+@mixin ui-panel-shell {
+  background: var(--ds-surface-premium, var(--ds-color-surface));
+  border: 1px solid color-mix(in srgb, var(--ds-color-border) 86%, transparent);
+  border-radius: var(--ui-panel-radius, var(--ds-radius-panel));
   box-shadow: var(--ds-shadow-sm);
   color: var(--ds-color-text);
 }
@@ -16,7 +24,7 @@
   width: 100%;
   min-height: var(--ds-control-height-md);
   border: var(--ds-border-subtle);
-  border-radius: var(--ui-input-radius, var(--ds-radius-md));
+  border-radius: var(--ui-input-radius, var(--ds-radius-control));
   background: var(--ds-color-surface);
   color: var(--ds-color-text);
   font: 400 0.92rem / 1.35 var(--ds-font-body);
@@ -34,9 +42,10 @@
 @mixin ui-label {
   color: var(--ds-color-text-soft);
   font-family: var(--ds-font-ui);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 @mixin ui-hover-lift($distance: -1px) {
@@ -79,4 +88,10 @@
   @media (max-width: 1024px) {
     @content;
   }
+}
+
+@mixin ui-responsive-grid($min: 16rem, $gap: var(--ds-space-4)) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, #{$min}), 1fr));
+  gap: $gap;
 }

@@ -1,13 +1,22 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
 import Navbar from "@/app/components/dashboard/navbar/DashboardNavbar";
 import "@/app/styles/abstracts/_dashboards.scss";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const syncSidebar = () => setIsSidebarOpen(desktopQuery.matches);
+
+    syncSidebar();
+    desktopQuery.addEventListener("change", syncSidebar);
+    return () => desktopQuery.removeEventListener("change", syncSidebar);
+  }, []);
 
   return (
     <div className="dashboard-root">

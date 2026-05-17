@@ -15,8 +15,10 @@ import {
   Send,
   ShieldCheck,
   Users,
+  X,
 } from "lucide-react";
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import { formatDateValue } from "@/app/utils/formatters";
 import styles from "./OwnerTravelerMissionsPage.module.scss";
 import { isAcceptedMissionPartner, isUuidLike } from "../missionPartnerUtils";
@@ -78,6 +80,22 @@ type TravelerMissionForm = {
   issueFlag: string;
 };
 
+type ParsedStay = {
+  id: string;
+  raw: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  adults: string;
+  children: string;
+  hasBaby: string;
+  arrivalDate: string;
+  departureDate: string;
+  issueFlag: string;
+  note: string;
+};
+
 const initialForm: TravelerMissionForm = {
   firstName: "",
   lastName: "",
@@ -123,10 +141,167 @@ const statusOptions = [
   { value: "canceled", label: "Annulé" },
 ];
 
+const monthNumbers: Record<string, number> = {
+  janvier: 1,
+  fevrier: 2,
+  février: 2,
+  mars: 3,
+  avril: 4,
+  mai: 5,
+  juin: 6,
+  juillet: 7,
+  aout: 8,
+  août: 8,
+  septembre: 9,
+  octobre: 10,
+  novembre: 11,
+  decembre: 12,
+  décembre: 12,
+};
+
 function buildDateTime(date: string, time: string) {
   if (!date) return null;
   const parsed = new Date(`${date}T${time || "00:00"}`);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function toIsoDate(day: string, month: string | undefined, year = new Date().getFullYear()) {
+  if (!month) return "";
+  const normalizedMonth = month.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  const monthNumber = monthNumbers[normalizedMonth] ?? monthNumbers[month.toLowerCase()];
+  if (!monthNumber) return "";
+  return `${year}-${String(monthNumber).padStart(2, "0")}-${String(Number(day)).padStart(2, "0")}`;
+}
+
+function splitGuestName(value: string) {
+  const cleaned = value
+    .replace(/\s+[–-]\s+.*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const parts = cleaned.split(" ").filter(Boolean);
+  return {
+    firstName: parts[0] ?? "",
+    lastName: parts.slice(1).join(" "),
+    note: value.includes("–") || value.includes("-") ? value.replace(cleaned, "").replace(/^[\s–-]+/, "").trim() : "",
+  };
+}
+
+function parseDateRange(block: string) {
+  const monthPattern =
+    "janvier|fevrier|février|mars|avril|mai|juin|juillet|aout|août|septembre|octobre|novembre|decembre|décembre";
+  const rangeRegex = new RegExp(
+    `(\\d{1,2})\\s*(${monthPattern})?\\s*(?:→|->|jusqu.?au|au|-)\\s*(\\d{1,2})\\s*(${monthPattern})`,
+    "i",
+  );
+  const rangeMatch = block.match(rangeRegex);
+  if (rangeMatch) {
+    const [, startDay, startMonthRaw, endDay, endMonthRaw] = rangeMatch;
+    const startMonth = startMonthRaw || endMonthRaw;
+    return {
+      arrivalDate: toIsoDate(startDay, startMonth),
+      departureDate: toIsoDate(endDay, endMonthRaw),
+    };
+  }
+
+  const untilRegex = new RegExp(`jusqu.?au\\s*(\\d{1,2})\\s*(${monthPattern})`, "i");
+  const untilMatch = block.match(untilRegex);
+  if (untilMatch) {
+    return {
+      arrivalDate: "",
+      departureDate: toIsoDate(untilMatch[1], untilMatch[2]),
+    };
+  }
+
+  return { arrivalDate: "", departureDate: "" };
+}
+
+function parseGuestCounts(block: string) {
+  const adultsMatch = block.match(/(\d+)\s*adult/i);
+  const childrenMatch = block.match(/(\d+)\s*enfant/i);
+  const babyMatch = block.match(/(\d+)?\s*b[ée]b[ée]/i);
+  const totalMatch = block.match(/(\d+)\s*(?:personnes?|voyageurs?)/i);
+  const children = childrenMatch ? Number(childrenMatch[1]) : 0;
+  const baby = Boolean(babyMatch);
+  const adults = adultsMatch
+    ? Number(adultsMatch[1])
+    : totalMatch
+      ? Math.max(Number(totalMatch[1]) - children, 0)
+      : 2;
+
+  return {
+    adults: String(adults),
+    children: String(children),
+    hasBaby: baby ? "yes" : "no",
+  };
+}
+
+function isPlanningIntro(line: string) {
+  return /^(saison|planning|airbnb|booking|séjours?)/i.test(line);
+}
+
+function hasStayDetails(line: string) {
+  return (
+    /^\d/.test(line) ||
+    /(?:personnes?|voyageurs?|adultes?|enfants?|bébés?|jusqu.?au|arriv|départ)/i.test(line) ||
+    /(?:\+?\d[\d\s().-]{7,}\d)/.test(line) ||
+    /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(line)
+  );
+}
+
+function isLikelyGuestHeading(line: string) {
+  return line.length <= 80 && /[A-Za-zÀ-ÿ]/.test(line) && !hasStayDetails(line);
+}
+
+function splitPlanningIntoStayBlocks(value: string) {
+  const lines = value
+    .split(/\r?\n/g)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !isPlanningIntro(line));
+
+  const blocks: string[] = [];
+  let current: string[] = [];
+
+  for (const line of lines) {
+    if (isLikelyGuestHeading(line)) {
+      if (current.length) blocks.push(current.join("\n"));
+      current = [line];
+      continue;
+    }
+
+    if (!current.length) current = [`Voyageur ${blocks.length + 1}`];
+    current.push(line);
+  }
+
+  if (current.length) blocks.push(current.join("\n"));
+  return blocks;
+}
+
+function parsePlanningText(value: string): ParsedStay[] {
+  return splitPlanningIntoStayBlocks(value)
+    .map((block, index) => {
+      const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+      const nameLine = lines[0] ?? `Voyageur ${index + 1}`;
+      const { firstName, lastName, note } = splitGuestName(nameLine);
+      const phone = block.match(/(?:\+?\d[\d\s().-]{7,}\d)/)?.[0]?.trim() ?? "";
+      const email = block.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] ?? "";
+      const dates = parseDateRange(block);
+      const counts = parseGuestCounts(block);
+      const issueFlag = /defaill|défaill|incident|urgent/i.test(block) ? "watch" : "none";
+
+      return {
+        id: `${index}-${nameLine}`,
+        raw: block,
+        firstName,
+        lastName,
+        phone,
+        email,
+        ...counts,
+        ...dates,
+        issueFlag,
+        note,
+      };
+    });
 }
 
 function getMetadataString(mission: MissionRow, key: string) {
@@ -163,6 +338,96 @@ function getTravelerName(mission: MissionRow) {
   );
 }
 
+function getMissionConciergeName(partners: PartnerRequestRow[], mission: MissionRow) {
+  const conciergeId = getMetadataString(mission, "concierge_profile_id");
+  const partner = partners.find((item) => item.selected_concierge_profile_id === conciergeId);
+  return partner?.selected_concierge_name || "Conciergerie concernée";
+}
+
+function getSelectedConciergeName(partners: PartnerRequestRow[], conciergeProfileId: string) {
+  const partner = partners.find((item) => item.selected_concierge_profile_id === conciergeProfileId);
+  return partner?.selected_concierge_name || "la conciergerie sélectionnée";
+}
+
+function getMissionStatusLabel(mission: MissionRow) {
+  if (mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent") return "Urgent";
+  return statusOptions.find((item) => item.value === (mission.status || "assigned"))?.label || "Assignée";
+}
+
+function getMissionCardTone(mission: MissionRow): ServiceRequestCardTone {
+  if (mission.status === "completed") return "accepted";
+  if (mission.status === "canceled") return "expired";
+  if (mission.status === "in_progress") return "discussion";
+  if (mission.status === "accepted") return "viewed";
+  if (mission.status === "draft") return "draft";
+  return "sent";
+}
+
+function getMissionCurrentDetail(mission: MissionRow) {
+  const status = mission.status || "assigned";
+  if (status === "completed") return "Mission terminée";
+  if (status === "in_progress") return "Mission en cours sur le terrain";
+  if (status === "accepted") return "Mission acceptée par la conciergerie";
+  if (status === "draft") return "Mission à compléter";
+  return "Mission proposée à la conciergerie";
+}
+
+function getMissionGuidance(mission: MissionRow) {
+  const status = mission.status || "assigned";
+  if (status === "completed") return "Le séjour est archivé avec ses informations voyageur.";
+  if (status === "in_progress") return "Suivez l'exécution depuis le détail de mission ou le planning.";
+  if (status === "accepted") return "La conciergerie peut préparer l'accueil, le ménage et les actions prévues.";
+  return "La mission est visible dans l'espace de la conciergerie concernée et dans votre planning propriétaire.";
+}
+
+function getMissionMilestones(mission: MissionRow): ServiceRequestMilestone[] {
+  const status = mission.status || "assigned";
+  const accepted = ["accepted", "in_progress", "completed"].includes(status);
+  const running = ["in_progress", "completed"].includes(status);
+  const completed = status === "completed";
+
+  return [
+    { label: "Transmise", detail: "Mission envoyée", state: "done", Icon: Send },
+    { label: "Acceptation", detail: "Validation concierge", state: accepted ? "done" : "active", Icon: ShieldCheck },
+    { label: "Terrain", detail: "Exécution séjour", state: completed ? "done" : running ? "active" : "todo", Icon: Home },
+  ];
+}
+
+function getMissionFacts(mission: MissionRow, housing: HousingRow[]): ServiceRequestFact[] {
+  const phone = getMetadataString(mission, "guest_phone");
+  const email = getMetadataString(mission, "guest_email");
+  const facts: ServiceRequestFact[] = [
+    { label: "Logement", value: getPropertyLabel(housing, getMissionHousingId(mission)), Icon: Home },
+    {
+      label: "Arrivée",
+      value: formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }),
+      Icon: CalendarClock,
+    },
+    { label: "Voyageurs", value: `${getGuestCount(mission)} voyageur(s)`, Icon: Users },
+    { label: "Contact", value: phone || email || "-", Icon: phone ? Phone : Mail },
+  ];
+
+  if (mission.description) {
+    facts.push({ label: "Consignes", value: "Notes transmises", Icon: MessageSquareText });
+  }
+
+  return facts.slice(0, 4);
+}
+
+function getMissionHeaderImage(mission: MissionRow) {
+  const actions = Array.isArray(mission.metadata?.requested_actions)
+    ? (mission.metadata?.requested_actions as string[]).join(" ")
+    : "";
+  const content = `${actions} ${mission.title ?? ""} ${mission.description ?? ""}`.toLowerCase();
+
+  if (content.includes("linen") || content.includes("linge")) return "/images/carousel/planetls-card-header-linge.png";
+  if (content.includes("maintenance")) return "/images/carousel/planetls-card-header-maintenance.png";
+  if (content.includes("welcome") || content.includes("checkin") || content.includes("check-in")) {
+    return "/images/carousel/planetls-card-header-accueil.png";
+  }
+  return "/images/carousel/planetls-private-voyageurs.png";
+}
+
 function buildTitle(form: TravelerMissionForm) {
   const name = [form.firstName, form.lastName].filter(Boolean).join(" ").trim() || "voyageurs";
   return `Séjour ${name}`;
@@ -177,6 +442,129 @@ function buildResetForm(current: TravelerMissionForm): TravelerMissionForm {
   };
 }
 
+function buildMissionPayload(form: TravelerMissionForm) {
+  return {
+    concierge_profile_id: form.conciergeProfileId,
+    property_id: isUuidLike(form.propertyId) ? form.propertyId : null,
+    title: buildTitle(form),
+    description: form.notes.trim() || null,
+    status: "assigned",
+    priority: form.issueFlag === "urgent" ? "urgent" : form.priority,
+    scheduled_start: buildDateTime(form.arrivalDate, form.arrivalTime),
+    scheduled_end: buildDateTime(form.departureDate, form.departureTime),
+    metadata: {
+      mission_kind: "traveler_stay",
+      housing_id: form.propertyId || null,
+      concierge_profile_id: form.conciergeProfileId,
+      guest_first_name: form.firstName.trim(),
+      guest_last_name: form.lastName.trim(),
+      guest_phone: form.phone.trim(),
+      guest_email: form.email.trim(),
+      guest_adults: Number(form.adults || 0),
+      guest_children: Number(form.children || 0),
+      guest_baby: form.hasBaby === "yes",
+      guest_language: form.language,
+      arrival_date: form.arrivalDate,
+      departure_date: form.departureDate,
+      arrival_time: form.arrivalTime,
+      departure_time: form.departureTime,
+      booking_platform: form.bookingPlatform,
+      booking_code: form.bookingCode.trim(),
+      requested_actions: form.actions,
+      special_welcome: form.specialWelcome.trim(),
+      internal_notes: form.internalNotes.trim(),
+      issue_flag: form.issueFlag,
+      notification_reason: "new_traveler_mission",
+      assignment_flow: "owner_proposed_to_concierge",
+      visible_in_owner_space: true,
+      visible_in_owner_planning: true,
+      visible_in_concierge_workspace: true,
+      created_from: "owner_traveler_mission",
+    },
+  };
+}
+
+function parsedStayToForm(stay: ParsedStay, current: TravelerMissionForm): TravelerMissionForm {
+  return {
+    ...initialForm,
+    propertyId: current.propertyId,
+    conciergeProfileId: current.conciergeProfileId,
+    bookingPlatform: current.bookingPlatform,
+    firstName: stay.firstName,
+    lastName: stay.lastName,
+    phone: stay.phone,
+    email: stay.email,
+    adults: stay.adults,
+    children: stay.children,
+    hasBaby: stay.hasBaby,
+    arrivalDate: stay.arrivalDate,
+    departureDate: stay.departureDate,
+    issueFlag: stay.issueFlag,
+    notes: stay.raw,
+    internalNotes: stay.note,
+  };
+}
+
+function TravelerMissionCard({
+  mission,
+  housing,
+  partners,
+  onDuplicate,
+}: {
+  mission: MissionRow;
+  housing: HousingRow[];
+  partners: PartnerRequestRow[];
+  onDuplicate: (mission: MissionRow) => void;
+}) {
+  const actionValues = Array.isArray(mission.metadata?.requested_actions)
+    ? (mission.metadata?.requested_actions as string[])
+    : [];
+  const conciergeName = getMissionConciergeName(partners, mission);
+  const platform = getMetadataString(mission, "booking_platform") || "Séjour";
+  const isUrgent = mission.priority === "urgent" || mission.metadata?.issue_flag === "urgent";
+
+  return (
+    <ServiceRequestCard
+      title={getTravelerName(mission)}
+      eyebrow={platform}
+      actorName={conciergeName}
+      actorDetail={`Proposée à ${conciergeName}`}
+      statusLabel={getMissionStatusLabel(mission)}
+      statusTone={getMissionCardTone(mission)}
+      typeLabel="Mission voyageur"
+      urgent={isUrgent}
+      summary={mission.description || "Informations voyageur transmises à la conciergerie."}
+      currentStepDetail={getMissionCurrentDetail(mission)}
+      guidance={getMissionGuidance(mission)}
+      headerImage={getMissionHeaderImage(mission)}
+      facts={getMissionFacts(mission, housing)}
+      milestones={getMissionMilestones(mission)}
+      chips={
+        <>
+          <span className={styles.serviceChip}>{platform}</span>
+          {actionValues.slice(0, 3).map((action) => (
+            <span key={`${mission.id}-${action}`} className={styles.serviceChip}>
+              {actionOptions.find((item) => item.value === action)?.label || action}
+            </span>
+          ))}
+          {actionValues.length > 3 ? <span className={styles.serviceChip}>+{actionValues.length - 3}</span> : null}
+        </>
+      }
+      actions={
+        <>
+          <button type="button" className={styles.buttonSecondary} onClick={() => onDuplicate(mission)}>
+            <Copy size={15} aria-hidden="true" />
+            Dupliquer
+          </button>
+          <ButtonLink href={`/dashboard/owner/missions/${mission.id}`} variant="secondary" size="sm">
+            Ouvrir
+          </ButtonLink>
+        </>
+      }
+    />
+  );
+}
+
 export default function OwnerTravelerMissionsPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [housing, setHousing] = useState<HousingRow[]>([]);
@@ -185,8 +573,17 @@ export default function OwnerTravelerMissionsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [bulkCreating, setBulkCreating] = useState(false);
+  const [isMissionModalOpen, setMissionModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [planningText, setPlanningText] = useState("");
+
+  const parsedStays = useMemo(() => parsePlanningText(planningText), [planningText]);
+  const validParsedStays = useMemo(
+    () => parsedStays.filter((stay) => stay.firstName && stay.arrivalDate && stay.departureDate),
+    [parsedStays],
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -300,7 +697,63 @@ export default function OwnerTravelerMissionsPage() {
       internalNotes: getMetadataString(mission, "internal_notes"),
       issueFlag: getMetadataString(mission, "issue_flag") || "none",
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setMissionModalOpen(true);
+  }
+
+  function fillFormFromStay(stay: ParsedStay) {
+    setForm((current) => parsedStayToForm(stay, current));
+    setMissionModalOpen(true);
+    setError(null);
+    setSuccess("Séjour chargé dans le formulaire. Relisez puis créez la mission.");
+    window.requestAnimationFrame(() => {
+      document.getElementById("mission-voyageur-formulaire")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  async function createMissionFromForm(input: TravelerMissionForm) {
+    const response = await fetch("/api/missions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildMissionPayload(input)),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload?.error || "Impossible de créer la mission voyageur.");
+    return payload;
+  }
+
+  async function createParsedMissions() {
+    setError(null);
+    setSuccess(null);
+
+    if (validParsedStays.length === 0) {
+      setError("Aucun séjour complet détecté. Il faut au minimum un nom, une date d'arrivée et une date de départ.");
+      return;
+    }
+    if (partners.length === 0) {
+      setError("Aucune conciergerie partenaire acceptée n'est disponible.");
+      return;
+    }
+    if (!isUuidLike(form.conciergeProfileId)) {
+      setError("Sélectionnez la conciergerie concernée avant de créer les missions.");
+      return;
+    }
+
+    try {
+      setBulkCreating(true);
+      for (const stay of validParsedStays) {
+        await createMissionFromForm(parsedStayToForm(stay, form));
+      }
+      setSuccess(
+        `${validParsedStays.length} mission(s) voyageur créée(s) pour ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elles apparaissent côté concierge et dans votre planning.`,
+      );
+      setPlanningText("");
+      setMissionModalOpen(false);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Impossible de créer les missions depuis le planning.");
+    } finally {
+      setBulkCreating(false);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -327,49 +780,13 @@ export default function OwnerTravelerMissionsPage() {
 
     try {
       setSubmitting(true);
-      const response = await fetch("/api/missions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          concierge_profile_id: form.conciergeProfileId,
-          property_id: isUuidLike(form.propertyId) ? form.propertyId : null,
-          title: buildTitle(form),
-          description: form.notes.trim() || null,
-          status: "assigned",
-          priority: form.issueFlag === "urgent" ? "urgent" : form.priority,
-          scheduled_start: buildDateTime(form.arrivalDate, form.arrivalTime),
-          scheduled_end: buildDateTime(form.departureDate, form.departureTime),
-          metadata: {
-            mission_kind: "traveler_stay",
-            housing_id: form.propertyId || null,
-            concierge_profile_id: form.conciergeProfileId,
-            guest_first_name: form.firstName.trim(),
-            guest_last_name: form.lastName.trim(),
-            guest_phone: form.phone.trim(),
-            guest_email: form.email.trim(),
-            guest_adults: Number(form.adults || 0),
-            guest_children: Number(form.children || 0),
-            guest_baby: form.hasBaby === "yes",
-            guest_language: form.language,
-            arrival_date: form.arrivalDate,
-            departure_date: form.departureDate,
-            arrival_time: form.arrivalTime,
-            departure_time: form.departureTime,
-            booking_platform: form.bookingPlatform,
-            booking_code: form.bookingCode.trim(),
-            requested_actions: form.actions,
-            special_welcome: form.specialWelcome.trim(),
-            internal_notes: form.internalNotes.trim(),
-            issue_flag: form.issueFlag,
-            notification_reason: "new_traveler_mission",
-          },
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || "Impossible de créer la mission voyageur.");
+      await createMissionFromForm(form);
 
-      setSuccess("Mission voyageur créée. Vous pouvez saisir un nouveau séjour.");
+      setSuccess(
+        `Mission voyageur créée pour ${getSelectedConciergeName(partners, form.conciergeProfileId)}. Elle est disponible côté concierge et dans votre planning.`,
+      );
       setForm((current) => buildResetForm(current));
+      setMissionModalOpen(false);
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer la mission voyageur.");
@@ -389,9 +806,9 @@ export default function OwnerTravelerMissionsPage() {
             un espace clair, séparé des demandes commerciales.
           </p>
           <div className={styles.heroActions}>
-            <a href="#nouvelle-mission-voyageur" className={styles.primaryLink}>
-              <Plus size={16} aria-hidden="true" /> Nouveau séjour
-            </a>
+            <button type="button" className={styles.primaryLink} onClick={() => setMissionModalOpen(true)}>
+              <Plus size={16} aria-hidden="true" /> Nouvelle mission
+            </button>
             <ButtonLink href="/dashboard/owner/planning" variant="secondary">
               <CalendarClock size={16} aria-hidden="true" /> Planning
             </ButtonLink>
@@ -425,7 +842,39 @@ export default function OwnerTravelerMissionsPage() {
         ))}
       </section>
 
-      <section id="nouvelle-mission-voyageur" className={styles.creationPanel}>
+      <section id="nouvelle-mission-voyageur" className={styles.creationLauncher}>
+        <div>
+          <p className={styles.eyebrow}>Création mission</p>
+          <h2>Proposer un séjour à la conciergerie concernée</h2>
+          <p className={styles.meta}>
+            Créez une mission unique ou collez un planning Booking / Airbnb. La mission est enregistrée côté propriétaire, côté concierge et dans le planning.
+          </p>
+        </div>
+        <Button type="button" onClick={() => setMissionModalOpen(true)}>
+          <Plus size={16} aria-hidden="true" />
+          Créer une mission
+        </Button>
+      </section>
+
+      {isMissionModalOpen ? (
+        <div className={styles.modalOverlay} role="presentation" onMouseDown={() => setMissionModalOpen(false)}>
+          <section
+            className={styles.missionModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mission-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div>
+                <p className={styles.eyebrow}>Mission voyageur</p>
+                <h2 id="mission-modal-title">Créer une mission</h2>
+              </div>
+              <button type="button" className={styles.iconButton} onClick={() => setMissionModalOpen(false)} aria-label="Fermer">
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
+
         <div className={styles.travelerMissionPage}>
 
         <section className={styles.travelerMissionHero}>
@@ -443,8 +892,57 @@ export default function OwnerTravelerMissionsPage() {
           </div>
         </section>
 
+        <section className={styles.planningImportPanel}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <p className={styles.eyebrow}>Planning Airbnb / Booking</p>
+              <h2>Coller les informations reçues</h2>
+              <p className={styles.meta}>
+                Collez un message comme celui envoyé à votre concierge. Les séjours complets peuvent être créés en une fois.
+              </p>
+            </div>
+            <Button type="button" disabled={bulkCreating || validParsedStays.length === 0} onClick={createParsedMissions}>
+              <Send size={16} aria-hidden="true" />
+              {bulkCreating ? "Création..." : `Créer ${validParsedStays.length || ""} mission(s)`}
+            </Button>
+          </div>
+          <div className={styles.planningImportGrid}>
+            <label className={styles.label}>
+              Message reçu
+              <Textarea
+                rows={9}
+                value={planningText}
+                onChange={(event) => setPlanningText(event.target.value)}
+                placeholder={`Isabelle\n\n4 mai → 23 juin\n4 personnes\n\nTimo\n\n25 juillet → 4 août\n3 voyageurs (2 adultes + 1 enfant)\n07 ...\nemail@exemple.com`}
+              />
+            </label>
+            <div className={styles.parsedStayList}>
+              {parsedStays.length === 0 ? (
+                <p className={styles.meta}>Les séjours détectés apparaîtront ici.</p>
+              ) : null}
+              {parsedStays.map((stay) => {
+                const isComplete = Boolean(stay.firstName && stay.arrivalDate && stay.departureDate);
+                return (
+                  <article key={stay.id} className={isComplete ? styles.parsedStayCard : styles.parsedStayCardMuted}>
+                    <div>
+                      <strong>{[stay.firstName, stay.lastName].filter(Boolean).join(" ") || "Nom à compléter"}</strong>
+                      <span>{stay.arrivalDate || "Arrivée manquante"} → {stay.departureDate || "Départ manquant"}</span>
+                      <span>{Number(stay.adults || 0) + Number(stay.children || 0) + (stay.hasBaby === "yes" ? 1 : 0)} voyageur(s)</span>
+                      {stay.phone ? <span>{stay.phone}</span> : null}
+                      {stay.email ? <span>{stay.email}</span> : null}
+                    </div>
+                    <button type="button" className={styles.buttonSecondary} onClick={() => fillFormFromStay(stay)}>
+                      Compléter
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         <div className={styles.travelerMissionLayout}>
-          <form className={styles.travelerMissionForm} onSubmit={handleSubmit}>
+          <form id="mission-voyageur-formulaire" className={styles.travelerMissionForm} onSubmit={handleSubmit}>
             <section className={styles.travelerFormSection}>
               <div className={styles.sectionHeading}>
                 <div>
@@ -624,6 +1122,10 @@ export default function OwnerTravelerMissionsPage() {
             </div>
           </aside>
         </div>
+        </div>
+          </section>
+        </div>
+      ) : null}
 
         <section className={styles.travelerMissionListSection}>
           <div className={styles.sectionHeading}>
@@ -681,8 +1183,6 @@ export default function OwnerTravelerMissionsPage() {
             ))}
           </div>
         </section>
-        </div>
-      </section>
     </div>
   );
 }

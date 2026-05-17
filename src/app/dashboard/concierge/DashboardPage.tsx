@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Bell,
   BriefcaseBusiness,
   CalendarClock,
   Clock,
@@ -20,6 +19,7 @@ import {
   Settings2,
   SlidersHorizontal,
   Sparkles,
+  TriangleAlert,
   UserRound,
   WalletCards,
   Wrench,
@@ -31,7 +31,7 @@ import { AsyncState, Badge, Card, CardBody } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue } from "@/app/utils/formatters";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
-import { parseOnboardingDetails } from "@/features/onboarding-assistant";
+import { buildSmartDashboardPlan, parseOnboardingDetails } from "@/features/onboarding-assistant";
 import { useConciergeDashboardData } from "./useConciergeDashboardData";
 import ConciergeWelcomeNextStep from "./ConciergeWelcomeNextStep";
 import NextStepsPopup from "./NextStepsPopup";
@@ -108,6 +108,7 @@ export default function DashboardPage() {
     () => parseOnboardingDetails(user?.availability_hours),
     [user?.availability_hours],
   );
+  const smartPlan = useMemo(() => buildSmartDashboardPlan(onboarding), [onboarding]);
 
   const urgentCount = useMemo(
     () => plannedNow.filter((event) => event.type === "reminder").length,
@@ -154,6 +155,18 @@ export default function DashboardPage() {
     window.localStorage.setItem(KPI_STORAGE_KEY, JSON.stringify(next));
   };
 
+  const actionIconById: Record<string, LucideIcon> = {
+    "reply-request": FileText,
+    "configure-zone": MapPinned,
+    "activate-services": PackagePlus,
+    "create-packs": PackagePlus,
+    "define-pricing": SlidersHorizontal,
+    "add-tools": FileText,
+    "invite-owner": Search,
+    "create-offer": PackagePlus,
+    "complete-public-profile": UserRound,
+  };
+
   if (loading || !isAuthenticated) {
     return <DashboardLoadingScreen label="Chargement de votre espace conciergerie..." />;
   }
@@ -187,8 +200,8 @@ export default function DashboardPage() {
               Expert
             </button>
           </div>
-          <Link href="/dashboard/concierge/alertes" className={styles.iconButton} aria-label="Notifications">
-            <Bell size={22} aria-hidden="true" />
+          <Link href="/dashboard/concierge/alertes" className={styles.iconButton} aria-label="Points d'attention">
+            <TriangleAlert size={22} aria-hidden="true" />
             {urgentCount > 0 ? <span className={styles.notificationBadge}>{urgentCount}</span> : null}
           </Link>
         </div>
@@ -338,7 +351,16 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.actionGrid}>
-          <Link href="/dashboard/concierge/logements/create" className={styles.actionCard}>
+          {smartPlan.actions.map((action) => {
+            const Icon = actionIconById[action.id] ?? Sparkles;
+            return (
+              <Link key={action.id} href={action.href} className={styles.actionCard}>
+                <Icon size={32} aria-hidden="true" />
+                <span>{action.title}</span>
+              </Link>
+            );
+          })}
+          {/*
             <PackagePlus size={32} aria-hidden="true" />
             <span>Ajouter un bien</span>
           </Link>
@@ -349,7 +371,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/concierge/pricing" className={styles.actionCard}>
             <SlidersHorizontal size={32} aria-hidden="true" />
             <span>Tarifs</span>
-          </Link>
+          */}
           <button type="button" className={styles.actionCard} onClick={() => setNextStepsOpen(true)}>
             <Settings2 size={32} aria-hidden="true" />
             <span>Prochaines étapes</span>

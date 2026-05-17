@@ -8,14 +8,14 @@
   min-height: var(--ds-control-height-md);
   position: relative;
   isolation: isolate;
-  border-radius: var(--ui-button-radius, var(--ui-radius-pill));
+  border-radius: var(--ui-button-radius, var(--ds-radius-control));
   border: 1px solid transparent;
-  padding: 0.6rem 1rem;
+  padding: 0.62rem 1rem;
   font-family: var(--ds-font-ui);
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
@@ -36,8 +36,8 @@
 }
 
 .primary {
-  background: var(--ds-color-gold);
-  color: #fffdf9;
+  background: linear-gradient(135deg, var(--ds-color-gold), var(--ds-color-gold-strong));
+  color: var(--ds-color-text-inverse);
   box-shadow: var(--ds-shadow-sm);
 }
 
@@ -47,7 +47,7 @@
 }
 
 .secondary {
-  background: var(--ds-color-surface-soft);
+  background: var(--ds-surface-premium, var(--ds-color-surface-soft));
   border-color: var(--ds-color-border);
   color: var(--ds-color-text);
 }
@@ -91,7 +91,7 @@
 }
 
 .dark {
-  background: linear-gradient(135deg, #2b3448, #1b2231);
+  background: linear-gradient(135deg, var(--ds-color-dark-soft), var(--ds-color-dark));
   border-color: color-mix(in srgb, var(--ds-color-gold) 38%, transparent);
   color: #fff8dc;
   box-shadow: var(--ds-shadow-md);

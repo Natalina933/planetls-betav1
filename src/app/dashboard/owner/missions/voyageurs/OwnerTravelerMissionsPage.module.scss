@@ -21,6 +21,7 @@
 .hero,
 .creationPanel,
 .travelerMissionHero,
+.planningImportPanel,
 .travelerMissionForm,
 .travelerMissionAside,
 .travelerMissionListSection,
@@ -46,6 +47,7 @@
 .travelerMissionPage,
 .travelerMissionForm,
 .travelerFormSection,
+.planningImportPanel,
 .travelerMissionAside,
 .travelerSummaryCard,
 .travelerMissionListSection,
@@ -270,6 +272,61 @@
   font-weight: 800;
 }
 
+.planningImportPanel {
+  padding: 1rem;
+}
+
+.planningImportGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 0.72fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.parsedStayList {
+  display: grid;
+  gap: 0.7rem;
+  max-height: 430px;
+  overflow: auto;
+}
+
+.parsedStayCard,
+.parsedStayCardMuted {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.parsedStayCardMuted {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.parsedStayCard div,
+.parsedStayCardMuted div {
+  display: grid;
+  gap: 0.26rem;
+  min-width: 0;
+}
+
+.parsedStayCard strong,
+.parsedStayCardMuted strong {
+  color: var(--traveler-ink);
+}
+
+.parsedStayCard span,
+.parsedStayCardMuted span {
+  color: var(--traveler-muted);
+  font-size: 0.84rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .travelerMissionLayout {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.55fr);
@@ -419,6 +476,7 @@
 :global([data-theme="art-deco"]) .hero,
 :global([data-theme="art-deco"]) .creationPanel,
 :global([data-theme="art-deco"]) .travelerMissionHero,
+:global([data-theme="art-deco"]) .planningImportPanel,
 :global([data-theme="art-deco"]) .travelerMissionForm,
 :global([data-theme="art-deco"]) .travelerMissionAside,
 :global([data-theme="art-deco"]) .travelerMissionListSection,
@@ -429,6 +487,7 @@
 
 :global([data-theme="art-deco"]) .heroContent h1,
 :global([data-theme="art-deco"]) .travelerMissionHero h1,
+:global([data-theme="art-deco"]) .planningImportPanel h2,
 :global([data-theme="art-deco"]) .sectionHeading h2,
 :global([data-theme="art-deco"]) .travelerMissionCard h3 {
   font-family: var(--dash-artdeco-heading-font);
@@ -444,6 +503,7 @@
 @media (max-width: 900px) {
   .hero,
   .travelerMissionHero,
+  .planningImportGrid,
   .travelerMissionLayout {
     grid-template-columns: 1fr;
   }
@@ -464,7 +524,9 @@
 
   .statsGrid,
   .travelerFieldGrid,
-  .travelerMissionFacts {
+  .travelerMissionFacts,
+  .parsedStayCard,
+  .parsedStayCardMuted {
     grid-template-columns: 1fr;
   }
 

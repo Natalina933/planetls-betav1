@@ -19,8 +19,8 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
-import { RequestStatusBadge } from "@/components/ui";
 import { deriveRequestWorkflowStatus } from "@/app/lib/requestStatus";
+import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import styles from "./DemandesPage.module.scss";
 
@@ -52,11 +52,15 @@ type ConciergeRequestRow = {
   mission_id?: string | null;
 };
 
-type RequestFilter = "active" | "quote" | "selected" | "closed";
+type RequestFilter = "new" | "compatible" | "urgent" | "premium" | "quote_draft" | "quote_sent" | "selected" | "closed";
 
 const FILTER_ICONS: Record<RequestFilter, LucideIcon> = {
-  active: ClipboardList,
-  quote: FileText,
+  new: ClipboardList,
+  compatible: BadgeCheck,
+  urgent: Clock,
+  premium: Sparkles,
+  quote_draft: FileText,
+  quote_sent: Send,
   selected: BadgeCheck,
   closed: XCircle,
 };
@@ -98,8 +102,12 @@ function getWorkflow(item: ConciergeRequestRow) {
 function getRequestFilter(item: ConciergeRequestRow): RequestFilter {
   if (item.recipient_status === "declined" || item.recipient_status === "not_selected") return "closed";
   if (item.recipient_status === "selected" || item.mission_id) return "selected";
-  if (item.quote_id || item.recipient_status === "quoted") return "quote";
-  return "active";
+  if (item.quote_status === "draft") return "quote_draft";
+  if (item.quote_id || item.recipient_status === "quoted") return "quote_sent";
+  if (item.urgency) return "urgent";
+  if (item.budget_max && item.budget_max >= 500) return "premium";
+  if (item.recipient_status === "viewed" || item.recipient_status === "interested") return "compatible";
+  return "new";
 }
 
 function getNextStepLabel(item: ConciergeRequestRow) {
@@ -109,14 +117,6 @@ function getNextStepLabel(item: ConciergeRequestRow) {
   if (item.recipient_status === "declined") return "Refusée";
   if (item.recipient_status === "not_selected") return "Non retenue";
   return "Qualifier la demande";
-}
-
-function getNextStepIcon(item: ConciergeRequestRow): LucideIcon {
-  if (item.recipient_status === "selected" || item.mission_id) return CalendarPlus;
-  if (item.recipient_status === "quoted") return Send;
-  if (item.recipient_status === "interested") return FileText;
-  if (item.recipient_status === "declined" || item.recipient_status === "not_selected") return XCircle;
-  return ClipboardList;
 }
 
 function getNextStepDescription(item: ConciergeRequestRow) {
@@ -132,12 +132,78 @@ function getNextStepDescription(item: ConciergeRequestRow) {
   return "Commencez par qualifier la demande ou préparez directement un devis.";
 }
 
+function getRequestHeaderImage(item: ConciergeRequestRow) {
+  const services = (item.requested_services ?? []).join(" ").toLowerCase();
+  const content = `${services} ${item.title ?? ""} ${item.description ?? ""}`.toLowerCase();
+
+  if (content.includes("accueil") || content.includes("check-in") || content.includes("voyageur")) {
+    return "/images/carousel/planetls-card-header-accueil.png";
+  }
+  if (content.includes("linge") || content.includes("blanch")) {
+    return "/images/carousel/planetls-card-header-linge.png";
+  }
+  if (content.includes("maintenance") || content.includes("répar") || content.includes("repar") || content.includes("dépann") || content.includes("depann")) {
+    return "/images/carousel/planetls-card-header-maintenance.png";
+  }
+  if (content.includes("jardin") || content.includes("piscin") || content.includes("extérieur") || content.includes("exterieur")) {
+    return "/images/carousel/planetls-card-header-exterieur.png";
+  }
+  if (content.includes("photo") || content.includes("staging") || content.includes("déco") || content.includes("deco")) {
+    return "/images/carousel/planetls-card-header-photo.png";
+  }
+  return "/images/carousel/planetls-card-header-menage.png";
+}
+
+function getCardTone(item: ConciergeRequestRow): ServiceRequestCardTone {
+  if (item.recipient_status === "declined" || item.recipient_status === "not_selected") return "declined";
+  if (item.recipient_status === "selected" || item.mission_id) return "accepted";
+  if (item.quote_id || item.recipient_status === "quoted" || item.recipient_status === "interested") return "discussion";
+  if (item.recipient_status === "viewed") return "viewed";
+  return "sent";
+}
+
+function getConciergeMilestones(item: ConciergeRequestRow): ServiceRequestMilestone[] {
+  const status = item.recipient_status;
+  const hasQualified = ["viewed", "interested", "quoted", "selected", "declined", "not_selected"].includes(status);
+  const hasQuote = Boolean(item.quote_id) || status === "quoted" || status === "selected" || Boolean(item.mission_id);
+  const hasMission = status === "selected" || Boolean(item.mission_id);
+  const steps = [
+    { label: "Demande", detail: "Demande reçue", done: true, Icon: ClipboardList },
+    { label: "Qualification", detail: hasQualified ? "Demande qualifiée" : "À qualifier", done: hasQualified, Icon: BadgeCheck },
+    { label: "Devis", detail: hasQuote ? "Devis préparé" : "Devis à préparer", done: hasQuote, Icon: FileText },
+    { label: "Mission", detail: hasMission ? "Mission conclue" : "Mission à confirmer", done: hasMission, Icon: CalendarPlus },
+  ];
+  const firstTodoIndex = steps.findIndex((step) => !step.done);
+
+  return steps.map((step, index) => ({
+    ...step,
+    state: (step.done ? "done" : index === firstTodoIndex ? "active" : "todo") as ServiceRequestMilestone["state"],
+  }));
+}
+
+function getConciergeFacts(item: ConciergeRequestRow): ServiceRequestFact[] {
+  const facts: ServiceRequestFact[] = [];
+  const location = [item.city, item.postal_code].filter(Boolean).join(" ");
+  const services = item.requested_services.filter(Boolean).slice(0, 3).join(", ");
+
+  facts.push({ label: "Propriétaire", value: item.owner_name, Icon: Home });
+  if (location) facts.push({ label: "Localisation", value: location, Icon: MapPinned });
+  if (typeof item.budget_max === "number") {
+    facts.push({ label: "Budget", value: formatAmount(item.budget_max, item.currency).replace("Budget indicatif du propriétaire : ", ""), Icon: CircleDollarSign });
+  }
+  if (services) facts.push({ label: "Services", value: services, Icon: Sparkles });
+  if (item.quote_number) facts.push({ label: "Devis", value: item.quote_number, hint: getWorkflow(item), Icon: FileText });
+  if (item.mission_id) facts.push({ label: "Mission", value: "Mission conclue", hint: "Planification disponible", Icon: CalendarPlus });
+
+  return facts.slice(0, 4);
+}
+
 function ConciergeDemandesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const focusedRecipientId = searchParams.get("recipient");
   const [items, setItems] = useState<ConciergeRequestRow[]>([]);
-  const [filter, setFilter] = useState<RequestFilter>("active");
+  const [filter, setFilter] = useState<RequestFilter>("new");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -233,8 +299,12 @@ function ConciergeDemandesContent() {
 
   const filterCounts = useMemo(
     () => ({
-      active: items.filter((item) => getRequestFilter(item) === "active").length,
-      quote: items.filter((item) => getRequestFilter(item) === "quote").length,
+      new: items.filter((item) => getRequestFilter(item) === "new").length,
+      compatible: items.filter((item) => getRequestFilter(item) === "compatible").length,
+      urgent: items.filter((item) => getRequestFilter(item) === "urgent").length,
+      premium: items.filter((item) => getRequestFilter(item) === "premium").length,
+      quote_draft: items.filter((item) => getRequestFilter(item) === "quote_draft").length,
+      quote_sent: items.filter((item) => getRequestFilter(item) === "quote_sent").length,
       selected: items.filter((item) => getRequestFilter(item) === "selected").length,
       closed: items.filter((item) => getRequestFilter(item) === "closed").length,
     }),
@@ -509,10 +579,14 @@ function ConciergeDemandesContent() {
 
         <div className={styles.filterBar} role="tablist" aria-label="Filtrer les demandes">
           {[
-            ["active", "À qualifier", filterCounts.active],
-            ["quote", "Devis", filterCounts.quote],
-            ["selected", "Acceptées", filterCounts.selected],
-            ["closed", "Clôturées", filterCounts.closed],
+            ["new", "Nouvelles", filterCounts.new],
+            ["compatible", "Compatibles", filterCounts.compatible],
+            ["urgent", "Urgentes", filterCounts.urgent],
+            ["premium", "Premium", filterCounts.premium],
+            ["quote_draft", "Devis brouillon", filterCounts.quote_draft],
+            ["quote_sent", "Devis envoyes", filterCounts.quote_sent],
+            ["selected", "Acceptees", filterCounts.selected],
+            ["closed", "Cloturees", filterCounts.closed],
           ].map(([key, label, count]) => {
             const filterKey = key as RequestFilter;
             const Icon = FILTER_ICONS[filterKey];
@@ -533,110 +607,39 @@ function ConciergeDemandesContent() {
         </div>
 
         <div className={styles.list}>
-          {filteredItems.map((item) => {
-            const NextStepIcon = getNextStepIcon(item);
-
-            return (
-              <article
-                key={item.recipient_id}
-                id={`request-${item.recipient_id}`}
-                className={`${styles.card} ${focusedRecipientId === item.recipient_id ? styles.cardFocused : ""}`}
-              >
-              <div className={styles.cardHead}>
-                <div className={styles.cardTitleBlock}>
-                  <p className={styles.ownerName}>{item.owner_name}</p>
-                  <h2>
-                    <Sparkles size={18} aria-hidden="true" />
-                    {item.title}
-                  </h2>
-                  <p className={styles.meta}>
-                    {formatType(item.request_type)} | {item.property_name || item.city || "Logement à préciser"} |{" "}
-                    {formatDate(item.desired_date)}
-                  </p>
-                </div>
-              <div className={styles.badges}>
-                  <RequestStatusBadge
-                    workflowStatus={item.workflow_status}
-                    serviceRequestStatus={item.status}
-                    recipientStatus={item.recipient_status}
-                    quoteStatus={item.quote_status}
-                    missionStatus={item.mission_status}
-                    hasMission={Boolean(item.mission_id)}
-                  />
-                  {item.urgency ? <span className={styles.urgentBadge}>Urgent</span> : null}
-                </div>
-              </div>
-
-              {item.description ? <p className={styles.description}>{item.description}</p> : null}
-
-              <div className={styles.requestBrief} aria-label="Resume professionnel">
-                <div>
-                  <span>Logement</span>
-                  <strong>{item.property_name || "A preciser"}</strong>
-                </div>
-                <div>
-                  <span>Services</span>
-                  <strong>{item.requested_services.length || "A qualifier"}</strong>
-                </div>
-                <div>
-                  <span>Decision</span>
-                  <strong>{getNextStepLabel(item)}</strong>
-                </div>
-              </div>
-
-              <div className={styles.nextStepBox}>
-                <strong>
-                  <NextStepIcon size={16} aria-hidden="true" />
-                  {getNextStepLabel(item)}
-                </strong>
-                <span>{getNextStepDescription(item)}</span>
-              </div>
-
-              {item.recipient_status === "selected" || item.mission_id ? (
-                <div className={styles.partnershipStart}>
-                  <BadgeCheck size={18} aria-hidden="true" />
-                  <div>
-                    <strong>Partenariat actif</strong>
-                    <span>Le proprietaire vous a retenue : les informations logement, la conversation et la planification deviennent le centre de travail.</span>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className={styles.metaGrid}>
-                <span>
-                  <CircleDollarSign size={15} aria-hidden="true" />
-                  {formatAmount(item.budget_max, item.currency)}
-                </span>
-                <span>
-                  <Home size={15} aria-hidden="true" />
-                  {item.property_name || "Logement non renseigné"}
-                </span>
-                <span>
-                  <MapPinned size={15} aria-hidden="true" />
-                  {item.postal_code || item.city || "Zone à préciser"}
-                </span>
-                <span>
-                  <Clock size={15} aria-hidden="true" />
-                  {getWorkflow(item)}
-                </span>
-              </div>
-
-              <div className={styles.tags}>
-                {item.requested_services.length > 0 ? (
-                  item.requested_services.map((service) => (
+          {filteredItems.map((item) => (
+            <ServiceRequestCard
+              key={item.recipient_id}
+              id={`request-${item.recipient_id}`}
+              title={item.title}
+              eyebrow={item.owner_name}
+              actorName={item.owner_name}
+              actorDetail={`${item.property_name || item.city || "Logement ? pr?ciser"} ? ${formatDate(item.desired_date)}`}
+              statusLabel={getNextStepLabel(item)}
+              statusTone={getCardTone(item)}
+              typeLabel={formatType(item.request_type)}
+              urgent={item.urgency}
+              summary={item.description || getNextStepDescription(item)}
+              currentStepDetail={getNextStepLabel(item)}
+              guidance={getNextStepDescription(item)}
+              headerImage={getRequestHeaderImage(item)}
+              facts={getConciergeFacts(item)}
+              milestones={getConciergeMilestones(item)}
+              focused={focusedRecipientId === item.recipient_id}
+              chips={
+                <>
+                  {item.requested_services.slice(0, 3).map((service) => (
                     <span key={`${item.recipient_id}-${service}`} className={styles.tag}>
                       {service}
                     </span>
-                  ))
-                ) : (
-                  <span className={styles.tagMuted}>Services à préciser</span>
-                )}
-              </div>
-
-              <div className={styles.actions}>{renderActions(item)}</div>
-              </article>
-            );
-          })}
+                  ))}
+                  {item.quote_number ? <span className={styles.tag}>{item.quote_number}</span> : null}
+                  {item.recipient_status === "selected" || item.mission_id ? <span className={styles.trustBadge}>Partenariat actif</span> : null}
+                </>
+              }
+              actions={renderActions(item)}
+            />
+          ))}
 
           {!loading && !error && filteredItems.length === 0 ? (
             <p className={styles.emptyState}>Aucune demande dans cette étape pour le moment.</p>

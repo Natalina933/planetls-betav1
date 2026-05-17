@@ -23,6 +23,7 @@ import {
 import { getOwnerCitySuggestions, getOwnerRegionSuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
 import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
+import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import type { RequestFormState } from "@/features/owner-concierges/types";
 
@@ -434,6 +435,7 @@ export default function OwnerConciergesPageClient() {
     <section className="dashboard-grid">
       <div className={styles.page}>
         <ToastContainer newestOnTop position="top-right" />
+        <OwnerJourneyRail activeStep={selectedConciergeIds.length > 0 ? "selection" : "search"} />
         <SearchFilters
           styles={styles}
           filters={filters}

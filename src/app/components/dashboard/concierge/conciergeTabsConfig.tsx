@@ -19,6 +19,17 @@ export type ConciergeTabId =
   | ConciergeVisibleTabId
   | ConciergeHiddenTabId;
 
+export const CONCIERGE_PROFILE_TAB_IDS: ConciergeTabId[] = [
+  "overview",
+  "fiche",
+  "missions",
+  "packs",
+  "tarifs",
+  "devis",
+  "equipe",
+  "documents",
+];
+
 export interface ConciergeTab {
   id: ConciergeVisibleTabId;
   label: string;

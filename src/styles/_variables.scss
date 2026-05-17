@@ -26,6 +26,13 @@
   --ds-color-ivory: #fffdf8;
   --ds-color-sage: #dfe8df;
   --ds-color-clay: #f1e3dc;
+  --ds-color-teal: #3f7f83;
+  --ds-color-teal-soft: #e7f1f0;
+  --ds-color-ink: #1a2530;
+
+  --ds-surface-raised: linear-gradient(180deg, #ffffff 0%, #fbfcfc 100%);
+  --ds-surface-premium: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 250, 0.92));
+  --ds-surface-accent: linear-gradient(135deg, rgba(63, 127, 131, 0.1), rgba(212, 175, 55, 0.08));
 
   --ds-font-heading: var(--font-primary, "Cormorant Garamond", serif);
   --ds-font-ui: var(--font-title, "Montserrat", "Segoe UI", sans-serif);
@@ -39,6 +46,8 @@
   --ds-space-6: 2rem;
   --ds-space-7: 3rem;
   --ds-space-8: 4rem;
+  --ds-space-page: clamp(1rem, 2vw, 2rem);
+  --ds-space-section: clamp(1.25rem, 2.8vw, 2.5rem);
 
   --ds-control-height-sm: 36px;
   --ds-control-height-md: 44px;
@@ -49,10 +58,14 @@
   --ds-radius-lg: 18px;
   --ds-radius-xl: 24px;
   --ds-radius-pill: 999px;
+  --ds-radius-card: 8px;
+  --ds-radius-panel: 8px;
+  --ds-radius-control: 8px;
 
-  --ds-shadow-sm: 0 8px 24px rgba(63, 43, 22, 0.08);
-  --ds-shadow-md: 0 16px 36px rgba(63, 43, 22, 0.12);
-  --ds-shadow-lg: 0 22px 46px rgba(63, 43, 22, 0.16);
+  --ds-shadow-xs: 0 2px 8px rgba(26, 37, 48, 0.05);
+  --ds-shadow-sm: 0 8px 20px rgba(26, 37, 48, 0.07);
+  --ds-shadow-md: 0 16px 34px rgba(26, 37, 48, 0.1);
+  --ds-shadow-lg: 0 22px 46px rgba(26, 37, 48, 0.14);
   --ds-shadow-focus: 0 0 0 3px rgba(184, 135, 70, 0.2);
 
   --ds-motion-fast: 140ms ease;
@@ -94,6 +107,7 @@
   --ui-input-radius: var(--ui-radius-md);
   --ui-select-radius: var(--ui-radius-md);
   --ui-card-radius: var(--ui-radius-lg);
+  --ui-panel-radius: var(--ds-radius-panel);
 
   --ui-shadow-sm: 0 8px 24px rgba(63, 43, 22, 0.08);
   --ui-shadow-md: 0 16px 36px rgba(63, 43, 22, 0.12);
@@ -136,6 +150,7 @@
   --dash-radius-sm: 8px;
   --dash-radius-md: 12px;
   --dash-radius-lg: 18px;
+  --dash-radius-panel: 8px;
 
   --dash-shadow-sm: 0 8px 18px rgba(46, 31, 15, 0.08);
   --dash-shadow-md: 0 16px 28px rgba(46, 31, 15, 0.12);

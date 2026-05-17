@@ -496,6 +496,45 @@
   gap: 1.5rem;
 }
 
+.decisionRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.decisionRail button {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 4.5rem;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
+    linear-gradient(180deg, var(--dash-bg-panel)dfa, #f8ede7);
+  color: var(--dash-text);
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.05);
+}
+
+.decisionRail button:hover {
+  transform: translateY(-1px);
+}
+
+.decisionRail span {
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.decisionRail strong {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
 .conciergeKpiGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1102,6 +1141,7 @@
 
 @media (max-width: 1024px) {
   .conciergeKpiGrid,
+  .decisionRail,
   .conciergeFactRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1134,6 +1174,7 @@
 
 @media (max-width: 640px) {
   .conciergeKpiGrid,
+  .decisionRail,
   .conciergeFactRow {
     grid-template-columns: 1fr;
   }

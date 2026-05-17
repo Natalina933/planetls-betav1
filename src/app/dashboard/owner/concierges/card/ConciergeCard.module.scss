@@ -1,3 +1,18 @@
+.sharedCardShell {
+  min-width: 0;
+}
+
+.sharedCardSelected {
+  outline: 2px solid rgba(47, 74, 95, 0.42);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+.sharedCard {
+  width: 100%;
+  max-width: none;
+}
+
 .card {
   --card-bg: #fffbf6;
   --card-bg-soft: #f7efe5;

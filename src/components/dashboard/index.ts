@@ -5,6 +5,19 @@ export { ActivityFeed } from "./ActivityFeed";
 export { QuickActions } from "./QuickActions";
 export { ProfileSummary } from "./ProfileSummary";
 export { DashboardPanel } from "./DashboardPanel";
+export { DashboardOperationalPage } from "./DashboardOperationalPage";
+export type {
+  DashboardOperationalPageProps,
+  OperationalAction,
+  OperationalCadenceItem,
+  OperationalDetailItem,
+  OperationalDetailSection,
+  OperationalFocus,
+  OperationalMetric,
+  OperationalRisk,
+  OperationalRiskTone,
+  OperationalTone,
+} from "./DashboardOperationalPage";
 export { DashboardLoadingScreen } from "./DashboardLoadingScreen";
 export { DashboardSectionShell } from "./SectionShell";
 export { ReadabilityControls } from "./ReadabilityControls";

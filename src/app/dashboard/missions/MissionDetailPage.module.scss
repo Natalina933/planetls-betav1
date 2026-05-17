@@ -152,6 +152,44 @@
   gap: 0.85rem;
 }
 
+.segmentedControl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.segmentedControl button {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  min-height: 4.25rem;
+  border: 1px solid rgba(32, 25, 18, 0.12);
+  border-radius: 8px;
+  background: #f8f3eb;
+  color: #3b3024;
+  padding: 0.65rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.segmentedControl span {
+  color: #756959;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.segmentedControl strong {
+  color: #201912;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.segmentActive {
+  border-color: rgba(138, 100, 47, 0.5) !important;
+  background: #fff7ed !important;
+  box-shadow: 0 0 0 2px rgba(138, 100, 47, 0.1);
+}
+
 .fullWidth {
   grid-column: 1 / -1;
 }
@@ -206,6 +244,15 @@
   padding: 0.75rem;
 }
 
+.operationalHint {
+  margin: 0.2rem 0 0.75rem;
+  border-left: 3px solid #caa46a;
+  background: #fffaf2;
+  color: #5d5245;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
+}
+
 .proofCard strong {
   display: block;
 }
@@ -249,5 +296,8 @@
   .actions {
     display: grid;
   }
-}
 
+  .segmentedControl {
+    grid-template-columns: 1fr;
+  }
+}

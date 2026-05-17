@@ -2,22 +2,22 @@
 
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
-import { FiTarget } from "react-icons/fi";
-import DashboardCalendar, {
-  DashboardEvent,
-} from "@/app/components/dashboard/calendar/DashboardCalendar";
-import MissionSnapshotShell from "@/app/components/dashboard/concierge/MissionSnapshotShell";
-import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
-import { takeFirst } from "../../shared";
-import { EditableProfileSection } from "../profile/profileTabSections";
 import {
-  isPlanningDone,
-  normalizePlanningStatus,
-  toTimestamp,
-} from "./planningHelpers";
+  CalendarClock,
+  Clock3,
+  Home,
+  KeyRound,
+  MapPinned,
+  Route,
+  TimerReset,
+  TriangleAlert,
+} from "lucide-react";
+import { DashboardOperationalPage, DashboardPanel, type OperationalDetailSection } from "@/components/dashboard";
+import DashboardCalendar, { DashboardEvent } from "@/app/components/dashboard/calendar/DashboardCalendar";
+import { takeFirst } from "../../shared";
+import { isPlanningDone, normalizePlanningStatus, toTimestamp } from "./planningHelpers";
 import OptimizedRoutePlanner from "./OptimizedRoutePlanner";
 import type { Json } from "@/types/supabase";
-import profileStyles from "../profile/ConciergeProfilePage.module.scss";
 import styles from "./page.module.scss";
 
 type MissionRow = {
@@ -49,14 +49,9 @@ function getEndOfToday() {
 
 function getShortTime(value: string | null) {
   if (!value) return "--:--";
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "--:--";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function formatPlanningSummary(missions: MissionRow[]) {
@@ -67,15 +62,13 @@ function formatPlanningSummary(missions: MissionRow[]) {
   const last = withDates[withDates.length - 1];
   const firstDate = new Date(first.scheduled_start as string);
   const lastDate = new Date(last.scheduled_start as string);
-
-  const sameDay = firstDate.toDateString() === lastDate.toDateString();
   const firstLabel = new Intl.DateTimeFormat("fr-FR", {
     weekday: "short",
     day: "2-digit",
     month: "short",
   }).format(firstDate);
 
-  if (sameDay) {
+  if (firstDate.toDateString() === lastDate.toDateString()) {
     return `${firstLabel} ${getShortTime(first.scheduled_start)}-${getShortTime(last.scheduled_start)}`;
   }
 
@@ -84,7 +77,7 @@ function formatPlanningSummary(missions: MissionRow[]) {
     day: "2-digit",
     month: "short",
   }).format(lastDate);
-  return `${firstLabel} -> ${lastLabel}`;
+  return `${firstLabel} → ${lastLabel}`;
 }
 
 function buildWeekBuckets(missions: MissionRow[]) {
@@ -115,6 +108,20 @@ function buildWeekBuckets(missions: MissionRow[]) {
   });
 }
 
+function toDetailItems(items: MissionRow[], fallbackAction: string): OperationalDetailSection["items"] {
+  return items.slice(0, 6).map((mission) => ({
+    title: mission.title || "Mission sans titre",
+    meta: mission.scheduled_start
+      ? `${getShortTime(mission.scheduled_start)} · ${normalizePlanningStatus(mission.status)}`
+      : `À caler · ${normalizePlanningStatus(mission.status)}`,
+    description: mission.description || (mission.priority === "urgent" ? "Intervention urgente à garder proche." : "Mission à suivre dans le planning."),
+    action: {
+      label: fallbackAction,
+      href: `/dashboard/concierge/missions/${mission.id}`,
+    },
+  }));
+}
+
 export default function ConciergePlanningPage() {
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,15 +132,10 @@ export default function ConciergePlanningPage() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("/api/missions?scope=all&limit=80", {
-          cache: "no-store",
-        });
+        const response = await fetch("/api/missions?scope=all&limit=80", { cache: "no-store" });
         const payload = await response.json();
 
-        if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger votre planning.");
-        }
-
+        if (!response.ok) throw new Error(payload?.error || "Impossible de charger votre planning.");
         setMissions(Array.isArray(payload) ? payload : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Impossible de charger votre planning.");
@@ -197,12 +199,22 @@ export default function ConciergePlanningPage() {
     [missions],
   );
 
+  const backlogMissions = useMemo(
+    () => [...overdueMissions, ...takeFirst(unscheduledMissions, 6)].slice(0, 6),
+    [overdueMissions, unscheduledMissions],
+  );
+
+  const occupancyRate = useMemo(() => {
+    const totalTracked = plannedActiveMissions.length + unscheduledMissions.length;
+    if (totalTracked === 0) return 0;
+    return Math.round((plannedActiveMissions.length / totalTracked) * 100);
+  }, [plannedActiveMissions.length, unscheduledMissions.length]);
+
   const visualEvents = useMemo<DashboardEvent[]>(
     () =>
       plannedActiveMissions.map((mission) => {
         const start = new Date(mission.scheduled_start as string);
         const end = new Date(start.getTime() + 90 * 60 * 1000);
-
         return {
           title: mission.title || "Mission sans titre",
           start,
@@ -215,343 +227,174 @@ export default function ConciergePlanningPage() {
 
   const weekBuckets = useMemo(() => buildWeekBuckets(plannedActiveMissions), [plannedActiveMissions]);
   const planningSummary = useMemo(() => formatPlanningSummary(plannedActiveMissions), [plannedActiveMissions]);
-  const todayPrimary = todayMissions[0] ?? null;
-  const nextPrimary = nextMissions[0] ?? null;
-  const backlogMissions = useMemo(
-    () => [...overdueMissions, ...takeFirst(unscheduledMissions, 6)].slice(0, 6),
-    [overdueMissions, unscheduledMissions],
-  );
-  const occupancyRate = useMemo(() => {
-    const totalTracked = plannedActiveMissions.length + unscheduledMissions.length;
-    if (totalTracked === 0) return 0;
-    return Math.round((plannedActiveMissions.length / totalTracked) * 100);
-  }, [plannedActiveMissions.length, unscheduledMissions.length]);
+  const mainPriority = overdueMissions[0] || todayMissions[0] || nextMissions[0] || unscheduledMissions[0] || null;
 
-  const openLink = (href: string) => () => {
-    window.location.href = href;
-  };
-
-  const renderPlanningList = (
-    eyebrow: string,
-    title: string,
-    items: MissionRow[],
-    emptyText: string,
-    actionLabel: string,
-    actionHref: string,
-    tone: "focus" | "warning" | "neutral" = "neutral",
-  ) => (
-    <MissionSnapshotShell
-      styles={profileStyles}
-      eyebrow={eyebrow}
-      title={title}
-      footer={
-        <Link href={actionHref} className={styles.inlineAction}>
-          {actionLabel}
-        </Link>
-      }
-    >
-      {items.length > 0 ? (
-        <div className={styles.priorityList}>
-          {items.slice(0, 4).map((mission) => (
-            <article key={mission.id} className={styles.priorityItem}>
-              <div className={styles.priorityMain}>
-                <Link className={styles.priorityTitle} href={`/dashboard/concierge/missions/${mission.id}`}>
-                  {mission.title || "Mission sans titre"}
-                </Link>
-                <span className={styles.priorityMeta}>
-                  {mission.scheduled_start ? getShortTime(mission.scheduled_start) : "À caler"} ·{" "}
-                  {normalizePlanningStatus(mission.status)}
-                </span>
-              </div>
-              <span
-                className={`${styles.priorityBadge} ${
-                  tone === "focus"
-                    ? styles.priorityBadgeFocus
-                    : tone === "warning"
-                      ? styles.priorityBadgeWarning
-                      : styles.priorityBadgeNeutral
-                }`}
-              >
-                {mission.priority === "urgent"
-                  ? "Urgent"
-                  : mission.scheduled_start
-                    ? "Planifié"
-                    : "À cadrer"}
-              </span>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className={styles.priorityEmpty}>{emptyText}</p>
-      )}
-    </MissionSnapshotShell>
-  );
+  const detailSections: OperationalDetailSection[] = [
+    {
+      id: "jour",
+      title: "À traiter aujourd'hui",
+      description: "Interventions du jour à exécuter ou à surveiller.",
+      emptyText: loading ? "Chargement des interventions du jour." : error || "Aucune intervention prévue aujourd'hui.",
+      items: toDetailItems(todayMissions, "Voir la mission"),
+    },
+    {
+      id: "48h",
+      title: "À confirmer sous 48 h",
+      description: "Missions proches à verrouiller avant l'exécution terrain.",
+      emptyText: loading ? "Chargement des missions à venir." : error || "Aucune mission à confirmer dans les 48 prochaines heures.",
+      items: toDetailItems(nextMissions, "Confirmer"),
+    },
+    {
+      id: "cadrage",
+      title: "Retards et sans date",
+      description: "Missions qui demandent une replanification ou un créneau.",
+      emptyText: loading ? "Analyse des points à cadrer." : error || "Aucun retard ni mission sans date à afficher.",
+      items: toDetailItems(backlogMissions, "Cadrer"),
+    },
+    {
+      id: "urgences",
+      title: "Urgences planning",
+      description: "Missions urgentes à garder visibles dans la tournée.",
+      emptyText: loading ? "Analyse des urgences." : error || "Aucune urgence planning active.",
+      items: toDetailItems(urgentMissions, "Traiter"),
+    },
+  ];
 
   return (
-    <ConciergeWorkspacePage
-      eyebrow="Planning"
-      title="Planning conciergerie"
+    <DashboardOperationalPage
+      tone="concierge"
+      badge="Vue opérationnelle"
+      title="Planning terrain"
       description={
         loading
           ? "Préparation de votre planning..."
-          : error ||
-            "Suivez l'essentiel de votre semaine et ouvrez le calendrier pour ajuster vos créneaux."
+          : error || "Pilotez les interventions du jour, les confirmations proches et les créneaux à cadrer."
       }
-      actions={[
-        { label: "Revenir au tableau de bord", href: "/dashboard/concierge" },
+      primaryActions={[
         { label: "Voir les demandes", href: "/dashboard/concierge/demandes" },
+        { label: "Retour tableau de bord", href: "/dashboard/concierge" },
       ]}
-      showHeroRailLabels={false}
-      metrics={[]}
-      cards={[]}
-      showMetricsIntro={false}
-      showCardsIntro={false}
-      detailSections={[]}
-      showDetailsIntro={false}
+      metrics={[
+        {
+          label: "Aujourd'hui",
+          value: loading ? "..." : String(todayMissions.length),
+          hint: todayMissions[0]?.title || "Interventions du jour",
+          detailSectionId: "jour",
+        },
+        {
+          label: "48 heures",
+          value: loading ? "..." : String(nextMissions.length),
+          hint: "Missions à confirmer",
+          detailSectionId: "48h",
+        },
+        {
+          label: "Sans date",
+          value: loading ? "..." : String(unscheduledMissions.length),
+          hint: "Missions à cadrer",
+          detailSectionId: "cadrage",
+        },
+        {
+          label: "Charge",
+          value: loading ? "..." : `${occupancyRate}%`,
+          hint: "Missions positionnées",
+        },
+      ]}
+      focus={{
+        title: "Point de charge",
+        status: backlogMissions.length > 0 ? "À cadrer" : "Cadré",
+        statusVariant: backlogMissions.length > 0 ? "gold" : "success",
+        icon: <CalendarClock size={28} />,
+        heading: mainPriority ? mainPriority.title || "Mission sans titre" : "Planning sous contrôle",
+        description: mainPriority
+          ? `${mainPriority.scheduled_start ? getShortTime(mainPriority.scheduled_start) : "Créneau à définir"} · ${normalizePlanningStatus(mainPriority.status)}`
+          : "Aucune intervention imminente ou sans date à traiter en priorité.",
+        action: mainPriority ? { label: "Ouvrir la mission", href: `/dashboard/concierge/missions/${mainPriority.id}` } : undefined,
+      }}
+      risks={[
+        {
+          label: "Terrain",
+          value: loading ? "..." : todayMissions.length,
+          hint: "À exécuter aujourd'hui",
+          icon: MapPinned,
+          tone: "info",
+          detailSectionId: "jour",
+        },
+        {
+          label: "Retards",
+          value: loading ? "..." : overdueMissions.length,
+          hint: "Créneaux dépassés",
+          icon: TimerReset,
+          tone: "danger",
+          detailSectionId: "cadrage",
+        },
+        {
+          label: "Urgences",
+          value: loading ? "..." : urgentMissions.length,
+          hint: "Priorité haute",
+          icon: TriangleAlert,
+          tone: "warning",
+          detailSectionId: "urgences",
+        },
+        {
+          label: "Tournée",
+          value: loading ? "..." : plannedActiveMissions.length,
+          hint: planningSummary,
+          icon: Route,
+          tone: "success",
+        },
+      ]}
+      cadenceTitle="Cadence conseillée"
+      cadence={[
+        { label: "Maintenant", icon: Clock3, text: "Traiter les retards, urgences et interventions du jour." },
+        { label: "Avant ce soir", icon: CalendarClock, text: "Confirmer les missions des prochaines 48 heures." },
+        { label: "Cette semaine", icon: Route, text: "Optimiser la tournée et réduire les déplacements inutiles." },
+      ]}
+      detailsBadge="Planning à piloter"
+      detailsTitle="Missions à ouvrir"
+      detailsDescription="Cliquez sur une métrique ou un risque pour afficher uniquement les missions concernées."
+      detailSections={detailSections}
+      illustration={{ mainIcon: Home, topRightIcon: KeyRound, topLeftIcon: CalendarClock }}
     >
-      <div className={`${profileStyles.missionsLayout} ${styles.planningLayout}`}>
-        <section className={`${profileStyles.missionsHero} ${styles.planningHero}`}>
-          <div className={profileStyles.missionsHeroTitle}>
-            <h3 className={styles.planningHeroHeading}>Pilotage du planning</h3>
-            <p className={styles.planningHeroLead}>
-              Même lecture que dans vos missions : priorités du jour, confirmations à venir, puis calendrier.
-            </p>
-          </div>
+      <DashboardPanel title="Optimisation de tournée" className={styles.operationalPanel}>
+        <OptimizedRoutePlanner missions={missions} />
+      </DashboardPanel>
 
-          <div className={`${profileStyles.missionsHeroProgress} ${styles.planningHeroProgress}`}>
-            <div className={`${profileStyles.missionsHeroProgressMeta} ${styles.planningHeroProgressMeta}`}>
-              <span>Charge de la semaine</span>
-              <strong>{loading ? "..." : `${occupancyRate}% planifié`}</strong>
-            </div>
-            <p className={`${profileStyles.missionsHeroProgressHint} ${styles.planningHeroProgressHint}`}>
-              {loading
-                ? "Lecture de votre planning en cours."
-                : error || `${planningSummary} · ${plannedActiveMissions.length} mission(s) positionnée(s)`}
-            </p>
-          </div>
+      <DashboardPanel title="Calendrier terrain" className={styles.operationalPanel}>
+        <div className={styles.calendarSummary}>
+          <span>{loading ? "Préparation de la vue semaine." : `${plannedActiveMissions.length} mission(s) visibles`}</span>
+          <strong>{planningSummary}</strong>
+        </div>
 
-          <div className={profileStyles.missionsHeroStats}>
-            <article className={`${profileStyles.missionStat} ${styles.planningStat}`}>
-              <div className={`${profileStyles.missionStatTop} ${styles.planningStatTop}`}>
-                <span className={`${profileStyles.missionStatLabel} ${styles.planningStatLabel}`}>Aujourd&apos;hui</span>
-                {todayMissions.length > 0 ? <span className={styles.heroBadge}>À exécuter</span> : null}
+        <div className={styles.weekBoard}>
+          {weekBuckets.map((bucket) => (
+            <article key={bucket.key} className={`${styles.weekColumn} ${bucket.isToday ? styles.weekColumnToday : ""}`}>
+              <div className={styles.weekColumnHeader}>
+                <span className={styles.weekLabel}>{bucket.label}</span>
+                <strong className={styles.weekDate}>{bucket.dateLabel}</strong>
               </div>
-              <strong>{loading ? "..." : todayMissions.length}</strong>
-              <span className={styles.heroStatHint}>
-                {todayPrimary?.title || "Aucune intervention prévue"}
-              </span>
+              <div className={styles.weekColumnBody}>
+                {bucket.items.length > 0 ? (
+                  takeFirst(bucket.items, 3).map((mission) => (
+                    <div key={mission.id} className={styles.weekEvent}>
+                      <span className={styles.weekEventTime}>{getShortTime(mission.scheduled_start)}</span>
+                      <div className={styles.weekEventContent}>
+                        <Link className={styles.weekEventTitle} href={`/dashboard/concierge/missions/${mission.id}`}>
+                          {mission.title || "Mission sans titre"}
+                        </Link>
+                        <span className={styles.weekEventMeta}>{normalizePlanningStatus(mission.status)}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className={styles.weekEmpty}>Libre</p>
+                )}
+              </div>
             </article>
+          ))}
+        </div>
 
-            <article className={`${profileStyles.missionStat} ${styles.planningStat}`}>
-              <div className={`${profileStyles.missionStatTop} ${styles.planningStatTop}`}>
-                <span className={`${profileStyles.missionStatLabel} ${styles.planningStatLabel}`}>48 heures</span>
-              </div>
-              <strong>{loading ? "..." : nextMissions.length}</strong>
-              <span className={styles.heroStatHint}>
-                {nextPrimary?.title || "Aucune confirmation urgente"}
-              </span>
-            </article>
-
-            <article className={`${profileStyles.missionStat} ${styles.planningStat}`}>
-              <div className={`${profileStyles.missionStatTop} ${styles.planningStatTop}`}>
-                <span className={`${profileStyles.missionStatLabel} ${styles.planningStatLabel}`}>Sans date</span>
-              </div>
-              <strong>{loading ? "..." : unscheduledMissions.length}</strong>
-              <span className={styles.heroStatHint}>
-                {unscheduledMissions.length > 0 ? "Missions à cadrer" : "Planning bien cadré"}
-              </span>
-            </article>
-
-            <article className={`${profileStyles.missionStat} ${styles.planningStat}`}>
-              <div className={`${profileStyles.missionStatTop} ${styles.planningStatTop}`}>
-                <span className={`${profileStyles.missionStatLabel} ${styles.planningStatLabel}`}>Urgences</span>
-              </div>
-              <strong>{loading ? "..." : urgentMissions.length}</strong>
-              <span className={styles.heroStatHint}>
-                {urgentMissions.length > 0 ? "À garder proches" : "Aucune alerte chaude"}
-              </span>
-            </article>
-          </div>
-
-          <div className={profileStyles.missionsHeroAlerts}>
-            <div className={`${profileStyles.missionsHeroAlertCard} ${styles.planningAlertCard}`}>
-              <strong>Point de charge</strong>
-              <p>
-                {loading
-                  ? "Analyse de votre semaine."
-                  : todayMissions.length > 0
-                    ? `${todayMissions.length} intervention(s) concentrée(s) aujourd'hui.`
-                    : "Aucune intervention imminente. Vous pouvez sécuriser le reste du planning."}
-              </p>
-              <Link href="/dashboard/concierge/planning" className={profileStyles.missionsHeroAlertAction}>
-                Ouvrir le calendrier
-              </Link>
-            </div>
-
-            <div className={`${profileStyles.missionsHeroAlertCard} ${styles.planningAlertCard}`}>
-              <strong>Points à cadrer</strong>
-              <p>
-                {loading
-                  ? "Vérification des zones à arbitrer."
-                  : backlogMissions.length > 0
-                    ? `${backlogMissions.length} mission(s) demandent une replanification ou une date.`
-                    : "Aucun retard ni mission sans date. Le planning reste centré sur l'exécution."}
-              </p>
-              <Link href="/dashboard/concierge/demandes" className={profileStyles.missionsHeroAlertAction}>
-                Voir les demandes
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <EditableProfileSection
-          styles={profileStyles}
-          title="Priorités planning"
-          icon={<FiTarget />}
-          canEdit
-          collapsible={false}
-          isOpen
-          isEditing={false}
-          isDirty={false}
-          isLoading={false}
-          onToggle={() => {}}
-          onHeaderKeyDown={() => {}}
-          onBeginEdit={openLink("/dashboard/concierge/demandes")}
-          onSave={() => {}}
-          onCancel={() => {}}
-        >
-          <div className={styles.priorityGrid}>
-            {renderPlanningList(
-              "Aujourd'hui",
-              "À traiter aujourd'hui",
-              todayMissions,
-              loading ? "Chargement des interventions du jour." : error || "Aucune intervention prévue aujourd'hui.",
-              "Voir le détail",
-              "/dashboard/concierge/planning",
-              "focus",
-            )}
-
-            {renderPlanningList(
-              "48 heures",
-              "À confirmer sous 48 h",
-              nextMissions,
-              loading
-                ? "Chargement des missions à venir."
-                : error || "Aucune mission à confirmer dans les 48 prochaines heures.",
-              "Voir les demandes",
-              "/dashboard/concierge/demandes",
-              "neutral",
-            )}
-
-            {renderPlanningList(
-              "Points à cadrer",
-              "Retards et sans date",
-              backlogMissions,
-              loading
-                ? "Analyse des points à cadrer."
-                : error || "Aucun retard ni mission sans date à afficher.",
-              "Nettoyer le suivi",
-              "/dashboard/concierge/demandes",
-              "warning",
-            )}
-          </div>
-        </EditableProfileSection>
-
-        <EditableProfileSection
-          styles={profileStyles}
-          title="Optimisation de tournée"
-          icon={<FiTarget />}
-          canEdit={false}
-          collapsible={false}
-          isOpen
-          isEditing={false}
-          isDirty={false}
-          isLoading={false}
-          onToggle={() => {}}
-          onHeaderKeyDown={() => {}}
-          onBeginEdit={() => {}}
-          onSave={() => {}}
-          onCancel={() => {}}
-        >
-          <OptimizedRoutePlanner missions={missions} />
-        </EditableProfileSection>
-
-        <EditableProfileSection
-          styles={profileStyles}
-          title="Calendrier terrain"
-          icon={<FiTarget />}
-          canEdit
-          collapsible={false}
-          isOpen
-          isEditing={false}
-          isDirty={false}
-          isLoading={false}
-          onToggle={() => {}}
-          onHeaderKeyDown={() => {}}
-          onBeginEdit={openLink("/dashboard/concierge/planning")}
-          onSave={() => {}}
-          onCancel={() => {}}
-        >
-          <MissionSnapshotShell
-            styles={profileStyles}
-            eyebrow="Semaine en cours"
-            title="Calendrier terrain"
-            footer={
-              <span className={styles.calendarFooter}>
-                {loading
-                  ? "Préparation de la vue semaine."
-                  : plannedActiveMissions.length > 0
-                    ? `${plannedActiveMissions.length} mission(s) visibles dans le calendrier`
-                    : "Aucune intervention planifiée pour le moment"}
-              </span>
-            }
-          >
-            <div className={profileStyles.missionMetaGrid}>
-              <div className={profileStyles.missionMetaItem}>
-                <span>Aujourd&apos;hui</span>
-                <strong>{loading ? "..." : todayMissions.length}</strong>
-              </div>
-              <div className={profileStyles.missionMetaItem}>
-                <span>48 heures</span>
-                <strong>{loading ? "..." : nextMissions.length}</strong>
-              </div>
-            </div>
-
-            <div className={styles.weekBoard}>
-              {weekBuckets.map((bucket) => (
-                <article
-                  key={bucket.key}
-                  className={`${styles.weekColumn} ${bucket.isToday ? styles.weekColumnToday : ""}`}
-                >
-                  <div className={styles.weekColumnHeader}>
-                    <span className={styles.weekLabel}>{bucket.label}</span>
-                    <strong className={styles.weekDate}>{bucket.dateLabel}</strong>
-                  </div>
-                  <div className={styles.weekColumnBody}>
-                    {bucket.items.length > 0 ? (
-                      takeFirst(bucket.items, 3).map((mission) => (
-                        <div key={mission.id} className={styles.weekEvent}>
-                          <span className={styles.weekEventTime}>{getShortTime(mission.scheduled_start)}</span>
-                          <div className={styles.weekEventContent}>
-                            <Link className={styles.weekEventTitle} href={`/dashboard/concierge/missions/${mission.id}`}>
-                              {mission.title || "Mission sans titre"}
-                            </Link>
-                            <span className={styles.weekEventMeta}>{normalizePlanningStatus(mission.status)}</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className={styles.weekEmpty}>Libre</p>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <DashboardCalendar events={visualEvents} title="Calendrier" />
-          </MissionSnapshotShell>
-        </EditableProfileSection>
-      </div>
-    </ConciergeWorkspacePage>
+        <DashboardCalendar events={visualEvents} title="Calendrier" />
+      </DashboardPanel>
+    </DashboardOperationalPage>
   );
 }

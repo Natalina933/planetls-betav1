@@ -4,3 +4,4 @@ export { OwnerQuoteResponseCard } from "./OwnerQuoteResponseCard/OwnerQuoteRespo
 export type { OwnerQuoteResponseCardProps } from "./OwnerQuoteResponseCard/OwnerQuoteResponseCard";
 export { OwnerQuotesComparisonTable } from "./OwnerQuotesComparisonTable/OwnerQuotesComparisonTable";
 export type { OwnerQuotesComparisonTableProps } from "./OwnerQuotesComparisonTable/OwnerQuotesComparisonTable";
+export { OwnerDecisionSummary, OwnerJourneyRail } from "./OwnerJourney";

@@ -13,7 +13,7 @@
 .textarea {
   @include ui-control-shell;
   min-height: 110px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.7rem 0.8rem;
   resize: vertical;
 }
 
@@ -22,7 +22,7 @@
 }
 
 .soft {
-  background: var(--ds-color-surface-soft);
+  background: color-mix(in srgb, var(--ds-color-surface-soft) 72%, white);
 }
 
 .dark {

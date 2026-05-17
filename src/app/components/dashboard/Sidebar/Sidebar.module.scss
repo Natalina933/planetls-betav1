@@ -117,9 +117,9 @@ $admin-accent-soft: #e3e8f2;
     }
 
     @media (max-width: 700px) {
-        width: 100vw;
+        width: min(86vw, 340px);
         border-right: none;
-        box-shadow: none;
+        box-shadow: 18px 0 42px rgba(41, 28, 13, 0.22);
     }
 }
 

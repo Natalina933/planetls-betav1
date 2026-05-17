@@ -253,33 +253,34 @@
 
 @media (max-width: 640px) {
   .dashNavbar {
-    align-items: stretch;
+    position: sticky;
+    top: 0;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    min-height: 58px;
+    padding: 0.45rem 0.65rem;
   }
 
   .leftSection,
   .rightSection {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+  }
+
+  .leftSection {
+    flex: 1 1 auto;
+    gap: 0.5rem;
+    min-width: 0;
   }
 
   .rightSection {
-    gap: 0.7rem;
-    align-items: flex-start;
+    flex: 0 0 auto;
+    gap: 0.42rem;
+    align-items: center;
   }
 
   .rightInfoBlock {
-    display: grid;
-    gap: 0.35rem;
-    flex: 1 1 auto;
-  }
-
-  .greetingBlock {
-    order: 2;
-  }
-
-  .proBadge {
-    order: 1;
-    width: fit-content;
+    display: none;
   }
 
   .userRole {
@@ -287,7 +288,28 @@
   }
 
   .themeSwitcher {
-    order: 3;
+    display: none;
+  }
+
+  .menuButton,
+  .iconButton,
+  .userProfile {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+
+  .titleBlock {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .pageTitle {
+    font-size: 0.96rem;
+  }
+
+  .userNameInline {
+    display: none;
   }
 
   .notificationsPanel {

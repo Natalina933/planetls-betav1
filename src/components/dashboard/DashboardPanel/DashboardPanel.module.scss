@@ -2,8 +2,9 @@
 
 .panel {
   width: 100%;
+  @include ui-panel-shell;
   border-color: var(--dash-border, var(--ds-color-border));
-  background: var(--dash-bg-panel, var(--ds-color-surface));
+  background: var(--dash-bg-panel, var(--ds-surface-premium));
   box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
 }
 
@@ -20,6 +21,8 @@
   font-size: clamp(1rem, 1.4vw, 1.12rem);
   line-height: 1.25;
   letter-spacing: 0;
+  font-family: var(--dash-font-heading, var(--ds-font-ui));
+  font-weight: 800;
 }
 
 .body {

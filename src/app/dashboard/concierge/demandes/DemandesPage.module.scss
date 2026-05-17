@@ -303,6 +303,19 @@ $success: #4a7c59;
   color: $muted;
 }
 
+.trustBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(74, 124, 89, 0.2);
+  border-radius: 999px;
+  background: rgba(74, 124, 89, 0.1);
+  color: $success;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 8px;
+}
+
 /* === ACTIONS === */
 
 .actions {

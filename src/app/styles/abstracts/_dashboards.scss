@@ -72,8 +72,12 @@ $themes: (
   box-shadow: 0 10px 24px var(--color-shadow);
 
   @media (max-width: map.get(var.$breakpoints, sm)) {
-    padding: var.$spacing-md;
-    margin: var.$spacing-md auto;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    box-shadow: none;
   }
 }
 

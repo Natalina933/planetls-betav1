@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SearchBar, StatsCard, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
 import {
+  OwnerJourneyRail,
   OwnerQuoteResponseCard,
   OwnerQuotesComparisonTable,
   OwnerRequestSummaryCard,
@@ -92,6 +93,13 @@ type PropertyGroup = {
   groups: QuoteGroup[];
 };
 
+type AcceptedWorkflowPayload = {
+  accepted_workflow?: {
+    mission_id?: string | null;
+    invoice_id?: string | null;
+  } | null;
+};
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "-";
   const date = new Date(value);
@@ -171,6 +179,19 @@ function formatPackageName(value?: string | null) {
 function getPropertyLabel(request: OwnerServiceRequestRow | null) {
   if (!request) return "Demandes sans logement attribué";
   return request.property_name || request.title || "Logement";
+}
+
+function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
+  const missionReady = Boolean(payload.accepted_workflow?.mission_id);
+  const invoiceReady = Boolean(payload.accepted_workflow?.invoice_id);
+
+  if (missionReady && invoiceReady) {
+    return "Accepté : mission créée dans le planning, devis lié au partenaire et facture brouillon disponible dans les finances.";
+  }
+  if (missionReady) {
+    return "Accepté : mission créée dans le planning et devis lié au partenaire. La facture pourra être générée depuis les finances.";
+  }
+  return "Accepté : la collaboration est validée et les onglets partenaires, demandes et finances sont synchronisés.";
 }
 
 export default function OwnerQuotesPage() {
@@ -342,6 +363,15 @@ function OwnerQuotesContent() {
   );
 
   const propertyCountWithQuotes = useMemo(() => propertyGroups.length, [propertyGroups]);
+  const decisionCounts = useMemo(
+    () => ({
+      toCompare: filteredQuotes.filter((quote) => ["draft", "sent", null].includes(quote.status)).length,
+      accepted: filteredQuotes.filter((quote) => quote.status === "accepted").length,
+      rejected: filteredQuotes.filter((quote) => quote.status === "rejected").length,
+      expired: filteredQuotes.filter((quote) => quote.status === "expired").length,
+    }),
+    [filteredQuotes],
+  );
 
   function exportQuotesCsv() {
     const rows = [
@@ -417,7 +447,7 @@ function OwnerQuotesContent() {
       }
 
       await loadData();
-      setSuccess("Le concierge a été retenu pour cette demande.");
+      setSuccess(getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
     } finally {
@@ -446,7 +476,11 @@ function OwnerQuotesContent() {
       }
 
       await loadData();
-      setSuccess(status === "accepted" ? "Le devis a été accepté." : "Le devis a été refusé.");
+      setSuccess(
+        status === "accepted"
+          ? getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload)
+          : "Refus enregistré : le devis est sorti de la comparaison active et la conciergerie est notifiée.",
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de mettre à jour ce devis.");
     } finally {
@@ -481,6 +515,8 @@ function OwnerQuotesContent() {
       />
 
       <section className={styles.conciergeDashboardFlow}>
+        <OwnerJourneyRail activeStep="quotes" />
+
         <div className={styles.toolbar}>
           <SearchBar
             defaultValue={searchTerm}
@@ -512,6 +548,27 @@ function OwnerQuotesContent() {
             Export CSV
           </button>
         </div>
+
+        {!loading && !error ? (
+          <div className={styles.decisionRail} aria-label="Synthèse de décision des devis">
+            <button type="button" onClick={() => setStatusFilter("all")}>
+              <span>À comparer</span>
+              <strong>{decisionCounts.toCompare}</strong>
+            </button>
+            <button type="button" onClick={() => setStatusFilter("accepted")}>
+              <span>Acceptés</span>
+              <strong>{decisionCounts.accepted}</strong>
+            </button>
+            <button type="button" onClick={() => setStatusFilter("rejected")}>
+              <span>Refusés</span>
+              <strong>{decisionCounts.rejected}</strong>
+            </button>
+            <button type="button" onClick={() => setStatusFilter("expired")}>
+              <span>Expirés</span>
+              <strong>{decisionCounts.expired}</strong>
+            </button>
+          </div>
+        ) : null}
 
         {!loading && !error && groupedQuotes.length > 0 ? (
           <div className={styles.conciergeKpiGrid}>

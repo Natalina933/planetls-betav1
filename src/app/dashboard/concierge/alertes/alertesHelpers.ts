@@ -50,7 +50,7 @@ export function buildUrgentMissionAlerts(urgentMissions: MissionRow[]): AlertIte
     title: mission.title || "Mission urgente",
     meta: mission.status || "Statut non renseigné",
     description: "Intervention prioritaire à confirmer ou traiter rapidement.",
-    href: "/dashboard/concierge/profile?tab=missions",
+    href: "/dashboard/concierge/missions",
     actionLabel: "Traiter la mission",
     tone: "warning",
   }));

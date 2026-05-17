@@ -12,8 +12,8 @@
 
 .select {
   @include ui-control-shell;
-  border-radius: var(--ui-select-radius, var(--ds-radius-md));
-  padding: 0.6rem 0.75rem;
+  border-radius: var(--ui-select-radius, var(--ds-radius-control));
+  padding: 0.62rem 0.8rem;
   cursor: pointer;
 }
 
@@ -22,7 +22,7 @@
 }
 
 .soft {
-  background: var(--ds-color-surface-soft);
+  background: color-mix(in srgb, var(--ds-color-surface-soft) 72%, white);
 }
 
 .dark {
