@@ -99,11 +99,13 @@
 }
 
 .primaryLink {
+  border: 0;
   padding: 0.65rem 0.95rem;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--traveler-accent), var(--traveler-accent-strong));
   color: var(--traveler-panel);
   box-shadow: 0 10px 22px rgba(109, 53, 41, 0.2);
+  cursor: pointer;
 }
 
 .heroSnapshot {
@@ -233,6 +235,79 @@
 
 .creationPanel {
   padding: 1.1rem;
+}
+
+.creationLauncher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--traveler-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--traveler-panel) 90%, white);
+  box-shadow: var(--traveler-shadow);
+}
+
+.creationLauncher h2 {
+  margin: 0.1rem 0 0.25rem;
+  color: var(--traveler-ink);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.modalOverlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(42, 35, 28, 0.48);
+  backdrop-filter: blur(5px);
+}
+
+.missionModal {
+  display: grid;
+  gap: 1rem;
+  width: min(1160px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  padding: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 26px 68px rgba(42, 35, 28, 0.24);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modalHeader h2 {
+  margin: 0.1rem 0 0;
+  color: var(--traveler-ink);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--traveler-ink);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  border-color: rgba(184, 92, 72, 0.34);
+  background: #fbf4ef;
 }
 
 .travelerMissionHero {
@@ -475,6 +550,8 @@
 
 :global([data-theme="art-deco"]) .hero,
 :global([data-theme="art-deco"]) .creationPanel,
+:global([data-theme="art-deco"]) .creationLauncher,
+:global([data-theme="art-deco"]) .missionModal,
 :global([data-theme="art-deco"]) .travelerMissionHero,
 :global([data-theme="art-deco"]) .planningImportPanel,
 :global([data-theme="art-deco"]) .travelerMissionForm,
@@ -531,9 +608,14 @@
   }
 
   .travelerMissionTopline,
+  .creationLauncher,
   .sectionHeading,
   .cardFooter {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .creationLauncher > button {
+    width: 100%;
   }
 }
