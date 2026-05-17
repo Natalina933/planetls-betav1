@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
@@ -159,19 +159,6 @@ const getProfileKey = (category: string): ProfileKey => {
   return "concierge";
 };
 
-const formatProfileLabel = (category: string) => {
-  switch (category) {
-    case "proprietaire":
-      return "Propriétaire";
-    case "concierge":
-      return "Conciergerie";
-    case "artisan":
-      return "Artisan";
-    default:
-      return category;
-  }
-};
-
 export default function AccessPopup({
   selectedOptions,
   initialData,
@@ -321,22 +308,6 @@ export default function AccessPopup({
     }));
   };
 
-  const quickContext = useMemo(
-    () => [
-      { label: "Profil", value: formatProfileLabel(recap.category) },
-      { label: copy.targetLabel, value: recap.searchTarget || "À définir" },
-      { label: "Ville", value: recap.location || "À définir" },
-      {
-        label: "Services",
-        value:
-          selectedOptions.length > 0
-            ? `${selectedOptions.length} sélection${selectedOptions.length > 1 ? "s" : ""}`
-            : "À définir",
-      },
-    ],
-    [copy.targetLabel, recap.category, recap.location, recap.searchTarget, selectedOptions.length]
-  );
-
   const advanceExpressStep = () => {
     if (expressStep === 1 && !form.serviceRadiusKm) {
       setSubmitError("Choisissez un rayon d'intervention pour continuer en express.");
@@ -407,15 +378,6 @@ export default function AccessPopup({
 
         <h2 id={titleId}>{copy.title}</h2>
         <p className={styles.introText}>{copy.intro}</p>
-
-        <section className={styles.contextPanel} aria-label="Contexte rapide">
-          {quickContext.map((item) => (
-            <div key={item.label} className={styles.contextCard}>
-              <strong>{item.label}</strong>
-              <span>{item.value}</span>
-            </div>
-          ))}
-        </section>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           {submitError ? <p className={styles.formAlert}>{submitError}</p> : null}

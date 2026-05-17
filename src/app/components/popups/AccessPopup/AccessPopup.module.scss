@@ -10,6 +10,7 @@
 .popup {
   @include common.container(840px, 1.3rem);
   @include common.mobileBottomSheet(1rem);
+  overflow: hidden;
 
   h2 {
     @include common.title;
@@ -49,52 +50,16 @@
   font-size: 0.95rem;
 }
 
-.contextPanel {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.55rem;
-  margin-bottom: 0.9rem;
-
-  @media (max-width: 760px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: 460px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.contextCard {
-  display: grid;
-  gap: 0.18rem;
-  padding: 0.8rem 0.9rem;
-  border-radius: 14px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-
-  strong {
-    color: #6f4f00;
-    font-size: 0.76rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  span {
-    color: #111827;
-    font-size: 0.92rem;
-    font-weight: 700;
-    line-height: 1.35;
-  }
-}
-
 .form {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
+  padding-bottom: 0.35rem;
   scrollbar-width: thin;
 
   label {
@@ -318,6 +283,17 @@
   border-color: rgba(64, 95, 160, 0.24);
 }
 
+@media (max-width: 600px) {
+  .popup {
+    display: flex;
+    max-height: 100dvh;
+  }
+
+  .form {
+    padding-bottom: calc(0.7rem + env(safe-area-inset-bottom));
+  }
+}
+
 .profilePromise {
   border-color: rgba(64, 120, 87, 0.22);
   background: #ffffff;
@@ -409,25 +385,12 @@
     color: #d5dcef;
   }
 
-  .contextCard,
   .localPromise,
   .expressPromise,
   .businessPromise,
   .profilePromise {
     background: #171c28;
     color: #ffffff;
-  }
-
-  .contextCard {
-    border-color: rgba(240, 205, 103, 0.18);
-
-    strong {
-      color: #ffe9a3;
-    }
-
-    span {
-      color: #ffffff;
-    }
   }
 
   .form label,
@@ -508,46 +471,66 @@
 
 :global(body[data-readability-scale="large"]) {
   .popup {
-    font-size: 1.08rem;
-  }
-
-  .contextCard span,
-  .form label,
-  .form input,
-  .form select,
-  .form textarea {
-    font-size: 1rem;
-  }
-
-  .introText,
-  .localPromise span,
-  .expressPromise span,
-  .businessPromise span,
-  .profilePromise span {
-    font-size: 1.02rem;
-    line-height: 1.5;
-  }
-}
-
-:global(body[data-readability-scale="xlarge"]) {
-  .popup {
     font-size: 1.16rem;
   }
 
-  .contextCard span,
+  .close,
+  .actions button,
+  .modeSwitch button,
+  .checkboxGroup label,
+  .localPromise li,
+  .expressPromise li,
+  .businessPromise li,
+  .profilePromise li,
   .form label,
   .form input,
   .form select,
   .form textarea {
-    font-size: 1.08rem;
+    font-size: 1.12rem;
+    line-height: 1.48;
   }
 
   .introText,
+  .formAlert,
+  .radiusField small,
   .localPromise span,
   .expressPromise span,
   .businessPromise span,
   .profilePromise span {
     font-size: 1.12rem;
+    line-height: 1.6;
+  }
+}
+
+:global(body[data-readability-scale="xlarge"]) {
+  .popup {
+    font-size: 1.32rem;
+  }
+
+  .close,
+  .actions button,
+  .modeSwitch button,
+  .checkboxGroup label,
+  .localPromise li,
+  .expressPromise li,
+  .businessPromise li,
+  .profilePromise li,
+  .form label,
+  .form input,
+  .form select,
+  .form textarea {
+    font-size: 1.24rem;
     line-height: 1.55;
+  }
+
+  .introText,
+  .formAlert,
+  .radiusField small,
+  .localPromise span,
+  .expressPromise span,
+  .businessPromise span,
+  .profilePromise span {
+    font-size: 1.28rem;
+    line-height: 1.68;
   }
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, FileText, PackageCheck, SlidersHorizontal, X } from "lucide-react";
+import { CheckCircle2, FileText, MapPinned, PackageCheck, SlidersHorizontal, UserPlus, X } from "lucide-react";
 import { Button, Card, CardBody, CardHeader } from "@/components/ui";
-import { formatOnboardingChoice, parseOnboardingDetails } from "@/features/onboarding-assistant";
+import { buildSmartDashboardPlan, parseOnboardingDetails } from "@/features/onboarding-assistant";
 import styles from "./NextStepsPopup.module.scss";
 
 export type NextStepAction = {
@@ -30,33 +30,23 @@ const buildSteps = ({
   servicesReady,
 }: Pick<NextStepsPopupProps, "availabilityHours" | "profileComplete" | "pricingReady" | "servicesReady">) => {
   const onboarding = parseOnboardingDetails(availabilityHours);
-  const goal = formatOnboardingChoice(onboarding.onboardingGoal);
+  const plan = buildSmartDashboardPlan(onboarding);
 
-  const steps: NextStepAction[] = [
-    {
-      id: "profile",
-      title: "Configurer profil",
-      detail: profileComplete ? "Fiche visible et exploitable." : goal || "Ajoutez présentation, zone et disponibilités.",
-      href: "/dashboard/concierge/profile?tab=fiche",
-      done: profileComplete,
-    },
-    {
-      id: "services",
-      title: "Vérifier services",
-      detail: servicesReady ? "Services prêts pour les demandes." : "Gardez uniquement les prestations assurables.",
-      href: "/dashboard/concierge/profile?tab=missions",
-      done: servicesReady,
-    },
-    {
-      id: "pricing",
-      title: "Ajouter tarifs",
-      detail: pricingReady ? "Tarifs prêts pour les devis." : "Cadrez vos prix pour répondre plus vite.",
-      href: "/dashboard/concierge/pricing",
-      done: pricingReady,
-    },
-  ];
+  const isDone = (id: string) => {
+    if (id === "complete-public-profile") return Boolean(profileComplete);
+    if (id === "configure-zone" || id === "activate-services") return Boolean(servicesReady);
+    if (id === "define-pricing") return Boolean(pricingReady);
+    return false;
+  };
 
-  return steps.sort((a, b) => Number(a.done) - Number(b.done)).slice(0, 3);
+  return plan.checklist
+    .map<NextStepAction>((action) => ({
+      ...action,
+      detail: isDone(action.id) ? "Déjà prêt dans votre espace." : action.detail,
+      done: isDone(action.id),
+    }))
+    .sort((a, b) => Number(a.done) - Number(b.done))
+    .slice(0, 3);
 };
 
 export default function NextStepsPopup({
@@ -70,14 +60,14 @@ export default function NextStepsPopup({
   if (!open) return null;
 
   const steps = buildSteps({ availabilityHours, profileComplete, pricingReady, servicesReady });
-  const icons = [FileText, PackageCheck, SlidersHorizontal];
+  const icons = [FileText, PackageCheck, SlidersHorizontal, MapPinned, UserPlus];
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="next-steps-title">
       <Card className={styles.modal} tone="elevated">
         <CardHeader className={styles.header}>
           <div>
-            <span className={styles.eyebrow}>3 actions max</span>
+            <span className={styles.eyebrow}>Plan personnalisé</span>
             <h2 id="next-steps-title">Prochaines étapes</h2>
           </div>
           <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Fermer">

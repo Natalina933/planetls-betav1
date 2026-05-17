@@ -286,40 +286,23 @@
 
 :global(body[data-readability-scale="large"]) {
   .popupContent {
-    font-size: 1.08rem;
-  }
-
-  .optionLabel {
-    min-height: 142px;
-  }
-
-  .optionLabel strong {
-    font-size: 1rem;
-  }
-
-  .optionLabel p {
-    font-size: 0.98rem;
-    line-height: 1.52;
-  }
-
-  .introText,
-  .modeSuggestion span,
-  .goalSuggestion span {
-    font-size: 1.02rem;
-  }
-}
-
-:global(body[data-readability-scale="xlarge"]) {
-  .popupContent {
     font-size: 1.16rem;
   }
 
   .optionLabel {
-    min-height: 162px;
+    min-height: 154px;
   }
 
   .optionLabel strong {
-    font-size: 1.08rem;
+    font-size: 1.12rem;
+  }
+
+  .popupContent button,
+  .optionLabel,
+  .modeSwitch button,
+  .goalSuggestion button {
+    font-size: 1.12rem;
+    line-height: 1.48;
   }
 
   .optionLabel p {
@@ -331,6 +314,39 @@
   .modeSuggestion span,
   .goalSuggestion span {
     font-size: 1.12rem;
-    line-height: 1.5;
+  }
+}
+
+:global(body[data-readability-scale="xlarge"]) {
+  .popupContent {
+    font-size: 1.32rem;
+  }
+
+  .optionLabel {
+    min-height: 186px;
+  }
+
+  .optionLabel strong {
+    font-size: 1.24rem;
+  }
+
+  .popupContent button,
+  .optionLabel,
+  .modeSwitch button,
+  .goalSuggestion button {
+    font-size: 1.24rem;
+    line-height: 1.55;
+  }
+
+  .optionLabel p {
+    font-size: 1.22rem;
+    line-height: 1.72;
+  }
+
+  .introText,
+  .modeSuggestion span,
+  .goalSuggestion span {
+    font-size: 1.26rem;
+    line-height: 1.65;
   }
 }

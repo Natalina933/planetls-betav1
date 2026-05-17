@@ -124,6 +124,7 @@ interface ProfileIdentityLike {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  image?: string | null;
   id?: string;
   onboarding_complete?: boolean;
   availability_hours?: string | null;

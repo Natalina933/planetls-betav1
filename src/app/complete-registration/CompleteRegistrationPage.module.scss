@@ -623,6 +623,62 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
   }
 }
 
+.mobileAccountOverlay {
+  display: none;
+}
+
+.mobileAccountSheet {
+  display: grid;
+  gap: 0.75rem;
+
+  input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: $radius-sm;
+    border: 1px solid $border-soft;
+    margin-bottom: 0.65rem;
+    font-size: 0.95rem;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+
+    &:focus {
+      border-color: $gold;
+      box-shadow: 0 0 6px rgba($gold, 0.3);
+      outline: none;
+    }
+  }
+}
+
+.mobileAccountHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.2rem;
+
+  p {
+    margin: 0 0 0.15rem;
+    color: rgba($text-main, 0.64);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  h2 {
+    margin: 0;
+    color: $gold-dark;
+    font-size: 1.18rem;
+    line-height: 1.2;
+  }
+
+  button {
+    flex: 0 0 auto;
+    min-width: 2.25rem;
+    color: $gold-dark;
+    box-shadow: none;
+  }
+}
+
 /* ============================================================================
   PASSWORD
 ============================================================================ */
@@ -724,77 +780,151 @@ $shadow-hover: 0 10px 34px rgba(0, 0, 0, 0.1);
 
 @media (max-width: 768px) {
   .pageContainer {
-    padding: 1.4rem;
+    margin: 0;
+    min-height: 100dvh;
+    padding: 1.15rem 1rem calc(9rem + env(safe-area-inset-bottom));
+    border-radius: 0;
+    overflow: visible;
   }
 
   .section,
   .recapSection,
   .form,
   .avatarSection {
-    padding: 1.4rem;
+    padding: 1.1rem;
+    margin-bottom: 1.2rem;
+    border-radius: $radius-md;
   }
 
   .nextActionsGrid {
     grid-template-columns: 1fr;
   }
+
+  .recapTopline,
+  .recapActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .recapPill,
+  .editButton {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .detailList li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .detailList strong {
+    text-align: left;
+  }
+
+  .mobileAccountOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem 0.85rem calc(0.85rem + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, rgba(32, 25, 14, 0.45), rgba(32, 25, 14, 0));
+    pointer-events: none;
+  }
+
+  .mobileAccountSheet {
+    width: min(100%, 420px);
+    max-height: min(78dvh, 620px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1rem;
+    border: 1px solid rgba($gold, 0.22);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.18);
+    pointer-events: auto;
+  }
 }
 
 :global(body[data-readability="on"]) {
   .pageContainer {
-    font-size: 1.08rem;
+    font-size: 1.14rem;
     background: #ffffff;
   }
 
   .title {
-    font-size: 2.35rem;
+    font-size: 2.5rem;
   }
 
   .recapCard p,
   .profileList li,
+  .recapPill,
+  .editButton,
+  .submitButton,
+  .mobileAccountSheet button,
+  .mobileAccountHeader p,
+  .mobileAccountHeader h2,
   .nextActionsGrid p,
   .form input {
-    font-size: 1.04rem;
-    line-height: 1.5;
+    font-size: 1.12rem;
+    line-height: 1.58;
   }
 }
 
 :global(body[data-readability-scale="large"]) {
-  .pageContainer {
-    font-size: 1.08rem;
-  }
-
-  .title {
-    font-size: 2.35rem;
-  }
-
-  .recapCard p,
-  .profileList li,
-  .nextActionsGrid p,
-  .form input,
-  .localPromise,
-  .locationError {
-    font-size: 1.04rem;
-    line-height: 1.55;
-  }
-}
-
-:global(body[data-readability-scale="xlarge"]) {
   .pageContainer {
     font-size: 1.16rem;
   }
 
   .title {
     font-size: 2.55rem;
+  }
+
+  .recapCard p,
+  .profileList li,
+  .recapPill,
+  .editButton,
+  .submitButton,
+  .mobileAccountSheet button,
+  .mobileAccountHeader p,
+  .mobileAccountHeader h2,
+  .nextActionsGrid p,
+  .form input,
+  .mobileAccountSheet input,
+  .localPromise,
+  .locationError {
+    font-size: 1.14rem;
+    line-height: 1.62;
+  }
+}
+
+:global(body[data-readability-scale="xlarge"]) {
+  .pageContainer {
+    font-size: 1.32rem;
+  }
+
+  .title {
+    font-size: 2.9rem;
     line-height: 1.2;
   }
 
   .recapCard p,
   .profileList li,
+  .recapPill,
+  .editButton,
+  .submitButton,
+  .mobileAccountSheet button,
+  .mobileAccountHeader p,
+  .mobileAccountHeader h2,
   .nextActionsGrid p,
   .form input,
+  .mobileAccountSheet input,
   .localPromise,
   .locationError {
-    font-size: 1.12rem;
-    line-height: 1.62;
+    font-size: 1.3rem;
+    line-height: 1.72;
   }
 }

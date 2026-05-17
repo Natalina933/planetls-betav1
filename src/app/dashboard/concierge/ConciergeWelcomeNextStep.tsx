@@ -4,107 +4,23 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { FileText, Home, MapPinned, PackageCheck, SlidersHorizontal, UserPlus } from "lucide-react";
 import { DashboardPanel } from "@/components/dashboard";
-import { parseOnboardingDetails, type SignupMode } from "@/features/onboarding-assistant";
+import { buildSmartDashboardPlan, parseOnboardingDetails } from "@/features/onboarding-assistant";
 import styles from "./ConciergeWelcomeNextStep.module.scss";
 
-type WelcomeAction = {
-  title: string;
-  detail: string;
-  href: string;
-  icon: typeof Home;
-};
-
-type WelcomeContent = {
-  badge: string;
-  title: string;
-  description: string;
-  actions: WelcomeAction[];
-};
+type WelcomeIcon = typeof Home;
 
 const STORAGE_KEY = "planetls-concierge-welcome-dismissed";
 
-const getWelcomeContent = (mode: SignupMode): WelcomeContent => {
-  if (mode === "express") {
-    return {
-      badge: "Parcours express",
-      title: "Profil prêt, actions prioritaires.",
-      description: "Créez une base exploitable: un bien, une offre, puis un premier propriétaire.",
-      actions: [
-        {
-          title: "Créer un bien",
-          detail: "Ajoutez un logement ou une zone utilisable tout de suite.",
-          href: "/dashboard/concierge/logements/create",
-          icon: Home,
-        },
-        {
-          title: "Créer une offre",
-          detail: "Transformez vos services en pack clair.",
-          href: "/dashboard/concierge/services-packages",
-          icon: PackageCheck,
-        },
-        {
-          title: "Inviter",
-          detail: "Lancez votre premier contact.",
-          href: "/dashboard/concierge/contacts",
-          icon: UserPlus,
-        },
-      ],
-    };
-  }
-
-  if (mode === "business") {
-    return {
-      badge: "Parcours business+",
-      title: "Structurez l'activité.",
-      description: "Passez directement aux offres, tarifs et documents utiles.",
-      actions: [
-        {
-          title: "Packs",
-          detail: "Posez vos offres récurrentes.",
-          href: "/dashboard/concierge/services-packages",
-          icon: PackageCheck,
-        },
-        {
-          title: "Tarifs",
-          detail: "Cadrez vos prix pour accélérer les devis.",
-          href: "/dashboard/concierge/pricing",
-          icon: SlidersHorizontal,
-        },
-        {
-          title: "Documents",
-          detail: "Préparez devis et contrats.",
-          href: "/dashboard/concierge/billing",
-          icon: FileText,
-        },
-      ],
-    };
-  }
-
-  return {
-    badge: "Parcours simple",
-    title: "Complétez l'essentiel.",
-    description: "Fiche, zone et services suffisent pour recevoir des opportunités plus pertinentes.",
-    actions: [
-      {
-        title: "Fiche",
-        detail: "Ajoutez vos points forts.",
-        href: "/dashboard/concierge/profile?tab=fiche",
-        icon: FileText,
-      },
-      {
-        title: "Zone",
-        detail: "Vérifiez votre rayon.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        icon: MapPinned,
-      },
-      {
-        title: "Services",
-        detail: "Gardez les prestations assurables.",
-        href: "/dashboard/concierge/profile?tab=missions",
-        icon: PackageCheck,
-      },
-    ],
-  };
+const ICON_BY_ACTION: Record<string, WelcomeIcon> = {
+  "reply-request": FileText,
+  "configure-zone": MapPinned,
+  "activate-services": PackageCheck,
+  "create-packs": PackageCheck,
+  "define-pricing": SlidersHorizontal,
+  "add-tools": FileText,
+  "invite-owner": UserPlus,
+  "create-offer": PackageCheck,
+  "complete-public-profile": FileText,
 };
 
 interface ConciergeWelcomeNextStepProps {
@@ -112,24 +28,25 @@ interface ConciergeWelcomeNextStepProps {
 }
 
 export default function ConciergeWelcomeNextStep({ availabilityHours }: ConciergeWelcomeNextStepProps) {
-  const mode = useMemo(() => parseOnboardingDetails(availabilityHours).signupMode, [availabilityHours]);
-  const content = useMemo(() => getWelcomeContent(mode), [mode]);
+  const onboarding = useMemo(() => parseOnboardingDetails(availabilityHours), [availabilityHours]);
+  const content = useMemo(() => buildSmartDashboardPlan(onboarding), [onboarding]);
+  const storageKey = `${onboarding.signupMode}:${onboarding.onboardingGoal ?? "none"}:${onboarding.supportNeed ?? "none"}`;
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
-    setIsDismissed(window.localStorage.getItem(STORAGE_KEY) === mode);
-  }, [mode]);
+    setIsDismissed(window.localStorage.getItem(STORAGE_KEY) === storageKey);
+  }, [storageKey]);
 
   if (isDismissed) return null;
 
   const dismiss = () => {
-    window.localStorage.setItem(STORAGE_KEY, mode);
+    window.localStorage.setItem(STORAGE_KEY, storageKey);
     setIsDismissed(true);
   };
 
   return (
     <DashboardPanel
-      title="Prochaine étape"
+      title="Orientation intelligente"
       className={styles.welcomePanel}
       bodyClassName={styles.welcomeBody}
       action={
@@ -145,9 +62,9 @@ export default function ConciergeWelcomeNextStep({ availabilityHours }: Concierg
       </div>
       <div className={styles.actionGrid}>
         {content.actions.map((action) => {
-          const Icon = action.icon;
+          const Icon = ICON_BY_ACTION[action.id] ?? Home;
           return (
-            <Link key={action.href + action.title} href={action.href} className={styles.actionCard}>
+            <Link key={action.id} href={action.href} className={styles.actionCard}>
               <span className={styles.actionIcon}>
                 <Icon size={30} strokeWidth={2.2} aria-hidden="true" />
               </span>

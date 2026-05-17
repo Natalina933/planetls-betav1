@@ -280,6 +280,8 @@ export default function CompleteRegistrationPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showMobileAccountPopup, setShowMobileAccountPopup] = useState(false);
+  const [mobileAccountPopupDismissed, setMobileAccountPopupDismissed] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
@@ -288,6 +290,7 @@ export default function CompleteRegistrationPage() {
   const [avatarOffsetY, setAvatarOffsetY] = useState(0);
   const [avatarRotation, setAvatarRotation] = useState(0);
   const [locationError, setLocationError] = useState("");
+  const accountFormRef = useRef<HTMLFormElement | null>(null);
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
 
   useEffect(() => {
@@ -336,6 +339,37 @@ export default function CompleteRegistrationPage() {
     if (profile.category !== "concierge" || profile.serviceRadiusKm) return;
     setProfile((prev) => ({ ...prev, serviceRadiusKm: "15" }));
   }, [profile.category, profile.serviceRadiusKm]);
+
+  useEffect(() => {
+    const accountForm = accountFormRef.current;
+    if (!accountForm || mobileAccountPopupDismissed) return;
+
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+
+    const syncPopupState = () => {
+      if (!mediaQuery.matches) {
+        setShowMobileAccountPopup(false);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (mediaQuery.matches && entry.isIntersecting) {
+          setShowMobileAccountPopup(true);
+        }
+      },
+      { rootMargin: "0px 0px -38% 0px", threshold: 0.18 }
+    );
+
+    observer.observe(accountForm);
+    syncPopupState();
+    mediaQuery.addEventListener("change", syncPopupState);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener("change", syncPopupState);
+    };
+  }, [mobileAccountPopupDismissed]);
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -553,6 +587,77 @@ export default function CompleteRegistrationPage() {
     router.replace(getDashboardPathFromCategory(profile.category));
   };
 
+  const renderAccountFields = () => (
+    <>
+      <Input
+        bare
+        name="username"
+        placeholder="Nom d'utilisateur"
+        value={form.username}
+        onChange={handleFormChange}
+        autoComplete="username"
+        required
+      />
+
+      <div className={styles.passwordWrapper}>
+        <Input
+          bare
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="Mot de passe"
+          value={form.password}
+          onChange={handleFormChange}
+          autoComplete="new-password"
+          required
+        />
+        <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword((v) => !v)}>
+          {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </Button>
+      </div>
+
+      {errors.password && (
+        <small className={styles.errorMsg}><FaTimesCircle /> {errors.password}</small>
+      )}
+      {!errors.password && form.password && (
+        <small className={styles.successMsg}><FaCheckCircle /> Mot de passe assez sÃ©curisÃ©</small>
+      )}
+
+      <div className={styles.passwordWrapper}>
+        <Input
+          bare
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          placeholder="Confirmation"
+          value={form.confirmPassword}
+          onChange={handleFormChange}
+          autoComplete="new-password"
+          required
+        />
+        <Button type="button" variant="ghost" size="sm" onClick={() => setShowConfirmPassword((v) => !v)}>
+          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+        </Button>
+      </div>
+
+      {form.confirmPassword && !errors.confirmPassword && (
+        <small className={styles.successMsg}><FaCheckCircle /> Les mots de passe correspondent</small>
+      )}
+
+      {errors.confirmPassword && (
+        <small className={styles.errorMsg}><FaTimesCircle /> {errors.confirmPassword}</small>
+      )}
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        disabled={!canSubmit || loading}
+        className={styles.submitButton}
+      >
+        {loading ? "Inscription..." : "Finaliser mon inscription"}
+      </Button>
+    </>
+  );
+
   return (
     <div className={styles.pageContainer}>
       {showConfetti && <Confetti />}
@@ -760,7 +865,7 @@ export default function CompleteRegistrationPage() {
       </section>
 
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <form ref={accountFormRef} onSubmit={handleSubmit} className={styles.form}>
         <h2>{"Création du compte"}</h2>
 
         <Input
@@ -830,6 +935,32 @@ export default function CompleteRegistrationPage() {
           {loading ? "Inscription..." : "Finaliser mon inscription"}
         </Button>
       </form>
+
+      {showMobileAccountPopup && (
+        <div className={styles.mobileAccountOverlay} role="dialog" aria-modal="true" aria-labelledby="mobile-account-title">
+          <form onSubmit={handleSubmit} className={styles.mobileAccountSheet}>
+            <div className={styles.mobileAccountHeader}>
+              <div>
+                <p>Derni&egrave;re action</p>
+                <h2 id="mobile-account-title">Cr&eacute;ez votre compte</h2>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowMobileAccountPopup(false);
+                  setMobileAccountPopupDismissed(true);
+                }}
+                aria-label="Fermer la fenetre de creation du compte"
+              >
+                <FaTimesCircle />
+              </Button>
+            </div>
+            {renderAccountFields()}
+          </form>
+        </div>
+      )}
 
       {showExperiencePopup && (
         <ExperiencePopup
