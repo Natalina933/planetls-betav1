@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { ownerApiError } from "../ownerFeedback";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerInvoiceRow = {
@@ -70,7 +71,7 @@ export default function OwnerInvoicesPageClient() {
         });
         const payload = await response.json();
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de synchroniser la facture payée.");
+          throw new Error(ownerApiError("Impossible de synchroniser la facture payée.", payload?.error));
         }
 
         if (!cancelled) {
@@ -92,7 +93,7 @@ export default function OwnerInvoicesPageClient() {
       } catch (err) {
         if (!cancelled) {
           setError(
-            err instanceof Error ? err.message : "Impossible de synchroniser la facture payée.",
+            err instanceof Error ? err.message : ownerApiError("Impossible de synchroniser la facture payée."),
           );
         }
       }
@@ -115,12 +116,12 @@ export default function OwnerInvoicesPageClient() {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger vos factures.");
+          throw new Error(ownerApiError("Impossible de charger vos factures.", payload?.error));
         }
 
         setInvoices(Array.isArray(payload) ? payload : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos factures.");
+        setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger vos factures."));
       } finally {
         setLoading(false);
       }
@@ -168,7 +169,7 @@ export default function OwnerInvoicesPageClient() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de lancer le paiement.");
+        throw new Error(ownerApiError("Impossible de lancer le paiement.", payload?.error));
       }
 
       if (payload?.url) {
@@ -178,7 +179,7 @@ export default function OwnerInvoicesPageClient() {
 
       throw new Error("URL Stripe manquante.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de lancer le paiement.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de lancer le paiement."));
     } finally {
       setPayingInvoiceId(null);
     }

@@ -45,6 +45,7 @@ export default function OwnerDashboardPage() {
     latestInvoices,
     averageRating,
     unreadConversationCount,
+    ownerActivationProgress,
   } = useOwnerDashboardData(isAuthenticated);
 
   const activityItems = [
@@ -136,10 +137,10 @@ export default function OwnerDashboardPage() {
           trend: pendingInvoices.length > 0 ? "Priorite" : "OK",
         },
         {
-          label: "Satisfaction",
-          value: averageRating ? `${averageRating.toFixed(1)} / 5` : "--",
-          hint: `${unreadConversationCount} message(s) non lu(s)`,
-          trend: unreadConversationCount > 0 ? "Message" : "Stable",
+          label: "Progression owner",
+          value: `${ownerActivationProgress.percentage}%`,
+          hint: `${ownerActivationProgress.completedCount}/${ownerActivationProgress.totalCount} jalons`,
+          trend: ownerActivationProgress.percentage < 100 ? "A activer" : "OK",
         },
       ]}
       actions={OWNER_QUICK_ACTIONS}
@@ -218,6 +219,22 @@ export default function OwnerDashboardPage() {
               ? "Priorité recommandée: sécuriser les règlements en attente avant d’ouvrir de nouvelles demandes."
               : "Priorité recommandée: arbitrer les prochaines actions avec votre conciergerie pour améliorer la performance du parc."}
           </p>
+        </AsyncState>
+      </DashboardPanel>
+
+      <DashboardPanel title="Progression propriétaire">
+        <AsyncState loading={loading} error={error}>
+          <p>
+            Parcours global: {ownerActivationProgress.completedCount}/{ownerActivationProgress.totalCount} jalons
+            validés ({ownerActivationProgress.percentage}%).
+          </p>
+          <p>
+            Jalons restants:{" "}
+            {ownerActivationProgress.missingItems.length > 0
+              ? ownerActivationProgress.missingItems.join(", ")
+              : "aucun, parcours complet."}
+          </p>
+          <Link href="/dashboard/owner/demandes">Continuer le parcours owner</Link>
         </AsyncState>
       </DashboardPanel>
 

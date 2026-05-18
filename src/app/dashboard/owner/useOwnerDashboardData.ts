@@ -1,7 +1,13 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { averageBy, fetchJsonOrThrow, sumBy, takeFirst } from "../shared";
+import {
+  averageBy,
+  buildOwnerActivationCompletion,
+  fetchJsonOrThrow,
+  sumBy,
+  takeFirst,
+} from "../shared";
 
 type OwnerHousingRow = {
   id: number;
@@ -51,6 +57,10 @@ type OwnerConversationRow = {
   unread_count?: number;
 };
 
+type OwnerServiceRequestRow = {
+  id: string;
+};
+
 function isActiveHousingStatus(status: string | null) {
   return status === "active" || status === "published";
 }
@@ -78,6 +88,7 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
   const [invoices, setInvoices] = useState<OwnerInvoiceRow[]>([]);
   const [reviews, setReviews] = useState<OwnerReviewRow[]>([]);
   const [conversations, setConversations] = useState<OwnerConversationRow[]>([]);
+  const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,7 +100,15 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
         setLoading(true);
         setError(null);
 
-        const [housingPayload, missionsPayload, quotesPayload, invoicesPayload, reviewsPayload, conversationsPayload] =
+        const [
+          housingPayload,
+          missionsPayload,
+          quotesPayload,
+          invoicesPayload,
+          reviewsPayload,
+          conversationsPayload,
+          requestsPayload,
+        ] =
           await Promise.all([
             fetchJsonOrThrow<OwnerHousingRow[]>("/api/housing", "Impossible de charger vos logements."),
             fetchJsonOrThrow<OwnerMissionRow[]>(
@@ -106,6 +125,10 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
               "/api/messages/conversations?role=owner&limit=20",
               "Impossible de charger vos messages.",
             ),
+            fetchJsonOrThrow<{ items?: OwnerServiceRequestRow[] }>(
+              "/api/service-requests?limit=1",
+              "Impossible de charger vos demandes.",
+            ),
           ]);
 
         setProperties(Array.isArray(housingPayload) ? housingPayload : []);
@@ -114,6 +137,7 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
         setInvoices(Array.isArray(invoicesPayload) ? invoicesPayload : []);
         setReviews(Array.isArray(reviewsPayload) ? reviewsPayload : []);
         setConversations(Array.isArray(conversationsPayload?.items) ? conversationsPayload.items : []);
+        setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Impossible de charger votre espace propriétaire.",
@@ -150,6 +174,16 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
     () => sumBy(conversations, (conversation) => conversation.unread_count ?? 0),
     [conversations],
   );
+  const ownerActivationProgress = useMemo(
+    () =>
+      buildOwnerActivationCompletion({
+        hasAccountActivated: true,
+        hasFirstRequest: requests.length > 0,
+        hasFirstMission: missions.length > 0,
+        hasFirstPayment: invoices.some((invoice) => invoice.status === "paid"),
+      }),
+    [invoices, missions.length, requests.length],
+  );
 
   return {
     properties,
@@ -168,5 +202,6 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
     latestInvoices,
     averageRating,
     unreadConversationCount,
+    ownerActivationProgress,
   };
 }

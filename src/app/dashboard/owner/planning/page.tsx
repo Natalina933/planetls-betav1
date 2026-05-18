@@ -6,6 +6,7 @@ import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/Workflo
 import { DashboardSectionShell } from "@/components/dashboard";
 import { takeFirst } from "../../shared";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
+import { ownerApiError } from "../ownerFeedback";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerMissionRow = {
@@ -76,12 +77,12 @@ export default function OwnerPlanningPage() {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger votre planning.");
+          throw new Error(ownerApiError("Impossible de charger votre planning.", payload?.error));
         }
 
         setMissions(Array.isArray(payload) ? payload : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger votre planning.");
+        setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger votre planning."));
       } finally {
         setLoading(false);
       }

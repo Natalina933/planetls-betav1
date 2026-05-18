@@ -10,6 +10,7 @@ import {
   OwnerQuotesComparisonTable,
   OwnerRequestSummaryCard,
 } from "@/features/owner-dashboard";
+import { ownerApiError } from "../ownerFeedback";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import styles from "../OwnerDashboardPages.module.scss";
 
@@ -238,17 +239,17 @@ function OwnerQuotesContent() {
       const requestsPayload = (await requestsResponse.json()) as ServiceRequestsPayload;
 
       if (!quotesResponse.ok) {
-        throw new Error(quotesPayload?.error || "Impossible de charger vos devis.");
+        throw new Error(ownerApiError("Impossible de charger vos devis.", quotesPayload?.error));
       }
 
       if (!requestsResponse.ok) {
-        throw new Error(requestsPayload?.error || "Impossible de charger le contexte des demandes.");
+        throw new Error(ownerApiError("Impossible de charger le contexte des demandes.", requestsPayload?.error));
       }
 
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
       setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger vos devis.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger vos devis."));
     } finally {
       setLoading(false);
     }
@@ -442,14 +443,12 @@ function OwnerQuotesContent() {
       });
       const payload = await response.json();
 
-      if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de retenir ce concierge.");
-      }
+      if (!response.ok) throw new Error(ownerApiError("Impossible de retenir ce concierge.", payload?.error));
 
       await loadData();
       setSuccess(getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de retenir ce concierge."));
     } finally {
       setSelectingRequestId(null);
     }
@@ -471,9 +470,7 @@ function OwnerQuotesContent() {
       });
       const payload = await response.json();
 
-      if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de mettre à jour ce devis.");
-      }
+      if (!response.ok) throw new Error(ownerApiError("Impossible de mettre à jour ce devis.", payload?.error));
 
       await loadData();
       setSuccess(
@@ -482,7 +479,7 @@ function OwnerQuotesContent() {
           : "Refus enregistré : le devis est sorti de la comparaison active et la conciergerie est notifiée.",
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre à jour ce devis.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de mettre à jour ce devis."));
     } finally {
       setBusyQuoteAction(null);
     }

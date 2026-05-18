@@ -7,6 +7,7 @@ import { ConversationFilters, DashboardSectionShell } from "@/components/dashboa
 import { Button, ButtonLink, Textarea } from "@/components/ui";
 import styles from "./OwnerMessagesPage.module.scss";
 import { markOwnerConversationSeen } from "../messageActivity";
+import { ownerApiError } from "../ownerFeedback";
 
 type OwnerConversationRow = {
   id: string;
@@ -97,7 +98,7 @@ function OwnerMessagesContent() {
       const payload = (await response.json()) as OwnerConversationsListPayload & { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger vos conversations.");
+        throw new Error(ownerApiError("Impossible de charger vos conversations.", payload?.error));
       }
 
       const rows = Array.isArray(payload?.items) ? payload.items : [];
@@ -112,7 +113,7 @@ function OwnerMessagesContent() {
       setActiveConversationId(nextId);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de charger vos conversations.",
+        err instanceof Error ? err.message : ownerApiError("Impossible de charger vos conversations."),
       );
     } finally {
       setLoading(false);
@@ -135,7 +136,7 @@ function OwnerMessagesContent() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger cette conversation.");
+        throw new Error(ownerApiError("Impossible de charger cette conversation.", payload?.error));
       }
 
       setDetail(payload);
@@ -143,7 +144,7 @@ function OwnerMessagesContent() {
       setSeenVersion((current) => current + 1);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de charger cette conversation.",
+        err instanceof Error ? err.message : ownerApiError("Impossible de charger cette conversation."),
       );
     } finally {
       setDetailLoading(false);
@@ -217,7 +218,7 @@ function OwnerMessagesContent() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible d'envoyer votre message.");
+        throw new Error(ownerApiError("Impossible d'envoyer votre message.", payload?.error));
       }
 
       setDraftMessage("");
@@ -227,7 +228,7 @@ function OwnerMessagesContent() {
       setSeenVersion((current) => current + 1);
       setSuccess("Message envoyé.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible d'envoyer votre message."));
     } finally {
       setSending(false);
     }

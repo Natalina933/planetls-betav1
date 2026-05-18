@@ -348,6 +348,20 @@ export function buildOwnerFinancesCompletion(input: {
   ]);
 }
 
+export function buildOwnerActivationCompletion(input: {
+  hasAccountActivated: boolean;
+  hasFirstRequest: boolean;
+  hasFirstMission: boolean;
+  hasFirstPayment: boolean;
+}): CompletionState {
+  return buildCompletionState([
+    { label: "Compte activé", complete: input.hasAccountActivated },
+    { label: "1ère demande envoyée", complete: input.hasFirstRequest },
+    { label: "1ère mission créée", complete: input.hasFirstMission },
+    { label: "1er paiement confirmé", complete: input.hasFirstPayment },
+  ]);
+}
+
 export function buildProviderInterventionsCompletion(input: {
   interventions: GenericRecord[];
   alerts: GenericRecord[];

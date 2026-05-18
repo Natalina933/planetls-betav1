@@ -21,6 +21,7 @@ import {
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import { ServiceRequestCard } from "@/features/service-requests";
+import { ownerApiError } from "../ownerFeedback";
 import styles from "./OwnerRequestsPage.module.scss";
 
 type RequestKind = "ponctuel" | "renfort" | "durable";
@@ -424,15 +425,15 @@ export default function OwnerRequestsPage() {
       const housingPayload = await housingResponse.json();
       const quotesPayload = await quotesResponse.json();
 
-      if (!requestsResponse.ok) throw new Error(requestsPayload?.error || "Impossible de charger les demandes.");
-      if (!housingResponse.ok) throw new Error(housingPayload?.error || "Impossible de charger les logements.");
-      if (!quotesResponse.ok) throw new Error(quotesPayload?.error || "Impossible de charger les devis.");
+      if (!requestsResponse.ok) throw new Error(ownerApiError("Impossible de charger les demandes.", requestsPayload?.error));
+      if (!housingResponse.ok) throw new Error(ownerApiError("Impossible de charger les logements.", housingPayload?.error));
+      if (!quotesResponse.ok) throw new Error(ownerApiError("Impossible de charger les devis.", quotesPayload?.error));
 
       setRequests(Array.isArray(requestsPayload.items) ? requestsPayload.items : []);
       setHousing(Array.isArray(housingPayload) ? housingPayload : []);
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger les demandes.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger les demandes."));
     } finally {
       setLoading(false);
     }
@@ -603,14 +604,21 @@ export default function OwnerRequestsPage() {
         }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || (editingRequestId ? "Impossible de modifier la demande." : "Impossible de créer la demande."));
+      if (!response.ok) {
+        throw new Error(
+          ownerApiError(
+            editingRequestId ? "Impossible de modifier la demande." : "Impossible de créer la demande.",
+            payload?.error,
+          ),
+        );
+      }
       setSuccess(editingRequestId ? "Demande mise à jour. Vous pouvez continuer le suivi." : "Demande créée. Vous pouvez maintenant contacter des conciergeries et suivre les retours.");
       setEditingRequestId(null);
       setForm(initialForm);
       setIsRequestModalOpen(false);
       await loadData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de créer la demande.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de créer la demande."));
     } finally {
       setSubmitting(false);
     }

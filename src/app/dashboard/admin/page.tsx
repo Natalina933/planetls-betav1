@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { supabaseBrowser } from "@/app/lib/dbClient";
+import { isKpiOverviewPayload, type KpiOverviewPayload } from "@/app/api/kpis/overview/shared";
 import styles from "./AdminDashboard.module.scss";
 
 interface DashboardStats {
@@ -43,6 +44,7 @@ export default function AdminDashboard() {
     bookings: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [kpis, setKpis] = useState<KpiOverviewPayload | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -61,6 +63,16 @@ export default function AdminDashboard() {
           activeProviders: providersCount ?? 0,
           bookings: bookingsCount ?? 0,
         });
+
+        const kpiRes = await fetch("/api/kpis/overview?window_days=30", {
+          cache: "no-store",
+        });
+        if (kpiRes.ok) {
+          const payload = (await kpiRes.json()) as unknown;
+          if (isKpiOverviewPayload(payload)) {
+            setKpis(payload);
+          }
+        }
       } catch (error) {
         console.error("Erreur chargement stats admin :", error);
       } finally {
@@ -183,6 +195,21 @@ export default function AdminDashboard() {
         <p>
           Recommandation: utiliser les trois espaces métier pour distinguer clairement la vision décisionnelle
           plateforme du reporting local par rôle.
+        </p>
+      </DashboardPanel>
+
+      <DashboardPanel title="KPI partagés (30 jours)">
+        <p>
+          Activation J+7 - Owner: {kpis?.owner.activation_j7 ?? "-"}% | Concierge:{" "}
+          {kpis?.concierge.activation_j7 ?? "-"}% | Artisan: {kpis?.provider.activation_j7 ?? "-"}%
+        </p>
+        <p>
+          Conversion demande vers devis: {kpis?.owner.request_to_quote_rate ?? "-"}% | Devis vers mission:{" "}
+          {kpis?.concierge.quote_to_mission_rate ?? "-"}%
+        </p>
+        <p>
+          Mission vers facture payee: {kpis?.shared.mission_to_paid_invoice_rate ?? "-"}% | Temps median 1re reponse
+          message: {kpis?.shared.median_first_message_response_minutes ?? "-"} min
         </p>
       </DashboardPanel>
 
