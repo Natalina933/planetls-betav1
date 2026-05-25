@@ -5,6 +5,23 @@ import type { KpiOverviewPayload } from "./shared";
 
 type RoleKey = "owner" | "concierge" | "provider";
 
+type SchemaDriftError = { code?: string } | null | undefined;
+
+type KpiQueryResult = {
+  data: unknown[] | null;
+  error: SchemaDriftError;
+};
+
+type KpiQuery = {
+  select: (columns: string) => KpiQuery;
+  gte: (column: string, value: string) => Promise<KpiQueryResult>;
+  not: (column: string, operator: string, value: unknown) => Promise<KpiQueryResult>;
+};
+
+type KpiDb = {
+  from: (relation: string) => KpiQuery;
+};
+
 const ROLE_GROUPS: Record<RoleKey, string[]> = {
   owner: ["owner", "owner_pro", "proprietaire"],
   concierge: ["concierge", "concierge_pro"],
@@ -37,7 +54,9 @@ function median(values: number[]): number | null {
   return round2(sorted[mid]);
 }
 
-function isSchemaDriftError(error: { code?: string } | null | undefined): boolean {
+const kpiDb = db as unknown as KpiDb;
+
+function isSchemaDriftError(error: SchemaDriftError): boolean {
   return Boolean(error?.code && SCHEMA_DRIFT_CODES.has(error.code));
 }
 
@@ -47,7 +66,7 @@ function profileMatchesRole(profileRole: string | null, role: RoleKey): boolean 
 }
 
 async function fetchProfiles() {
-  const { data, error } = await db
+  const { data, error } = await kpiDb
     .from("profiles")
     .select("id, role, created_at")
     .not("created_at", "is", null);
@@ -87,7 +106,7 @@ export async function GET(req: NextRequest) {
       activityByProfile.set(profileId, existing);
     };
 
-    const { data: requestsData, error: requestsError } = await db
+    const { data: requestsData, error: requestsError } = await kpiDb
       .from("service_requests")
       .select("id, owner_profile_id, created_at")
       .gte("created_at", windowIso);
@@ -115,7 +134,7 @@ export async function GET(req: NextRequest) {
     }
 
     const requestIds = requests.map((row) => row.id);
-    const { data: quotesData, error: quotesError } = await db
+    const { data: quotesData, error: quotesError } = await kpiDb
       .from("quotes")
       .select("id, request_id, owner_profile_id, concierge_profile_id, provider_profile_id, created_at")
       .gte("created_at", windowIso);
@@ -135,7 +154,7 @@ export async function GET(req: NextRequest) {
       if (quote.provider_profile_id) markActivity(quote.provider_profile_id, "quote");
     }
 
-    const { data: missionsData, error: missionsError } = await db
+    const { data: missionsData, error: missionsError } = await kpiDb
       .from("missions")
       .select("id, request_id, owner_profile_id, concierge_profile_id, provider_profile_id, status, created_at")
       .gte("created_at", windowIso);
@@ -156,7 +175,7 @@ export async function GET(req: NextRequest) {
       if (mission.provider_profile_id) markActivity(mission.provider_profile_id, "mission");
     }
 
-    const { data: invoicesData, error: invoicesError } = await db
+    const { data: invoicesData, error: invoicesError } = await kpiDb
       .from("invoices")
       .select("id, status, owner_profile_id, concierge_profile_id, provider_profile_id, created_at")
       .gte("created_at", windowIso);
@@ -176,7 +195,7 @@ export async function GET(req: NextRequest) {
       if (invoice.provider_profile_id) markActivity(invoice.provider_profile_id, "invoice");
     }
 
-    const { data: messagesData, error: messagesError } = await db
+    const { data: messagesData, error: messagesError } = await kpiDb
       .from("messages")
       .select("conversation_id, sender_id, created_at")
       .gte("created_at", windowIso);
