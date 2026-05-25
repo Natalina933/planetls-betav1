@@ -17,6 +17,7 @@ import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
+  isSidebarOpen?: boolean;
   toggleSidebar: () => void;
   notificationCount?: number;
 }
@@ -185,6 +186,7 @@ function formatPathSegment(segment: string) {
 }
 
 export default function DashboardNavbar({
+  isSidebarOpen = false,
   toggleSidebar,
   notificationCount = 0,
 }: DashboardNavbarProps) {
@@ -577,7 +579,7 @@ export default function DashboardNavbar({
           onClick={handleMenuClick}
           className={styles.menuButton}
           aria-label="Ouvrir ou fermer le menu"
-          aria-expanded="false"
+          aria-expanded={isSidebarOpen}
         >
           <Menu size={24} aria-hidden="true" />
         </button>

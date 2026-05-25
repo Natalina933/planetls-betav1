@@ -40,6 +40,8 @@ $themes: (
 .dashboard-root {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  min-width: 0;
   background: var(--background);
   font-family: var.$font-text;
   color: var(--color-text);
@@ -48,6 +50,7 @@ $themes: (
 
 .dashboard-main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   transition: var.$transition;
@@ -60,13 +63,16 @@ $themes: (
     margin-left: 0;
   }
 
-  @media (max-width: map.get(var.$breakpoints, md)) {
+  @media (max-width: 900px) {
     margin-left: 0;
   }
 }
 
 .dashboard-content {
-  padding: var.$spacing-sm;
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  padding: clamp(0.75rem, 1.8vw, var.$spacing-sm);
   background: var(--background-secondary);
   border: 1px solid var(--color-border);
   box-shadow: 0 10px 24px var(--color-shadow);

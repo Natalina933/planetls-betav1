@@ -26,6 +26,7 @@
   display: flex;
   align-items: center;
   gap: var.$spacing-md;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -98,6 +99,9 @@
   display: flex;
   align-items: center;
   gap: var.$spacing-md;
+  justify-content: flex-end;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -221,6 +225,15 @@
   }
 
   .rightInfoBlock {
+    display: none;
+  }
+
+  .themeLabel {
+    display: none;
+  }
+
+  .rightSection {
+    flex: 0 0 auto;
     gap: 0.55rem;
     min-width: 0;
   }
@@ -313,8 +326,19 @@
   }
 
   .notificationsPanel {
-    right: -0.25rem;
-    width: min(340px, calc(100vw - 1rem));
+    position: fixed;
+    top: calc(58px + env(safe-area-inset-top));
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    max-height: calc(100dvh - 70px - env(safe-area-inset-bottom));
+  }
+
+  .accountDropdown {
+    position: fixed;
+    top: calc(58px + env(safe-area-inset-top));
+    right: 0.5rem;
+    width: min(290px, calc(100vw - 1rem));
   }
 }
 
@@ -392,6 +416,8 @@
   z-index: 4000;
   transform-origin: top right;
   animation: notificationPanelEnter 160ms ease-out;
+  max-height: min(720px, calc(100dvh - 5rem));
+  overflow-y: auto;
 }
 
 .notificationsPanelHeader {
@@ -610,6 +636,24 @@
   z-index: 4200;
   transform-origin: top right;
   animation: notificationPanelEnter 160ms ease-out;
+}
+
+@media (max-width: 640px) {
+  .notificationsPanel {
+    position: fixed;
+    top: calc(58px + env(safe-area-inset-top));
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    max-height: calc(100dvh - 70px - env(safe-area-inset-bottom));
+  }
+
+  .accountDropdown {
+    position: fixed;
+    top: calc(58px + env(safe-area-inset-top));
+    right: 0.5rem;
+    width: min(290px, calc(100vw - 1rem));
+  }
 }
 
 .accountHeader {

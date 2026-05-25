@@ -33,6 +33,7 @@ const roleThemeClasses: Record<string, string> = {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { userType } = useUserType();
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
   const [refreshTick, setRefreshTick] = useState(0);
 
@@ -87,7 +88,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   }, [userType]);
 
   useEffect(() => {
-    if (isOpen) {
+    const mobileQuery = window.matchMedia("(max-width: 900px)");
+    const syncViewport = () => setIsMobileViewport(mobileQuery.matches);
+
+    syncViewport();
+    mobileQuery.addEventListener("change", syncViewport);
+    return () => mobileQuery.removeEventListener("change", syncViewport);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && isMobileViewport) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -95,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, [isOpen, isMobileViewport]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -134,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   return (
     <>
-      {isOpen ? (
+      {isOpen && isMobileViewport ? (
         <div
           className={styles.overlay}
           onClick={toggleSidebar}

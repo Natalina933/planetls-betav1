@@ -2,6 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--ds-space-3);
+  width: 100%;
   padding: 0.4rem;
   border: 1px solid var(--ds-color-border);
   border-radius: var(--ds-radius-pill);
@@ -32,6 +33,9 @@
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition:
     transform 120ms ease,
@@ -125,6 +129,18 @@
 }
 
 @media (max-width: 640px) {
+  .list {
+    border-radius: var(--ds-radius-md);
+    gap: var(--ds-space-2);
+  }
+
+  .trigger {
+    flex: 1 1 min(100%, 10rem);
+    min-height: 44px;
+    padding: 0.58rem 0.7rem;
+    line-height: 1.15;
+  }
+
   .listShowcase {
     width: 100%;
     flex-direction: column;

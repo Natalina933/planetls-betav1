@@ -12,16 +12,32 @@
   justify-content: center;
   background: rgba(0,0,0,0.5);
   z-index: 1000;
+  padding: 1rem;
+  overflow-y: auto;
 }
 
 .popup {
   background: var(--background, #fff);
   border-radius: 1rem; /* contrôle le border-radius global */
-  width: min(1000px, 95%);
-  max-height: 90vh;
+  width: min(1000px, 100%);
+  max-height: min(90vh, calc(100dvh - 2rem));
   overflow: auto;
   padding: 1.5rem;
   box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+}
+
+@media (max-width: 640px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .popup {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    border-radius: 16px 16px 0 0;
+    padding: 1rem;
+  }
 }
 
 .overlay.show {

@@ -1,5 +1,51 @@
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; justify-content:center; align-items:center; z-index:50; padding:16px; }
-.popup { width: min(680px, 100%); }
-.subtitle { margin:0; font-size:.85rem; opacity:.8; }
-.hook { font-weight:600; }
-.footer { justify-content:flex-end; gap:8px; }
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgba(0, 0, 0, 0.45);
+  overflow-y: auto;
+}
+
+.popup {
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.hook {
+  font-weight: 600;
+}
+
+.footer {
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .popup {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    border-radius: 16px 16px 0 0;
+  }
+
+  .footer {
+    display: grid;
+  }
+}

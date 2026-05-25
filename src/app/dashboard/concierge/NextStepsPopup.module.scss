@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 5000;
   display: grid;
   place-items: end center;
   padding: 1rem;
@@ -113,5 +113,31 @@
 @media (min-width: 680px) {
   .overlay {
     place-items: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .overlay {
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    border-radius: 16px 16px 0 0;
+  }
+
+  .header {
+    align-items: center;
+  }
+
+  .step {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .stepIcon,
+  .doneIcon {
+    width: 44px;
+    height: 44px;
   }
 }

@@ -25,7 +25,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         toggleSidebar={() => setIsSidebarOpen((current) => !current)}
       />
       <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
-        <Navbar toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
+        <Navbar
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={() => setIsSidebarOpen((current) => !current)}
+        />
         <main className="dashboard-content">{children}</main>
       </div>
     </div>
