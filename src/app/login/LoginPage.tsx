@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, ChangeEvent, FormEvent } from "react";
+import Image from "next/image";
 import { signIn } from "next-auth/react";
 import styles from "./LoginPage.module.scss";
 import { FaEye, FaEyeSlash, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
@@ -195,99 +196,164 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.headerBlock}>
-        <span className={styles.eyebrow}>Espace securise</span>
-        <h1 className={styles.title}>Connexion</h1>
-        <p className={styles.subtitle}>
-          Accedez a votre espace pour gerer vos demandes, vos missions et votre activite.
-        </p>
-      </div>
-      <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <label htmlFor="email" className={styles.fieldLabel}>
-          Email
-        </label>
-        <div className={styles.inputWrapper}>
-          <Input
-            bare
-            suppressHydrationWarning
-            ref={emailRef}
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-            aria-invalid={!!errors.email}
-            required
-            autoComplete="email"
-            className={errors.email ? styles.inputError : styles.input}
+    <main className={styles.pageShell}>
+      <section className={styles.authLayout} aria-label="Connexion Planet LS">
+        <aside className={styles.visualPanel} aria-label="Apercu Planet LS">
+          <Image
+            src="/images/hero-warmv2.jpg"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 54vw"
+            className={styles.heroImage}
           />
-          {formData.email && (
-            <span className={styles.validationIcon}>
-              {errors.email ? <FaTimesCircle color="#e74c3c" /> : <FaCheckCircle color="#2ecc71" />}
-            </span>
-          )}
-          {errors.email && (
-            <small role="alert" className={styles.errorMsg}>
-              {errors.email}
-            </small>
-          )}
-        </div>
+          <div className={styles.visualShade} aria-hidden="true" />
 
-        <label htmlFor="password" className={styles.fieldLabel}>
-          Mot de passe
-        </label>
-        <div className={styles.passwordInputWrapper}>
-          <Input
-            bare
-            ref={passwordRef}
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Votre mot de passe"
-            aria-invalid={!!errors.password}
-            required
-            minLength={8}
-            autoComplete="current-password"
-            className={errors.password ? styles.inputError : styles.input}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            className={styles.passwordToggle}
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </Button>
-        </div>
-        {errors.password && (
-          <small role="alert" className={styles.errorMsg}>
-            {errors.password}
-          </small>
-        )}
+          <div className={styles.visualContent}>
+            <Image
+              src="/icons/logoCompletv2-gold.svg"
+              alt="Planet LS"
+              width={178}
+              height={54}
+              className={styles.logo}
+              priority
+            />
+            <div className={styles.visualText}>
+              <span className={styles.visualEyebrow}>Tableau de bord prive</span>
+              <h2>Reprenez le fil de vos biens, missions et partenaires.</h2>
+              <p>
+                Un acces unique pour proprietaires, conciergeries et artisans, avec les actions
+                importantes au bon endroit.
+              </p>
+            </div>
 
-        {errors.auth && (
-          <div role="alert" className={`${styles.errorMsg} ${styles.authError}`}>
-            {errors.auth}
+            <div className={styles.previewStrip} aria-hidden="true">
+              <Image
+                src="/images/generated/hero-carousel/planetls-hero-proprietaires.png"
+                alt=""
+                width={168}
+                height={112}
+                className={styles.previewImage}
+              />
+              <Image
+                src="/images/generated/hero-carousel/planetls-hero-conciergeries.png"
+                alt=""
+                width={168}
+                height={112}
+                className={styles.previewImage}
+              />
+              <Image
+                src="/images/generated/hero-carousel/planetls-hero-artisans.png"
+                alt=""
+                width={168}
+                height={112}
+                className={styles.previewImage}
+              />
+            </div>
+
+            <div className={styles.visualStats} aria-label="Reperes de connexion">
+              <span>Demandes</span>
+              <span>Missions</span>
+              <span>Factures</span>
+            </div>
           </div>
-        )}
+        </aside>
 
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          disabled={!canSubmit() || loading}
-          className={styles.submitButton}
-          aria-busy={loading}
-        >
-          {loading ? "Connexion en cours..." : "Se connecter"}
-        </Button>
-      </form>
-    </div>
+        <div className={styles.pageContainer}>
+          <div className={styles.headerBlock}>
+            <span className={styles.eyebrow}>Espace securise</span>
+            <h1 className={styles.title}>Connexion</h1>
+            <p className={styles.subtitle}>
+              Accedez a votre espace pour gerer vos demandes, vos missions et votre activite.
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            <label htmlFor="email" className={styles.fieldLabel}>
+              Email
+            </label>
+            <div className={styles.inputWrapper}>
+              <Input
+                bare
+                suppressHydrationWarning
+                ref={emailRef}
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                aria-invalid={!!errors.email}
+                required
+                autoComplete="email"
+                className={errors.email ? styles.inputError : styles.input}
+              />
+              {formData.email && (
+                <span className={styles.validationIcon}>
+                  {errors.email ? <FaTimesCircle color="#e74c3c" /> : <FaCheckCircle color="#2ecc71" />}
+                </span>
+              )}
+              {errors.email && (
+                <small role="alert" className={styles.errorMsg}>
+                  {errors.email}
+                </small>
+              )}
+            </div>
+
+            <label htmlFor="password" className={styles.fieldLabel}>
+              Mot de passe
+            </label>
+            <div className={styles.passwordInputWrapper}>
+              <Input
+                bare
+                ref={passwordRef}
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Votre mot de passe"
+                aria-invalid={!!errors.password}
+                required
+                minLength={8}
+                autoComplete="current-password"
+                className={errors.password ? styles.inputError : styles.input}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className={styles.passwordToggle}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </Button>
+            </div>
+            {errors.password && (
+              <small role="alert" className={styles.errorMsg}>
+                {errors.password}
+              </small>
+            )}
+
+            {errors.auth && (
+              <div role="alert" className={`${styles.errorMsg} ${styles.authError}`}>
+                {errors.auth}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={!canSubmit() || loading}
+              className={styles.submitButton}
+              aria-busy={loading}
+            >
+              {loading ? "Connexion en cours..." : "Se connecter"}
+            </Button>
+          </form>
+        </div>
+      </section>
+    </main>
   );
 }
