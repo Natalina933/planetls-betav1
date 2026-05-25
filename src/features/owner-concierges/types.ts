@@ -6,7 +6,6 @@ export type RequestFormState = {
   description: string;
   city: string;
   postalCode: string;
-  desiredDate: string;
   budgetMax: string;
   currency: string;
   urgency: boolean;

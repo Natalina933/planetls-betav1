@@ -270,7 +270,7 @@ function getRequestGuidance(status: RelationStatus, quoteCount: number) {
   if (status === "draft") return "Complétez le besoin commercial, puis contactez une ou plusieurs conciergeries.";
   if (status === "sent" || status === "viewed") return "Attendez les retours ou élargissez la recherche si besoin.";
   if (status === "discussion") return quoteCount > 0 ? "Comparez les devis reçus avant de choisir votre partenaire." : "Échangez avec les conciergeries intéressées pour obtenir un devis clair.";
-  if (status === "accepted") return "Le partenaire est choisi. Créez ensuite la mission voyageur dans l’espace Missions.";
+  if (status === "accepted") return "Le partenaire est choisi. Créez ensuite les missions voyageurs avec les informations reçues d'Airbnb, Booking ou autre plateforme.";
   if (status === "expired") return "Reprenez cette base et relancez une recherche plus ciblée.";
   return "Ajustez votre demande ou relancez une recherche avec d'autres critères.";
 }
@@ -287,7 +287,7 @@ function getRequestMilestones(request: OwnerServiceRequestRow, quotes: OwnerQuot
     { label: "Demande", detail: status === "draft" ? "Demande à continuer" : "Demande envoyée", done: status !== "draft" },
     { label: "Devis reçus", detail: quoteCount > 0 ? `${quoteCount} devis reçu${quoteCount > 1 ? "s" : ""}` : "En attente de devis", done: quoteCount > 0 },
     { label: "Devis accepté", detail: hasAccepted ? "Devis validé" : "Choix à confirmer", done: hasAccepted },
-    { label: "Mission", detail: hasMission ? "Mission conclue" : "Mission à lancer", done: hasMission },
+    { label: "Missions voyageurs", detail: hasMission ? "Partenariat prêt" : "Séjours à transmettre", done: hasMission },
   ];
   const firstTodoIndex = steps.findIndex((step) => !step.done);
 
@@ -336,7 +336,7 @@ function getRequestUsefulFacts(request: OwnerServiceRequestRow, quotes: OwnerQuo
   }
 
   if (request.mission_id) {
-    facts.push({ label: "Mission", value: "Mission conclue", hint: "Suivi disponible", Icon: Handshake });
+    facts.push({ label: "Partenariat", value: "Devis accepté", hint: "Missions voyageurs à créer", Icon: Handshake });
   }
 
   if (status === "accepted") {
@@ -935,13 +935,17 @@ function RequestCard({
             <button type="button" className={styles.inlineAction} onClick={() => onEditRequest(request)}>
               <FilePenLine size={15} /> Continuer le brouillon
             </button>
+          ) : relationStatus === "accepted" ? (
+            <ButtonLink
+              href={`/dashboard/owner/missions/voyageurs?request=${encodeURIComponent(request.id)}`}
+              variant="secondary"
+              size="sm"
+            >
+              <Plus size={15} /> Créer une mission voyageur
+            </ButtonLink>
           ) : hasMission ? (
             <ButtonLink href={`/dashboard/owner/missions/${encodeURIComponent(request.mission_id ?? "")}`} variant="secondary" size="sm">
-              <Route size={15} /> Voir la mission
-            </ButtonLink>
-          ) : relationStatus === "accepted" ? (
-            <ButtonLink href="/dashboard/owner/missions/voyageurs" variant="secondary" size="sm">
-              <Plus size={15} /> Créer une mission voyageur
+              <Route size={15} /> Voir le dossier
             </ButtonLink>
           ) : hasQuotes ? (
             <ButtonLink href={`/dashboard/owner/devis?request=${encodeURIComponent(request.id)}`} variant="secondary" size="sm">

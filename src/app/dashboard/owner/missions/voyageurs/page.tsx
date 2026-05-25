@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Bell,
@@ -1007,7 +1008,10 @@ function TravelerMissionCard({
   );
 }
 
-export default function OwnerTravelerMissionsPage() {
+function OwnerTravelerMissionsContent() {
+  const searchParams = useSearchParams();
+  const targetRequestId = searchParams.get("request");
+  const targetQuoteId = searchParams.get("quote");
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [housing, setHousing] = useState<HousingRow[]>([]);
   const [partners, setPartners] = useState<PartnerRequestRow[]>([]);
@@ -1027,6 +1031,7 @@ export default function OwnerTravelerMissionsPage() {
   const [sentParsedStayIds, setSentParsedStayIds] = useState<Record<string, boolean>>({});
   const composerModalRef = useRef<HTMLElement | null>(null);
   const composerReturnFocusRef = useRef<HTMLElement | null>(null);
+  const autoOpenTargetRef = useRef<string | null>(null);
 
   const closeComposer = useCallback(() => {
     setComposerOpen(false);
@@ -1092,7 +1097,10 @@ export default function OwnerTravelerMissionsPage() {
         isAcceptedMissionPartner,
       );
       const nextAssignments = buildAssignmentOptions(acceptedPartners, nextHousing);
-      const firstAssignment = nextAssignments[0];
+      const targetedAssignment =
+        nextAssignments.find((option) => targetRequestId && option.requestId === targetRequestId) ??
+        nextAssignments.find((option) => targetQuoteId && option.selectedQuoteId === targetQuoteId) ??
+        nextAssignments[0];
 
       setMissions(
         (Array.isArray(missionsPayload) ? missionsPayload : []).filter(
@@ -1104,16 +1112,16 @@ export default function OwnerTravelerMissionsPage() {
       setAcceptedQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
       setForm((current) => ({
         ...current,
-        propertyId: current.propertyId || firstAssignment?.propertyId || String(nextHousing[0]?.id ?? ""),
+        propertyId: current.propertyId || targetedAssignment?.propertyId || String(nextHousing[0]?.id ?? ""),
         conciergeProfileId:
-          current.conciergeProfileId || firstAssignment?.conciergeId || "",
+          current.conciergeProfileId || targetedAssignment?.conciergeId || "",
       }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de charger l'espace séjours.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [targetQuoteId, targetRequestId]);
 
   useEffect(() => {
     void loadData();
@@ -1221,6 +1229,24 @@ export default function OwnerTravelerMissionsPage() {
     setCreationMode(mode);
     setComposerOpen(true);
   }
+
+  useEffect(() => {
+    const targetKey = targetRequestId || targetQuoteId;
+    if (!targetKey || loading || assignmentOptions.length === 0 || autoOpenTargetRef.current === targetKey) return;
+
+    const targetedAssignment =
+      assignmentOptions.find((option) => targetRequestId && option.requestId === targetRequestId) ??
+      assignmentOptions.find((option) => targetQuoteId && option.selectedQuoteId === targetQuoteId);
+
+    if (!targetedAssignment) return;
+
+    autoOpenTargetRef.current = targetKey;
+    selectAssignment(targetedAssignment);
+    setSuccess(
+      `Partenaire ${targetedAssignment.conciergeName} sélectionné. Ajoutez les informations voyageur reçues de votre plateforme.`,
+    );
+    openComposer("manual");
+  }, [assignmentOptions, loading, targetQuoteId, targetRequestId]);
 
   function selectAssignment(option: AssignmentOption) {
     setForm((current) => ({
@@ -2065,5 +2091,13 @@ export default function OwnerTravelerMissionsPage() {
           </div>
         </section>
     </div>
+  );
+}
+
+export default function OwnerTravelerMissionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <OwnerTravelerMissionsContent />
+    </Suspense>
   );
 }

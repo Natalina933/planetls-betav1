@@ -48,9 +48,10 @@ Exécuter rapidement les points `P0`, `partiel` et `à faire` avec une vérifica
 ## 3) P1 Tests E2E critiques (à préparer maintenant)
 
 ### Propriétaire
-- `en cours` Recherche concierge -> demande -> message -> devis -> mission.
+- `fail partiel` Recherche concierge -> demande -> message -> devis -> mission.
 - `en cours` Runbook prêt: `docs/p1-e2e-runbook-parcours-critiques-2026-05-18.md` (Scénario E2E 1 Owner).
-- `à faire` Exécuter le scénario en environnement cible et consigner preuves (`PASS/FAIL`, URL bloquante, message exact, captures).
+- `fait` Exécution locale consignée le 25/05/2026: demande Supabase créée pour `proprio123@fee.fr` vers `chris664@free.fr`; parcours UI marqué `FAIL partiel` à cause du blocage recherche/session dev.
+- `à faire` Rejouer le scénario en session réelle stable et poursuivre jusqu'au devis puis mission.
 
 ### Concierge
 - `à faire` Demande reçue -> réponse -> devis -> planification mission.
@@ -75,5 +76,6 @@ Exécuter rapidement les points `P0`, `partiel` et `à faire` avec une vérifica
 - `fait` Durcissement messagerie provider: mise à jour explicite du dernier message et timestamp dans les routes API.
 
 ### Prochain lot recommandé
-1. Uniformiser les feedbacks UX owner restants sur les pages missions historiques.
-2. Exécuter 3 scénarios E2E manuels de bout en bout (1 par profil) et consigner les écarts.
+1. Corriger/stabiliser le parcours recherche concierge owner (`/dashboard/owner/concierges`) puis rejouer l'E2E owner complet.
+2. Uniformiser les feedbacks UX owner restants sur les pages missions historiques.
+3. Exécuter les scénarios E2E concierge et artisan en consignant les écarts.

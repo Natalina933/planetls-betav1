@@ -13,8 +13,8 @@ const currencyOptions = [
 ] as const;
 
 const fallbackOneOffIdeas = [
-  "Check-in voyageur",
-  "Check-out",
+  "Accueil sur place",
+  "Check-in / check-out",
   "Ménage de transition",
   "Remise de clés",
   "Visite de contrôle",
@@ -55,8 +55,6 @@ type RequestCopy = {
   stepThreeHint: string;
   titleLabel: string;
   titlePlaceholder: string;
-  timingLabel: string;
-  timingHint: string;
   detailsLabel: string;
   detailsPlaceholder: string;
   detailsHint?: string;
@@ -65,59 +63,50 @@ type RequestCopy = {
 
 const requestTypeCopy: Record<RequestType, RequestCopy> = {
   ponctuel: {
-    title: "Mission ponctuelle",
-    intro:
-      "Décrivez un besoin unique, rapide à cadrer et à envoyer à des concierges disponibles.",
-    stepOneLabel: "Étape 1",
-    stepOneHint: "Commencez par qualifier le besoin en quelques secondes.",
-    stepTwoLabel: "Étape 2",
-    stepTwoHint: "Précisez l'intervention attendue avec un service cohérent avec votre recherche.",
-    stepThreeLabel: "Étape 3",
-    stepThreeHint: "Finalisez la mission avec le bon timing et quelques détails utiles.",
+    title: "Besoin ponctuel",
+    intro: "Envoyez un brief court pour obtenir une réponse ou un devis.",
+    stepOneLabel: "Cadre",
+    stepOneHint: "Choisissez le type de collaboration.",
+    stepTwoLabel: "Besoin",
+    stepTwoHint: "Indiquez la ville, le service et le budget indicatif.",
+    stepThreeLabel: "Message",
+    stepThreeHint: "Ajoutez seulement le contexte utile.",
     titleLabel: "Type d'intervention",
-    titlePlaceholder: "Ex : check-in voyageur, remise de clés, ménage express",
-    timingLabel: "Quand faut-il intervenir ?",
-    timingHint: "Date et heure estimées. Vous pourrez affiner ensuite dans l'échange.",
+    titlePlaceholder: "Ex : accueil sur place, remise de clés, ménage de transition",
     detailsLabel: "Détails utiles",
     detailsPlaceholder:
-      "Ex : arrivée voyageur à 18h30, récupération des clés, vérifier l'état du logement.",
-    detailsHint: "Quelques lignes suffisent. Vous pourrez préciser ensuite dans l'échange.",
+      "Ex : volume de séjours, logement concerné, plateformes utilisées, attentes principales.",
+    detailsHint: "Gardez ici le contexte commercial : logement, volume attendu, plateformes et attentes principales.",
     budgetHint: "Indicatif, pour aider les concierges à se positionner. Laissez vide si non défini.",
   },
   renfort: {
     title: "Renfort ou remplacement",
-    intro:
-      "Cadrez un besoin de relais temporaire, de surcharge d'activité ou de remplacement sur une période donnée.",
+    intro: "Cadrez un relais temporaire ou une surcharge d'activité.",
     stepOneLabel: "Cadre de mission",
-    stepOneHint: "Les informations visibles en tête de brief.",
-    stepTwoLabel: "Périmètre et budget",
-    stepTwoHint: "Précisez le renfort attendu, le contexte et le niveau d'autonomie recherché.",
-    stepThreeLabel: "Contexte opérationnel",
-    stepThreeHint: "Donnez assez d'éléments pour que les concierges se projettent rapidement.",
+    stepOneHint: "Choisissez le type de collaboration.",
+    stepTwoLabel: "Périmètre",
+    stepTwoHint: "Ville, services attendus et budget indicatif.",
+    stepThreeLabel: "Message",
+    stepThreeHint: "Donnez assez d'éléments pour une première réponse.",
     titleLabel: "Intitulé du renfort",
     titlePlaceholder: "Ex : renfort check-in/check-out pendant les vacances scolaires",
-    timingLabel: "À partir de quand ?",
-    timingHint: "Cette date aide les concierges à confirmer leur disponibilité.",
     detailsLabel: "Description",
     detailsPlaceholder:
-      "Expliquez le volume attendu, les missions à reprendre, les horaires et le niveau d'urgence.",
+      "Expliquez le volume attendu, les services à reprendre et le niveau d'autonomie recherché.",
     budgetHint:
       "Sert à cadrer la demande, sans engager le tarif final. Laissez vide si non défini.",
   },
   durable: {
     title: "Besoin durable",
-    intro:
-      "Présentez un besoin récurrent ou structurant pour trouver un concierge capable de s'inscrire dans la durée.",
-    stepOneLabel: "Cadre de mission",
-    stepOneHint: "Les informations visibles en tête de brief.",
+    intro: "Présentez une collaboration récurrente pour recevoir un devis.",
+    stepOneLabel: "Cadre",
+    stepOneHint: "Positionnez la nature du partenariat.",
     stepTwoLabel: "Zone et budget",
-    stepTwoHint: "Précisez le périmètre, les services récurrents et le budget indicatif.",
-    stepThreeLabel: "Vision de collaboration",
-    stepThreeHint: "Décrivez ce que vous attendez sur la durée et la manière de travailler.",
+    stepTwoHint: "Précisez ville, services et budget indicatif.",
+    stepThreeLabel: "Message",
+    stepThreeHint: "Décrivez vos attentes sur la durée.",
     titleLabel: "Intitulé du besoin durable",
     titlePlaceholder: "Ex : gestion récurrente des séjours courte durée sur Lyon 6e",
-    timingLabel: "À partir de quand ?",
-    timingHint: "Indiquez le démarrage souhaité pour organiser la prise en charge.",
     detailsLabel: "Description",
     detailsPlaceholder:
       "Expliquez le rythme, les services attendus, le type de biens et les objectifs de collaboration.",
@@ -248,7 +237,7 @@ export function RequestPanel({
               </Select>
             </label>
 
-            <div className={styles.field}>
+            <label className={styles.field}>
               <span>Code postal</span>
               <Input
                 value={requestForm.postalCode}
@@ -256,7 +245,7 @@ export function RequestPanel({
                 placeholder="75015"
                 inputMode="numeric"
               />
-            </div>
+            </label>
           </div>
         </div>
 
@@ -285,14 +274,14 @@ export function RequestPanel({
           ) : null}
 
           <div className={styles.fieldGrid}>
-            <div className={styles.field}>
+            <label className={styles.field}>
               <span>{copy.titleLabel}</span>
               <Input
                 value={requestForm.title}
                 onChange={(event) => onRequestFormChange("title", event.target.value)}
                 placeholder={copy.titlePlaceholder}
               />
-            </div>
+            </label>
 
             <label className={styles.field}>
               <span>Ville</span>
@@ -311,6 +300,7 @@ export function RequestPanel({
                 <Input
                   type="number"
                   min="0"
+                  aria-label="Budget indicatif"
                   inputMode="numeric"
                   value={requestForm.budgetMax}
                   onChange={(event) => onRequestFormChange("budgetMax", event.target.value)}
@@ -338,16 +328,6 @@ export function RequestPanel({
           <div className={styles.requestBlockHeader}>
             <span className={styles.requestSectionLabel}>{copy.stepThreeLabel}</span>
             <p className={styles.requestBlockHint}>{copy.stepThreeHint}</p>
-          </div>
-
-          <div className={styles.field}>
-            <span>{copy.timingLabel}</span>
-            <Input
-              type="datetime-local"
-              value={requestForm.desiredDate}
-              onChange={(event) => onRequestFormChange("desiredDate", event.target.value)}
-            />
-            <small className={styles.fieldHint}>{copy.timingHint}</small>
           </div>
 
           <label className={styles.field}>
@@ -394,7 +374,7 @@ export function RequestPanel({
           {lastSentSummary ? (
             <div className={styles.sentSummary}>
               <span>
-                <strong>Mission :</strong> {lastSentSummary.title}
+                <strong>Demande :</strong> {lastSentSummary.title}
               </span>
               <span>
                 <strong>Ville :</strong> {lastSentSummary.city || "À confirmer"}

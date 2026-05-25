@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SearchBar, StatsCard, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
@@ -187,10 +188,10 @@ function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
   const invoiceReady = Boolean(payload.accepted_workflow?.invoice_id);
 
   if (missionReady && invoiceReady) {
-    return "Accepté : mission créée dans le planning, devis lié au partenaire et facture brouillon disponible dans les finances.";
+    return "Accepté : la conciergerie devient partenaire. Vous pouvez maintenant créer les missions voyageurs avec les informations Airbnb/Booking, et une facture brouillon est disponible dans les finances.";
   }
   if (missionReady) {
-    return "Accepté : mission créée dans le planning et devis lié au partenaire. La facture pourra être générée depuis les finances.";
+    return "Accepté : la conciergerie devient partenaire. Créez ensuite les missions voyageurs depuis l’espace dédié.";
   }
   return "Accepté : la collaboration est validée et les onglets partenaires, demandes et finances sont synchronisés.";
 }
@@ -686,8 +687,10 @@ function OwnerQuotesContent() {
                           }`,
                         },
                         {
-                          label: "Début mission",
-                          value: formatDateTime(group.request.desired_date),
+                          label: "Début collaboration",
+                          value: group.request.desired_date
+                            ? formatDateTime(group.request.desired_date)
+                            : "À préciser après devis",
                         },
                         {
                           label: "Budget",
@@ -911,6 +914,14 @@ function OwnerQuotesContent() {
                                   {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser le devis"}
                                 </button>
                                 </>
+                              ) : null}
+                              {quote.status === "accepted" ? (
+                                <Link
+                                  href={`/dashboard/owner/missions/voyageurs?quote=${encodeURIComponent(quote.id)}`}
+                                  className={styles.buttonPrimary}
+                                >
+                                  Créer une mission voyageur
+                                </Link>
                               ) : null}
                             </>
                           }

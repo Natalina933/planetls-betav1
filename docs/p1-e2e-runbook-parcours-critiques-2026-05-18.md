@@ -48,6 +48,16 @@ Pour chaque scénario, consigner:
 - Préparation terminée: check des écrans cibles owner (`concierges`, `demandes`, `messages`, `devis`, `missions`).
 - Reste à produire: preuves d'exécution réelle (`PASS/FAIL`, URL bloquante, message d'erreur exact, captures).
 
+### Exécution 2026-05-25 18:56
+- Testeur: Codex
+- Environnement: local `http://localhost:3000`, Supabase projet configuré via `.env.local`
+- Compte owner: `proprio123@fee.fr`
+- Concierge ciblé: `chris664@free.fr` (Christa Lefevbure)
+- Scénario 1 Owner: `FAIL partiel`
+- Données créées dans Supabase: demande `96531566-f84e-4d1a-aa11-567f2c33994d`, conversation `69159d9b-b691-4ef3-981d-ab9cfcbeed9a`
+- Blocants: la recherche UI `/dashboard/owner/concierges` reste en état `Recherche en cours...` en dev local lors du test navigateur. Le serveur dev Next a aussi présenté des timeouts intermittents sur `/api/auth/session`; relance en `dev:webpack` nécessaire pour stabiliser `/login`.
+- Décision: ne pas marquer le parcours complet PASS tant que la recherche UI et l'ouverture côté concierge n'ont pas été rejouées sur une session réelle.
+
 ---
 
 ## Scénario E2E 2 - Concierge

@@ -67,7 +67,7 @@ const FILTER_ICONS: Record<RequestFilter, LucideIcon> = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "Date à définir";
+  if (!value) return "Calendrier à préciser après devis";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Date invalide";
   return new Intl.DateTimeFormat("fr-FR", {
@@ -122,7 +122,7 @@ function getNextStepLabel(item: ConciergeRequestRow) {
 
 function getNextStepDescription(item: ConciergeRequestRow) {
   if (item.recipient_status === "selected" || item.mission_id) {
-    return "Le devis a été accepté. La demande commerciale est archivée, les futures tâches passent dans le module Missions.";
+    return "Le devis a été accepté. La demande commerciale est validée ; les séjours voyageurs seront transmis dans Missions.";
   }
   if (item.recipient_status === "quoted") {
     return "Le devis est prêt côté concierge. Suivez la réponse du propriétaire.";
@@ -172,7 +172,7 @@ function getConciergeMilestones(item: ConciergeRequestRow): ServiceRequestMilest
     { label: "Demande", detail: "Demande reçue", done: true, Icon: ClipboardList },
     { label: "Qualification", detail: hasQualified ? "Demande qualifiée" : "À qualifier", done: hasQualified, Icon: BadgeCheck },
     { label: "Devis", detail: hasQuote ? "Devis préparé" : "Devis à préparer", done: hasQuote, Icon: FileText },
-    { label: "Mission", detail: hasMission ? "Mission conclue" : "Mission à confirmer", done: hasMission, Icon: CalendarPlus },
+    { label: "Missions voyageurs", detail: hasMission ? "Partenariat prêt" : "Après devis accepté", done: hasMission, Icon: CalendarPlus },
   ];
   const firstTodoIndex = steps.findIndex((step) => !step.done);
 
@@ -194,7 +194,7 @@ function getConciergeFacts(item: ConciergeRequestRow): ServiceRequestFact[] {
   }
   if (services) facts.push({ label: "Services", value: services, Icon: Sparkles });
   if (item.quote_number) facts.push({ label: "Devis", value: item.quote_number, hint: getWorkflow(item), Icon: FileText });
-  if (item.mission_id) facts.push({ label: "Mission", value: "Mission conclue", hint: "Planification disponible", Icon: CalendarPlus });
+  if (item.mission_id) facts.push({ label: "Partenariat", value: "Devis accepté", hint: "Missions voyageurs à venir", Icon: CalendarPlus });
 
   return facts.slice(0, 4);
 }
@@ -629,7 +629,7 @@ function ConciergeDemandesContent() {
               title={item.title}
               eyebrow={item.owner_name}
               actorName={item.owner_name}
-              actorDetail={`${item.property_name || item.city || "Logement ? pr?ciser"} ? ${formatDate(item.desired_date)}`}
+              actorDetail={`${item.property_name || item.city || "Logement à préciser"} - ${formatDate(item.desired_date)}`}
               statusLabel={getNextStepLabel(item)}
               statusTone={getCardTone(item)}
               typeLabel={formatType(item.request_type)}

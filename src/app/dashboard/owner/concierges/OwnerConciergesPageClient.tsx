@@ -26,6 +26,7 @@ import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/featu
 import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import type { RequestFormState } from "@/features/owner-concierges/types";
+import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 
 const initialFilters: OwnerConciergeSearchFilters = {
   region: "",
@@ -44,7 +45,6 @@ const initialRequestForm: RequestFormState = {
   description: "",
   city: "",
   postalCode: "",
-  desiredDate: "",
   budgetMax: "",
   currency: "EUR",
   urgency: false,
@@ -66,6 +66,7 @@ export default function OwnerConciergesPageClient() {
   const [sortMode, setSortMode] = useState<SortMode>("available");
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [requestComposerOpen, setRequestComposerOpen] = useState(false);
   const [selectedConciergeIds, setSelectedConciergeIds] = useState<string[]>([]);
   const [requestForm, setRequestForm] = useState<RequestFormState>(initialRequestForm);
   const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
@@ -80,6 +81,7 @@ export default function OwnerConciergesPageClient() {
   const { items, loading, error, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
   const requestPanelRef = useRef<HTMLElement | null>(null);
+  const requestReturnFocusRef = useRef<HTMLElement | null>(null);
   const lastToastMessageRef = useRef<string | null>(null);
 
   const selectedIdSet = useMemo(() => new Set(selectedConciergeIds), [selectedConciergeIds]);
@@ -270,6 +272,44 @@ export default function OwnerConciergesPageClient() {
     });
   }, [error]);
 
+  function openRequestComposer() {
+    requestReturnFocusRef.current =
+      typeof document !== "undefined" && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setRequestComposerOpen(true);
+  }
+
+  function closeRequestComposer() {
+    setRequestComposerOpen(false);
+    window.setTimeout(() => requestReturnFocusRef.current?.focus(), 0);
+  }
+
+  useEffect(() => {
+    if (!requestComposerOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => focusFirstModalElement(requestPanelRef.current), 0);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRequestComposer();
+        return;
+      }
+
+      trapFocusInModal(event, requestPanelRef.current);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [requestComposerOpen]);
+
   function clearResults() {
     clear();
     setSelectedConciergeIds([]);
@@ -390,7 +430,7 @@ export default function OwnerConciergesPageClient() {
               filters.selectedServices.length > 0 ? filters.selectedServices : filters.selectedCategories,
             city: requestForm.city.trim(),
             postal_code: requestForm.postalCode.trim(),
-            desired_date: requestForm.desiredDate ? new Date(requestForm.desiredDate).toISOString() : null,
+            desired_date: null,
           urgency: requestForm.urgency,
           budget_max: requestForm.budgetMax ? Number(requestForm.budgetMax) : null,
           currency: requestForm.currency,
@@ -490,22 +530,43 @@ export default function OwnerConciergesPageClient() {
             />
           </div>
 
-          <aside className={styles.sidebar} ref={requestPanelRef}>
-            <RequestPanel
-              styles={styles}
-              selectedConcierges={selectedConcierges}
-              selectedServices={filters.selectedServices}
-              activeSearchSummary={activeSearchSummary}
-              requestForm={requestForm}
-              submittingRequest={submittingRequest}
-              requestFeedback={feedback}
-              requestError={error}
-              lastSubmittedStatus={lastSubmittedStatus}
-              lastSentSummary={lastSentSummary}
-              onSubmit={handleSendRequest}
-              onRequestFormChange={updateRequestForm}
-              getCitySuggestions={getOwnerCitySuggestions}
-            />
+          <aside className={styles.sidebar}>
+            <div className={styles.requestDock}>
+              <div>
+                <p className={styles.eyebrow}>Demande</p>
+                <h2 className={styles.requestTitle}>Lancer une recherche concierge</h2>
+              </div>
+              <p className={styles.requestIntro}>
+                Envoyez un brief court aux conciergeries sélectionnées pour obtenir une réponse ou un devis.
+              </p>
+              <div className={styles.selectionSummary}>
+                <span className={styles.requestSectionLabel}>Sélection</span>
+                <strong>{selectedConciergeIds.length} concierge(s) sélectionné(s)</strong>
+                {selectedConcierges.length > 0 ? (
+                  <div className={styles.summaryChips}>
+                    {selectedConcierges.slice(0, 4).map((item) => (
+                      <span key={item.id} className={styles.summaryChip}>
+                        {item.display_name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className={styles.tagMuted}>Sélectionnez un profil dans les résultats.</span>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="primary"
+                className={styles.primaryBtn}
+                disabled={selectedConciergeIds.length === 0}
+                onClick={openRequestComposer}
+              >
+                Lancer la recherche
+              </Button>
+              <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
+                Suivre mes demandes
+              </ButtonLink>
+            </div>
           </aside>
         </div>
 
@@ -518,10 +579,62 @@ export default function OwnerConciergesPageClient() {
                 : "Ajoutez des profils pour envoyer une demande."}
             </span>
           </div>
-          <ButtonLink href="#owner-request-panel" variant="primary" className={styles.primaryBtn}>
-            Voir ma demande
-          </ButtonLink>
+          <Button
+            type="button"
+            variant="primary"
+            className={styles.primaryBtn}
+            disabled={selectedConciergeIds.length === 0}
+            onClick={openRequestComposer}
+          >
+            Lancer la recherche
+          </Button>
         </div>
+
+        {requestComposerOpen ? (
+          <div className={styles.modalOverlay} onMouseDown={closeRequestComposer}>
+            <section
+              ref={requestPanelRef}
+              className={styles.requestModal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="owner-request-composer-title"
+              tabIndex={-1}
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <div className={styles.modalHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Recherche concierge</p>
+                  <h2 id="owner-request-composer-title" className={styles.requestTitle}>
+                    Lancer une recherche concierge
+                  </h2>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className={styles.secondaryBtn}
+                  onClick={closeRequestComposer}
+                >
+                  Fermer
+                </Button>
+              </div>
+              <RequestPanel
+                styles={styles}
+                selectedConcierges={selectedConcierges}
+                selectedServices={filters.selectedServices}
+                activeSearchSummary={activeSearchSummary}
+                requestForm={requestForm}
+                submittingRequest={submittingRequest}
+                requestFeedback={feedback}
+                requestError={error}
+                lastSubmittedStatus={lastSubmittedStatus}
+                lastSentSummary={lastSentSummary}
+                onSubmit={handleSendRequest}
+                onRequestFormChange={updateRequestForm}
+                getCitySuggestions={getOwnerCitySuggestions}
+              />
+            </section>
+          </div>
+        ) : null}
 
         {mobileFiltersOpen ? (
           <div className={styles.mobileDrawerBackdrop} onClick={() => setMobileFiltersOpen(false)}>
