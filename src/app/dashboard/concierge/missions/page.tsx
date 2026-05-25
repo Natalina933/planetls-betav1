@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { getMissionPriorityLabel, getMissionStatusLabel, normalizeMissionStatus } from "@/app/lib/missionStatus";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import { Input, Select } from "@/components/ui";
+import { conciergeApiError } from "../conciergeFeedback";
 import styles from "@/app/dashboard/missions/MissionDetailPage.module.scss";
 
 type MissionView = "to_plan" | "today" | "late" | "done" | "all";
@@ -70,23 +71,24 @@ export default function ConciergeMissionsListPage() {
   const [viewFilter, setViewFilter] = useState<MissionView>("to_plan");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch("/api/missions?scope=all&limit=150", { cache: "no-store" });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload?.error || "Impossible de charger les missions.");
-        setMissions(Array.isArray(payload) ? payload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger les missions.");
-      } finally {
-        setLoading(false);
-      }
+  const loadMissions = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/missions?scope=all&limit=150", { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(conciergeApiError("Impossible de charger les missions.", payload?.error));
+      setMissions(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : conciergeApiError("Impossible de charger les missions."));
+    } finally {
+      setLoading(false);
     }
-    void load();
   }, []);
+
+  useEffect(() => {
+    void loadMissions();
+  }, [loadMissions]);
 
   const now = Date.now();
   const filtered = useMemo(() => {
@@ -137,7 +139,7 @@ export default function ConciergeMissionsListPage() {
       showCardsIntro={false}
       showDetailsIntro={false}
     >
-      <div className={styles.page}>
+      <div className={styles.page} aria-busy={loading}>
         <section className={styles.panel}>
           <div className={styles.sectionHeader}>
             <div>
@@ -195,8 +197,15 @@ export default function ConciergeMissionsListPage() {
           </div>
         </section>
 
-        {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
-        {loading ? <p>Chargement...</p> : null}
+        {error ? (
+          <div className={`${styles.message} ${styles.messageError}`} role="alert">
+            <span>{error}</span>
+            <button type="button" className={styles.linkButton} onClick={() => void loadMissions()}>
+              Réessayer
+            </button>
+          </div>
+        ) : null}
+        {loading ? <p className={styles.message} role="status">Chargement...</p> : null}
         {!loading && filtered.length === 0 ? <p className={styles.empty}>Aucune mission ne correspond aux filtres.</p> : null}
 
         <section className={styles.proofGrid}>

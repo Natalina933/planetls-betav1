@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 import styles from './PricingGridManager.module.scss';
 import type { PricingModifierKey, PricingOverrideValue, PricingV2Config } from '@/app/components/tariffs/types';
+import { conciergeApiError } from '@/app/dashboard/concierge/conciergeFeedback';
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -141,6 +142,7 @@ const PricingGridManager = ({
   const [showAdvancedPricingTools, setShowAdvancedPricingTools] = useState(false);
   const [editingPriorityRows, setEditingPriorityRows] = useState<Record<string, boolean>>({});
   const [contextualServiceScope, setContextualServiceScope] = useState<"missions" | "all">("missions");
+  const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
 
   const modifierColumns: Array<{
     key: PricingModifierKey;
@@ -302,7 +304,7 @@ const PricingGridManager = ({
   /* -------------------------------------------------------------------------- */
   const handleSubmit = async () => {
     if (!formData.label || !formData.amount) {
-      alert('Veuillez remplir tous les champs requis');
+      setFeedback({ tone: "error", message: "Veuillez remplir tous les champs requis." });
       return;
     }
     
@@ -405,9 +407,13 @@ const PricingGridManager = ({
 
       await fetchPricings();
       resetForm();
+      setFeedback({ tone: "success", message: editingId ? "Tarif mis à jour." : "Tarif ajouté." });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Impossible d'enregistrer ce tarif.", err.message)
+          : conciergeApiError("Impossible d'enregistrer ce tarif.");
+      setFeedback({ tone: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -448,9 +454,10 @@ const PricingGridManager = ({
     try {
       await fetch(`/api/pricing/${id}`, { method: 'DELETE' });
       await fetchPricings();
+      setFeedback({ tone: "success", message: "Règle tarifaire supprimée." });
     } catch (err) {
       console.error('[Pricing] handleDelete', err);
-      alert('Erreur lors de la suppression');
+      setFeedback({ tone: "error", message: conciergeApiError("Erreur lors de la suppression.") });
     }
   };
 
@@ -636,7 +643,7 @@ const PricingGridManager = ({
     );
 
     if (toAttach.length === 0) {
-      alert("Les tarifs sélectionnés sont déjà liés au pack.");
+      setFeedback({ tone: "success", message: "Les tarifs sélectionnés sont déjà liés au pack." });
       return;
     }
 
@@ -665,10 +672,13 @@ const PricingGridManager = ({
       }
 
       setSelectedPricingIdsForPack([]);
-      alert(`${toAttach.length} tarif(s) lié(s) au pack.`);
+      setFeedback({ tone: "success", message: `${toAttach.length} tarif(s) lié(s) au pack.` });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Erreur liaison au pack";
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Erreur liaison au pack.", err.message)
+          : conciergeApiError("Erreur liaison au pack.");
+      setFeedback({ tone: "error", message: errorMessage });
     } finally {
       setIsLinkingSelected(false);
     }
@@ -695,9 +705,13 @@ const PricingGridManager = ({
       const linkedIds = new Set(linkedRows.map((row) => row.id));
       setLinkedPricingPackages((prev) => prev.filter((row) => !linkedIds.has(row.id)));
       setSelectedPricingIdsForPack((prev) => prev.filter((id) => id !== pricing.id));
+      setFeedback({ tone: "success", message: "Tarif délié du pack." });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la déliaison';
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Erreur lors de la déliaison.", err.message)
+          : conciergeApiError("Erreur lors de la déliaison.");
+      setFeedback({ tone: "error", message: errorMessage });
     }
   };
 
@@ -712,9 +726,13 @@ const PricingGridManager = ({
       }
 
       setLinkedPricingPackages((prev) => prev.filter((row) => row.id !== linkId));
+      setFeedback({ tone: "success", message: "Lien tarif supprimé." });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la déliaison';
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Erreur lors de la déliaison.", err.message)
+          : conciergeApiError("Erreur lors de la déliaison.");
+      setFeedback({ tone: "error", message: errorMessage });
     }
   };
 
@@ -1151,6 +1169,18 @@ const PricingGridManager = ({
           )}
         </div>
       </div>
+
+      {feedback ? (
+        <div
+          className={feedback.tone === "success" ? styles.feedbackSuccess : styles.feedbackError}
+          role={feedback.tone === "success" ? "status" : "alert"}
+        >
+          <span>{feedback.message}</span>
+          <button type="button" onClick={() => setFeedback(null)}>
+            Fermer
+          </button>
+        </div>
+      ) : null}
 
       {pricingV2 && onChangePricingV2 && contextualServiceRows.length > 0 && (
         <div className={styles.priorityCard}>

@@ -254,6 +254,39 @@ function SearchServiceFilter({
   );
 }
 
+function getCompatibilityLabel(score: number) {
+  if (score >= 80) return "Tres bon match";
+  if (score >= 60) return "Match solide";
+  if (score >= 35) return "Match a qualifier";
+  return "Faible correspondance";
+}
+
+function getCompatibilityReasons(listing: OwnerListing) {
+  const reasons: string[] = [];
+
+  if (listing.matched_services.length > 0) {
+    reasons.push(`${listing.matched_services.length} service(s) commun(s)`);
+  }
+
+  if (typeof listing.distance_km === "number") {
+    reasons.push(`${listing.distance_km.toFixed(1)} km`);
+  }
+
+  if (listing.budget_note) {
+    reasons.push("Budget indique");
+  }
+
+  if (listing.postal_code) {
+    reasons.push("Zone precise");
+  }
+
+  if (reasons.length === 0 && listing.services_wanted.length > 0) {
+    reasons.push("Services a verifier");
+  }
+
+  return reasons.slice(0, 4);
+}
+
 export function SearchResultsSection({
   listings,
   contactingListingId,
@@ -300,6 +333,7 @@ function SearchResultCard({
 }: SearchResultCardProps) {
   const housingId = listing.source === "housing" ? listing.id.replace("housing-", "") : null;
   const detailHref = housingId ? `/dashboard/concierge/logements/${housingId}` : null;
+  const compatibilityReasons = getCompatibilityReasons(listing);
 
   return (
     <article className={styles.card}>
@@ -352,6 +386,16 @@ function SearchResultCard({
             style={{ width: `${Math.min(Math.max(listing.compatibility_score, 0), 100)}%` }}
           />
         </div>
+        <p className={styles.compatibilityText}>
+          {getCompatibilityLabel(listing.compatibility_score)}
+        </p>
+        {compatibilityReasons.length > 0 && (
+          <div className={styles.matchReasons} aria-label="Raisons du score de compatibilite">
+            {compatibilityReasons.map((reason) => (
+              <span key={`${listing.id}-${reason}`}>{reason}</span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className={styles.tagsBlock}>

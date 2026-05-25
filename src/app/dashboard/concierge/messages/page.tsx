@@ -50,6 +50,25 @@ function getConversationTitle(subject?: string | null) {
   return subject || "Conversation";
 }
 
+function getConversationContextLabel(source?: string | null, status?: string | null) {
+  switch ((source ?? "").trim().toLowerCase()) {
+    case "mission":
+      return "Mission";
+    case "quote":
+      return "Devis";
+    case "search":
+      return "Recherche proprietaire";
+    case "service_request":
+    case "request":
+      return "Demande";
+    case "manual":
+    case "direct":
+      return "Conversation directe";
+    default:
+      return status || source || "Conversation";
+  }
+}
+
 function ConversationListSidebar({
   conversations,
   activeConversationId,
@@ -151,7 +170,12 @@ function ConversationThread({
     <section className={styles.thread}>
       <div className={styles.threadHeader}>
         <h2>{getConversationTitle(activeConversation.conversation.subject)}</h2>
-        <span>{activeConversation.conversation.source}</span>
+        <span>
+          {getConversationContextLabel(
+            activeConversation.conversation.source,
+            activeConversation.conversation.status,
+          )}
+        </span>
       </div>
 
       <div className={styles.messageList}>
@@ -222,6 +246,7 @@ function ConciergeMessagesContent() {
     setActiveConversationId,
     setDraftMessage,
     sendMessage,
+    reload,
   } = useConciergeMessages({
     enabled: status === "authenticated",
     queryConversationId,
@@ -253,7 +278,7 @@ function ConciergeMessagesContent() {
   );
 
   if (loading) {
-    return <div className={styles.page}>Chargement des messages...</div>;
+    return <div className={styles.page} role="status" aria-busy="true">Chargement des messages...</div>;
   }
 
   return (
@@ -305,10 +330,17 @@ function ConciergeMessagesContent() {
         },
       ]}
     >
-      {errorMsg ? <p className={styles.errorBox}>{errorMsg}</p> : null}
-      {successMsg ? <p className={styles.successBox}>{successMsg}</p> : null}
+      {errorMsg ? (
+        <div className={styles.errorBox} role="alert">
+          <span>{errorMsg}</span>
+          <button type="button" onClick={() => void reload()}>
+            Réessayer
+          </button>
+        </div>
+      ) : null}
+      {successMsg ? <div className={styles.successBox} role="status">{successMsg}</div> : null}
 
-      <div className={styles.layout}>
+      <div className={styles.layout} aria-busy={listLoading || detailLoading || sending}>
         <ConversationListSidebar
           conversations={filteredConversations}
           activeConversationId={activeConversationId}

@@ -22,6 +22,7 @@ import {
 import { deriveRequestWorkflowStatus } from "@/app/lib/requestStatus";
 import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
+import { conciergeApiError } from "../conciergeFeedback";
 import styles from "./DemandesPage.module.scss";
 
 type ConciergeRequestRow = {
@@ -248,13 +249,13 @@ function ConciergeDemandesContent() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger les demandes.");
+        throw new Error(conciergeApiError("Impossible de charger les demandes.", payload?.error));
       }
       const nextItems = Array.isArray(payload?.items) ? payload.items : [];
       const hydratedItems = await markRequestsAsViewed(nextItems);
       setItems(hydratedItems);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger les demandes.");
+      setError(err instanceof Error ? err.message : conciergeApiError("Impossible de charger les demandes."));
     } finally {
       setLoading(false);
     }
@@ -324,7 +325,7 @@ function ConciergeDemandesContent() {
       });
       const payload = await response.json();
       if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de mettre à jour la demande.");
+          throw new Error(conciergeApiError("Impossible de mettre à jour la demande.", payload?.error));
       }
 
       setActionMessage(
@@ -334,7 +335,7 @@ function ConciergeDemandesContent() {
       );
       await loadRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de mettre à jour la demande.");
+      setError(err instanceof Error ? err.message : conciergeApiError("Impossible de mettre à jour la demande."));
     } finally {
       setBusyRecipientId(null);
     }
@@ -357,7 +358,7 @@ function ConciergeDemandesContent() {
       const payload = await response.json();
 
       if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de préparer le devis.");
+          throw new Error(conciergeApiError("Impossible de préparer le devis.", payload?.error));
       }
 
       const quoteId =
@@ -378,7 +379,7 @@ function ConciergeDemandesContent() {
           : "/dashboard/concierge/billing?source=request",
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de préparer le devis.");
+      setError(err instanceof Error ? err.message : conciergeApiError("Impossible de préparer le devis."));
     } finally {
       setBusyRecipientId(null);
     }
@@ -389,6 +390,11 @@ function ConciergeDemandesContent() {
       return `/dashboard/concierge/messages?conversation=${encodeURIComponent(item.conversation_id)}`;
     }
     return "/dashboard/concierge/messages";
+  }
+
+  async function retryRequests() {
+    setActionMessage(null);
+    await loadRequests();
   }
 
   function renderActions(item: ConciergeRequestRow) {
@@ -566,9 +572,18 @@ function ConciergeDemandesContent() {
         },
       ]}
     >
-      <div className={styles.page}>
-        {actionMessage ? <p className={styles.successBox}>{actionMessage}</p> : null}
-        {error ? <p className={styles.errorBox}>{error}</p> : null}
+      <div className={styles.page} aria-busy={loading || Boolean(busyRecipientId)}>
+        {actionMessage ? <div className={styles.successBox} role="status">{actionMessage}</div> : null}
+        {error ? (
+          <div className={styles.errorBox} role="alert">
+            <span>{error}</span>
+            <button type="button" className={styles.secondaryBtn} onClick={() => void retryRequests()}>
+              Réessayer
+            </button>
+          </div>
+        ) : null}
+
+        {loading ? <p className={styles.feedbackBox} role="status">Chargement des demandes...</p> : null}
 
         <div className={styles.workflowBar} aria-label="Parcours de conversion">
           <span>1. Demande reçue</span>

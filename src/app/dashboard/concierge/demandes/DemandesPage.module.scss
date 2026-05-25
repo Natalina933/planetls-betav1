@@ -28,6 +28,40 @@ $success: #4a7c59;
   gap: 20px;
 }
 
+.feedbackBox,
+.successBox,
+.errorBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.feedbackBox {
+  border: 1px solid $border;
+  background: rgba(255, 253, 249, 0.88);
+  color: $blue-ink;
+}
+
+.successBox {
+  border: 1px solid rgba(74, 124, 89, 0.22);
+  background: rgba(74, 124, 89, 0.1);
+  color: $success;
+}
+
+.errorBox {
+  border: 1px solid rgba(169, 68, 66, 0.22);
+  background: rgba(169, 68, 66, 0.1);
+  color: $danger;
+}
+
 .workflowBar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -411,26 +445,6 @@ $success: #4a7c59;
   .metaGrid {
     grid-template-columns: 1fr;
   }
-}
-
-/* === FEEDBACK === */
-
-.successBox {
-  background: rgba(74, 124, 89, 0.1);
-  color: $success;
-  border: 1px solid rgba(74, 124, 89, 0.2);
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 16px;
-}
-
-.errorBox {
-  background: rgba(169, 68, 66, 0.1);
-  color: $danger;
-  border: 1px solid rgba(169, 68, 66, 0.2);
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 16px;
 }
 
 .emptyState {

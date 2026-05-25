@@ -532,6 +532,30 @@
   border-radius: inherit;
 }
 
+.compatibilityText {
+  margin: 0.42rem 0 0;
+  color: var(--ui-color-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.matchReasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  margin-top: 0.35rem;
+
+  span {
+    border: 1px solid rgba(26, 37, 48, 0.12);
+    border-radius: 999px;
+    padding: 0.16rem 0.42rem;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+}
+
 .tagsBlock {
   p {
     margin: 0;

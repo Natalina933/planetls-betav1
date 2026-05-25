@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import OfferInfoCard from "@/app/components/dashboard/concierge/offers/OfferInfoCard";
@@ -12,6 +12,7 @@ import {
   type PricingPackageRow,
   type ServiceCatalogRow,
 } from "@/types/servicePackages";
+import { conciergeApiError } from "../conciergeFeedback";
 import styles from "./page.module.scss";
 
 export default function ServicesPackagesPage() {
@@ -22,51 +23,51 @@ export default function ServicesPackagesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        setError(null);
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const [catalogResponse, packagesResponse, pricingResponse, templatesResponse] =
-          await Promise.all([
-            fetch("/api/services/services-catalog", { cache: "no-store" }),
-            fetch("/api/services/packages", { cache: "no-store" }),
-            fetch("/api/services/pricing-packages", { cache: "no-store" }),
-            fetch("/api/services/contract-templates", { cache: "no-store" }),
-          ]);
+      const [catalogResponse, packagesResponse, pricingResponse, templatesResponse] =
+        await Promise.all([
+          fetch("/api/services/services-catalog", { cache: "no-store" }),
+          fetch("/api/services/packages", { cache: "no-store" }),
+          fetch("/api/services/pricing-packages", { cache: "no-store" }),
+          fetch("/api/services/contract-templates", { cache: "no-store" }),
+        ]);
 
-        const catalogPayload = await catalogResponse.json();
-        const packagesPayload = await packagesResponse.json();
-        const pricingPayload = await pricingResponse.json();
-        const templatesPayload = await templatesResponse.json();
+      const catalogPayload = await catalogResponse.json();
+      const packagesPayload = await packagesResponse.json();
+      const pricingPayload = await pricingResponse.json();
+      const templatesPayload = await templatesResponse.json();
 
-        if (!catalogResponse.ok) {
-          throw new Error(catalogPayload?.error || "Impossible de charger le catalogue de services.");
-        }
-        if (!packagesResponse.ok) {
-          throw new Error(packagesPayload?.error || "Impossible de charger vos packs.");
-        }
-        if (!pricingResponse.ok) {
-          throw new Error(pricingPayload?.error || "Impossible de charger vos tarifs liés.");
-        }
-        if (!templatesResponse.ok) {
-          throw new Error(templatesPayload?.error || "Impossible de charger vos modèles de contrat.");
-        }
-
-        setCatalog(Array.isArray(catalogPayload) ? catalogPayload : []);
-        setPackages(Array.isArray(packagesPayload) ? packagesPayload : []);
-        setPricingPackages(Array.isArray(pricingPayload) ? pricingPayload : []);
-        setTemplates(Array.isArray(templatesPayload) ? templatesPayload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos packs.");
-      } finally {
-        setLoading(false);
+      if (!catalogResponse.ok) {
+        throw new Error(conciergeApiError("Impossible de charger le catalogue de services.", catalogPayload?.error));
       }
-    }
+      if (!packagesResponse.ok) {
+        throw new Error(conciergeApiError("Impossible de charger vos packs.", packagesPayload?.error));
+      }
+      if (!pricingResponse.ok) {
+        throw new Error(conciergeApiError("Impossible de charger vos tarifs liés.", pricingPayload?.error));
+      }
+      if (!templatesResponse.ok) {
+        throw new Error(conciergeApiError("Impossible de charger vos modèles de contrat.", templatesPayload?.error));
+      }
 
-    void loadData();
+      setCatalog(Array.isArray(catalogPayload) ? catalogPayload : []);
+      setPackages(Array.isArray(packagesPayload) ? packagesPayload : []);
+      setPricingPackages(Array.isArray(pricingPayload) ? pricingPayload : []);
+      setTemplates(Array.isArray(templatesPayload) ? templatesPayload : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : conciergeApiError("Impossible de charger vos packs."));
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   const serviceCount = catalog.length;
   const packageCount = packages.length;
@@ -124,7 +125,7 @@ export default function ServicesPackagesPage() {
   ];
 
   return (
-    <section className={`dashboard-grid ${styles.page}`}>
+    <section className={`dashboard-grid ${styles.page}`} aria-busy={loading}>
       <div className={styles.hero}>
         <span className={styles.eyebrow}>Offres et industrialisation</span>
 
@@ -160,6 +161,16 @@ export default function ServicesPackagesPage() {
           ))}
         </div>
       </div>
+
+      {loading ? <p className={styles.feedbackBox} role="status">Chargement des packs...</p> : null}
+      {error ? (
+        <div className={styles.errorBox} role="alert">
+          <span>{error}</span>
+          <button type="button" className={styles.heroLink} onClick={() => void loadData()}>
+            Réessayer
+          </button>
+        </div>
+      ) : null}
 
       <div className={styles.workspace}>
         <section className={styles.workspaceMain}>
@@ -211,11 +222,6 @@ export default function ServicesPackagesPage() {
             </Link>
           </OfferInfoCard>
 
-          {error ? (
-            <OfferInfoCard title="Chargement incomplet" tone="danger">
-              <p className={styles.copyLine}>{error}</p>
-            </OfferInfoCard>
-          ) : null}
         </aside>
       </div>
     </section>
