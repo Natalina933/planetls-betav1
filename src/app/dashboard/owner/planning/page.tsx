@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
 import { DashboardSectionShell } from "@/components/dashboard";
 import { takeFirst } from "../../shared";
@@ -63,33 +63,45 @@ export default function OwnerPlanningPage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "week" | "month">("list");
 
-  useEffect(() => {
-    async function loadPlanning() {
-      try {
-        setLoading(true);
-        setError(null);
+  const loadPlanning = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const response = await fetch("/api/missions?scope=owner&limit=30", { cache: "no-store" });
-        const payload = await response.json();
+      const response = await fetch("/api/missions?scope=owner&limit=30", { cache: "no-store" });
+      const payload = await response.json();
 
-        if (!response.ok) {
-          throw new Error(ownerApiError("Impossible de charger votre planning.", payload?.error));
-        }
-
-        setMissions(Array.isArray(payload) ? payload : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger votre planning."));
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(ownerApiError("Impossible de charger votre planning.", payload?.error));
       }
-    }
 
-    void loadPlanning();
+      setMissions(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger votre planning."));
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadPlanning();
+  }, [loadPlanning]);
+
+  useEffect(() => {
+    if (!success) return;
+    const timeout = window.setTimeout(() => setSuccess(null), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [success]);
+
+  async function retryPlanning() {
+    setSuccess(null);
+    await loadPlanning();
+  }
 
   const upcomingMissions = useMemo(
     () =>
@@ -149,6 +161,7 @@ export default function OwnerPlanningPage() {
     link.download = "owner-planning.csv";
     link.click();
     window.URL.revokeObjectURL(url);
+    setSuccess("Export CSV généré.");
   }
 
   return (
@@ -200,7 +213,7 @@ export default function OwnerPlanningPage() {
         </div>
       </div>
 
-      <div className="main-section">
+      <div className="main-section" aria-busy={loading}>
         <section className={styles.heroPanel}>
           <div className={styles.sectionHeading}>
             <div>
@@ -267,11 +280,19 @@ export default function OwnerPlanningPage() {
           </button>
         </div>
 
-        {loading ? <p>Chargement du planning...</p> : null}
-        {!loading && error ? <p style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p> : null}
+        {success ? <p className={`${styles.feedbackMessage} ${styles.messageSuccess}`} role="status">{success}</p> : null}
+        {loading ? <p className={styles.feedbackMessage} role="status">Chargement du planning...</p> : null}
+        {!loading && error ? (
+          <div className={`${styles.feedbackMessage} ${styles.messageError}`} role="alert">
+            <span>{error}</span>
+            <button type="button" className={styles.buttonSecondary} onClick={() => void retryPlanning()}>
+              Réessayer
+            </button>
+          </div>
+        ) : null}
 
         {!loading && !error && filteredMissions.length === 0 ? (
-          <p>Aucune intervention planifiée pour le moment.</p>
+          <p className={styles.feedbackMessage}>Aucune intervention planifiée pour le moment.</p>
         ) : null}
 
         {!loading && !error && filteredMissions.length > 0 ? (

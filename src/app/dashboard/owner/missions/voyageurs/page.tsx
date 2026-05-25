@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Bell,
@@ -27,6 +27,7 @@ import {
 import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import { formatDateValue } from "@/app/utils/formatters";
+import { focusFirstModalElement, trapFocusInModal } from "../../modalAccessibility";
 import styles from "./OwnerTravelerMissionsPage.module.scss";
 import { isAcceptedMissionPartner, isUuidLike } from "../missionPartnerUtils";
 
@@ -1024,6 +1025,12 @@ export default function OwnerTravelerMissionsPage() {
   const [planningText, setPlanningText] = useState("");
   const [parsedStayDrafts, setParsedStayDrafts] = useState<Record<string, ParsedStayDraft>>({});
   const [sentParsedStayIds, setSentParsedStayIds] = useState<Record<string, boolean>>({});
+  const composerModalRef = useRef<HTMLElement | null>(null);
+  const composerReturnFocusRef = useRef<HTMLElement | null>(null);
+
+  const closeComposer = useCallback(() => {
+    setComposerOpen(false);
+  }, []);
 
   const assignmentOptions = useMemo(() => buildAssignmentOptions(partners, housing), [partners, housing]);
   const selectedAssignment = useMemo(
@@ -1113,6 +1120,30 @@ export default function OwnerTravelerMissionsPage() {
   }, [loadData]);
 
   useEffect(() => {
+    if (!isComposerOpen) return;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    window.requestAnimationFrame(() => focusFirstModalElement(composerModalRef.current));
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeComposer();
+        return;
+      }
+      trapFocusInModal(event, composerModalRef.current);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      window.requestAnimationFrame(() => composerReturnFocusRef.current?.focus());
+    };
+  }, [closeComposer, isComposerOpen]);
+
+  useEffect(() => {
     setParsedStayDrafts((current) => {
       const allowedIds = new Set(parsedStays.map((stay) => stay.id));
       const nextEntries = Object.entries(current).filter(([id]) => allowedIds.has(id));
@@ -1186,11 +1217,9 @@ export default function OwnerTravelerMissionsPage() {
   }
 
   function openComposer(mode: CreationMode = "platform") {
+    composerReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setCreationMode(mode);
     setComposerOpen(true);
-    window.requestAnimationFrame(() => {
-      document.getElementById("atelier-mission-voyageur")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   }
 
   function selectAssignment(option: AssignmentOption) {
@@ -1241,14 +1270,12 @@ export default function OwnerTravelerMissionsPage() {
       internalNotes: getMetadataString(mission, "internal_notes"),
       issueFlag: getMetadataString(mission, "issue_flag") || "none",
     });
-    setCreationMode("manual");
-    setComposerOpen(true);
+    openComposer("manual");
   }
 
   function fillFormFromStay(stay: ParsedStay) {
     setForm((current) => parsedStayToForm(stay, current));
-    setCreationMode("manual");
-    setComposerOpen(true);
+    openComposer("manual");
     setError(null);
     setSuccess("Séjour chargé dans le formulaire. Relisez puis créez la mission.");
     window.requestAnimationFrame(() => {
@@ -1346,7 +1373,7 @@ export default function OwnerTravelerMissionsPage() {
       setPlanningText("");
       setParsedStayDrafts({});
       setSentParsedStayIds({});
-      setComposerOpen(false);
+      closeComposer();
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer les missions depuis le planning.");
@@ -1385,7 +1412,7 @@ export default function OwnerTravelerMissionsPage() {
         `La concierge ${getSelectedConciergeName(partners, form.conciergeProfileId)} a été prévenue du séjour. La fiche est disponible côté concierge et dans votre planning.`,
       );
       setForm((current) => buildResetForm(current));
-      setComposerOpen(false);
+      closeComposer();
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de créer la mission voyageur.");
@@ -1476,14 +1503,30 @@ export default function OwnerTravelerMissionsPage() {
       </section>
 
       {isComposerOpen ? (
-        <section id="atelier-mission-voyageur" className={styles.creationPanel}>
+        <div
+          className={styles.modalOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeComposer();
+          }}
+        >
+        <section
+          id="atelier-mission-voyageur"
+          ref={composerModalRef}
+          className={styles.missionModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mission-modal-title"
+          tabIndex={-1}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
           <div className={styles.travelerMissionPage}>
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.eyebrow}>Fiche séjour</p>
                 <h2 id="mission-modal-title">Prévenir la concierge</h2>
               </div>
-              <button type="button" className={styles.iconButton} onClick={() => setComposerOpen(false)} aria-label="Fermer">
+              <button type="button" className={styles.iconButton} onClick={closeComposer} aria-label="Fermer">
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
@@ -1988,6 +2031,7 @@ export default function OwnerTravelerMissionsPage() {
         </div>
         </div>
           </section>
+        </div>
       ) : null}
 
         <section className={styles.travelerMissionListSection}>

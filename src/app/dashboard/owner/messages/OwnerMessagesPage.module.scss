@@ -307,6 +307,11 @@
 }
 
 .successBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.95rem 1rem;
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--dash-success) 24%, transparent);
@@ -317,6 +322,11 @@
 }
 
 .errorBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.95rem 1rem;
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--dash-danger) 22%, transparent);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -22,6 +22,7 @@ import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
 import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import { ServiceRequestCard } from "@/features/service-requests";
 import { ownerApiError } from "../ownerFeedback";
+import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 import styles from "./OwnerRequestsPage.module.scss";
 
 type RequestKind = "ponctuel" | "renfort" | "durable";
@@ -410,6 +411,15 @@ export default function OwnerRequestsPage() {
   const [form, setForm] = useState<RequestFormState>(initialForm);
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const requestModalRef = useRef<HTMLElement | null>(null);
+  const requestReturnFocusRef = useRef<HTMLElement | null>(null);
+
+  const closeRequestModal = useCallback(() => {
+    setEditingRequestId(null);
+    setForm(initialForm);
+    setSuccess(null);
+    setIsRequestModalOpen(false);
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -445,16 +455,26 @@ export default function OwnerRequestsPage() {
 
   useEffect(() => {
     if (!isRequestModalOpen) return;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    window.requestAnimationFrame(() => focusFirstModalElement(requestModalRef.current));
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setEditingRequestId(null);
-      setForm(initialForm);
-      setSuccess(null);
-      setIsRequestModalOpen(false);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRequestModal();
+        return;
+      }
+      trapFocusInModal(event, requestModalRef.current);
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isRequestModalOpen]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      window.requestAnimationFrame(() => requestReturnFocusRef.current?.focus());
+    };
+  }, [closeRequestModal, isRequestModalOpen]);
 
   const housingOptions = useMemo(
     () =>
@@ -537,6 +557,7 @@ export default function OwnerRequestsPage() {
   }
 
   function handleEditRequest(request: OwnerServiceRequestRow) {
+    requestReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingRequestId(request.id);
     setForm({
       propertyKey: request.property_id ? String(request.property_id) : "",
@@ -556,13 +577,11 @@ export default function OwnerRequestsPage() {
   }
 
   function cancelEditRequest() {
-    setEditingRequestId(null);
-    setForm(initialForm);
-    setSuccess(null);
-    setIsRequestModalOpen(false);
+    closeRequestModal();
   }
 
   function openNewRequestModal() {
+    requestReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingRequestId(null);
     setForm(initialForm);
     setError(null);
@@ -692,7 +711,14 @@ export default function OwnerRequestsPage() {
         <div className={styles.modalOverlay} role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) cancelEditRequest();
         }}>
-          <section className={styles.requestModal} role="dialog" aria-modal="true" aria-labelledby="request-modal-title">
+          <section
+            ref={requestModalRef}
+            className={styles.requestModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="request-modal-title"
+            tabIndex={-1}
+          >
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.eyebrow}>{editingRequestId ? "Modifier la recherche" : "Recherche concierge"}</p>

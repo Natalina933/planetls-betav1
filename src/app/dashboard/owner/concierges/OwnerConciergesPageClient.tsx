@@ -481,6 +481,7 @@ export default function OwnerConciergesPageClient() {
               hasSubmittedSearch={hasSubmittedSearch}
               hasSearchCriteria={hasSearchCriteria}
               filtersLabel={filtersLabel}
+              filters={filters}
               items={sortedItems}
               selectedIds={selectedIdSet}
               viewMode={viewMode}

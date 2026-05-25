@@ -353,6 +353,21 @@
   font-weight: 700;
 }
 
+.feedbackMessage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: color-mix(in srgb, var(--dash-bg-panel) 92%, white);
+  color: var(--dash-text);
+  font-weight: 700;
+}
+
 .messageSuccess {
   color: var(--dash-accent-strong);
 }

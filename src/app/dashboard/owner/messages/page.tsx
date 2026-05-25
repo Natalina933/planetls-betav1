@@ -69,6 +69,25 @@ function getParticipantName(
   );
 }
 
+function getConversationContextLabel(source?: string | null, status?: string | null) {
+  switch ((source ?? "").trim().toLowerCase()) {
+    case "mission":
+      return "Mission";
+    case "quote":
+      return "Devis";
+    case "search":
+      return "Recherche concierge";
+    case "service_request":
+    case "request":
+      return "Demande";
+    case "manual":
+    case "direct":
+      return "Conversation directe";
+    default:
+      return status || source || "Conversation";
+  }
+}
+
 function OwnerMessagesContent() {
   const searchParams = useSearchParams();
   const preferredConversationId =
@@ -234,6 +253,14 @@ function OwnerMessagesContent() {
     }
   }
 
+  async function retryMessages() {
+    setSuccess(null);
+    await loadConversations(activeConversationId || preferredConversationId);
+    if (activeConversationId) {
+      await loadConversationDetail(activeConversationId);
+    }
+  }
+
   return (
     <DashboardSectionShell
       persona="owner"
@@ -256,9 +283,16 @@ function OwnerMessagesContent() {
         { label: "Voir le planning", href: "/dashboard/owner/planning" },
       ]}
     >
-      <div className={styles.page}>
-        {success ? <p className={styles.successBox} role="status">{success}</p> : null}
-        {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
+      <div className={styles.page} aria-busy={loading || detailLoading}>
+        {success ? <div className={styles.successBox} role="status">{success}</div> : null}
+        {error ? (
+          <div className={styles.errorBox} role="alert">
+            <span>{error}</span>
+            <Button type="button" variant="secondary" size="sm" onClick={() => void retryMessages()}>
+              Réessayer
+            </Button>
+          </div>
+        ) : null}
 
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -349,7 +383,9 @@ function OwnerMessagesContent() {
               <>
                 <div className={styles.threadHeader}>
                   <h2>{detail.conversation.subject || "Conversation"}</h2>
-                  <span>{detail.conversation.status || detail.conversation.source}</span>
+                  <span>
+                    {getConversationContextLabel(detail.conversation.source, detail.conversation.status)}
+                  </span>
                 </div>
 
                 <div className={styles.messageList}>
