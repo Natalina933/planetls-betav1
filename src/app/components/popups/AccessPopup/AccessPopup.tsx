@@ -152,6 +152,8 @@ const ARTISAN_SLOTS = [
   "Week-end",
 ];
 
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
 const getProfileKey = (category: string): ProfileKey => {
   if (category === "proprietaire" || category === "artisan" || category === "concierge") {
     return category;
@@ -354,12 +356,26 @@ export default function AccessPopup({
       return;
     }
 
-    if (!form.firstName || !form.lastName || !form.email) {
+    const firstName = form.firstName.trim();
+    const lastName = form.lastName.trim();
+    const email = form.email.trim();
+
+    if (!firstName || !lastName || !email) {
       setSubmitError("Veuillez renseigner au minimum votre prénom, votre nom et votre email.");
       return;
     }
 
-    onValidate(form);
+    if (!isValidEmail(email)) {
+      setSubmitError("Veuillez saisir une adresse email valide pour continuer.");
+      return;
+    }
+
+    onValidate({
+      ...form,
+      firstName,
+      lastName,
+      email,
+    });
   };
 
   return (

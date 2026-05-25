@@ -171,18 +171,32 @@ const getServicesList = (value: string): string[] => {
 };
 
 const getProfileSummaryText = (profile: ProfileData): string => {
-  const targetLabel = formatCategoryLabel(profile.searchTarget);
   const servicesCount = getServicesList(profile.option).length;
 
   switch (profile.category) {
     case "concierge":
-      return `Vous avez un profil de conciergerie. Vous recherchez des ${targetLabel.toLowerCase()} cherchant un partenaire local fiable${servicesCount > 0 ? " pour ces services" : ""}.`;
+      return `Vous avez un profil de conciergerie. Vous souhaitez rencontrer des propriétaires qui cherchent une équipe locale fiable${servicesCount > 0 ? " pour ces services" : ""}.`;
     case "proprietaire":
-      return `Vous avez un profil de propriétaire. Vous recherchez une ${targetLabel.toLowerCase()} capable de vous accompagner${servicesCount > 0 ? " sur les services sélectionnés" : ""}.`;
+      return `Vous avez un profil de propriétaire. Vous recherchez une conciergerie capable de vous accompagner${servicesCount > 0 ? " sur les services sélectionnés" : ""}.`;
     case "artisan":
-      return `Vous avez un profil d'artisan. Vous recherchez des ${targetLabel.toLowerCase()} ayant besoin d'un professionnel de confiance${servicesCount > 0 ? " pour vos prestations" : ""}.`;
+      return `Vous avez un profil d'artisan. Vous souhaitez recevoir des demandes de propriétaires ou de conciergeries ayant besoin d'un professionnel de confiance${servicesCount > 0 ? " pour vos prestations" : ""}.`;
     default:
       return "Votre profil est prêt à être présenté de façon claire avant validation.";
+  }
+};
+
+const getSearchIntentText = (profile: ProfileData): string => {
+  switch (profile.category) {
+    case "concierge":
+      return "Je souhaite rencontrer des propriétaires";
+    case "artisan":
+      return "Je souhaite recevoir des missions locales";
+    case "proprietaire":
+      return "Je recherche une conciergerie";
+    default:
+      return profile.searchTarget
+        ? `Je souhaite collaborer avec ${formatCategoryLabel(profile.searchTarget).toLowerCase()}`
+        : "Recherche à préciser";
   }
 };
 
@@ -292,6 +306,11 @@ export default function CompleteRegistrationPage() {
   const [locationError, setLocationError] = useState("");
   const accountFormRef = useRef<HTMLFormElement | null>(null);
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
+  const hasOnboardingContext = Boolean(
+    (searchParams.get("category") || profile.category) &&
+      (searchParams.get("location") || profile.location) &&
+      (searchParams.get("email") || profile.email)
+  );
 
   useEffect(() => {
     if (isInitialized.current) return;
@@ -658,6 +677,37 @@ export default function CompleteRegistrationPage() {
     </>
   );
 
+  if (!hasOnboardingContext) {
+    return (
+      <div className={styles.pageContainer}>
+        <OnboardingStepHeader
+          title={"Inscription guidée"}
+          step={1}
+          totalSteps={ONBOARDING_TOTAL_STEPS}
+          progressPercent={0}
+          readabilityScale={readabilityScale}
+          onReadabilityChange={setReadabilityScale}
+        />
+
+        <section className={styles.recapSection}>
+          <h1 className={styles.title}>Commencez par choisir votre parcours</h1>
+          <p className={styles.recapMuted}>
+            Cette page finalise un profil déjà préparé. Pour éviter un compte incomplet, reprenez
+            depuis le choix de parcours puis laissez-vous guider jusqu'à la création du compte.
+          </p>
+          <div className={styles.recapActions}>
+            <Button type="button" variant="primary" size="lg" onClick={() => router.push("/parcours")}>
+              Choisir mon parcours
+            </Button>
+            <Button type="button" variant="outline" size="lg" onClick={() => router.push("/home")}>
+              Revenir à l'accueil
+            </Button>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.pageContainer}>
       {showConfetti && <Confetti />}
@@ -720,9 +770,7 @@ export default function CompleteRegistrationPage() {
                   {formatCategoryLabel(profile.category)}
                 </p>
 
-                <p className={styles.recapIdentityMeta}>Je recherche des missions de{" "}
-                  {formatCategoryLabel(profile.searchTarget)}
-                </p>
+                <p className={styles.recapIdentityMeta}>{getSearchIntentText(profile)}</p>
 
                 <p className={styles.recapIdentityMeta}>
                   {profile.location || "à définir"}

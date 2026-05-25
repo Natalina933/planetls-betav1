@@ -73,7 +73,7 @@ const OFFERS = [
       "Contractualisation et paiement en ligne",
       "Missions et profils protégés",
     ],
-    ctaHref: "/complete-registration",
+    ctaHref: "/parcours",
     ctaLabel: "Commencer",
   },
   {

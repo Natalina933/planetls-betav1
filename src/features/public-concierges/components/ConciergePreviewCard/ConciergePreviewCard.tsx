@@ -22,6 +22,7 @@ export type ConciergePreviewCardProps = {
   averageRating?: number | null;
   reviewsCount?: number;
   latestReviewComment?: string | null;
+  matchHighlights?: string[];
   badgeLabel?: string;
   badgeVariant?: "neutral" | "gold" | "dark" | "success" | "warning" | "danger" | "info";
   primaryAction?: ReactNode;
@@ -143,6 +144,32 @@ function getInitials(name: string) {
   );
 }
 
+function getTrustSignals({
+  isPro,
+  reviewsCount,
+  city,
+  serviceArea,
+  hourlyRate,
+  monthlyRate,
+}: {
+  isPro: boolean;
+  reviewsCount: number;
+  city?: string | null;
+  serviceArea?: string | null;
+  hourlyRate?: number | null;
+  monthlyRate?: number | null;
+}) {
+  const hasLocation = Boolean(city || serviceArea);
+  const hasPricing = typeof hourlyRate === "number" || typeof monthlyRate === "number";
+
+  return [
+    isPro ? "Profil PRO" : "Profil public",
+    reviewsCount > 0 ? "Avis mission" : "Avis à venir",
+    hasLocation ? "Zone renseignée" : "Zone à préciser",
+    hasPricing ? "Tarif indiqué" : "Tarif à confirmer",
+  ];
+}
+
 function ConciergeAvatar({ src, name }: { src?: string | null; name: string }) {
   const [hasError, setHasError] = useState(false);
   const initials = useMemo(() => getInitials(name), [name]);
@@ -173,6 +200,7 @@ export function ConciergePreviewCard({
   averageRating,
   reviewsCount = 0,
   latestReviewComment,
+  matchHighlights = [],
   badgeLabel,
   badgeVariant,
   primaryAction,
@@ -189,6 +217,14 @@ export function ConciergePreviewCard({
   const cleanServices = getCleanServices(services);
   const serviceVisual = coverImageUrl || getServiceVisual(id, cleanServices);
   const coverLabel = cleanServices.find((service) => service.length <= 26);
+  const trustSignals = getTrustSignals({
+    isPro,
+    reviewsCount,
+    city,
+    serviceArea,
+    hourlyRate,
+    monthlyRate,
+  });
 
   return (
     <Card
@@ -224,6 +260,23 @@ export function ConciergePreviewCard({
           <span>{formatMoney(hourlyRate, "/ h")}</span>
           <span>{formatMoney(monthlyRate, "/ mois")}</span>
         </div>
+
+        <div className={styles.trustSignals} aria-label="Repères de confiance du profil">
+          {trustSignals.map((signal) => (
+            <span key={signal}>{signal}</span>
+          ))}
+        </div>
+
+        {matchHighlights.length > 0 ? (
+          <div className={styles.matchHighlights} aria-label="Raisons de correspondance">
+            <strong>Pourquoi ce profil ?</strong>
+            <div>
+              {matchHighlights.slice(0, 4).map((highlight) => (
+                <span key={highlight}>{highlight}</span>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className={styles.tags}>
           {cleanServices.length > 0 ? (

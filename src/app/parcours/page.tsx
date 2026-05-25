@@ -32,12 +32,12 @@ const paths = [
     tone: "concierge",
   },
   {
-    title: "Artisan / partenaire",
+    title: "Artisan",
     eyebrow: "Execution terrain",
     description:
-      "Gerez alertes, interventions, clients et devis dans un espace plus clair et plus rapide.",
+      "Recevez des missions locales, suivez vos interventions, vos clients et vos devis dans un espace plus clair.",
     href: "/provider",
-    cta: "Decouvrir le parcours partenaire",
+    cta: "Decouvrir le parcours artisan",
     icon: BriefcaseBusiness,
     tone: "provider",
   },
@@ -56,7 +56,7 @@ const paths = [
 export const metadata: Metadata = {
   title: "Parcours | Choisissez votre espace PlanetLS",
   description:
-    "Choisissez le parcours PlanetLS adapte a votre role : proprietaire, concierge, independant, artisan partenaire ou administration.",
+    "Choisissez le parcours PlanetLS adapte a votre role : proprietaire, concierge, independant, artisan ou administration.",
 };
 
 export default function ParcoursPage() {

@@ -45,12 +45,12 @@ const CARDS: CardData[] = [
     key: "artisan",
     title: "Artisans",
     visual: "/images/carousel/planetls-private-artisans.png",
-    cta: "Découvrir le parcours partenaire",
+    cta: "Découvrir le parcours artisan",
     href: "/provider",
     eyebrow: "Opportunités locales",
     description:
-      "Soyez visible auprès des conciergeries et propriétaires actifs. Recevez des interventions contextualisées, validez vos passages et développez des partenariats durables.",
-    features: ["Missions locales", "Validation intervention", "Visibilité partenaire"],
+      "Soyez visible auprès des conciergeries et propriétaires actifs. Recevez des interventions contextualisées, validez vos passages et développez des collaborations durables.",
+    features: ["Missions locales", "Validation intervention", "Visibilité artisan"],
   },
 ];
 

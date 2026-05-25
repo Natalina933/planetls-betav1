@@ -83,13 +83,14 @@ export default function ProviderLandingPage() {
           <span className={styles.kicker}>Parcours Artisan</span>
           <h1>Gérez vos interventions, vos clients et vos alertes dans un seul espace.</h1>
           <p className={styles.lead}>
-            PlanetLS aide les artisans et commerçants partenaires à exécuter vite, garder une vue
-            nette sur les urgences, et structurer leur relation client sans interface trop lourde.
+            PlanetLS aide les artisans à recevoir des missions locales contextualisées, intervenir
+            vite, garder une vue nette sur les urgences et structurer leur relation client sans
+            interface trop lourde.
           </p>
 
           <div className={styles.heroActions}>
             <Link href="/login" className={styles.primaryCta}>
-              Créer mon compte partenaire
+              Créer mon compte artisan
             </Link>
             <Link href="/dashboard/provider" className={styles.secondaryCta}>
               Ouvrir mon dashboard
@@ -133,7 +134,7 @@ export default function ProviderLandingPage() {
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
           <span className={styles.sectionKicker}>Onboarding</span>
-          <h2>Un parcours partenaire en 4 étapes</h2>
+          <h2>Un parcours artisan en 4 étapes</h2>
           <p>Commencez par votre profil, puis l’exécution terrain, puis la relation client.</p>
         </div>
 
@@ -181,7 +182,7 @@ export default function ProviderLandingPage() {
         <div className={styles.highlightCard}>
           <div>
             <span className={styles.sectionKicker}>Exécution</span>
-            <h2>Le bon enchaînement partenaire</h2>
+            <h2>Le bon enchaînement artisan</h2>
             <p>
               Alerte reçue, intervention ouverte, conversation active, devis suivi : PlanetLS relie
               déjà ces briques pour rendre votre activité plus simple à piloter au quotidien.
@@ -206,7 +207,7 @@ export default function ProviderLandingPage() {
           <h2>Structurer, intervenir, relancer</h2>
           <p>
             Commencez par vos paramètres puis vos interventions. C&apos;est le point d&apos;entrée le
-            plus utile pour un parcours partenaire clair.
+            plus utile pour un parcours artisan clair.
           </p>
         </div>
 

@@ -1,7 +1,11 @@
 import { Button, ButtonLink } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState";
 import { ConciergeCard } from "@/features/owner-concierges/components/ConciergeCard";
-import type { ConciergeSearchRow, ViewMode } from "@/features/owner-concierges/lib/search";
+import type {
+  ConciergeSearchRow,
+  OwnerConciergeSearchFilters,
+  ViewMode,
+} from "@/features/owner-concierges/lib/search";
 
 type ResultsGridProps = {
   styles: Record<string, string>;
@@ -10,6 +14,7 @@ type ResultsGridProps = {
   hasSubmittedSearch: boolean;
   hasSearchCriteria: boolean;
   filtersLabel: string;
+  filters: OwnerConciergeSearchFilters;
   items: ConciergeSearchRow[];
   selectedIds: Set<string>;
   viewMode: ViewMode;
@@ -24,6 +29,7 @@ export function ResultsGrid({
   hasSubmittedSearch,
   hasSearchCriteria,
   filtersLabel,
+  filters,
   items,
   selectedIds,
   viewMode,
@@ -122,6 +128,7 @@ export function ResultsGrid({
             item={item}
             index={index}
             isSelected={selectedIds.has(item.id)}
+            filters={filters}
             onToggle={onToggleSelection}
           />
         ))}

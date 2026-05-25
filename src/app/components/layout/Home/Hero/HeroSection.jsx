@@ -46,31 +46,30 @@ const HeroSection = () => {
           <span className={styles.eyebrow}>SaaS métier pour la location saisonnière</span>
           <h1>
             PlanetLS relie <span className={styles.highlight}>propriétaires</span>, conciergeries
-            et partenaires terrain.
+            et artisans pour piloter la location saisonnière.
           </h1>
           <p className={styles.subHeadline}>
-            Une plateforme premium pour rechercher les bons partenaires, recevoir des devis,
-            coordonner les missions et professionnaliser chaque séjour.
+            Trouvez les bons interlocuteurs, envoyez des demandes qualifiées, suivez les missions et
+            centralisez les échanges dans un espace clair.
           </p>
 
           <p className={styles.valueProp}>
-            Carte interactive, demandes qualifiées, suivi des interventions, messages, documents et
-            dashboards : PlanetLS transforme la location saisonnière en expérience claire,
-            humaine et pilotable.
+            Profils lisibles, devis centralisés, suivi des interventions, messages et documents :
+            chaque rôle garde une vision nette de ce qui est demandé, accepté, réalisé et validé.
           </p>
 
           <div className={styles.buttonsRow}>
             <ButtonLink
-              href="/mission-urgente"
+              href="/parcours"
               variant="primary"
               size="lg"
               className={styles.heroButton}
             >
-              Lancer une demande <ArrowRight size={18} />
+              Choisir mon parcours <ArrowRight size={18} />
             </ButtonLink>
 
-            <ButtonLink href="/login" variant="paper" size="lg" className={styles.heroButton}>
-              Créer mon compte
+            <ButtonLink href="/mission-urgente" variant="paper" size="lg" className={styles.heroButton}>
+              Lancer une demande urgente
             </ButtonLink>
 
             <Button variant="paper" size="lg" className={styles.heroButton} onClick={scrollToHowItWorks}>

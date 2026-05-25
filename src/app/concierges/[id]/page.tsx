@@ -55,7 +55,7 @@ function formatAmount(value: number | null, suffix: string) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "Date non renseignee";
+  if (!value) return "Date non renseignée";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("fr-FR", {
@@ -70,7 +70,17 @@ function getRatingLabel(value: number | null) {
 }
 
 function getExperienceLabel(value: number | null) {
-  return typeof value === "number" ? `${value} an(s)` : "Non renseignee";
+  return typeof value === "number" ? `${value} an(s)` : "Non renseignée";
+}
+
+function formatExperienceLevelLabel(value: string | null) {
+  const labels: Record<string, string> = {
+    debutant: "Débutant",
+    intermediaire: "Intermédiaire",
+    experimente: "Expérimenté",
+  };
+
+  return value ? labels[value] ?? value : "Non renseigné";
 }
 
 export default function PublicConciergeProfilePage({
@@ -213,12 +223,12 @@ export default function PublicConciergeProfilePage({
                 <strong>
                   {typeof profile.service_radius_km === "number"
                     ? `${profile.service_radius_km} km`
-                    : "A preciser"}
+                    : "À préciser"}
                 </strong>
               </article>
               <article>
                 <BadgeCheck size={18} aria-hidden />
-                <span>Experience</span>
+                <span>Expérience</span>
                 <strong>{getExperienceLabel(profile.years_experience)}</strong>
               </article>
             </section>
@@ -236,11 +246,11 @@ export default function PublicConciergeProfilePage({
                   </div>
                   <div>
                     <dt>Ville</dt>
-                    <dd>{profile.city || "Non renseignee"}</dd>
+                    <dd>{profile.city || "Non renseignée"}</dd>
                   </div>
                   <div>
                     <dt>Zone</dt>
-                    <dd>{profile.service_area || profile.city || "Non renseignee"}</dd>
+                    <dd>{profile.service_area || profile.city || "Non renseignée"}</dd>
                   </div>
                   <div>
                     <dt>Pays</dt>
@@ -265,7 +275,7 @@ export default function PublicConciergeProfilePage({
                   </div>
                   <div>
                     <dt>Niveau</dt>
-                    <dd>{profile.experience_level || "Non renseigne"}</dd>
+                    <dd>{formatExperienceLevelLabel(profile.experience_level)}</dd>
                   </div>
                 </dl>
               </article>
@@ -283,7 +293,7 @@ export default function PublicConciergeProfilePage({
                   ))}
                 </div>
               ) : (
-                <p className={styles.muted}>Services non renseignes pour le moment.</p>
+                <p className={styles.muted}>Services non renseignés pour le moment.</p>
               )}
             </section>
 
@@ -294,7 +304,7 @@ export default function PublicConciergeProfilePage({
               </div>
 
               {data.reviews.length === 0 ? (
-                <p className={styles.emptyState}>Aucun avis publie pour le moment.</p>
+                <p className={styles.emptyState}>Aucun avis publié pour le moment.</p>
               ) : (
                 <div className={styles.reviewGrid}>
                   {data.reviews.map((review) => (
@@ -302,9 +312,9 @@ export default function PublicConciergeProfilePage({
                       <strong>
                         {typeof review.rating === "number"
                           ? `${review.rating} / 5`
-                          : "Note non renseignee"}
+                          : "Note non renseignée"}
                       </strong>
-                      <p>{review.comment || "Avis publie sans commentaire."}</p>
+                      <p>{review.comment || "Avis publié sans commentaire."}</p>
                       <small>{formatDate(review.created_at)}</small>
                     </article>
                   ))}

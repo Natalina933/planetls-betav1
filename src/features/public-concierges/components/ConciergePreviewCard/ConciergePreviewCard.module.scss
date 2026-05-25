@@ -184,6 +184,62 @@
   color: #4a3510;
 }
 
+.trustSignals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.trustSignals span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.36rem 0.6rem;
+  border: 1px solid rgba(47, 74, 95, 0.14);
+  border-radius: 999px;
+  background: rgba(247, 251, 252, 0.82);
+  color: #2f4a5f;
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.matchHighlights {
+  display: grid;
+  gap: 0.48rem;
+  padding: 0.78rem 0.85rem;
+  border: 1px solid rgba(47, 74, 95, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.matchHighlights strong {
+  color: #2f4a5f;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.matchHighlights div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.matchHighlights span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.3rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(47, 74, 95, 0.08);
+  color: #263f51;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
@@ -295,6 +351,20 @@
     min-height: 34px;
     padding: 0.45rem 0.6rem;
     font-size: 0.82rem;
+  }
+
+  .trustSignals {
+    gap: 0.38rem;
+  }
+
+  .trustSignals span {
+    min-height: 28px;
+    padding: 0.32rem 0.55rem;
+    font-size: 0.7rem;
+  }
+
+  .matchHighlights {
+    padding: 0.68rem;
   }
 
   .tags {
