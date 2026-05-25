@@ -29,12 +29,15 @@ Exécuter rapidement les points `P0`, `partiel` et `à faire` avec une vérifica
 ## 2) P0 États UX homogènes (3 profils)
 
 ### Propriétaire
-- `en cours` Pattern unifié `loading/error/success` renforcé sur demandes, devis, factures (reste: messages, planning).
-- `en cours` Wording erreurs API unifié sur demandes, devis, factures via helper `ownerApiError` (reste: messages, planning).
+- `en cours` Pattern unifié `loading/error/success` renforcé sur demandes, devis, factures, messages, planning (reste: harmoniser les pages missions historiques).
+- `en cours` Wording erreurs API unifié sur demandes, devis, factures, messages, planning via helper `ownerApiError` (reste: missions historiques).
+- `fait` Modales owner critiques renforcées sur `demandes` et `missions/voyageurs`: focus initial, fermeture Escape, focus trap, retour focus au déclencheur, blocage scroll arrière-plan.
+- `fait` Feedbacks owner `messages` et `planning` renforcés avec retry explicite et états `aria-busy`/`role`.
 
 ### Concierge
-- `à faire` Confirmer pattern unique `loading/error/success` sur demandes, missions, messages, pricing, packs.
-- `à faire` Uniformiser feedback après actions critiques (envoi, validation, sélection, création).
+- `fait` Pattern `loading/error/success` renforcé sur demandes, messages, missions, packs et pricing.
+- `fait` Feedback après actions critiques renforcé sur demandes, messages, missions, packs et pricing.
+- `fait` Feedbacks concierge renforcés avec helper `conciergeApiError`, retry explicite quand pertinent, `role`, `aria-busy`, et remplacement des `alert()` pricing par des messages inline.
 
 ### Artisan
 - `en cours` Confirmer pattern unique `loading/error/success` sur messages provider.
@@ -72,6 +75,5 @@ Exécuter rapidement les points `P0`, `partiel` et `à faire` avec une vérifica
 - `fait` Durcissement messagerie provider: mise à jour explicite du dernier message et timestamp dans les routes API.
 
 ### Prochain lot recommandé
-1. Uniformiser les feedbacks UX owner sur pages `demandes`, `devis`, `factures`.
-2. Uniformiser les feedbacks UX concierge sur `demandes` et `messages`.
-3. Exécuter 3 scénarios E2E manuels de bout en bout (1 par profil) et consigner les écarts.
+1. Uniformiser les feedbacks UX owner restants sur les pages missions historiques.
+2. Exécuter 3 scénarios E2E manuels de bout en bout (1 par profil) et consigner les écarts.

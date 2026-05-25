@@ -234,3 +234,12 @@ Verifier qu'un dashboard SaaS reste lisible, utilisable au clavier et stable vis
 | Modales / Drawers | Mobile / Tablette |  |  |  |  |  |
 | Tables / Listes | Mobile |  |  |  |  |  |
 | Composants partages | Tous |  |  |  |  |  |
+
+## 12) Notes d'execution
+
+### 25/05/2026 - Lot modales owner
+
+| Zone | Viewport | Probleme | Priorite | Fichier / composant | Decision | Statut |
+| --- | --- | --- | --- | --- | --- | --- |
+| Demandes owner | Tous | Popup de creation sans focus trap complet | P0 | `src/app/dashboard/owner/demandes/page.tsx` | Ajout focus initial, Escape, trap Tab, retour focus, scroll body bloque | PASS technique, test manuel mobile a faire |
+| Missions voyageurs owner | Tous | Atelier de creation encore inline au lieu d'une popup | P0 | `src/app/dashboard/owner/missions/voyageurs/page.tsx` | Conversion en vraie modale `dialog` avec focus trap et overlay | PASS technique, test manuel mobile a faire |
