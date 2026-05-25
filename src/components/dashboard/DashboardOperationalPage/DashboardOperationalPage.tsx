@@ -59,7 +59,7 @@ export type OperationalDetailItem = {
   title: string;
   meta: string;
   description: string;
-  action: OperationalAction;
+  action?: OperationalAction;
 };
 
 export type OperationalDetailSection = {
@@ -313,10 +313,12 @@ export function DashboardOperationalPage({
                           </div>
                           <p>{item.description}</p>
                         </div>
-                        <Link href={item.action.href} className={styles.detailAction}>
-                          {item.action.label}
-                          <ArrowRight size={15} aria-hidden="true" />
-                        </Link>
+                        {item.action ? (
+                          <Link href={item.action.href} className={styles.detailAction}>
+                            {item.action.label}
+                            <ArrowRight size={15} aria-hidden="true" />
+                          </Link>
+                        ) : null}
                       </article>
                     ))}
                   </div>
