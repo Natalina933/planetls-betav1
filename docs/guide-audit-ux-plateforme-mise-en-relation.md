@@ -531,7 +531,13 @@ Date : 2026-05-25
 | `/dashboard/notifications` | Redirection artisan/provider vers `/dashboard/provider/alertes` | Envoyer chaque role vers son vrai centre d'alertes |
 | Messagerie proprietaire | Ajout d'un libelle de contexte metier dans l'entete du fil | Remplacer les sources techniques par Mission, Devis, Demande ou Recherche concierge |
 | Messagerie concierge | Ajout d'un libelle de contexte metier dans l'entete du fil | Aider la conciergerie a comprendre le dossier lie au message |
-| Verification import `SimpleOverviewWorkspace` | `next build` passe avec `/dashboard/concierge/profile` compile | Confirmer que l'erreur observee venait d'un serveur dev obsolete/cache, pas d'un fichier manquant |
+| Verification import `SimpleOverviewWorkspace` | Import remplace par un chemin relatif stable et `next build` passe avec `/dashboard/concierge/profile` compile | Corriger le cas dev/Turbopack qui ne resolvait pas l'alias vers `_components` |
+
+Verification effectuee :
+
+- `npx.cmd tsc --noEmit` : OK.
+- `npx.cmd eslint` cible sur les fichiers modifies : OK.
+- `npm.cmd run build` : OK, avec `/dashboard/concierge/profile`, `/dashboard/notifications`, les messageries et les centres d'alertes generes sans erreur.
 
 ### 10.4 Recommandations suivantes
 
