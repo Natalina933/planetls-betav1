@@ -43,6 +43,7 @@
   min-height: 92vh;
   margin: 0 auto;
   padding: 6rem 0 5rem;
+  box-sizing: border-box;
 }
 
 .visualStage {
@@ -50,15 +51,20 @@
   min-height: 560px;
   display: grid;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .carouselWrapper {
   width: min(100%, 520px);
   justify-self: center;
+  max-width: 100%;
   border-radius: 24px;
   background: rgba(255, 250, 241, 0.12);
   box-shadow: 0 28px 80px rgba(4, 12, 20, 0.34);
   backdrop-filter: blur(14px);
+  box-sizing: border-box;
 }
 
 .content {
@@ -76,6 +82,8 @@
     0 24px 70px rgba(5, 12, 18, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.72);
   color: #1a2530;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .eyebrow {
@@ -130,6 +138,23 @@
   letter-spacing: 0.01em !important;
 }
 
+@media (max-width: 1180px) {
+  .grid {
+    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+    width: min(100%, calc(100% - 32px));
+  }
+
+  .carouselWrapper {
+    width: min(100%, 470px);
+  }
+
+  .content {
+    max-width: 100%;
+    padding: 1.3rem;
+  }
+}
+
 @keyframes slowDepth {
   from {
     transform: scale(1.04) translate3d(0, 0, 0);
@@ -151,7 +176,7 @@
   }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1100px) {
   .hero {
     min-height: 0;
     overflow: visible;
@@ -160,15 +185,24 @@
   .grid {
     grid-template-columns: 1fr;
     min-height: 0;
-    padding: 4.5rem 0 3rem;
+    width: min(100%, calc(100% - 28px));
+    padding: 4rem 0 3rem;
   }
 
   .visualStage {
     order: 2;
-    min-height: 470px;
+    min-height: 430px;
+    justify-items: center;
+  }
+
+  .carouselWrapper {
+    width: min(100%, 560px);
   }
 
   .content {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
     justify-self: center;
     text-align: center;
     justify-items: center;
@@ -180,25 +214,44 @@
 }
 
 @media (max-width: 640px) {
+  .hero {
+    min-height: auto;
+  }
+
   .hero::before {
     inset: 12px;
   }
 
   .grid {
-    width: min(100% - 20px, 1280px);
-    gap: 1.25rem;
-    padding: 1.35rem 0 1.8rem;
+    width: 100%;
+    max-width: 100%;
+    gap: 1rem;
+    padding: 1rem;
+    justify-items: center;
   }
 
   .visualStage {
-    display: none;
+    display: grid;
+    min-height: 334px;
+    align-items: start;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .carouselWrapper {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.4rem;
+    border-radius: 18px;
+    margin: 0 auto;
   }
 
   .content {
     width: 100%;
-    max-width: 460px;
-    gap: 0.72rem;
-    padding: 1rem;
+    max-width: 100%;
+    gap: 0.8rem;
+    padding: 0.95rem;
+    margin: 0 auto;
     text-align: left;
     justify-items: stretch;
   }
@@ -226,8 +279,9 @@
   }
 
   .buttonsRow {
+    flex-direction: column;
     gap: 0.6rem;
-    margin-top: 0.15rem;
+    margin-top: 0.25rem;
   }
 
   .heroButton,
@@ -245,7 +299,16 @@
 
 @media (max-width: 380px) {
   .grid {
-    padding: 0.9rem 0 1.2rem;
+    padding: 0.9rem;
+  }
+
+  .visualStage {
+    min-height: 300px;
+  }
+
+  .carouselWrapper {
+    padding: 0.3rem;
+    border-radius: 14px;
   }
 
   .content {

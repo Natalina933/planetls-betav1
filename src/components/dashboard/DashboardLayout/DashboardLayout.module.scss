@@ -12,12 +12,12 @@
 
 .grid {
   display: grid;
-  gap: var(--dash-space-4, var(--ds-space-4));
+  gap: clamp(1rem, 2vw, 1.45rem);
 }
 
 .main {
   display: grid;
-  gap: var(--dash-space-4, var(--ds-space-4));
+  gap: clamp(1rem, 2vw, 1.35rem);
 }
 
 .header {
@@ -25,14 +25,19 @@
   top: 0;
   z-index: 20;
   display: grid;
-  gap: var(--dash-space-3, var(--ds-space-3));
-  padding: var(--dash-space-3, var(--ds-space-3)) 0;
-  background: color-mix(in srgb, var(--dash-bg-page, var(--ds-color-bg)) 88%, transparent);
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 10%, var(--dash-border));
+  border-radius: calc(var(--dash-radius-lg, var(--ds-radius-lg)) + 2px);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-accent) 8%, transparent), transparent 46%),
+    color-mix(in srgb, var(--dash-bg-page, var(--ds-color-bg)) 92%, white);
+  box-shadow: 0 14px 30px rgba(62, 44, 16, 0.08);
   backdrop-filter: blur(14px);
 }
 
 .identity,
-.headerActions,
+.headerSummary,
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -41,6 +46,7 @@
 .identity {
   gap: var(--dash-space-3, var(--ds-space-3));
   min-width: 0;
+  justify-content: space-between;
 
   h1,
   p {
@@ -63,8 +69,7 @@
   }
 }
 
-.avatar,
-.iconButton {
+.avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -80,43 +85,44 @@
   border: 1px solid color-mix(in srgb, var(--dash-accent) 22%, transparent);
 }
 
-.headerActions {
-  justify-content: space-between;
-  gap: var(--dash-space-3, var(--ds-space-3));
+.identityCopy {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.identityEyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.headerSummary {
   flex-wrap: wrap;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
-.iconButton {
-  position: relative;
-  width: var(--ds-control-height-md);
-  height: var(--ds-control-height-md);
-  border: 1px solid var(--dash-border);
-  border-radius: var(--dash-radius-md, var(--ds-radius-md));
-  background: var(--dash-bg-panel);
-  color: var(--dash-text);
-  text-decoration: none;
-  @include ui-hover-lift;
-}
-
-.iconButton:focus-visible {
-  @include ui-focus-ring;
-}
-
-.notificationBadge {
-  position: absolute;
-  top: -0.28rem;
-  right: -0.28rem;
+.headerPill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.3rem;
+  padding: 0.42rem 0.75rem;
   border-radius: 999px;
-  background: #a83b30;
-  color: white;
-  font-size: 0.68rem;
+  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
   font-weight: 900;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.headerSummaryText {
+  min-width: 0;
+  color: var(--dash-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .todaySection,
@@ -139,14 +145,15 @@
 
 .intro {
   display: grid;
-  gap: var(--dash-space-2, var(--ds-space-2));
-  padding: clamp(1rem, 2vw, 1.35rem);
-  border: 1px solid var(--dash-border);
-  border-radius: var(--dash-radius-lg, var(--ds-radius-lg));
+  gap: 0.8rem;
+  padding: clamp(1.05rem, 2vw, 1.4rem);
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 14%, var(--dash-border));
+  border-radius: calc(var(--dash-radius-lg, var(--ds-radius-lg)) + 2px);
   background:
-    linear-gradient(150deg, color-mix(in srgb, var(--dash-accent) 10%, transparent), transparent 42%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 10%, transparent), transparent 28%),
+    linear-gradient(150deg, color-mix(in srgb, var(--dash-accent) 8%, transparent), transparent 44%),
     var(--dash-bg-panel);
-  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
+  box-shadow: 0 18px 34px rgba(73, 53, 22, 0.08);
 }
 
 .intro h2 {
@@ -171,7 +178,7 @@
 
 .mainSections {
   display: grid;
-  gap: var(--dash-space-3, var(--ds-space-3));
+  gap: clamp(1rem, 2vw, 1.35rem);
 }
 
 .aside {
@@ -180,10 +187,10 @@
 }
 
 .panel {
-  border: 1px solid var(--dash-border);
-  border-radius: var(--dash-radius-lg, var(--ds-radius-lg));
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 12%, var(--dash-border));
+  border-radius: calc(var(--dash-radius-lg, var(--ds-radius-lg)) + 2px);
   background: var(--dash-bg-panel);
-  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
+  box-shadow: 0 16px 32px rgba(73, 53, 22, 0.06);
 }
 
 .panelHeader {
@@ -236,8 +243,9 @@
 }
 
 .shortcut {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   min-height: 54px;
   text-decoration: none;
   color: var(--dash-text-muted);
@@ -255,6 +263,26 @@
 .shortcut:hover {
   color: var(--dash-accent-strong);
   background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
+}
+
+.shortcutBadge,
+.bottomNavBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.34rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3fbf72, #1f8b4d);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 900;
+  box-shadow: 0 8px 16px rgba(31, 139, 77, 0.24);
+}
+
+.shortcutBadge {
+  margin-left: 0.75rem;
 }
 
 .bottomNav {
@@ -292,6 +320,19 @@
     background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
     color: var(--dash-accent-strong);
   }
+}
+
+.bottomNavIconWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottomNavBadge {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.8rem;
 }
 
 .empty {
@@ -332,12 +373,8 @@
   }
 
   .header {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     align-items: center;
-  }
-
-  .headerActions {
-    justify-content: end;
   }
 }
 
@@ -367,6 +404,20 @@
 @media (max-width: 1039px) {
   .aside {
     display: none;
+  }
+}
+
+@media (max-width: 679px) {
+  .header {
+    padding: 0.85rem;
+  }
+
+  .identity {
+    align-items: flex-start;
+  }
+
+  .headerSummaryText {
+    font-size: 0.88rem;
   }
 }
 

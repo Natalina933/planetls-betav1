@@ -6,6 +6,7 @@
   background:
     radial-gradient(circle at top left, rgba(201, 123, 71, 0.18), transparent 32%),
     linear-gradient(180deg, #fff9f1 0%, #fffdf9 45%, #f6efe5 100%);
+  box-sizing: border-box;
 }
 
 .hero,
@@ -13,6 +14,8 @@
 .bottomCta {
   width: min(1180px, 100%);
   margin: 0 auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hero {
@@ -36,6 +39,9 @@
 
 .heroCopy {
   padding: 36px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .kicker,
@@ -141,6 +147,9 @@
 
 .heroPanel {
   padding: 28px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panelLead {
@@ -172,10 +181,71 @@
   font-size: 0.9rem;
 }
 
+.heroShowcase {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.showcaseFrame,
+.highlightImageWrap,
+.showcaseAvatar {
+  position: relative;
+  overflow: hidden;
+}
+
+.showcaseFrame {
+  aspect-ratio: 16 / 10;
+  border-radius: 22px;
+  border: 1px solid rgba(74, 46, 35, 0.12);
+  background: linear-gradient(180deg, #fff8f0, #f5e6d7);
+}
+
+.showcaseImage {
+  object-fit: cover;
+}
+
+.showcaseMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.showcaseMeta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff4e7;
+  color: #7a4a2c;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.showcaseAvatarRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.showcaseAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 20px rgba(90, 57, 34, 0.12);
+  background: #fff7ef;
+}
+
 .section {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .sectionHeading {
@@ -228,6 +298,9 @@
 .highlightCard,
 .bottomCta {
   padding: 28px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .highlightCard {
@@ -235,6 +308,25 @@
   grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.8fr);
   gap: 20px;
   align-items: center;
+}
+
+.highlightVisual {
+  display: grid;
+  gap: 12px;
+}
+
+.highlightImageWrap {
+  aspect-ratio: 16 / 10;
+  border-radius: 22px;
+  border: 1px solid rgba(74, 46, 35, 0.12);
+  background: linear-gradient(180deg, #fff9f2, #f6eadc);
+}
+
+.highlightCaption {
+  margin: 0;
+  color: #6a4c3e;
+  font-size: 0.94rem;
+  line-height: 1.55;
 }
 
 .highlightFlow {
@@ -275,11 +367,25 @@
   .actionGrid {
     grid-template-columns: 1fr;
   }
+
+  .hero {
+    gap: 18px;
+  }
+
+  .heroCopy h1 {
+    max-width: none;
+  }
+
+  .heroPanel,
+  .heroCopy {
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 640px) {
   .page {
     padding: 20px 14px 48px;
+    gap: 24px;
   }
 
   .heroCopy,
@@ -292,13 +398,91 @@
     border-radius: 22px;
   }
 
+  .hero,
+  .section,
+  .bottomCta {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hero {
+    gap: 14px;
+  }
+
   .heroCopy h1 {
     max-width: none;
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 9vw, 2.5rem);
+  }
+
+  .heroActions,
+  .bottomActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .showcaseFrame,
+  .highlightImageWrap {
+    border-radius: 18px;
+  }
+
+  .primaryCta,
+  .secondaryCta {
+    width: 100%;
+  }
+
+  .proofList,
+  .trustRow {
+    gap: 12px;
+  }
+
+  .proofList li,
+  .trustRow span {
+    align-items: flex-start;
   }
 
   .panelMetrics {
     grid-template-columns: 1fr;
+  }
+
+  .highlightFlow {
+    justify-content: flex-start;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page {
+    padding: 16px 12px 40px;
+  }
+
+  .heroCopy,
+  .heroPanel,
+  .stepCard,
+  .actionCard,
+  .highlightCard,
+  .bottomCta {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .kicker,
+  .sectionKicker,
+  .panelEyebrow {
+    font-size: 0.72rem;
+  }
+
+  .heroCopy h1 {
+    font-size: 1.85rem;
+  }
+
+  .lead,
+  .sectionHeading p,
+  .panelLead,
+  .highlightCard p,
+  .bottomCta p,
+  .stepCard p,
+  .actionCard p {
+    font-size: 0.94rem;
   }
 }
 

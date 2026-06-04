@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -69,6 +70,12 @@ const actionSteps = [
   },
 ];
 
+const showcaseAvatars = [
+  { src: "/avatars/jean.png", alt: "Profil artisan Jean" },
+  { src: "/avatars/julie.png", alt: "Profil artisan Julie" },
+  { src: "/avatars/marie.png", alt: "Profil artisan Marie" },
+];
+
 export const metadata: Metadata = {
   title: "Artisan | Pilotez interventions, clients et alertes",
   description:
@@ -108,6 +115,22 @@ export default function ProviderLandingPage() {
         </div>
 
         <aside className={styles.heroPanel}>
+          <div className={styles.heroShowcase}>
+            <div className={styles.showcaseFrame}>
+              <Image
+                src="/images/generated/parcours/planetls-parcours-artisans.png"
+                alt="Aperçu visuel du parcours artisan PlanetLS"
+                fill
+                sizes="(max-width: 1024px) 100vw, 420px"
+                className={styles.showcaseImage}
+              />
+            </div>
+            <div className={styles.showcaseMeta}>
+              <span>Alertes</span>
+              <span>Interventions</span>
+              <span>Clients</span>
+            </div>
+          </div>
           <p className={styles.panelEyebrow}>Objectif</p>
           <h2>Passer d’activité locale à exécution pilotée</h2>
           <p className={styles.panelLead}>
@@ -127,6 +150,13 @@ export default function ProviderLandingPage() {
               <strong>3+</strong>
               <span>leviers de réactivité</span>
             </article>
+          </div>
+          <div className={styles.showcaseAvatarRow} aria-label="Profils artisans mis en avant">
+            {showcaseAvatars.map((avatar) => (
+              <div key={avatar.src} className={styles.showcaseAvatar}>
+                <Image src={avatar.src} alt={avatar.alt} fill sizes="48px" className={styles.showcaseImage} />
+              </div>
+            ))}
           </div>
         </aside>
       </section>
@@ -187,6 +217,19 @@ export default function ProviderLandingPage() {
               Alerte reçue, intervention ouverte, conversation active, devis suivi : PlanetLS relie
               déjà ces briques pour rendre votre activité plus simple à piloter au quotidien.
             </p>
+          </div>
+
+          <div className={styles.highlightVisual}>
+            <div className={styles.highlightImageWrap}>
+              <Image
+                src="/images/generated/parcours/planetls-parcours-artisans.png"
+                alt="Vue d'ensemble du parcours artisan"
+                fill
+                sizes="(max-width: 1024px) 100vw, 360px"
+                className={styles.showcaseImage}
+              />
+            </div>
+            <p className={styles.highlightCaption}>Une lecture plus tangible du flux alerte, intervention et devis.</p>
           </div>
 
           <div className={styles.highlightFlow}>

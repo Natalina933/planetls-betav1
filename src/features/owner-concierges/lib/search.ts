@@ -19,5 +19,4 @@ export type {
 } from "@/app/dashboard/owner/concierges/searchHelpers";
 export {
   getOwnerCitySuggestions,
-  getOwnerRegionSuggestions,
 } from "@/app/dashboard/owner/concierges/locationSuggestions";

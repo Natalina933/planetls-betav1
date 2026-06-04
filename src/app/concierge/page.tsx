@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -72,6 +73,12 @@ const actionSteps = [
   },
 ];
 
+const showcaseAvatars = [
+  { src: "/avatars/marie.png", alt: "Profil concierge Marie" },
+  { src: "/avatars/sophie.png", alt: "Profil concierge Sophie" },
+  { src: "/avatars/leo.png", alt: "Profil concierge Leo" },
+];
+
 export const metadata: Metadata = {
   title: "Concierge | Démarrez ou développez votre activité",
   description:
@@ -111,6 +118,22 @@ export default function ConciergeLandingPage() {
         </div>
 
         <aside className={styles.heroPanel}>
+          <div className={styles.heroShowcase}>
+            <div className={styles.showcaseFrame}>
+              <Image
+                src="/images/generated/parcours/planetls-parcours-concierge.png"
+                alt="Aperçu visuel du parcours concierge PlanetLS"
+                fill
+                sizes="(max-width: 1024px) 100vw, 420px"
+                className={styles.showcaseImage}
+              />
+            </div>
+            <div className={styles.showcaseMeta}>
+              <span>Prospection</span>
+              <span>Demandes</span>
+              <span>Missions</span>
+            </div>
+          </div>
           <p className={styles.panelEyebrow}>Objectif</p>
           <h2>Passer de profil créé à activité active</h2>
           <p className={styles.panelLead}>
@@ -131,6 +154,13 @@ export default function ConciergeLandingPage() {
               <strong>3+</strong>
               <span>actions d&apos;activation</span>
             </article>
+          </div>
+          <div className={styles.showcaseAvatarRow} aria-label="Profils mis en avant">
+            {showcaseAvatars.map((avatar) => (
+              <div key={avatar.src} className={styles.showcaseAvatar}>
+                <Image src={avatar.src} alt={avatar.alt} fill sizes="48px" className={styles.showcaseImage} />
+              </div>
+            ))}
           </div>
         </aside>
       </section>
@@ -195,6 +225,19 @@ export default function ConciergeLandingPage() {
               une grande partie de ces briques. Cette page les relie maintenant de façon plus
               lisible pour une petite activité comme pour une structure plus développée.
             </p>
+          </div>
+
+          <div className={styles.highlightVisual}>
+            <div className={styles.highlightImageWrap}>
+              <Image
+                src="/images/generated/parcours/planetls-parcours-concierge.png"
+                alt="Vue d'ensemble du parcours concierge"
+                fill
+                sizes="(max-width: 1024px) 100vw, 360px"
+                className={styles.showcaseImage}
+              />
+            </div>
+            <p className={styles.highlightCaption}>Une lecture plus visuelle du passage profil vers mission.</p>
           </div>
 
           <div className={styles.highlightFlow}>

@@ -34,6 +34,7 @@ export default function DashboardOnboardingSummary({
 }: DashboardOnboardingSummaryProps) {
   const onboarding = parseOnboardingDetails(availabilityHours);
   const visualPath = normalizeOnboardingPath(onboarding.signupMode);
+  const journeyLabel = formatOnboardingChoice(onboarding.signupMode) || "Parcours business+";
 
   const items: SummaryItem[] =
     role === "owner"
@@ -104,10 +105,18 @@ export default function DashboardOnboardingSummary({
           joinLimited(onboarding.existingTools, "Complétez vos outils et disponibilités.");
 
   return (
-    <DashboardPanel title="Profil d'inscription" bodyClassName={styles.body}>
+    <DashboardPanel title="Parcours business+" bodyClassName={styles.body}>
       <div className={styles.summaryShell}>
         <OnboardingIllustration visual={getOnboardingJourneyVisual(visualPath)} variant="card" />
         <div className={styles.summaryContent}>
+          <div className={styles.summaryLead}>
+            <span className={styles.summaryEyebrow}>{journeyLabel}</span>
+            <h3>Votre trajectoire de pilotage</h3>
+            <p>
+              Une lecture synthétique de votre configuration actuelle pour cadrer vos prochaines
+              décisions, vos zones de tension et vos leviers de croissance.
+            </p>
+          </div>
           <div className={styles.grid}>
             {items.map((item) => {
               const Icon = item.icon;
@@ -124,7 +133,10 @@ export default function DashboardOnboardingSummary({
               );
             })}
           </div>
-          <p className={styles.detail}>{detail}</p>
+          <div className={styles.detailBand}>
+            <span className={styles.detailLabel}>Point d'attention</span>
+            <p className={styles.detail}>{detail}</p>
+          </div>
         </div>
       </div>
     </DashboardPanel>

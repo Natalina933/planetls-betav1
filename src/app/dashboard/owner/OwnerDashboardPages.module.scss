@@ -3,11 +3,15 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .field,
 .select,
 .textarea {
+  box-sizing: border-box;
   border-radius: 14px;
   border: 1px solid rgba(184, 92, 72, 0.24);
   padding: 0.75rem 0.9rem;
@@ -34,6 +38,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 46px;
   padding: 0.75rem 1rem;
   border-radius: 14px;
@@ -75,11 +81,17 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panel {
   display: grid;
   gap: 0.8rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.1rem;
   border-radius: 20px;
   background: linear-gradient(180deg, var(--dash-bg-panel)dfa, #f8e7e0);
@@ -91,16 +103,24 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .dashboardFlow {
   display: grid;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .heroPanel {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.25rem;
   border-radius: 24px;
   background:
@@ -200,6 +220,8 @@
 .flowSection {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .sectionHeading {
@@ -208,6 +230,8 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
 }
 
 .eyebrow {
@@ -223,11 +247,17 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .priorityCard {
   display: grid;
   gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.1rem;
   border-radius: 20px;
   border: 1px solid rgba(184, 92, 72, 0.16);
@@ -271,6 +301,8 @@
 .sectionStack {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .list {
@@ -279,9 +311,14 @@
   padding: 0;
   margin: 0;
   list-style: none;
+  width: 100%;
+  max-width: 100%;
 }
 
 .listItem {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1rem;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.72);
@@ -303,12 +340,18 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .weekColumn {
   display: grid;
   gap: 0.7rem;
   align-content: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 180px;
   padding: 0.95rem;
   border-radius: 18px;
@@ -431,6 +474,7 @@
   display: grid;
   gap: 0.45rem;
   max-width: 40rem;
+  min-width: 0;
 }
 
 .reviewBadgeGroup {
@@ -515,6 +559,9 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .decisionRail button {
@@ -554,6 +601,9 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeKpiCard {
@@ -593,12 +643,18 @@
   grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
   gap: 1.25rem;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeTimelinePanel,
 .conciergeSpotlightCard {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.2rem;
   border-radius: 24px;
   border: 1px solid rgba(184, 92, 72, 0.14);
@@ -612,6 +668,7 @@
   gap: 1rem;
   position: sticky;
   top: 1rem;
+  min-width: 0;
 }
 
 .conciergeSectionHeader {
@@ -645,11 +702,16 @@
 .conciergeTimeline {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .conciergeRequestCard {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.1rem;
   position: relative;
   overflow: hidden;
@@ -679,6 +741,7 @@
 .conciergeRequestHeading {
   display: grid;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .conciergeRequestHeading h3,
@@ -699,6 +762,7 @@
   display: grid;
   gap: 0.35rem;
   justify-items: end;
+  min-width: 0;
   color: #7d5448;
   font-size: 0.9rem;
 }
@@ -746,11 +810,17 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeFactCard {
   display: grid;
   gap: 0.3rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.85rem 0.9rem;
   border-radius: 18px;
   border: 1px solid rgba(184, 92, 72, 0.12);
@@ -780,11 +850,17 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeResponseStat {
   display: grid;
   gap: 0.22rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.85rem 0.9rem;
   border-radius: 16px;
   border: 1px solid rgba(184, 92, 72, 0.12);
@@ -835,11 +911,15 @@
 .conciergeRecipientList {
   display: grid;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .comparisonScroller {
   overflow-x: auto;
   padding-bottom: 0.2rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .comparisonTable {
@@ -900,11 +980,16 @@
 .comparisonActions {
   display: grid;
   gap: 0.6rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .conciergeRecipientCard {
   display: grid;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.9rem;
   border-radius: 18px;
   border: 1px solid rgba(184, 92, 72, 0.12);
@@ -973,12 +1058,15 @@
 .conciergeSnapshotList {
   display: grid;
   gap: 0.8rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .conciergeSnapshotRow {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  min-width: 0;
   padding-bottom: 0.7rem;
   border-bottom: 1px solid rgba(184, 92, 72, 0.12);
   color: var(--dash-text-muted);
@@ -996,6 +1084,9 @@
 .travelerMissionPage {
   display: grid;
   gap: 1.35rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .travelerMissionHero,
@@ -1015,6 +1106,9 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem;
   align-items: end;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.25rem;
   border-radius: 24px;
 }
@@ -1054,12 +1148,17 @@
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.75fr);
   gap: 1rem;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .travelerMissionForm,
 .travelerMissionAside {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .travelerMissionAside {
@@ -1114,6 +1213,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .travelerMissionCard h3 {

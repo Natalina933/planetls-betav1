@@ -14,6 +14,7 @@ import {
   OWNER_SERVICE_REPLY_SEEN_EVENT,
 } from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
+import { ReadabilityControlsIcon } from "@/components/dashboard";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
@@ -631,6 +632,8 @@ export default function DashboardNavbar({
           )}
         </div>
 
+        <ReadabilityControlsIcon />
+
         {isAuthenticated && (
           <div className={styles.rightInfoBlock}>
             <div className={styles.greetingBlock}>
@@ -697,9 +700,8 @@ export default function DashboardNavbar({
                       <button
                         key={value}
                         type="button"
-                        className={`${styles.notificationFilterButton} ${
-                          notificationFilter === value ? styles.notificationFilterButtonActive : ""
-                        }`}
+                        className={`${styles.notificationFilterButton} ${notificationFilter === value ? styles.notificationFilterButtonActive : ""
+                          }`}
                         onClick={() => setNotificationFilter(value)}
                       >
                         {label}
@@ -751,34 +753,34 @@ export default function DashboardNavbar({
         )}
 
         <div className={styles.accountMenuWrapper} ref={accountMenuRef}>
-        <button
-          type="button"
-          className={styles.userProfile}
-          onClick={handleProfileClick}
-          aria-label={`Menu du compte de ${userName}`}
-          title={`Compte de ${userName}`}
-          aria-haspopup="menu"
-          aria-expanded={accountMenuOpen}
-        >
-          {loading ? (
-            <div className={styles.avatarSkeleton} role="status" aria-label="Chargement du profil" />
-          ) : isAuthenticated && user ? (
-            <div className={styles.avatarWrapperOuter}>
-              <Image
-                src={avatarSrc}
-                alt={`Avatar de ${userName}`}
-                width={48}
-                height={48}
-                className={styles.avatar}
-                priority
-              />
-            </div>
-          ) : (
-            <div className={styles.avatarPlaceholder} aria-label="Non connecté">
-              <User size={22} aria-hidden="true" />
-            </div>
-          )}
-        </button>
+          <button
+            type="button"
+            className={styles.userProfile}
+            onClick={handleProfileClick}
+            aria-label={`Menu du compte de ${userName}`}
+            title={`Compte de ${userName}`}
+            aria-haspopup="menu"
+            aria-expanded={accountMenuOpen}
+          >
+            {loading ? (
+              <div className={styles.avatarSkeleton} role="status" aria-label="Chargement du profil" />
+            ) : isAuthenticated && user ? (
+              <div className={styles.avatarWrapperOuter}>
+                <Image
+                  src={avatarSrc}
+                  alt={`Avatar de ${userName}`}
+                  width={48}
+                  height={48}
+                  className={styles.avatar}
+                  priority
+                />
+              </div>
+            ) : (
+              <div className={styles.avatarPlaceholder} aria-label="Non connecté">
+                <User size={22} aria-hidden="true" />
+              </div>
+            )}
+          </button>
 
           {accountMenuOpen && isAuthenticated ? (
             <div className={styles.accountDropdown} role="menu" aria-label="Menu du compte">

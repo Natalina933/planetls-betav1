@@ -7,6 +7,9 @@
   --workspace-shadow: rgba(109, 53, 41, 0.12);
   display: grid;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .ownerTheme {
@@ -46,6 +49,9 @@
     radial-gradient(circle at top right, color-mix(in srgb, var(--workspace-accent) 16%, transparent), transparent 34%),
     linear-gradient(145deg, #fffdf7 0%, var(--workspace-accent-soft) 100%);
   box-shadow: 0 16px 40px var(--workspace-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .eyebrow {
@@ -73,6 +79,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .card {
@@ -83,6 +92,9 @@
   border: 1px solid color-mix(in srgb, var(--workspace-accent) 22%, transparent);
   background: var(--workspace-surface);
   box-shadow: 0 10px 24px color-mix(in srgb, var(--workspace-shadow) 60%, transparent);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cardTitle {
@@ -162,6 +174,28 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .grid,
+  .card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .actions,
+  .cardActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .cardActionPrimary,
+  .cardActionSecondary,
+  .actionLink {
+    width: 100%;
+  }
 }
 
 .actionLink {

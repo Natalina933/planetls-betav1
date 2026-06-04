@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -68,6 +69,12 @@ const actionSteps = [
   },
 ];
 
+const showcaseAvatars = [
+  { src: "/avatars/marc.png", alt: "Profil propriétaire Marc" },
+  { src: "/avatars/emma.png", alt: "Profil propriétaire Emma" },
+  { src: "/avatars/victor.png", alt: "Profil propriétaire Victor" },
+];
+
 export const metadata: Metadata = {
   title: "Propriétaire | Pilotez logements, conciergerie et finances",
   description:
@@ -107,6 +114,22 @@ export default function OwnerLandingPage() {
         </div>
 
         <aside className={styles.heroPanel}>
+          <div className={styles.heroShowcase}>
+            <div className={styles.showcaseFrame}>
+              <Image
+                src="/images/generated/parcours/planetls-parcours-proprietaire.png"
+                alt="Aperçu visuel du parcours propriétaire PlanetLS"
+                fill
+                sizes="(max-width: 1024px) 100vw, 420px"
+                className={styles.showcaseImage}
+              />
+            </div>
+            <div className={styles.showcaseMeta}>
+              <span>Logements</span>
+              <span>Conciergerie</span>
+              <span>Finances</span>
+            </div>
+          </div>
           <p className={styles.panelEyebrow}>Objectif</p>
           <h2>Passer de logements isolés à parc piloté</h2>
           <p className={styles.panelLead}>
@@ -126,6 +149,13 @@ export default function OwnerLandingPage() {
               <strong>3+</strong>
               <span>axes de pilotage</span>
             </article>
+          </div>
+          <div className={styles.showcaseAvatarRow} aria-label="Profils propriétaires mis en avant">
+            {showcaseAvatars.map((avatar) => (
+              <div key={avatar.src} className={styles.showcaseAvatar}>
+                <Image src={avatar.src} alt={avatar.alt} fill sizes="48px" className={styles.showcaseImage} />
+              </div>
+            ))}
           </div>
         </aside>
       </section>
@@ -186,6 +216,19 @@ export default function OwnerLandingPage() {
               Logement structuré, conciergerie activée, mission suivie, document validé : PlanetLS
               relie déjà ces briques pour vous donner une lecture plus nette de votre activité.
             </p>
+          </div>
+
+          <div className={styles.highlightVisual}>
+            <div className={styles.highlightImageWrap}>
+              <Image
+                src="/images/generated/parcours/planetls-parcours-proprietaire.png"
+                alt="Vue d'ensemble du parcours propriétaire"
+                fill
+                sizes="(max-width: 1024px) 100vw, 360px"
+                className={styles.showcaseImage}
+              />
+            </div>
+            <p className={styles.highlightCaption}>Une vue plus concrète du pilotage parc, missions et arbitrages.</p>
           </div>
 
           <div className={styles.highlightFlow}>

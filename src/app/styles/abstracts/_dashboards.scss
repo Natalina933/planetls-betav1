@@ -8,24 +8,18 @@
    ========================================================================== */
 
 $themes: (
-  light: (
-    paper: var.$mucha-paper,
+  light: (paper: var.$mucha-paper,
     ink: var.$mucha-ink,
     gold: var.$gold-soft,
-    text: var.$text-dark
-  ),
-  dark: (
-    paper: var.$mucha-paper-black,
+    text: var.$text-dark ),
+  dark: (paper: var.$mucha-paper-black,
     ink: var.$text-light,
     gold: var.$gold-dark,
-    text: var.$text-light
-  ),
-  sepia: (
-    paper: var.$sepia-paper,
+    text: var.$text-light ),
+  sepia: (paper: var.$sepia-paper,
     ink: var.$sepia-ink,
     gold: var.$gold-soft,
-    text: var.$text-dark
-  )
+    text: var.$text-dark )
 );
 
 // Helper function pour accéder aux valeurs de thème
@@ -91,23 +85,211 @@ $themes: (
    HEADERS
    ========================================================================== */
 
-.dashboard-header {
-  margin-bottom: var.$spacing-lg;
-  padding-bottom: var.$spacing-md;
-  border-bottom: 1px solid var(--color-border);
+.headerBandeau {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0;
+  min-height: 230px;
+}
+
+.headerBandeau img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  filter: saturate(0.82) brightness(0.52) contrast(1.02);
+  transform: scale(1.02);
+}
+
+.ownerHeaderBandeau {
+  border-bottom: 1px solid rgba(92, 67, 36, 0.14);
+  box-shadow: 0 14px 36px rgba(88, 62, 28, 0.1);
+}
+
+.headerOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  padding: var.$spacing-lg;
+  background:
+    linear-gradient(135deg, rgba(14, 10, 6, 0.86), rgba(21, 16, 9, 0.56) 54%, rgba(255, 255, 255, 0.04)),
+    linear-gradient(to top, rgba(0, 0, 0, 0.42), transparent 46%);
+  color: white;
+}
+
+.headerHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  gap: var.$spacing-lg;
+  align-items: end;
+  width: 100%;
+}
+
+.headerIdentity {
+  display: flex;
+  align-items: flex-start;
+  gap: var.$spacing-md;
+  align-self: end;
 
   h1 {
     font-family: var.$font-elegant;
-    color: var.$primary-dark-color-sass;
-
-    .header-icon {
-      margin-right: var.$spacing-sm;
-    }
+    color: white;
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.8rem, 3vw, 2.7rem);
+    line-height: 0.98;
   }
 
-  .subtitle {
-    color: var(--color-text-secondary);
-    margin-top: var.$spacing-sm;
+  p {
+    color: rgba(255, 248, 236, 0.96);
+    margin: 0.8rem 0 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 54ch;
+    text-wrap: balance;
+  }
+}
+
+.headerAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(255, 248, 232, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: white;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.headerCopy {
+  min-width: 0;
+}
+
+.headerEyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 250, 237, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff4d6;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.headerMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  align-self: end;
+}
+
+.headerMetricCard {
+  display: grid;
+  gap: 0.22rem;
+  padding: 1rem 0.95rem;
+  border-radius: 20px;
+  background: rgba(255, 252, 245, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 28px rgba(18, 14, 8, 0.2);
+
+  strong {
+    font-size: 1.62rem;
+    line-height: 1;
+    color: #fff9eb;
+  }
+
+  span:last-child {
+    font-size: 0.83rem;
+    color: rgba(255, 248, 232, 0.96);
+    line-height: 1.4;
+  }
+}
+
+.headerMetricIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff7e1;
+}
+
+@media (max-width: map.get(var.$breakpoints, sm)) {
+  .headerOverlay {
+    padding: var.$spacing-md;
+  }
+
+  .headerHero {
+    grid-template-columns: 1fr;
+    gap: var.$spacing-md;
+  }
+
+  .headerIdentity {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .headerMetrics {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .headerMetricCard {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.85rem 0.9rem;
+
+    strong {
+      font-size: 1.15rem;
+      white-space: nowrap;
+    }
+
+    span:last-child {
+      font-size: 0.78rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .headerBandeau,
+  .headerBandeau img {
+    min-height: 260px;
+    height: 260px;
+  }
+
+  .headerIdentity h1 {
+    font-size: clamp(1.55rem, 7vw, 2.15rem);
+  }
+
+  .headerIdentity p {
+    font-size: 0.92rem;
+    max-width: none;
+  }
+
+  .headerMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .headerMetricCard {
+    grid-template-columns: initial;
+    gap: 0.16rem;
+    padding: 0.85rem 0.9rem;
   }
 }
 
@@ -307,11 +489,9 @@ body.dark {
   .dashboard-root {
     background:
       radial-gradient(circle at top left, rgba(212, 175, 55, 0.16), transparent 38%),
-      repeating-linear-gradient(
-        90deg,
+      repeating-linear-gradient(90deg,
         rgba(212, 175, 55, 0.03) 0 2px,
-        transparent 2px 14px
-      ),
+        transparent 2px 14px),
       linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
     color: #2c3e50;
   }

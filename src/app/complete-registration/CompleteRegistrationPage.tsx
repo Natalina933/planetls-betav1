@@ -693,14 +693,14 @@ export default function CompleteRegistrationPage() {
           <h1 className={styles.title}>Commencez par choisir votre parcours</h1>
           <p className={styles.recapMuted}>
             Cette page finalise un profil déjà préparé. Pour éviter un compte incomplet, reprenez
-            depuis le choix de parcours puis laissez-vous guider jusqu'à la création du compte.
+            depuis le choix de parcours puis laissez-vous guider jusqu&apos;à la création du compte.
           </p>
           <div className={styles.recapActions}>
             <Button type="button" variant="primary" size="lg" onClick={() => router.push("/parcours")}>
               Choisir mon parcours
             </Button>
             <Button type="button" variant="outline" size="lg" onClick={() => router.push("/home")}>
-              Revenir à l'accueil
+              Revenir à l&apos;accueil
             </Button>
           </div>
         </section>

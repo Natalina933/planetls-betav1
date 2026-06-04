@@ -20,7 +20,10 @@ export type {
 } from "./DashboardOperationalPage";
 export { DashboardLoadingScreen } from "./DashboardLoadingScreen";
 export { DashboardSectionShell } from "./SectionShell";
-export { ReadabilityControls } from "./ReadabilityControls";
+export {
+  ReadabilityControls,
+  ReadabilityControlsIcon,
+} from "./ReadabilityControls";
 export { ConversationFilters } from "./ConversationFilters";
 export { CompletionStatusCard } from "./CompletionStatusCard";
 export type { CompletionStatusCardProps } from "./CompletionStatusCard";

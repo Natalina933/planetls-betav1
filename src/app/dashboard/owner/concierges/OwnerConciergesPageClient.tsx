@@ -20,16 +20,16 @@ import {
   toggleOwnerConciergeValue,
   type OwnerConciergeSearchFilters,
 } from "./searchHelpers";
-import { getOwnerCitySuggestions, getOwnerRegionSuggestions } from "./locationSuggestions";
+import { getOwnerCitySuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
 import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
 import { OwnerJourneyRail } from "@/features/owner-dashboard";
+import { CONCIERGE_PROPERTY_TYPES } from "@/features/shared/data/propertyTypes";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
 import type { RequestFormState } from "@/features/owner-concierges/types";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 
 const initialFilters: OwnerConciergeSearchFilters = {
-  region: "",
   city: "",
   selectedCategories: [],
   selectedServices: [],
@@ -113,6 +113,25 @@ export default function OwnerConciergesPageClient() {
     () => mergeSortedOptions(serverOptions.services, clientOptions.services),
     [clientOptions.services, serverOptions.services],
   );
+  const catalogServicesByCategory = useMemo(() => {
+    const groups = new Map<string, Set<string>>();
+
+    serviceCatalog.forEach((item) => {
+      const category = item.category.trim();
+      const service = item.service.trim();
+
+      if (!category || !service) return;
+      if (!groups.has(category)) groups.set(category, new Set<string>());
+      groups.get(category)?.add(service);
+    });
+
+    return Array.from(groups.entries())
+      .map(([category, services]) => ({
+        category,
+        services: Array.from(services).sort((left, right) => left.localeCompare(right, "fr")),
+      }))
+      .sort((left, right) => left.category.localeCompare(right.category, "fr"));
+  }, [serviceCatalog]);
   const categoriesByService = useMemo(() => {
     const nextMap = new Map<string, string>();
     serviceCatalog.forEach((item) => {
@@ -121,34 +140,44 @@ export default function OwnerConciergesPageClient() {
     return nextMap;
   }, [serviceCatalog]);
   const categoryOptions = useMemo(() => {
+    if (catalogServicesByCategory.length > 0) {
+      return catalogServicesByCategory.map((group) => group.category);
+    }
+
     const serviceDerived = serviceOptions
       .map((service) => categoriesByService.get(service))
       .filter((value): value is string => Boolean(value));
     return mergeSortedOptions(serverOptions.categories, serviceDerived);
-  }, [categoriesByService, serverOptions.categories, serviceOptions]);
-  const visibleServiceOptions = useMemo(() => {
-    if (filters.selectedCategories.length === 0) return [];
-    const allowedServices = new Set(serviceOptions);
-    return serviceCatalog
-      .filter(
-        (item) =>
-          filters.selectedCategories.includes(item.category) && allowedServices.has(item.service),
-      )
-      .map((item) => item.service)
-      .sort((left, right) => left.localeCompare(right));
-  }, [filters.selectedCategories, serviceCatalog, serviceOptions]);
+  }, [catalogServicesByCategory, categoriesByService, serverOptions.categories, serviceOptions]);
   const visibleServicesByCategory = useMemo(() => {
+    if (catalogServicesByCategory.length > 0) {
+      return filters.selectedCategories
+        .map((category) => catalogServicesByCategory.find((group) => group.category === category))
+        .filter(
+          (
+            group,
+          ): group is {
+            category: string;
+            services: string[];
+          } => Boolean(group),
+        );
+    }
+
+    const allowedServices = new Set(serviceOptions);
     return filters.selectedCategories
       .map((category) => ({
         category,
-        services: visibleServiceOptions.filter((service) => categoriesByService.get(service) === category),
+        services: serviceCatalog
+          .filter((item) => category === item.category && allowedServices.has(item.service))
+          .map((item) => item.service)
+          .sort((left, right) => left.localeCompare(right, "fr")),
       }))
       .filter((group) => group.services.length > 0);
-  }, [categoriesByService, filters.selectedCategories, visibleServiceOptions]);
+  }, [catalogServicesByCategory, filters.selectedCategories, serviceCatalog, serviceOptions]);
 
   const propertyTypeOptions = useMemo(
-    () => mergeSortedOptions(serverOptions.propertyTypes, clientOptions.propertyTypes),
-    [clientOptions.propertyTypes, serverOptions.propertyTypes],
+    () => Array.from(CONCIERGE_PROPERTY_TYPES),
+    [],
   );
 
   const activeSearchSummary = useMemo(() => getActiveSearchSummary(filters), [filters]);
@@ -217,7 +246,6 @@ export default function OwnerConciergesPageClient() {
     if (hydratedFromUrlRef.current) return;
 
     const nextFilters: OwnerConciergeSearchFilters = {
-      region: searchParams.get("region") ?? "",
       city: searchParams.get("city") ?? searchParams.get("postalCode") ?? "",
       selectedCategories: (searchParams.get("categories") ?? "")
         .split(",")
@@ -469,13 +497,42 @@ export default function OwnerConciergesPageClient() {
     }
   }
 
-  const filtersLabel = [filters.region.trim(), filters.city.trim()].filter(Boolean).join(" · ");
+  const filtersLabel = [filters.city.trim()].filter(Boolean).join(" · ");
+  const cockpitMetrics = [
+    {
+      label: "Profils trouvés",
+      value: `${items.length}`,
+      detail: hasSubmittedSearch ? "Concierges visibles avec vos filtres actuels." : "Lancez une recherche pour alimenter le cockpit.",
+    },
+    {
+      label: "Disponibles maintenant",
+      value: `${stats.totalAvailable}`,
+      detail: "Profils immédiatement activables pour une mise en relation rapide.",
+    },
+    {
+      label: "Sélection active",
+      value: `${selectedConciergeIds.length}`,
+      detail:
+        selectedConciergeIds.length > 0
+          ? "Des concierges sont prêts à recevoir votre brief."
+          : "Constituez une short-list avant d'envoyer une demande.",
+    },
+  ];
 
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
         <ToastContainer newestOnTop position="top-right" />
         <OwnerJourneyRail activeStep={selectedConciergeIds.length > 0 ? "selection" : "search"} />
+        <section className={styles.cockpitStrip} aria-label="Pilotage recherche concierge">
+          {cockpitMetrics.map((metric) => (
+            <article key={metric.label} className={styles.cockpitCard}>
+              <span className={styles.cockpitLabel}>{metric.label}</span>
+              <strong className={styles.cockpitValue}>{metric.value}</strong>
+              <p className={styles.cockpitDetail}>{metric.detail}</p>
+            </article>
+          ))}
+        </section>
         <SearchFilters
           styles={styles}
           filters={filters}
@@ -496,7 +553,6 @@ export default function OwnerConciergesPageClient() {
           onToggleCategory={toggleCategory}
           onToggleService={toggleService}
           onToggleServiceSection={toggleServiceSection}
-          getRegionSuggestions={getOwnerRegionSuggestions}
           getCitySuggestions={getOwnerCitySuggestions}
           parseSliderValue={parseSliderValue}
         />
@@ -513,6 +569,23 @@ export default function OwnerConciergesPageClient() {
               onSortModeChange={setSortMode}
               onViewModeChange={setViewMode}
             />
+            <div className={styles.resultsSummaryBand}>
+              <div className={styles.resultsSummaryCopy}>
+                <span className={styles.resultsSummaryLabel}>Lecture rapide</span>
+                <strong>
+                  {hasSubmittedSearch
+                    ? items.length > 0
+                      ? "Comparez les profils puis transformez votre sélection en brief."
+                      : "Aucun profil ne matche pour l'instant avec cette recherche."
+                    : "Préparez votre recherche pour faire émerger les meilleurs partenaires."}
+                </strong>
+              </div>
+              <p className={styles.resultsSummaryText}>
+                {filtersLabel
+                  ? `Zone active : ${filtersLabel}. Ajustez le tri, le rayon ou les services pour ouvrir davantage d'options.`
+                  : "Commencez par une ville, un rayon ou un besoin précis pour obtenir une sélection plus exploitable."}
+              </p>
+            </div>
 
             <ResultsGrid
               styles={styles}
@@ -533,11 +606,11 @@ export default function OwnerConciergesPageClient() {
           <aside className={styles.sidebar}>
             <div className={styles.requestDock}>
               <div>
-                <p className={styles.eyebrow}>Demande</p>
-                <h2 className={styles.requestTitle}>Lancer une recherche concierge</h2>
+                <p className={styles.eyebrow}>Short-list</p>
+                <h2 className={styles.requestTitle}>Transformer votre sélection en demande qualifiée</h2>
               </div>
               <p className={styles.requestIntro}>
-                Envoyez un brief court aux conciergeries sélectionnées pour obtenir une réponse ou un devis.
+                Envoyez un brief clair aux conciergeries retenues pour obtenir une réponse rapide, un devis ou une prise en charge.
               </p>
               <div className={styles.selectionSummary}>
                 <span className={styles.requestSectionLabel}>Sélection</span>
@@ -681,7 +754,6 @@ export default function OwnerConciergesPageClient() {
                   onToggleCategory={toggleCategory}
                   onToggleService={toggleService}
                   onToggleServiceSection={toggleServiceSection}
-                  getRegionSuggestions={getOwnerRegionSuggestions}
                   getCitySuggestions={getOwnerCitySuggestions}
                   parseSliderValue={parseSliderValue}
                 />

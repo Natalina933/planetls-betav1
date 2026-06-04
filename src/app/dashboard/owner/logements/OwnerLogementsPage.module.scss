@@ -1,6 +1,9 @@
 .page {
   display: grid;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .actions {
@@ -8,6 +11,9 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .actions a {
@@ -27,6 +33,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .card {
@@ -37,6 +46,9 @@
   border: 1px solid rgba(184, 139, 74, 0.28);
   background: linear-gradient(180deg, #fffdf8 0%, #f7efdf 100%);
   box-shadow: 0 10px 26px rgba(74, 53, 16, 0.08);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cardHeader {
@@ -89,4 +101,15 @@
   background: rgba(74, 53, 16, 0.06);
   color: #4a3510;
   font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .actions a {
+    width: 100%;
+  }
 }

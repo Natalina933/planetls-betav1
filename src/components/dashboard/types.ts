@@ -17,6 +17,8 @@ export interface DashboardQuickAction {
   href: string;
   description?: string;
   badge?: string;
+  completed?: boolean;
+  completedLabel?: string;
 }
 
 export interface DashboardActivityItem {
@@ -39,4 +41,5 @@ export interface DashboardNotificationItem {
 export interface DashboardShortcutItem {
   label: string;
   href: string;
+  badgeCount?: number;
 }

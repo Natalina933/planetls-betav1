@@ -46,6 +46,13 @@
   @include ui-hover-lift;
 }
 
+.actionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
 .action:focus-visible {
   @include ui-focus-ring;
 }
@@ -61,6 +68,13 @@
   font-weight: 850;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.actionCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f8b4d;
 }
 
 .action strong {
@@ -79,6 +93,17 @@
   background: color-mix(in srgb, var(--dash-accent) 24%, transparent);
   border-color: color-mix(in srgb, var(--dash-accent) 62%, var(--dash-border));
   box-shadow: var(--dash-shadow-md, var(--ds-shadow-md));
+}
+
+.actionCompleted {
+  border-color: color-mix(in srgb, #1f8b4d 45%, var(--dash-border));
+  background:
+    radial-gradient(circle at top right, rgba(63, 191, 114, 0.12), transparent 34%),
+    color-mix(in srgb, var(--dash-bg-panel) 92%, white);
+}
+
+.actionCompleted .actionTopline {
+  color: #1f8b4d;
 }
 
 :global(body[data-readability="on"]) {

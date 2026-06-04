@@ -16,6 +16,8 @@
   width: min(100%, 1680px);
   margin-inline: auto;
   padding: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hero,
@@ -32,6 +34,9 @@
     radial-gradient(circle at 96% 0%, rgba(184, 92, 72, 0.14), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--traveler-panel) 94%, white), var(--traveler-panel-soft));
   box-shadow: var(--traveler-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hero {
@@ -54,6 +59,7 @@
 .travelerMissionCard {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
 .heroContent {
@@ -267,6 +273,9 @@
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(237, 243, 245, 0.82)),
     color-mix(in srgb, var(--traveler-panel) 92%, white);
   box-shadow: var(--traveler-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .syncMain {
@@ -341,6 +350,9 @@
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 1rem;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .assignmentPanel {
@@ -518,6 +530,7 @@
   border-radius: 12px;
   background: #fffdf9;
   box-shadow: 0 26px 68px rgba(42, 35, 28, 0.24);
+  box-sizing: border-box;
 }
 
 .modalHeader {
@@ -707,6 +720,9 @@
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.55fr);
   gap: 1rem;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .travelerMissionForm,
@@ -887,6 +903,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(315px, 1fr));
   gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .travelerMissionTopline {
@@ -1037,5 +1056,41 @@
   .modeTab,
   .modeTabActive {
     width: 100%;
+  }
+
+  .hero,
+  .creationPanel,
+  .travelerMissionHero,
+  .planningImportPanel,
+  .travelerMissionForm,
+  .travelerMissionAside,
+  .travelerMissionListSection,
+  .travelerMissionCard,
+  .syncPanel,
+  .assignmentWorkbench,
+  .travelerMissionLayout,
+  .travelerMissionGrid,
+  .missionModal {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .heroActions,
+  .travelerChecklist,
+  .cardFooter,
+  .parsedStayActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .primaryLink,
+  .buttonSecondary,
+  .travelerCheck,
+  .travelerCheckActive,
+  .travelerActionPill {
+    width: 100%;
+    justify-content: center;
   }
 }

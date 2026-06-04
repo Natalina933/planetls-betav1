@@ -1,12 +1,10 @@
-﻿import Link from "next/link";
+"use client";
+
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  Bell,
   BriefcaseBusiness,
-  ClipboardList,
   Home,
-  MessageSquareText,
-  UserRound,
   Wrench,
 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -15,8 +13,8 @@ import { StatsWidget } from "../StatsWidget/StatsWidget";
 import { QuickActions } from "../QuickActions/QuickActions";
 import { ActivityFeed } from "../ActivityFeed/ActivityFeed";
 import { ProfileSummary } from "../ProfileSummary/ProfileSummary";
-import { ReadabilityControls } from "../ReadabilityControls";
 import { Sidebar } from "../Sidebar/Sidebar";
+import { DashboardBottomNav } from "./DashboardBottomNav";
 import type {
   DashboardActivityItem,
   DashboardNavItem,
@@ -45,6 +43,7 @@ interface DashboardLayoutProps {
     badge?: string;
     avatarSrc?: string;
   };
+  showBottomNav?: boolean;
   children?: ReactNode;
 }
 
@@ -55,7 +54,7 @@ function getLevelVariant(level: DashboardNotificationItem["level"]) {
 }
 
 function getPersonaLabel(persona: DashboardPersona) {
-  if (persona === "owner") return "Propriétaire";
+  if (persona === "owner") return "Proprietaire";
   if (persona === "artisan") return "Artisan";
   if (persona === "conciergerie") return "Conciergerie";
   return "Admin";
@@ -67,14 +66,9 @@ function getPersonaIcon(persona: DashboardPersona) {
   return BriefcaseBusiness;
 }
 
-function getNavIcon(item: DashboardShortcutItem, index: number) {
-  const label = `${item.label} ${item.href}`.toLowerCase();
-  if (label.includes("message")) return MessageSquareText;
-  if (label.includes("profil") || label.includes("compte")) return UserRound;
-  if (label.includes("alerte") || label.includes("notification")) return Bell;
-  if (label.includes("logement") || label.includes("bien")) return Home;
-  if (label.includes("mission") || label.includes("intervention")) return ClipboardList;
-  return index === 0 ? BriefcaseBusiness : ClipboardList;
+function formatCount(count: number) {
+  if (count > 99) return "99+";
+  return `${count}`;
 }
 
 export function DashboardLayout({
@@ -89,10 +83,10 @@ export function DashboardLayout({
   notifications,
   shortcuts,
   profile,
+  showBottomNav = true,
   children,
 }: DashboardLayoutProps) {
   const PersonaIcon = getPersonaIcon(persona);
-  const bottomNavItems = shortcuts.slice(0, 4);
 
   return (
     <div className={styles.page}>
@@ -101,22 +95,15 @@ export function DashboardLayout({
           <span className={styles.avatar}>
             <PersonaIcon size={24} aria-hidden="true" />
           </span>
-          <div>
+          <div className={styles.identityCopy}>
+            <p className={styles.identityEyebrow}>{getPersonaLabel(persona)}</p>
             <h1>{title}</h1>
             <p>{profile.name}</p>
           </div>
         </div>
-
-        <div className={styles.headerActions}>
-          <ReadabilityControls />
-          <Link
-            href={notifications[0]?.href ?? navItems[0]?.href ?? "#"}
-            className={styles.iconButton}
-            aria-label="Notifications"
-          >
-            <Bell size={22} aria-hidden="true" />
-            {notifications.length > 0 ? <span className={styles.notificationBadge}>{notifications.length}</span> : null}
-          </Link>
+        <div className={styles.headerSummary}>
+          <span className={styles.headerPill}>{profile.badge ?? getPersonaLabel(persona)}</span>
+          <span className={styles.headerSummaryText}>{subtitle}</span>
         </div>
       </header>
 
@@ -177,12 +164,15 @@ export function DashboardLayout({
           </Card>
           <Card className={styles.panel}>
             <CardHeader className={styles.panelHeader}>
-              <h2>Accès rapides</h2>
+              <h2>Acces rapides</h2>
             </CardHeader>
             <CardBody className={styles.shortcutBody}>
               {shortcuts.map((item) => (
                 <Link key={item.href} href={item.href} className={styles.shortcut}>
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.badgeCount && item.badgeCount > 0 ? (
+                    <span className={styles.shortcutBadge}>{formatCount(item.badgeCount)}</span>
+                  ) : null}
                 </Link>
               ))}
             </CardBody>
@@ -190,22 +180,11 @@ export function DashboardLayout({
         </aside>
       </div>
 
-      {bottomNavItems.length > 0 ? (
-        <nav
-          className={styles.bottomNav}
-          style={{ gridTemplateColumns: `repeat(${bottomNavItems.length}, minmax(0, 1fr))` }}
-          aria-label={`Navigation ${getPersonaLabel(persona).toLowerCase()}`}
-        >
-          {bottomNavItems.map((item, index) => {
-            const Icon = getNavIcon(item, index);
-            return (
-              <Link key={item.href} href={item.href} aria-current={index === 0 ? "page" : undefined}>
-                <Icon size={22} aria-hidden="true" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+      {showBottomNav ? (
+        <DashboardBottomNav
+          items={shortcuts}
+          ariaLabel={`Navigation ${getPersonaLabel(persona).toLowerCase()}`}
+        />
       ) : null}
     </div>
   );

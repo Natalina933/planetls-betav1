@@ -5,6 +5,10 @@ import { FaTimes } from "react-icons/fa";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
 import { trackOnboardingEvent } from "@/app/lib/onboardingAnalytics";
+import {
+  CONCIERGE_PROPERTY_TYPES,
+  OWNER_PROPERTY_TYPES,
+} from "@/features/shared/data/propertyTypes";
 import styles from "./AccessPopup.module.scss";
 
 export interface FormData {
@@ -78,14 +82,6 @@ const PROFILE_COPY: Record<
   },
 };
 
-const CONCIERGE_PROPERTY_TYPES = [
-  "Appartement",
-  "Maison",
-  "Immeuble multi-lots",
-  "Villa haut de gamme",
-  "Résidence secondaire",
-];
-
 const CONCIERGE_TOOLS = [
   "Airbnb",
   "Booking",
@@ -99,14 +95,6 @@ const OWNER_GOALS = [
   { value: "gestion_complete", label: "Déléguer la gestion complète" },
   { value: "besoin_ponctuel", label: "Service ponctuel" },
   { value: "comparer_concierges", label: "Comparer plusieurs concierges" },
-];
-
-const OWNER_PROPERTY_TYPES = [
-  "Appartement",
-  "Maison",
-  "Résidence secondaire",
-  "Immeuble multi-lots",
-  "Villa haut de gamme",
 ];
 
 const OWNER_NEED_VOLUMES = [

@@ -26,7 +26,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { DashboardLoadingScreen, ReadabilityControls } from "@/components/dashboard";
+import { DashboardLoadingScreen } from "@/components/dashboard";
 import { AsyncState, Badge, Card, CardBody } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue } from "@/app/utils/formatters";
@@ -187,7 +187,6 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.headerActions}>
-          <ReadabilityControls />
           <div className={styles.modeSwitch} role="group" aria-label="Mode dashboard">
             <button
               type="button"

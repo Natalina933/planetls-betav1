@@ -16,6 +16,8 @@
   width: min(100%, 1680px);
   margin-inline: auto;
   padding: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hero,
@@ -27,6 +29,9 @@
     radial-gradient(circle at 96% 0%, rgba(184, 92, 72, 0.14), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--partners-panel) 94%, white), var(--partners-panel-soft));
   box-shadow: var(--partners-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hero {
@@ -42,6 +47,7 @@
   display: grid;
   gap: 0.75rem;
   align-content: center;
+  min-width: 0;
 }
 
 .heroContent h1 {
@@ -141,6 +147,9 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .statCard,
@@ -199,6 +208,9 @@
   gap: 0.7rem;
   padding: 0.8rem;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .searchField {
@@ -222,6 +234,7 @@
   display: grid;
   gap: 1rem;
   padding: 1.1rem;
+  min-width: 0;
 }
 
 .sectionHeader {
@@ -383,6 +396,9 @@
   border-radius: 20px;
   background: color-mix(in srgb, var(--partners-panel) 82%, white);
   color: var(--partners-muted);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .skeletonList {
@@ -444,10 +460,34 @@
     grid-template-columns: 1fr;
   }
 
+  .hero,
+  .filtersPanel,
+  .sectionPanel,
+  .statsGrid,
+  .partnerGrid,
+  .partnerCard,
+  .emptyPanel {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .cardTop,
   .sectionHeader,
   .cardFooter {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .heroActions,
+  .cardFooter {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .textLink {
+    width: 100%;
+    justify-content: center;
   }
 }

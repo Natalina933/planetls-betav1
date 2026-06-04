@@ -21,8 +21,10 @@ export function OnboardingPromptCard({ path, actionStatus, onDismiss }: Onboardi
   return (
     <Card tone="outlined" className={styles.card}>
       <CardHeader className={styles.header}>
-        <OnboardingIllustration visual={getOnboardingJourneyVisual(path)} variant="card" />
-        <div>
+        <div className={styles.headerVisual}>
+          <OnboardingIllustration visual={getOnboardingJourneyVisual(path)} variant="card" />
+        </div>
+        <div className={styles.headerCopy}>
           <p className={styles.subtitle}>{config.subtitle}</p>
           <h3>{config.title}</h3>
         </div>
