@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, FileText, MapPinned, PackageCheck, SlidersHorizontal, UserPlus, X } from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
 import { Button, Card, CardBody, CardHeader } from "@/components/ui";
-import { buildSmartDashboardPlan, parseOnboardingDetails } from "@/features/onboarding-assistant";
+import {
+  OnboardingIllustration,
+  buildSmartDashboardPlan,
+  getOnboardingActionVisual,
+  getOnboardingJourneyVisual,
+  normalizeOnboardingPath,
+  parseOnboardingDetails,
+} from "@/features/onboarding-assistant";
 import styles from "./NextStepsPopup.module.scss";
 
 export type NextStepAction = {
@@ -59,8 +66,9 @@ export default function NextStepsPopup({
 }: NextStepsPopupProps) {
   if (!open) return null;
 
+  const onboarding = parseOnboardingDetails(availabilityHours);
+  const visualPath = normalizeOnboardingPath(onboarding.signupMode);
   const steps = buildSteps({ availabilityHours, profileComplete, pricingReady, servicesReady });
-  const icons = [FileText, PackageCheck, SlidersHorizontal, MapPinned, UserPlus];
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-labelledby="next-steps-title">
@@ -75,13 +83,21 @@ export default function NextStepsPopup({
           </button>
         </CardHeader>
         <CardBody className={styles.body}>
+          <OnboardingIllustration visual={getOnboardingJourneyVisual(visualPath)} variant="hero" />
           <div className={styles.steps}>
-            {steps.map((step, index) => {
-              const Icon = step.done ? CheckCircle2 : icons[index] ?? FileText;
+            {steps.map((step) => {
               return (
                 <Link key={step.id} href={step.href} className={styles.step} onClick={onClose}>
-                  <span className={step.done ? styles.doneIcon : styles.stepIcon}>
-                    <Icon size={30} strokeWidth={2.2} aria-hidden="true" />
+                  <span className={styles.stepVisual}>
+                    <OnboardingIllustration
+                      visual={getOnboardingActionVisual(step.id, visualPath)}
+                      variant="thumbnail"
+                    />
+                    {step.done ? (
+                      <span className={styles.doneBadge}>
+                        <CheckCircle2 size={18} strokeWidth={2.4} aria-hidden="true" />
+                      </span>
+                    ) : null}
                   </span>
                   <span>
                     <strong>{step.title}</strong>

@@ -3,6 +3,8 @@
 import { BriefcaseBusiness, CalendarClock, CircleDollarSign, Goal, Home, MapPinned, Wrench } from "lucide-react";
 import { DashboardPanel } from "@/components/dashboard";
 import { formatOnboardingChoice, parseOnboardingDetails } from "../onboardingPayload";
+import { getOnboardingJourneyVisual, normalizeOnboardingPath } from "../visuals";
+import { OnboardingIllustration } from "./OnboardingIllustration";
 import styles from "./DashboardOnboardingSummary.module.scss";
 
 type DashboardOnboardingSummaryProps = {
@@ -31,6 +33,7 @@ export default function DashboardOnboardingSummary({
   serviceArea,
 }: DashboardOnboardingSummaryProps) {
   const onboarding = parseOnboardingDetails(availabilityHours);
+  const visualPath = normalizeOnboardingPath(onboarding.signupMode);
 
   const items: SummaryItem[] =
     role === "owner"
@@ -102,23 +105,28 @@ export default function DashboardOnboardingSummary({
 
   return (
     <DashboardPanel title="Profil d'inscription" bodyClassName={styles.body}>
-      <div className={styles.grid}>
-        {items.map((item) => {
-          const Icon = item.icon;
-          return (
-            <article key={item.label} className={styles.item}>
-              <span className={styles.icon}>
-                <Icon size={30} strokeWidth={2.2} aria-hidden="true" />
-              </span>
-              <div>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            </article>
-          );
-        })}
+      <div className={styles.summaryShell}>
+        <OnboardingIllustration visual={getOnboardingJourneyVisual(visualPath)} variant="card" />
+        <div className={styles.summaryContent}>
+          <div className={styles.grid}>
+            {items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.label} className={styles.item}>
+                  <span className={styles.icon}>
+                    <Icon size={30} strokeWidth={2.2} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <p className={styles.detail}>{detail}</p>
+        </div>
       </div>
-      <p className={styles.detail}>{detail}</p>
     </DashboardPanel>
   );
 }

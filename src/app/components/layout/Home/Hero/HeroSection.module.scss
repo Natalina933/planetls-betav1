@@ -154,6 +154,7 @@
 @media (max-width: 992px) {
   .hero {
     min-height: 0;
+    overflow: visible;
   }
 
   .grid {
@@ -184,20 +185,96 @@
   }
 
   .grid {
-    width: min(100% - 24px, 1280px);
-    padding-top: 3.5rem;
+    width: min(100% - 20px, 1280px);
+    gap: 1.25rem;
+    padding: 1.35rem 0 1.8rem;
   }
 
   .visualStage {
-    min-height: 430px;
+    display: none;
   }
 
   .content {
-    padding: 1.1rem;
+    width: 100%;
+    max-width: 460px;
+    gap: 0.72rem;
+    padding: 1rem;
+    text-align: left;
+    justify-items: stretch;
+  }
+
+  .eyebrow {
+    font-size: 0.68rem;
+    line-height: 1.35;
+    letter-spacing: 0.11em;
+  }
+
+  .content h1 {
+    font-size: clamp(1.9rem, 9vw, 2.35rem);
+    line-height: 1.04;
+  }
+
+  .subHeadline,
+  .valueProp {
+    max-width: none;
+    font-size: 0.95rem;
+    line-height: 1.52;
+  }
+
+  .subHeadline {
+    font-weight: 620;
+  }
+
+  .buttonsRow {
+    gap: 0.6rem;
+    margin-top: 0.15rem;
   }
 
   .heroButton,
   .buttonsRow {
     width: 100%;
+  }
+
+  .heroButton {
+    min-height: 46px;
+    justify-content: center;
+    padding-inline: 0.9rem;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 380px) {
+  .grid {
+    padding: 0.9rem 0 1.2rem;
+  }
+
+  .content {
+    gap: 0.46rem;
+    padding: 0.72rem;
+  }
+
+  .eyebrow {
+    font-size: 0.62rem;
+    line-height: 1.25;
+  }
+
+  .content h1 {
+    font-size: 1.5rem;
+    line-height: 1.02;
+  }
+
+  .subHeadline,
+  .valueProp {
+    font-size: 0.82rem;
+    line-height: 1.34;
+  }
+
+  .buttonsRow {
+    gap: 0.45rem;
+  }
+
+  .heroButton {
+    min-height: 38px;
+    font-size: 0.84rem;
   }
 }

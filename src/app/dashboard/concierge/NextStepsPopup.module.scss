@@ -76,24 +76,24 @@
   text-decoration: none;
 }
 
-.stepIcon,
-.doneIcon {
+.stepVisual {
+  position: relative;
+  display: block;
+}
+
+.doneBadge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
-  height: 58px;
-  border-radius: 12px;
-}
-
-.stepIcon {
-  background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
-  color: var(--dash-accent-strong);
-}
-
-.doneIcon {
-  background: rgba(28, 132, 84, 0.12);
-  color: #1c8454;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--dash-bg-panel);
+  border-radius: 999px;
+  background: #1c8454;
+  color: white;
 }
 
 .step strong {
@@ -132,12 +132,13 @@
   }
 
   .step {
-    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .stepIcon,
-  .doneIcon {
-    width: 44px;
-    height: 44px;
+  .doneBadge {
+    right: -4px;
+    bottom: -4px;
+    width: 22px;
+    height: 22px;
   }
 }

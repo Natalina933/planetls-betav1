@@ -1,0 +1,90 @@
+.root {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--dash-accent, #8b6a2d) 18%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0)),
+    color-mix(in srgb, var(--dash-bg-panel, #fffaf2) 82%, white);
+}
+
+.root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(8, 13, 21, 0) 42%, rgba(8, 13, 21, 0.18)),
+    radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.28), transparent 32%);
+  pointer-events: none;
+}
+
+.hero {
+  min-height: 174px;
+  aspect-ratio: 16 / 8.5;
+}
+
+.card {
+  min-height: 128px;
+  aspect-ratio: 16 / 10;
+}
+
+.thumbnail {
+  width: 76px;
+  min-width: 76px;
+  height: 64px;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.65rem;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.52), transparent 34%),
+    linear-gradient(135deg, rgba(139, 106, 45, 0.22), rgba(92, 119, 86, 0.18));
+}
+
+.fallback span {
+  color: color-mix(in srgb, var(--dash-text, #2f2415) 82%, black);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.simple {
+  border-color: rgba(127, 111, 74, 0.22);
+}
+
+.rapide {
+  border-color: rgba(66, 94, 121, 0.22);
+}
+
+.business {
+  border-color: rgba(92, 72, 42, 0.24);
+}
+
+@media (max-width: 560px) {
+  .hero {
+    min-height: 132px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .card {
+    min-height: 104px;
+  }
+
+  .thumbnail {
+    width: 58px;
+    min-width: 58px;
+    height: 50px;
+  }
+}

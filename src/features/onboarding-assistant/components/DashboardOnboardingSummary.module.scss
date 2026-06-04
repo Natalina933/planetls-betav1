@@ -3,6 +3,19 @@
   gap: 0.9rem;
 }
 
+.summaryShell {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.42fr) minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.summaryContent {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -55,6 +68,10 @@
 }
 
 @media (max-width: 900px) {
+  .summaryShell {
+    grid-template-columns: 1fr;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
