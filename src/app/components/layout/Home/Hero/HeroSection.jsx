@@ -2,27 +2,12 @@
 
 import React from "react";
 import Image from "next/image";
-import { ArrowRight, FileText, MessagesSquare, SearchCheck } from "lucide-react";
-import { Button, ButtonLink } from "@/components/ui";
+import { FileText, MessagesSquare, SearchCheck } from "lucide-react";
 import { OnboardingIllustration } from "@/features/onboarding-assistant/components/OnboardingIllustration";
 import { PUBLIC_PARCOURS_VISUALS } from "@/features/onboarding-assistant/visuals";
 import styles from "./HeroSection.module.scss";
 
 const HeroSection = () => {
-  const scrollToHowItWorks = () => {
-    try {
-      const target = document.getElementById("how-it-works");
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-
-      window.scrollTo({ top: 800, behavior: "smooth" });
-    } catch (error) {
-      console.error("Échec du scroll :", error);
-    }
-  };
-
   return (
     <section className={styles.hero}>
       <Image
@@ -67,19 +52,6 @@ const HeroSection = () => {
               decorative
               priority
             />
-          </div>
-          <div className={styles.buttonsRow}>
-            <ButtonLink href="/parcours" variant="primary" size="lg" className={styles.heroButton}>
-              Choisir mon parcours <ArrowRight size={18} />
-            </ButtonLink>
-
-            <ButtonLink href="/mission-urgente" variant="paper" size="lg" className={styles.heroButton}>
-              Lancer une demande urgente
-            </ButtonLink>
-
-            <Button variant="paper" size="lg" className={styles.heroButton} onClick={scrollToHowItWorks}>
-              Voir le fonctionnement
-            </Button>
           </div>
         </div>
       </div>
