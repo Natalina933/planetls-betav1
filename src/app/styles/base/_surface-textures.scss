@@ -1,0 +1,66 @@
+.theme-texture-panel,
+.theme-texture-section,
+.theme-texture-band {
+  position: relative;
+  isolation: isolate;
+}
+
+.theme-texture-panel > *,
+.theme-texture-section > *,
+.theme-texture-band > * {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-texture-panel::before,
+.theme-texture-section::before,
+.theme-texture-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--theme-texture-paper-image);
+  background-position: center;
+  background-repeat: repeat;
+  background-size: var(--theme-texture-paper-size, 420px auto);
+  opacity: var(--theme-texture-paper-opacity, 0.14);
+  mix-blend-mode: var(--theme-texture-paper-blend, multiply);
+}
+
+.theme-texture-panel::after,
+.theme-texture-section::after,
+.theme-texture-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--theme-texture-wash);
+  opacity: var(--theme-texture-wash-opacity, 1);
+}
+
+.theme-texture-panel--hero::before,
+.theme-texture-section--hero::before,
+.theme-texture-band--hero::before {
+  background-image: var(--theme-texture-hero-image);
+  background-size: var(--theme-texture-hero-size, 500px auto);
+  opacity: var(--theme-texture-hero-opacity, 0.18);
+  mix-blend-mode: var(--theme-texture-hero-blend, multiply);
+}
+
+.theme-texture-panel--ornament::before,
+.theme-texture-section--ornament::before,
+.theme-texture-band--ornament::before {
+  background-image: var(--theme-texture-ornament-image);
+  background-size: var(--theme-texture-ornament-size, cover);
+  background-position: center;
+  opacity: var(--theme-texture-ornament-opacity, 0.12);
+  mix-blend-mode: var(--theme-texture-ornament-blend, soft-light);
+}
+
+.theme-texture-panel--soft::before,
+.theme-texture-section--soft::before,
+.theme-texture-band--soft::before {
+  opacity: calc(var(--theme-texture-paper-opacity, 0.14) * 0.72);
+}

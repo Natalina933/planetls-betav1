@@ -5,9 +5,12 @@
   overflow: hidden;
   padding: clamp(4.5rem, 8vw, 7rem) 1.5rem;
   background:
+    var(--theme-texture-wash),
+    var(--theme-texture-ornament-image) center / var(--theme-texture-ornament-size, cover) repeat,
     radial-gradient(circle at top left, rgba(189, 155, 98, 0.18), transparent 32%),
     radial-gradient(circle at bottom right, rgba(131, 104, 72, 0.16), transparent 30%),
     linear-gradient(180deg, #f7f0e8 0%, #efe4d6 100%);
+  background-blend-mode: normal, var(--theme-texture-ornament-blend, soft-light), normal, normal, normal;
 }
 
 .content {
@@ -65,8 +68,10 @@
   border: 1px solid rgba(163, 132, 89, 0.2);
   border-radius: 1.8rem;
   background:
+    var(--theme-texture-wash),
     linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(248, 240, 230, 0.9)),
     rgba(255, 255, 255, 0.7);
+  background-blend-mode: normal, normal, normal;
   box-shadow:
     0 20px 40px rgba(70, 49, 30, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.74);

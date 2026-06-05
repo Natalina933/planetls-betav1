@@ -1,0 +1,63 @@
+Attached Element Context from Integrated Browser
+
+Element: div.DashboardLayout-module-scss-module__2tyzNq__identity
+
+URL: http://localhost:3000/dashboard/owner
+
+HTML Path: div.dashboard-root > div.dashboard-main.no-sidebar > main.dashboard-content > div.DashboardLayout-module-scss-module__2tyzNq__page > header.DashboardLayout-module-scss-module__2tyzNq__header > div.DashboardLayout-module-scss-module__2tyzNq__identity
+
+Outer HTML:
+```html
+<div class="DashboardLayout-module-scss-module__2tyzNq__identity"><span class="DashboardLayout-module-scss-module__2tyzNq__avatar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span><div><h1>Tableau de bord</h1><p>Nathalie</p></div></div>
+```
+
+Dimensions:
+- top: 34px
+- left: 37px
+- width: 426px
+- height: 48px
+
+CSS:
+```css
+* { box-sizing: border-box; }
+*, :before, :after { box-sizing: border-box;
+  margin: 0;
+  padding: 0; }
+.DashboardLayout-module-scss-module__2tyzNq__identity, .DashboardLayout-module-scss-module__2tyzNq__headerActions, .DashboardLayout-module-scss-module__2tyzNq__sectionHeader { align-items: center;
+  display: flex; }
+.DashboardLayout-module-scss-module__2tyzNq__identity { gap: var(--dash-space-3, var(--ds-space-3));
+  min-width: 0; }
+
+/* Inherited */
+.dashboard-root { color: var(--color-text); font-family: Open Sans, sans-serif }
+body { font-family: var(--ui-font-text); color: var(--ui-color-text) }
+html, body { font-family: var(--font-main); color: var(--color-text) }
+body { font-family: var(--font-main); font-size: var(--font-size-base); line-height: var(--line-height); font-weight: var(--font-weight-normal) }
+
+/* Resolved values */
+margin: 0px;
+padding: 0px;
+align-items: center;
+box-sizing: border-box;
+color: rgb(26, 26, 26);
+display: flex;
+font-family: "Open Sans", sans-serif;
+font-size: 16px;
+font-weight: 400;
+height: 47.9991px;
+line-height: 24px;
+min-width: 0px;
+unicode-bidi: isolate /*UA*/;
+width: 425.911px;
+
+/* CSS variables */
+--ui-font-text: "Open Sans", sans-serif;
+--font-size-base: 1rem;
+--dash-space-3: .75rem;
+--font-main: "Open Sans", sans-serif;
+--ds-space-3: .75rem;
+--color-text: #1a1a1a;
+--line-height: 1.5;
+--font-weight-normal: 400;
+--ui-color-text: #2f261f;
+```

@@ -4,6 +4,14 @@
   padding: 3rem 1.5rem;
   margin: 0 auto;
   max-width: 1200px;
+  background:
+    var(--theme-texture-wash),
+    var(--theme-texture-paper-image) center / var(--theme-texture-paper-size, 440px auto) repeat,
+    linear-gradient(180deg, rgba(255, 250, 243, 0.9), rgba(244, 234, 220, 0.9));
+  background-blend-mode: normal, var(--theme-texture-paper-blend, multiply), normal;
+  border: 1px solid rgba(184, 139, 74, 0.18);
+  border-radius: 28px;
+  box-shadow: 0 22px 48px rgba(57, 41, 21, 0.06);
   color: #2f2418;
 }
 
@@ -101,7 +109,10 @@
 :global([data-theme="art-deco"]) .section {
   gap: 1.8rem;
   background:
+    var(--theme-texture-wash),
+    var(--theme-texture-paper-image) center / var(--theme-texture-paper-size, 420px auto) repeat,
     linear-gradient(180deg, rgba(244, 246, 248, 0.95), rgba(235, 239, 242, 0.86));
+  background-blend-mode: normal, var(--theme-texture-paper-blend, multiply), normal;
   border-top: 1px solid rgba(212, 175, 55, 0.34);
   border-bottom: 1px solid rgba(212, 175, 55, 0.34);
   position: relative;

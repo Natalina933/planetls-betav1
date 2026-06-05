@@ -62,4 +62,20 @@
     --input-text: #2c3e50;
     --input-placeholder: #758594;
     --input-focus-ring: rgba(212, 175, 55, 0.35);
+
+    // --- TEXTURES DE SURFACE ---
+    --theme-texture-paper-image: url("/textures/elegant-fibers.png");
+    --theme-texture-paper-size: 420px auto;
+    --theme-texture-paper-opacity: 0.14;
+    --theme-texture-paper-blend: multiply;
+    --theme-texture-hero-image: url("/textures/elegant-fibers.png");
+    --theme-texture-hero-size: 460px auto;
+    --theme-texture-hero-opacity: 0.18;
+    --theme-texture-hero-blend: multiply;
+    --theme-texture-ornament-image: url("/textures/mucha-background-pattern-lightv2.png");
+    --theme-texture-ornament-size: cover;
+    --theme-texture-ornament-opacity: 0.1;
+    --theme-texture-ornament-blend: soft-light;
+    --theme-texture-wash: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(244, 246, 248, 0.88));
+    --theme-texture-wash-opacity: 0.84;
 }

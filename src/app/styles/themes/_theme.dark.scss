@@ -72,6 +72,22 @@
 
     // --- TRANSITIONS ---
     --transition-smooth: 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+
+    // --- TEXTURES DE SURFACE ---
+    --theme-texture-paper-image: url("/textures/mucha-background-patternv3.png");
+    --theme-texture-paper-size: cover;
+    --theme-texture-paper-opacity: 0.18;
+    --theme-texture-paper-blend: screen;
+    --theme-texture-hero-image: url("/textures/mucha-background-patternv2.png");
+    --theme-texture-hero-size: cover;
+    --theme-texture-hero-opacity: 0.22;
+    --theme-texture-hero-blend: screen;
+    --theme-texture-ornament-image: url("/textures/mucha-background-pattern.png");
+    --theme-texture-ornament-size: cover;
+    --theme-texture-ornament-opacity: 0.2;
+    --theme-texture-ornament-blend: screen;
+    --theme-texture-wash: linear-gradient(180deg, rgba(22, 33, 62, 0.9), rgba(26, 31, 58, 0.88));
+    --theme-texture-wash-opacity: 1;
 }
 
 // Support du prefers-color-scheme pour détection automatique
@@ -123,5 +139,19 @@
         --gradient-primary: linear-gradient(135deg, #d4af37 0%, #b99b2e 100%);
         --gradient-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         --transition-smooth: 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        --theme-texture-paper-image: url("/textures/mucha-background-patternv3.png");
+        --theme-texture-paper-size: cover;
+        --theme-texture-paper-opacity: 0.18;
+        --theme-texture-paper-blend: screen;
+        --theme-texture-hero-image: url("/textures/mucha-background-patternv2.png");
+        --theme-texture-hero-size: cover;
+        --theme-texture-hero-opacity: 0.22;
+        --theme-texture-hero-blend: screen;
+        --theme-texture-ornament-image: url("/textures/mucha-background-pattern.png");
+        --theme-texture-ornament-size: cover;
+        --theme-texture-ornament-opacity: 0.2;
+        --theme-texture-ornament-blend: screen;
+        --theme-texture-wash: linear-gradient(180deg, rgba(22, 33, 62, 0.9), rgba(26, 31, 58, 0.88));
+        --theme-texture-wash-opacity: 1;
     }
 }

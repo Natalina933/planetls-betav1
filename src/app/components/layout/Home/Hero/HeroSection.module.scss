@@ -35,55 +35,37 @@
 .grid {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
-  gap: clamp(2rem, 5vw, 6rem);
-  width: min(1280px, calc(100% - 48px));
+  width: min(1180px, calc(100% - 48px));
   min-height: 92vh;
   margin: 0 auto;
-  padding: 6rem 0 5rem;
+  padding: 5.5rem 0 4.5rem;
   box-sizing: border-box;
-}
-
-.visualStage {
-  position: relative;
-  min-height: 560px;
   display: grid;
   align-items: center;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.carouselWrapper {
-  width: min(100%, 520px);
-  justify-self: center;
-  max-width: 100%;
-  border-radius: 24px;
-  background: rgba(255, 250, 241, 0.12);
-  box-shadow: 0 28px 80px rgba(4, 12, 20, 0.34);
-  backdrop-filter: blur(14px);
-  box-sizing: border-box;
 }
 
 .content {
   display: grid;
-  gap: 1.05rem;
-  max-width: 720px;
-  justify-self: end;
-  padding: clamp(1.4rem, 3vw, 2.4rem);
+  gap: 1.1rem;
+  width: min(100%, 920px);
+  justify-self: center;
+  padding: clamp(1.4rem, 3vw, 2.2rem);
   border: 1px solid rgba(226, 196, 120, 0.38);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 252, 246, 0.97), rgba(239, 246, 249, 0.92)),
-    url("/textures/elegant-fibers.png");
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.88), rgba(239, 246, 249, 0.84));
   box-shadow:
     0 24px 70px rgba(5, 12, 18, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.72);
   color: #1a2530;
-  width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.copyTop {
+  display: grid;
+  gap: 0.55rem;
+  justify-items: center;
+  text-align: center;
 }
 
 .eyebrow {
@@ -96,39 +78,97 @@
 
 .content h1 {
   margin: 0;
-  color: #132434;
+  width: 100%;
   font-family: var(--font-primary), "Cormorant Garamond", serif;
-  font-size: clamp(2.55rem, 5vw, 5rem);
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.highlight {
-  color: #a77b20;
-}
-
-.subHeadline,
-.valueProp {
-  margin: 0;
-  max-width: 62ch;
-  color: #43586a;
-  line-height: 1.7;
+  font-size: clamp(1.95rem, 3vw, 3.35rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  max-width: none;
+  white-space: nowrap;
+  text-align: center;
+  background-image:
+    linear-gradient(180deg, #f8e7b5 0%, #d4af37 42%, #946a1f 100%),
+    url("/textures/elegant-fibers.png");
+  background-size: 100% 100%, 340px auto;
+  background-position: center, center;
+  background-repeat: no-repeat, repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.36);
 }
 
 .subHeadline {
-  font-size: 1.18rem;
+  margin: 0;
+  max-width: none;
+  font-size: 1.16rem;
   font-weight: 650;
+  line-height: 1.45;
+  white-space: nowrap;
+  background-image:
+    linear-gradient(180deg, #f2dfab 0%, #cda535 48%, #8f6820 100%),
+    url("/textures/elegant-fibers.png");
+  background-size: 100% 100%, 320px auto;
+  background-position: center, center;
+  background-repeat: no-repeat, repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.valueProp {
-  color: #596c7c;
+.quickPoints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.quickPoint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-width: 152px;
+  min-height: 42px;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.95), rgba(247, 238, 221, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 10px 24px rgba(94, 72, 26, 0.08);
+  color: #5f4a22;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.quickPoint svg {
+  flex: 0 0 auto;
+  color: #b58528;
+}
+
+.proofVisualWrap {
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 242, 231, 0.84));
+  box-shadow:
+    0 22px 42px rgba(15, 24, 33, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.74);
+}
+
+.proofVisual {
+  min-height: 320px;
 }
 
 .buttonsRow {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.85rem;
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
 }
 
 .heroButton {
@@ -136,23 +176,6 @@
   gap: 0.5rem;
   text-transform: none !important;
   letter-spacing: 0.01em !important;
-}
-
-@media (max-width: 1180px) {
-  .grid {
-    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1fr);
-    gap: clamp(1.5rem, 3vw, 2.75rem);
-    width: min(100%, calc(100% - 32px));
-  }
-
-  .carouselWrapper {
-    width: min(100%, 470px);
-  }
-
-  .content {
-    max-width: 100%;
-    padding: 1.3rem;
-  }
 }
 
 @keyframes slowDepth {
@@ -165,14 +188,17 @@
   }
 }
 
-@keyframes floatCard {
-  0%,
-  100% {
-    transform: translateY(0);
+@media (max-width: 1180px) {
+  .grid {
+    width: min(100%, calc(100% - 32px));
   }
 
-  50% {
-    transform: translateY(-10px);
+  .content {
+    width: 100%;
+  }
+
+  .proofVisual {
+    min-height: 280px;
   }
 }
 
@@ -183,33 +209,8 @@
   }
 
   .grid {
-    grid-template-columns: 1fr;
     min-height: 0;
-    width: min(100%, calc(100% - 28px));
     padding: 4rem 0 3rem;
-  }
-
-  .visualStage {
-    order: 2;
-    min-height: 430px;
-    justify-items: center;
-  }
-
-  .carouselWrapper {
-    width: min(100%, 560px);
-  }
-
-  .content {
-    width: 100%;
-    max-width: 760px;
-    margin: 0 auto;
-    justify-self: center;
-    text-align: center;
-    justify-items: center;
-  }
-
-  .buttonsRow {
-    justify-content: center;
   }
 }
 
@@ -225,35 +226,18 @@
   .grid {
     width: 100%;
     max-width: 100%;
-    gap: 1rem;
     padding: 1rem;
-    justify-items: center;
-  }
-
-  .visualStage {
-    display: grid;
-    min-height: 334px;
-    align-items: start;
-    width: 100%;
-    margin: 0 auto;
-  }
-
-  .carouselWrapper {
-    width: 100%;
-    max-width: 100%;
-    padding: 0.4rem;
-    border-radius: 18px;
-    margin: 0 auto;
   }
 
   .content {
-    width: 100%;
-    max-width: 100%;
     gap: 0.8rem;
     padding: 0.95rem;
-    margin: 0 auto;
+    border-radius: 18px;
+  }
+
+  .copyTop {
+    justify-items: start;
     text-align: left;
-    justify-items: stretch;
   }
 
   .eyebrow {
@@ -265,17 +249,29 @@
   .content h1 {
     font-size: clamp(1.9rem, 9vw, 2.35rem);
     line-height: 1.04;
-  }
-
-  .subHeadline,
-  .valueProp {
-    max-width: none;
-    font-size: 0.95rem;
-    line-height: 1.52;
+    white-space: normal;
   }
 
   .subHeadline {
-    font-weight: 620;
+    max-width: none;
+    font-size: 0.95rem;
+    line-height: 1.52;
+    white-space: normal;
+  }
+
+  .quickPoints {
+    gap: 0.55rem;
+  }
+
+  .quickPoint {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+    font-size: 0.88rem;
+  }
+
+  .proofVisual {
+    min-height: 220px;
   }
 
   .buttonsRow {
@@ -302,15 +298,6 @@
     padding: 0.9rem;
   }
 
-  .visualStage {
-    min-height: 300px;
-  }
-
-  .carouselWrapper {
-    padding: 0.3rem;
-    border-radius: 14px;
-  }
-
   .content {
     gap: 0.46rem;
     padding: 0.72rem;
@@ -326,14 +313,13 @@
     line-height: 1.02;
   }
 
-  .subHeadline,
-  .valueProp {
+  .subHeadline {
     font-size: 0.82rem;
     line-height: 1.34;
   }
 
-  .buttonsRow {
-    gap: 0.45rem;
+  .proofVisual {
+    min-height: 190px;
   }
 
   .heroButton {

@@ -2,9 +2,10 @@
 
 import React from "react";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, MessagesSquare, SearchCheck } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui";
-import CategoryCarousel from "./CategoryCarousel";
+import { OnboardingIllustration } from "@/features/onboarding-assistant/components/OnboardingIllustration";
+import { PUBLIC_PARCOURS_VISUALS } from "@/features/onboarding-assistant/visuals";
 import styles from "./HeroSection.module.scss";
 
 const HeroSection = () => {
@@ -36,35 +37,39 @@ const HeroSection = () => {
       <div className={styles.overlay} />
 
       <div className={styles.grid}>
-        <div className={styles.visualStage} aria-label="Aperçu de la plateforme PlanetLS">
-          <div className={styles.carouselWrapper}>
-            <CategoryCarousel />
+        <div className={`${styles.content} theme-texture-panel theme-texture-panel--hero`}>
+          <div className={styles.copyTop}>
+            <span className={styles.eyebrow}>SaaS métier pour la location saisonnière</span>
+            <h1>PlanetLS relie propriétaires, conciergeries et artisans.</h1>
+            <p className={styles.subHeadline}>Un seul espace pour trouver, demander et suivre.</p>
           </div>
-        </div>
 
-        <div className={styles.content}>
-          <span className={styles.eyebrow}>SaaS métier pour la location saisonnière</span>
-          <h1>
-            PlanetLS relie <span className={styles.highlight}>propriétaires</span>, conciergeries
-            et artisans pour piloter la location saisonnière.
-          </h1>
-          <p className={styles.subHeadline}>
-            Trouvez les bons interlocuteurs, envoyez des demandes qualifiées, suivez les missions et
-            centralisez les échanges dans un espace clair.
-          </p>
+          <div className={styles.quickPoints} aria-label="Bénéfices clés">
+            <span className={styles.quickPoint}>
+              <SearchCheck size={18} aria-hidden="true" />
+              Trouver
+            </span>
+            <span className={styles.quickPoint}>
+              <MessagesSquare size={18} aria-hidden="true" />
+              Demander
+            </span>
+            <span className={styles.quickPoint}>
+              <FileText size={18} aria-hidden="true" />
+              Suivre
+            </span>
+          </div>
 
-          <p className={styles.valueProp}>
-            Profils lisibles, devis centralisés, suivi des interventions, messages et documents :
-            chaque rôle garde une vision nette de ce qui est demandé, accepté, réalisé et validé.
-          </p>
-
+          <div className={styles.proofVisualWrap} aria-label="Vue d'ensemble des parcours">
+            <OnboardingIllustration
+              visual={PUBLIC_PARCOURS_VISUALS.overview}
+              variant="hero"
+              className={styles.proofVisual}
+              decorative
+              priority
+            />
+          </div>
           <div className={styles.buttonsRow}>
-            <ButtonLink
-              href="/parcours"
-              variant="primary"
-              size="lg"
-              className={styles.heroButton}
-            >
+            <ButtonLink href="/parcours" variant="primary" size="lg" className={styles.heroButton}>
               Choisir mon parcours <ArrowRight size={18} />
             </ButtonLink>
 

@@ -1,0 +1,76 @@
+Attached Element Context from Integrated Browser
+
+Element: header.DashboardLayout-module-scss-module__2tyzNq__header
+
+URL: http://localhost:3000/dashboard/owner
+
+HTML Path: div.dashboard-root > div.dashboard-main.no-sidebar > main.dashboard-content > div.DashboardLayout-module-scss-module__2tyzNq__page > header.DashboardLayout-module-scss-module__2tyzNq__header
+
+Outer HTML:
+```html
+<header class="DashboardLayout-module-scss-module__2tyzNq__header"><div class="DashboardLayout-module-scss-module__2tyzNq__identity"><span class="DashboardLayout-module-scss-module__2tyzNq__avatar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span><div><h1>Tableau de bord</h1><p>Nathalie</p></div></div><div class="DashboardLayout-module-scss-module__2tyzNq__headerActions"><div class="ReadabilityControls-module-scss-module__STHR-q__controls" role="group" aria-label="Taille du texte du dashboard"><span>Lisibilite</span><button type="button" class="ReadabilityControls-module-scss-module__STHR-q__active" aria-pressed="true" aria-label="Taille normale" title="Taille normale">A</button><button type="button" class="ReadabilityControls-module-scss-module__STHR-q__button" aria-pressed="false" aria-label="Texte plus grand" title="Texte plus grand">A+</button><button type="button" class="ReadabilityControls-module-scss-module__STHR-q__button" aria-pressed="false" aria-label="Texte tres grand" title="Texte tres grand">A++</button></div><a class="DashboardLayout-module-scss-module__2tyzNq__iconButton" aria-label="Notifications" href="/dashboard/owner/factures"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg><span class="DashboardLayout-module-scss-module__2tyzNq__notificationBadge">2</span></a></div></header>
+```
+
+Dimensions:
+- top: 22px
+- left: 37px
+- width: 724px
+- height: 73px
+
+CSS:
+```css
+* { box-sizing: border-box; }
+*, :before, :after { box-sizing: border-box;
+  margin: 0;
+  padding: 0; }
+.DashboardLayout-module-scss-module__2tyzNq__header { z-index: 20;
+  gap: var(--dash-space-3, var(--ds-space-3));
+  padding: var(--dash-space-3, var(--ds-space-3)) 0;
+  background: color-mix(in srgb, var(--dash-bg-page, var(--ds-color-bg)) 88%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  display: grid;
+  position: sticky;
+  top: 0; }
+.DashboardLayout-module-scss-module__2tyzNq__header { grid-template-columns: 1fr auto;
+    align-items: center; }
+
+/* Inherited */
+.dashboard-root { color: var(--color-text); font-family: Open Sans, sans-serif }
+body { font-family: var(--ui-font-text); color: var(--ui-color-text) }
+html, body { font-family: var(--font-main); color: var(--color-text) }
+body { font-family: var(--font-main); font-size: var(--font-size-base); line-height: var(--line-height); font-weight: var(--font-weight-normal) }
+
+/* Resolved values */
+margin: 0px;
+padding: 12px 0px;
+align-items: center;
+backdrop-filter: blur(14px);
+box-sizing: border-box;
+color: rgb(26, 26, 26);
+display: grid;
+font-family: "Open Sans", sans-serif;
+font-size: 16px;
+font-weight: 400;
+grid-template-columns: 425.911px 285.791px;
+height: 72.6169px;
+line-height: 24px;
+position: sticky;
+top: 0px;
+unicode-bidi: isolate /*UA*/;
+width: 723.696px;
+z-index: 20;
+
+/* CSS variables */
+--ui-font-text: "Open Sans", sans-serif;
+--dash-bg-page: #f7f2e8;
+--font-size-base: 1rem;
+--dash-space-3: .75rem;
+--font-main: "Open Sans", sans-serif;
+--ds-color-bg: #fffdf9;
+--ds-space-3: .75rem;
+--color-text: #1a1a1a;
+--line-height: 1.5;
+--font-weight-normal: 400;
+--ui-color-text: #2f261f;
+```
