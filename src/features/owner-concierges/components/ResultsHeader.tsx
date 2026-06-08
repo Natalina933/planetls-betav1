@@ -46,9 +46,6 @@ export function ResultsHeader({
         </h2>
       </div>
       <div className={styles.resultsTools}>
-        <p className={styles.resultsNote}>
-          Disponibles d&apos;abord, puis profils les mieux notés et les plus fiables.
-        </p>
         <OptionToggleGroup
           ariaLabel="Tri des concierges"
           options={SORT_OPTIONS}

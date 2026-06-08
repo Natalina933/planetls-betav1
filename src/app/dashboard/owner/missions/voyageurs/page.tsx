@@ -76,6 +76,8 @@ type OwnerQuoteRow = {
   concierge_profile_id?: string | null;
   owner_profile_id?: string | null;
   status: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   total_amount?: number | null;
   currency?: string | null;
   notes?: string | null;
@@ -218,31 +220,31 @@ const platformOptions = [
   {
     value: "Airbnb",
     label: "Airbnb",
-    hint: "Copier-coller les messages de reservation ou le planning exporte.",
+    hint: "Copier-coller les messages de réservation ou le planning exporté.",
     placeholder: "Marie Dupont\n12 juin -> 16 juin\n2 adultes + 1 enfant\n+33 6 ...\nmarie@email.com",
   },
   {
     value: "Booking",
     label: "Booking",
     hint: "Coller les blocs client avec dates, voyageurs et contact.",
-    placeholder: "Reservation BK-45821\nTimo Martin\n25 juillet -> 4 aout\n3 voyageurs\n07 ...",
+    placeholder: "Réservation BK-45821\nTimo Martin\n25 juillet -> 4 août\n3 voyageurs\n07 ...",
   },
   {
     value: "Abritel",
     label: "Abritel",
-    hint: "Importer les sejours recenses pour une conciergerie et un logement.",
-    placeholder: "Famille Bernard\n3 aout -> 10 aout\n5 personnes\nArrivee tardive",
+    hint: "Importer les séjours recensés pour une conciergerie et un logement.",
+    placeholder: "Famille Bernard\n3 août -> 10 août\n5 personnes\nArrivée tardive",
   },
   {
     value: "Direct",
     label: "Direct",
-    hint: "Ajouter les reservations directes, hors plateforme.",
+    hint: "Ajouter les réservations directes, hors plateforme.",
     placeholder: "Client direct\n18 septembre -> 22 septembre\n2 voyageurs\nAccueil autonome",
   },
   {
     value: "Autre",
     label: "Autre",
-    hint: "Utiliser un format libre, puis completer les sejours detectes.",
+    hint: "Utiliser un format libre, puis compléter les séjours détectés.",
     placeholder: "Nom voyageur\nDates\nNombre de voyageurs\nContact\nNotes",
   },
 ];
@@ -506,7 +508,7 @@ function getPartnerPropertyId(partner: PartnerRequestRow) {
 }
 
 function getPartnerPropertyName(partner: PartnerRequestRow) {
-  return partner.property_name || partner.city || "Appartement a preciser";
+  return partner.property_name || partner.city || "Appartement à préciser";
 }
 
 function getPartnerSelectedQuoteId(partner: PartnerRequestRow, conciergeId: string) {
@@ -542,10 +544,10 @@ function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingR
         conciergeName: partner.selected_concierge_name || "Conciergerie",
         propertyId,
         propertyName,
-        propertyAddress: property?.adresse || partner.city || "Adresse a confirmer",
+        propertyAddress: property?.adresse || partner.city || "Adresse à confirmer",
         propertyPhoto: property?.photo_principale || "/images/default-logement.png",
         city: partner.city || "",
-        requestTitle: partner.title || "Collaboration acceptee",
+        requestTitle: partner.title || "Collaboration acceptée",
         requestDescription: partner.description || "",
         requestedServices: Array.isArray(partner.requested_services) ? partner.requested_services : [],
         selectedQuoteId,
@@ -562,6 +564,17 @@ function buildAssignmentOptions(partners: PartnerRequestRow[], housing: HousingR
 
 function getAssignmentLabel(option: AssignmentOption) {
   return `${option.conciergeName} - ${option.propertyName}`;
+}
+
+function getAssignmentAddressLabel(option: AssignmentOption) {
+  const address = cleanString(option.propertyAddress);
+  const city = cleanString(option.city);
+  const propertyName = cleanString(option.propertyName);
+  const fallback = cleanString(option.requestTitle);
+
+  if (address && address !== city && address !== propertyName) return address;
+  if (city && city !== propertyName) return city;
+  return fallback && fallback !== propertyName ? fallback : "";
 }
 
 function getHousingContractQuoteId(housing: HousingRow | null | undefined) {
@@ -652,7 +665,7 @@ function findAcceptedQuoteForAssignment(quotes: OwnerQuoteRow[], option: Assignm
 
   const byRequest = acceptedQuotes.find((quote) => {
     const metadata = asRecord(quote.metadata);
-    const requestId = getGenericMetadataString(metadata, ["service_request_id", "request_id"]);
+    const requestId = quote.service_request_id || getGenericMetadataString(metadata, ["service_request_id", "request_id"]);
     return requestId === option.requestId && quote.concierge_profile_id === option.conciergeId;
   });
   if (byRequest) return byRequest;
@@ -1051,6 +1064,12 @@ function OwnerTravelerMissionsContent() {
   const operationalContext = useMemo(
     () => buildOperationalContext({ form, assignment: selectedAssignment, housing, quotes: acceptedQuotes }),
     [acceptedQuotes, form, housing, selectedAssignment],
+  );
+  const hasOperationalContext = Boolean(
+    operationalContext.quote ||
+      operationalContext.quoteServiceLabels.length > 0 ||
+      operationalContext.housingServiceLabels.length > 0 ||
+      operationalContext.accessInstructions,
   );
   const parsedStays = useMemo(() => parsePlanningText(planningText), [planningText]);
   const editableParsedStays = useMemo(
@@ -1482,6 +1501,30 @@ function OwnerTravelerMissionsContent() {
       {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
       {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
 
+      {selectedAssignment ? (
+        <section className={styles.syncPanel} aria-label="Lien avec la demande et le devis acceptés">
+          <div className={styles.syncMain}>
+            <span className={styles.syncBadgeReady}>
+              <ShieldCheck size={16} aria-hidden="true" />
+              Mission commerciale créée après devis accepté
+            </span>
+            <h2>{selectedAssignment.requestTitle}</h2>
+            <p className={styles.meta}>
+              Le devis accepté a validé la collaboration avec {selectedAssignment.conciergeName}. Les séjours voyageurs
+              créés ici sont les missions opérationnelles à transmettre ensuite à cette conciergerie.
+            </p>
+          </div>
+          <div className={styles.syncSteps} aria-label="Parcours demande vers séjour">
+            <span className={styles.syncStepDone}>Demande envoyée</span>
+            <span className={styles.syncStepDone}>
+              {operationalContext.quote?.quote_number ? `Devis ${operationalContext.quote.quote_number}` : "Devis accepté"}
+            </span>
+            <span className={styles.syncStepDone}>Mission commerciale</span>
+            <span className={styles.syncStepTodo}>Séjours voyageurs</span>
+          </div>
+        </section>
+      ) : null}
+
       <section className={styles.statsGrid} aria-label="Statistiques missions voyageurs">
         {stats.map((stat) => (
           <article key={stat.label} className={styles.statCard}>
@@ -1560,21 +1603,19 @@ function OwnerTravelerMissionsContent() {
           <section className={styles.assignmentPanel}>
             <div className={styles.sectionHeading}>
               <div>
-                <p className={styles.eyebrow}>1. Sélection logement</p>
-                <h2>Choisir le logement à confier</h2>
-                <p className={styles.meta}>
-                  La mission sera envoyee a la conciergerie selectionnee et rattachee au logement gere.
-                </p>
+                <p className={styles.eyebrow}>Logement</p>
+                <h2>Logement concerné</h2>
               </div>
             </div>
             {assignmentOptions.length === 0 ? (
-              <p className={styles.meta}>Aucune conciergerie acceptee avec logement rattache pour le moment.</p>
+              <p className={styles.meta}>Aucune conciergerie acceptée avec logement rattaché pour le moment.</p>
             ) : (
               <div className={styles.assignmentGrid}>
                 {assignmentOptions.map((option) => {
                   const selected =
                     option.conciergeId === form.conciergeProfileId &&
                     (!option.propertyId || option.propertyId === form.propertyId);
+                  const addressLabel = getAssignmentAddressLabel(option);
                   return (
                     <button
                       key={option.key}
@@ -1583,15 +1624,17 @@ function OwnerTravelerMissionsContent() {
                       onClick={() => selectAssignment(option)}
                     >
                       <div className={styles.assignmentPhoto} style={{ backgroundImage: `url("${option.propertyPhoto}")` }} />
+                      <strong>{option.propertyName}</strong>
                       <span>
                         <ShieldCheck size={15} aria-hidden="true" />
                         {option.conciergeName}
                       </span>
-                      <strong>{option.propertyName}</strong>
-                      <small>
-                        <MapPin size={13} aria-hidden="true" />
-                        {option.propertyAddress || option.city || option.requestTitle}
-                      </small>
+                      {addressLabel ? (
+                        <small>
+                          <MapPin size={13} aria-hidden="true" />
+                          {addressLabel}
+                        </small>
+                      ) : null}
                     </button>
                   );
                 })}
@@ -1602,9 +1645,8 @@ function OwnerTravelerMissionsContent() {
           <section className={styles.assignmentPanel}>
             <div className={styles.sectionHeading}>
               <div>
-                <p className={styles.eyebrow}>2. Plateforme</p>
-                <h2>Indiquer la source des sejours</h2>
-                <p className={styles.meta}>{selectedPlatform.hint}</p>
+                <p className={styles.eyebrow}>Source</p>
+                <h2>Plateforme</h2>
               </div>
             </div>
             <div className={styles.platformGrid}>
@@ -1617,14 +1659,13 @@ function OwnerTravelerMissionsContent() {
                 >
                   <FileText size={16} aria-hidden="true" />
                   <strong>{platform.label}</strong>
-                  <span>{platform.hint}</span>
                 </button>
               ))}
             </div>
           </section>
         </div>
 
-        <div className={styles.creationModeTabs} role="tablist" aria-label="Mode de creation">
+        <div className={styles.creationModeTabs} role="tablist" aria-label="Mode de création">
           <button
             type="button"
             className={creationMode === "manual" ? styles.modeTabActive : styles.modeTab}
@@ -1642,21 +1683,6 @@ function OwnerTravelerMissionsContent() {
             Importer un planning
           </button>
         </div>
-
-        <section className={styles.travelerMissionHero}>
-          <div>
-            <p className={styles.eyebrow}>Notification séjour</p>
-            <h1>Prévenir la concierge sans friction</h1>
-            <p className={styles.meta}>
-              Une fiche courte remplace les SMS et messages éparpillés. La concierge reçoit les dates, le logement, les voyageurs et confirme ensuite la prise en charge.
-            </p>
-          </div>
-          <div className={styles.travelerHeroSteps}>
-            <span>1. Logement</span>
-            <span>2. Séjour</span>
-            <span>3. Envoyer</span>
-          </div>
-        </section>
 
         <section className={creationMode === "platform" ? styles.planningImportPanel : styles.hiddenPanel}>
           <div className={styles.sectionHeading}>
@@ -1817,22 +1843,6 @@ function OwnerTravelerMissionsContent() {
 
         <div className={creationMode === "manual" ? styles.travelerMissionLayout : styles.hiddenPanel}>
           <form id="mission-voyageur-formulaire" className={styles.travelerMissionForm} onSubmit={handleSubmit}>
-            <section className={styles.quickNoticePanel}>
-              <div>
-                <p className={styles.eyebrow}>Fiche express</p>
-                <h2>Informer la concierge d’un séjour</h2>
-                <p className={styles.meta}>
-                  Remplissez uniquement l’essentiel. La conciergerie reçoit une notification claire et pourra confirmer la prise en charge.
-                </p>
-              </div>
-              <div className={styles.quickNoticeSteps} aria-label="Suivi simplifié">
-                <span>Envoyé</span>
-                <span>Vu</span>
-                <span>Pris en charge</span>
-                <span>Planifié</span>
-              </div>
-            </section>
-
             <section className={styles.travelerFormSection}>
               <p className={styles.eyebrow}>Voyageur principal</p>
               <div className={styles.travelerFieldGrid}>
@@ -2011,48 +2021,38 @@ function OwnerTravelerMissionsContent() {
               <span>{Number(form.adults || 0) + Number(form.children || 0) + (form.hasBaby === "yes" ? 1 : 0)} voyageur(s)</span>
               <span>{form.bookingPlatform} · prise en charge à confirmer</span>
             </div>
-            <div className={styles.travelerSummaryCard}>
-              <p className={styles.eyebrow}>Base reprise</p>
-              {operationalContext.quote ? (
-                <span>
-                  <FileText size={15} aria-hidden="true" />
-                  {operationalContext.quote.quote_number
-                    ? `Devis ${operationalContext.quote.quote_number}`
-                    : "Devis accepté"}
-                  {operationalContext.quote.package?.name ? ` · Pack ${operationalContext.quote.package.name}` : ""}
-                </span>
-              ) : (
-                <span>Pas de devis accepté rattaché automatiquement à ce logement.</span>
-              )}
-              {operationalContext.quoteServiceLabels.slice(0, 4).map((label) => (
-                <span key={`quote-service-${label}`}>
-                  <CheckCircle2 size={15} aria-hidden="true" />
-                  {label}
-                </span>
-              ))}
-              {operationalContext.housingServiceLabels.slice(0, 3).map((label) => (
-                <span key={`housing-service-${label}`}>
-                  <Home size={15} aria-hidden="true" />
-                  {label}
-                </span>
-              ))}
-              {operationalContext.accessInstructions ? (
-                <span>
-                  <MapPin size={15} aria-hidden="true" />
-                  Consignes logement reprises
-                </span>
-              ) : null}
-            </div>
-            <div className={styles.travelerSummaryCard}>
-              <p className={styles.eyebrow}>Notifications</p>
-              <span>La concierge reçoit une fiche séjour courte, puis le propriétaire voit le suivi : envoyé, vu, pris en charge, planifié.</span>
-            </div>
-            <div className={styles.travelerSummaryCard}>
-              <p className={styles.eyebrow}>Côté concierge</p>
-              <span><Eye size={15} aria-hidden="true" /> Nouveau séjour à organiser</span>
-              <span><CheckCircle2 size={15} aria-hidden="true" /> Bouton Confirmer la prise en charge</span>
-              <span><CalendarCheck2 size={15} aria-hidden="true" /> Ajout au planning si nécessaire</span>
-            </div>
+            {hasOperationalContext ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Contexte repris</p>
+                {operationalContext.quote ? (
+                  <span>
+                    <FileText size={15} aria-hidden="true" />
+                    {operationalContext.quote.quote_number
+                      ? `Devis ${operationalContext.quote.quote_number}`
+                      : "Devis accepté"}
+                    {operationalContext.quote.package?.name ? ` · Pack ${operationalContext.quote.package.name}` : ""}
+                  </span>
+                ) : null}
+                {operationalContext.quoteServiceLabels.slice(0, 4).map((label) => (
+                  <span key={`quote-service-${label}`}>
+                    <CheckCircle2 size={15} aria-hidden="true" />
+                    {label}
+                  </span>
+                ))}
+                {operationalContext.housingServiceLabels.slice(0, 3).map((label) => (
+                  <span key={`housing-service-${label}`}>
+                    <Home size={15} aria-hidden="true" />
+                    {label}
+                  </span>
+                ))}
+                {operationalContext.accessInstructions ? (
+                  <span>
+                    <MapPin size={15} aria-hidden="true" />
+                    Consignes logement reprises
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
           </aside>
         </div>
         </div>

@@ -62,6 +62,8 @@ type OwnerQuoteRow = {
   id: string;
   quote_number?: string | null;
   status: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   concierge_profile_id?: string | null;
   owner_profile_id?: string | null;
   mission_id?: string | null;
@@ -212,6 +214,7 @@ function normalizeServices(rawValue: string) {
 }
 
 function getQuoteRequestId(quote: OwnerQuoteRow) {
+  if (quote.service_request_id) return quote.service_request_id;
   const metadata = quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
     ? quote.metadata
     : null;

@@ -8,6 +8,7 @@ export type MissionPartnerLike = {
 
 const ACCEPTED_PARTNER_STATUSES = new Set([
   "accepted",
+  "quote_accepted",
   "archived",
   "mission_created",
   "selected",

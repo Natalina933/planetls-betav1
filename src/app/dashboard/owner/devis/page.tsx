@@ -3,8 +3,10 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { CheckCircle2, Eye, FileText, Route, XCircle } from "lucide-react";
 import { SearchBar, StatsCard, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
+import type { WorkflowTimelineStep } from "@/features/service-requests";
 import {
   OwnerJourneyRail,
   OwnerQuoteResponseCard,
@@ -28,6 +30,8 @@ type OwnerQuoteRow = {
   status: string | null;
   workflow_status?: string | null;
   mission_id?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   total_amount: number | null;
   valid_until: string | null;
   created_at: string | null;
@@ -100,6 +104,10 @@ type AcceptedWorkflowPayload = {
     mission_id?: string | null;
     invoice_id?: string | null;
   } | null;
+  completed_action?: {
+    next_action?: string | null;
+    next_href?: string | null;
+  } | null;
 };
 
 function formatDate(value: string | null | undefined) {
@@ -146,6 +154,7 @@ function getRequestTypeLabel(value?: OwnerServiceRequestRow["request_type"]) {
 }
 
 function getRequestIdFromQuote(quote: OwnerQuoteRow) {
+  if (quote.service_request_id) return quote.service_request_id;
   const metadata =
     quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
       ? quote.metadata
@@ -156,6 +165,7 @@ function getRequestIdFromQuote(quote: OwnerQuoteRow) {
 }
 
 function getRequestRecipientIdFromQuote(quote: OwnerQuoteRow) {
+  if (quote.service_request_recipient_id) return quote.service_request_recipient_id;
   const metadata =
     quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
       ? quote.metadata
@@ -184,16 +194,54 @@ function getPropertyLabel(request: OwnerServiceRequestRow | null) {
 }
 
 function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
+  const nextAction =
+    payload.completed_action?.next_action && payload.completed_action.next_action.trim()
+      ? ` Prochaine étape : ${payload.completed_action.next_action.trim()}`
+      : "";
   const missionReady = Boolean(payload.accepted_workflow?.mission_id);
   const invoiceReady = Boolean(payload.accepted_workflow?.invoice_id);
 
   if (missionReady && invoiceReady) {
-    return "Accepté : la conciergerie devient partenaire. Vous pouvez maintenant créer les missions voyageurs avec les informations Airbnb/Booking, et une facture brouillon est disponible dans les finances.";
+    return `Accepté : la conciergerie devient partenaire. La mission commerciale est créée et une facture brouillon est disponible dans les finances.${nextAction || " Vous pouvez ensuite transmettre les séjours voyageurs."}`;
   }
   if (missionReady) {
-    return "Accepté : la conciergerie devient partenaire. Créez ensuite les missions voyageurs depuis l’espace dédié.";
+    return `Accepté : la conciergerie devient partenaire. La mission commerciale est créée.${nextAction || " Vous pouvez ensuite transmettre les séjours voyageurs depuis l’espace dédié."}`;
   }
-  return "Accepté : la collaboration est validée et les onglets partenaires, demandes et finances sont synchronisés.";
+  return `Accepté : la collaboration est validée et les onglets partenaires, demandes et finances sont synchronisés.${nextAction}`;
+}
+
+function getQuoteWorkflowSteps(quote: OwnerQuoteRow): WorkflowTimelineStep[] {
+  const status = (quote.status ?? "draft").toLowerCase();
+  const sent = ["sent", "accepted", "rejected", "expired", "canceled"].includes(status);
+  const decided = ["accepted", "rejected", "expired", "canceled"].includes(status);
+  const accepted = status === "accepted";
+
+  return [
+    {
+      label: "Devis préparé",
+      detail: quote.quote_number ?? "Brouillon",
+      state: "done",
+      Icon: FileText,
+    },
+    {
+      label: "Consultation",
+      detail: sent ? "Envoyé au propriétaire" : "À envoyer",
+      state: sent ? "done" : "active",
+      Icon: Eye,
+    },
+    {
+      label: accepted ? "Accepté" : status === "rejected" ? "Refusé" : "Décision",
+      detail: decided ? "Décision enregistrée" : "À arbitrer",
+      state: decided ? "done" : sent ? "active" : "todo",
+      Icon: status === "rejected" ? XCircle : CheckCircle2,
+    },
+    {
+      label: "Mission",
+      detail: quote.mission_id ? "Mission créée" : "Après acceptation",
+      state: quote.mission_id ? "done" : accepted ? "active" : "todo",
+      Icon: Route,
+    },
+  ];
 }
 
 export default function OwnerQuotesPage() {
@@ -486,6 +534,14 @@ function OwnerQuotesContent() {
     }
   }
 
+  function handleViewQuote(quoteId: string) {
+    void fetch(`/api/quotes/${quoteId}/view`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+    }).catch(() => undefined);
+  }
+
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
@@ -749,6 +805,7 @@ function OwnerQuotesContent() {
                             target="_blank"
                             rel="noreferrer"
                             className={styles.linkButton}
+                            onClick={() => handleViewQuote(quote.id)}
                           >
                             Voir le PDF
                           </a>
@@ -815,6 +872,7 @@ function OwnerQuotesContent() {
                           status={quote.status || "-"}
                           workflowStatus={quote.workflow_status}
                           hasMission={Boolean(quote.mission_id)}
+                          workflowSteps={getQuoteWorkflowSteps(quote)}
                           badges={
                             <>
                               {isCheapest ? (
@@ -859,6 +917,7 @@ function OwnerQuotesContent() {
                                 target="_blank"
                                 rel="noreferrer"
                                 className={styles.linkButton}
+                                onClick={() => handleViewQuote(quote.id)}
                               >
                                 Ouvrir le devis PDF
                               </a>
@@ -920,7 +979,7 @@ function OwnerQuotesContent() {
                                   href={`/dashboard/owner/missions/voyageurs?quote=${encodeURIComponent(quote.id)}`}
                                   className={styles.buttonPrimary}
                                 >
-                                  Créer une mission voyageur
+                                  Transmettre un séjour voyageur
                                 </Link>
                               ) : null}
                             </>

@@ -22,6 +22,8 @@ type OwnerQuoteRow = {
   quote_number?: string | null;
   status: string | null;
   concierge_profile_id?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   currency?: string | null;
   total_amount?: number | null;
   valid_until?: string | null;
@@ -74,7 +76,7 @@ function getMetadataString(metadata: Record<string, unknown> | null | undefined,
 }
 
 function getQuoteRequestId(quote: OwnerQuoteRow) {
-  return getMetadataString(quote.metadata, "service_request_id") || null;
+  return quote.service_request_id || getMetadataString(quote.metadata, "service_request_id") || null;
 }
 
 function getConciergeName(quote: OwnerQuoteRow) {

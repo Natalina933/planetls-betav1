@@ -49,11 +49,11 @@ export function ResultsGrid({
               ? `Aucun concierge disponible pour ${filtersLabel}.`
               : "Aucun concierge disponible pour cette recherche."
           }
-          description="Aucun profil actif n'a été trouvé avec les filtres actuels. Essayez une région voisine, augmentez le rayon ou retirez quelques filtres."
+          description="Créez une alerte pour être prévenue dès qu'un concierge correspond à cette zone."
           primaryAction={
             filtersLabel ? (
               <Button type="button" variant="primary" className={styles.primaryBtn} onClick={onCreateAlert}>
-                Créer une alerte pour cette zone
+                Créer l&apos;alerte
               </Button>
             ) : undefined
           }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   CheckCircle2,
@@ -16,9 +17,11 @@ import {
   Search,
   Send,
   Sparkles,
+  Trash2,
   X,
 } from "lucide-react";
-import { Button, ButtonLink, Input, Select, Textarea } from "@/components/ui";
+import { Button, ButtonLink, Input, Select, ServiceCatalogPicker, Textarea } from "@/components/ui";
+import { normalizeServiceValues, type ServiceCatalogItem } from "@/app/lib/serviceCatalog";
 import { OwnerJourneyRail } from "@/features/owner-dashboard";
 import { ServiceRequestCard } from "@/features/service-requests";
 import { ownerApiError } from "../ownerFeedback";
@@ -51,15 +54,21 @@ type OwnerServiceRequestRow = {
   description?: string | null;
   request_type: RequestKind;
   property_id?: string | null;
+  property_housing_id?: string | null;
   property_name?: string | null;
+  region?: string | null;
   city?: string | null;
   postal_code?: string | null;
+  radius_km?: number | null;
   desired_date?: string | null;
   requested_services?: string[] | null;
   budget_max?: number | null;
   currency?: string | null;
   status: string;
   workflow_status?: string | null;
+  request_workflow_status?: string | null;
+  quote_workflow_status?: string | null;
+  mission_workflow_status?: string | null;
   mission_id?: string | null;
   selected_concierge_profile_id?: string | null;
   selected_concierge_name?: string | null;
@@ -72,6 +81,8 @@ type OwnerQuoteRow = {
   id: string;
   quote_number?: string | null;
   status: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   concierge_profile_id?: string | null;
   mission_id?: string | null;
   currency?: string | null;
@@ -101,8 +112,6 @@ type OwnerQuoteRow = {
   }> | null;
 };
 
-
-
 type RequestsPayload = {
   items?: OwnerServiceRequestRow[];
   error?: string;
@@ -114,8 +123,10 @@ type RequestFormState = {
   propertyName: string;
   requestType: RequestKind;
   title: string;
+  region: string;
   city: string;
   postalCode: string;
+  radiusKm: string;
   requestedServices: string;
   budgetMax: string;
   currency: string;
@@ -127,22 +138,24 @@ const initialForm: RequestFormState = {
   propertyName: "",
   requestType: "ponctuel",
   title: "",
+  region: "",
   city: "",
   postalCode: "",
+  radiusKm: "",
   requestedServices: "",
   budgetMax: "",
   currency: "EUR",
   description: "",
 };
 
-const statusMeta: Record<RelationStatus, { label: string; className: string; detail: string }> = {
-  draft: { label: "Brouillon", className: styles.statusDraft, detail: "La demande reste à compléter." },
-  sent: { label: "En attente", className: styles.statusSent, detail: "Les conciergeries ont été contactées." },
-  viewed: { label: "Consultée", className: styles.statusViewed, detail: "Au moins une conciergerie a ouvert la demande." },
-  discussion: { label: "En discussion", className: styles.statusDiscussion, detail: "Des réponses ou devis sont en cours." },
-  accepted: { label: "Acceptée", className: styles.statusAccepted, detail: "La collaboration est validée." },
-  declined: { label: "Refusée", className: styles.statusDeclined, detail: "La demande n'a pas abouti." },
-  expired: { label: "Expirée", className: styles.statusExpired, detail: "La demande doit être relancée." },
+const statusMeta: Record<RelationStatus, { label: string; className: string }> = {
+  draft: { label: "Brouillon", className: styles.statusDraft },
+  sent: { label: "En attente", className: styles.statusSent },
+  viewed: { label: "Consultée", className: styles.statusViewed },
+  discussion: { label: "En discussion", className: styles.statusDiscussion },
+  accepted: { label: "Acceptée", className: styles.statusAccepted },
+  declined: { label: "Refusée", className: styles.statusDeclined },
+  expired: { label: "Expirée", className: styles.statusExpired },
 };
 
 const requestTypeLabels: Record<RequestKind, string> = {
@@ -159,10 +172,7 @@ function normalizeStatus(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-function normalizeServices(value: string | null | undefined) {
-  if (!value) return [];
-  return Array.from(new Set(value.split(",").map((item) => item.trim()).filter(Boolean)));
-}
+const normalizeServices = normalizeServiceValues;
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "À confirmer";
@@ -190,6 +200,7 @@ function formatDateTime(value: string | null | undefined) {
 
 
 function getQuoteRequestId(quote: OwnerQuoteRow) {
+  if (quote.service_request_id) return quote.service_request_id;
   const metadata = quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
     ? quote.metadata
     : null;
@@ -220,7 +231,16 @@ function getSelectedConciergeName(request: OwnerServiceRequestRow) {
 }
 
 function getRelationStatus(request: OwnerServiceRequestRow): RelationStatus {
-  const status = normalizeStatus(request.workflow_status ?? request.status);
+  const workflowStatus = normalizeStatus(request.request_workflow_status ?? request.workflow_status);
+  if (workflowStatus === "new") return "draft";
+  if (workflowStatus === "sent") return "sent";
+  if (workflowStatus === "viewed") return "viewed";
+  if (workflowStatus === "in_discussion" || workflowStatus === "quote_sent") return "discussion";
+  if (workflowStatus === "accepted" || workflowStatus === "archived") return "accepted";
+  if (workflowStatus === "declined") return "declined";
+  if (workflowStatus === "expired") return "expired";
+
+  const status = normalizeStatus(request.status);
   const recipientStatuses = request.recipients.map((recipient) => normalizeStatus(recipient.status));
 
   if (request.mission_id || status === "accepted" || status === "mission_created" || recipientStatuses.includes("selected")) {
@@ -266,12 +286,40 @@ function buildRequestSearchHref(request: OwnerServiceRequestRow) {
   return query ? `/dashboard/owner/concierges?${query}` : "/dashboard/owner/concierges";
 }
 
+function buildNewRequestSearchHref(form: RequestFormState, services: string[], requestId?: string | null) {
+  const params = new URLSearchParams();
+  const city = form.city.trim();
+  const region = form.region.trim();
+  const postalCode = form.postalCode.trim();
+  const title = form.title.trim();
+  const description = form.description.trim();
+  const budgetMax = form.budgetMax.trim();
+  const radiusKm = form.radiusKm.trim();
+
+  if (region) params.set("region", region);
+  if (city) params.set("city", city);
+  if (postalCode) params.set("postalCode", postalCode);
+  if (services.length > 0) params.set("services", services.join(","));
+  if (budgetMax) params.set("budgetMax", budgetMax);
+  if (radiusKm) params.set("radiusKm", radiusKm);
+  if (form.propertyKey) params.set("housingId", form.propertyKey);
+  if (form.propertyName.trim()) params.set("propertyName", form.propertyName.trim());
+  if (form.requestType) params.set("requestType", form.requestType);
+  if (title) params.set("requestTitle", title);
+  if (description) params.set("requestDescription", description);
+  if (form.currency) params.set("requestCurrency", form.currency);
+  if (requestId) params.set("requestId", requestId);
+
+  const query = params.toString();
+  return query ? `/dashboard/owner/concierges?${query}` : "/dashboard/owner/concierges";
+}
+
 function getRequestGuidance(status: RelationStatus, quoteCount: number) {
-  if (status === "draft") return "Complétez le besoin commercial, puis contactez une ou plusieurs conciergeries.";
-  if (status === "sent" || status === "viewed") return "Attendez les retours ou élargissez la recherche si besoin.";
-  if (status === "discussion") return quoteCount > 0 ? "Comparez les devis reçus avant de choisir votre partenaire." : "Échangez avec les conciergeries intéressées pour obtenir un devis clair.";
-  if (status === "accepted") return "Le partenaire est choisi. Créez ensuite les missions voyageurs avec les informations reçues d'Airbnb, Booking ou autre plateforme.";
-  if (status === "expired") return "Reprenez cette base et relancez une recherche plus ciblée.";
+  if (status === "draft") return "Complétez le besoin, puis contactez les conciergeries.";
+  if (status === "sent" || status === "viewed") return "Surveillez les retours ou élargissez la recherche.";
+  if (status === "discussion") return quoteCount > 0 ? "Comparez les devis reçus." : "Demandez un devis clair aux conciergeries intéressées.";
+  if (status === "accepted") return "Partenaire choisi. Vous pouvez préparer les séjours voyageurs.";
+  if (status === "expired") return "Reprenez cette base et relancez la recherche.";
   return "Ajustez votre demande ou relancez une recherche avec d'autres critères.";
 }
 
@@ -284,10 +332,10 @@ function getRequestMilestones(request: OwnerServiceRequestRow, quotes: OwnerQuot
   const hasAcceptedQuote = quotes.some((quote) => normalizeStatus(quote.status) === "accepted" || Boolean(quote.accepted_at));
   const hasAccepted = status === "accepted" || hasAcceptedQuote || hasMission;
   const steps = [
-    { label: "Demande", detail: status === "draft" ? "Demande à continuer" : "Demande envoyée", done: status !== "draft" },
-    { label: "Devis reçus", detail: quoteCount > 0 ? `${quoteCount} devis reçu${quoteCount > 1 ? "s" : ""}` : "En attente de devis", done: quoteCount > 0 },
-    { label: "Devis accepté", detail: hasAccepted ? "Devis validé" : "Choix à confirmer", done: hasAccepted },
-    { label: "Missions voyageurs", detail: hasMission ? "Partenariat prêt" : "Séjours à transmettre", done: hasMission },
+    { label: "Demande", detail: status === "draft" ? "À compléter" : "Envoyée", done: status !== "draft" },
+    { label: "Devis reçus", detail: quoteCount > 0 ? `${quoteCount} devis reçu${quoteCount > 1 ? "s" : ""}` : "En attente", done: quoteCount > 0 },
+    { label: "Devis accepté", detail: hasAccepted ? "Validé" : "À choisir", done: hasAccepted },
+    { label: "Mission", detail: hasMission ? "Créée" : "Après validation", done: hasMission },
   ];
   const firstTodoIndex = steps.findIndex((step) => !step.done);
 
@@ -336,7 +384,7 @@ function getRequestUsefulFacts(request: OwnerServiceRequestRow, quotes: OwnerQuo
   }
 
   if (request.mission_id) {
-    facts.push({ label: "Partenariat", value: "Devis accepté", hint: "Missions voyageurs à créer", Icon: Handshake });
+    facts.push({ label: "Mission commerciale", value: "Dossier créé", hint: "Séjours voyageurs à transmettre", Icon: Handshake });
   }
 
   if (status === "accepted") {
@@ -386,21 +434,40 @@ function getRequestHeaderImage(request: OwnerServiceRequestRow) {
   return "/images/carousel/planetls-card-header-menage.png";
 }
 
+function needsMissionDate(request: OwnerServiceRequestRow) {
+  const missionWorkflowStatus = normalizeStatus(request.mission_workflow_status);
+  return missionWorkflowStatus === "to_schedule" || missionWorkflowStatus === "date_requested" || missionWorkflowStatus === "date_proposed";
+}
+
 function getRequestTitleSuggestion(form: RequestFormState) {
   const service = normalizeServices(form.requestedServices)[0] || "gestion conciergerie";
   const property = form.propertyName || "logement";
   return form.city ? `${service} - ${property} - ${form.city}` : `${service} - ${property}`;
 }
 
+function getRequestActionRank(request: OwnerServiceRequestRow, quotes: OwnerQuoteRow[]) {
+  const status = getRelationStatus(request);
+  if (status === "draft") return 0;
+  if (quotes.length > 0 && status !== "accepted") return 1;
+  if (status === "discussion") return 2;
+  if (status === "sent" || status === "viewed") return 3;
+  if (status === "accepted" && needsMissionDate(request)) return 4;
+  if (status === "accepted") return 5;
+  return 6;
+}
+
 
 
 
 export default function OwnerRequestsPage() {
+  const router = useRouter();
   const [requests, setRequests] = useState<OwnerServiceRequestRow[]>([]);
   const [housing, setHousing] = useState<OwnerHousingRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
+  const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -425,15 +492,17 @@ export default function OwnerRequestsPage() {
     try {
       setLoading(true);
       setError(null);
-      const [requestsResponse, housingResponse, quotesResponse] = await Promise.all([
+      const [requestsResponse, housingResponse, quotesResponse, catalogResponse] = await Promise.all([
         fetch("/api/service-requests?limit=100", { cache: "no-store" }),
         fetch("/api/housing", { cache: "no-store" }),
         fetch("/api/quotes?limit=100", { cache: "no-store" }),
+        fetch("/api/services/services-catalog", { cache: "no-store" }),
       ]);
 
       const requestsPayload = (await requestsResponse.json()) as RequestsPayload;
       const housingPayload = await housingResponse.json();
       const quotesPayload = await quotesResponse.json();
+      const catalogPayload = await catalogResponse.json().catch(() => []);
 
       if (!requestsResponse.ok) throw new Error(ownerApiError("Impossible de charger les demandes.", requestsPayload?.error));
       if (!housingResponse.ok) throw new Error(ownerApiError("Impossible de charger les logements.", housingPayload?.error));
@@ -442,6 +511,7 @@ export default function OwnerRequestsPage() {
       setRequests(Array.isArray(requestsPayload.items) ? requestsPayload.items : []);
       setHousing(Array.isArray(housingPayload) ? housingPayload : []);
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
+      setServiceCatalog(catalogResponse.ok && Array.isArray(catalogPayload) ? catalogPayload : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger les demandes."));
     } finally {
@@ -543,8 +613,72 @@ export default function OwnerRequestsPage() {
   const currentRequests = filteredRequests.filter((request) => ["draft", "sent", "viewed", "discussion"].includes(getRelationStatus(request)));
   const acceptedRequests = filteredRequests.filter((request) => getRelationStatus(request) === "accepted");
   const declinedRequests = filteredRequests.filter((request) => ["declined", "expired"].includes(getRelationStatus(request)));
-  const titleSuggestion = getRequestTitleSuggestion(form);
   const normalizedServices = normalizeServices(form.requestedServices);
+  const titleSuggestion = getRequestTitleSuggestion({
+    ...form,
+    requestedServices: normalizedServices.join(", "),
+  });
+  const visibleSelectedServices = normalizedServices.slice(0, 8);
+  const hiddenSelectedServiceCount = Math.max(normalizedServices.length - visibleSelectedServices.length, 0);
+  const existingRequestForSelectedHousing = useMemo(() => {
+    if (editingRequestId || !form.propertyKey || form.requestType === "renfort") return null;
+    return (
+      requests.find(
+        (request) => request.request_type !== "renfort" && String(request.property_housing_id ?? "") === form.propertyKey,
+      ) ?? null
+    );
+  }, [editingRequestId, form.propertyKey, form.requestType, requests]);
+  const totalRequestCount = requests.length;
+  const activeRequestCount = requests.filter((request) => ["draft", "sent", "viewed", "discussion"].includes(getRelationStatus(request))).length;
+  const waitingRequestCount = requests.filter((request) => ["sent", "viewed"].includes(getRelationStatus(request))).length;
+  const requestsWithQuotesCount = requests.filter((request) => (quotesByRequestId.get(request.id)?.length ?? 0) > 0).length;
+  const acceptedRequestCount = requests.filter((request) => getRelationStatus(request) === "accepted").length;
+  const nextActionRequest = useMemo(() => {
+    return [...requests]
+      .filter((request) => !["declined", "expired"].includes(getRelationStatus(request)))
+      .sort((left, right) => {
+        const leftQuotes = quotesByRequestId.get(left.id) ?? [];
+        const rightQuotes = quotesByRequestId.get(right.id) ?? [];
+        const rankDiff = getRequestActionRank(left, leftQuotes) - getRequestActionRank(right, rightQuotes);
+        if (rankDiff !== 0) return rankDiff;
+        return new Date(right.created_at ?? 0).getTime() - new Date(left.created_at ?? 0).getTime();
+      })[0] ?? null;
+  }, [quotesByRequestId, requests]);
+  const nextActionQuotes = nextActionRequest ? quotesByRequestId.get(nextActionRequest.id) ?? [] : [];
+  const nextActionStatus = nextActionRequest ? getRelationStatus(nextActionRequest) : null;
+  const nextActionMilestones = nextActionRequest ? getRequestMilestones(nextActionRequest, nextActionQuotes) : [];
+  const nextActionStep = nextActionMilestones.find((step) => step.state === "active") ?? nextActionMilestones.at(-1);
+  const ratio = (value: number) => (totalRequestCount > 0 ? Math.round((value / totalRequestCount) * 100) : 0);
+  const overviewCards = [
+    {
+      label: "En cours",
+      value: activeRequestCount,
+      detail: "Demandes à suivre",
+      Icon: Clock3,
+      percent: ratio(activeRequestCount),
+    },
+    {
+      label: "En attente",
+      value: waitingRequestCount,
+      detail: "Retours concierge",
+      Icon: Send,
+      percent: ratio(waitingRequestCount),
+    },
+    {
+      label: "Avec devis",
+      value: requestsWithQuotesCount,
+      detail: `${quotes.length} devis au total`,
+      Icon: FileText,
+      percent: ratio(requestsWithQuotesCount),
+    },
+    {
+      label: "Validées",
+      value: acceptedRequestCount,
+      detail: "Partenaires choisis",
+      Icon: CheckCircle2,
+      percent: ratio(acceptedRequestCount),
+    },
+  ];
 
   function handleHousingChange(value: string) {
     const selected = housingOptions.find((item) => item.key === value);
@@ -560,12 +694,14 @@ export default function OwnerRequestsPage() {
     requestReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditingRequestId(request.id);
     setForm({
-      propertyKey: request.property_id ? String(request.property_id) : "",
+      propertyKey: request.property_housing_id ? String(request.property_housing_id) : "",
       propertyName: request.property_name ?? "",
       requestType: request.request_type,
       title: request.title ?? "",
+      region: request.region ?? "",
       city: request.city ?? "",
       postalCode: request.postal_code ?? "",
+      radiusKm: typeof request.radius_km === "number" ? String(request.radius_km) : "",
       requestedServices: (request.requested_services ?? []).join(", "),
       budgetMax: typeof request.budget_max === "number" ? String(request.budget_max) : "",
       currency: request.currency ?? "EUR",
@@ -589,15 +725,37 @@ export default function OwnerRequestsPage() {
     setIsRequestModalOpen(true);
   }
 
+  function handleUseExistingRequest(request: OwnerServiceRequestRow) {
+    const status = getRelationStatus(request);
+    if (status === "draft") {
+      handleEditRequest(request);
+      return;
+    }
+
+    setSearchTerm(request.property_name || request.title);
+    setStatusFilter(status);
+    closeRequestModal();
+    setSuccess("Ce logement a déjà une demande. Le suivi existant est affiché ci-dessous.");
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const services = normalizeServices(form.requestedServices);
+    if (existingRequestForSelectedHousing) {
+      handleUseExistingRequest(existingRequestForSelectedHousing);
+      return;
+    }
     if (!form.title.trim()) {
       setError("Ajoutez un titre clair à votre demande.");
       return;
     }
     if (services.length === 0) {
       setError("Ajoutez au moins un service recherché.");
+      return;
+    }
+
+    if (!editingRequestId) {
+      router.push(buildNewRequestSearchHref(form, services));
       return;
     }
 
@@ -610,13 +768,16 @@ export default function OwnerRequestsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: editingRequestId,
+          housing_id: form.propertyKey || null,
           request_type: form.requestType,
           title: form.title.trim(),
           description: form.description.trim() || null,
           property_name: form.propertyName.trim() || null,
           requested_services: services,
+          region: form.region.trim() || null,
           city: form.city.trim() || null,
           postal_code: form.postalCode.trim() || null,
+          radius_km: form.radiusKm ? Number(form.radiusKm) : null,
           urgency: false,
           budget_max: form.budgetMax ? Number(form.budgetMax) : null,
           currency: form.currency,
@@ -635,26 +796,55 @@ export default function OwnerRequestsPage() {
       setEditingRequestId(null);
       setForm(initialForm);
       setIsRequestModalOpen(false);
-      await loadData();
+      router.push(buildNewRequestSearchHref(form, services, editingRequestId));
     } catch (err) {
       setError(err instanceof Error ? err.message : ownerApiError("Impossible de créer la demande."));
     } finally {
       setSubmitting(false);
     }
   }
+
+  async function handleDeleteRequest(request: OwnerServiceRequestRow) {
+    if (request.recipients.length > 0) {
+      setError("Cette demande ne peut plus être supprimée : une conciergerie a déjà été contactée.");
+      return;
+    }
+
+    const confirmed = window.confirm("Supprimer cette demande ? Cette action est définitive.");
+    if (!confirmed) return;
+
+    try {
+      setDeletingRequestId(request.id);
+      setError(null);
+      setSuccess(null);
+      const response = await fetch(`/api/service-requests?id=${encodeURIComponent(request.id)}`, {
+        method: "DELETE",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(ownerApiError("Impossible de supprimer la demande.", payload?.error));
+      }
+      setSuccess("Demande supprimée.");
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de supprimer la demande."));
+    } finally {
+      setDeletingRequestId(null);
+    }
+  }
   return (
     <div className={styles.page}>
       <header className={styles.hero}>
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>Centre de relation conciergeries</p>
-          <h1>Demandes de mise en relation</h1>
-          <p>Recherchez une conciergerie, comparez les retours, puis transformez le bon devis en mission.</p>
+          <p className={styles.eyebrow}>Demandes</p>
+          <h1>Suivi des recherches concierge</h1>
+          <p>Retrouvez l&apos;état de chaque demande, les devis reçus et la prochaine action à faire.</p>
           <div className={styles.heroActions}>
             <button type="button" className={styles.primaryLink} onClick={openNewRequestModal}>
-            <Plus size={16} aria-hidden="true" /> Lancer une recherche
+              <Plus size={16} aria-hidden="true" /> Nouvelle demande
             </button>
             <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
-              <Search size={16} aria-hidden="true" /> Explorer les conciergeries
+              <Search size={16} aria-hidden="true" /> Conciergeries
             </ButtonLink>
           </div>
         </div>
@@ -666,16 +856,49 @@ export default function OwnerRequestsPage() {
       {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
       {loading ? <p className={styles.loadingHint}>Chargement des demandes...</p> : null}
 
-      <section className={styles.searchWorkspace} aria-label="Recherche concierge">
-        <div className={styles.searchWorkspaceHeader}>
-          <div>
-            <p className={styles.eyebrow}>Recherche concierge</p>
-            <h2>Demandes et retours</h2>
+      <section className={styles.overviewGrid} aria-label="État des demandes">
+        {overviewCards.map((card) => {
+          const Icon = card.Icon;
+          const chartStyle = { "--progress": `${card.percent * 3.6}deg` } as CSSProperties;
+
+          return (
+            <article key={card.label} className={styles.overviewCard}>
+              <span className={styles.progressChart} style={chartStyle} aria-label={`${card.percent}%`}>
+                <Icon size={18} aria-hidden="true" />
+              </span>
+              <div>
+                <strong>{card.value}</strong>
+                <span>{card.label}</span>
+                <p>{card.detail}</p>
+              </div>
+            </article>
+          );
+        })}
+        <article className={styles.nextActionCard}>
+          <div className={styles.nextActionTop}>
+            <span className={styles.eyebrow}>Prochaine action</span>
+            {nextActionStatus ? <span className={`${styles.statusPill} ${statusMeta[nextActionStatus].className}`}>{statusMeta[nextActionStatus].label}</span> : null}
           </div>
-          <button type="button" className={styles.primaryLink} onClick={openNewRequestModal}>
-            <Plus size={16} aria-hidden="true" /> Lancer une recherche
-          </button>
-        </div>
+          {nextActionRequest && nextActionStep ? (
+            <>
+              <h2>{nextActionRequest.title}</h2>
+              <p>{nextActionStep.detail}</p>
+              <div className={styles.nextActionMeta}>
+                {nextActionRequest.property_name ? <span>{nextActionRequest.property_name}</span> : null}
+                {nextActionRequest.city ? <span>{nextActionRequest.city}</span> : null}
+                {nextActionQuotes.length > 0 ? <span>{nextActionQuotes.length} devis</span> : null}
+              </div>
+            </>
+          ) : (
+            <>
+              <h2>Aucune action en attente</h2>
+              <p>Les nouvelles demandes apparaîtront ici.</p>
+            </>
+          )}
+        </article>
+      </section>
+
+      <section className={styles.searchWorkspace} aria-label="Filtres des demandes">
         <div className={styles.filtersPanel}>
           <label className={styles.searchField}>
             <Search size={17} aria-hidden="true" />
@@ -683,6 +906,7 @@ export default function OwnerRequestsPage() {
           </label>
           <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrer par statut">
             <option value="all">Tous statuts</option>
+            <option value="draft">Brouillon</option>
             <option value="sent">En attente</option>
             <option value="viewed">Consultée</option>
             <option value="discussion">Discussion</option>
@@ -722,7 +946,7 @@ export default function OwnerRequestsPage() {
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.eyebrow}>{editingRequestId ? "Modifier la recherche" : "Recherche concierge"}</p>
-                <h2 id="request-modal-title">{editingRequestId ? "Reprendre la recherche" : "Lancer une recherche concierge"}</h2>
+                <h2 id="request-modal-title">{editingRequestId ? "Reprendre la recherche" : "Préparer la recherche concierge"}</h2>
               </div>
               <button type="button" className={styles.iconButton} onClick={cancelEditRequest} aria-label="Fermer">
                 <X size={18} aria-hidden="true" />
@@ -738,6 +962,23 @@ export default function OwnerRequestsPage() {
               ))}
             </Select>
           </label>
+          {existingRequestForSelectedHousing ? (
+            <div className={`${styles.existingRequestNotice} ${styles.fullField}`} role="status">
+              <div>
+                <strong>Une demande existe déjà pour ce logement</strong>
+                <span>
+                  {statusMeta[getRelationStatus(existingRequestForSelectedHousing)].label} · {existingRequestForSelectedHousing.title}
+                </span>
+              </div>
+              <button
+                type="button"
+                className={styles.inlineAction}
+                onClick={() => handleUseExistingRequest(existingRequestForSelectedHousing)}
+              >
+                <FilePenLine size={15} /> {getRelationStatus(existingRequestForSelectedHousing) === "draft" ? "Compléter" : "Voir le suivi"}
+              </button>
+            </div>
+          ) : null}
           <label className={styles.field}>
             <span>Type de recherche</span>
             <Select value={form.requestType} onChange={(event) => setForm((current) => ({ ...current, requestType: event.target.value as RequestKind }))}>
@@ -763,6 +1004,10 @@ export default function OwnerRequestsPage() {
             </button>
           </label>
           <label className={styles.field}>
+            <span>Région</span>
+            <Input value={form.region} onChange={(event) => setForm((current) => ({ ...current, region: event.target.value }))} placeholder="Île-de-France, Occitanie..." />
+          </label>
+          <label className={styles.field}>
             <span>Ville</span>
             <Input value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} placeholder="Paris" />
           </label>
@@ -770,31 +1015,49 @@ export default function OwnerRequestsPage() {
             <span>Code postal</span>
             <Input value={form.postalCode} onChange={(event) => setForm((current) => ({ ...current, postalCode: event.target.value }))} inputMode="numeric" />
           </label>
-          <label className={`${styles.field} ${styles.fullField}`}>
+          <label className={styles.field}>
+            <span>Rayon de recherche</span>
+            <div className={styles.amountRow}>
+              <Input type="number" min="0" max="100" step="5" value={form.radiusKm} onChange={(event) => setForm((current) => ({ ...current, radiusKm: event.target.value }))} placeholder="Libre" inputMode="numeric" />
+              <span className={styles.unitBox}>km</span>
+            </div>
+          </label>
+          <div className={`${styles.field} ${styles.fullField}`}>
             <span>Services recherchés</span>
-            <Input value={form.requestedServices} onChange={(event) => setForm((current) => ({ ...current, requestedServices: event.target.value }))} placeholder="ménage, linge, relation voyageurs, maintenance..." />
+            {serviceCatalog.length > 0 ? (
+              <ServiceCatalogPicker
+                items={serviceCatalog}
+                selected={normalizedServices}
+                onChange={(selected) => setForm((current) => ({ ...current, requestedServices: selected.join(", ") }))}
+                mode="request"
+              />
+            ) : null}
+            {serviceCatalog.length === 0 ? (
+              <Input value={form.requestedServices} onChange={(event) => setForm((current) => ({ ...current, requestedServices: event.target.value }))} placeholder="Ajouter un service libre, séparé par une virgule..." />
+            ) : null}
             {normalizedServices.length > 0 ? (
-              <div className={styles.chipRow}>
-                {normalizedServices.map((service) => <span key={service} className={styles.serviceChip}>{service}</span>)}
+              <div className={styles.selectedServicesSummary}>
+                <span>{normalizedServices.length} service{normalizedServices.length > 1 ? "s" : ""} sélectionné{normalizedServices.length > 1 ? "s" : ""}</span>
+                <div className={styles.chipRow}>
+                  {visibleSelectedServices.map((service) => <span key={service} className={styles.serviceChip}>{service}</span>)}
+                  {hiddenSelectedServiceCount > 0 ? <span className={styles.serviceChip}>+{hiddenSelectedServiceCount}</span> : null}
+                </div>
               </div>
             ) : null}
-          </label>
+          </div>
           <label className={`${styles.field} ${styles.fullField}`}>
             <span>Détails utiles</span>
             <Textarea rows={4} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Contexte du logement, services attendus, contraintes de collaboration..." />
           </label>
           <div className={`${styles.formActions} ${styles.fullField}`}>
             <Button type="submit" disabled={submitting}>
-              {editingRequestId ? <Send size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />} {submitting ? "Enregistrement..." : editingRequestId ? "Enregistrer et continuer" : "Enregistrer la recherche"}
+              <Search size={16} aria-hidden="true" /> {submitting ? "Enregistrement..." : editingRequestId ? "Enregistrer et rechercher" : "Continuer vers les conciergeries"}
             </Button>
             {editingRequestId ? (
               <Button type="button" variant="secondary" onClick={cancelEditRequest}>
                 Annuler
               </Button>
             ) : null}
-            <ButtonLink href="/dashboard/owner/concierges" variant="secondary">
-              <Search size={16} aria-hidden="true" /> Explorer les conciergeries
-            </ButtonLink>
           </div>
         </form>
           </section>
@@ -803,82 +1066,86 @@ export default function OwnerRequestsPage() {
 
       <RequestSection
         id="demandes-en-cours"
-        eyebrow="Demandes en cours"
-        title="Suivre les conciergeries contactées"
-        description="Chaque carte montre l'état de la relation, les retours reçus et la progression vers un devis."
+        title="À suivre"
         emptyTitle="Aucune demande en cours"
-        emptyText="Les demandes envoyées ou en discussion apparaîtront ici."
+        emptyText="Créez une demande pour rechercher une conciergerie."
         requests={currentRequests}
         quotesByRequestId={quotesByRequestId}
         onEditRequest={handleEditRequest}
+        onDeleteRequest={handleDeleteRequest}
+        deletingRequestId={deletingRequestId}
       />
 
       <RequestSection
         id="demandes-acceptees"
-        eyebrow="Demandes acceptées"
-        title="Collaborations validées"
-        description="Ces demandes ont abouti à une validation ou un devis accepté."
+        title="Validées"
         emptyTitle="Aucune demande acceptée"
-        emptyText="Une demande passera ici après validation d'une collaboration."
+        emptyText="Les validations apparaîtront ici."
         requests={acceptedRequests}
         quotesByRequestId={quotesByRequestId}
         onEditRequest={handleEditRequest}
+        onDeleteRequest={handleDeleteRequest}
+        deletingRequestId={deletingRequestId}
+        hideWhenEmpty
       />
-<RequestSection
+      <RequestSection
         id="demandes-refusees"
-        eyebrow="Demandes refusées"
-        title="Demandes clôturées ou expirées"
-        description="Gardez une trace des recherches non abouties pour comprendre vos zones ou services moins couverts."
-        emptyTitle="Aucune demande refusée"
+        title="Clôturées"
+        emptyTitle="Aucune demande clôturée"
         emptyText="Les refus et expirations apparaîtront ici."
         requests={declinedRequests}
         quotesByRequestId={quotesByRequestId}
         onEditRequest={handleEditRequest}
+        onDeleteRequest={handleDeleteRequest}
+        deletingRequestId={deletingRequestId}
+        hideWhenEmpty
       />
-</div>
-  );
-}
-
-function SectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
-  return (
-    <div className={styles.sectionHeader}>
-      <div>
-        <p className={styles.eyebrow}>{eyebrow}</p>
-        <h2>{title}</h2>
-      </div>
-      <p>{description}</p>
     </div>
   );
 }
 
 function RequestSection({
   id,
-  eyebrow,
   title,
-  description,
   emptyTitle,
   emptyText,
   requests,
   quotesByRequestId,
   onEditRequest,
+  onDeleteRequest,
+  deletingRequestId,
+  hideWhenEmpty = false,
 }: {
   id: string;
-  eyebrow: string;
   title: string;
-  description: string;
   emptyTitle: string;
   emptyText: string;
   requests: OwnerServiceRequestRow[];
   quotesByRequestId: Map<string, OwnerQuoteRow[]>;
   onEditRequest: (request: OwnerServiceRequestRow) => void;
+  onDeleteRequest: (request: OwnerServiceRequestRow) => void;
+  deletingRequestId: string | null;
+  hideWhenEmpty?: boolean;
 }) {
+  if (hideWhenEmpty && requests.length === 0) return null;
+
   return (
     <section className={styles.sectionPanel} id={id}>
-      <SectionHeader eyebrow={eyebrow} title={title} description={description} />
+      <div className={styles.sectionHeader}>
+        <h2>{title}</h2>
+        <span className={styles.sectionCount}>{requests.length}</span>
+      </div>
       {requests.length === 0 ? <EmptyPanel title={emptyTitle} text={emptyText} /> : null}
       <div className={styles.requestGrid}>
         {requests.map((request) => (
-          <RequestCard key={request.id} request={request} quotes={quotesByRequestId.get(request.id) ?? []} onEditRequest={onEditRequest} />
+          <RequestCard
+            key={request.id}
+            request={request}
+            quotes={quotesByRequestId.get(request.id) ?? []}
+            onEditRequest={onEditRequest}
+            onDeleteRequest={onDeleteRequest}
+            deleting={deletingRequestId === request.id}
+          />
         ))}
       </div>
     </section>
@@ -889,34 +1156,43 @@ function RequestCard({
   request,
   quotes,
   onEditRequest,
+  onDeleteRequest,
+  deleting,
 }: {
   request: OwnerServiceRequestRow;
   quotes: OwnerQuoteRow[];
   onEditRequest: (request: OwnerServiceRequestRow) => void;
+  onDeleteRequest: (request: OwnerServiceRequestRow) => void;
+  deleting: boolean;
 }) {
   const relationStatus = getRelationStatus(request);
   const meta = statusMeta[relationStatus];
   const names = getConciergeNames(request);
-  const displayName = names[0] || "Conciergeries contactées";
+  const displayName = relationStatus === "accepted" ? getSelectedConciergeName(request) : names[0] || "Conciergeries";
+  const actorDetail = names.length > 0
+    ? `${names.length} conciergerie${names.length > 1 ? "s" : ""} contactée${names.length > 1 ? "s" : ""}`
+    : "Aucune conciergerie contactée";
   const milestones = getRequestMilestones(request, quotes);
   const usefulFacts = getRequestUsefulFacts(request, quotes, relationStatus);
   const headerImage = getRequestHeaderImage(request);
   const currentStep = milestones.find((step) => step.state === "active") ?? milestones[milestones.length - 1];
   const hasQuotes = quotes.length > 0;
   const hasMission = Boolean(request.mission_id);
+  const shouldChooseDate = hasMission && needsMissionDate(request);
   const isDraft = relationStatus === "draft";
   const isClosed = relationStatus === "declined" || relationStatus === "expired";
+  const canDelete = request.recipients.length === 0;
 
   return (
     <ServiceRequestCard
       title={request.title}
       actorName={displayName}
-      actorDetail={`${displayName}${names.length > 1 ? ` +${names.length - 1}` : ""}`}
+      actorDetail={actorDetail}
       statusLabel={meta.label}
       statusTone={relationStatus}
       typeLabel={requestTypeLabels[request.request_type]}
       urgent={request.urgency}
-      summary={meta.detail}
+      currentStepLabel="Prochaine étape"
       currentStepDetail={currentStep.detail}
       guidance={getRequestGuidance(relationStatus, quotes.length)}
       headerImage={headerImage}
@@ -925,7 +1201,6 @@ function RequestCard({
       chips={
         <>
           <span className={styles.serviceChip}>{requestTypeLabels[request.request_type]}</span>
-          {request.urgency ? <span className={styles.warningChip}>Urgent</span> : null}
           {quotes.length > 0 ? <span className={styles.serviceChip}>{quotes.length} devis</span> : null}
         </>
       }
@@ -933,19 +1208,23 @@ function RequestCard({
         <>
           {isDraft ? (
             <button type="button" className={styles.inlineAction} onClick={() => onEditRequest(request)}>
-              <FilePenLine size={15} /> Continuer le brouillon
+              <FilePenLine size={15} /> Compléter la demande
             </button>
+          ) : shouldChooseDate ? (
+            <ButtonLink href={`/dashboard/owner/missions/${encodeURIComponent(request.mission_id ?? "")}`} variant="secondary" size="sm">
+              <CalendarDays size={15} /> Choisir une date
+            </ButtonLink>
+          ) : hasMission ? (
+            <ButtonLink href={`/dashboard/owner/missions/${encodeURIComponent(request.mission_id ?? "")}`} variant="secondary" size="sm">
+              <Route size={15} /> Voir la mission commerciale
+            </ButtonLink>
           ) : relationStatus === "accepted" ? (
             <ButtonLink
               href={`/dashboard/owner/missions/voyageurs?request=${encodeURIComponent(request.id)}`}
               variant="secondary"
               size="sm"
             >
-              <Plus size={15} /> Créer une mission voyageur
-            </ButtonLink>
-          ) : hasMission ? (
-            <ButtonLink href={`/dashboard/owner/missions/${encodeURIComponent(request.mission_id ?? "")}`} variant="secondary" size="sm">
-              <Route size={15} /> Voir le dossier
+              <Plus size={15} /> Ajouter un séjour
             </ButtonLink>
           ) : hasQuotes ? (
             <ButtonLink href={`/dashboard/owner/devis?request=${encodeURIComponent(request.id)}`} variant="secondary" size="sm">
@@ -960,6 +1239,16 @@ function RequestCard({
               <Search size={15} /> Trouver des conciergeries
             </ButtonLink>
           )}
+          {canDelete ? (
+            <button
+              type="button"
+              className={`${styles.inlineAction} ${styles.dangerAction}`}
+              onClick={() => onDeleteRequest(request)}
+              disabled={deleting}
+            >
+              <Trash2 size={15} /> {deleting ? "Suppression..." : "Supprimer"}
+            </button>
+          ) : null}
         </>
       }
     />

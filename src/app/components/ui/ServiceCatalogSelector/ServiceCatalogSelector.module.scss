@@ -215,6 +215,9 @@ $border: #e2e2e2;
     &Open { background: rgba($gold, 0.05); }
 
     .categoryTitle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
       flex: 1;
       text-align: left;
       font-weight: 600;

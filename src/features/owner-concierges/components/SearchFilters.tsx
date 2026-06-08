@@ -1,5 +1,5 @@
 import FilterSliders from "@/app/components/ui/FilterSliders";
-import { Button, Checkbox, Select } from "@/components/ui";
+import { Button, Checkbox, Select, ServiceCategoryIcon } from "@/components/ui";
 import { FilterChipGroup } from "@/features/shared/components/FilterChipGroup";
 import { OptionToggleGroup } from "@/features/shared/components/OptionToggleGroup";
 import type { OwnerConciergeSearchFilters, ViewMode } from "@/features/owner-concierges/lib/search";
@@ -15,9 +15,6 @@ type SearchFiltersProps = {
   openServiceSections: Record<string, boolean>;
   loading: boolean;
   viewMode: ViewMode;
-  itemsCount: number;
-  stats: { totalAvailable: number; totalPro: number };
-  selectedConciergeCount: number;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onReset: () => void;
   onOpenMobileFilters: () => void;
@@ -48,9 +45,6 @@ export function SearchFilters({
   openServiceSections,
   loading,
   viewMode,
-  itemsCount,
-  stats,
-  selectedConciergeCount,
   onSubmit,
   onReset,
   onOpenMobileFilters,
@@ -68,8 +62,7 @@ export function SearchFilters({
         <>
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>Mise en relation</span>
-            <h1 className={styles.title}>Trouvez le bon concierge</h1>
-            <p className={styles.description}>Cherchez, comparez, sélectionnez.</p>
+            <h1 className={styles.title}>Recherche concierge</h1>
           </div>
 
           <div className={styles.mobileHeroActions}>
@@ -202,7 +195,10 @@ export function SearchFilters({
                         onClick={() => onToggleServiceSection(group.category)}
                         aria-expanded={isOpen}
                       >
-                        <span>{group.category}</span>
+                        <span className={styles.serviceSectionTitle}>
+                          <ServiceCategoryIcon category={group.category} size={17} />
+                          {group.category}
+                        </span>
                         <span className={styles.serviceSectionMeta}>
                           {selectedCount}/{group.services.length} {isOpen ? "-" : "+"}
                         </span>
@@ -236,27 +232,6 @@ export function SearchFilters({
           />
         </div>
       </form>
-
-      {mode === "full" ? (
-        <div className={styles.statsRow}>
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Trouvés</span>
-            <strong>{itemsCount}</strong>
-          </article>
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Disponibles</span>
-            <strong>{stats.totalAvailable}</strong>
-          </article>
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Profils PRO</span>
-            <strong>{stats.totalPro}</strong>
-          </article>
-          <article className={styles.statCard}>
-            <span className={styles.statLabel}>Sélection</span>
-            <strong>{selectedConciergeCount}</strong>
-          </article>
-        </div>
-      ) : null}
     </div>
   );
 }
