@@ -12,6 +12,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { Button, Input, Select, Textarea } from "@/components/ui";
+import { WorkflowTimeline, type WorkflowTimelineStep } from "@/features/service-requests";
+import { getInvoicePaymentSummary } from "@/app/lib/invoiceStatus";
 import {
   getMissionPriorityLabel,
   getMissionStatusLabel,
@@ -83,7 +85,17 @@ type MissionDetail = {
     last_message_at: string | null;
   }>;
   quotes: Array<{ id: string; quote_number: string | null; status: string | null; total_amount: number | null }>;
-  invoices: Array<{ id: string; invoice_number: string | null; status: string | null; balance_amount: number | null }>;
+  invoices: Array<{
+    id: string;
+    invoice_number: string | null;
+    status: string | null;
+    total_amount?: number | null;
+    paid_amount?: number | null;
+    balance_amount: number | null;
+    currency?: string | null;
+    due_date?: string | null;
+    metadata?: Record<string, unknown> | null;
+  }>;
   provider_interventions: Array<{
     id: string;
     provider_profile_id: string | null;
@@ -135,7 +147,7 @@ function fromDatetimeLocal(value: string) {
 }
 
 function statusBadgeClass(status: MissionStatus) {
-  if (status === "completed") return `${styles.badge} ${styles.badgeSuccess}`;
+  if (["completed", "validated", "closed"].includes(status)) return `${styles.badge} ${styles.badgeSuccess}`;
   if (status === "canceled" || status === "assigned" || status === "in_progress") {
     return `${styles.badge} ${styles.badgeWarning}`;
   }
@@ -159,6 +171,42 @@ function getEventLabel(eventType: string) {
     default:
       return eventType;
   }
+}
+
+function getMissionWorkflowSteps(status: MissionStatus): WorkflowTimelineStep[] {
+  const currentStatus = normalizeMissionStatus(status);
+  const doneStatuses = ["awaiting_owner_validation", "validated", "completed", "closed"];
+  const planned = ["date_confirmed", "scheduled", "accepted", "in_progress", ...doneStatuses].includes(currentStatus);
+  const active = ["accepted", "in_progress", ...doneStatuses].includes(currentStatus);
+  const completed = doneStatuses.includes(currentStatus);
+  const canceled = currentStatus === "canceled";
+
+  return [
+    {
+      label: "Mission créée",
+      detail: "Issue du devis accepté",
+      state: canceled ? "done" : "done",
+      Icon: Wrench,
+    },
+    {
+      label: "Date à cadrer",
+      detail: planned ? "Créneau confirmé" : "Créneau à confirmer",
+      state: planned ? "done" : "active",
+      Icon: CalendarClock,
+    },
+    {
+      label: "Exécution",
+      detail: active ? "Mission opérationnelle" : "En attente planning",
+      state: active ? (completed ? "done" : "active") : "todo",
+      Icon: Play,
+    },
+    {
+      label: canceled ? "Annulée" : "Terminée",
+      detail: canceled ? "Mission annulée" : "Clôture terrain",
+      state: completed || canceled ? "done" : "todo",
+      Icon: canceled ? XCircle : CheckCircle2,
+    },
+  ];
 }
 
 function getProofHref(missionId: string, proof: ProofLink) {
@@ -238,7 +286,13 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
   const canShowAccept = canConciergeAct && ["draft", "assigned"].includes(currentStatus);
   const canShowStart = canConciergeAct && ["assigned", "accepted"].includes(currentStatus);
   const canShowComplete = canConciergeAct && currentStatus === "in_progress";
-  const canShowCancel = currentStatus !== "completed" && currentStatus !== "canceled";
+  const canShowOwnerValidate = persona === "owner" && ["awaiting_owner_validation", "completed"].includes(currentStatus);
+  const canShowCancel = !["completed", "validated", "closed", "canceled"].includes(currentStatus);
+  const hasPlanningDate = Boolean(editForm.scheduled_start || mission?.scheduled_start);
+  const canRequestDate = ["to_schedule"].includes(currentStatus);
+  const canProposeDate = ["to_schedule", "date_requested"].includes(currentStatus);
+  const canConfirmDate = ["to_schedule", "date_requested", "date_proposed"].includes(currentStatus);
+  const canScheduleDate = ["date_confirmed"].includes(currentStatus);
 
   async function patchMission(payload: Record<string, unknown>, message: string) {
     try {
@@ -260,6 +314,17 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
     } finally {
       setSaving(false);
     }
+  }
+
+  async function patchPlanning(action: "request_date" | "propose_date" | "confirm_date" | "schedule", message: string) {
+    await patchMission(
+      {
+        action,
+        scheduled_start: fromDatetimeLocal(editForm.scheduled_start),
+        scheduled_end: fromDatetimeLocal(editForm.scheduled_end),
+      },
+      message,
+    );
   }
 
   async function submitEdit(event: React.FormEvent<HTMLFormElement>) {
@@ -358,11 +423,23 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
     return <p className={`${styles.message} ${styles.messageError}`}>{error || "Mission introuvable."}</p>;
   }
 
+  const firstInvoicePayment = detail.invoices[0]
+    ? getInvoicePaymentSummary({
+        invoiceStatus: detail.invoices[0].status,
+        totalAmount: detail.invoices[0].total_amount,
+        paidAmount: detail.invoices[0].paid_amount,
+        balanceAmount: detail.invoices[0].balance_amount,
+        dueDate: detail.invoices[0].due_date,
+        metadata: detail.invoices[0].metadata,
+      })
+    : null;
+
   const relationFacts = [
     { label: "Propriétaire", value: profileName(detail.participants.owner) },
     { label: "Conciergerie", value: profileName(detail.participants.concierge) },
     { label: "Logement", value: detail.property?.nom_logement || detail.property?.ville || "Non rattaché" },
     { label: "Budget", value: formatEuroAmountLabel(mission.amount, "-") },
+    ...(firstInvoicePayment ? [{ label: "Paiement", value: firstInvoicePayment.workflow.nextActionOwner }] : []),
   ];
 
   return (
@@ -394,7 +471,44 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
             })}
           </span>
         </div>
+        <WorkflowTimeline title="Parcours métier" steps={getMissionWorkflowSteps(currentStatus)} />
         <div className={styles.actions}>
+          {canRequestDate ? (
+            <Button
+              variant="secondary"
+              disabled={saving}
+              onClick={() => patchPlanning("request_date", "Date demandée pour cette mission.")}
+            >
+              <CalendarClock size={16} aria-hidden="true" /> Demander une date
+            </Button>
+          ) : null}
+          {canProposeDate ? (
+            <Button
+              variant="secondary"
+              disabled={saving || !hasPlanningDate}
+              onClick={() => patchPlanning("propose_date", "Créneau proposé.")}
+            >
+              <CalendarClock size={16} aria-hidden="true" /> Proposer ce créneau
+            </Button>
+          ) : null}
+          {canConfirmDate ? (
+            <Button
+              variant="secondary"
+              disabled={saving || !hasPlanningDate}
+              onClick={() => patchPlanning("confirm_date", "Date confirmée.")}
+            >
+              <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la date
+            </Button>
+          ) : null}
+          {canScheduleDate ? (
+            <Button
+              variant="secondary"
+              disabled={saving || !hasPlanningDate}
+              onClick={() => patchPlanning("schedule", "Mission planifiée.")}
+            >
+              <CalendarClock size={16} aria-hidden="true" /> Planifier
+            </Button>
+          ) : null}
           {canShowAccept ? (
             <Button disabled={saving} onClick={() => patchMission({ action: "accept" }, "Mission acceptée.")}>
               <CheckCircle2 size={16} aria-hidden="true" /> Accepter
@@ -408,6 +522,11 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
           {canShowComplete ? (
             <Button disabled={saving} onClick={() => patchMission({ action: "complete" }, "Mission terminée.")}>
               <CheckCircle2 size={16} aria-hidden="true" /> Terminer
+            </Button>
+          ) : null}
+          {canShowOwnerValidate ? (
+            <Button disabled={saving} onClick={() => patchMission({ action: "validate_completion" }, "Mission validee.")}>
+              <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la realisation
             </Button>
           ) : null}
           {canShowCancel ? (

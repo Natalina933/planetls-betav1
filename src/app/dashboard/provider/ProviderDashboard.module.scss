@@ -23,6 +23,157 @@
   }
 }
 
+.scanSection {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.scanHeader {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.scanHeader span {
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scanHeader h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1.08rem, 1.6vw, 1.24rem);
+  line-height: 1.15;
+}
+
+.scanGrid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.scanCard,
+.scanEmpty {
+  display: grid;
+  gap: 0.72rem;
+  min-height: 176px;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-accent) 8%, transparent), transparent 52%),
+    var(--dash-bg-panel);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 14px 28px rgba(73, 53, 22, 0.06);
+}
+
+.scanCard:hover,
+.scanEmpty:hover {
+  border-color: color-mix(in srgb, var(--dash-accent) 34%, var(--dash-border));
+}
+
+.scanBadge {
+  width: fit-content;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #1f8b4d 14%, transparent);
+  color: #1f7040;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.scanCard strong,
+.scanEmpty strong {
+  color: var(--dash-text);
+  font-size: 1rem;
+  line-height: 1.22;
+}
+
+.scanCard dl {
+  display: grid;
+  gap: 0.48rem;
+  margin: 0;
+}
+
+.scanCard dl div {
+  display: grid;
+  grid-template-columns: 4.4rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: baseline;
+}
+
+.scanCard dt,
+.scanCard dd {
+  margin: 0;
+}
+
+.scanCard dt {
+  color: var(--dash-text-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.scanCard dd {
+  min-width: 0;
+  color: var(--dash-text);
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scanEmpty {
+  min-height: 144px;
+  justify-content: center;
+}
+
+.scanEmpty span {
+  color: var(--dash-text-muted);
+  font-weight: 700;
+}
+
+.miniKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.miniKpiGrid span,
+.signalList span {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 14%, var(--dash-border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--dash-accent) 6%, transparent);
+  color: var(--dash-text);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.miniKpiGrid small {
+  color: var(--dash-text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.signalList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.signalList span {
+  font-size: 0.92rem;
+}
+
 // Grille de statistiques
 .statsGrid {
   display: grid;

@@ -60,6 +60,23 @@
   color: var(--dash-text, var(--ds-color-text));
 }
 
+.progressTrack {
+  display: block;
+  width: 100%;
+  height: 7px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent, var(--ds-color-gold)) 13%, transparent);
+}
+
+.progressBar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--dash-accent-strong, #9a6b28), var(--dash-accent, var(--ds-color-gold)));
+}
+
 .hint {
   margin: 8px 0 0;
   color: var(--dash-text-muted, var(--ds-color-text-muted));
@@ -74,6 +91,14 @@
 
 .dark .value {
   color: var(--ds-color-text-inverse);
+}
+
+.dark .progressTrack {
+  background: color-mix(in srgb, var(--ds-color-gold) 18%, transparent);
+}
+
+.dark .progressBar {
+  background: linear-gradient(90deg, #f6d889, var(--ds-color-gold));
 }
 
 .dark .trend {

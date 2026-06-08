@@ -29,7 +29,7 @@ import {
 import { DashboardLoadingScreen } from "@/components/dashboard";
 import { AsyncState, Badge, Card, CardBody } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
-import { formatDateValue } from "@/app/utils/formatters";
+import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { buildSmartDashboardPlan, parseOnboardingDetails } from "@/features/onboarding-assistant";
 import { useConciergeDashboardData } from "./useConciergeDashboardData";
@@ -125,6 +125,7 @@ export default function DashboardPage() {
       value: mode === "expert" ? `${kpis?.completed ?? 0}` : "--",
       hint: mode === "expert" ? "missions terminées" : "à connecter",
       delta: mode === "expert" ? "+5%" : "Setup",
+      progress: mode === "expert" ? Math.min(100, (kpis?.completed ?? 0) * 10) : 8,
       icon: WalletCards,
       tone: "gold",
     },
@@ -134,6 +135,7 @@ export default function DashboardPage() {
       value: `${urgentCount}`,
       hint: `${plannedNow.length} mission(s) planifiée(s)`,
       delta: urgentCount > 0 ? "Priorité" : "Stable",
+      progress: plannedNow.length > 0 ? Math.round((urgentCount / plannedNow.length) * 100) : 0,
       icon: Zap,
       tone: urgentCount > 0 ? "danger" : "success",
     },
@@ -143,6 +145,10 @@ export default function DashboardPage() {
       value: formatMinutes(kpis?.avg_response_minutes),
       hint: "temps réponse",
       delta: "SLA",
+      progress:
+        typeof kpis?.avg_response_minutes === "number"
+          ? Math.max(5, Math.min(100, 100 - Math.round(kpis.avg_response_minutes / 3)))
+          : 12,
       icon: MessageSquareText,
       tone: "info",
     },
@@ -234,6 +240,9 @@ export default function DashboardPage() {
                       <span>{item.delta}</span>
                     </p>
                     <strong>{item.value}</strong>
+                    <span className={styles.kpiProgress} aria-label={`Progression ${item.progress}%`}>
+                      <span style={{ width: `${item.progress}%` }} />
+                    </span>
                     <small>{item.hint}</small>
                   </div>
                 </CardBody>
@@ -289,6 +298,12 @@ export default function DashboardPage() {
                         {request.desired_date
                           ? formatDateValue(request.desired_date, { day: "2-digit", month: "short" })
                           : "à planifier"}
+                      </span>
+                      <span>
+                        {formatCurrencyAmount(request.budget_max, {
+                          currency: request.currency || "EUR",
+                          emptyLabel: "Budget à préciser",
+                        })}
                       </span>
                     </div>
                     <span className={styles.missionCta}>

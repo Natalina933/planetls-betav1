@@ -219,6 +219,23 @@
   line-height: 1;
 }
 
+.kpiProgress {
+  display: block;
+  width: 100%;
+  height: 7px;
+  margin: 0.42rem 0 0.34rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 13%, transparent);
+}
+
+.kpiProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--dash-accent-strong), var(--dash-accent));
+}
+
 .danger .kpiIcon {
   background: rgba(192, 58, 43, 0.12);
   color: #a83b30;
@@ -309,6 +326,7 @@
 
 .missionMeta {
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.5rem;
 
   span {
@@ -322,6 +340,7 @@
     color: var(--dash-accent-strong);
     font-size: 0.78rem;
     font-weight: 900;
+    white-space: nowrap;
   }
 }
 

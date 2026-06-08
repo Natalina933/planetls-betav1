@@ -13,6 +13,13 @@ import {
   Tag,
   Textarea,
 } from "@/components/ui";
+import { getInvoicePaymentSummary } from "@/app/lib/invoiceStatus";
+import {
+  computePaymentPlanAmounts,
+  getPaymentPlanLabel,
+  normalizePaymentPlanType,
+  type PaymentPlanType,
+} from "@/app/lib/paymentWorkflow";
 import styles from "./TariffBillingDesk.module.scss";
 
 type QuoteItem = {
@@ -30,6 +37,10 @@ type QuoteMeta = {
   source?: string;
   requested_services?: string[];
   auto_match_summary?: { matchedPackageName?: string | null; matchedPricingCount?: number };
+  payment_plan?: string | null;
+  deposit_required?: boolean | null;
+  deposit_amount?: number | null;
+  deposit_percent?: number | null;
 };
 
 type QuoteLite = {
@@ -56,7 +67,12 @@ type InvoiceLite = {
   invoice_number?: string | null;
   status?: string | null;
   total_amount?: number | null;
+  paid_amount?: number | null;
+  balance_amount?: number | null;
+  currency?: string | null;
+  due_date?: string | null;
   created_at?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 type PricingLite = {
@@ -108,6 +124,29 @@ const ownerLabel = (owner?: QuoteLite["owner"]) =>
   owner?.company_name ||
   [owner?.first_name, owner?.last_name].filter(Boolean).join(" ") ||
   "Propriétaire";
+
+const paymentPlanOptions: Array<{ value: PaymentPlanType; label: string; hint: string }> = [
+  {
+    value: "full_before_mission",
+    label: getPaymentPlanLabel("full_before_mission"),
+    hint: "Le proprietaire regle la totalite avant la mission.",
+  },
+  {
+    value: "deposit_then_balance",
+    label: getPaymentPlanLabel("deposit_then_balance"),
+    hint: "Un acompte debloque la planification, le solde suit la validation.",
+  },
+  {
+    value: "after_completion",
+    label: getPaymentPlanLabel("after_completion"),
+    hint: "Le paiement est demande apres realisation et validation.",
+  },
+  {
+    value: "monthly",
+    label: getPaymentPlanLabel("monthly"),
+    hint: "Le devis sert de base a un accompagnement mensuel.",
+  },
+];
 
 function TrashIcon() {
   return (
@@ -225,9 +264,30 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
     );
     return { subtotal, total: subtotal };
   }, [editor]);
+  const paymentPlan = useMemo(
+    () =>
+      computePaymentPlanAmounts({
+        totalAmount: totals.total,
+        metadata: editor?.metadata ?? null,
+      }),
+    [editor?.metadata, totals.total],
+  );
 
   const updateEditor = (patch: Partial<QuoteLite>) =>
     setEditor((previous) => (previous ? { ...previous, ...patch } : previous));
+
+  const updatePaymentMetadata = (patch: Partial<QuoteMeta>) =>
+    setEditor((previous) =>
+      previous
+        ? {
+            ...previous,
+            metadata: {
+              ...(previous.metadata ?? {}),
+              ...patch,
+            },
+          }
+        : previous,
+    );
 
   const updateItem = (index: number, patch: Partial<QuoteItem>) =>
     setEditor((previous) =>
@@ -308,6 +368,11 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
           package_id: mode === "package" ? selectedPackageId || null : null,
           valid_until: editor.valid_until ?? null,
           notes: editor.notes ?? null,
+          metadata: {
+            ...(editor.metadata ?? {}),
+            payment_plan: normalizePaymentPlanType(editor.metadata?.payment_plan),
+            deposit_required: normalizePaymentPlanType(editor.metadata?.payment_plan) === "deposit_then_balance",
+          },
           items: (editor.quote_items ?? []).map((item, index) => ({ ...item, sort_order: index })),
         }),
       });
@@ -361,6 +426,43 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
       setSuccessMsg("La facture a été générée.");
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : "Erreur de génération de facture.");
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const updateInvoiceStatus = async (
+    invoice: InvoiceLite,
+    status: "issued" | "paid" | "overdue" | "partially_paid",
+    paidAmount?: number | null,
+  ) => {
+    setBusyAction(`invoice-${invoice.id}-${status}`);
+    setErrorMsg(null);
+    try {
+      const response = await fetch(`/api/invoices/${invoice.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          paid_amount: paidAmount ?? undefined,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || "Impossible de mettre a jour la facture.");
+      setInvoices((previous) =>
+        previous.map((entry) => (entry.id === invoice.id ? { ...entry, ...payload } : entry)),
+      );
+      setSuccessMsg(
+        status === "paid"
+          ? "Paiement manuel marque comme recu."
+          : status === "overdue"
+            ? "Paiement marque en retard pour relance."
+            : status === "partially_paid"
+              ? "Paiement partiel enregistre, solde a suivre."
+              : "Facture emise, le proprietaire peut la regler.",
+      );
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Erreur de mise a jour facture.");
     } finally {
       setBusyAction(null);
     }
@@ -459,16 +561,61 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                 </CardHeader>
                 <CardBody className={styles.listBody}>
                   {invoices.length ? (
-                    invoices.slice(0, 4).map((invoice) => (
-                      <div key={invoice.id} className={styles.invoiceRow}>
-                        <div className={styles.quoteRowHead}>
-                          <strong>{invoice.invoice_number || "Facture"}</strong>
-                          <Badge variant={statusVariant(invoice.status)}>{statusLabel(invoice.status)}</Badge>
+                    invoices.slice(0, 4).map((invoice) => {
+                      const payment = getInvoicePaymentSummary({
+                        invoiceStatus: invoice.status,
+                        totalAmount: invoice.total_amount,
+                        paidAmount: invoice.paid_amount,
+                        balanceAmount: invoice.balance_amount,
+                        dueDate: invoice.due_date,
+                        metadata: invoice.metadata,
+                      }).workflow;
+                      const canAct = invoice.status !== "paid" && invoice.status !== "canceled";
+
+                      return (
+                        <div key={invoice.id} className={styles.invoiceRow}>
+                          <div className={styles.quoteRowHead}>
+                            <strong>{invoice.invoice_number || "Facture"}</strong>
+                            <Badge variant={statusVariant(invoice.status)}>{statusLabel(invoice.status)}</Badge>
+                          </div>
+                          <span>{formatDate(invoice.created_at)}</span>
+                          <span>Total {formatMoney(invoice.total_amount)}</span>
+                          <span>Solde {formatMoney(invoice.balance_amount ?? invoice.total_amount)}</span>
+                          <span>{payment.nextActionConcierge}</span>
+                          {canAct ? (
+                            <div className={styles.actionRow}>
+                              <Button
+                                className={styles.actionSecondary}
+                                variant="outline"
+                                size="sm"
+                                disabled={Boolean(busyAction)}
+                                onClick={() => void updateInvoiceStatus(invoice, "issued")}
+                              >
+                                Demander paiement
+                              </Button>
+                              <Button
+                                className={styles.actionSecondary}
+                                variant="outline"
+                                size="sm"
+                                disabled={Boolean(busyAction)}
+                                onClick={() => void updateInvoiceStatus(invoice, "paid")}
+                              >
+                                Paiement manuel recu
+                              </Button>
+                              <Button
+                                className={styles.actionGhost}
+                                variant="ghost"
+                                size="sm"
+                                disabled={Boolean(busyAction)}
+                                onClick={() => void updateInvoiceStatus(invoice, "overdue")}
+                              >
+                                Relancer retard
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
-                        <span>{formatDate(invoice.created_at)}</span>
-                        <span>{formatMoney(invoice.total_amount)}</span>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p className={styles.emptyCopy}>Aucune facture générée.</p>
                   )}
@@ -649,18 +796,74 @@ export default function TariffBillingDesk({ initialSelectedQuoteId }: TariffBill
                       value={editor.notes ?? ""}
                       onChange={(event) => updateEditor({ notes: event.target.value })}
                     />
-                    <Card variant="large" tone="outlined" className={styles.totalCard}>
-                      <CardBody className={styles.totalBody}>
-                        <div>
-                          <span>Sous-total</span>
-                          <strong>{formatMoney(totals.subtotal)}</strong>
-                        </div>
-                        <div>
-                          <span>Total</span>
-                          <strong>{formatMoney(totals.total)}</strong>
-                        </div>
-                      </CardBody>
-                    </Card>
+                    <div className={styles.summaryStack}>
+                      <Card variant="large" tone="outlined" className={styles.totalCard}>
+                        <CardBody className={styles.totalBody}>
+                          <div>
+                            <span>Sous-total</span>
+                            <strong>{formatMoney(totals.subtotal)}</strong>
+                          </div>
+                          <div>
+                            <span>Total</span>
+                            <strong>{formatMoney(totals.total)}</strong>
+                          </div>
+                        </CardBody>
+                      </Card>
+                      <Card variant="large" tone="outlined" className={styles.totalCard}>
+                        <CardBody className={styles.totalBody}>
+                          <label className={styles.compactLabel}>
+                            Plan de paiement
+                            <Select
+                              value={paymentPlan.plan}
+                              onChange={(event) =>
+                                updatePaymentMetadata({
+                                  payment_plan: normalizePaymentPlanType(event.target.value),
+                                  deposit_required: event.target.value === "deposit_then_balance",
+                                })
+                              }
+                            >
+                              {paymentPlanOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </Select>
+                          </label>
+                          {paymentPlan.plan === "deposit_then_balance" ? (
+                            <label className={styles.compactLabel}>
+                              Acompte (%)
+                              <Input
+                                type="number"
+                                min="1"
+                                max="100"
+                                step="1"
+                                value={Number(editor.metadata?.deposit_percent ?? paymentPlan.depositPercent ?? 30)}
+                                onChange={(event) =>
+                                  updatePaymentMetadata({
+                                    deposit_percent: Number(event.target.value || 30),
+                                    deposit_amount: null,
+                                    deposit_required: true,
+                                  })
+                                }
+                              />
+                            </label>
+                          ) : null}
+                          <span>{paymentPlanOptions.find((option) => option.value === paymentPlan.plan)?.hint}</span>
+                          {paymentPlan.depositRequired ? (
+                            <>
+                              <div>
+                                <span>Acompte</span>
+                                <strong>{formatMoney(paymentPlan.depositAmount)}</strong>
+                              </div>
+                              <div>
+                                <span>Solde</span>
+                                <strong>{formatMoney(paymentPlan.balanceAmount)}</strong>
+                              </div>
+                            </>
+                          ) : null}
+                        </CardBody>
+                      </Card>
+                    </div>
                   </div>
                 </CardBody>
               </Card>

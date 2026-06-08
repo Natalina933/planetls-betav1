@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Home, MessageSquareText, Receipt, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  MessageSquareText,
+  PackageCheck,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
 import { AsyncState } from "@/components/ui";
 import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
@@ -27,6 +34,35 @@ import {
 } from "@/features/owner-dashboard";
 import styles from "./page.module.scss";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getRealPartnerName(name: string | null | undefined) {
+  const trimmed = name?.trim();
+  return trimmed || null;
+}
+
+function getDateTime(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isSameLocalDay(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function isWithinNextDays(value: string | null | undefined, days: number) {
+  const date = getDateTime(value);
+  if (!date) return false;
+  const now = new Date();
+  const max = new Date(now.getTime() + days * DAY_MS);
+  return date >= now && date <= max;
+}
+
 export default function OwnerDashboardPage() {
   const { user, loading: userLoading, isAuthenticated } = useCurrentUser() as {
     user: (DashboardUserIdentity & Pick<CurrentUser, "id" | "availability_hours" | "service_area" | "service_radius_km">) | null;
@@ -40,7 +76,6 @@ export default function OwnerDashboardPage() {
     activeCount,
     draftCount,
     ongoingMissions,
-    completedMissions,
     pendingInvoices,
     latestQuotes,
     latestInvoices,
@@ -99,7 +134,7 @@ export default function OwnerDashboardPage() {
 
   const ownerShortcuts = useMemo(
     () => [
-      { label: "Annonces", href: "/dashboard/owner/logements", badgeCount: draftCount },
+      { label: "Logements", href: "/dashboard/owner/logements", badgeCount: draftCount },
       { label: "Missions", href: "/dashboard/owner/planning", badgeCount: ongoingMissions.length },
       { label: "Factures", href: "/dashboard/owner/factures", badgeCount: pendingInvoices.length },
       { label: "Messages", href: "/dashboard/owner/messages", badgeCount: unreadConversationCount },
@@ -171,40 +206,187 @@ export default function OwnerDashboardPage() {
     [draftCount, pendingInvoices.length, unreadConversationCount],
   );
 
-  const focusCards = useMemo(
+  const todayMissions = useMemo(
+    () =>
+      ongoingMissions.filter((mission) => {
+        const date = getDateTime(mission.scheduled_start);
+        return date ? isSameLocalDay(date, new Date()) : false;
+      }),
+    [ongoingMissions],
+  );
+
+  const upcomingWeekMissions = useMemo(
+    () => ongoingMissions.filter((mission) => isWithinNextDays(mission.scheduled_start, 7)),
+    [ongoingMissions],
+  );
+
+  const stockRows = useMemo(
+    () =>
+      properties.map((property) => {
+        const equipment = Array.isArray(property.infos?.equipements)
+          ? property.infos.equipements.map((item) => item.trim()).filter(Boolean)
+          : [];
+        return {
+          id: property.id,
+          name: property.nom_logement || `Logement #${property.id}`,
+          city: property.ville || "Ville à préciser",
+          count: equipment.length,
+          preview: equipment.slice(0, 3).join(", "),
+          status: equipment.length > 0 ? "Renseigné" : "À compléter",
+          href: `/dashboard/owner/logements/${property.id}`,
+        };
+      }),
+    [properties],
+  );
+
+  const stockedHousingCount = stockRows.filter((item) => item.count > 0).length;
+  const stockCoverage = properties.length > 0 ? Math.round((stockedHousingCount / properties.length) * 100) : 0;
+
+  const partnerRows = useMemo(() => {
+    const byPartner = new Map<
+      string,
+      {
+        name: string;
+        properties: Set<string>;
+        missions: number;
+        nextDate: string | null;
+      }
+    >();
+
+    for (const mission of ongoingMissions) {
+      const name = getRealPartnerName(mission.concierge_name);
+      if (!name) continue;
+
+      const property = properties.find((item) => String(item.id) === String(mission.property_id ?? ""));
+      const propertyName = property?.nom_logement || property?.ville || "Logement à préciser";
+      const current = byPartner.get(name) ?? {
+        name,
+        properties: new Set<string>(),
+        missions: 0,
+        nextDate: null,
+      };
+      current.properties.add(propertyName);
+      current.missions += 1;
+      if (mission.scheduled_start) {
+        const nextTime = getDateTime(current.nextDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        const missionTime = getDateTime(mission.scheduled_start)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+        if (missionTime < nextTime) current.nextDate = mission.scheduled_start;
+      }
+      byPartner.set(name, current);
+    }
+
+    return Array.from(byPartner.values()).map((item) => ({
+      ...item,
+      propertyList: Array.from(item.properties).slice(0, 3).join(", "),
+    }));
+  }, [ongoingMissions, properties]);
+
+  const calendarRows = useMemo(
+    () =>
+      [...ongoingMissions]
+        .filter((mission) => Boolean(mission.scheduled_start))
+        .sort((left, right) => {
+          const leftTime = getDateTime(left.scheduled_start)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+          const rightTime = getDateTime(right.scheduled_start)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+          return leftTime - rightTime;
+        })
+        .slice(0, 5)
+        .map((mission) => {
+          const property = properties.find((item) => String(item.id) === String(mission.property_id ?? ""));
+          return {
+            id: mission.id,
+            title: mission.title || "Mission à préciser",
+            property: property?.nom_logement || property?.ville || "Logement à préciser",
+            partner: getRealPartnerName(mission.concierge_name) || "Aucune conciergerie rattachée",
+            date: formatDateValue(mission.scheduled_start, {
+              weekday: "short",
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            href: `/dashboard/owner/missions/${mission.id}`,
+          };
+        }),
+    [ongoingMissions, properties],
+  );
+
+  const todayActionCards = useMemo(
     () => [
       {
-        label: "Parc actif",
-        value: `${activeCount}/${properties.length}`,
-        detail: draftCount > 0 ? `${draftCount} fiche(s) encore à finaliser.` : "Tous les biens visibles sont exploitables.",
-        href: "/dashboard/owner/logements",
-        cta: "Piloter les annonces",
-        icon: Home,
+        label: "Aujourd'hui",
+        value: todayMissions.length,
+        detail:
+          todayMissions.length > 0
+            ? `${todayMissions[0]?.title || "Mission"} à suivre maintenant.`
+            : "Aucune mission datée aujourd'hui.",
+        href: "/dashboard/owner/planning",
+        cta: "Voir planning",
+        icon: CalendarDays,
       },
       {
-        label: "Relation conciergerie",
-        value: `${unreadConversationCount}`,
+        label: "À répondre",
+        value: unreadConversationCount,
         detail:
           unreadConversationCount > 0
-            ? "Des retours terrain attendent un arbitrage."
-            : "Aucun message en attente, coordination fluide.",
+            ? "Messages ou arbitrages en attente."
+            : "Messagerie à jour.",
         href: "/dashboard/owner/messages",
-        cta: "Ouvrir les messages",
+        cta: "Messages",
         icon: MessageSquareText,
       },
       {
-        label: "Zone finance",
-        value: `${pendingInvoices.length}`,
+        label: "Équipements",
+        value: properties.length > 0 ? `${stockedHousingCount}/${properties.length}` : "0",
         detail:
-          pendingInvoices.length > 0
-            ? "Des factures demandent une vérification rapide."
-            : "La zone finance ne présente pas d'urgence.",
-        href: "/dashboard/owner/factures",
-        cta: "Vérifier les règlements",
-        icon: Receipt,
+          properties.length === 0
+            ? "Aucun logement à vérifier pour le moment."
+            : stockedHousingCount === 0
+              ? "Aucun équipement ou repère stock renseigné pour le moment."
+              : stockCoverage < 100
+                ? `${properties.length - stockedHousingCount} logement(s) à compléter.`
+                : "Tous les logements ont des équipements renseignés.",
+        href: "/dashboard/owner/stocks",
+        cta: "Compléter",
+        icon: PackageCheck,
+      },
+      {
+        label: "Partenaires",
+        value: partnerRows.length,
+        detail:
+          partnerRows.length > 0
+            ? `${partnerRows[0].name} intervient sur ${partnerRows[0].propertyList}.`
+            : "Aucun partenaire réel rattaché à vos missions pour le moment.",
+        href: "/dashboard/owner/conciergerie/partenaires",
+        cta: "Partenaires",
+        icon: UsersRound,
       },
     ],
-    [activeCount, draftCount, pendingInvoices.length, properties.length, unreadConversationCount],
+    [
+      partnerRows,
+      properties.length,
+      stockCoverage,
+      stockedHousingCount,
+      todayMissions,
+      unreadConversationCount,
+    ],
+  );
+
+  const missionSnapshot = useMemo(
+    () =>
+      takeFirst(ongoingMissions, 3).map((mission) => ({
+        id: mission.id,
+        title: mission.title || "Mission à préciser",
+        partner: getRealPartnerName(mission.concierge_name) || "Aucune conciergerie rattachée",
+        date: formatDateValue(mission.scheduled_start, {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+        amount: formatEuroAmountLabel(mission.amount),
+        href: `/dashboard/owner/missions/${mission.id}`,
+      })),
+    [ongoingMissions],
   );
 
   const strategyNotes = useMemo(
@@ -254,28 +436,40 @@ export default function OwnerDashboardPage() {
       navItems={OWNER_NAV_ITEMS}
       stats={[
         {
-          label: "Logements actifs",
-          value: `${activeCount}/${properties.length}`,
-          hint: draftCount > 0 ? `${draftCount} fiche(s) à finaliser` : "Parc opérationnel",
-          trend: draftCount > 0 ? "Setup" : "Stable",
+          label: "À faire aujourd'hui",
+          value: `${todayMissions.length + unreadConversationCount + pendingInvoices.length}`,
+          hint: `${todayMissions.length} mission(s), ${unreadConversationCount} message(s), ${pendingInvoices.length} facture(s)`,
+          trend: todayMissions.length + unreadConversationCount + pendingInvoices.length > 0 ? "Action" : "Calme",
+          progress: Math.min(100, (todayMissions.length + unreadConversationCount + pendingInvoices.length) * 20),
         },
         {
-          label: "Opérations ouvertes",
-          value: `${ongoingMissions.length}`,
-          hint: `${completedMissions.length} intervention(s) terminée(s)`,
-          trend: ongoingMissions.length > 0 ? "A suivre" : "OK",
+          label: "Équipements renseignés",
+          value: properties.length > 0 ? `${stockedHousingCount}/${properties.length}` : "0",
+          hint:
+            properties.length === 0
+              ? "Aucun logement suivi"
+              : stockedHousingCount === 0
+                ? "Aucun équipement ou stock renseigné"
+                : `${properties.length - stockedHousingCount} logement(s) à compléter`,
+          trend: properties.length === 0 || stockCoverage < 100 ? "À compléter" : "OK",
+          progress: stockCoverage,
         },
         {
-          label: "Factures à régler",
-          value: `${pendingInvoices.length}`,
-          hint: `${latestInvoices.length} facture(s) récente(s)`,
-          trend: pendingInvoices.length > 0 ? "Priorite" : "OK",
+          label: "Partenaires actifs",
+          value: `${partnerRows.length}`,
+          hint:
+            partnerRows.length > 0
+              ? `${ongoingMissions.length} mission(s) ouverte(s)`
+              : "Aucun partenaire rattaché",
+          trend: partnerRows.length > 0 ? "En place" : "À relier",
+          progress: properties.length > 0 ? Math.min(100, Math.round((partnerRows.length / properties.length) * 100)) : 0,
         },
         {
-          label: "Progression owner",
-          value: `${ownerActivationProgress.percentage}%`,
-          hint: `${ownerActivationProgress.completedCount}/${ownerActivationProgress.totalCount} jalons`,
-          trend: ownerActivationProgress.percentage < 100 ? "A activer" : "OK",
+          label: "Planning 7 jours",
+          value: `${upcomingWeekMissions.length}`,
+          hint: `${ongoingMissions.length} opération(s) ouvertes`,
+          trend: upcomingWeekMissions.length > 0 ? "À suivre" : "Libre",
+          progress: Math.min(100, upcomingWeekMissions.length * 18),
         },
       ]}
       actions={ownerQuickActions}
@@ -302,6 +496,7 @@ export default function OwnerDashboardPage() {
       ]}
       shortcuts={ownerShortcuts}
       showBottomNav={false}
+      hideHeader
       profile={{
         name: user?.firstName || user?.username || OWNER_DASHBOARD_CONFIG.profileName,
         subtitle: loading ? "Chargement..." : `${properties.length} bien(s) suivi(s)`,
@@ -312,12 +507,11 @@ export default function OwnerDashboardPage() {
 
       <section className={styles.sectionBlock} aria-labelledby="owner-focus-title">
         <div className={styles.sectionLead}>
-          <span className={styles.sectionEyebrow}>Lecture rapide</span>
-          <h2 id="owner-focus-title">Vos leviers immédiats</h2>
-          <p>Les trois zones à regarder en premier pour décider vite et garder un pilotage propre.</p>
+          <span className={styles.sectionEyebrow}>Aujourd&apos;hui</span>
+          <h2 id="owner-focus-title">À regarder en premier</h2>
         </div>
         <div className={styles.focusStrip}>
-          {focusCards.map((card) => {
+          {todayActionCards.map((card) => {
             const Icon = card.icon;
             return (
               <article key={card.label} className={styles.focusCard}>
@@ -339,11 +533,123 @@ export default function OwnerDashboardPage() {
         </div>
       </section>
 
+      <section className={styles.sectionBlock} aria-labelledby="owner-missions-title">
+        <div className={styles.sectionLead}>
+          <span className={styles.sectionEyebrow}>Missions</span>
+          <h2 id="owner-missions-title">Premières missions à suivre</h2>
+        </div>
+        <div className={styles.missionSnapshotGrid}>
+          {missionSnapshot.length > 0 ? (
+            missionSnapshot.map((mission) => (
+              <Link key={mission.id} href={mission.href} className={styles.missionSnapshotCard}>
+                <span className={styles.missionSnapshotBadge}>En cours</span>
+                <strong>{mission.title}</strong>
+                <dl className={styles.missionFacts}>
+                  <div>
+                    <dt>Conciergerie</dt>
+                    <dd>{mission.partner}</dd>
+                  </div>
+                  <div>
+                    <dt>Date</dt>
+                    <dd>{mission.date}</dd>
+                  </div>
+                  <div>
+                    <dt>Montant</dt>
+                    <dd>{mission.amount}</dd>
+                  </div>
+                </dl>
+              </Link>
+            ))
+          ) : (
+            <Link href="/dashboard/owner/demandes" className={styles.missionEmptyCard}>
+              <strong>Aucune mission ouverte</strong>
+              <span>Créer une demande ou accepter un devis</span>
+            </Link>
+          )}
+        </div>
+      </section>
+
+      <section className={`${styles.sectionBlock} ${styles.panelGrid}`} aria-label="Équipements et partenaires">
+        <DashboardPanel title="Équipements et repères par logement">
+          <AsyncState loading={loading} error={error}>
+            <div className={styles.stockList}>
+              {stockRows.slice(0, 5).map((item) => (
+                <Link key={item.id} href={item.href} className={styles.stockRow}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span>{item.city}</span>
+                  </div>
+                  <div className={styles.stockStatus}>
+                    <span>{item.count}</span>
+                    <small>{item.status}</small>
+                  </div>
+                  <p>{item.preview || "Aucun équipement ou stock renseigné"}</p>
+                </Link>
+              ))}
+              {stockRows.length === 0 ? (
+                <Link href="/dashboard/owner/logements/create" className={styles.stockEmpty}>
+                  Ajouter un logement pour suivre ses équipements
+                </Link>
+              ) : null}
+            </div>
+            <Link href="/dashboard/owner/stocks" className={styles.panelLink}>Ouvrir équipements et stocks</Link>
+          </AsyncState>
+        </DashboardPanel>
+
+        <DashboardPanel title="Personnes qui travaillent avec moi">
+          <AsyncState loading={loading} error={error}>
+            <div className={styles.partnerList}>
+              {partnerRows.slice(0, 4).map((partner) => (
+                <Link key={partner.name} href="/dashboard/owner/conciergerie/partenaires" className={styles.partnerRow}>
+                  <span className={styles.partnerAvatar}>{partner.name.charAt(0).toUpperCase()}</span>
+                  <div>
+                    <strong>{partner.name}</strong>
+                    <p>{partner.propertyList || "Logement à préciser"}</p>
+                  </div>
+                  <span className={styles.partnerCount}>{partner.missions}</span>
+                </Link>
+              ))}
+              {partnerRows.length === 0 ? (
+                <Link href="/dashboard/owner/concierges" className={styles.stockEmpty}>
+                  Aucun partenaire rattaché, rechercher une conciergerie
+                </Link>
+              ) : null}
+            </div>
+          </AsyncState>
+        </DashboardPanel>
+      </section>
+
+      <section className={styles.sectionBlock} aria-labelledby="owner-calendar-title">
+        <div className={styles.sectionLead}>
+          <span className={styles.sectionEyebrow}>Planning</span>
+          <h2 id="owner-calendar-title">Missions en cours et à venir</h2>
+        </div>
+        <DashboardPanel title="Calendrier compact">
+          <AsyncState loading={loading} error={error}>
+            <div className={styles.calendarList}>
+              {calendarRows.map((mission) => (
+                <Link key={mission.id} href={mission.href} className={styles.calendarRow}>
+                  <span className={styles.calendarDate}>{mission.date}</span>
+                  <div>
+                    <strong>{mission.title}</strong>
+                    <p>{mission.property} · {mission.partner}</p>
+                  </div>
+                </Link>
+              ))}
+              {calendarRows.length === 0 ? (
+                <Link href="/dashboard/owner/planning" className={styles.stockEmpty}>
+                  Aucune mission planifiée, ouvrir le planning
+                </Link>
+              ) : null}
+            </div>
+          </AsyncState>
+        </DashboardPanel>
+      </section>
+
       <section className={styles.sectionBlock} aria-labelledby="owner-priorities-title">
         <div className={styles.sectionLead}>
           <span className={styles.sectionEyebrow}>Actions</span>
-          <h2 id="owner-priorities-title">Ce qu'il faut finaliser aujourd'hui</h2>
-          <p>Des actions concrètes, courtes et utiles pour faire avancer votre exploitation sans friction.</p>
+          <h2 id="owner-priorities-title">À finaliser aujourd&apos;hui</h2>
         </div>
         <DashboardPanel title="Priorités du jour">
           <div className={styles.priorityGrid}>

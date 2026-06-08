@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Compass, Home, Receipt, MessageSquareText } from "lucide-react";
+import { Compass, Home, MessageSquareText, Receipt } from "lucide-react";
 import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
 import Navbar from "@/app/components/dashboard/navbar/DashboardNavbar";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const ownerBottomNavItems = useMemo(
     () => [
-      { label: "Annonces", href: "/dashboard/owner/logements", badgeCount: draftCount },
+      { label: "Logements", href: "/dashboard/owner/logements", badgeCount: draftCount },
       { label: "Missions", href: "/dashboard/owner/planning", badgeCount: ongoingMissions.length },
       { label: "Factures", href: "/dashboard/owner/factures", badgeCount: pendingInvoices.length },
       { label: "Messages", href: "/dashboard/owner/messages", badgeCount: unreadConversationCount },
@@ -91,8 +91,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         />
         <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
           <img
-            src="/images/hero-warmv2.jpg"
-            alt="Visuel du tableau de bord"
+            src="/images/generated/dashboard/dashboard-header-bandeau.png"
+            alt="Bandeau chaleureux du tableau de bord"
           />
           <div className="headerOverlay">
             {isOwnerPage ? (
@@ -130,10 +130,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
         <main className="dashboard-content">{children}</main>
         {isOwnerPage ? (
-          <DashboardBottomNav
-            items={ownerBottomNavItems}
-            ariaLabel="Navigation propriétaire"
-          />
+          <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
         ) : null}
       </div>
     </div>

@@ -108,15 +108,39 @@ function buildWeekBuckets(missions: MissionRow[]) {
   });
 }
 
+function normalizeMissionStatus(value: string | null | undefined) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function isPlanningWorkflowMission(mission: MissionRow) {
+  return ["to_schedule", "date_requested", "date_proposed", "date_confirmed"].includes(normalizeMissionStatus(mission.status));
+}
+
+function getPlanningActionLabel(mission: MissionRow, fallbackAction: string) {
+  const status = normalizeMissionStatus(mission.status);
+  if (status === "to_schedule" || status === "date_requested" || status === "date_proposed") return "Confirmer / planifier";
+  if (status === "date_confirmed") return "Planifier";
+  return fallbackAction;
+}
+
+function getPlanningItemDescription(mission: MissionRow) {
+  const status = normalizeMissionStatus(mission.status);
+  if (status === "to_schedule") return "Mission issue d'un devis accepté : proposez ou confirmez un créneau.";
+  if (status === "date_requested") return "Date demandée par le propriétaire : confirmez ou ajustez le créneau.";
+  if (status === "date_proposed") return "Date proposée : finalisez la confirmation avec le propriétaire.";
+  if (status === "date_confirmed") return "Date confirmée : ajoutez la mission au planning opérationnel.";
+  return mission.description || (mission.priority === "urgent" ? "Intervention urgente à garder proche." : "Mission à suivre dans le planning.");
+}
+
 function toDetailItems(items: MissionRow[], fallbackAction: string): OperationalDetailSection["items"] {
   return items.slice(0, 6).map((mission) => ({
     title: mission.title || "Mission sans titre",
     meta: mission.scheduled_start
       ? `${getShortTime(mission.scheduled_start)} · ${normalizePlanningStatus(mission.status)}`
       : `À caler · ${normalizePlanningStatus(mission.status)}`,
-    description: mission.description || (mission.priority === "urgent" ? "Intervention urgente à garder proche." : "Mission à suivre dans le planning."),
+    description: getPlanningItemDescription(mission),
     action: {
-      label: fallbackAction,
+      label: getPlanningActionLabel(mission, fallbackAction),
       href: `/dashboard/concierge/missions/${mission.id}`,
     },
   }));
@@ -194,6 +218,11 @@ export default function ConciergePlanningPage() {
     [missions],
   );
 
+  const planningWorkflowMissions = useMemo(
+    () => missions.filter((mission) => isPlanningWorkflowMission(mission) && !isPlanningDone(mission.status)),
+    [missions],
+  );
+
   const urgentMissions = useMemo(
     () => missions.filter((mission) => mission.priority === "urgent" && !isPlanningDone(mission.status)),
     [missions],
@@ -227,9 +256,16 @@ export default function ConciergePlanningPage() {
 
   const weekBuckets = useMemo(() => buildWeekBuckets(plannedActiveMissions), [plannedActiveMissions]);
   const planningSummary = useMemo(() => formatPlanningSummary(plannedActiveMissions), [plannedActiveMissions]);
-  const mainPriority = overdueMissions[0] || todayMissions[0] || nextMissions[0] || unscheduledMissions[0] || null;
+  const mainPriority = planningWorkflowMissions[0] || overdueMissions[0] || todayMissions[0] || nextMissions[0] || unscheduledMissions[0] || null;
 
   const detailSections: OperationalDetailSection[] = [
+    {
+      id: "missions_devis",
+      title: "Missions issues d'un devis à planifier",
+      description: "Missions commerciales acceptées qui attendent un créneau, une proposition ou une confirmation.",
+      emptyText: loading ? "Chargement des missions issues de devis." : error || "Aucune mission issue de devis à planifier.",
+      items: toDetailItems(planningWorkflowMissions, "Confirmer / planifier"),
+    },
     {
       id: "jour",
       title: "À traiter aujourd'hui",
@@ -288,6 +324,12 @@ export default function ConciergePlanningPage() {
           detailSectionId: "48h",
         },
         {
+          label: "À planifier",
+          value: loading ? "..." : String(planningWorkflowMissions.length),
+          hint: "Devis acceptés à confirmer",
+          detailSectionId: "missions_devis",
+        },
+        {
           label: "Sans date",
           value: loading ? "..." : String(unscheduledMissions.length),
           hint: "Missions à cadrer",
@@ -308,7 +350,9 @@ export default function ConciergePlanningPage() {
         description: mainPriority
           ? `${mainPriority.scheduled_start ? getShortTime(mainPriority.scheduled_start) : "Créneau à définir"} · ${normalizePlanningStatus(mainPriority.status)}`
           : "Aucune intervention imminente ou sans date à traiter en priorité.",
-        action: mainPriority ? { label: "Ouvrir la mission", href: `/dashboard/concierge/missions/${mainPriority.id}` } : undefined,
+        action: mainPriority
+          ? { label: getPlanningActionLabel(mainPriority, "Ouvrir la mission"), href: `/dashboard/concierge/missions/${mainPriority.id}` }
+          : undefined,
       }}
       risks={[
         {

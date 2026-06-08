@@ -31,6 +31,8 @@ export type ConciergeDashboardRequest = {
   postal_code: string | null;
   property_name?: string | null;
   desired_date: string | null;
+  budget_max?: number | null;
+  currency?: string | null;
   urgency: boolean;
   recipient_id: string;
   recipient_status: string;

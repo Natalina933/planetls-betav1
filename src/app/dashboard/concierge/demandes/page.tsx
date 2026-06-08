@@ -20,6 +20,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { deriveRequestWorkflowStatus } from "@/app/lib/requestStatus";
+import {
+  buildServiceRequestBrief,
+  readServiceRequestBriefMetadata,
+  type ServiceRequestBrief,
+} from "@/app/lib/serviceRequestBrief";
 import { ServiceRequestCard, type ServiceRequestCardTone, type ServiceRequestFact, type ServiceRequestMilestone } from "@/features/service-requests";
 import ConciergeWorkspacePage from "../_components/ConciergeWorkspacePage";
 import { conciergeApiError } from "../conciergeFeedback";
@@ -43,6 +48,7 @@ type ConciergeRequestRow = {
   recipient_id: string;
   recipient_status: string;
   response_message: string | null;
+  proposed_date?: string | null;
   owner_name: string;
   conversation_id?: string | null;
   quote_id?: string | null;
@@ -51,6 +57,9 @@ type ConciergeRequestRow = {
   workflow_status?: string | null;
   mission_status?: string | null;
   mission_id?: string | null;
+  metadata?: Record<string, unknown> | null;
+  brief?: ServiceRequestBrief | null;
+  request_summary?: string | null;
 };
 
 type RequestFilter = "new" | "compatible" | "urgent" | "premium" | "quote_draft" | "quote_sent" | "selected" | "closed";
@@ -89,6 +98,29 @@ function formatType(value: ConciergeRequestRow["request_type"]) {
   return "Besoin ponctuel";
 }
 
+function getRequestBrief(item: ConciergeRequestRow): ServiceRequestBrief {
+  if (item.brief) return item.brief;
+  const metadata = readServiceRequestBriefMetadata(item.metadata);
+  const metadataString = (key: string) => {
+    const value = metadata[key];
+    return typeof value === "string" ? value : null;
+  };
+
+  return buildServiceRequestBrief({
+    ownerGoal: metadataString("owner_goal"),
+    collaborationType: metadataString("collaboration_type"),
+    frequency: metadataString("collaboration_frequency"),
+    estimatedDuration: metadataString("estimated_duration"),
+    responsibilityLevel: metadataString("responsibility_level"),
+    city: item.city,
+    propertyName: item.property_name,
+    requestedServices: item.requested_services,
+    desiredDate: item.desired_date,
+    urgency: item.urgency,
+    description: item.description,
+  });
+}
+
 function getWorkflow(item: ConciergeRequestRow) {
   return deriveRequestWorkflowStatus({
     workflowStatus: item.workflow_status,
@@ -107,7 +139,12 @@ function getRequestFilter(item: ConciergeRequestRow): RequestFilter {
   if (item.quote_id || item.recipient_status === "quoted") return "quote_sent";
   if (item.urgency) return "urgent";
   if (item.budget_max && item.budget_max >= 500) return "premium";
-  if (item.recipient_status === "viewed" || item.recipient_status === "interested") return "compatible";
+  if (
+    item.recipient_status === "viewed" ||
+    item.recipient_status === "interested" ||
+    item.recipient_status === "information_requested" ||
+    item.recipient_status === "date_proposed"
+  ) return "compatible";
   return "new";
 }
 
@@ -126,6 +163,12 @@ function getNextStepDescription(item: ConciergeRequestRow) {
   }
   if (item.recipient_status === "quoted") {
     return "Le devis est prêt côté concierge. Suivez la réponse du propriétaire.";
+  }
+  if (item.recipient_status === "information_requested") {
+    return "Précision demandée";
+  }
+  if (item.recipient_status === "date_proposed") {
+    return "Date proposée";
   }
   if (item.recipient_status === "interested") {
     return "Vous avez confirmé votre intérêt. Finalisez maintenant le devis.";
@@ -158,14 +201,29 @@ function getRequestHeaderImage(item: ConciergeRequestRow) {
 function getCardTone(item: ConciergeRequestRow): ServiceRequestCardTone {
   if (item.recipient_status === "declined" || item.recipient_status === "not_selected") return "declined";
   if (item.recipient_status === "selected" || item.mission_id) return "accepted";
-  if (item.quote_id || item.recipient_status === "quoted" || item.recipient_status === "interested") return "discussion";
+  if (
+    item.quote_id ||
+    item.recipient_status === "quoted" ||
+    item.recipient_status === "interested" ||
+    item.recipient_status === "information_requested" ||
+    item.recipient_status === "date_proposed"
+  ) return "discussion";
   if (item.recipient_status === "viewed") return "viewed";
   return "sent";
 }
 
 function getConciergeMilestones(item: ConciergeRequestRow): ServiceRequestMilestone[] {
   const status = item.recipient_status;
-  const hasQualified = ["viewed", "interested", "quoted", "selected", "declined", "not_selected"].includes(status);
+  const hasQualified = [
+    "viewed",
+    "interested",
+    "information_requested",
+    "date_proposed",
+    "quoted",
+    "selected",
+    "declined",
+    "not_selected",
+  ].includes(status);
   const hasQuote = Boolean(item.quote_id) || status === "quoted" || status === "selected" || Boolean(item.mission_id);
   const hasMission = status === "selected" || Boolean(item.mission_id);
   const steps = [
@@ -194,9 +252,19 @@ function getConciergeFacts(item: ConciergeRequestRow): ServiceRequestFact[] {
   }
   if (services) facts.push({ label: "Services", value: services, Icon: Sparkles });
   if (item.quote_number) facts.push({ label: "Devis", value: item.quote_number, hint: getWorkflow(item), Icon: FileText });
+  if (item.proposed_date) facts.push({ label: "Date proposée", value: formatDate(item.proposed_date), Icon: CalendarPlus });
   if (item.mission_id) facts.push({ label: "Partenariat", value: "Devis accepté", hint: "Missions voyageurs à venir", Icon: CalendarPlus });
 
   return facts.slice(0, 4);
+}
+
+function getConciergeBriefFacts(item: ConciergeRequestRow): ServiceRequestFact[] {
+  const brief = getRequestBrief(item);
+  return [
+    { label: "Objectif", value: brief.owner_goal_label, Icon: ClipboardList },
+    { label: "Collaboration", value: brief.collaboration_type_label, hint: brief.pricing_expectation, Icon: BadgeCheck },
+    { label: "Frequence", value: brief.frequency_label, hint: brief.responsibility_level_label, Icon: Clock },
+  ];
 }
 
 function ConciergeDemandesContent() {
@@ -312,7 +380,11 @@ function ConciergeDemandesContent() {
     [items],
   );
 
-  async function respond(recipientId: string, status: "interested" | "declined") {
+  async function respond(
+    recipientId: string,
+    status: "interested" | "information_requested" | "date_proposed" | "declined",
+    options?: { responseMessage?: string | null; proposedDate?: string | null },
+  ) {
     try {
       setBusyRecipientId(recipientId);
       setActionMessage(null);
@@ -321,7 +393,11 @@ function ConciergeDemandesContent() {
       const response = await fetch(`/api/service-request-recipients/${recipientId}/respond`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          response_message: options?.responseMessage ?? undefined,
+          proposed_date: options?.proposedDate ?? undefined,
+        }),
       });
       const payload = await response.json();
       if (!response.ok) {
@@ -331,6 +407,10 @@ function ConciergeDemandesContent() {
       setActionMessage(
         status === "interested"
           ? "Demande marquée comme intéressante."
+          : status === "information_requested"
+            ? "Demande de précision envoyée."
+            : status === "date_proposed"
+              ? "Date alternative proposée."
           : "Demande refusée.",
       );
       await loadRequests();
@@ -363,12 +443,16 @@ function ConciergeDemandesContent() {
 
       const quoteId =
         payload?.quote && typeof payload.quote.id === "string" ? payload.quote.id : item.quote_id;
+      const nextAction =
+        payload?.completed_action && typeof payload.completed_action.next_action === "string"
+          ? ` Prochaine étape : ${payload.completed_action.next_action}`
+          : " Prochaine étape : vérifiez le brouillon puis envoyez le devis au propriétaire.";
       setActionMessage(
         payload?.reused
-          ? `Votre brouillon de devis est déjà prêt. Vous pouvez l'ouvrir et le finaliser.`
+          ? `Votre brouillon de devis est déjà prêt. Vous pouvez l'ouvrir et le finaliser.${nextAction}`
           : payload?.refreshed
-            ? `Votre brouillon de devis a été mis à jour à partir de cette demande.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis.` : ""}`
-            : `Votre brouillon de devis est prêt.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis à partir de la demande.` : ""}`,
+            ? `Votre brouillon de devis a été mis à jour à partir de cette demande.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis.` : ""}${nextAction}`
+            : `Votre brouillon de devis est prêt.${payload?.summary?.matchedPackageName ? ` Pack suggéré : ${payload.summary.matchedPackageName}.` : ""}${typeof payload?.summary?.matchedPricingCount === "number" && payload.summary.matchedPricingCount > 0 ? ` ${payload.summary.matchedPricingCount} tarif(s) ont été préremplis à partir de la demande.` : ""}${nextAction}`,
       );
 
       await loadRequests();
@@ -390,6 +474,23 @@ function ConciergeDemandesContent() {
       return `/dashboard/concierge/messages?conversation=${encodeURIComponent(item.conversation_id)}`;
     }
     return "/dashboard/concierge/messages";
+  }
+
+  function requestInformation(item: ConciergeRequestRow) {
+    const message = window.prompt("Précision demandée au propriétaire", item.response_message ?? "");
+    if (message === null) return;
+    void respond(item.recipient_id, "information_requested", {
+      responseMessage: message.trim() || "Pouvez-vous préciser votre besoin avant devis ?",
+    });
+  }
+
+  function proposeDate(item: ConciergeRequestRow) {
+    const proposedDate = window.prompt("Date proposée (AAAA-MM-JJ ou ISO)", item.desired_date?.slice(0, 10) ?? "");
+    if (proposedDate === null || !proposedDate.trim()) return;
+    void respond(item.recipient_id, "date_proposed", {
+      proposedDate: proposedDate.trim(),
+      responseMessage: `Date proposée : ${proposedDate.trim()}`,
+    });
   }
 
   async function retryRequests() {
@@ -479,6 +580,22 @@ function ConciergeDemandesContent() {
           >
             Refuser
           </button>
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            disabled={isBusy}
+            onClick={() => requestInformation(item)}
+          >
+            Demander une précision
+          </button>
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            disabled={isBusy}
+            onClick={() => proposeDate(item)}
+          >
+            Proposer une date
+          </button>
         </>
       );
     }
@@ -514,6 +631,22 @@ function ConciergeDemandesContent() {
           onClick={() => void respond(item.recipient_id, "declined")}
         >
           Refuser
+        </button>
+        <button
+          type="button"
+          className={styles.ghostBtn}
+          disabled={isBusy}
+          onClick={() => requestInformation(item)}
+        >
+          Demander une précision
+        </button>
+        <button
+          type="button"
+          className={styles.ghostBtn}
+          disabled={isBusy}
+          onClick={() => proposeDate(item)}
+        >
+          Proposer une date
         </button>
       </>
     );
@@ -634,11 +767,11 @@ function ConciergeDemandesContent() {
               statusTone={getCardTone(item)}
               typeLabel={formatType(item.request_type)}
               urgent={item.urgency}
-              summary={item.description || getNextStepDescription(item)}
+              summary={item.request_summary || getRequestBrief(item).summary || item.description || getNextStepDescription(item)}
               currentStepDetail={getNextStepLabel(item)}
               guidance={getNextStepDescription(item)}
               headerImage={getRequestHeaderImage(item)}
-              facts={getConciergeFacts(item)}
+              facts={[...getConciergeBriefFacts(item), ...getConciergeFacts(item)].slice(0, 6)}
               milestones={getConciergeMilestones(item)}
               focused={focusedRecipientId === item.recipient_id}
               chips={
@@ -648,6 +781,14 @@ function ConciergeDemandesContent() {
                       {service}
                     </span>
                   ))}
+                  <span className={styles.tag}>{getRequestBrief(item).owner_goal_label}</span>
+                  <span className={styles.tag}>{getRequestBrief(item).collaboration_type_label}</span>
+                  <span className={styles.tag}>{getRequestBrief(item).frequency_label}</span>
+                  {getRequestBrief(item).missing_information.length > 0 ? (
+                    <span className={styles.trustBadge}>
+                      {getRequestBrief(item).missing_information.length} info(s) a preciser
+                    </span>
+                  ) : null}
                   {item.quote_number ? <span className={styles.tag}>{item.quote_number}</span> : null}
                   {item.recipient_status === "selected" || item.mission_id ? <span className={styles.trustBadge}>Partenariat actif</span> : null}
                 </>

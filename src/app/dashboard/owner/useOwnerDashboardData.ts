@@ -14,6 +14,9 @@ type OwnerHousingRow = {
   nom_logement: string | null;
   ville: string | null;
   statut: string | null;
+  infos?: {
+    equipements?: string[];
+  } | null;
 };
 
 type OwnerMissionRow = {
@@ -21,7 +24,11 @@ type OwnerMissionRow = {
   title: string | null;
   status: string | null;
   amount: number | null;
+  currency?: string | null;
   scheduled_start: string | null;
+  scheduled_end?: string | null;
+  property_id?: string | number | null;
+  concierge_name?: string | null;
 };
 
 type OwnerQuoteRow = {
@@ -66,7 +73,16 @@ function isActiveHousingStatus(status: string | null) {
 }
 
 function isOngoingMission(status: string | null) {
-  return status === "assigned" || status === "accepted" || status === "in_progress";
+  return (
+    status === "assigned" ||
+    status === "accepted" ||
+    status === "to_schedule" ||
+    status === "date_requested" ||
+    status === "date_proposed" ||
+    status === "date_confirmed" ||
+    status === "scheduled" ||
+    status === "in_progress"
+  );
 }
 
 export function getOwnerHousingStatusLabel(status: string | null) {

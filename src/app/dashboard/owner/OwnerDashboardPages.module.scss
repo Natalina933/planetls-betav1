@@ -392,6 +392,158 @@
   background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
 }
 
+.stockWorkspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.35fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.stockSidebar,
+.stockEditor {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.stockSidebar {
+  position: sticky;
+  top: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.06);
+}
+
+.stockHousingList,
+.stockItemList {
+  display: grid;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.stockHousingButton {
+  display: grid;
+  gap: 0.28rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--dash-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.stockHousingButtonActive {
+  border-color: rgba(184, 92, 72, 0.42);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), #f8e7e0);
+  box-shadow: 0 10px 18px rgba(109, 53, 41, 0.08);
+}
+
+.stockHousingButton strong,
+.stockHousingButton span,
+.stockHousingButton small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.stockHousingButton span,
+.stockHousingButton small {
+  color: var(--dash-text-muted);
+}
+
+.stockMiniStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.stockMiniStats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0.35rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: var(--dash-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.stockFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.stockField,
+.stockFieldFull {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.stockFieldFull {
+  grid-column: 1 / -1;
+}
+
+.stockField span,
+.stockFieldFull span {
+  color: var(--dash-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stockField input,
+.stockFieldFull input,
+.stockFieldFull textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.22);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--dash-text);
+  padding: 0.72rem 0.85rem;
+}
+
+.stockFieldFull textarea {
+  resize: vertical;
+}
+
+.stockFieldFull small {
+  color: var(--dash-text-muted);
+  line-height: 1.45;
+}
+
+.stockItemCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .message {
   font-weight: 700;
 }
@@ -1284,6 +1436,14 @@
     grid-template-columns: 1fr;
   }
 
+  .stockWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .stockSidebar {
+    position: static;
+  }
+
   .travelerMissionAside {
     position: static;
   }
@@ -1324,7 +1484,12 @@
   }
 
   .travelerFieldGrid,
-  .travelerMissionFacts {
+  .travelerMissionFacts,
+  .stockFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stockItemCard {
     grid-template-columns: 1fr;
   }
 

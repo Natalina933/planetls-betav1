@@ -10,6 +10,7 @@ export interface DashboardStatItem {
   value: string;
   hint?: string;
   trend?: string;
+  progress?: number;
 }
 
 export interface DashboardQuickAction {

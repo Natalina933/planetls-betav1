@@ -219,6 +219,19 @@
   align-items: start;
 }
 
+.summaryStack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.compactLabel {
+  display: grid;
+  gap: 0.35rem;
+  color: #6f5a3b;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .totalBody {
   display: grid;
   gap: 0.8rem;

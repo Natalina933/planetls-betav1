@@ -17,6 +17,7 @@ export function StatsWidget({ items }: StatsWidgetProps) {
             value={item.value}
             hint={item.hint}
             trend={item.trend}
+            progress={item.progress}
           />
         ))}
       </div>

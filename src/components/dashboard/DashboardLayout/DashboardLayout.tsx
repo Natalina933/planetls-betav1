@@ -43,6 +43,8 @@ interface DashboardLayoutProps {
     badge?: string;
     avatarSrc?: string;
   };
+  hideHeader?: boolean;
+  hideProfileSummary?: boolean;
   showBottomNav?: boolean;
   children?: ReactNode;
 }
@@ -54,7 +56,7 @@ function getLevelVariant(level: DashboardNotificationItem["level"]) {
 }
 
 function getPersonaLabel(persona: DashboardPersona) {
-  if (persona === "owner") return "Proprietaire";
+  if (persona === "owner") return "Propriétaire";
   if (persona === "artisan") return "Artisan";
   if (persona === "conciergerie") return "Conciergerie";
   return "Admin";
@@ -83,6 +85,8 @@ export function DashboardLayout({
   notifications,
   shortcuts,
   profile,
+  hideHeader = false,
+  hideProfileSummary = false,
   showBottomNav = true,
   children,
 }: DashboardLayoutProps) {
@@ -90,22 +94,24 @@ export function DashboardLayout({
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.identity}>
-          <span className={styles.avatar}>
-            <PersonaIcon size={24} aria-hidden="true" />
-          </span>
-          <div className={styles.identityCopy}>
-            <p className={styles.identityEyebrow}>{getPersonaLabel(persona)}</p>
-            <h1>{title}</h1>
-            <p>{profile.name}</p>
+      {!hideHeader ? (
+        <header className={styles.header}>
+          <div className={styles.identity}>
+            <span className={styles.avatar}>
+              <PersonaIcon size={24} aria-hidden="true" />
+            </span>
+            <div className={styles.identityCopy}>
+              <p className={styles.identityEyebrow}>{getPersonaLabel(persona)}</p>
+              <h1>{title}</h1>
+              <p>{profile.name}</p>
+            </div>
           </div>
-        </div>
-        <div className={styles.headerSummary}>
-          <span className={styles.headerPill}>{profile.badge ?? getPersonaLabel(persona)}</span>
-          <span className={styles.headerSummaryText}>{subtitle}</span>
-        </div>
-      </header>
+          <div className={styles.headerSummary}>
+            <span className={styles.headerPill}>{profile.badge ?? getPersonaLabel(persona)}</span>
+            <span className={styles.headerSummaryText}>{subtitle}</span>
+          </div>
+        </header>
+      ) : null}
 
       <section className={styles.todaySection} aria-labelledby={`${persona}-today-title`}>
         <div className={styles.sectionHeader}>
@@ -119,14 +125,6 @@ export function DashboardLayout({
 
       <div className={styles.grid}>
         <main className={styles.main}>
-          <section className={styles.intro}>
-            <div>
-              <p className={styles.eyebrow}>{profile.badge ?? getPersonaLabel(persona)}</p>
-              <h2>{profile.subtitle}</h2>
-              <p>{subtitle}</p>
-            </div>
-          </section>
-
           {children ? <div className={styles.mainSections}>{children}</div> : null}
 
           <section className={styles.actionsSection} aria-labelledby={`${persona}-actions-title`}>
@@ -142,7 +140,7 @@ export function DashboardLayout({
 
         <aside className={styles.aside}>
           <Sidebar title={navTitle} items={navItems} />
-          <ProfileSummary {...profile} />
+          {!hideProfileSummary ? <ProfileSummary {...profile} /> : null}
           <ActivityFeed items={activity} />
           <Card className={styles.panel}>
             <CardHeader className={styles.panelHeader}>
@@ -164,7 +162,7 @@ export function DashboardLayout({
           </Card>
           <Card className={styles.panel}>
             <CardHeader className={styles.panelHeader}>
-              <h2>Acces rapides</h2>
+              <h2>Accès rapides</h2>
             </CardHeader>
             <CardBody className={styles.shortcutBody}>
               {shortcuts.map((item) => (

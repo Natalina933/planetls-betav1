@@ -12,6 +12,7 @@ import {
   ARTISAN_SHORTCUTS,
 } from "@/features/artisan-dashboard";
 import { useProviderDashboardData } from "./useProviderDashboardData";
+import styles from "./ProviderDashboard.module.scss";
 
 export default function ProviderDashboardPage() {
   const {
@@ -39,6 +40,10 @@ export default function ProviderDashboardPage() {
           value: `${stats?.inProgress ?? 0}`,
           hint: `${stats?.interventions ?? 0} intervention(s) suivie(s)`,
           trend: (stats?.inProgress ?? 0) > 0 ? "Terrain" : "OK",
+          progress:
+            (stats?.interventions ?? 0) > 0
+              ? Math.round(((stats?.inProgress ?? 0) / (stats?.interventions ?? 1)) * 100)
+              : 0,
         },
         {
           label: "Alertes urgentes",
@@ -55,7 +60,7 @@ export default function ProviderDashboardPage() {
         {
           label: "Conversations",
           value: `${stats?.conversations ?? 0}`,
-          hint: "Suivi relationnel en continu",
+          hint: "Suivi relationnel",
           trend: "SLA",
         },
       ]}
@@ -115,46 +120,78 @@ export default function ProviderDashboardPage() {
         serviceRadiusKm={workspace?.profile.service_radius_km}
       />
 
+      <section className={styles.scanSection} aria-labelledby="provider-first-title">
+        <div className={styles.scanHeader}>
+          <span>Terrain</span>
+          <h2 id="provider-first-title">Premières interventions</h2>
+        </div>
+        <div className={styles.scanGrid}>
+          {highlightedInterventions.length > 0 ? (
+            highlightedInterventions.slice(0, 3).map((item) => (
+              <Link key={item.id} href={`/dashboard/provider/interventions?intervention=${item.id}`} className={styles.scanCard}>
+                <span className={styles.scanBadge}>{item.status || "À traiter"}</span>
+                <strong>{item.title || item.service_label || "Intervention"}</strong>
+                <dl>
+                  <div>
+                    <dt>Date</dt>
+                    <dd>{formatDateValue(item.scheduled_start)}</dd>
+                  </div>
+                  <div>
+                    <dt>Montant</dt>
+                    <dd>
+                      {formatCurrencyAmount(item.budget_amount, {
+                        currency: item.currency || "EUR",
+                        emptyLabel: "À confirmer",
+                      })}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Lieu</dt>
+                    <dd>{item.location_label || "À préciser"}</dd>
+                  </div>
+                </dl>
+              </Link>
+            ))
+          ) : (
+            <Link href="/dashboard/provider/interventions" className={styles.scanEmpty}>
+              <strong>Aucune intervention prioritaire</strong>
+              <span>Ouvrir les demandes terrain</span>
+            </Link>
+          )}
+        </div>
+      </section>
+
       <DashboardPanel title="Vue d'ensemble">
-        <AsyncState
-          loading={isLoading}
-          error={error}
-          loadingLabel="Chargement de la synthèse artisan..."
-        >
-          <p>
-            {stats?.inProgress ?? 0} intervention(s) en cours, {stats?.urgentAlerts ?? 0} alerte(s)
-            urgente(s) et {stats?.activeClients ?? 0} client(s) actif(s).
-          </p>
-          <p>
-            {highlightedInterventions[0]
-              ? `${highlightedInterventions[0].title || highlightedInterventions[0].service_label || "Intervention"} est le dossier terrain le plus exposé aujourd'hui.`
-              : "Aucune intervention prioritaire remontée aujourd'hui."}
-          </p>
-          <Link href="/dashboard/provider/interventions/overview">Ouvrir la vue synthèse des interventions</Link>
+        <AsyncState loading={isLoading} error={error} loadingLabel="Chargement de la synthèse artisan...">
+          <div className={styles.miniKpiGrid}>
+            <span>
+              {stats?.inProgress ?? 0}
+              <small>en cours</small>
+            </span>
+            <span>
+              {stats?.urgentAlerts ?? 0}
+              <small>urgentes</small>
+            </span>
+            <span>
+              {stats?.activeClients ?? 0}
+              <small>clients</small>
+            </span>
+          </div>
+          <Link href="/dashboard/provider/interventions/overview">Ouvrir la synthèse des interventions</Link>
         </AsyncState>
       </DashboardPanel>
 
       <DashboardPanel title="Pilotage stratégique">
-        <AsyncState
-          loading={isLoading}
-          error={error}
-          loadingLabel="Chargement des signaux de pilotage..."
-        >
-          <p>
-            {workspace?.summary.is_pro
-              ? "Le compte PRO est actif pour valoriser l'offre et accélérer la relation client."
-              : "Le compte est en mode standard. Une montée en gamme peut renforcer la visibilité et la conversion."}
-          </p>
-          <p>
-            {(stats?.urgentAlerts ?? 0) > 0
-              ? "La priorité stratégique est de réduire les alertes urgentes pour protéger la disponibilité opérationnelle."
-              : "Les urgences sont contenues, la priorité peut basculer sur la fidélisation et la marge."}
-          </p>
-          <p>
-            {highlightedClients[0]
-              ? `Client à forte attention: ${highlightedClients[0].client_name || highlightedClients[0].company_name || "Client"}${highlightedClients[0].city ? `, ${highlightedClients[0].city}` : ""}.`
-              : "Aucun client prioritaire signalé pour le moment."}
-          </p>
+        <AsyncState loading={isLoading} error={error} loadingLabel="Chargement des signaux de pilotage...">
+          <div className={styles.signalList}>
+            <span>{workspace?.summary.is_pro ? "Compte PRO actif" : "Compte standard"}</span>
+            <span>{(stats?.urgentAlerts ?? 0) > 0 ? "Urgences à réduire" : "Urgences contenues"}</span>
+            <span>
+              {highlightedClients[0]
+                ? highlightedClients[0].client_name || highlightedClients[0].company_name || "Client prioritaire"
+                : "Aucun client prioritaire"}
+            </span>
+          </div>
         </AsyncState>
       </DashboardPanel>
 

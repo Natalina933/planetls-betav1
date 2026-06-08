@@ -76,7 +76,7 @@ const actionSteps = [
 const showcaseAvatars = [
   { src: "/avatars/marie.png", alt: "Profil concierge Marie" },
   { src: "/avatars/sophie.png", alt: "Profil concierge Sophie" },
-  { src: "/avatars/leo.png", alt: "Profil concierge Leo" },
+  { src: "/avatars/leo.png", alt: "Profil concierge Léo" },
 ];
 
 export const metadata: Metadata = {
