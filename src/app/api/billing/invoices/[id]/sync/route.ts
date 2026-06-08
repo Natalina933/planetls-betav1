@@ -1,9 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { db } from "@/app/lib/dbServer";
 import { recordStripeEvent } from "@/app/lib/stripeHistory";
 
 const ALLOWED_ROLES = new Set(["owner", "owner_pro", "admin", "super_admin"]);
+
+async function closeMissionAfterFinalPayment(input: {
+  missionId: string;
+  actorProfileId: string;
+}) {
+  const { data: mission } = await db
+    .from("missions")
+    .select("id, status, owner_profile_id, concierge_profile_id, metadata")
+    .eq("id", input.missionId)
+    .maybeSingle();
+
+  if (!mission || !["validated", "completed", "awaiting_owner_validation"].includes(String(mission.status ?? ""))) {
+    return null;
+  }
+
+  const { data: openInvoices } = await db
+    .from("invoices")
+    .select("id, status, balance_amount")
+    .eq("mission_id", input.missionId)
+    .not("status", "in", "(paid,canceled)");
+
+  const stillOpen = (openInvoices ?? []).some((invoice) => Number(invoice.balance_amount ?? 0) > 0);
+  if (stillOpen) return null;
+
+  const nowIso = new Date().toISOString();
+  const { data: closedMission, error: closeError } = await db
+    .from("missions")
+    .update({
+      status: "closed",
+      metadata: {
+        ...(mission.metadata && typeof mission.metadata === "object" && !Array.isArray(mission.metadata)
+          ? (mission.metadata as Record<string, unknown>)
+          : {}),
+        closed_after_final_payment_at: nowIso,
+      },
+    })
+    .eq("id", input.missionId)
+    .select("id, status, owner_profile_id, concierge_profile_id")
+    .maybeSingle();
+
+  if (closeError || !closedMission) {
+    console.error("[POST /api/billing/invoices/:id/sync] mission close error:", closeError);
+    return null;
+  }
+
+  await db.from("mission_events").insert({
+    mission_id: input.missionId,
+    actor_profile_id: input.actorProfileId,
+    event_type: "closed_after_final_payment",
+    payload: {
+      source: "stripe_invoice_paid",
+    },
+  });
+
+  await recordWorkflowEvent(db, {
+    actorProfileId: input.actorProfileId,
+    ownerProfileId: closedMission.owner_profile_id,
+    conciergeProfileId: closedMission.concierge_profile_id,
+    missionId: input.missionId,
+    eventType: "mission_closed",
+    title: "Mission cloturee",
+    body: "La mission est cloturee apres paiement final.",
+    actionHref: `/dashboard/missions/${input.missionId}`,
+    missionStatus: "closed",
+    hasMission: true,
+    metadata: {
+      source: "stripe_invoice_paid",
+    },
+  });
+
+  return closedMission;
+}
 
 export async function POST(
   req: NextRequest,
@@ -75,7 +148,7 @@ export async function POST(
 
     const { data: invoice, error: invoiceError } = await db
       .from("invoices")
-      .select("id, owner_profile_id, total_amount, currency, status")
+      .select("id, invoice_number, owner_profile_id, concierge_profile_id, quote_id, mission_id, total_amount, currency, status")
       .eq("id", id)
       .single();
 
@@ -121,6 +194,32 @@ export async function POST(
       console.error("[POST /api/billing/invoices/:id/sync] event error:", eventError);
     }
 
+    await recordWorkflowEvent(db, {
+      actorProfileId: auth.userId,
+      ownerProfileId: invoice.owner_profile_id,
+      conciergeProfileId: invoice.concierge_profile_id,
+      quoteId: invoice.quote_id,
+      missionId: invoice.mission_id,
+      eventType: "invoice_paid",
+      title: "Paiement recu",
+      body: `La facture ${invoice.invoice_number || invoice.id} est reglee par carte.`,
+      actionHref: `/dashboard/owner/factures?invoice=${invoice.id}`,
+      hasMission: Boolean(invoice.mission_id),
+      metadata: {
+        invoice_id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        source: "stripe",
+        session_id: sessionId,
+      },
+    });
+
+    const closedMission = invoice.mission_id
+      ? await closeMissionAfterFinalPayment({
+          missionId: invoice.mission_id,
+          actorProfileId: auth.userId,
+        })
+      : null;
+
     await recordStripeEvent({
       profileId: auth.userId,
       stripeObjectId: sessionId,
@@ -129,7 +228,7 @@ export async function POST(
       payload: stripePayload,
     });
 
-    return NextResponse.json({ success: true, invoice: updated });
+    return NextResponse.json({ success: true, invoice: updated, closed_mission: closedMission });
   } catch (err) {
     console.error("[POST /api/billing/invoices/:id/sync] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

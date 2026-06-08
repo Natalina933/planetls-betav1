@@ -62,6 +62,7 @@ export function deriveRequestWorkflowStatus(params: {
   const recipientStatus = normalizeStatus(params.recipientStatus);
   if (recipientStatus === "SELECTED") return "ACCEPTED";
   if (recipientStatus === "QUOTED") return "QUOTE_SENT";
+  if (recipientStatus === "INFORMATION_REQUESTED" || recipientStatus === "DATE_PROPOSED") return "IN_DISCUSSION";
   if (recipientStatus === "INTERESTED") return "IN_DISCUSSION";
   if (recipientStatus === "VIEWED") return "VIEWED";
   if (recipientStatus === "SENT") return "SENT";
@@ -69,12 +70,13 @@ export function deriveRequestWorkflowStatus(params: {
 
   const serviceRequestStatus = normalizeStatus(params.serviceRequestStatus);
   if (["COMPLETED", "ARCHIVED"].includes(serviceRequestStatus)) return "ARCHIVED";
-  if (serviceRequestStatus === "ACCEPTED") return "ACCEPTED";
+  if (serviceRequestStatus === "ACCEPTED" || serviceRequestStatus === "QUOTE_ACCEPTED") return "ACCEPTED";
+  if (serviceRequestStatus === "INFORMATION_REQUESTED") return "IN_DISCUSSION";
   if (serviceRequestStatus === "QUOTED") return "QUOTE_SENT";
   if (serviceRequestStatus === "IN_REVIEW") return "IN_DISCUSSION";
-  if (serviceRequestStatus === "SENT") return "SENT";
+  if (serviceRequestStatus === "SENT" || serviceRequestStatus === "RECEIVED") return "SENT";
   if (serviceRequestStatus === "VIEWED") return "VIEWED";
-  if (["DECLINED", "REJECTED"].includes(serviceRequestStatus)) return "DECLINED";
+  if (["DECLINED", "REJECTED", "QUOTE_REFUSED", "CLOSED"].includes(serviceRequestStatus)) return "DECLINED";
   if (serviceRequestStatus === "EXPIRED") return "EXPIRED";
 
   return "NEW";

@@ -9,13 +9,15 @@ export type QuoteOwnership = {
   id?: NullableId;
   owner_profile_id?: NullableId;
   concierge_profile_id?: NullableId;
+  service_request_id?: NullableId;
+  service_request_recipient_id?: NullableId;
   metadata?: Record<string, unknown> | null;
 };
 
 export const quoteBelongsToServiceRequest = (
   quote: QuoteOwnership,
   serviceRequestId: string,
-): boolean => quote.metadata?.service_request_id === serviceRequestId;
+): boolean => quote.service_request_id === serviceRequestId || quote.metadata?.service_request_id === serviceRequestId;
 
 export const canOwnerSelectQuote = (
   ownerProfileId: string,

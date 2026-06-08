@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
+import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import { deriveServiceRequestStatus, type ServiceRequestRecipientStatus } from "@/server/service-requests/workflow";
@@ -183,7 +185,7 @@ async function syncServiceRequestFromQuoteStatus(input: {
     .select("status")
     .eq("service_request_id", input.serviceRequestId);
 
-  const nextRequestStatus = deriveServiceRequestStatus(
+  let nextRequestStatus = deriveServiceRequestStatus(
     Array.isArray(relatedRecipients)
       ? relatedRecipients
           .map((row: { status?: string | null }) => row.status)
@@ -191,6 +193,10 @@ async function syncServiceRequestFromQuoteStatus(input: {
       : [],
     null,
   );
+
+  if (input.quoteStatus === "accepted") nextRequestStatus = "quote_accepted";
+  if (input.quoteStatus === "rejected" || input.quoteStatus === "canceled") nextRequestStatus = "quote_refused";
+  if (input.quoteStatus === "expired") nextRequestStatus = "expired";
 
   const { data: requestRow } = await untypedDb
     .from("service_requests")
@@ -243,10 +249,10 @@ export async function PATCH(
       );
     }
 
-    let existingQuery = db
+    let existingQuery = untypedDb
       .from("quotes")
       .select(
-        "id, status, sent_at, accepted_at, rejected_at, canceled_at, owner_profile_id, concierge_profile_id, mission_id, total_amount, currency, notes, metadata",
+        "id, status, sent_at, accepted_at, rejected_at, canceled_at, owner_profile_id, concierge_profile_id, mission_id, service_request_id, service_request_recipient_id, total_amount, currency, notes, metadata",
       )
       .eq("id", id);
 
@@ -289,11 +295,17 @@ export async function PATCH(
           : {};
 
       const serviceRequestId =
-        typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
+        typeof existing.service_request_id === "string"
+          ? existing.service_request_id
+          : typeof metadata.service_request_id === "string"
+            ? metadata.service_request_id
+            : null;
       const serviceRequestRecipientId =
-        typeof metadata.service_request_recipient_id === "string"
-          ? metadata.service_request_recipient_id
-          : null;
+        typeof existing.service_request_recipient_id === "string"
+          ? existing.service_request_recipient_id
+          : typeof metadata.service_request_recipient_id === "string"
+            ? metadata.service_request_recipient_id
+            : null;
 
       let serviceRequest: ServiceRequestRow | null = null;
       if (serviceRequestId) {
@@ -322,7 +334,7 @@ export async function PATCH(
           .from("service_requests")
           .update({
             selected_concierge_profile_id: existing.concierge_profile_id,
-            status: "accepted",
+            status: "quote_accepted",
             mission_id: null,
             metadata: {
               ...requestMetadata,
@@ -370,9 +382,11 @@ export async function PATCH(
           ? existing.metadata
           : {};
       const serviceRequestRecipientId =
-        typeof metadata.service_request_recipient_id === "string"
-          ? metadata.service_request_recipient_id
-          : null;
+        typeof existing.service_request_recipient_id === "string"
+          ? existing.service_request_recipient_id
+          : typeof metadata.service_request_recipient_id === "string"
+            ? metadata.service_request_recipient_id
+            : null;
 
       if (actorIsOwner && serviceRequestRecipientId) {
         const { error: recipientUpdateError } = await untypedDb
@@ -394,9 +408,17 @@ export async function PATCH(
         ? existing.metadata
         : {};
     const serviceRequestId =
-      typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
+      typeof existing.service_request_id === "string"
+        ? existing.service_request_id
+        : typeof metadata.service_request_id === "string"
+          ? metadata.service_request_id
+          : null;
     const serviceRequestRecipientId =
-      typeof metadata.service_request_recipient_id === "string" ? metadata.service_request_recipient_id : null;
+      typeof existing.service_request_recipient_id === "string"
+        ? existing.service_request_recipient_id
+        : typeof metadata.service_request_recipient_id === "string"
+          ? metadata.service_request_recipient_id
+          : null;
     const syncedRequestStatus = await syncServiceRequestFromQuoteStatus({
       serviceRequestId,
       serviceRequestRecipientId,
@@ -404,12 +426,12 @@ export async function PATCH(
       quoteStatus: nextStatus,
     });
 
-    let updateQuery = db
+    let updateQuery = untypedDb
       .from("quotes")
       .update(updatePayload)
       .eq("id", id)
       .select(
-        "id, quote_number, status, owner_profile_id, concierge_profile_id, mission_id, package_id, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, sent_at, accepted_at, rejected_at, canceled_at, created_at, updated_at",
+        "id, quote_number, status, owner_profile_id, concierge_profile_id, mission_id, service_request_id, service_request_recipient_id, package_id, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, sent_at, accepted_at, rejected_at, canceled_at, created_at, updated_at",
       );
 
     if (OWNER_BILLING_ROLES.has(role)) {
@@ -454,6 +476,8 @@ export async function PATCH(
         db: untypedDb,
         quoteId: id,
         actorProfileId: userId,
+        serviceRequestId,
+        serviceRequestRecipientId,
       });
 
       try {
@@ -475,15 +499,64 @@ export async function PATCH(
       });
     }
 
+    const workflowEvent = await recordWorkflowEvent(untypedDb, {
+      actorProfileId: userId,
+      ownerProfileId: existing.owner_profile_id,
+      conciergeProfileId: existing.concierge_profile_id,
+      serviceRequestId,
+      serviceRequestRecipientId,
+      quoteId: id,
+      missionId: workflowResult?.mission?.id ?? updated.mission_id ?? null,
+      eventType: `quote_${eventType}`,
+      title:
+        nextStatus === "sent"
+          ? "Devis envoyé"
+          : nextStatus === "accepted"
+            ? "Devis accepté"
+            : nextStatus === "rejected"
+              ? "Devis refusé"
+              : "Statut devis mis à jour",
+      body: nextStatus === "rejected" && reason ? reason : null,
+      actionHref: `/dashboard/owner/devis?quote=${id}`,
+      serviceRequestStatus: syncedRequestStatus,
+      quoteStatus: nextStatus,
+      missionStatus: workflowResult?.mission?.status ?? null,
+      hasMission: Boolean(workflowResult?.mission?.id ?? updated.mission_id),
+      metadata: {
+        from: existing.status,
+        to: nextStatus,
+      },
+    });
+
     return NextResponse.json({
       ...updated,
       mission_id: workflowResult?.mission?.id ?? updated.mission_id,
+      workflow_status: deriveQuoteWorkflowStatus(nextStatus),
+      quote_workflow_status: deriveQuoteWorkflowStatus(nextStatus),
+      request_workflow_status: workflowEvent.workflow.request_workflow_status,
+      mission_workflow_status: workflowEvent.workflow.mission_workflow_status,
       accepted_workflow: {
         mission_id: workflowResult?.mission?.id ?? updated.mission_id ?? null,
         invoice_id: workflowResult?.invoice?.id ?? null,
       },
       completed_action: {
         request_status: syncedRequestStatus,
+        next_action:
+          nextStatus === "accepted"
+            ? workflowResult?.mission?.id
+              ? "Choisir ou confirmer la date de mission, puis transmettre les séjours voyageurs."
+              : "Créer ou rattacher la mission commerciale avant de transmettre les séjours voyageurs."
+            : nextStatus === "sent"
+              ? "Attendre la décision du propriétaire ou relancer depuis la conversation."
+              : "Comparer les autres devis actifs ou relancer une nouvelle recherche si nécessaire.",
+        next_href:
+          nextStatus === "accepted" && workflowResult?.mission?.id
+            ? `/dashboard/owner/missions/${workflowResult.mission.id}`
+            : nextStatus === "accepted"
+              ? "/dashboard/owner/demandes"
+              : nextStatus === "sent"
+                ? `/dashboard/owner/devis?quote=${id}`
+                : "/dashboard/owner/devis",
         visible_in:
           nextStatus === "accepted"
             ? ["planning", "missions", "finances", "partenaires"]

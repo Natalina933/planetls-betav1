@@ -1,5 +1,5 @@
-import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
-import type { LooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { insertMissionWithOptionalMetadata } from "./missionInsert.ts";
+import type { LooseSupabaseClient } from "./untypedSupabase.ts";
 
 type DbClient = LooseSupabaseClient;
 
@@ -17,6 +17,8 @@ type QuoteWorkflowQuote = {
   concierge_profile_id?: string | null;
   owner_profile_id?: string | null;
   mission_id?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   currency?: string | null;
   total_amount?: number | null;
   discount_amount?: number | null;
@@ -98,6 +100,10 @@ async function findOrCreateMission(input: {
     service_request_id: serviceRequestId,
     service_request_recipient_id: serviceRequestRecipientId,
     accepted_quote_amount: quote.total_amount ?? null,
+    payment_plan: quoteMetadata.payment_plan ?? null,
+    deposit_amount: quoteMetadata.deposit_amount ?? null,
+    deposit_percent: quoteMetadata.deposit_percent ?? null,
+    deposit_required: quoteMetadata.deposit_required ?? null,
     planning_origin: request?.desired_date ? "service_request_desired_date" : "to_schedule",
   };
 
@@ -110,7 +116,7 @@ async function findOrCreateMission(input: {
       service_id: null,
       title: buildMissionTitle(request, quote),
       description: request?.description ?? quote.notes ?? null,
-      status: "assigned",
+      status: request?.desired_date ? "date_requested" : "to_schedule",
       priority: request?.urgency ? "urgent" : "normal",
       amount: quote.total_amount ?? request?.budget_max ?? null,
       currency: quote.currency ?? request?.currency ?? "EUR",
@@ -137,6 +143,7 @@ async function ensureDraftInvoice(input: {
 }) {
   const { db, quote, missionId } = input;
   if (!quote.concierge_profile_id) return null;
+  const quoteMetadata = isRecord(quote.metadata) ? quote.metadata : {};
 
   const { data: existingInvoices, error: existingError } = await db
     .from("invoices")
@@ -182,6 +189,7 @@ async function ensureDraftInvoice(input: {
       tax_rate: round2(Number(quote.tax_rate ?? 0)),
       notes: quote.notes ?? `Facture brouillon générée depuis le devis ${quote.quote_number ?? quote.id}`,
       metadata: {
+        ...quoteMetadata,
         source: "quote_acceptance",
         quote_id: quote.id,
         quote_number: quote.quote_number ?? null,
@@ -222,7 +230,7 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
   const { data: quote, error: quoteError } = await db
     .from("quotes")
     .select(
-      "id, quote_number, concierge_profile_id, owner_profile_id, mission_id, currency, total_amount, discount_amount, tax_rate, notes, metadata",
+      "id, quote_number, concierge_profile_id, owner_profile_id, mission_id, service_request_id, service_request_recipient_id, currency, total_amount, discount_amount, tax_rate, notes, metadata",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -234,9 +242,9 @@ export async function finalizeAcceptedQuoteWorkflow(input: QuoteWorkflowInput) {
 
   const quoteRow = quote as QuoteWorkflowQuote;
   const quoteMetadata = isRecord(quoteRow.metadata) ? quoteRow.metadata : {};
-  const serviceRequestId = input.serviceRequestId ?? getMetadataString(quoteMetadata, "service_request_id");
+  const serviceRequestId = input.serviceRequestId ?? quoteRow.service_request_id ?? getMetadataString(quoteMetadata, "service_request_id");
   const serviceRequestRecipientId =
-    input.serviceRequestRecipientId ?? getMetadataString(quoteMetadata, "service_request_recipient_id");
+    input.serviceRequestRecipientId ?? quoteRow.service_request_recipient_id ?? getMetadataString(quoteMetadata, "service_request_recipient_id");
 
   let request: ServiceRequestWorkflowRow | null = null;
   if (serviceRequestId) {

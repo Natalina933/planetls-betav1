@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CheckCircle2, Sparkles, type LucideIcon } from "lucide-react";
+import { Sparkles, type LucideIcon } from "lucide-react";
+import { WorkflowTimeline } from "../WorkflowTimeline";
 import styles from "./ServiceRequestCard.module.scss";
 
 export type ServiceRequestCardTone = "draft" | "sent" | "viewed" | "discussion" | "accepted" | "declined" | "expired";
@@ -118,15 +119,8 @@ export function ServiceRequestCard({
         </div>
       ) : null}
 
-      <div className={styles.milestones}>
-        {milestones.map((step) => (
-          <div key={step.label} className={styles.milestone} data-state={step.state}>
-            <span>
-              {step.state === "done" ? <CheckCircle2 size={15} aria-hidden="true" /> : <step.Icon size={15} aria-hidden="true" />}
-            </span>
-            <small>{step.label}</small>
-          </div>
-        ))}
+      <div className={styles.workflowTimeline}>
+        <WorkflowTimeline title="Parcours métier" steps={milestones} />
       </div>
 
       <div className={styles.footer}>

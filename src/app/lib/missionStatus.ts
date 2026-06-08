@@ -1,9 +1,17 @@
 export type MissionStatus =
   | "draft"
   | "assigned"
+  | "to_schedule"
+  | "date_requested"
+  | "date_proposed"
+  | "date_confirmed"
+  | "scheduled"
   | "accepted"
   | "in_progress"
+  | "awaiting_owner_validation"
+  | "validated"
   | "completed"
+  | "closed"
   | "canceled";
 
 export type MissionPriority = "low" | "normal" | "high" | "urgent";
@@ -11,9 +19,17 @@ export type MissionPriority = "low" | "normal" | "high" | "urgent";
 export const VALID_MISSION_STATUSES: MissionStatus[] = [
   "draft",
   "assigned",
+  "to_schedule",
+  "date_requested",
+  "date_proposed",
+  "date_confirmed",
+  "scheduled",
   "accepted",
   "in_progress",
+  "awaiting_owner_validation",
+  "validated",
   "completed",
+  "closed",
   "canceled",
 ];
 
@@ -21,11 +37,12 @@ export const VALID_MISSION_PRIORITIES: MissionPriority[] = ["low", "normal", "hi
 
 const STATUS_ALIASES: Record<string, MissionStatus> = {
   pending: "draft",
-  planned: "assigned",
-  validated: "completed",
+  planned: "scheduled",
   provider_intervention: "in_progress",
-  quote_accepted: "assigned",
-  mission_created: "assigned",
+  quote_accepted: "to_schedule",
+  mission_created: "to_schedule",
+  awaiting_validation: "awaiting_owner_validation",
+  awaiting_owner_signoff: "awaiting_owner_validation",
 };
 
 export function normalizeMissionStatus(value: unknown): MissionStatus {
@@ -44,15 +61,30 @@ export function getMissionStatusLabel(status: unknown): string {
     case "draft":
       return "A qualifier";
     case "assigned":
-      return "Assignée";
+    case "to_schedule":
+      return "A planifier";
+    case "date_requested":
+      return "Date demandee";
+    case "date_proposed":
+      return "Date proposee";
+    case "date_confirmed":
+      return "Date confirmee";
+    case "scheduled":
+      return "Planifiee";
     case "accepted":
-      return "Acceptée";
+      return "Acceptee";
     case "in_progress":
       return "En cours";
+    case "awaiting_owner_validation":
+      return "Validation proprietaire";
+    case "validated":
+      return "Validee";
     case "completed":
-      return "Terminée";
+      return "Terminee";
+    case "closed":
+      return "Cloturee";
     case "canceled":
-      return "Annulée";
+      return "Annulee";
   }
 }
 
@@ -74,14 +106,22 @@ export function canTransitionMissionStatus(from: unknown, to: unknown): boolean 
   const next = normalizeMissionStatus(to);
   if (current === next) return true;
   if (current === "canceled") return false;
-  if (current === "completed") return false;
+  if (current === "closed") return false;
 
   const allowed: Record<MissionStatus, MissionStatus[]> = {
-    draft: ["assigned", "accepted", "canceled"],
-    assigned: ["accepted", "in_progress", "canceled"],
-    accepted: ["in_progress", "completed", "canceled"],
-    in_progress: ["completed", "canceled"],
-    completed: [],
+    draft: ["assigned", "to_schedule", "date_requested", "date_proposed", "date_confirmed", "scheduled", "accepted", "canceled"],
+    assigned: ["to_schedule", "date_requested", "date_proposed", "date_confirmed", "scheduled", "accepted", "in_progress", "canceled"],
+    to_schedule: ["date_requested", "date_proposed", "date_confirmed", "scheduled", "accepted", "canceled"],
+    date_requested: ["date_proposed", "date_confirmed", "scheduled", "accepted", "canceled"],
+    date_proposed: ["date_confirmed", "scheduled", "accepted", "canceled"],
+    date_confirmed: ["scheduled", "accepted", "in_progress", "canceled"],
+    scheduled: ["accepted", "in_progress", "awaiting_owner_validation", "completed", "canceled"],
+    accepted: ["scheduled", "in_progress", "awaiting_owner_validation", "completed", "canceled"],
+    in_progress: ["awaiting_owner_validation", "completed", "canceled"],
+    awaiting_owner_validation: ["validated", "completed", "canceled"],
+    validated: ["closed", "canceled"],
+    completed: ["validated", "closed"],
+    closed: [],
     canceled: [],
   };
 
@@ -92,14 +132,25 @@ export function getMissionActionTarget(action: unknown): MissionStatus | null {
   switch (typeof action === "string" ? action : "") {
     case "accept":
       return "accepted";
+    case "request_date":
+      return "date_requested";
+    case "propose_date":
+      return "date_proposed";
+    case "confirm_date":
+      return "date_confirmed";
+    case "schedule":
+      return "scheduled";
     case "start":
       return "in_progress";
     case "complete":
-      return "completed";
+      return "awaiting_owner_validation";
+    case "validate_completion":
+      return "validated";
+    case "close":
+      return "closed";
     case "cancel":
       return "canceled";
     default:
       return null;
   }
 }
-

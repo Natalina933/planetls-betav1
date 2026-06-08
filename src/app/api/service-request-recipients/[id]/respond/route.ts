@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import {
@@ -10,16 +11,26 @@ import {
 type RecipientStatus =
   | "viewed"
   | "interested"
+  | "information_requested"
+  | "date_proposed"
   | "quoted"
   | "declined";
 
 interface RespondBody {
   status?: RecipientStatus;
   response_message?: string | null;
+  proposed_date?: string | null;
 }
 
 const CONCIERGE_ROLES = new Set(["concierge", "concierge_pro", "admin", "super_admin"]);
-const VALID_STATUSES: RecipientStatus[] = ["viewed", "interested", "quoted", "declined"];
+const VALID_STATUSES: RecipientStatus[] = [
+  "viewed",
+  "interested",
+  "information_requested",
+  "date_proposed",
+  "quoted",
+  "declined",
+];
 // Legacy Supabase typing is incomplete on these tables in this project.
 const dbAny = asLooseSupabaseClient(db);
 
@@ -34,11 +45,22 @@ async function notifyOwnerAboutResponse(input: {
 }) {
   if (!input.ownerProfileId) return null;
 
-  const subject = input.status === "interested" ? "Conciergerie intéressée" : "Réponse à votre demande";
+  const subject =
+    input.status === "interested"
+      ? "Conciergerie intéressée"
+      : input.status === "information_requested"
+        ? "Précision demandée"
+        : input.status === "date_proposed"
+          ? "Date proposée"
+          : "Réponse à votre demande";
   const body =
     input.message ||
     (input.status === "interested"
       ? "Une conciergerie est intéressée par votre demande. Vous pouvez échanger ou attendre son devis."
+      : input.status === "information_requested"
+        ? "Une conciergerie demande une précision avant de finaliser sa réponse."
+        : input.status === "date_proposed"
+          ? "Une conciergerie propose une date alternative pour votre demande."
       : input.status === "declined"
         ? "Une conciergerie a décliné votre demande. Elle sort de votre comparaison active."
         : "Votre demande a été consultée.");
@@ -144,7 +166,11 @@ export async function POST(
       status: nextStatus,
       response_message:
         typeof body.response_message === "string" ? body.response_message.trim() || null : null,
-      responded_at: nextStatus === "interested" || nextStatus === "quoted" || nextStatus === "declined" ? nowIso : recipient.responded_at,
+      proposed_date:
+        nextStatus === "date_proposed" && typeof body.proposed_date === "string" && body.proposed_date.trim()
+          ? body.proposed_date.trim()
+          : null,
+      responded_at: nextStatus !== "viewed" ? nowIso : recipient.responded_at,
       viewed_at: nextStatus === "viewed" || recipient.viewed_at ? recipient.viewed_at ?? nowIso : null,
     };
 
@@ -218,6 +244,37 @@ export async function POST(
           actorProfileId: userId,
           status: nextStatus,
           message: updatePayload.response_message as string | null,
+        });
+
+        await recordWorkflowEvent(dbAny, {
+          actorProfileId: userId,
+          ownerProfileId: requestRow.owner_profile_id,
+          conciergeProfileId: userId,
+          serviceRequestId: updatedRecipient.service_request_id,
+          serviceRequestRecipientId: updatedRecipient.id,
+          eventType: `service_request_${nextStatus}`,
+          title:
+            nextStatus === "viewed"
+              ? "Demande consultée"
+              : nextStatus === "interested"
+                ? "Conciergerie intéressée"
+                : nextStatus === "information_requested"
+                  ? "Précision demandée"
+                  : nextStatus === "date_proposed"
+                    ? "Date proposée"
+                : nextStatus === "declined"
+                  ? "Demande refusée"
+                  : "Réponse à la demande",
+          body:
+            (updatePayload.response_message as string | null) ??
+            (updatePayload.proposed_date ? `Date proposée : ${String(updatePayload.proposed_date)}` : null),
+          actionHref: `/dashboard/concierge/demandes?request=${updatedRecipient.service_request_id}`,
+          serviceRequestStatus: requestStatus,
+          recipientStatus: nextStatus,
+          metadata: {
+            response_message_present: Boolean(updatePayload.response_message),
+            proposed_date: typeof updatePayload.proposed_date === "string" ? updatePayload.proposed_date : null,
+          },
         });
       }
     }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db/dbServer";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
 import { prepareQuoteDraftFromRequest } from "@/features/concierge-commercial/server/quoteDraftFromRequest";
 import {
   deriveServiceRequestStatus,
@@ -14,6 +15,8 @@ type QuoteRow = {
   status: string | null;
   owner_profile_id: string | null;
   concierge_profile_id: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   created_at: string | null;
   metadata: Record<string, unknown> | null;
 };
@@ -32,11 +35,14 @@ async function syncRequestAfterQuoteDraft(input: {
   dbAny: ReturnType<typeof asLooseSupabaseClient>;
   recipientId: string;
   serviceRequestId: string;
+  quoteStatus?: string | null;
 }) {
+  const recipientStatus = input.quoteStatus === "sent" ? "quoted" : "interested";
+
   await input.dbAny
     .from("service_request_recipients")
     .update({
-      status: "quoted",
+      status: recipientStatus,
       responded_at: new Date().toISOString(),
     })
     .eq("id", input.recipientId);
@@ -123,7 +129,7 @@ export async function POST(
 
     const { data: existingQuotes, error: existingQuotesError } = await dbAny
       .from("quotes")
-      .select("id, quote_number, status, owner_profile_id, concierge_profile_id, created_at, metadata")
+      .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
       .eq("concierge_profile_id", userId)
       .eq("owner_profile_id", serviceRequest.owner_profile_id);
 
@@ -145,9 +151,15 @@ export async function POST(
     const matchedQuote = ((existingQuotes ?? []) as QuoteRow[])
       .filter((quote) => {
         const metadata = isRecord(quote.metadata) ? quote.metadata : null;
+        const quoteRequestId =
+          typeof quote.service_request_id === "string" ? quote.service_request_id : metadata?.service_request_id;
+        const quoteRecipientId =
+          typeof quote.service_request_recipient_id === "string"
+            ? quote.service_request_recipient_id
+            : metadata?.service_request_recipient_id;
         return (
-          metadata?.service_request_id === serviceRequest.id &&
-          metadata?.service_request_recipient_id === recipient.id
+          quoteRequestId === serviceRequest.id &&
+          quoteRecipientId === recipient.id
         );
       })
       .sort((a, b) => {
@@ -163,6 +175,7 @@ export async function POST(
         dbAny,
         recipientId: recipient.id,
         serviceRequestId: serviceRequest.id,
+        quoteStatus: matchedQuote.status,
       });
 
       return NextResponse.json(
@@ -171,6 +184,8 @@ export async function POST(
           reused: true,
           completed_action: {
             request_status: nextRequestStatus,
+            next_action: "Ouvrir le brouillon, vérifier les lignes puis envoyer le devis au propriétaire.",
+            next_href: `/dashboard/concierge/billing?quote=${matchedQuote.id}&source=request`,
             visible_in: ["devis_brouillon", "demandes", "messages"],
           },
         },
@@ -191,6 +206,8 @@ export async function POST(
         .from("quotes")
         .update({
           package_id: preparedDraft.packageId,
+          service_request_id: serviceRequest.id,
+          service_request_recipient_id: recipient.id,
           currency: preparedDraft.currency,
           valid_until: preparedDraft.validUntil,
           notes: preparedDraft.notes,
@@ -258,6 +275,30 @@ export async function POST(
         .eq("id", matchedQuote.id)
         .single();
 
+      const nextRequestStatus = await syncRequestAfterQuoteDraft({
+        dbAny,
+        recipientId: recipient.id,
+        serviceRequestId: serviceRequest.id,
+        quoteStatus: refreshedQuote?.status ?? matchedQuote.status,
+      });
+
+      await recordWorkflowEvent(dbAny, {
+        actorProfileId: userId,
+        ownerProfileId: serviceRequest.owner_profile_id,
+        conciergeProfileId: userId,
+        serviceRequestId: serviceRequest.id,
+        serviceRequestRecipientId: recipient.id,
+        quoteId: matchedQuote.id,
+        eventType: "quote_draft_refreshed",
+        title: "Brouillon de devis actualisé",
+        body: "La conciergerie a reconstruit le brouillon de devis depuis la demande.",
+        actionHref: `/dashboard/concierge/devis?quote=${matchedQuote.id}`,
+        serviceRequestStatus: nextRequestStatus,
+        recipientStatus: "interested",
+        quoteStatus: refreshedQuote?.status ?? matchedQuote.status,
+        metadata: { source: "service_request" },
+      });
+
       return NextResponse.json(
         {
           quote: refreshedQuote ?? matchedQuote,
@@ -265,7 +306,9 @@ export async function POST(
           refreshed: true,
           summary: preparedDraft.summary,
           completed_action: {
-            request_status: "quoted",
+            request_status: nextRequestStatus,
+            next_action: "Vérifier le brouillon actualisé puis envoyer le devis au propriétaire.",
+            next_href: `/dashboard/concierge/billing?quote=${matchedQuote.id}&source=request`,
             visible_in: ["devis_brouillon", "demandes", "billing"],
           },
         },
@@ -279,6 +322,8 @@ export async function POST(
         concierge_profile_id: userId,
         owner_profile_id: serviceRequest.owner_profile_id,
         mission_id: null,
+        service_request_id: serviceRequest.id,
+        service_request_recipient_id: recipient.id,
         package_id: preparedDraft.packageId,
         status: "draft",
         currency: preparedDraft.currency,
@@ -356,6 +401,27 @@ export async function POST(
       dbAny,
       recipientId: recipient.id,
       serviceRequestId: serviceRequest.id,
+      quoteStatus: createdQuote.status,
+    });
+
+    await recordWorkflowEvent(dbAny, {
+      actorProfileId: userId,
+      ownerProfileId: serviceRequest.owner_profile_id,
+      conciergeProfileId: userId,
+      serviceRequestId: serviceRequest.id,
+      serviceRequestRecipientId: recipient.id,
+      quoteId: createdQuote.id,
+      eventType: "quote_draft_prepared",
+      title: "Brouillon de devis préparé",
+      body: "La conciergerie a préparé un brouillon de devis depuis la demande.",
+      actionHref: `/dashboard/concierge/devis?quote=${createdQuote.id}`,
+      serviceRequestStatus: nextRequestStatus,
+      recipientStatus: "interested",
+      quoteStatus: createdQuote.status,
+      metadata: {
+        source: "service_request",
+        item_count: preparedDraft.items.length,
+      },
     });
 
     return NextResponse.json(
@@ -365,6 +431,8 @@ export async function POST(
         summary: preparedDraft.summary,
         completed_action: {
           request_status: nextRequestStatus,
+          next_action: "Vérifier le brouillon puis envoyer le devis au propriétaire.",
+          next_href: `/dashboard/concierge/billing?quote=${createdQuote.id}&source=request`,
           visible_in: ["devis_brouillon", "demandes", "billing"],
         },
       },

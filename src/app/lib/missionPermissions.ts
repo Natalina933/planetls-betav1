@@ -4,6 +4,7 @@ export const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 export const CONCIERGE_MISSION_ROLES = new Set(["admin", "super_admin", "concierge", "concierge_pro"]);
 export const OWNER_MISSION_ROLES = new Set(["owner", "owner_pro"]);
 export const PROVIDER_ROLES = new Set(["provider", "provider_pro", "artisan", "artisan_pro"]);
+const PLANNING_STATUSES = new Set<MissionStatus>(["to_schedule", "date_requested", "date_proposed", "date_confirmed", "scheduled"]);
 
 export type MissionActorRole = "admin" | "concierge" | "owner" | "provider" | "unknown";
 
@@ -61,6 +62,15 @@ export function canMutateMissionStatus(role: string, from: unknown, to: MissionS
   }
   if (to === "assigned") {
     return (actorRole === "owner" || actorRole === "concierge") && canTransitionMissionStatus(from, to);
+  }
+  if (PLANNING_STATUSES.has(to)) {
+    return (actorRole === "owner" || actorRole === "concierge") && canTransitionMissionStatus(from, to);
+  }
+  if (to === "validated") {
+    return actorRole === "owner" && canTransitionMissionStatus(from, to);
+  }
+  if (to === "closed") {
+    return false;
   }
   return actorRole === "concierge" && canTransitionMissionStatus(from, to);
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { insertMissionWithOptionalMetadata } from "@/app/api/_shared/missionInsert";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
+import { deriveMissionWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
@@ -8,6 +10,11 @@ import type { Json } from "@/types/supabase";
 type MissionStatus =
   | "draft"
   | "assigned"
+  | "to_schedule"
+  | "date_requested"
+  | "date_proposed"
+  | "date_confirmed"
+  | "scheduled"
   | "accepted"
   | "in_progress"
   | "completed"
@@ -55,9 +62,24 @@ type CreatedMissionRow = {
   updated_at: string | null;
 };
 
+type ProfileNameRow = {
+  id: string;
+  company_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  avatar_url?: string | null;
+  image?: string | null;
+};
+
 const VALID_STATUS: MissionStatus[] = [
   "draft",
   "assigned",
+  "to_schedule",
+  "date_requested",
+  "date_proposed",
+  "date_confirmed",
+  "scheduled",
   "accepted",
   "in_progress",
   "completed",
@@ -72,6 +94,30 @@ function getMetadataString(metadata: Json | null | undefined, key: string) {
   if (!isRecord(metadata)) return "";
   const value = metadata[key];
   return typeof value === "string" ? value : "";
+}
+
+function attachMissionWorkflow<T extends {
+  status?: string | null;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+}>(mission: T) {
+  const workflowStatus = deriveMissionWorkflowStatus({
+    status: mission.status,
+    scheduledStart: mission.scheduled_start,
+    scheduledEnd: mission.scheduled_end,
+  });
+
+  return {
+    ...mission,
+    workflow_status: workflowStatus,
+    mission_workflow_status: workflowStatus,
+  };
+}
+
+function formatProfileName(profile: ProfileNameRow | null | undefined, fallback: string) {
+  if (!profile) return fallback;
+  const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim();
+  return profile.company_name || fullName || profile.username || fallback;
 }
 
 const CONCIERGE_MISSION_ROLES = new Set([
@@ -244,7 +290,47 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Erreur DB" }, { status: 500 });
     }
 
-    return NextResponse.json(data ?? []);
+    const missions = data ?? [];
+    const conciergeIds = Array.from(
+      new Set(
+        missions
+          .map((mission) => mission.concierge_profile_id)
+          .filter((id): id is string => typeof id === "string" && isUuidLike(id)),
+      ),
+    );
+    const profileById = new Map<string, ProfileNameRow>();
+
+    if (conciergeIds.length > 0) {
+      const dbAny = asLooseSupabaseClient(db);
+      const { data: profiles, error: profilesError } = await dbAny
+        .from("profiles")
+        .select("id, company_name, first_name, last_name, username, avatar_url, image")
+        .in("id", conciergeIds);
+
+      if (profilesError) {
+        console.error("[GET /api/missions] profiles error:", profilesError);
+      } else {
+        for (const profile of (profiles ?? []) as ProfileNameRow[]) {
+          profileById.set(profile.id, profile);
+        }
+      }
+    }
+
+    return NextResponse.json(
+      missions.map((mission) =>
+        attachMissionWorkflow({
+          ...mission,
+          concierge_name: mission.concierge_profile_id
+            ? formatProfileName(profileById.get(mission.concierge_profile_id), "Partenaire")
+            : null,
+          concierge_avatar_url: mission.concierge_profile_id
+            ? profileById.get(mission.concierge_profile_id)?.avatar_url ??
+              profileById.get(mission.concierge_profile_id)?.image ??
+              null
+            : null,
+        }),
+      ),
+    );
   } catch (err) {
     console.error("[GET /api/missions] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -361,7 +447,25 @@ export async function POST(req: NextRequest) {
       body: `Nouvelle mission creee: ${data.title || "Mission"}.`,
     });
 
-    return NextResponse.json(data, { status: 201 });
+    await recordWorkflowEvent(asLooseSupabaseClient(db), {
+      actorProfileId: auth.userId,
+      ownerProfileId: data.owner_profile_id,
+      conciergeProfileId: data.concierge_profile_id,
+      serviceRequestId: serviceRequestId || null,
+      missionId: data.id,
+      eventType: "mission_created",
+      title: "Mission créée",
+      body: data.title ? `Mission créée: ${data.title}.` : "Une mission a été créée.",
+      actionHref: `/dashboard/missions/${data.id}`,
+      serviceRequestStatus: serviceRequestId ? "accepted" : null,
+      missionStatus: data.status,
+      hasMission: true,
+      scheduledStart: data.scheduled_start,
+      scheduledEnd: data.scheduled_end,
+      metadata: { source: serviceRequestId ? "service_request" : "manual" },
+    });
+
+    return NextResponse.json(attachMissionWorkflow(data), { status: 201 });
   } catch (err) {
     console.error("[POST /api/missions] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

@@ -5,8 +5,13 @@ import { deriveRequestWorkflowStatus } from "../app/lib/requestStatus.ts";
 
 test("deriveRequestWorkflowStatus maps service request states to the shared workflow", () => {
   assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "sent" }), "SENT");
+  assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "received" }), "SENT");
   assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "in_review" }), "IN_DISCUSSION");
+  assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "information_requested" }), "IN_DISCUSSION");
   assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "quoted" }), "QUOTE_SENT");
+  assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "quote_accepted" }), "ACCEPTED");
+  assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "quote_refused" }), "DECLINED");
+  assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "expired" }), "EXPIRED");
   assert.equal(deriveRequestWorkflowStatus({ serviceRequestStatus: "accepted" }), "ACCEPTED");
 });
 

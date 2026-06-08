@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
+import { deriveMissionWorkflowStatus, deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import {
   canAccessMissionForRole,
@@ -14,6 +16,7 @@ import {
   normalizeMissionStatus,
   type MissionStatus,
 } from "@/app/lib/missionStatus";
+import { canPlanMissionWithPayment, computePaymentPlanAmounts } from "@/app/lib/paymentWorkflow";
 import { requireApiRole } from "@/server/auth/roleGuards";
 import type { Json } from "@/types/supabase";
 
@@ -68,9 +71,93 @@ function canAccessMission(mission: MissionRow, userId: string, role: string) {
 function buildStatusTimestamps(status: MissionStatus, reason: string | null) {
   const now = new Date().toISOString();
   if (status === "in_progress") return { started_at: now };
-  if (status === "completed") return { completed_at: now };
+  if (status === "awaiting_owner_validation" || status === "completed") return { completed_at: now };
   if (status === "canceled") return { canceled_at: now, cancel_reason: reason };
   return {};
+}
+
+function getMissionStatusWorkflowCopy(status: MissionStatus) {
+  switch (status) {
+    case "date_requested":
+      return {
+        title: "Date demandee",
+        message: "Une date est demandee pour planifier la mission.",
+      };
+    case "date_proposed":
+      return {
+        title: "Date proposee",
+        message: "Un creneau est propose pour cette mission.",
+      };
+    case "date_confirmed":
+      return {
+        title: "Date confirmee",
+        message: "La date de mission est confirmee par les parties.",
+      };
+    case "scheduled":
+      return {
+        title: "Mission planifiee",
+        message: "La mission est planifiee dans le calendrier operationnel.",
+      };
+    case "in_progress":
+      return {
+        title: "Mission demarree",
+        message: "La mission a demarre.",
+      };
+    case "completed":
+      return {
+        title: "Mission terminee",
+        message: "La mission est terminee.",
+      };
+    case "awaiting_owner_validation":
+      return {
+        title: "Validation proprietaire demandee",
+        message: "La mission est terminee cote terrain et attend la validation du proprietaire.",
+      };
+    case "validated":
+      return {
+        title: "Mission validee",
+        message: "Le proprietaire a valide la realisation de la mission.",
+      };
+    case "closed":
+      return {
+        title: "Mission cloturee",
+        message: "La mission est cloturee apres paiement final.",
+      };
+    case "canceled":
+      return {
+        title: "Mission annulee",
+        message: "La mission est annulee.",
+      };
+    default:
+      return {
+        title: "Mission mise a jour",
+        message: `Statut mission mis a jour: ${status}.`,
+      };
+  }
+}
+
+function attachMissionWorkflow<T extends MissionRow>(mission: T) {
+  const workflowStatus = deriveMissionWorkflowStatus({
+    status: mission.status,
+    scheduledStart: mission.scheduled_start,
+    scheduledEnd: mission.scheduled_end,
+  });
+
+  return {
+    ...mission,
+    workflow_status: workflowStatus,
+    mission_workflow_status: workflowStatus,
+  };
+}
+
+function attachQuoteWorkflow<T extends { status?: string | null }>(quote: T) {
+  const workflowStatus = deriveQuoteWorkflowStatus(quote.status);
+
+  return {
+    ...quote,
+    workflow_status: workflowStatus,
+    quote_workflow_status: workflowStatus,
+  };
 }
 
 async function loadMission(id: string) {
@@ -166,6 +253,107 @@ async function notifyMissionParticipants(mission: MissionRow, actorProfileId: st
     : null;
 }
 
+async function assertMissionCanBePlanned(mission: MissionRow) {
+  const [{ data: invoiceRows }, { data: quoteRows }] = await Promise.all([
+    dbAny
+      .from("invoices")
+      .select("id, status, total_amount, paid_amount, balance_amount, metadata")
+      .eq("mission_id", mission.id)
+      .neq("status", "canceled"),
+    dbAny
+      .from("quotes")
+      .select("metadata")
+      .eq("mission_id", mission.id)
+      .limit(1),
+  ]);
+
+  const guard = canPlanMissionWithPayment({
+    invoices: ((invoiceRows ?? []) as Array<Record<string, unknown>>).map((invoice) => ({
+      id: typeof invoice.id === "string" ? invoice.id : null,
+      invoiceStatus: typeof invoice.status === "string" ? invoice.status : null,
+      totalAmount: Number(invoice.total_amount ?? 0),
+      paidAmount: Number(invoice.paid_amount ?? 0),
+      balanceAmount: Number(invoice.balance_amount ?? 0),
+      metadata: toRecord(invoice.metadata),
+    })),
+    quoteMetadata: toRecord((quoteRows ?? [])[0]?.metadata),
+  });
+
+  return guard;
+}
+
+async function requestMissionBalance(input: {
+  mission: MissionRow;
+  actorProfileId: string;
+}) {
+  const { data: invoices } = await dbAny
+    .from("invoices")
+    .select("id, invoice_number, status, total_amount, paid_amount, balance_amount, metadata")
+    .eq("mission_id", input.mission.id)
+    .neq("status", "paid")
+    .neq("status", "canceled");
+
+  const invoiceRows = (invoices ?? []) as Array<Record<string, unknown>>;
+  const balanceInvoices = invoiceRows.filter((invoice) => Number(invoice.balance_amount ?? invoice.total_amount ?? 0) > 0);
+
+  await Promise.all(
+    balanceInvoices.map(async (invoice) => {
+      const paidAmount = Number(invoice.paid_amount ?? 0);
+      const totalAmount = Number(invoice.total_amount ?? 0);
+      const plan = computePaymentPlanAmounts({
+        totalAmount,
+        metadata: toRecord(invoice.metadata),
+      });
+      const nextStatus = paidAmount > 0 && plan.plan === "deposit_then_balance" ? "partially_paid" : "issued";
+      const invoiceId = String(invoice.id);
+
+      await dbAny
+        .from("invoices")
+        .update({
+          status: nextStatus,
+          issued_at: new Date().toISOString(),
+          balance_amount: Math.max(totalAmount - paidAmount, 0),
+        })
+        .eq("id", invoiceId);
+
+      await dbAny.from("invoice_events").insert({
+        invoice_id: invoiceId,
+        actor_profile_id: input.actorProfileId,
+        event_type: "balance_requested",
+        payload: {
+          source: "owner_validation",
+          mission_id: input.mission.id,
+          paid_amount: paidAmount,
+          balance_amount: Math.max(totalAmount - paidAmount, 0),
+        },
+      });
+
+      await recordWorkflowEvent(dbAny, {
+        actorProfileId: input.actorProfileId,
+        ownerProfileId: input.mission.owner_profile_id,
+        conciergeProfileId: input.mission.concierge_profile_id,
+        missionId: input.mission.id,
+        eventType: "invoice_balance_due",
+        title: "Solde a regler",
+        body: `Le solde de la facture ${invoice.invoice_number || invoiceId} est demande apres validation.`,
+        actionHref: `/dashboard/owner/factures?invoice=${invoiceId}`,
+        missionStatus: "validated",
+        hasMission: true,
+        metadata: {
+          invoice_id: invoiceId,
+          invoice_number: typeof invoice.invoice_number === "string" ? invoice.invoice_number : null,
+          payment_plan: plan.plan,
+        },
+      });
+    }),
+  );
+
+  return {
+    visible_in: ["missions_validees", "finances", "factures_a_regler"],
+    balance_invoice_count: balanceInvoices.length,
+  };
+}
+
 async function syncMissionOutcome(input: {
   mission: MissionRow;
   nextStatus: MissionStatus | null;
@@ -173,7 +361,7 @@ async function syncMissionOutcome(input: {
 }) {
   if (!input.nextStatus) return null;
 
-  if (input.nextStatus === "completed") {
+  if (input.nextStatus === "awaiting_owner_validation" || input.nextStatus === "completed") {
     const { data: draftInvoices } = await dbAny
       .from("invoices")
       .select("id")
@@ -210,9 +398,20 @@ async function syncMissionOutcome(input: {
     }
 
     return {
-      visible_in: ["missions_terminees", "finances", "factures", "planning"],
+      visible_in: ["missions_a_valider", "finances", "factures", "planning"],
       issued_invoice_count: invoiceIds.length,
     };
+  }
+
+  if (input.nextStatus === "validated") {
+    return requestMissionBalance({
+      mission: input.mission,
+      actorProfileId: input.actorProfileId,
+    });
+  }
+
+  if (input.nextStatus === "closed") {
+    return { visible_in: ["missions_cloturees", "finances", "historique"] };
   }
 
   if (input.nextStatus === "canceled") {
@@ -289,7 +488,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
         .limit(10),
       dbAny
         .from("invoices")
-        .select("id, invoice_number, status, total_amount, balance_amount, currency, due_date, created_at")
+        .select("id, invoice_number, status, total_amount, paid_amount, balance_amount, currency, due_date, metadata, created_at")
         .eq("mission_id", mission.id)
         .order("created_at", { ascending: false })
         .limit(10),
@@ -315,7 +514,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
 
   return {
     mission: {
-      ...mission,
+      ...attachMissionWorkflow(mission),
       status: normalizeMissionStatus(mission.status),
       priority: normalizeMissionPriority(mission.priority),
     },
@@ -327,7 +526,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
     events: events ?? [],
     conversations: conversations ?? [],
     conversation_id: conversationId,
-    quotes: quotes ?? [],
+    quotes: (quotes ?? []).map(attachQuoteWorkflow),
     invoices: invoices ?? [],
     provider_interventions: providerInterventions ?? [],
     providers: providers ?? [],
@@ -395,24 +594,35 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     let statusMessage: string | null = null;
 
     const actionStatus = getMissionActionTarget(action);
-    const requestedStatus = actionStatus ?? (body.status ? normalizeMissionStatus(body.status) : null);
+    let requestedStatus = actionStatus ?? (body.status ? normalizeMissionStatus(body.status) : null);
+    const cancelReason =
+      typeof body.cancel_reason === "string" ? body.cancel_reason.trim() || null : null;
 
     if (requestedStatus) {
       if (!canMutateMissionStatus(role, mission.status, requestedStatus)) {
         return NextResponse.json({ error: "Statut reserve a la conciergerie" }, { status: 403 });
       }
+      if (requestedStatus === "scheduled" || requestedStatus === "date_confirmed") {
+        const paymentGuard = await assertMissionCanBePlanned(mission);
+        if (!paymentGuard.canPlan) {
+          return NextResponse.json(
+            {
+              error: paymentGuard.reason || "Acompte requis avant planification.",
+              payment_guard: paymentGuard,
+            },
+            { status: 409 },
+          );
+        }
+      }
       patch.status = requestedStatus;
       Object.assign(
         patch,
-        buildStatusTimestamps(
-          requestedStatus,
-          typeof body.cancel_reason === "string" ? body.cancel_reason.trim() || null : null,
-        ),
+        buildStatusTimestamps(requestedStatus, cancelReason),
       );
       eventType = requestedStatus === "accepted" ? "accepted" : requestedStatus === "in_progress" ? "started" : requestedStatus;
       eventPayload.previous_status = mission.status;
       eventPayload.next_status = requestedStatus;
-      statusMessage = `Statut mission mis a jour: ${requestedStatus}.`;
+      statusMessage = getMissionStatusWorkflowCopy(requestedStatus).message;
     }
 
     const fieldPatch: Record<string, unknown> = {};
@@ -472,6 +682,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (!signature) {
         return NextResponse.json({ error: "Signature requise" }, { status: 400 });
       }
+      const ownerSignsCompletedMission =
+        OWNER_MISSION_ROLES.has(role) &&
+        ["awaiting_owner_validation", "completed"].includes(normalizeMissionStatus(mission.status));
       patch.metadata = {
         ...metadata,
         [OWNER_MISSION_ROLES.has(role) ? "owner_signature" : "concierge_signature"]: {
@@ -479,8 +692,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           signed_at: new Date().toISOString(),
           profile_id: userId,
         },
+        ...(ownerSignsCompletedMission
+          ? {
+              validated_by_owner_at: new Date().toISOString(),
+              validated_by_owner_profile_id: userId,
+            }
+          : {}),
       } as Json;
       eventPayload.signature_added = true;
+      if (ownerSignsCompletedMission) {
+        requestedStatus = "validated";
+        patch.status = "validated";
+        eventType = "validated";
+        eventPayload.previous_status = mission.status;
+        eventPayload.next_status = "validated";
+        statusMessage = getMissionStatusWorkflowCopy("validated").message;
+      }
+    }
+
+    if (action === "validate_completion") {
+      if (!OWNER_MISSION_ROLES.has(role)) {
+        return NextResponse.json({ error: "Validation reservee au proprietaire" }, { status: 403 });
+      }
+      patch.metadata = {
+        ...metadata,
+        validated_by_owner_at: new Date().toISOString(),
+        validated_by_owner_profile_id: userId,
+      } as Json;
     }
 
     if (Object.keys(patch).length === 0) {
@@ -515,6 +753,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       nextStatus: requestedStatus,
       actorProfileId: userId,
     });
+
+    if (requestedStatus) {
+      const metadata = toRecord(updatedMission.metadata);
+      const serviceRequestId =
+        typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
+
+      await recordWorkflowEvent(dbAny, {
+        actorProfileId: userId,
+        ownerProfileId: updatedMission.owner_profile_id,
+        conciergeProfileId: updatedMission.concierge_profile_id,
+        serviceRequestId,
+        missionId: updatedMission.id,
+        eventType: `mission_${requestedStatus}`,
+        title: getMissionStatusWorkflowCopy(requestedStatus).title,
+        body: cancelReason || statusMessage || null,
+        actionHref: `/dashboard/missions/${updatedMission.id}`,
+        serviceRequestStatus: serviceRequestId ? "accepted" : null,
+        missionStatus: updatedMission.status,
+        hasMission: true,
+        scheduledStart: updatedMission.scheduled_start,
+        scheduledEnd: updatedMission.scheduled_end,
+        metadata: {
+          action,
+          reason: cancelReason,
+        },
+      });
+    }
 
     const hydrated = await hydrateMissionDetail(updatedMission);
     return NextResponse.json({

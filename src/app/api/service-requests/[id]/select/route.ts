@@ -14,6 +14,8 @@ type QuoteLookupRow = {
   status?: string | null;
   mission_id?: string | null;
   accepted_at?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -87,7 +89,7 @@ export async function POST(
 
     const { data: candidateQuotes, error: candidateQuotesError } = await dbAny
       .from("quotes")
-      .select("id, status, mission_id, accepted_at, metadata")
+      .select("id, status, mission_id, accepted_at, service_request_id, service_request_recipient_id, metadata")
       .eq("concierge_profile_id", selectedRecipient.concierge_profile_id)
       .eq("owner_profile_id", requestRow.owner_profile_id ?? userId);
 
@@ -99,9 +101,15 @@ export async function POST(
     const selectedQuote =
       ((candidateQuotes ?? []) as QuoteLookupRow[]).find((quote) => {
         const metadata = isRecord(quote.metadata) ? quote.metadata : null;
+        const quoteRequestId =
+          typeof quote.service_request_id === "string" ? quote.service_request_id : metadata?.service_request_id;
+        const quoteRecipientId =
+          typeof quote.service_request_recipient_id === "string"
+            ? quote.service_request_recipient_id
+            : metadata?.service_request_recipient_id;
         return (
-          metadata?.service_request_id === requestRow.id &&
-          metadata?.service_request_recipient_id === selectedRecipient.id
+          quoteRequestId === requestRow.id &&
+          quoteRecipientId === selectedRecipient.id
         );
       }) ?? null;
 
@@ -193,7 +201,7 @@ export async function POST(
       .from("service_requests")
       .update({
         selected_concierge_profile_id: selectedRecipient.concierge_profile_id,
-        status: nextRequestStatus,
+        status: "quote_accepted",
         mission_id: acceptedWorkflow?.mission?.id ?? selectedQuote?.mission_id ?? null,
         metadata: {
           ...updatedMetadata,

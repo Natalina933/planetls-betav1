@@ -15,6 +15,7 @@ test("owner can select only a quote linked to their own request", () => {
     id: "quote-1",
     owner_profile_id: "owner-1",
     concierge_profile_id: "concierge-1",
+    service_request_id: "request-1",
     metadata: { service_request_id: "request-1" },
   };
 

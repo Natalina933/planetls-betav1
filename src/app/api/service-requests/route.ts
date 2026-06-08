@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
+import { deriveCommercialWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
+import {
+  buildServiceRequestBrief,
+  readServiceRequestBriefMetadata,
+  type ServiceRequestBrief,
+} from "@/app/lib/serviceRequestBrief";
 import type { Json } from "@/types/supabase";
 import { z } from "zod";
 
@@ -9,11 +16,17 @@ type ServiceRequestType = "ponctuel" | "renfort" | "durable";
 type ServiceRequestStatus =
   | "draft"
   | "sent"
+  | "received"
+  | "viewed"
   | "in_review"
+  | "information_requested"
   | "quoted"
+  | "quote_accepted"
+  | "quote_refused"
   | "accepted"
   | "closed"
-  | "cancelled";
+  | "cancelled"
+  | "expired";
 type RecipientStatus =
   | "sent"
   | "viewed"
@@ -24,13 +37,26 @@ type RecipientStatus =
   | "not_selected";
 
 interface CreateServiceRequestBody {
+  housing_id?: string | number | null;
   property_id?: string | null;
   property_name?: string | null;
+  property_address?: string | null;
+  property_type?: string | null;
+  sleeping_capacity?: string | number | null;
+  property_constraints?: string | null;
   request_type?: ServiceRequestType;
+  owner_goal?: string | null;
+  collaboration_type?: string | null;
+  collaboration_frequency?: string | null;
+  collaboration_duration?: string | null;
+  estimated_duration?: string | null;
+  responsibility_level?: string | null;
+  request_summary?: string | null;
   title?: string;
   description?: string | null;
   requested_services?: string[];
   region?: string | null;
+  radius_km?: number | null;
   city?: string | null;
   postal_code?: string | null;
   desired_date?: string | null;
@@ -48,13 +74,26 @@ const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 const createServiceRequestSchema = z.object({
+  housing_id: z.union([z.string().trim().max(40), z.coerce.number().int().positive()]).optional().nullable(),
   property_id: z.string().uuid().optional().nullable(),
   property_name: z.string().trim().max(180).optional().nullable(),
+  property_address: z.string().trim().max(240).optional().nullable(),
+  property_type: z.string().trim().max(120).optional().nullable(),
+  sleeping_capacity: z.union([z.string().trim().max(40), z.coerce.number().nonnegative().max(100)]).optional().nullable(),
+  property_constraints: z.string().trim().max(2000).optional().nullable(),
   request_type: z.enum(["ponctuel", "renfort", "durable"]).optional(),
+  owner_goal: z.string().trim().max(80).optional().nullable(),
+  collaboration_type: z.string().trim().max(80).optional().nullable(),
+  collaboration_frequency: z.string().trim().max(80).optional().nullable(),
+  collaboration_duration: z.string().trim().max(180).optional().nullable(),
+  estimated_duration: z.string().trim().max(180).optional().nullable(),
+  responsibility_level: z.string().trim().max(80).optional().nullable(),
+  request_summary: z.string().trim().max(1000).optional().nullable(),
   title: z.string().trim().min(1).max(180),
   description: z.string().trim().max(5000).optional().nullable(),
   requested_services: z.array(z.string().trim().min(1).max(120)).max(50).optional(),
   region: z.string().trim().max(120).optional().nullable(),
+  radius_km: z.coerce.number().positive().max(1000).optional().nullable(),
   city: z.string().trim().max(120).optional().nullable(),
   postal_code: z.string().trim().max(20).optional().nullable(),
   desired_date: z.string().trim().max(40).optional().nullable(),
@@ -76,7 +115,9 @@ type ServiceRequestRecipientRow = {
   concierge_profile_id: string;
   status: RecipientStatus;
   concierge_name?: string;
+  concierge_avatar_url?: string | null;
   response_message?: string | null;
+  proposed_date?: string | null;
   viewed_at?: string | null;
   responded_at?: string | null;
   created_at?: string | null;
@@ -109,8 +150,20 @@ type QuoteLookupRow = {
   status?: string | null;
   owner_profile_id?: string | null;
   concierge_profile_id?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   created_at?: string | null;
   metadata?: Record<string, unknown> | null;
+};
+
+type ConciergeProfileRow = {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  company_name?: string | null;
+  avatar_url?: string | null;
+  image?: string | null;
 };
 
 // Legacy Supabase typing is incomplete on these tables in this project.
@@ -134,12 +187,90 @@ function normalizeCurrency(value: unknown): string {
   return value.trim().toUpperCase();
 }
 
+function normalizeStatus(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function readStringField(row: Record<string, unknown> | null | undefined, key: string) {
+  const value = row?.[key];
+  return typeof value === "string" ? value : null;
+}
+
+function pickPrimaryRecipientStatus(recipients: Array<{ status?: string | null }>) {
+  const statuses = recipients.map((recipient) => recipient.status).filter(Boolean);
+  const priority = ["selected", "quoted", "interested", "viewed", "sent", "declined", "not_selected"];
+  return priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null;
+}
+
+function pickPrimaryQuoteStatus(quotes: Array<{ status?: string | null }>) {
+  const statuses = quotes.map((quote) => quote.status).filter(Boolean);
+  const priority = ["accepted", "sent", "rejected", "expired", "canceled", "draft"];
+  return priority.find((status) => statuses.includes(status)) ?? statuses[0] ?? null;
+}
+
 function readPropertyLabelFromMetadata(value: unknown): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const propertyLabel = "property_label" in value ? value.property_label : null;
   return typeof propertyLabel === "string" && propertyLabel.trim()
     ? propertyLabel.trim()
     : null;
+}
+
+function readHousingIdFromMetadata(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const housingId = "property_housing_id" in value ? value.property_housing_id : null;
+  if (typeof housingId === "number" && Number.isFinite(housingId)) return String(housingId);
+  return typeof housingId === "string" && housingId.trim() ? housingId.trim() : null;
+}
+
+function readStringFromMetadata(value: unknown, key: string): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = key in value ? (value as Record<string, unknown>)[key] : null;
+  return typeof candidate === "string" && candidate.trim() ? candidate.trim() : null;
+}
+
+function buildBriefFromRequestRow(row: Record<string, unknown> | null | undefined): ServiceRequestBrief {
+  const metadata = readServiceRequestBriefMetadata(row?.metadata);
+  const requestedServices = normalizeStringArray(row?.requested_services);
+  const metadataString = (key: string) => {
+    const value = metadata[key];
+    return typeof value === "string" ? value : null;
+  };
+
+  return buildServiceRequestBrief({
+    ownerGoal: metadataString("owner_goal"),
+    collaborationType: metadataString("collaboration_type"),
+    frequency: metadataString("collaboration_frequency"),
+    estimatedDuration: metadataString("estimated_duration"),
+    responsibilityLevel: metadataString("responsibility_level"),
+    city: readStringField(row, "city"),
+    propertyName: readPropertyLabelFromMetadata(row?.metadata),
+    propertyAddress: readStringFromMetadata(row?.metadata, "property_address"),
+    propertyType: readStringFromMetadata(row?.metadata, "property_type"),
+    sleepingCapacity: readStringFromMetadata(row?.metadata, "sleeping_capacity"),
+    propertyConstraints: readStringFromMetadata(row?.metadata, "property_constraints"),
+    requestedServices,
+    desiredDate: readStringField(row, "desired_date"),
+    urgency: row?.urgency === true,
+    description: readStringField(row, "description"),
+  });
+}
+
+function getBriefMetadata(brief: ServiceRequestBrief) {
+  return {
+    owner_goal: brief.owner_goal,
+    owner_goal_label: brief.owner_goal_label,
+    collaboration_type: brief.collaboration_type,
+    collaboration_type_label: brief.collaboration_type_label,
+    collaboration_frequency: brief.frequency,
+    collaboration_frequency_label: brief.frequency_label,
+    estimated_duration: brief.estimated_duration,
+    responsibility_level: brief.responsibility_level,
+    responsibility_level_label: brief.responsibility_level_label,
+    pricing_expectation: brief.pricing_expectation,
+    request_summary: brief.summary,
+    missing_information: brief.missing_information,
+  };
 }
 
 function parseLimit(raw: string | null, fallback = 20) {
@@ -157,10 +288,39 @@ function isMissingRelationError(error: unknown) {
   );
 }
 
-function buildRequestPrefillMessage(body: CreateServiceRequestBody, requestedServices: string[]) {
+function buildRequestPrefillMessage(
+  body: CreateServiceRequestBody,
+  requestedServices: string[],
+  requestBrief: ServiceRequestBrief,
+) {
   const lines = [
     `Bonjour, je souhaite vous adresser une demande ${body.request_type ?? "ponctuelle"}.`,
+    `Synthese : ${requestBrief.summary}`,
+    `Objectif : ${requestBrief.owner_goal_label}`,
+    `Collaboration : ${requestBrief.collaboration_type_label}`,
+    `Frequence : ${requestBrief.frequency_label}`,
+    requestBrief.estimated_duration ? `Duree estimee : ${requestBrief.estimated_duration}` : null,
+    `Responsabilite : ${requestBrief.responsibility_level_label}`,
+    `Proposition attendue : ${requestBrief.pricing_expectation}`,
+    requestBrief.missing_information.length > 0
+      ? `Informations a preciser : ${requestBrief.missing_information.join(", ")}`
+      : null,
     typeof body.title === "string" && body.title.trim() ? `Titre : ${body.title.trim()}` : null,
+    typeof body.property_name === "string" && body.property_name.trim()
+      ? `Logement : ${body.property_name.trim()}`
+      : null,
+    typeof body.property_address === "string" && body.property_address.trim()
+      ? `Adresse ou repere : ${body.property_address.trim()}`
+      : null,
+    typeof body.property_type === "string" && body.property_type.trim()
+      ? `Type de logement : ${body.property_type.trim()}`
+      : null,
+    typeof body.sleeping_capacity === "number" || (typeof body.sleeping_capacity === "string" && body.sleeping_capacity.trim())
+      ? `Couchages : ${String(body.sleeping_capacity).trim()}`
+      : null,
+    typeof body.property_constraints === "string" && body.property_constraints.trim()
+      ? `Contraintes : ${body.property_constraints.trim()}`
+      : null,
     typeof body.region === "string" && body.region.trim() ? `Region : ${body.region.trim()}` : null,
     typeof body.city === "string" && body.city.trim() ? `Ville : ${body.city.trim()}` : null,
     typeof body.postal_code === "string" && body.postal_code.trim()
@@ -191,13 +351,18 @@ async function ensureContactConversations(params: {
   const conciergeIds = Array.from(new Set(params.conciergeIds));
   if (conciergeIds.length === 0) return [];
 
-  const { data: existingRows, error: existingError } = await dbAny
+  let existingQuery = dbAny
     .from("contact_conversations")
     .select("id, concierge_profile_id, owner_profile_id")
     .eq("owner_profile_id", ownerProfileId)
     .eq("source", "search")
-    .in("concierge_profile_id", conciergeIds)
-    .is("source_reference", params.sourceReference);
+    .in("concierge_profile_id", conciergeIds);
+
+  existingQuery = params.sourceReference
+    ? existingQuery.eq("source_reference", params.sourceReference)
+    : existingQuery.is("source_reference", null);
+
+  const { data: existingRows, error: existingError } = await existingQuery;
 
   if (existingError) {
     console.error("[service-requests] load contact conversations error:", existingError);
@@ -288,6 +453,13 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
         .filter((id: unknown): id is string => typeof id === "string" && id.length > 0),
     ),
   );
+  const housingIds = Array.from(
+    new Set(
+      (requests ?? [])
+        .map((row: Record<string, unknown>) => readHousingIdFromMetadata(row.metadata))
+        .filter((id: string | null): id is string => Boolean(id)),
+    ),
+  );
 
   const { data: recipients, error: recipientsError } = await dbAny
     .from("service_request_recipients")
@@ -310,7 +482,7 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
 
   const { data: conciergeProfiles, error: conciergeProfilesError } = await dbAny
     .from("profiles")
-    .select("id, first_name, last_name, username, company_name")
+    .select("id, first_name, last_name, username, company_name, avatar_url, image")
     .in("id", conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"]);
 
   if (conciergeProfilesError) {
@@ -328,36 +500,50 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     throw new Error("Impossible de charger les logements lies.");
   }
 
+  const numericHousingIds = housingIds.map((housingId) => Number(housingId)).filter((value) => Number.isFinite(value) && value > 0);
+  const { data: housingRows, error: housingError } = await dbAny
+    .from("housing")
+    .select("id, nom_logement, ville")
+    .in("id", numericHousingIds.length > 0 ? numericHousingIds : [-1]);
+
+  if (housingError) {
+    console.error("[GET /api/service-requests] owner housing error:", housingError);
+    throw new Error("Impossible de charger les logements lies.");
+  }
+
   const conciergeNameById = new Map<string, string>();
+  const conciergeAvatarById = new Map<string, string>();
   const propertyNameById = new Map<string, string>();
+  const housingNameById = new Map<string, string>();
   (conciergeProfiles ?? []).forEach(
-    (profile: {
-      id: string;
-      first_name?: string | null;
-      last_name?: string | null;
-      username?: string | null;
-      company_name?: string | null;
-    }) => {
+    (profile: ConciergeProfileRow) => {
       const displayName =
         `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
         profile.company_name ||
         profile.username ||
         "Concierge";
       conciergeNameById.set(profile.id, displayName);
+      const avatarUrl = profile.avatar_url || profile.image;
+      if (avatarUrl) conciergeAvatarById.set(profile.id, avatarUrl);
     },
   );
   (properties ?? []).forEach((property: { id: string; name?: string | null; city?: string | null }) => {
     const label = property.name?.trim() || (property.city ? `Logement à ${property.city}` : "") || "Logement";
     propertyNameById.set(property.id, label);
   });
+  (housingRows ?? []).forEach((housing: { id: number | string; nom_logement?: string | null; ville?: string | null }) => {
+    const label = housing.nom_logement?.trim() || (housing.ville ? `Logement à ${housing.ville}` : "") || "Logement";
+    housingNameById.set(String(housing.id), label);
+  });
 
   const recipientsByRequestId = new Map<string, ServiceRequestRecipientRow[]>();
   (recipients ?? []).forEach((recipient: ServiceRequestRecipientRow) => {
     const current = recipientsByRequestId.get(recipient.service_request_id) ?? [];
-    current.push({
-      ...recipient,
-      concierge_name: conciergeNameById.get(recipient.concierge_profile_id) ?? "Concierge",
-    });
+      current.push({
+        ...recipient,
+        concierge_name: conciergeNameById.get(recipient.concierge_profile_id) ?? "Concierge",
+        concierge_avatar_url: conciergeAvatarById.get(recipient.concierge_profile_id) ?? null,
+      });
     recipientsByRequestId.set(recipient.service_request_id, current);
   });
 
@@ -396,8 +582,9 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
 
   const { data: quotes, error: quotesError } = await dbAny
     .from("quotes")
-    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, created_at, metadata")
+    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
     .eq("owner_profile_id", ownerId)
+    .neq("status", "draft")
     .in(
       "concierge_profile_id",
       conciergeIds.length > 0 ? conciergeIds : ["00000000-0000-0000-0000-000000000000"],
@@ -417,7 +604,11 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
         ? quote.metadata
         : null;
     const requestId =
-      metadata && typeof metadata.service_request_id === "string" ? metadata.service_request_id : "";
+      typeof quote.service_request_id === "string"
+        ? quote.service_request_id
+        : metadata && typeof metadata.service_request_id === "string"
+          ? metadata.service_request_id
+          : "";
     if (!requestId || !conciergeId) return;
 
     const key = `${requestId}:${conciergeId}`;
@@ -429,20 +620,20 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
     }
   });
 
-  return (requests ?? []).map((request: ServiceRequestRow) => ({
-    ...request,
-    property_name:
-      (typeof request.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
-      readPropertyLabelFromMetadata(request.metadata),
-    selected_concierge_name: request.selected_concierge_profile_id
-      ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
-      : null,
-    recipients: (recipientsByRequestId.get(request.id) ?? []).map((recipient) => {
+  return (requests ?? []).map((request: ServiceRequestRow) => {
+    const hydratedRecipients = (recipientsByRequestId.get(request.id) ?? []).map((recipient) => {
       const conversation =
         conversationByRequestAndConcierge.get(`${request.id}:${recipient.concierge_profile_id}`) ??
         fallbackConversationByConcierge.get(recipient.concierge_profile_id);
       const quote =
         quoteByRequestAndConcierge.get(`${request.id}:${recipient.concierge_profile_id}`) ?? null;
+      const workflow = deriveCommercialWorkflowStatus({
+        serviceRequestStatus: readStringField(request, "status"),
+        recipientStatus: recipient.status,
+        quoteStatus: quote?.status ?? null,
+        missionStatus: readStringField(request, "mission_status"),
+        hasMission: Boolean(readStringField(request, "mission_id")),
+      });
 
       return {
         ...recipient,
@@ -450,9 +641,50 @@ async function hydrateOwnerRequests(ownerId: string, limit: number) {
         quote_id: quote?.id ?? null,
         quote_number: quote?.quote_number ?? null,
         quote_status: quote?.status ?? null,
+        request_workflow_status: workflow.request_workflow_status,
+        quote_workflow_status: workflow.quote_workflow_status,
+        mission_workflow_status: workflow.mission_workflow_status,
       };
-    }),
-  }));
+    });
+    const requestWorkflow = deriveCommercialWorkflowStatus({
+      workflowStatus: readStringField(request, "workflow_status"),
+      serviceRequestStatus: readStringField(request, "status"),
+      recipientStatus: pickPrimaryRecipientStatus(hydratedRecipients),
+      quoteStatus: pickPrimaryQuoteStatus(
+        hydratedRecipients.map((recipient) => ({ status: recipient.quote_status })),
+      ),
+      missionStatus: readStringField(request, "mission_status"),
+      hasMission: Boolean(readStringField(request, "mission_id")),
+    });
+    const brief = buildBriefFromRequestRow(request);
+    const metadata = readServiceRequestBriefMetadata(request.metadata);
+    const housingId = readHousingIdFromMetadata(request.metadata);
+
+    return {
+      ...request,
+      brief,
+      request_summary:
+        typeof metadata.request_summary === "string" && metadata.request_summary.trim()
+          ? metadata.request_summary
+          : brief.summary,
+      workflow_status: requestWorkflow.request_workflow_status,
+      request_workflow_status: requestWorkflow.request_workflow_status,
+      quote_workflow_status: requestWorkflow.quote_workflow_status,
+      mission_workflow_status: requestWorkflow.mission_workflow_status,
+      property_name:
+        (housingId ? housingNameById.get(housingId) ?? null : null) ??
+        (typeof request.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
+        readPropertyLabelFromMetadata(request.metadata),
+      property_housing_id: housingId,
+      selected_concierge_name: request.selected_concierge_profile_id
+        ? conciergeNameById.get(request.selected_concierge_profile_id) ?? "Concierge"
+        : null,
+      selected_concierge_avatar_url: request.selected_concierge_profile_id
+        ? conciergeAvatarById.get(request.selected_concierge_profile_id) ?? null
+        : null,
+      recipients: hydratedRecipients,
+    };
+  });
 }
 
 async function hydrateConciergeRequests(conciergeId: string, limit: number) {
@@ -574,7 +806,7 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
 
   const { data: quotes, error: quotesError } = await dbAny
     .from("quotes")
-    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, created_at, metadata")
+    .select("id, quote_number, status, owner_profile_id, concierge_profile_id, service_request_id, service_request_recipient_id, created_at, metadata")
     .eq("concierge_profile_id", conciergeId)
     .in("owner_profile_id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
 
@@ -591,7 +823,11 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
         ? quote.metadata
         : null;
     const requestId =
-      metadata && typeof metadata.service_request_id === "string" ? metadata.service_request_id : "";
+      typeof quote.service_request_id === "string"
+        ? quote.service_request_id
+        : metadata && typeof metadata.service_request_id === "string"
+          ? metadata.service_request_id
+          : "";
     if (!requestId || !ownerId) return;
 
     const key = `${requestId}:${ownerId}`;
@@ -610,9 +846,28 @@ async function hydrateConciergeRequests(conciergeId: string, limit: number) {
       conversationByRequestAndOwner.get(`${recipient.service_request_id}:${ownerId}`) ??
       fallbackConversationByOwner.get(ownerId);
     const quote = quoteByRequestAndOwner.get(`${recipient.service_request_id}:${ownerId}`) ?? null;
+    const workflow = deriveCommercialWorkflowStatus({
+      workflowStatus: readStringField(request, "workflow_status"),
+      serviceRequestStatus: readStringField(request, "status"),
+      recipientStatus: recipient.status,
+      quoteStatus: quote?.status ?? null,
+      missionStatus: readStringField(request, "mission_status"),
+      hasMission: Boolean(readStringField(request, "mission_id")),
+    });
+    const brief = buildBriefFromRequestRow(request);
+    const metadata = readServiceRequestBriefMetadata(request?.metadata);
 
     return {
       ...request,
+      brief,
+      request_summary:
+        typeof metadata.request_summary === "string" && metadata.request_summary.trim()
+          ? metadata.request_summary
+          : brief.summary,
+      workflow_status: workflow.request_workflow_status,
+      request_workflow_status: workflow.request_workflow_status,
+      quote_workflow_status: workflow.quote_workflow_status,
+      mission_workflow_status: workflow.mission_workflow_status,
       property_name:
         (typeof request?.property_id === "string" ? propertyNameById.get(request.property_id) ?? null : null) ??
         readPropertyLabelFromMetadata(request?.metadata),
@@ -648,6 +903,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
     }
     const body = parsedBody.data as CreateServiceRequestBody;
+    const housingId = normalizeHousingId(body.housing_id);
     const title = typeof body.title === "string" ? body.title.trim() : "";
     if (!title) {
       return NextResponse.json({ error: "Le titre est requis." }, { status: 400 });
@@ -664,8 +920,35 @@ export async function POST(req: NextRequest) {
       typeof body.desired_date === "string" && body.desired_date.trim().length > 0
         ? body.desired_date
         : null;
+    const requestBrief = buildServiceRequestBrief({
+      ownerGoal: body.owner_goal,
+      collaborationType: body.collaboration_type,
+      frequency: body.collaboration_frequency,
+      estimatedDuration: body.estimated_duration ?? body.collaboration_duration,
+      responsibilityLevel: body.responsibility_level,
+      city: body.city,
+      propertyName: body.property_name,
+      propertyAddress: body.property_address,
+      propertyType: body.property_type,
+      sleepingCapacity: body.sleeping_capacity,
+      propertyConstraints: body.property_constraints,
+      requestedServices,
+      desiredDate,
+      urgency: body.urgency,
+      description: body.description,
+    });
+    const briefMetadata = {
+      ...getBriefMetadata(requestBrief),
+      request_summary:
+        typeof body.request_summary === "string" && body.request_summary.trim()
+          ? body.request_summary.trim()
+          : requestBrief.summary,
+    };
     const requestSubject = title;
-    const prefillMessage = buildRequestPrefillMessage(body, requestedServices);
+    const prefillMessage = buildRequestPrefillMessage(body, requestedServices, {
+      ...requestBrief,
+      summary: briefMetadata.request_summary,
+    });
 
     let validRecipientIds: string[] = [];
     if (recipientIds.length > 0) {
@@ -704,24 +987,89 @@ export async function POST(req: NextRequest) {
       title,
       description: typeof body.description === "string" ? body.description.trim() || null : null,
       requested_services: requestedServices,
+      region: typeof body.region === "string" ? body.region.trim() || null : null,
       city: typeof body.city === "string" ? body.city.trim() || null : null,
       postal_code: typeof body.postal_code === "string" ? body.postal_code.trim() || null : null,
       desired_date: desiredDate,
+      radius_km: typeof body.radius_km === "number" ? body.radius_km : null,
       urgency: body.urgency === true,
       budget_max: typeof body.budget_max === "number" ? body.budget_max : null,
       currency: normalizeCurrency(body.currency),
       metadata: {
         origin: validRecipientIds.length > 0 ? "owner_search_flow" : "owner_direct_request",
         region: typeof body.region === "string" ? body.region.trim() || null : null,
+        radius_km: typeof body.radius_km === "number" ? body.radius_km : null,
         property_label: typeof body.property_name === "string" ? body.property_name.trim() || null : null,
+        property_housing_id: housingId,
+        property_address: typeof body.property_address === "string" ? body.property_address.trim() || null : null,
+        property_type: typeof body.property_type === "string" ? body.property_type.trim() || null : null,
+        sleeping_capacity:
+          typeof body.sleeping_capacity === "number"
+            ? String(body.sleeping_capacity)
+            : typeof body.sleeping_capacity === "string"
+              ? body.sleeping_capacity.trim() || null
+              : null,
+        property_constraints:
+          typeof body.property_constraints === "string" ? body.property_constraints.trim() || null : null,
+        ...briefMetadata,
       },
     };
 
-    const { data: createdRequest, error: requestError } = await dbAny
-      .from("service_requests")
-      .insert(insertPayload)
-      .select("*")
-      .single();
+    let createdFromExistingDraft = false;
+    let createdRequest: ServiceRequestRow | null = null;
+    let requestError: unknown = null;
+
+    const existingHousingRequest = housingId && requestType !== "renfort" ? await findOwnerRequestForHousing(userId, housingId) : null;
+    if (existingHousingRequest) {
+      const { count: recipientCount, error: existingRecipientsError } = await dbAny
+        .from("service_request_recipients")
+        .select("id", { count: "exact", head: true })
+        .eq("service_request_id", existingHousingRequest.id);
+
+      if (existingRecipientsError) {
+        console.error("[POST /api/service-requests] existing recipients error:", existingRecipientsError);
+        return NextResponse.json({ error: "Impossible de verifier la demande existante." }, { status: 500 });
+      }
+
+      const existingStatus = normalizeStatus(existingHousingRequest.status);
+      const canReuseExistingDraft =
+        (recipientCount ?? 0) === 0 &&
+        (existingStatus === "draft" || existingStatus === "new") &&
+        validRecipientIds.length > 0;
+
+      if (!canReuseExistingDraft) {
+        return NextResponse.json(
+          {
+            error: "Une demande existe deja pour ce logement. Completez ou suivez la demande existante.",
+            request_id: existingHousingRequest.id,
+            request_title: existingHousingRequest.title,
+            status: existingHousingRequest.status,
+          },
+          { status: 409 },
+        );
+      }
+
+      const { data: updatedRequest, error: updateDraftError } = await dbAny
+        .from("service_requests")
+        .update(insertPayload)
+        .eq("id", existingHousingRequest.id)
+        .eq("owner_profile_id", userId)
+        .select("*")
+        .single();
+
+      createdRequest = updatedRequest ?? null;
+      requestError = updateDraftError ?? null;
+      createdFromExistingDraft = Boolean(updatedRequest);
+    } else {
+      const { data: insertedRequest, error: insertRequestError } = await dbAny
+        .from("service_requests")
+        .insert(insertPayload)
+        .select("*")
+        .single();
+
+      createdRequest = insertedRequest ?? null;
+      requestError = insertRequestError ?? null;
+    }
 
     if (requestError || !createdRequest) {
       if (isMissingRelationError(requestError)) {
@@ -734,6 +1082,7 @@ export async function POST(req: NextRequest) {
           metadata: {
             origin: "owner_search_flow",
             fallback_mode: "messages_only",
+            ...briefMetadata,
           },
         });
 
@@ -756,6 +1105,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (validRecipientIds.length === 0) {
+      await recordWorkflowEvent(dbAny, {
+        actorProfileId: userId,
+        ownerProfileId: userId,
+        serviceRequestId: createdRequest.id,
+        eventType: "service_request_created",
+        title: "Demande brouillon créée",
+        body: "Le propriétaire a créé une demande sans destinataire.",
+        actionHref: `/dashboard/owner/demandes?request=${createdRequest.id}`,
+        serviceRequestStatus: readStringField(createdRequest, "status"),
+        metadata: { origin: "owner_direct_request", ...briefMetadata },
+      });
+
       return NextResponse.json(
         {
           request: createdRequest,
@@ -782,7 +1143,9 @@ export async function POST(req: NextRequest) {
 
     if (recipientsError) {
       console.error("[POST /api/service-requests] create recipients error:", recipientsError);
-      await dbAny.from("service_requests").delete().eq("id", createdRequest.id);
+      if (!createdFromExistingDraft) {
+        await dbAny.from("service_requests").delete().eq("id", createdRequest.id);
+      }
       return NextResponse.json({ error: "Impossible d'ajouter les destinataires." }, { status: 500 });
     }
 
@@ -795,6 +1158,24 @@ export async function POST(req: NextRequest) {
       metadata: {
         origin: "owner_search_flow",
         service_request_id: createdRequest.id,
+        ...briefMetadata,
+      },
+    });
+
+    await recordWorkflowEvent(dbAny, {
+      actorProfileId: userId,
+      ownerProfileId: userId,
+      serviceRequestId: createdRequest.id,
+      eventType: "service_request_sent",
+      title: "Demande envoyée",
+      body: "Le propriétaire a envoyé une demande à une ou plusieurs conciergeries.",
+      actionHref: `/dashboard/owner/demandes?request=${createdRequest.id}`,
+      serviceRequestStatus: readStringField(createdRequest, "status"),
+      recipientStatus: "sent",
+      metadata: {
+        recipient_count: validRecipientIds.length,
+        origin: "owner_search_flow",
+        ...briefMetadata,
       },
     });
 
@@ -810,6 +1191,33 @@ export async function POST(req: NextRequest) {
     console.error("[POST /api/service-requests] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
+}
+
+function normalizeHousingId(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) return String(Math.round(value));
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return null;
+}
+
+async function findOwnerRequestForHousing(ownerProfileId: string, housingId: string) {
+  const { data: existingRequests, error } = await dbAny
+    .from("service_requests")
+    .select("id, title, status, metadata, created_at")
+    .eq("owner_profile_id", ownerProfileId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) {
+    console.error("[service-requests] duplicate housing request lookup error:", error);
+    throw new Error("Impossible de verifier les demandes existantes.");
+  }
+
+  return (
+    (existingRequests ?? []).find(
+      (request: Record<string, unknown>) =>
+        readHousingIdFromMetadata(request.metadata) === housingId && request.request_type !== "renfort",
+    ) ?? null
+  );
 }
 
 export async function PATCH(req: NextRequest) {
@@ -830,6 +1238,17 @@ export async function PATCH(req: NextRequest) {
 
     const body = parsedBody.data as Partial<CreateServiceRequestBody> & { id: string };
     const updatePayload: Record<string, unknown> = {};
+    const { data: existingRequest, error: existingError } = await dbAny
+      .from("service_requests")
+      .select("id, metadata")
+      .eq("id", body.id)
+      .eq("owner_profile_id", userId)
+      .single();
+
+    if (existingError || !existingRequest) {
+      console.error("[PATCH /api/service-requests] existing request error:", existingError);
+      return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
+    }
 
     if (typeof body.title === "string") {
       const title = body.title.trim();
@@ -842,6 +1261,8 @@ export async function PATCH(req: NextRequest) {
     if (typeof body.property_id === "string" || body.property_id === null) updatePayload.property_id = body.property_id ?? null;
     if (typeof body.request_type === "string" && VALID_REQUEST_TYPES.includes(body.request_type)) updatePayload.request_type = body.request_type;
     if (Array.isArray(body.requested_services)) updatePayload.requested_services = normalizeStringArray(body.requested_services);
+    if (typeof body.region === "string" || body.region === null) updatePayload.region = typeof body.region === "string" ? body.region.trim() || null : null;
+    if (typeof body.radius_km === "number" || body.radius_km === null) updatePayload.radius_km = body.radius_km ?? null;
     if (typeof body.city === "string" || body.city === null) updatePayload.city = typeof body.city === "string" ? body.city.trim() || null : null;
     if (typeof body.postal_code === "string" || body.postal_code === null) updatePayload.postal_code = typeof body.postal_code === "string" ? body.postal_code.trim() || null : null;
     if (typeof body.desired_date === "string" || body.desired_date === null) updatePayload.desired_date = body.desired_date || null;
@@ -849,9 +1270,21 @@ export async function PATCH(req: NextRequest) {
     if (typeof body.budget_max === "number" || body.budget_max === null) updatePayload.budget_max = body.budget_max ?? null;
     if (typeof body.currency === "string" || body.currency === null) updatePayload.currency = normalizeCurrency(body.currency);
 
-    if (typeof body.property_name === "string" || body.property_name === null) {
+    if (
+      typeof body.property_name === "string" ||
+      body.property_name === null ||
+      typeof body.housing_id === "string" ||
+      typeof body.housing_id === "number" ||
+      body.housing_id === null
+    ) {
+      const previousMetadata =
+        existingRequest.metadata && typeof existingRequest.metadata === "object" && !Array.isArray(existingRequest.metadata)
+          ? existingRequest.metadata
+          : {};
       updatePayload.metadata = {
+        ...previousMetadata,
         property_label: typeof body.property_name === "string" ? body.property_name.trim() || null : null,
+        property_housing_id: normalizeHousingId(body.housing_id),
         updated_from: "owner_requests_page",
       } as Json;
     }
@@ -876,6 +1309,69 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ request: updatedRequest });
   } catch (err) {
     console.error("[PATCH /api/service-requests] ERROR:", err);
+    return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { userId, role } = await getApiAuthContext(req);
+    if (!userId || !isUuidLike(userId)) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+    if (!OWNER_ROLES.has(role)) {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
+    const url = new URL(req.url);
+    const requestId = url.searchParams.get("id");
+    if (!requestId || !isUuidLike(requestId)) {
+      return NextResponse.json({ error: "Demande invalide." }, { status: 400 });
+    }
+
+    const { data: existingRequest, error: requestError } = await dbAny
+      .from("service_requests")
+      .select("id, owner_profile_id")
+      .eq("id", requestId)
+      .eq("owner_profile_id", userId)
+      .single();
+
+    if (requestError || !existingRequest) {
+      console.error("[DELETE /api/service-requests] request lookup error:", requestError);
+      return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
+    }
+
+    const { count: recipientCount, error: recipientsError } = await dbAny
+      .from("service_request_recipients")
+      .select("id", { count: "exact", head: true })
+      .eq("service_request_id", requestId);
+
+    if (recipientsError) {
+      console.error("[DELETE /api/service-requests] recipients lookup error:", recipientsError);
+      return NextResponse.json({ error: "Impossible de verifier les conciergeries contactees." }, { status: 500 });
+    }
+
+    if ((recipientCount ?? 0) > 0) {
+      return NextResponse.json(
+        { error: "Cette demande ne peut plus etre supprimee car une conciergerie a deja ete contactee." },
+        { status: 409 },
+      );
+    }
+
+    const { error: deleteError } = await dbAny
+      .from("service_requests")
+      .delete()
+      .eq("id", requestId)
+      .eq("owner_profile_id", userId);
+
+    if (deleteError) {
+      console.error("[DELETE /api/service-requests] delete error:", deleteError);
+      return NextResponse.json({ error: "Impossible de supprimer la demande." }, { status: 500 });
+    }
+
+    return NextResponse.json({ deleted: true });
+  } catch (err) {
+    console.error("[DELETE /api/service-requests] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
 }
