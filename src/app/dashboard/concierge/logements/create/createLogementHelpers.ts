@@ -4,6 +4,7 @@ import {
   normalizeOwnerFromProfile,
   validateHousingDraft,
 } from "../../../../../types/housing.ts";
+import { EMPTY_HOUSING_STOCK_MANAGEMENT } from "@/app/lib/housingStock";
 
 export interface ManualCreateFormState {
   housingName: string;
@@ -220,6 +221,7 @@ export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeH
       roomCount: toOptionalNumber(form.roomCount),
       bedroomCount: toOptionalNumber(form.bedroomCount),
       bathroomCount: toOptionalNumber(form.bathroomCount),
+      bathrooms: [],
       bedCount: toOptionalNumber(form.bedCount),
       guestCapacity: toOptionalNumber(form.guestCapacity),
       wifiInfo: "",
@@ -234,6 +236,7 @@ export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeH
       amenities: splitAmenities(form.amenities),
       description: form.description.trim(),
     },
+    stockManagement: EMPTY_HOUSING_STOCK_MANAGEMENT,
     services: {
       items: form.services
         .map((service) => ({
@@ -324,6 +327,7 @@ export function buildHousingDraftFromQuote(preview: QuotePreview): ConciergeHous
       roomCount: null,
       bedroomCount: null,
       bathroomCount: null,
+      bathrooms: [],
       bedCount: null,
       guestCapacity: null,
       wifiInfo: "",
@@ -338,6 +342,7 @@ export function buildHousingDraftFromQuote(preview: QuotePreview): ConciergeHous
       amenities: [],
       description: `Creation automatique depuis devis ${preview.quoteNumber}`,
     },
+    stockManagement: EMPTY_HOUSING_STOCK_MANAGEMENT,
     services: preview.services,
     timeline: [
       {

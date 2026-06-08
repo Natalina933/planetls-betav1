@@ -187,6 +187,7 @@ export function buildLogementPatchPayload(editedData: Partial<LogementTyped>) {
         roomCount: null,
         bedroomCount: null,
         bathroomCount: null,
+        bathrooms: [],
         bedCount: null,
         guestCapacity: null,
         wifiInfo: "",

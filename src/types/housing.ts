@@ -1,4 +1,9 @@
 import type { Database, Json } from "./supabase.ts";
+import {
+  EMPTY_HOUSING_STOCK_MANAGEMENT,
+  normalizeHousingStockManagement,
+  type HousingStockManagement,
+} from "@/app/lib/housingStock";
 
 export type HousingRow = Database["public"]["Tables"]["housing"]["Row"];
 export type HousingInsert = Database["public"]["Tables"]["housing"]["Insert"];
@@ -87,6 +92,13 @@ export interface HousingLocationInfo {
   entryInstructions: string;
 }
 
+export interface HousingBathroomInfo {
+  id: string;
+  name: string;
+  type: string;
+  notes: string;
+}
+
 export interface HousingCharacteristics {
   propertyType: string;
   categorie?: string;
@@ -98,18 +110,29 @@ export interface HousingCharacteristics {
   bedroomCount: number | null;
   nb_chambres?: number | null;
   bathroomCount: number | null;
+  bathrooms: HousingBathroomInfo[];
   bedCount: number | null;
   guestCapacity: number | null;
   capacite?: number | null;
   wifiInfo: string;
   keyCount: number | null;
   terrace: boolean;
+  terraceSurfaceSqm?: number | null;
+  terraceNotes?: string;
   stairs: boolean;
+  stairsFloorCount?: number | null;
+  stairsNotes?: string;
   pool: boolean;
+  poolNotes?: string;
   petsAllowed: boolean;
+  petsNotes?: string;
   nonSmoking: boolean;
   barbecue: boolean;
+  barbecueType?: string;
   chequeRequired: boolean;
+  chequeAmount?: number | null;
+  bathroomType?: string;
+  bathroomNotes?: string;
   amenities: string[];
   equipements?: string[];
   description: string;
@@ -204,6 +227,7 @@ export interface ConciergeHousing
   owner: HousingOwnerInfo;
   locationInfo: HousingLocationInfo;
   characteristics: HousingCharacteristics;
+  stockManagement: HousingStockManagement;
   services: HousingServices;
   timeline: HousingTimelineItem[];
   documentsList: HousingDocument[];
@@ -280,6 +304,37 @@ function buildName(firstName: unknown, lastName: unknown, fallback: unknown): st
 function generateClientId(prefix: string, seed: unknown): string {
   const base = cleanString(seed).replace(/[^a-zA-Z0-9_-]/g, "");
   return `${prefix}-${base || Math.random().toString(36).slice(2, 10)}`;
+}
+
+function normalizeBathrooms(
+  value: unknown,
+  count: number | null,
+  type: string,
+  notes: string,
+  seed: unknown,
+): HousingBathroomInfo[] {
+  if (Array.isArray(value)) {
+    return value.map((item, index) => {
+      const bathroom = asRecord(item);
+      return {
+        id: cleanString(bathroom.id) || generateClientId("bathroom", `${seed}-${index}`),
+        name: cleanString(bathroom.name) || `Salle de bain ${index + 1}`,
+        type: cleanString(bathroom.type) || "Douche",
+        notes: cleanString(bathroom.notes),
+      };
+    });
+  }
+
+  const bathroomCount = count ?? 0;
+  if (bathroomCount <= 0 && !type && !notes) return [];
+
+  const total = Math.max(bathroomCount, 1);
+  return Array.from({ length: total }, (_, index) => ({
+    id: generateClientId("bathroom", `${seed}-legacy-${index}`),
+    name: `Salle de bain ${index + 1}`,
+    type: type || "Douche",
+    notes: index === 0 ? notes : "",
+  }));
 }
 
 export function extractHousingAccessProfileIds(proprietaire: unknown) {
@@ -483,23 +538,40 @@ export function normalizeHousingRow(row: HousingRow): ConciergeHousing {
       bedroomCount: toOptionalNumber(infos.bedroom_count ?? infos.nb_chambres),
       nb_chambres: toOptionalNumber(infos.bedroom_count ?? infos.nb_chambres),
       bathroomCount: toOptionalNumber(infos.bathroom_count),
+      bathrooms: normalizeBathrooms(
+        infos.bathrooms,
+        toOptionalNumber(infos.bathroom_count),
+        cleanString(infos.bathroom_type),
+        cleanString(infos.bathroom_notes),
+        row.id,
+      ),
       bedCount: toOptionalNumber(infos.bed_count),
       guestCapacity: toOptionalNumber(infos.guest_capacity ?? infos.capacite ?? location.nbCouchages),
       capacite: toOptionalNumber(infos.guest_capacity ?? infos.capacite ?? location.nbCouchages),
       wifiInfo: cleanString(infos.wifi_info) || stringifyWifiInfo(infos.infosWifi ?? infos.infos_wifi),
       keyCount: toOptionalNumber(infos.key_count ?? infos.nb_cles ?? location.nbCles),
       terrace: toBoolean(infos.terrace ?? infos.terrasse ?? location.terrasse),
+      terraceSurfaceSqm: toOptionalNumber(infos.terrace_surface_sqm),
+      terraceNotes: cleanString(infos.terrace_notes),
       stairs: toBoolean(infos.stairs ?? infos.escaliers ?? location.escaliers),
+      stairsFloorCount: toOptionalNumber(infos.stairs_floor_count),
+      stairsNotes: cleanString(infos.stairs_notes),
       pool: toBoolean(infos.pool ?? infos.piscine ?? location.piscine),
+      poolNotes: cleanString(infos.pool_notes),
       petsAllowed: toBoolean(infos.pets_allowed ?? infos.animaux_acceptes ?? location.animauxAcceptes),
+      petsNotes: cleanString(infos.pets_notes),
       nonSmoking: toBoolean(
         infos.non_smoking ?? infos.non_fumeur,
         typeof location.fumeur === "boolean" ? !location.fumeur : false,
       ),
       barbecue: toBoolean(infos.barbecue ?? location.barbecue),
+      barbecueType: cleanString(infos.barbecue_type),
       chequeRequired: toBoolean(
         infos.cheque_required ?? infos.cheque_a_demander ?? location.chequeDemande,
       ),
+      chequeAmount: toOptionalNumber(infos.cheque_amount),
+      bathroomType: cleanString(infos.bathroom_type),
+      bathroomNotes: cleanString(infos.bathroom_notes),
       amenities: toStringArray(infos.amenities ?? infos.equipements),
       equipements: toStringArray(infos.amenities ?? infos.equipements),
       description: cleanString(infos.description),
@@ -526,6 +598,7 @@ export function normalizeHousingRow(row: HousingRow): ConciergeHousing {
       checklist: cleanString(menage.checklist),
       instructions: cleanString(menage.instructions),
     } as HousingServices,
+    stockManagement: normalizeHousingStockManagement(infos.stock_management),
     timeline: timelineSource.map((entry, index) => {
       const item = asRecord(entry);
       return {
@@ -598,8 +671,10 @@ export function buildHousingMutationPayload(
     | "documentsList"
     | "pricing"
     | "contractInfo"
-  >,
+  > & { stockManagement?: HousingStockManagement },
 ): HousingInsert {
+  const stockManagement = housing.stockManagement ?? EMPTY_HOUSING_STOCK_MANAGEMENT;
+
   return {
     external_id: housing.external_id ?? null,
     nom_logement: cleanString(housing.nom_logement) || null,
@@ -608,7 +683,7 @@ export function buildHousingMutationPayload(
     plateforme: cleanString(housing.plateforme) || null,
     statut: cleanString(housing.statut) || null,
     photo_principale: cleanString(housing.photo_principale) || null,
-    infos: {
+    infos: ({
       creation_mode: housing.creationMode,
       property_type: cleanString(housing.characteristics.propertyType),
       photos: housing.characteristics.photos,
@@ -622,15 +697,28 @@ export function buildHousingMutationPayload(
       wifi_info: cleanString(housing.characteristics.wifiInfo),
       key_count: housing.characteristics.keyCount,
       terrace: housing.characteristics.terrace,
+      terrace_surface_sqm: housing.characteristics.terraceSurfaceSqm ?? null,
+      terrace_notes: cleanString(housing.characteristics.terraceNotes),
       stairs: housing.characteristics.stairs,
+      stairs_floor_count: housing.characteristics.stairsFloorCount ?? null,
+      stairs_notes: cleanString(housing.characteristics.stairsNotes),
       pool: housing.characteristics.pool,
+      pool_notes: cleanString(housing.characteristics.poolNotes),
       pets_allowed: housing.characteristics.petsAllowed,
+      pets_notes: cleanString(housing.characteristics.petsNotes),
       non_smoking: housing.characteristics.nonSmoking,
       barbecue: housing.characteristics.barbecue,
+      barbecue_type: cleanString(housing.characteristics.barbecueType),
       cheque_required: housing.characteristics.chequeRequired,
+      cheque_amount: housing.characteristics.chequeAmount ?? null,
+      bathrooms: housing.characteristics.bathrooms,
+      bathroom_type: cleanString(housing.characteristics.bathroomType),
+      bathroom_notes: cleanString(housing.characteristics.bathroomNotes),
       amenities: housing.characteristics.amenities,
+      equipements: housing.characteristics.amenities,
+      stock_management: stockManagement,
       description: cleanString(housing.characteristics.description),
-    } as Json,
+    } as unknown) as Json,
     proprietaire: {
       id: housing.owner.profileId,
       owner_profile_id: housing.owner.profileId,

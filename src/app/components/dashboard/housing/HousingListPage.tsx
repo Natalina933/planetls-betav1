@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FiMapPin, FiPlus, FiTarget, FiUsers } from "react-icons/fi";
@@ -36,15 +36,22 @@ function getSafePhoto(photo?: string) {
   return photo && photo.trim() !== "" ? photo : "/images/default-logement.png";
 }
 
+type PieStyle = CSSProperties & { "--value": string };
+
+function getPercent(value: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.min(100, Math.round((value / total) * 100));
+}
+
 function renderStatusLabel(statut: HousingListItem["statut"]) {
-  if (statut === "pret") return "Pr\u00eat";
-  if (statut === "menage") return "M\u00e9nage en cours";
-  if (statut === "arrivee") return "Arriv\u00e9e du jour";
-  return "D\u00e9part du jour";
+  if (statut === "pret") return "Prêt";
+  if (statut === "menage") return "Ménage en cours";
+  if (statut === "arrivee") return "Arrivée du jour";
+  return "Départ du jour";
 }
 
 function getOccupancyLabel(capacite?: number) {
-  if (!capacite || capacite <= 0) return "Capacit\u00e9 \u00e0 d\u00e9finir";
+  if (!capacite || capacite <= 0) return "Capacité à définir";
   if (capacite === 1) return "1 voyageur";
   return `${capacite} voyageurs`;
 }
@@ -101,15 +108,51 @@ export default function HousingListPage({
   const readinessRate =
     stats.total > 0 ? Math.round((stats.prets / Math.max(stats.total, 1)) * 100) : 0;
 
+  const completedHousingCount = useMemo(
+    () =>
+      logements.filter((logement) => {
+        const hasCapacity = Boolean(logement.infos?.capacite && logement.infos.capacite > 0);
+        const hasEquipments = Boolean(logement.infos?.equipements?.length);
+        return Boolean(logement.nom_logement && logement.ville && (hasCapacity || hasEquipments));
+      }).length,
+    [logements],
+  );
+
+  const summaryCards = useMemo(
+    () => [
+      {
+        label: "Prêts",
+        value: `${stats.prets}/${stats.total}`,
+        detail: "Disponibles",
+        percent: readinessRate,
+      },
+      {
+        label: "À préparer",
+        value: `${stats.menages}`,
+        detail: "Ménage",
+        percent: getPercent(stats.menages, stats.total),
+      },
+      {
+        label: "Mouvements",
+        value: `${movementCount}`,
+        detail: "Arrivées/départs",
+        percent: getPercent(movementCount, stats.total),
+      },
+      {
+        label: "Infos clés",
+        value: `${completedHousingCount}/${stats.total}`,
+        detail: "Capacité/équipements",
+        percent: getPercent(completedHousingCount, stats.total),
+      },
+    ],
+    [completedHousingCount, movementCount, readinessRate, stats.menages, stats.prets, stats.total],
+  );
+
   const goToHref = (href: string) => () => {
     window.location.href = href;
   };
 
-  const renderConciergeEditableSection = (
-    sectionTitle: string,
-    editHref: string,
-    children: React.ReactNode,
-  ) => (
+  const renderConciergeEditableSection = (sectionTitle: string, editHref: string, children: ReactNode) => (
     <EditableProfileSection
       styles={profileStyles}
       title={sectionTitle}
@@ -134,76 +177,30 @@ export default function HousingListPage({
     <DashboardSectionShell
       persona={persona}
       title={title}
-      subtitle="Visualisez l'\u00e9tat de vos logements, les mouvements et les fiches \u00e0 finaliser."
-      stats={[
-        { label: "Logements", value: `${stats.total}` },
-        { label: "Pr\u00eats", value: `${stats.prets}` },
-        { label: "M\u00e9nage", value: `${stats.menages}` },
-        { label: "Mouvements", value: `${movementCount}` },
-      ]}
-      actions={[{ label: "Ajouter un logement", href: addHref }]}
+      subtitle="Gérez vos biens et les fiches à compléter."
+      actions={isConcierge ? [{ label: "Ajouter un logement", href: addHref }] : undefined}
     >
       <div className={pageStyles.dashboardFlow}>
-        <section className={pageStyles.heroPanel}>
-          <div className={pageStyles.sectionHeading}>
-            <div>
-              <p className={pageStyles.eyebrow}>Parc immobilier</p>
-              <h1 className={pageStyles.terracottaTitle}>{title}</h1>
-              <p className={pageStyles.meta}>
-                Visualisez l&apos;\u00e9tat de vos logements et les fiches \u00e0 compl\u00e9ter en priorit\u00e9.
-              </p>
-            </div>
-            <div className={pageStyles.inlineActions}>
-              <Link href={addHref} className={pageStyles.buttonPrimary}>
-                <FiPlus /> Ajouter un logement
-              </Link>
-            </div>
-          </div>
-
-          <div className={pageStyles.priorityGrid}>
-            <article className={pageStyles.priorityCard}>
-              <p className={pageStyles.cardLabel}>Logements</p>
-              <strong className={pageStyles.cardValue}>{stats.total}</strong>
-              <span className={pageStyles.meta}>Volume total de biens suivis.</span>
-            </article>
-            <article className={pageStyles.priorityCard}>
-              <p className={pageStyles.cardLabel}>Pr\u00eats</p>
-              <strong className={pageStyles.cardValue}>{stats.prets}</strong>
-              <span className={pageStyles.meta}>Biens disponibles ou d\u00e9j\u00e0 pr\u00e9par\u00e9s.</span>
-            </article>
-            <article className={`${pageStyles.priorityCard} ${pageStyles.priorityWarning}`}>
-              <p className={pageStyles.cardLabel}>Mouvements</p>
-              <strong className={pageStyles.cardValue}>{movementCount}</strong>
-              <span className={pageStyles.meta}>Arriv\u00e9es et d\u00e9parts \u00e0 absorber.</span>
-            </article>
-          </div>
-
-          {!isConcierge ? (
-            <div className={ownerHousingStyles.ownerHighlights}>
-              <article className={ownerHousingStyles.highlightCard}>
-                <span className={ownerHousingStyles.highlightLabel}>Taux de pr\u00e9paration</span>
-                <strong className={ownerHousingStyles.highlightValue}>{readinessRate}%</strong>
-                <p className={ownerHousingStyles.highlightText}>
-                  Part des logements actuellement pr\u00eats \u00e0 accueillir un voyageur.
-                </p>
+        {!loading && !error && !isConcierge && logements.length > 0 ? (
+          <section className={ownerHousingStyles.summaryGrid} aria-label="Synthèse des logements">
+            {summaryCards.map((card) => (
+              <article key={card.label} className={ownerHousingStyles.summaryCard}>
+                <div
+                  className={ownerHousingStyles.summaryPie}
+                  style={{ "--value": `${card.percent}%` } as PieStyle}
+                  aria-hidden="true"
+                >
+                  <span className={ownerHousingStyles.summaryPieValue}>{card.percent}%</span>
+                </div>
+                <div className={ownerHousingStyles.summaryCopy}>
+                  <span className={ownerHousingStyles.summaryLabel}>{card.label}</span>
+                  <strong className={ownerHousingStyles.summaryValue}>{card.value}</strong>
+                  <span className={ownerHousingStyles.summaryDetail}>{card.detail}</span>
+                </div>
               </article>
-              <article className={ownerHousingStyles.highlightCard}>
-                <span className={ownerHousingStyles.highlightLabel}>Attention terrain</span>
-                <strong className={ownerHousingStyles.highlightValue}>{stats.menages}</strong>
-                <p className={ownerHousingStyles.highlightText}>
-                  Logement(s) en m\u00e9nage ou \u00e0 surveiller avant la prochaine rotation.
-                </p>
-              </article>
-              <article className={ownerHousingStyles.highlightCard}>
-                <span className={ownerHousingStyles.highlightLabel}>Flux du jour</span>
-                <strong className={ownerHousingStyles.highlightValue}>{movementCount}</strong>
-                <p className={ownerHousingStyles.highlightText}>
-                  Arriv\u00e9es et d\u00e9parts qui demandent une coordination particuli\u00e8re.
-                </p>
-              </article>
-            </div>
-          ) : null}
-        </section>
+            ))}
+          </section>
+        ) : null}
 
         {loading ? (
           <section className={pageStyles.panel}>
@@ -226,7 +223,7 @@ export default function HousingListPage({
                   <p className={cardStyles.conciergeEyebrow}>Aucun logement</p>
                   <h3 className={cardStyles.conciergeTitle}>Commencez votre parc</h3>
                   <p className={cardStyles.conciergeText}>
-                    Aucun logement r\u00e9el n&apos;est encore enregistr\u00e9 sur votre compte.
+                    Aucun logement réel n&apos;est encore enregistré sur votre compte.
                   </p>
                   <Link href={addHref} className={cardStyles.conciergePrimaryAction}>
                     <FiPlus /> Ajouter mon premier logement
@@ -242,7 +239,7 @@ export default function HousingListPage({
                   </div>
                 </div>
                 <p className={pageStyles.meta}>
-                  Aucun logement r\u00e9el n&apos;est encore enregistr\u00e9 sur votre compte.
+                  Aucun logement réel n&apos;est encore enregistré sur votre compte.
                 </p>
                 <div className={pageStyles.inlineActions}>
                   <Link href={addHref} className={pageStyles.buttonPrimary}>
@@ -281,10 +278,10 @@ export default function HousingListPage({
                             </span>
                             <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
                             <span className={cardStyles.metaItem}>
-                              Capacit\u00e9 : {logement.infos?.capacite ?? "-"} voyageur(s)
+                              Capacité : {logement.infos?.capacite ?? "-"} voyageur(s)
                             </span>
                             <span className={cardStyles.metaItem}>
-                              \u00c9quipements :{" "}
+                              Équipements :{" "}
                               {Array.isArray(logement.infos?.equipements) &&
                               logement.infos.equipements.length > 0
                                 ? logement.infos.equipements.slice(0, 3).join(", ")
@@ -300,7 +297,7 @@ export default function HousingListPage({
                             <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
                               {renderStatusLabel(logement.statut)}
                             </span>
-                            <span className={cardStyles.btnView}>{detailHrefBase ? "Voir ->" : "Logement"}</span>
+                            <span className={cardStyles.btnView}>{detailHrefBase ? "Voir" : "Logement"}</span>
                           </div>
                         </div>
                       </>
@@ -330,8 +327,12 @@ export default function HousingListPage({
               <section className={pageStyles.panel}>
                 <div className={pageStyles.sectionHeading}>
                   <div>
-                    <p className={pageStyles.eyebrow}>Vue cartes</p>
-                    <h2 className={pageStyles.terracottaSectionTitle}>Tous les logements</h2>
+                    <h2 className={pageStyles.terracottaSectionTitle}>Logements</h2>
+                  </div>
+                  <div className={pageStyles.inlineActions}>
+                    <Link href={addHref} className={pageStyles.buttonPrimary}>
+                      <FiPlus /> Ajouter
+                    </Link>
                   </div>
                 </div>
 
@@ -381,17 +382,6 @@ export default function HousingListPage({
                             </span>
                           </div>
 
-                          <div className={ownerHousingStyles.factsGrid}>
-                            <article className={ownerHousingStyles.factCard}>
-                              <span>Ville</span>
-                              <strong>{logement.ville}</strong>
-                            </article>
-                            <article className={ownerHousingStyles.factCard}>
-                              <span>Capacit\u00e9</span>
-                              <strong>{logement.infos?.capacite ?? "-"}</strong>
-                            </article>
-                          </div>
-
                           {logement.infos?.description ? (
                             <p className={`${cardStyles.cardDescription} ${ownerHousingStyles.ownerDescription}`}>
                               {logement.infos.description}
@@ -412,14 +402,8 @@ export default function HousingListPage({
                           ) : null}
 
                           <div className={`${cardStyles.cardFooter} ${ownerHousingStyles.ownerFooter}`}>
-                            <div className={ownerHousingStyles.ownerFooterCopy}>
-                              <span className={ownerHousingStyles.footerLabel}>Fiche logement</span>
-                              <span className={ownerHousingStyles.footerHint}>
-                                Ouvrez le d\u00e9tail pour g\u00e9rer la fiche et les informations du bien.
-                              </span>
-                            </div>
                             <span className={`${cardStyles.btnView} ${ownerHousingStyles.ownerViewButton}`}>
-                              {detailHrefBase ? "Ouvrir la fiche" : "Logement"}
+                              {detailHrefBase ? "Ouvrir" : "Logement"}
                             </span>
                           </div>
                         </div>
