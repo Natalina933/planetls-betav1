@@ -27,6 +27,8 @@ export {
 export { ConversationFilters } from "./ConversationFilters";
 export { CompletionStatusCard } from "./CompletionStatusCard";
 export type { CompletionStatusCardProps } from "./CompletionStatusCard";
+export { MetricDonut } from "./MetricDonut";
+export type { MetricDonutProps } from "./MetricDonut";
 export type {
   DashboardActivityItem,
   DashboardNavItem,

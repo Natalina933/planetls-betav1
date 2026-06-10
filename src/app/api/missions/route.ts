@@ -386,8 +386,8 @@ export async function POST(req: NextRequest) {
         scheduled_end: body.scheduled_end ?? null,
         metadata: body.metadata ?? {},
       },
-      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, created_at, updated_at",
-      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, created_at, updated_at",
+      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
+      "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, status, priority, amount, currency, scheduled_start, scheduled_end, metadata, created_at, updated_at",
     );
 
     if (error || !data) {

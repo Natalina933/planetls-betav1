@@ -1842,7 +1842,11 @@ function OwnerTravelerMissionsContent() {
         </section>
 
         <div className={creationMode === "manual" ? styles.travelerMissionLayout : styles.hiddenPanel}>
-          <form id="mission-voyageur-formulaire" className={styles.travelerMissionForm} onSubmit={handleSubmit}>
+          <form
+            id="mission-voyageur-formulaire"
+            className={styles.travelerMissionForm}
+            onSubmit={handleSubmit}
+          >
             <section className={styles.travelerFormSection}>
               <p className={styles.eyebrow}>Voyageur principal</p>
               <div className={styles.travelerFieldGrid}>
@@ -2003,13 +2007,46 @@ function OwnerTravelerMissionsContent() {
               </div>
             </details>
 
-            <Button type="submit" disabled={submitting} className={styles.noticeSubmitButton}>
+            <Button
+              type="submit"
+              disabled={submitting}
+              className={styles.noticeSubmitButton}
+            >
               <Send size={16} aria-hidden="true" />
               {submitting ? "Envoi..." : "Envoyer à la concierge"}
             </Button>
           </form>
 
           <aside className={styles.travelerMissionAside}>
+            {filteredMissions[0] ? (
+              <div className={styles.travelerSummaryCard}>
+                <p className={styles.eyebrow}>Derniere prise en compte</p>
+                <span className={styles.plannedChip}>
+                  <CheckCircle2 size={15} aria-hidden="true" />
+                  Mission bien prise en compte
+                </span>
+                <strong>{getTravelerName(filteredMissions[0])}</strong>
+                <span>
+                  <Building2 size={15} aria-hidden="true" />
+                  {getPropertyLabel(housing, getMissionHousingId(filteredMissions[0]))}
+                </span>
+                <span>
+                  {formatDateValue(filteredMissions[0].scheduled_start, {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }) || "Arrivee a confirmer"}
+                </span>
+                <span>{getGuestCount(filteredMissions[0])} voyageur(s)</span>
+                <span>
+                  {getMetadataString(filteredMissions[0], "booking_platform") || form.bookingPlatform}
+                  {" · "}
+                  {filteredMissions[0].status === "assigned" ? "transmise a la concierge" : "suivi actif"}
+                </span>
+              </div>
+            ) : null}
             <div className={styles.travelerSummaryCard}>
               <p className={styles.eyebrow}>Aperçu envoyé</p>
               <strong>{buildTitle(form)}</strong>

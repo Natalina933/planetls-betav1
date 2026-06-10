@@ -22,13 +22,19 @@ type OwnerHousingRow = {
 type OwnerMissionRow = {
   id: string;
   title: string | null;
+  description?: string | null;
   status: string | null;
+  priority?: string | null;
   amount: number | null;
   currency?: string | null;
   scheduled_start: string | null;
   scheduled_end?: string | null;
   property_id?: string | number | null;
   concierge_name?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  workflow_status?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 type OwnerQuoteRow = {
@@ -37,13 +43,27 @@ type OwnerQuoteRow = {
   status: string | null;
   total_amount: number | null;
   valid_until: string | null;
+  mission_id?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  currency?: string | null;
+  notes?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 type OwnerInvoiceRow = {
   id: string;
   invoice_number: string | null;
   status: string | null;
+  total_amount?: number | null;
   balance_amount: number | null;
+  due_date?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  currency?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 type OwnerReviewRow = {

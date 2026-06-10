@@ -1,0 +1,294 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.donutGrid,
+.mainGrid,
+.contentGrid,
+.bottomGrid,
+.heroGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.donutGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.heroGrid,
+.mainGrid,
+.bottomGrid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+.contentGrid {
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+}
+
+.heroPanel,
+.snapshotPanel,
+.validationPanel,
+.financePanel,
+.missionsPanel,
+.propertyPanel,
+.timelinePanel,
+.actionsPanel {
+  border-radius: 8px;
+}
+
+.priorityCard,
+.snapshotList,
+.validationList,
+.financeList,
+.missionTable,
+.propertyList,
+.timelineGroups,
+.actionLinks {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.priorityCard,
+.validationCard,
+.propertyCard,
+.timelineItem,
+.actionLinks a,
+.missionRow {
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.62);
+}
+
+.priorityCard {
+  padding: 1rem;
+}
+
+.priorityCard strong,
+.validationCard strong,
+.missionMain strong,
+.propertyTop strong,
+.timelineItem strong,
+.financeList strong,
+.snapshotList strong {
+  color: var(--dash-text, #1f2933);
+}
+
+.priorityCard p,
+.emptyText,
+.missionMain p,
+.propertyTop p,
+.validationCard p,
+.timelineItem span,
+.snapshotList p {
+  margin: 0;
+  color: var(--dash-text-muted, #64748b);
+  line-height: 1.45;
+}
+
+.priorityBadge,
+.priorityBadgeWarning,
+.priorityBadgeSuccess,
+.stateGood,
+.stateWarning {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.priorityBadge {
+  background: rgba(184, 92, 72, 0.12);
+  color: #7d3528;
+}
+
+.priorityBadgeWarning,
+.stateWarning {
+  background: rgba(184, 92, 72, 0.12);
+  color: #7d3528;
+}
+
+.priorityBadgeSuccess,
+.stateGood {
+  background: rgba(28, 132, 84, 0.1);
+  color: #1c8454;
+}
+
+.primaryLink,
+.secondaryLink,
+.validationAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: fit-content;
+  min-height: 40px;
+  padding: 0.58rem 0.82rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.primaryLink {
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: var(--dash-bg-panel);
+}
+
+.secondaryLink {
+  border: 1px solid rgba(184, 92, 72, 0.24);
+  background: #fff;
+  color: var(--dash-accent-strong);
+}
+
+.snapshotList article,
+.financeList article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.85rem;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.snapshotList svg {
+  color: var(--dash-accent-strong);
+}
+
+.validationList {
+  gap: 0.7rem;
+}
+
+.validationCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem;
+  text-decoration: none;
+}
+
+.validationTop,
+.propertyTop,
+.timelineHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.validationTop span,
+.timelineHeader span,
+.missionRow span,
+.propertyCard span,
+.financeList span {
+  color: var(--dash-text-muted, #64748b);
+}
+
+.warning {
+  border-color: rgba(184, 92, 72, 0.22);
+}
+
+.danger {
+  border-color: rgba(155, 59, 47, 0.26);
+  background: rgba(248, 226, 219, 0.7);
+}
+
+.info {
+  border-color: rgba(47, 111, 156, 0.18);
+}
+
+.validationAction {
+  min-height: auto;
+  padding: 0;
+  color: var(--dash-accent-strong);
+}
+
+.financeList,
+.propertyList,
+.timelineGroups {
+  gap: 0.75rem;
+}
+
+.missionTable {
+  gap: 0.65rem;
+}
+
+.missionRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 0.95rem;
+  text-decoration: none;
+}
+
+.missionMain {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.propertyCard,
+.timelineItem {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.9rem;
+  text-decoration: none;
+}
+
+.timelineHeader strong {
+  color: var(--dash-text, #1f2933);
+}
+
+.actionLinks a {
+  padding: 0.85rem 0.95rem;
+}
+
+.actionLinks .primaryLink,
+.actionLinks .secondaryLink {
+  width: 100%;
+  justify-content: space-between;
+}
+
+@media (max-width: 1080px) {
+  .donutGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .heroGrid,
+  .mainGrid,
+  .contentGrid,
+  .bottomGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .missionRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .missionMain {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .donutGrid,
+  .missionRow {
+    grid-template-columns: 1fr;
+  }
+
+  .validationTop,
+  .propertyTop,
+  .timelineHeader {
+    flex-direction: column;
+  }
+
+  .primaryLink,
+  .secondaryLink {
+    width: 100%;
+  }
+}
