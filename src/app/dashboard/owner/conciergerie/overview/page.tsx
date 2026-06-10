@@ -16,53 +16,53 @@ export default function OwnerConciergerieOverviewPage() {
   return (
     <SimpleOverviewWorkspace
       tone="owner"
-      eyebrow="Relation conciergerie"
-      title="Vue d'ensemble de la conciergerie"
-      description="Cette vue rassemble uniquement l'etat de votre relation conciergerie. Les sous-rubriques servent ensuite a chercher, suivre et echanger avec les conciergeries, sans redondance."
-      chips={["Vue synthese", "Demandes a traiter", "Points en attente"]}
+      eyebrow="Relation commerciale"
+      title="Conciergeries"
+      description="Cet espace sert a rechercher un partenaire, suivre vos demandes, echanger avant validation et retrouver vos conciergeries acceptees par logement ou par zone. Les operations terrain restent dans Missions."
+      chips={["Recherche", "Demandes", "Partenaires acceptes"]}
       actions={[
-        { label: "Trouver un concierge", href: "/dashboard/owner/concierges", variant: "primary" },
-        { label: "Voir les contacts", href: "/dashboard/owner/contacts", variant: "secondary" },
+        { label: "Rechercher", href: "/dashboard/owner/concierges", variant: "primary" },
+        { label: "Demandes", href: "/dashboard/owner/demandes", variant: "secondary" },
       ]}
       completion={{
-        title: "Conciergerie",
+        title: "Conciergeries",
         description:
-          "Completez cette categorie pour structurer votre recherche, vos relations et vos echanges avec les conciergeries.",
+          "Completez cette categorie pour structurer votre recherche, vos demandes et vos echanges avec les conciergeries.",
         percentage: completion.percentage,
         completedCount: completion.completedCount,
         totalCount: completion.totalCount,
         missingItems: completion.missingItems,
-        actionLabel: "Trouver un concierge",
+        actionLabel: "Rechercher",
         actionHref: "/dashboard/owner/concierges",
       }}
       metrics={[
         {
-          label: "Echanges suivis",
+          label: "Discussions",
           value: String(conversations.length),
           hint: "Base de relation actuellement visible",
         },
         {
-          label: "Recherche",
+          label: "Mise en relation",
           value: completion.missingItems.length === 0 ? "Structuree" : "A renforcer",
           hint: "Maturite du dispositif concierge",
         },
       ]}
       cards={[
         {
-          title: "Sante relationnelle",
+          title: "Demandes",
           text:
             conversations.length > 0
-              ? "Des echanges sont deja ouverts. La priorite est de clarifier le suivi concierge, les reponses et les prochaines decisions."
-              : "Aucun echange actif detecte. Cette vue doit surtout servir de point de depart pour cadrer votre recherche.",
-          actions: [{ label: "Voir les contacts", href: "/dashboard/owner/contacts", variant: "secondary" }],
+              ? "Des echanges sont deja ouverts. La priorite est de clarifier les reponses et la prochaine decision partenaire."
+              : "Aucun echange actif detecte. Cette vue sert de point de depart pour cadrer votre recherche.",
+          actions: [{ label: "Voir les demandes", href: "/dashboard/owner/demandes", variant: "secondary" }],
         },
         {
           title: "Decision recommandee",
           text:
             completion.percentage < 100
               ? "Completez d'abord les elements manquants pour comparer les conciergeries avec plus de confiance."
-              : "Vous pouvez maintenant utiliser les pages de suivi pour piloter la qualite de service et la reactivite.",
-          actions: [{ label: "Trouver un concierge", href: "/dashboard/owner/concierges", variant: "primary" }],
+              : "Vos partenaires acceptes peuvent varier selon les logements et les lieux. Les prochaines operations doivent etre creees depuis Missions.",
+          actions: [{ label: "Voir les partenaires", href: "/dashboard/owner/conciergerie/partenaires", variant: "primary" }],
         },
       ]}
     />

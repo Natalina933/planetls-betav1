@@ -66,7 +66,6 @@ export function mergeSortedOptions(...groups: string[][]) {
 
 export function getActiveSearchSummary(filters: OwnerConciergeSearchFilters) {
   return [
-    filters.region.trim() ? `Région : ${filters.region.trim()}` : null,
     filters.city.trim() ? `Ville ou code postal : ${filters.city.trim()}` : null,
     filters.selectedCategories.length > 0
       ? `Catégories : ${filters.selectedCategories.slice(0, 2).join(", ")}${

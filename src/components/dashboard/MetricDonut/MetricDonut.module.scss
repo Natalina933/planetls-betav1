@@ -1,0 +1,85 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1.05rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 9%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--dash-bg-panel) 96%, white), color-mix(in srgb, var(--dash-accent) 5%, white));
+  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.07);
+}
+
+.donut {
+  --value: 0%;
+  --donut-size: 72px;
+  position: relative;
+  display: grid;
+  flex: 0 0 var(--donut-size);
+  width: var(--donut-size);
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    conic-gradient(var(--dash-accent-strong) var(--value), color-mix(in srgb, var(--dash-accent) 13%, transparent) 0);
+}
+
+.donut::after {
+  position: absolute;
+  inset: 9px;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+  content: "";
+}
+
+.value {
+  position: relative;
+  z-index: 1;
+  color: var(--dash-text);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.label {
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.headline {
+  color: var(--dash-text);
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  line-height: 1;
+}
+
+.detail {
+  color: var(--dash-text-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.compact {
+  padding: 0.85rem;
+  border-radius: 18px;
+}
+
+.compact .donut {
+  --donut-size: 60px;
+}
+
+@media (max-width: 520px) {
+  .card {
+    align-items: center;
+  }
+}

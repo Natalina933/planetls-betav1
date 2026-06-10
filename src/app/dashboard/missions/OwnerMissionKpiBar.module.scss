@@ -1,0 +1,52 @@
+.kpiBar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.kpiCard {
+  min-width: 0;
+  min-height: 124px;
+  border: 1px solid rgba(120, 86, 64, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.84);
+  box-shadow: 0 14px 28px rgba(82, 54, 39, 0.06);
+}
+
+.warning {
+  border-color: rgba(190, 72, 58, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(190, 72, 58, 0.12), transparent 34%),
+    #fff8f6;
+}
+
+.positive {
+  border-color: rgba(82, 143, 96, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(82, 143, 96, 0.12), transparent 34%),
+    #f8fff7;
+}
+
+.neutral {
+  border-color: rgba(120, 86, 64, 0.14);
+}
+
+@media (max-width: 1120px) {
+  .kpiBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .kpiBar {
+    grid-template-columns: 1fr;
+  }
+
+  .kpiCard {
+    min-height: auto;
+    padding: 0.9rem;
+  }
+}

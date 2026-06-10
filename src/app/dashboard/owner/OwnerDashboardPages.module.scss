@@ -3,11 +3,15 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .field,
 .select,
 .textarea {
+  box-sizing: border-box;
   border-radius: 14px;
   border: 1px solid rgba(184, 92, 72, 0.24);
   padding: 0.75rem 0.9rem;
@@ -17,6 +21,30 @@
 
 .field {
   flex: 1 1 240px;
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1 1 260px;
+  min-height: 46px;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.24);
+  padding: 0 0.85rem;
+  background: var(--dash-bg-panel);
+  color: var(--dash-accent-strong);
+}
+
+.searchField input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #3b3126;
+  font: inherit;
 }
 
 .select {
@@ -34,6 +62,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 46px;
   padding: 0.75rem 1rem;
   border-radius: 14px;
@@ -75,11 +105,17 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panel {
   display: grid;
   gap: 0.8rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.1rem;
   border-radius: 20px;
   background: linear-gradient(180deg, var(--dash-bg-panel)dfa, #f8e7e0);
@@ -91,16 +127,24 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .dashboardFlow {
   display: grid;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .heroPanel {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.25rem;
   border-radius: 24px;
   background:
@@ -108,6 +152,391 @@
     linear-gradient(180deg, var(--dash-bg-panel)9f6, #f7e5de);
   border: 1px solid rgba(184, 92, 72, 0.2);
   box-shadow: 0 14px 28px rgba(109, 53, 41, 0.08);
+}
+
+.planningHero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 1rem;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  background:
+    radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--dash-accent) 20%, transparent), transparent 30%),
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.92), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 235, 228, 0.9));
+  box-shadow: 0 24px 52px rgba(109, 53, 41, 0.1);
+}
+
+.planningHero::before {
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.65), transparent 26%),
+    radial-gradient(circle at 70% 100%, rgba(184, 92, 72, 0.08), transparent 34%);
+  content: "";
+}
+
+.planningHeroCopy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.55rem;
+  align-content: center;
+  min-width: 0;
+}
+
+.planningHeroCopy h1 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1.75rem, 4vw, 2.6rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.planningHeroCopy p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.6;
+  max-width: 68ch;
+}
+
+.planningSpotlight {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+  align-content: center;
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 16px 32px rgba(109, 53, 41, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.planningSpotlight strong {
+  color: var(--dash-text);
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.planningSpotlight p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.5;
+}
+
+.planningHeroSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.planningHeroSummary span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--dash-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.planningDonutRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.planningDonutCard {
+  min-height: 116px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 12%, transparent), transparent 34%),
+    rgba(255, 255, 255, 0.76);
+  box-shadow: 0 18px 38px rgba(109, 53, 41, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.planningWeekPanel {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1.1rem;
+  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 239, 232, 0.92));
+  box-shadow: 0 18px 36px rgba(109, 53, 41, 0.07);
+}
+
+.planningWeekStrip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.planningDayTile {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 0.55rem;
+  min-height: 148px;
+  padding: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 36%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.planningDayActive {
+  border-color: rgba(184, 92, 72, 0.3);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.16), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 232, 222, 0.9));
+}
+
+.planningDayMeter {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  display: flex;
+  align-items: flex-end;
+  width: 0.42rem;
+  height: 66px;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.12);
+  overflow: hidden;
+}
+
+.planningDayMeter span {
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--dash-accent), var(--dash-accent-strong));
+}
+
+.planningViewSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 46px;
+  padding: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.planningViewSwitch button {
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dash-text-muted);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.planningViewSwitch .planningViewActive {
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: var(--dash-bg-panel);
+  box-shadow: 0 10px 18px rgba(109, 53, 41, 0.14);
+}
+
+.planningActionPanel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.85rem;
+  border-radius: 22px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 30%),
+    rgba(255, 255, 255, 0.72);
+}
+
+.planningAgendaPanel {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1.1rem;
+  border-radius: 26px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 250, 0.96), rgba(247, 236, 229, 0.94));
+  box-shadow: 0 18px 36px rgba(109, 53, 41, 0.07);
+}
+
+.planningTimeline {
+  display: grid;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.planningTimelineRow {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.planningTimelineRow time {
+  position: sticky;
+  top: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--dash-accent-strong);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.planningMissionCompact {
+  padding: 0.9rem;
+  border-radius: 20px;
+}
+
+.planningTypePill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.1);
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.planningCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding-top: 0.2rem;
+}
+
+.planningEmptyState {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border-radius: 26px;
+  border: 1px dashed rgba(184, 92, 72, 0.26);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 238, 231, 0.96));
+}
+
+.planningEmptyState svg {
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  padding: 0.75rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.1);
+  color: var(--dash-accent-strong);
+}
+
+.planningEmptyState h2,
+.planningEmptyState p {
+  margin: 0;
+}
+
+.planningEmptyState h2 {
+  color: var(--dash-text);
+}
+
+.planningEmptyState p {
+  color: var(--dash-text-muted);
+}
+
+.planningEmptyState .inlineActions {
+  grid-column: 1 / -1;
+}
+
+.planningMonthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.planningMonthDay {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  min-height: 132px;
+  padding: 0.75rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.07), transparent 36%),
+    rgba(255, 255, 255, 0.74);
+}
+
+.planningMonthMuted {
+  opacity: 0.52;
+}
+
+.planningMonthEvent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.3rem 0.45rem;
+  border-radius: 10px;
+  background: rgba(184, 92, 72, 0.08);
+  color: var(--dash-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .terracottaTitle,
@@ -200,6 +629,8 @@
 .flowSection {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .sectionHeading {
@@ -208,6 +639,8 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
 }
 
 .eyebrow {
@@ -223,11 +656,17 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .priorityCard {
   display: grid;
   gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.1rem;
   border-radius: 20px;
   border: 1px solid rgba(184, 92, 72, 0.16);
@@ -271,6 +710,8 @@
 .sectionStack {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .list {
@@ -279,13 +720,112 @@
   padding: 0;
   margin: 0;
   list-style: none;
+  width: 100%;
+  max-width: 100%;
 }
 
 .listItem {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1rem;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(184, 92, 72, 0.16);
+}
+
+.planningList {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planningMissionCard {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 22px rgba(109, 53, 41, 0.05);
+}
+
+.planningMissionTopline {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.planningMissionTopline > div {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.planningMissionTopline strong {
+  color: var(--dash-text);
+  font-size: 1.04rem;
+}
+
+.planningMissionTopline p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.5;
+}
+
+.planningMissionTopline > span {
+  flex: 0 0 auto;
+  color: var(--dash-accent-strong);
+  font-weight: 900;
+}
+
+.planningFacts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.planningFacts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0.5rem 0.6rem;
+  border-radius: 12px;
+  background: rgba(184, 92, 72, 0.07);
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.planningFacts svg {
+  flex: 0 0 auto;
+  color: var(--dash-accent-strong);
+}
+
+.serviceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.serviceChips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.25rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .meta {
@@ -303,12 +843,18 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .weekColumn {
   display: grid;
   gap: 0.7rem;
   align-content: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 180px;
   padding: 0.95rem;
   border-radius: 18px;
@@ -349,7 +895,174 @@
   background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
 }
 
+.stockWorkspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.35fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.stockSidebar,
+.stockEditor {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.stockSidebar {
+  position: sticky;
+  top: 1rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.06);
+}
+
+.stockHousingList,
+.stockItemList {
+  display: grid;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.stockHousingButton {
+  display: grid;
+  gap: 0.28rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--dash-text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.stockHousingButtonActive {
+  border-color: rgba(184, 92, 72, 0.42);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), #f8e7e0);
+  box-shadow: 0 10px 18px rgba(109, 53, 41, 0.08);
+}
+
+.stockHousingButton strong,
+.stockHousingButton span,
+.stockHousingButton small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.stockHousingButton span,
+.stockHousingButton small {
+  color: var(--dash-text-muted);
+}
+
+.stockMiniStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.stockMiniStats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0.35rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: var(--dash-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.stockFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.stockField,
+.stockFieldFull {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.stockFieldFull {
+  grid-column: 1 / -1;
+}
+
+.stockField span,
+.stockFieldFull span {
+  color: var(--dash-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stockField input,
+.stockFieldFull input,
+.stockFieldFull textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.22);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--dash-text);
+  padding: 0.72rem 0.85rem;
+}
+
+.stockFieldFull textarea {
+  resize: vertical;
+}
+
+.stockFieldFull small {
+  color: var(--dash-text-muted);
+  line-height: 1.45;
+}
+
+.stockItemCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .message {
+  font-weight: 700;
+}
+
+.feedbackMessage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: color-mix(in srgb, var(--dash-bg-panel) 92%, white);
+  color: var(--dash-text);
   font-weight: 700;
 }
 
@@ -416,6 +1129,7 @@
   display: grid;
   gap: 0.45rem;
   max-width: 40rem;
+  min-width: 0;
 }
 
 .reviewBadgeGroup {
@@ -496,10 +1210,55 @@
   gap: 1.5rem;
 }
 
+.decisionRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.decisionRail button {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 4.5rem;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 34%),
+    linear-gradient(180deg, var(--dash-bg-panel)dfa, #f8ede7);
+  color: var(--dash-text);
+  padding: 0.75rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 12px 24px rgba(109, 53, 41, 0.05);
+}
+
+.decisionRail button:hover {
+  transform: translateY(-1px);
+}
+
+.decisionRail span {
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.decisionRail strong {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
 .conciergeKpiGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeKpiCard {
@@ -539,12 +1298,18 @@
   grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
   gap: 1.25rem;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeTimelinePanel,
 .conciergeSpotlightCard {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.2rem;
   border-radius: 24px;
   border: 1px solid rgba(184, 92, 72, 0.14);
@@ -558,6 +1323,7 @@
   gap: 1rem;
   position: sticky;
   top: 1rem;
+  min-width: 0;
 }
 
 .conciergeSectionHeader {
@@ -591,11 +1357,16 @@
 .conciergeTimeline {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .conciergeRequestCard {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1.1rem;
   position: relative;
   overflow: hidden;
@@ -625,6 +1396,7 @@
 .conciergeRequestHeading {
   display: grid;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .conciergeRequestHeading h3,
@@ -645,6 +1417,7 @@
   display: grid;
   gap: 0.35rem;
   justify-items: end;
+  min-width: 0;
   color: #7d5448;
   font-size: 0.9rem;
 }
@@ -692,11 +1465,17 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeFactCard {
   display: grid;
   gap: 0.3rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.85rem 0.9rem;
   border-radius: 18px;
   border: 1px solid rgba(184, 92, 72, 0.12);
@@ -726,11 +1505,17 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.7rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .conciergeResponseStat {
   display: grid;
   gap: 0.22rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.85rem 0.9rem;
   border-radius: 16px;
   border: 1px solid rgba(184, 92, 72, 0.12);
@@ -781,11 +1566,15 @@
 .conciergeRecipientList {
   display: grid;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .comparisonScroller {
   overflow-x: auto;
   padding-bottom: 0.2rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .comparisonTable {
@@ -846,11 +1635,16 @@
 .comparisonActions {
   display: grid;
   gap: 0.6rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .conciergeRecipientCard {
   display: grid;
   gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.9rem;
   border-radius: 18px;
   border: 1px solid rgba(184, 92, 72, 0.12);
@@ -919,12 +1713,15 @@
 .conciergeSnapshotList {
   display: grid;
   gap: 0.8rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .conciergeSnapshotRow {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  min-width: 0;
   padding-bottom: 0.7rem;
   border-bottom: 1px solid rgba(184, 92, 72, 0.12);
   color: var(--dash-text-muted);
@@ -939,8 +1736,184 @@
   color: var(--dash-text);
 }
 
+.travelerMissionPage {
+  display: grid;
+  gap: 1.35rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.travelerMissionHero,
+.travelerFormSection,
+.travelerSummaryCard,
+.travelerMissionListSection,
+.travelerMissionCard {
+  border: 1px solid rgba(91, 110, 124, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(91, 110, 124, 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 246, 247, 0.9));
+  box-shadow: 0 14px 28px rgba(61, 73, 82, 0.07);
+}
+
+.travelerMissionHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem;
+  border-radius: 24px;
+}
+
+.travelerMissionHero h1 {
+  margin: 0 0 0.4rem;
+  color: var(--dash-text);
+  font-size: clamp(1.7rem, 4vw, 2.45rem);
+  line-height: 1.05;
+}
+
+.travelerHeroSteps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.travelerHeroSteps span,
+.travelerActionPill,
+.travelerCheck,
+.travelerCheckActive {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.35rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(91, 110, 124, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  color: #405464;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.travelerMissionLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.75fr);
+  gap: 1rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.travelerMissionForm,
+.travelerMissionAside {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.travelerMissionAside {
+  position: sticky;
+  top: 1rem;
+}
+
+.travelerFormSection,
+.travelerSummaryCard,
+.travelerMissionListSection,
+.travelerMissionCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border-radius: 20px;
+}
+
+.travelerFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.travelerChecklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.travelerCheck,
+.travelerCheckActive {
+  cursor: pointer;
+}
+
+.travelerCheckActive {
+  border-color: rgba(64, 84, 100, 0.32);
+  background: rgba(64, 84, 100, 0.12);
+  color: #1f3342;
+}
+
+.travelerSummaryCard strong {
+  color: var(--dash-text);
+  font-size: 1.15rem;
+}
+
+.travelerSummaryCard span {
+  color: var(--dash-text-muted);
+  line-height: 1.45;
+}
+
+.travelerMissionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.travelerMissionCard h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 1.2rem;
+}
+
+.travelerMissionTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.travelerMissionFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.travelerMissionFacts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 0;
+  padding: 0.55rem 0.62rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #526371;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+}
+
+.travelerActionPill {
+  min-height: 30px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+}
+
 @media (max-width: 1024px) {
   .conciergeKpiGrid,
+  .decisionRail,
   .conciergeFactRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -960,10 +1933,42 @@
   .weekBoard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .planningDonutRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .planningWeekStrip,
+  .planningMonthGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .travelerMissionHero,
+  .planningHero,
+  .travelerMissionLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .planningFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stockWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .stockSidebar {
+    position: static;
+  }
+
+  .travelerMissionAside {
+    position: static;
+  }
 }
 
 @media (max-width: 640px) {
   .conciergeKpiGrid,
+  .decisionRail,
   .conciergeFactRow {
     grid-template-columns: 1fr;
   }
@@ -993,6 +1998,60 @@
 
   .weekBoard {
     grid-template-columns: 1fr;
+  }
+
+  .planningDonutRail,
+  .planningWeekStrip,
+  .planningMonthGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .planningTimelineRow {
+    grid-template-columns: 1fr;
+  }
+
+  .planningTimelineRow time {
+    position: static;
+    justify-content: flex-start;
+    width: fit-content;
+    padding: 0 0.8rem;
+  }
+
+  .planningViewSwitch {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 16px;
+  }
+
+  .planningViewSwitch button {
+    flex: 1 1 0;
+  }
+
+  .planningEmptyState {
+    grid-template-columns: 1fr;
+  }
+
+  .travelerFieldGrid,
+  .travelerMissionFacts,
+  .stockFormGrid,
+  .planningFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .planningMissionTopline {
+    flex-direction: column;
+  }
+
+  .stockItemCard {
+    grid-template-columns: 1fr;
+  }
+
+  .travelerMissionHero,
+  .travelerFormSection,
+  .travelerSummaryCard,
+  .travelerMissionListSection,
+  .travelerMissionCard {
+    border-radius: 16px;
   }
 }
 
@@ -1031,6 +2090,11 @@
 
 :global([data-theme="art-deco"]) .panel,
 :global([data-theme="art-deco"]) .heroPanel,
+:global([data-theme="art-deco"]) .travelerMissionHero,
+:global([data-theme="art-deco"]) .travelerFormSection,
+:global([data-theme="art-deco"]) .travelerSummaryCard,
+:global([data-theme="art-deco"]) .travelerMissionListSection,
+:global([data-theme="art-deco"]) .travelerMissionCard,
 :global([data-theme="art-deco"]) .priorityCard,
 :global([data-theme="art-deco"]) .listItem,
 :global([data-theme="art-deco"]) .weekColumn,

@@ -41,3 +41,18 @@
   background: #fbede8;
   color: #6b3227;
 }
+
+.showcaseFrame,
+.highlightImageWrap {
+  background: linear-gradient(180deg, #fff7f3, #f2dfd8);
+  border-color: rgba(121, 53, 40, 0.14);
+}
+
+.showcaseMeta span {
+  background: #f7e4dc;
+  color: #793528;
+}
+
+.showcaseAvatar {
+  box-shadow: 0 10px 20px rgba(109, 53, 41, 0.14);
+}

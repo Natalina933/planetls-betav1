@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
+import { getInvoicePaymentSummary } from "@/app/lib/invoiceStatus";
+import { ownerApiError } from "../ownerFeedback";
 import styles from "../OwnerDashboardPages.module.scss";
 
 type OwnerInvoiceRow = {
@@ -10,9 +12,12 @@ type OwnerInvoiceRow = {
   invoice_number: string | null;
   status: string | null;
   total_amount: number | null;
+  paid_amount?: number | null;
   balance_amount: number | null;
+  currency?: string | null;
   due_date: string | null;
   created_at: string | null;
+  metadata?: Record<string, unknown> | null;
   invoice_items?: Array<{
     id: string;
     label: string;
@@ -32,8 +37,8 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
-function formatAmount(value: number | null) {
-  return typeof value === "number" ? `${value.toFixed(2)} EUR` : "-";
+function formatAmount(value: number | null | undefined, currency = "EUR") {
+  return typeof value === "number" ? `${value.toFixed(2)} ${currency}` : "-";
 }
 
 export default function OwnerInvoicesPageClient() {
@@ -70,7 +75,7 @@ export default function OwnerInvoicesPageClient() {
         });
         const payload = await response.json();
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de synchroniser la facture payée.");
+          throw new Error(ownerApiError("Impossible de synchroniser la facture payée.", payload?.error));
         }
 
         if (!cancelled) {
@@ -92,7 +97,7 @@ export default function OwnerInvoicesPageClient() {
       } catch (err) {
         if (!cancelled) {
           setError(
-            err instanceof Error ? err.message : "Impossible de synchroniser la facture payée.",
+            err instanceof Error ? err.message : ownerApiError("Impossible de synchroniser la facture payée."),
           );
         }
       }
@@ -115,12 +120,12 @@ export default function OwnerInvoicesPageClient() {
         const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error || "Impossible de charger vos factures.");
+          throw new Error(ownerApiError("Impossible de charger vos factures.", payload?.error));
         }
 
         setInvoices(Array.isArray(payload) ? payload : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Impossible de charger vos factures.");
+        setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger vos factures."));
       } finally {
         setLoading(false);
       }
@@ -168,7 +173,7 @@ export default function OwnerInvoicesPageClient() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de lancer le paiement.");
+        throw new Error(ownerApiError("Impossible de lancer le paiement.", payload?.error));
       }
 
       if (payload?.url) {
@@ -178,7 +183,7 @@ export default function OwnerInvoicesPageClient() {
 
       throw new Error("URL Stripe manquante.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de lancer le paiement.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de lancer le paiement."));
     } finally {
       setPayingInvoiceId(null);
     }
@@ -275,7 +280,22 @@ export default function OwnerInvoicesPageClient() {
 
         {!loading && !error && filteredInvoices.length > 0 ? (
           <ul>
-            {filteredInvoices.map((invoice) => (
+            {filteredInvoices.map((invoice) => {
+              const currency = invoice.currency || "EUR";
+              const paymentSummary = getInvoicePaymentSummary({
+                invoiceStatus: invoice.status,
+                totalAmount: invoice.total_amount,
+                paidAmount: invoice.paid_amount,
+                balanceAmount: invoice.balance_amount,
+                dueDate: invoice.due_date,
+                metadata: invoice.metadata,
+              });
+              const amountToPay =
+                paymentSummary.workflow.status === "paid"
+                  ? invoice.total_amount
+                  : invoice.balance_amount ?? invoice.total_amount;
+
+              return (
               <li key={invoice.id} className={styles.listItem}>
                 <div
                   style={
@@ -295,10 +315,27 @@ export default function OwnerInvoicesPageClient() {
                     <span>Statut :</span>
                     <WorkflowStatusBadge value={invoice.status || "-"} />
                   </span>{" "}
-                  | Total : {formatAmount(invoice.total_amount)} | Solde :{" "}
-                  {formatAmount(invoice.balance_amount)}
+                  | Total : {formatAmount(invoice.total_amount, currency)} | Solde :{" "}
+                  {formatAmount(invoice.balance_amount, currency)}
                   <br />
                   Echeance : {formatDate(invoice.due_date)} | Lignes : {invoice.invoice_items?.length ?? 0}
+                  <div style={{ marginTop: "0.75rem", display: "grid", gap: "0.35rem" }}>
+                    <strong>{paymentSummary.title}</strong>
+                    <span>
+                      {paymentSummary.amountLabel} : {formatAmount(amountToPay, currency)}
+                    </span>
+                    <span>Deja regle : {formatAmount(invoice.paid_amount ?? 0, currency)}</span>
+                    <span>Prochaine action : {paymentSummary.workflow.nextActionOwner}</span>
+                    {invoice.invoice_items?.length ? (
+                      <span>
+                        Detail :{" "}
+                        {invoice.invoice_items
+                          .slice(0, 3)
+                          .map((item) => `${item.label} (${formatAmount(item.line_total, currency)})`)
+                          .join(", ")}
+                      </span>
+                    ) : null}
+                  </div>
                   <br />
                   <span className={styles.inlineActions}>
                     <a
@@ -322,7 +359,8 @@ export default function OwnerInvoicesPageClient() {
                   </span>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         ) : null}
       </div>

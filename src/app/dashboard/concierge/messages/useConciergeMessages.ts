@@ -13,6 +13,7 @@ import {
   canSendConversationMessage,
   resolveActiveConversationId,
 } from "./messagesState";
+import { conciergeApiError } from "../conciergeFeedback";
 
 interface UseConciergeMessagesOptions {
   enabled: boolean;
@@ -42,7 +43,11 @@ export function useConciergeMessages({
       setErrorMsg(null);
       setConversations(await fetchConversations());
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur chargement conversations");
+      setErrorMsg(
+        err instanceof Error
+          ? conciergeApiError("Impossible de charger les conversations.", err.message)
+          : conciergeApiError("Impossible de charger les conversations."),
+      );
     } finally {
       setListLoading(false);
       if (initial) setLoading(false);
@@ -56,7 +61,11 @@ export function useConciergeMessages({
       setErrorMsg(null);
       setActiveConversation(await fetchConversationDetail(conversationId));
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur chargement conversation");
+      setErrorMsg(
+        err instanceof Error
+          ? conciergeApiError("Impossible de charger cette conversation.", err.message)
+          : conciergeApiError("Impossible de charger cette conversation."),
+      );
     } finally {
       setDetailLoading(false);
     }
@@ -106,7 +115,11 @@ export function useConciergeMessages({
       loadConversations(false);
       setSuccessMsg("Message envoyé.");
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur envoi message");
+      setErrorMsg(
+        err instanceof Error
+          ? conciergeApiError("Impossible d'envoyer votre message.", err.message)
+          : conciergeApiError("Impossible d'envoyer votre message."),
+      );
     } finally {
       setSending(false);
     }
@@ -117,6 +130,21 @@ export function useConciergeMessages({
     const timeout = window.setTimeout(() => setSuccessMsg(null), 2500);
     return () => window.clearTimeout(timeout);
   }, [successMsg]);
+
+  const reload = useCallback(async () => {
+    setSuccessMsg(null);
+    await loadConversations(!conversations.length);
+    const conversationId = activeConversationId || queryConversationId;
+    if (conversationId) {
+      await loadConversationDetail(conversationId);
+    }
+  }, [
+    activeConversationId,
+    conversations.length,
+    loadConversationDetail,
+    loadConversations,
+    queryConversationId,
+  ]);
 
   return {
     loading,
@@ -134,5 +162,6 @@ export function useConciergeMessages({
     setActiveConversationId,
     setDraftMessage,
     sendMessage,
+    reload,
   };
 }

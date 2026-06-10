@@ -1,32 +1,139 @@
+@use "../../../styles/mixins" as *;
+
 .card {
-  border: 1px solid var(--dash-border);
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 34%, var(--dash-border));
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--dash-accent) 18%, transparent), transparent 38%),
+    linear-gradient(135deg, var(--dash-bg-panel), var(--dash-bg-panel-soft));
+  box-shadow: var(--dash-shadow-sm, var(--ds-shadow-sm));
 }
 
 .header {
+  display: grid;
+  gap: 0.25rem;
+
+  span {
+    color: var(--dash-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
   h2 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: clamp(1.35rem, 2.4vw, 1.9rem);
     color: var(--dash-text);
   }
 }
 
 .body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--dash-space-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--dash-space-3, var(--ds-space-3));
 }
 
 .action {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 128px;
   text-decoration: none;
-  font-weight: 600;
   color: var(--dash-text);
-  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+  background: color-mix(in srgb, var(--dash-bg-panel) 88%, white);
   border: 1px solid color-mix(in srgb, var(--dash-accent) 35%, var(--dash-border));
-  border-radius: var(--dash-radius-sm);
-  padding: var(--dash-space-2) var(--dash-space-3);
-  transition: background-color 0.2s ease;
+  border-radius: var(--dash-radius-md, var(--ds-radius-md));
+  padding: var(--dash-space-3);
+  @include ui-hover-lift;
+}
+
+.actionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.action:focus-visible {
+  @include ui-focus-ring;
+}
+
+.actionPrimary {
+  background: color-mix(in srgb, var(--dash-accent) 16%, var(--dash-bg-panel));
+  border-color: color-mix(in srgb, var(--dash-accent) 55%, var(--dash-border));
+}
+
+.actionTopline {
+  color: var(--dash-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.actionCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f8b4d;
+}
+
+.action strong {
+  color: var(--dash-text);
+  font-size: clamp(1.02rem, 1.7vw, 1.18rem);
+  line-height: 1.25;
+}
+
+.actionDescription {
+  color: var(--dash-text-muted);
+  font-size: 0.94rem;
+  line-height: 1.45;
 }
 
 .action:hover {
   background: color-mix(in srgb, var(--dash-accent) 24%, transparent);
+  border-color: color-mix(in srgb, var(--dash-accent) 62%, var(--dash-border));
+  box-shadow: var(--dash-shadow-md, var(--ds-shadow-md));
+}
+
+.actionCompleted {
+  border-color: color-mix(in srgb, #1f8b4d 45%, var(--dash-border));
+  background:
+    radial-gradient(circle at top right, rgba(63, 191, 114, 0.12), transparent 34%),
+    color-mix(in srgb, var(--dash-bg-panel) 92%, white);
+}
+
+.actionCompleted .actionTopline {
+  color: #1f8b4d;
+}
+
+:global(body[data-readability="on"]) {
+  .header h2 {
+    font-size: clamp(1.55rem, 2.8vw, 2.15rem);
+  }
+
+  .action {
+    min-height: 148px;
+  }
+
+  .action strong {
+    font-size: 1.22rem;
+  }
+
+  .actionDescription {
+    font-size: 1.05rem;
+  }
+}
+
+:global(body[data-readability-scale="xlarge"]) {
+  .header h2 {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+  }
+
+  .action strong {
+    font-size: 1.36rem;
+  }
+
+  .actionDescription {
+    font-size: 1.16rem;
+  }
 }

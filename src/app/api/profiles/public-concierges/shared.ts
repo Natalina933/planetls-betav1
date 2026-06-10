@@ -2,6 +2,8 @@ import { normalizeProfileLocationFields } from "../../../lib/profileLocation.ts"
 
 type PublicConciergeRouteInput = {
   id: string;
+  avatar_url?: string | null;
+  image?: string | null;
   first_name: string | null;
   last_name: string | null;
   username: string | null;
@@ -23,37 +25,100 @@ type ReviewRow = {
   created_at: string | null;
 };
 
-const splitServices = (value: string): string[] =>
+const normalizeServiceKey = (value: string): string =>
   value
-    .split(/[;,|]/g)
-    .map((item) => item.trim())
-    .filter(Boolean);
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const LEGACY_SERVICE_NOISE = new Set([
+  "conciergerie complete menage",
+  "accueil",
+  "gestion",
+  "cleaning",
+  "welcome",
+  "management",
+  "checkin",
+  "laundry",
+]);
+
+const SERVICE_LABEL_FIXES = new Map([
+  ["menage", "Ménage"],
+  ["grand menage", "Grand ménage"],
+  ["desinfection complete", "Désinfection complète"],
+  ["blanchisserie complete", "Blanchisserie complète"],
+]);
+
+const cleanServiceLabel = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+
+  const cleaned = value
+    .replace(/[[\]"]/g, "")
+    .replace(/[()]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (cleaned.length === 0) return null;
+
+  const key = normalizeServiceKey(cleaned);
+  if (LEGACY_SERVICE_NOISE.has(key)) return null;
+
+  return SERVICE_LABEL_FIXES.get(key) ?? cleaned;
+};
+
+const splitServices = (value: string): string[] => {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.map(cleanServiceLabel).filter((item): item is string => Boolean(item));
+    }
+  } catch {
+    // Legacy values are often stored as comma-separated or malformed JSON-like strings.
+  }
+
+  return value
+    .split(/[;,|\n\r]+/g)
+    .map(cleanServiceLabel)
+    .filter((item): item is string => Boolean(item));
+};
+
+const readActiveMissionServices = (availabilityHours: string | null): string[] => {
+  if (!availabilityHours) return [];
+
+  try {
+    const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
+    const missionProfile = parsed?.missionProfile as
+      | { missions?: Array<Record<string, unknown>> }
+      | undefined;
+
+    return (
+      missionProfile?.missions
+        ?.map((mission) =>
+          mission?.isActive === true && typeof mission.label === "string"
+            ? cleanServiceLabel(mission.label)
+            : null,
+        )
+        .filter((item): item is string => Boolean(item)) ?? []
+    );
+  } catch {
+    return [];
+  }
+};
 
 export const parsePublicConciergeServices = (
   optionValue: string | null,
   availabilityHours: string | null,
 ): string[] => {
+  const activeMissionServices = readActiveMissionServices(availabilityHours);
+  if (activeMissionServices.length > 0) {
+    return Array.from(new Set(activeMissionServices));
+  }
+
   const values = new Set<string>();
 
   if (optionValue) {
     splitServices(optionValue).forEach((item) => values.add(item));
-  }
-
-  if (availabilityHours) {
-    try {
-      const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
-      const missionProfile = parsed?.missionProfile as
-        | { missions?: Array<Record<string, unknown>> }
-        | undefined;
-
-      missionProfile?.missions?.forEach((mission) => {
-        if (mission?.isActive === true && typeof mission.label === "string") {
-          values.add(mission.label);
-        }
-      });
-    } catch {
-      // Ignore malformed legacy payloads.
-    }
   }
 
   return Array.from(values);
@@ -105,6 +170,8 @@ export function buildPublicConciergeRecommendations(
 
       return {
         id: profile.id,
+        avatar_url: profile.avatar_url,
+        image: profile.image,
         display_name:
           `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim() ||
           profile.company_name ||

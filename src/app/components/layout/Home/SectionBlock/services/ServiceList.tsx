@@ -50,7 +50,7 @@ export default function ServiceList() {
           </>
         }
         subtitle="La solution en ligne pour les acteurs de la location courte durée"
-        description="Une plateforme pensée pour mieux coordonner les missions, fluidifier les échanges et centraliser les informations utiles, que vous soyez propriétaire, conciergerie, indépendant ou partenaire terrain."
+        description="Une plateforme pensée pour mieux coordonner les missions, fluidifier les échanges et centraliser les informations utiles, que vous soyez propriétaire, conciergerie, indépendant ou artisan."
       >
         <header className={styles.platformHeader}>
           <p className={styles.sectionIntro}>
@@ -61,7 +61,7 @@ export default function ServiceList() {
             , notre plateforme rassemble vos services, vos informations et vos actions dans une
             expérience plus claire. Que vous soyez{" "}
             <strong className={styles.userCategory}>
-              propriétaire, conciergerie, indépendant ou prestataire
+              propriétaire, conciergerie, indépendant ou artisan
             </strong>
             , gagnez en lisibilité et en efficacité.
           </p>
@@ -122,8 +122,8 @@ export default function ServiceList() {
       <div className={styles.ctaZone}>
         <ButtonLink
           className={styles.CTAButton}
-          href="/complete-registration"
-          aria-label="Essayer la plateforme gratuitement"
+          href="/parcours"
+          aria-label="Choisir un parcours pour essayer la plateforme gratuitement"
         >
           Essayer gratuitement
         </ButtonLink>

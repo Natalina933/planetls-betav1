@@ -98,6 +98,7 @@ export async function createHousingFromQuote(quoteId: string, managerProfileId: 
       roomCount: null,
       bedroomCount: null,
       bathroomCount: null,
+      bathrooms: [],
       bedCount: null,
       guestCapacity: null,
       wifiInfo: "",

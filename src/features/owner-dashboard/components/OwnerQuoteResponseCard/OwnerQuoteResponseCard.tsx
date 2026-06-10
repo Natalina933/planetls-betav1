@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Card, CardBody } from "@/components/ui";
 import { RequestStatusBadge } from "@/components/ui";
+import { WorkflowTimeline, type WorkflowTimelineStep } from "@/features/service-requests";
 import styles from "./OwnerQuoteResponseCard.module.scss";
 
 type QuoteFact = {
@@ -21,6 +22,7 @@ export type OwnerQuoteResponseCardProps = {
   workflowStatus?: string | null;
   hasMission?: boolean;
   badges?: ReactNode;
+  workflowSteps?: WorkflowTimelineStep[];
   facts: QuoteFact[];
   items: QuoteItem[];
   notes?: string | null;
@@ -35,6 +37,7 @@ export function OwnerQuoteResponseCard({
   workflowStatus,
   hasMission = false,
   badges,
+  workflowSteps,
   facts,
   items,
   notes,
@@ -55,6 +58,11 @@ export function OwnerQuoteResponseCard({
         </div>
 
         {badges ? <div className={styles.badges}>{badges}</div> : null}
+        {workflowSteps?.length ? (
+          <div className={styles.workflowTimeline}>
+            <WorkflowTimeline title="Parcours métier" steps={workflowSteps} />
+          </div>
+        ) : null}
 
         <div className={styles.factRow}>
           {facts.map((fact) => (

@@ -10,6 +10,7 @@ export const CURRENT_PROFILE_SELECT = `
   email,
   phone,
   avatar_url,
+  image,
   additional_info,
   category,
   location,

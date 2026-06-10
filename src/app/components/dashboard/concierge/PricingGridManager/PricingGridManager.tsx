@@ -16,12 +16,18 @@ import {
 } from 'react-icons/fi';
 import styles from './PricingGridManager.module.scss';
 import type { PricingModifierKey, PricingOverrideValue, PricingV2Config } from '@/app/components/tariffs/types';
+import { conciergeApiError } from '@/app/dashboard/concierge/conciergeFeedback';
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
 type PricingType = 'hourly' | 'fixed' | 'monthly' | 'custom';
-type PropertyType = 'appartement' | 'maison' | 'villa' | 'studio' | 'bureau';
+type PropertyType =
+  | 'appartement'
+  | 'maison'
+  | 'immeuble_multi_lots'
+  | 'villa_haut_de_gamme'
+  | 'residence_secondaire';
 
 interface ServiceCatalogItem {
   id: string;
@@ -136,6 +142,7 @@ const PricingGridManager = ({
   const [showAdvancedPricingTools, setShowAdvancedPricingTools] = useState(false);
   const [editingPriorityRows, setEditingPriorityRows] = useState<Record<string, boolean>>({});
   const [contextualServiceScope, setContextualServiceScope] = useState<"missions" | "all">("missions");
+  const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
 
   const modifierColumns: Array<{
     key: PricingModifierKey;
@@ -157,9 +164,9 @@ const PricingGridManager = ({
   const propertyTypes: Array<{ value: PropertyType; label: string }> = [
     { value: 'appartement', label: 'Appartement' },
     { value: 'maison', label: 'Maison' },
-    { value: 'villa', label: 'Villa' },
-    { value: 'studio', label: 'Studio' },
-    { value: 'bureau', label: 'Bureau' }
+    { value: 'immeuble_multi_lots', label: 'Immeuble multi-lots' },
+    { value: 'villa_haut_de_gamme', label: 'Villa haut de gamme' },
+    { value: 'residence_secondaire', label: 'Résidence secondaire' },
   ];
 
   const pricingTypes: Array<{ value: PricingType; label: string }> = [
@@ -167,6 +174,68 @@ const PricingGridManager = ({
     { value: 'fixed', label: 'Forfait' },
     { value: 'monthly', label: 'Mensuel' },
     { value: 'custom', label: 'Personnalisé' }
+  ];
+
+  const suggestedPricingRules: Array<{
+    label: string;
+    propertyType: PropertyType;
+    type: PricingType;
+    surfaceMin: string;
+    surfaceMax: string;
+    amount: string;
+    duration: string;
+    note: string;
+  }> = [
+    {
+      label: 'Ménage appartement 2 pièces',
+      propertyType: 'appartement',
+      type: 'fixed',
+      surfaceMin: '0',
+      surfaceMax: '50',
+      amount: '45',
+      duration: '2',
+      note: 'Base simple pour petites surfaces.',
+    },
+    {
+      label: 'Ménage maison familiale',
+      propertyType: 'maison',
+      type: 'fixed',
+      surfaceMin: '50',
+      surfaceMax: '120',
+      amount: '90',
+      duration: '3.5',
+      note: 'Forfait courant avant état des lieux.',
+    },
+    {
+      label: 'Suivi immeuble multi-lots',
+      propertyType: 'immeuble_multi_lots',
+      type: 'monthly',
+      surfaceMin: '120',
+      surfaceMax: '500',
+      amount: '280',
+      duration: '6',
+      note: 'Pilotage récurrent par ensemble.',
+    },
+    {
+      label: 'Préparation villa haut de gamme',
+      propertyType: 'villa_haut_de_gamme',
+      type: 'fixed',
+      surfaceMin: '120',
+      surfaceMax: '300',
+      amount: '180',
+      duration: '5',
+      note: 'Niveau premium avec contrôle renforcé.',
+    },
+    {
+      label: 'Entretien résidence secondaire',
+      propertyType: 'residence_secondaire',
+      type: 'monthly',
+      surfaceMin: '60',
+      surfaceMax: '180',
+      amount: '160',
+      duration: '4',
+      note: 'Forfait mensuel de surveillance.',
+    },
   ];
 
   /* -------------------------------------------------------------------------- */
@@ -235,7 +304,7 @@ const PricingGridManager = ({
   /* -------------------------------------------------------------------------- */
   const handleSubmit = async () => {
     if (!formData.label || !formData.amount) {
-      alert('Veuillez remplir tous les champs requis');
+      setFeedback({ tone: "error", message: "Veuillez remplir tous les champs requis." });
       return;
     }
     
@@ -338,9 +407,13 @@ const PricingGridManager = ({
 
       await fetchPricings();
       resetForm();
+      setFeedback({ tone: "success", message: editingId ? "Tarif mis à jour." : "Tarif ajouté." });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Impossible d'enregistrer ce tarif.", err.message)
+          : conciergeApiError("Impossible d'enregistrer ce tarif.");
+      setFeedback({ tone: "error", message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -362,15 +435,29 @@ const PricingGridManager = ({
     setShowAddForm(true);
   };
 
+  const applySuggestedPricingRule = (rule: (typeof suggestedPricingRules)[number]) => {
+    setFormData((current) => ({
+      ...current,
+      label: rule.label,
+      type: rule.type,
+      property_type: rule.propertyType,
+      surface_min: rule.surfaceMin,
+      surface_max: rule.surfaceMax,
+      amount: rule.amount,
+      estimated_duration: rule.duration,
+    }));
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette règle tarifaire ?')) return;
     
     try {
       await fetch(`/api/pricing/${id}`, { method: 'DELETE' });
       await fetchPricings();
+      setFeedback({ tone: "success", message: "Règle tarifaire supprimée." });
     } catch (err) {
       console.error('[Pricing] handleDelete', err);
-      alert('Erreur lors de la suppression');
+      setFeedback({ tone: "error", message: conciergeApiError("Erreur lors de la suppression.") });
     }
   };
 
@@ -556,7 +643,7 @@ const PricingGridManager = ({
     );
 
     if (toAttach.length === 0) {
-      alert("Les tarifs sélectionnés sont déjà liés au pack.");
+      setFeedback({ tone: "success", message: "Les tarifs sélectionnés sont déjà liés au pack." });
       return;
     }
 
@@ -585,10 +672,13 @@ const PricingGridManager = ({
       }
 
       setSelectedPricingIdsForPack([]);
-      alert(`${toAttach.length} tarif(s) lié(s) au pack.`);
+      setFeedback({ tone: "success", message: `${toAttach.length} tarif(s) lié(s) au pack.` });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Erreur liaison au pack";
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Erreur liaison au pack.", err.message)
+          : conciergeApiError("Erreur liaison au pack.");
+      setFeedback({ tone: "error", message: errorMessage });
     } finally {
       setIsLinkingSelected(false);
     }
@@ -615,9 +705,13 @@ const PricingGridManager = ({
       const linkedIds = new Set(linkedRows.map((row) => row.id));
       setLinkedPricingPackages((prev) => prev.filter((row) => !linkedIds.has(row.id)));
       setSelectedPricingIdsForPack((prev) => prev.filter((id) => id !== pricing.id));
+      setFeedback({ tone: "success", message: "Tarif délié du pack." });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la déliaison';
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Erreur lors de la déliaison.", err.message)
+          : conciergeApiError("Erreur lors de la déliaison.");
+      setFeedback({ tone: "error", message: errorMessage });
     }
   };
 
@@ -632,9 +726,13 @@ const PricingGridManager = ({
       }
 
       setLinkedPricingPackages((prev) => prev.filter((row) => row.id !== linkId));
+      setFeedback({ tone: "success", message: "Lien tarif supprimé." });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la déliaison';
-      alert(errorMessage);
+      const errorMessage =
+        err instanceof Error
+          ? conciergeApiError("Erreur lors de la déliaison.", err.message)
+          : conciergeApiError("Erreur lors de la déliaison.");
+      setFeedback({ tone: "error", message: errorMessage });
     }
   };
 
@@ -1072,6 +1170,18 @@ const PricingGridManager = ({
         </div>
       </div>
 
+      {feedback ? (
+        <div
+          className={feedback.tone === "success" ? styles.feedbackSuccess : styles.feedbackError}
+          role={feedback.tone === "success" ? "status" : "alert"}
+        >
+          <span>{feedback.message}</span>
+          <button type="button" onClick={() => setFeedback(null)}>
+            Fermer
+          </button>
+        </div>
+      ) : null}
+
       {pricingV2 && onChangePricingV2 && contextualServiceRows.length > 0 && (
         <div className={styles.priorityCard}>
           {showContextualHeader && (
@@ -1284,6 +1394,32 @@ const PricingGridManager = ({
                 onChange={(e) => setFormData({ ...formData, label: e.target.value })}
               />
             </div>
+
+            {!editingId && (
+              <div className={styles.suggestedPricingBlock}>
+                <div className={styles.suggestedPricingHeader}>
+                  <span>Tarifs proposés</span>
+                  <p>Préremplissez la règle avec un type de bien que vous pouvez gérer.</p>
+                </div>
+                <div className={styles.suggestedPricingGrid}>
+                  {suggestedPricingRules.map((rule) => (
+                    <button
+                      key={rule.propertyType}
+                      type="button"
+                      className={styles.suggestedPricingCard}
+                      onClick={() => applySuggestedPricingRule(rule)}
+                    >
+                      <strong>{propertyTypes.find((type) => type.value === rule.propertyType)?.label}</strong>
+                      <span>{rule.label}</span>
+                      <small>
+                        {rule.amount} EUR · {rule.duration} h · {rule.surfaceMin}-{rule.surfaceMax} m²
+                      </small>
+                      <em>{rule.note}</em>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className={styles.formGrid}>
               {/* Type de bien */}

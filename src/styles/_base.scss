@@ -6,12 +6,22 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 body {
   font-family: var(--ui-font-text);
   color: var(--ui-color-text);
   background: var(--ui-color-bg);
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 
 h1,

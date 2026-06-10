@@ -1,20 +1,270 @@
-.meta {
+.card {
+  min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding-top: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(244, 239, 230, 0.92)),
+    url("/textures/elegant-fibers.png");
+}
+
+.cover {
+  position: relative;
+  min-height: 150px;
+  margin: 0 calc(var(--ds-space-5) * -1);
+  max-width: calc(100% + (var(--ds-space-5) * 2));
+  overflow: hidden;
+  border-bottom: 1px solid rgba(143, 106, 51, 0.16);
+}
+
+.cover img {
+  object-fit: cover;
+  filter: saturate(0.96) contrast(1.04);
+}
+
+.cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 24, 34, 0.04), rgba(12, 24, 34, 0.58)),
+    radial-gradient(circle at top right, rgba(212, 175, 55, 0.22), transparent 45%);
+}
+
+.cover span {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1;
+  max-width: calc(100% - 2rem);
+  padding: 0.45rem 0.72rem;
+  border: 1px solid rgba(255, 248, 231, 0.34);
+  border-radius: 999px;
+  background: rgba(12, 24, 34, 0.52);
+  color: #fff8e7;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.25;
+  backdrop-filter: blur(8px);
+}
+
+.header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.9rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: -2.5rem;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.identity {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(143, 106, 51, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 252, 247, 0.94);
+  box-shadow: 0 14px 34px rgba(48, 34, 18, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.identity > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.header > :last-child {
+  flex: 0 1 auto;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.avatar {
+  display: inline-flex;
+  width: 72px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.72), transparent 34%),
+    linear-gradient(145deg, #f7ecd8, #d9c39a);
+  color: #5d4215;
+  font-family: var(--font-title), "Cormorant Garamond", serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  box-shadow:
+    0 14px 32px rgba(20, 16, 10, 0.2),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.7);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.identity h3,
+.identity p,
+.quote {
+  margin: 0;
+}
+
+.identity h3 {
+  color: #1f180f;
+  font-family: var(--font-title), "Cormorant Garamond", serif;
+  font-size: clamp(1.05rem, 1.4vw, 1.48rem);
+  font-weight: 800;
+  line-height: 1.05;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  max-width: 15ch;
+}
+
+.nameLong {
+  font-size: clamp(0.98rem, 1.15vw, 1.22rem) !important;
+  line-height: 1.08 !important;
+  max-width: 18ch;
+}
+
+.nameVeryLong {
+  font-size: clamp(0.88rem, 1vw, 1.05rem) !important;
+  line-height: 1.1 !important;
+  max-width: 21ch;
+}
+
+.identity p {
+  margin-top: 0.3rem;
+  color: rgba(45, 34, 18, 0.86);
+  font-weight: 800;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.meta span,
+.pricing span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(143, 106, 51, 0.13);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+  color: rgba(52, 41, 22, 0.82);
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .pricing {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  color: rgba(52, 41, 22, 0.82);
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.pricing span {
+  color: #4a3510;
+}
+
+.trustSignals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.trustSignals span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.36rem 0.6rem;
+  border: 1px solid rgba(47, 74, 95, 0.14);
+  border-radius: 999px;
+  background: rgba(247, 251, 252, 0.82);
+  color: #2f4a5f;
+  font-size: 0.72rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.matchHighlights {
+  display: grid;
+  gap: 0.48rem;
+  padding: 0.78rem 0.85rem;
+  border: 1px solid rgba(47, 74, 95, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.matchHighlights strong {
+  color: #2f4a5f;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.matchHighlights div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  width: 100%;
+}
+
+.matchHighlights span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.3rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(47, 74, 95, 0.08);
+  color: #263f51;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .tagMuted {
@@ -22,9 +272,174 @@
 }
 
 .quote {
-  margin: 0;
-  padding-left: 1rem;
-  border-left: 2px solid rgba(127, 111, 74, 0.28);
+  padding: 0.9rem 1rem;
+  border-left: 3px solid rgba(184, 139, 74, 0.45);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
   color: rgba(52, 41, 22, 0.78);
   font-style: italic;
+  line-height: 1.55;
+}
+
+.footer {
+  justify-content: stretch;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.footer :global(a),
+.footer :global(button) {
+  flex: 1 1 145px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  border-color: rgba(55, 78, 95, 0.28) !important;
+  background: linear-gradient(135deg, #2f4a5f, #476a7c) !important;
+  color: #f8fbfc !important;
+  box-shadow: 0 12px 24px rgba(31, 54, 69, 0.18) !important;
+}
+
+.footer :global(a:hover),
+.footer :global(button:hover) {
+  background: linear-gradient(135deg, #263f51, #3e6274) !important;
+  color: #ffffff !important;
+}
+
+.footer :global(a:nth-child(2)),
+.footer :global(button:nth-child(2)) {
+  background: rgba(247, 251, 252, 0.92) !important;
+  color: #2f4a5f !important;
+  border-color: rgba(55, 78, 95, 0.26) !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 560px) {
+  .card {
+    gap: 0.9rem;
+  }
+
+  .cover {
+    min-height: 118px;
+    margin-inline: calc(var(--ds-space-4) * -1);
+  }
+
+  .cover span {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-top: -1.65rem;
+  }
+
+  .identity {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.65rem;
+  }
+
+  .avatar {
+    width: 58px;
+    height: 58px;
+  }
+
+  .identity h3 {
+    display: block;
+    font-size: 1rem;
+    line-height: 1.05;
+    max-width: none;
+  }
+
+  .identity p {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.86rem;
+    overflow-wrap: anywhere;
+  }
+
+  .pricing {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .matchHighlights div,
+  .trustSignals,
+  .tags {
+    gap: 0.35rem;
+  }
+
+  .meta {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .meta span,
+  .pricing span {
+    min-height: 34px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .trustSignals {
+    gap: 0.38rem;
+  }
+
+  .trustSignals span {
+    min-height: 28px;
+    padding: 0.32rem 0.55rem;
+    font-size: 0.7rem;
+  }
+
+  .matchHighlights {
+    padding: 0.68rem;
+  }
+
+  .tags {
+    gap: 0.42rem;
+  }
+
+  .footer {
+    gap: 0.55rem;
+  }
+
+  .footer :global(a),
+  .footer :global(button) {
+    flex-basis: 100%;
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 380px) {
+  .cover {
+    min-height: 104px;
+  }
+
+  .identity {
+    padding: 0.58rem;
+    gap: 0.6rem;
+  }
+
+  .avatar {
+    width: 52px;
+    height: 52px;
+  }
+
+  .cover span,
+  .trustSignals span,
+  .matchHighlights span {
+    font-size: 0.68rem;
+  }
+
+  .meta span,
+  .pricing span {
+    font-size: 0.78rem;
+  }
 }

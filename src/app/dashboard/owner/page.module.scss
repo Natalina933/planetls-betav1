@@ -1,0 +1,687 @@
+.sectionBlock {
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionLead {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0 0.15rem;
+}
+
+.sectionLead h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1.14rem, 2vw, 1.45rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.sectionLead p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.58;
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+
+.sectionEyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroPanel {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 1rem;
+  align-items: stretch;
+  padding: clamp(1.2rem, 2.5vw, 1.75rem);
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 20%, var(--dash-border));
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--dash-accent) 24%, transparent), transparent 30%),
+    radial-gradient(circle at 8% 0%, rgba(255, 255, 255, 0.95), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-bg-panel) 98%, white), color-mix(in srgb, var(--dash-accent) 9%, white));
+  box-shadow: 0 26px 60px rgba(74, 54, 22, 0.12);
+}
+
+.heroPanel::before {
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.72), transparent 28%),
+    radial-gradient(circle at 70% 100%, color-mix(in srgb, var(--dash-accent) 10%, transparent), transparent 32%);
+  content: "";
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.55rem;
+  align-content: center;
+}
+
+.heroBadge,
+.priorityBadge {
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.heroCopy h1 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.heroCopy p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--dash-text-muted);
+  font-size: 1rem;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.heroMetrics {
+  position: relative;
+  z-index: 1;
+  display: none;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.heroMetric {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.95rem 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 14px 30px rgba(74, 54, 22, 0.07);
+  backdrop-filter: blur(14px);
+}
+
+.heroMetric span,
+.heroMetric small {
+  color: var(--dash-text-muted);
+  font-size: 0.8rem;
+}
+
+.heroMetric strong {
+  color: var(--dash-text);
+  font-size: clamp(1.28rem, 2vw, 1.8rem);
+  line-height: 1;
+}
+
+.heroActions,
+.priorityActions,
+.propertyActions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dashboardDonutRail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.dashboardDonutCard {
+  min-height: 116px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 12%, transparent), transparent 34%),
+    rgba(255, 255, 255, 0.76);
+  box-shadow: 0 18px 38px rgba(74, 54, 22, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 900;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.primaryLink {
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: white;
+  box-shadow: 0 14px 28px rgba(127, 88, 32, 0.18);
+}
+
+.secondaryLink {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 22%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+  color: var(--dash-text);
+}
+
+.primaryLink:hover,
+.secondaryLink:hover,
+.signalCard:hover,
+.timelineRow:hover,
+.propertyCard:hover,
+.missionRow:hover,
+.conciergeCard:hover,
+.financeAction:hover {
+  transform: translateY(-2px);
+}
+
+.healthGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sectionBlock:has(.healthGrid) {
+  display: none;
+}
+
+.healthCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 14px 28px rgba(74, 54, 22, 0.05);
+}
+
+.healthTop,
+.signalTop,
+.missionRowTop,
+.conciergeTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.healthDot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.statusGood {
+  background: #1f8b4d;
+  color: #1f7040;
+}
+
+.statusWarn {
+  background: #d49b23;
+  color: #8b6200;
+}
+
+.statusInfo {
+  background: #3a7bd5;
+  color: #27579f;
+}
+
+.healthLabel,
+.financeLabel {
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.healthValue,
+.financeValue {
+  color: var(--dash-text);
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.healthDetail,
+.signalCard p,
+.priorityHero p,
+.priorityHero small,
+.timelineRow p,
+.propertyNote,
+.missionRow p,
+.financeCard p,
+.financeAction p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.priorityLayout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.priorityHero {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.2rem;
+  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 15%, transparent), transparent 30%),
+    linear-gradient(150deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+  box-shadow: 0 18px 34px rgba(74, 54, 22, 0.07);
+}
+
+.priorityHero strong {
+  color: var(--dash-text);
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.signalList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.signalCard,
+.timelineRow,
+.missionRow,
+.conciergeCard,
+.financeAction,
+.emptyCard {
+  color: inherit;
+  text-decoration: none;
+}
+
+.signalCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 15%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 95%, white);
+}
+
+.signalTop span {
+  color: var(--dash-text);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.signalTop strong,
+.missionAmount {
+  color: var(--dash-accent-strong);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.timelineList,
+.missionList,
+.conciergeList,
+.financeActions,
+.noteList,
+.storyBlock {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 15%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+}
+
+.timelineLabel,
+.inlineStatus {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 13%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.timelineRow strong,
+.propertyHead strong,
+.missionRow strong,
+.conciergeCard strong,
+.noteTitleRow strong {
+  color: var(--dash-text);
+  line-height: 1.2;
+}
+
+.propertyGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.propertyCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 10%, transparent), transparent 34%),
+    color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 18px 34px rgba(74, 54, 22, 0.06);
+}
+
+.propertyHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.propertyHead > div {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.propertyHead p,
+.conciergeCard p,
+.missionRow small,
+.financeAction strong {
+  margin: 0;
+}
+
+.propertyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+  color: var(--dash-accent-strong);
+}
+
+.propertyStats {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.propertyStats div {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.75rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 6%, transparent);
+}
+
+.propertyStats span,
+.conciergeMeta span {
+  color: var(--dash-text-muted);
+  font-size: 0.78rem;
+}
+
+.propertyStats strong {
+  color: var(--dash-text);
+  line-height: 1.2;
+}
+
+.panelGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.missionRow,
+.conciergeCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 15%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+}
+
+.conciergeTop {
+  justify-content: flex-start;
+}
+
+.conciergeTop > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.conciergeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.partnerAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 17%, transparent);
+  color: var(--dash-accent-strong);
+  font-weight: 900;
+}
+
+.financeLayout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.financeCard {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 95%, white);
+}
+
+.financeAction {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 14%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+}
+
+.financeAction strong {
+  color: var(--dash-text);
+}
+
+.emptyCard {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px dashed color-mix(in srgb, var(--dash-accent) 28%, var(--dash-border));
+  color: var(--dash-accent-strong);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+  background: color-mix(in srgb, var(--dash-bg-panel) 95%, white);
+}
+
+.disclosureBlock {
+  display: grid;
+  gap: 0;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 14%, var(--dash-border));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 8%, transparent), transparent 24%),
+    color-mix(in srgb, var(--dash-bg-panel) 97%, white);
+  box-shadow: 0 18px 34px rgba(74, 54, 22, 0.06);
+  overflow: hidden;
+}
+
+.disclosureSummary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem 1.1rem;
+}
+
+.disclosureSummary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosureSummary > div {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.disclosureSummary strong {
+  color: var(--dash-text);
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+.disclosureSummary p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 72ch;
+}
+
+.disclosureContent {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1.1rem 1.1rem;
+}
+
+.noteCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 15%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-accent) 5%, transparent);
+}
+
+.noteCard p,
+.storyBlock p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.58;
+}
+
+.noteTitleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--dash-text);
+}
+
+.panelLink {
+  width: fit-content;
+  color: var(--dash-accent-strong);
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+@media (max-width: 1100px) {
+  .heroPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .heroMetrics,
+  .dashboardDonutRail,
+  .healthGrid,
+  .financeLayout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .priorityLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .panelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroPanel,
+  .priorityHero,
+  .propertyCard,
+  .healthCard,
+  .financeCard {
+    padding: 1rem;
+  }
+
+  .heroMetrics,
+  .dashboardDonutRail,
+  .healthGrid,
+  .financeLayout,
+  .propertyStats {
+    grid-template-columns: 1fr;
+  }
+
+  .heroActions,
+  .priorityActions,
+  .propertyActions {
+    flex-direction: column;
+  }
+
+  .primaryLink,
+  .secondaryLink {
+    width: 100%;
+  }
+
+  .timelineRow {
+    grid-template-columns: 1fr;
+  }
+
+  .propertyHead {
+    flex-direction: column;
+  }
+}

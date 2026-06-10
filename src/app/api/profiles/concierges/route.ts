@@ -19,6 +19,7 @@ const isSchemaDriftError = (code: string | undefined): boolean =>
 type ConciergeProfileRow = {
   id: string;
   avatar_url: string | null;
+  image: string | null;
   first_name: string | null;
   last_name: string | null;
   username: string | null;
@@ -61,13 +62,13 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
   const { data: profiles, error: profilesError } = await db
     .from("profiles")
     .select(
-    "id, avatar_url, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role",
+    "id, avatar_url, image, first_name, last_name, username, company_name, city, postal_code, country, service_area, location, service_radius_km, hourly_rate, monthly_rate, experience_level, years_experience, option, availability_hours, emergency_service, role",
     )
     .in("role", targetRoles)
     .limit(limit);
 
   if (!profilesError) {
-    return (profiles ?? []) as ConciergeProfileRow[];
+    return ((profiles ?? []) as unknown) as ConciergeProfileRow[];
   }
 
   if (!isSchemaDriftError(profilesError.code)) {
@@ -88,7 +89,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
     throw new Error("Erreur chargement concierges.");
   }
 
-  return ((fallbackProfiles ?? []) as Array<{
+  return (((fallbackProfiles ?? []) as unknown) as Array<{
     id: string;
     avatar_url?: string | null;
     first_name: string | null;
@@ -107,6 +108,7 @@ async function loadConciergeProfiles(limit: number, proOnly: boolean): Promise<C
   }>).map((profile) => ({
     ...profile,
     avatar_url: profile.avatar_url ?? null,
+    image: null,
     postal_code: null,
     location: null,
     experience_level: null,
@@ -249,6 +251,7 @@ export async function GET(req: NextRequest) {
         return {
           id: profile.id,
           avatar_url: profile.avatar_url ?? null,
+          image: profile.image ?? null,
           display_name: displayName,
           city: normalizedProfile.city,
           postal_code: profile.postal_code,

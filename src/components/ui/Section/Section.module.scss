@@ -20,8 +20,8 @@
 }
 
 .toneSoft {
-  background: var(--ui-color-surface-soft);
-  border-radius: var(--ui-radius-lg);
-  border: 1px solid var(--ui-color-border);
+  background: var(--ds-color-surface-soft);
+  border-radius: var(--ui-card-radius, var(--ds-radius-lg));
+  border: var(--ds-border-subtle);
   padding-inline: var(--ui-space-4);
 }

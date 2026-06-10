@@ -1,0 +1,329 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.hero,
+.priorityCard,
+.financeCard,
+.panel,
+.housingCard,
+.settingsBlock,
+.emptyCard {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 9%, transparent), transparent 32%),
+    color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 18px 34px rgba(74, 54, 22, 0.06);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.eyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.priorityCard h2,
+.sectionHeader h2,
+.housingCard h3 {
+  margin: 0;
+  color: var(--dash-text);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.hero h1 {
+  font-size: clamp(1.75rem, 4vw, 2.55rem);
+}
+
+.hero p,
+.priorityCard p,
+.housingCard p,
+.muted {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.55;
+}
+
+.heroActions,
+.actionRow,
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.primaryButton,
+.primaryLink,
+.secondaryLink,
+.quickActions a,
+.emptyCard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.primaryButton,
+.primaryLink {
+  border: 0;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: white;
+  cursor: pointer;
+}
+
+.secondaryLink,
+.quickActions a {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+  color: var(--dash-text);
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.success,
+.state {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+  color: var(--dash-accent-strong);
+  font-weight: 900;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.priorityLayout,
+.twoColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.priorityCard,
+.financeCard,
+.panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.1rem;
+}
+
+.priorityCard strong {
+  color: var(--dash-text);
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+}
+
+.financeRows,
+.tableLike,
+.controlList,
+.alertList,
+.sectionBlock {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.financeRows span,
+.tableRow,
+.controlList span,
+.alertList span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+  color: var(--dash-text-muted);
+  font-weight: 800;
+}
+
+.financeRows strong,
+.tableRow strong {
+  color: var(--dash-text);
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.housingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.housingCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.ready {
+  border-color: color-mix(in srgb, #1f8b4d 22%, var(--dash-border));
+}
+
+.watch {
+  border-color: color-mix(in srgb, #d49b23 28%, var(--dash-border));
+}
+
+.action,
+.urgent {
+  border-color: color-mix(in srgb, #b85c48 36%, var(--dash-border));
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.cardTop span {
+  height: fit-content;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.checkGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.checkGrid span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) auto auto;
+}
+
+.tableRow a {
+  color: var(--dash-accent-strong);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.controlList span,
+.alertList span {
+  justify-content: flex-start;
+}
+
+.quickActions a {
+  flex: 1 1 190px;
+}
+
+.settingsBlock {
+  padding: 1rem;
+}
+
+.settingsBlock summary {
+  display: grid;
+  gap: 0.3rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.settingsBlock summary::-webkit-details-marker {
+  display: none;
+}
+
+.settingsBlock summary strong {
+  color: var(--dash-text);
+}
+
+.settingsBlock[open] summary {
+  margin-bottom: 1rem;
+}
+
+.emptyCard {
+  min-height: 130px;
+  border-style: dashed;
+  color: var(--dash-accent-strong);
+}
+
+@media (max-width: 1100px) {
+  .hero,
+  .priorityLayout,
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .heroActions {
+    justify-content: flex-start;
+  }
+
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .kpiGrid,
+  .checkGrid,
+  .tableRow {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .priorityCard,
+  .financeCard,
+  .panel,
+  .housingCard,
+  .settingsBlock {
+    border-radius: 18px;
+  }
+
+  .primaryButton,
+  .primaryLink,
+  .secondaryLink {
+    width: 100%;
+  }
+}

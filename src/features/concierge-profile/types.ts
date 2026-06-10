@@ -6,6 +6,7 @@ export interface ConciergeProfile {
   email: string;
   phone: string | null;
   avatar_url: string | null;
+  image: string | null;
   additional_info: string | null;
   category: string;
   created_at: string;

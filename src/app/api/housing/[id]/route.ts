@@ -1,10 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { canAccessHousing } from "@/types/housing";
 
+const dbAny = asLooseSupabaseClient(db);
+
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+async function syncHousingNameInServiceRequests(params: {
+  ownerProfileId: string;
+  housingId: number;
+  previousName: string;
+  nextName: string;
+}) {
+  if (!params.nextName || params.previousName === params.nextName) return;
+
+  const { data: requests, error } = await dbAny
+    .from("service_requests")
+    .select("id, metadata")
+    .eq("owner_profile_id", params.ownerProfileId);
+
+  if (error) {
+    console.error("[PATCH /api/housing/[id]] service requests sync lookup error:", error);
+    return;
+  }
+
+  const updates = (requests ?? [])
+    .filter((request: { metadata?: unknown }) => {
+      const metadata = readRecord(request.metadata);
+      return (
+        String(metadata.property_housing_id ?? "") === String(params.housingId) ||
+        (params.previousName && metadata.property_label === params.previousName)
+      );
+    })
+    .map((request: { id: string; metadata?: unknown }) => {
+      const metadata = readRecord(request.metadata);
+      return dbAny
+        .from("service_requests")
+        .update({
+          metadata: {
+            ...metadata,
+            property_housing_id: String(params.housingId),
+            property_label: params.nextName,
+            updated_from: "housing_name_sync",
+          },
+        })
+        .eq("id", request.id)
+        .eq("owner_profile_id", params.ownerProfileId);
+    });
+
+  await Promise.all(updates);
 }
 
 export async function GET(
@@ -133,6 +185,15 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ error: "Erreur lors de la mise a jour du logement" }, { status: 500 });
+    }
+
+    if ("nom_logement" in updateObj) {
+      await syncHousingNameInServiceRequests({
+        ownerProfileId: userId,
+        housingId: id,
+        previousName: cleanString(existingHousing.nom_logement),
+        nextName: cleanString(data.nom_logement),
+      });
     }
 
     return NextResponse.json(data);

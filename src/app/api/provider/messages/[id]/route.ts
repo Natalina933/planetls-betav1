@@ -6,6 +6,7 @@ import {
   requireProviderAuth,
   toProviderJsonRecord,
 } from "../../shared";
+import type { ProviderInsert } from "@/types/supabase-provider";
 
 type ProviderConversation = {
   id: string;
@@ -18,6 +19,12 @@ type ProviderConversation = {
   created_at: string;
   updated_at: string;
 };
+
+function toMessagePreview(value: string, maxLength = 180) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1)}…`;
+}
 
 async function getConversationForProvider(id: string, providerProfileId: string) {
   const { data, error } = await providerDb
@@ -173,6 +180,23 @@ export async function POST(
       return providerSchemaMissingResponse("provider_messages");
     }
     return NextResponse.json({ error: "Erreur envoi message" }, { status: 500 });
+  }
+
+  const { error: conversationUpdateError } = await providerDb
+    .from("provider_conversations")
+    .update({
+      last_message_preview: toMessagePreview(content),
+      last_message_at: createdMessage.created_at,
+      status: "open",
+    } satisfies Partial<ProviderInsert<"provider_conversations">>)
+    .eq("id", id)
+    .eq("provider_profile_id", currentUserId);
+
+  if (conversationUpdateError) {
+    if (isProviderSchemaMissing(conversationUpdateError)) {
+      return providerSchemaMissingResponse("provider_conversations");
+    }
+    return NextResponse.json({ error: "Erreur mise a jour conversation" }, { status: 500 });
   }
 
   return NextResponse.json(createdMessage, { status: 201 });

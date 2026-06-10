@@ -1,8 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Euro,
+  MapPin,
+  MessageCircle,
+  Navigation,
+  ShieldCheck,
+  Sparkles,
+  Star,
+} from "lucide-react";
+import { ButtonLink } from "@/components/ui";
+import { ConciergePreviewCard } from "@/features/public-concierges";
+import styles from "./page.module.scss";
 
 type PublicReview = {
   id: string;
@@ -16,6 +29,7 @@ type PublicProfilePayload = {
     id: string;
     display_name: string;
     avatar_url: string | null;
+    image: string | null;
     company_name: string | null;
     city: string | null;
     country: string | null;
@@ -35,23 +49,13 @@ type PublicProfilePayload = {
   };
 };
 
-const conciergeTheme = {
-  accent: "#c6a66b",
-  accentText: "#7b5b23",
-  accentSoft: "#f3ead8",
-  title: "#3f2f14",
-  body: "#5f5237",
-};
-
-const DEFAULT_CONCIERGE_AVATAR = "/icons/account-svgrepo-com.svg";
-
 function formatAmount(value: number | null, suffix: string) {
-  if (typeof value !== "number") return "Non renseigne";
+  if (typeof value !== "number") return "Sur demande";
   return `${value.toFixed(0)} EUR ${suffix}`;
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "Date non renseignee";
+  if (!value) return "Date non renseignée";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("fr-FR", {
@@ -61,14 +65,22 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
-function pillStyle() {
-  return {
-    padding: "0.42rem 0.75rem",
-    borderRadius: 999,
-    background: "rgba(198,166,107,0.14)",
-    color: conciergeTheme.accentText,
-    fontWeight: 600,
-  } as const;
+function getRatingLabel(value: number | null) {
+  return typeof value === "number" ? `${value.toFixed(1)} / 5` : "Avis en attente";
+}
+
+function getExperienceLabel(value: number | null) {
+  return typeof value === "number" ? `${value} an(s)` : "Non renseignée";
+}
+
+function formatExperienceLevelLabel(value: string | null) {
+  const labels: Record<string, string> = {
+    debutant: "Débutant",
+    intermediaire: "Intermédiaire",
+    experimente: "Expérimenté",
+  };
+
+  return value ? labels[value] ?? value : "Non renseigné";
 }
 
 export default function PublicConciergeProfilePage({
@@ -121,298 +133,189 @@ export default function PublicConciergeProfilePage({
     };
   }, [params]);
 
+  const profile = data?.profile;
+  const services = useMemo(() => profile?.services.filter(Boolean) ?? [], [profile?.services]);
+  const isPro = profile?.role === "concierge_pro";
+
   return (
-    <main style={{ minHeight: "100vh", padding: "2rem 1rem", background: "#f8f4eb" }}>
-      <div style={{ maxWidth: 1040, margin: "0 auto", display: "grid", gap: "1.5rem" }}>
-        <section
-          style={{
-            display: "grid",
-            gap: "0.85rem",
-            padding: "2rem",
-            borderRadius: 28,
-            border: "1px solid rgba(198, 166, 107, 0.26)",
-            background:
-              "linear-gradient(145deg, rgba(255, 253, 246, 0.96), rgba(243, 234, 216, 0.94))",
-            boxShadow: "0 18px 42px rgba(74, 53, 16, 0.08)",
-          }}
-        >
-          <div
-            style={{
-              width: 112,
-              height: 112,
-              borderRadius: 28,
-              overflow: "hidden",
-              border: "1px solid rgba(198, 166, 107, 0.24)",
-              background: "rgba(255,255,255,0.9)",
-              boxShadow: "0 12px 30px rgba(74, 53, 16, 0.08)",
-            }}
-          >
-            <Image
-              src={data?.profile.avatar_url || DEFAULT_CONCIERGE_AVATAR}
-              alt={
-                data?.profile.display_name
-                  ? `Avatar de ${data.profile.display_name}`
-                  : "Avatar du concierge"
-              }
-              width={112}
-              height={112}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </div>
-          <span
-            style={{
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: conciergeTheme.accentText,
-            }}
-          >
-            Profil concierge
-          </span>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "clamp(2rem, 5vw, 3.2rem)",
-              lineHeight: 1,
-              color: conciergeTheme.title,
-            }}
-          >
-            {loading ? "Chargement..." : data?.profile.display_name || "Concierge"}
-          </h1>
-          <p style={{ margin: 0, color: conciergeTheme.body, lineHeight: 1.6, maxWidth: "72ch" }}>
-            {error
-              ? error
-              : "Decouvrez le positionnement, la zone d'intervention, les services proposes et les avis laisses apres mission."}
-          </p>
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: 42,
-                padding: "0.55rem 0.9rem",
-                borderRadius: 999,
-                background:
-                  data?.profile.role === "concierge_pro"
-                    ? "linear-gradient(135deg, rgba(198,166,107,0.24), rgba(243,234,216,0.92))"
-                    : "rgba(74,53,16,0.08)",
-                color: conciergeTheme.accentText,
-                fontWeight: 800,
-              }}
-            >
-              {data?.profile.role === "concierge_pro" ? "Badge PRO" : "Badge Standard"}
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <Link href="/home#concierges-recommandes" className={styles.backLink}>
+          <ArrowLeft size={18} aria-hidden />
+          Retour aux profils
+        </Link>
+
+        <section className={styles.hero}>
+          <div className={styles.heroCopy}>
+            <span className={styles.eyebrow}>
+              <Sparkles size={16} aria-hidden />
+              Profil concierge
             </span>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: 42,
-                padding: "0.55rem 0.9rem",
-                borderRadius: 999,
-                background: "rgba(198,166,107,0.14)",
-                color: conciergeTheme.accentText,
-                fontWeight: 700,
-              }}
-            >
-              {typeof data?.stats.average_rating === "number"
-                ? `${data.stats.average_rating.toFixed(1)} / 5 sur ${data.stats.reviews_count} avis`
-                : "Avis en cours de collecte"}
-            </span>
-            <Link
-              href="/login"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 42,
-                padding: "0.75rem 1rem",
-                borderRadius: 999,
-                background: "linear-gradient(135deg, #c6a66b, #a98a56)",
-                color: "#fff",
-                textDecoration: "none",
-                fontWeight: 700,
-              }}
-            >
-              Se connecter pour contacter
-            </Link>
-            <Link
-              href="/home#concierges-recommandes"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 42,
-                padding: "0.75rem 1rem",
-                borderRadius: 999,
-                border: "1px solid rgba(198, 166, 107, 0.35)",
-                background: "rgba(255,255,255,0.78)",
-                color: conciergeTheme.accentText,
-                textDecoration: "none",
-                fontWeight: 700,
-              }}
-            >
-              Retour aux profils
-            </Link>
+            <h1>{loading ? "Chargement du profil" : profile?.display_name || "Concierge"}</h1>
+            <p>
+              Un aperçu clair de la zone couverte, des services disponibles, des repères
+              tarifaires et des retours clients avant de prendre contact.
+            </p>
+
+            <div className={styles.heroActions}>
+              <ButtonLink href="/login" variant="primary">
+                Contacter
+              </ButtonLink>
+              <ButtonLink href="/home#concierges-recommandes" variant="secondary">
+                Explorer les profils
+              </ButtonLink>
+            </div>
           </div>
+
+          <aside className={styles.profileCard}>
+            {profile ? (
+              <ConciergePreviewCard
+                id={profile.id}
+                avatarUrl={profile.avatar_url}
+                coverImageUrl={profile.image}
+                displayName={profile.display_name}
+                city={profile.city}
+                serviceArea={profile.service_area}
+                services={services}
+                hourlyRate={profile.hourly_rate}
+                monthlyRate={profile.monthly_rate}
+                yearsExperience={profile.years_experience}
+                isPro={isPro}
+                averageRating={data.stats.average_rating}
+                reviewsCount={data.stats.reviews_count}
+                primaryAction={
+                  <ButtonLink href="/login" variant="primary" size="sm">
+                    Contacter
+                  </ButtonLink>
+                }
+                secondaryAction={
+                  <ButtonLink href="/home#concierges-recommandes" variant="secondary" size="sm">
+                    Retour
+                  </ButtonLink>
+                }
+              />
+            ) : (
+              <div className={styles.cardPlaceholder}>
+                {loading ? "Chargement de la carte..." : error || "Profil indisponible."}
+              </div>
+            )}
+          </aside>
         </section>
 
-        {loading ? <p>Chargement du profil...</p> : null}
+        {!loading && error ? <p className={styles.error}>{error}</p> : null}
 
-        {!loading && !error && data ? (
+        {!loading && !error && data && profile ? (
           <>
-            <section
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: "1rem",
-              }}
-            >
-              <article
-                style={{
-                  padding: "1.2rem",
-                  borderRadius: 20,
-                  background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(198,166,107,0.18)",
-                }}
-              >
-                <strong>Note moyenne</strong>
-                <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: conciergeTheme.title }}>
-                  {typeof data.stats.average_rating === "number"
-                    ? `${data.stats.average_rating.toFixed(1)} / 5`
-                    : "Pas encore de note"}
-                </p>
+            <section className={styles.metrics} aria-label="Reperes du profil">
+              <article>
+                <Star size={18} aria-hidden />
+                <span>Note moyenne</span>
+                <strong>{getRatingLabel(data.stats.average_rating)}</strong>
               </article>
-              <article
-                style={{
-                  padding: "1.2rem",
-                  borderRadius: 20,
-                  background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(198,166,107,0.18)",
-                }}
-              >
-                <strong>Avis clients</strong>
-                <p style={{ margin: "0.55rem 0 0", fontSize: "1.35rem", color: conciergeTheme.title }}>
-                  {data.stats.reviews_count}
-                </p>
+              <article>
+                <MessageCircle size={18} aria-hidden />
+                <span>Avis clients</span>
+                <strong>{data.stats.reviews_count}</strong>
               </article>
-              <article
-                style={{
-                  padding: "1.2rem",
-                  borderRadius: 20,
-                  background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(198,166,107,0.18)",
-                }}
-              >
-                <strong>Zone</strong>
-                <p style={{ margin: "0.55rem 0 0", color: conciergeTheme.title }}>
-                  {data.profile.service_area || data.profile.city || "Non renseignee"}
-                </p>
+              <article>
+                <Navigation size={18} aria-hidden />
+                <span>Rayon</span>
+                <strong>
+                  {typeof profile.service_radius_km === "number"
+                    ? `${profile.service_radius_km} km`
+                    : "À préciser"}
+                </strong>
               </article>
-              <article
-                style={{
-                  padding: "1.2rem",
-                  borderRadius: 20,
-                  background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(198,166,107,0.18)",
-                }}
-              >
-                <strong>Experience</strong>
-                <p style={{ margin: "0.55rem 0 0", color: conciergeTheme.title }}>
-                  {typeof data.profile.years_experience === "number"
-                    ? `${data.profile.years_experience} an(s)`
-                    : "Non renseignee"}
-                </p>
+              <article>
+                <BadgeCheck size={18} aria-hidden />
+                <span>Expérience</span>
+                <strong>{getExperienceLabel(profile.years_experience)}</strong>
               </article>
             </section>
 
-            <section
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "1rem",
-              }}
-            >
-              <article
-                style={{
-                  padding: "1.3rem",
-                  borderRadius: 22,
-                  background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(198,166,107,0.18)",
-                }}
-              >
-                <h2 style={{ marginTop: 0, color: conciergeTheme.title }}>Positionnement</h2>
-                <p>Role : {data.profile.role === "concierge_pro" ? "Concierge PRO" : "Concierge"}</p>
-                <p>Ville : {data.profile.city || "Non renseignee"}</p>
-                <p>Pays : {data.profile.country || "France"}</p>
-                <p>
-                  Rayon :{" "}
-                  {typeof data.profile.service_radius_km === "number"
-                    ? `${data.profile.service_radius_km} km`
-                    : "Non renseigne"}
-                </p>
+            <section className={styles.contentGrid}>
+              <article className={styles.panel}>
+                <div className={styles.sectionTitle}>
+                  <ShieldCheck size={20} aria-hidden />
+                  <h2>Positionnement</h2>
+                </div>
+                <dl className={styles.definitionList}>
+                  <div>
+                    <dt>Statut</dt>
+                    <dd>{isPro ? "Concierge PRO" : "Concierge"}</dd>
+                  </div>
+                  <div>
+                    <dt>Ville</dt>
+                    <dd>{profile.city || "Non renseignée"}</dd>
+                  </div>
+                  <div>
+                    <dt>Zone</dt>
+                    <dd>{profile.service_area || profile.city || "Non renseignée"}</dd>
+                  </div>
+                  <div>
+                    <dt>Pays</dt>
+                    <dd>{profile.country || "France"}</dd>
+                  </div>
+                </dl>
               </article>
-              <article
-                style={{
-                  padding: "1.3rem",
-                  borderRadius: 22,
-                  background: "rgba(255,255,255,0.94)",
-                  border: "1px solid rgba(198,166,107,0.18)",
-                }}
-              >
-                <h2 style={{ marginTop: 0, color: conciergeTheme.title }}>Repères tarifaires</h2>
-                <p>Tarif horaire : {formatAmount(data.profile.hourly_rate, "/ h")}</p>
-                <p>Forfait mensuel : {formatAmount(data.profile.monthly_rate, "/ mois")}</p>
-                <p>Niveau : {data.profile.experience_level || "Non renseigne"}</p>
+
+              <article className={styles.panel}>
+                <div className={styles.sectionTitle}>
+                  <Euro size={20} aria-hidden />
+                  <h2>Repères tarifaires</h2>
+                </div>
+                <dl className={styles.definitionList}>
+                  <div>
+                    <dt>Horaire</dt>
+                    <dd>{formatAmount(profile.hourly_rate, "/ h")}</dd>
+                  </div>
+                  <div>
+                    <dt>Mensuel</dt>
+                    <dd>{formatAmount(profile.monthly_rate, "/ mois")}</dd>
+                  </div>
+                  <div>
+                    <dt>Niveau</dt>
+                    <dd>{formatExperienceLevelLabel(profile.experience_level)}</dd>
+                  </div>
+                </dl>
               </article>
             </section>
 
-            <section style={{ display: "grid", gap: "0.85rem" }}>
-              <h2 style={{ margin: 0, color: conciergeTheme.title }}>Services proposés</h2>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}>
-                {data.profile.services.length > 0 ? (
-                  data.profile.services.map((service) => (
-                    <span key={service} style={pillStyle()}>
-                      {service}
-                    </span>
-                  ))
-                ) : (
-                  <span style={{ color: conciergeTheme.body }}>Services non renseignés pour le moment.</span>
-                )}
+            <section className={styles.servicesSection}>
+              <div className={styles.sectionTitle}>
+                <MapPin size={20} aria-hidden />
+                <h2>Services proposés</h2>
               </div>
+              {services.length > 0 ? (
+                <div className={styles.serviceList}>
+                  {services.map((service) => (
+                    <span key={service}>{service}</span>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.muted}>Services non renseignés pour le moment.</p>
+              )}
             </section>
 
-            <section style={{ display: "grid", gap: "1rem" }}>
-              <h2 style={{ margin: 0, color: conciergeTheme.title }}>Avis récents</h2>
+            <section className={styles.reviewsSection}>
+              <div className={styles.sectionTitle}>
+                <Star size={20} aria-hidden />
+                <h2>Avis récents</h2>
+              </div>
+
               {data.reviews.length === 0 ? (
-                <p>Aucun avis publie pour le moment.</p>
+                <p className={styles.emptyState}>Aucun avis publié pour le moment.</p>
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "1rem",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                  }}
-                >
+                <div className={styles.reviewGrid}>
                   {data.reviews.map((review) => (
-                    <article
-                      key={review.id}
-                      style={{
-                        padding: "1.1rem",
-                        borderRadius: 20,
-                        background: "rgba(255,255,255,0.94)",
-                        border: "1px solid rgba(198,166,107,0.18)",
-                      }}
-                    >
-                      <strong style={{ color: conciergeTheme.title }}>
+                    <article key={review.id} className={styles.reviewCard}>
+                      <strong>
                         {typeof review.rating === "number"
                           ? `${review.rating} / 5`
-                          : "Note non renseignee"}
+                          : "Note non renseignée"}
                       </strong>
-                      <p style={{ color: conciergeTheme.body, lineHeight: 1.6 }}>
-                        {review.comment || "Avis publie sans commentaire."}
-                      </p>
-                      <small style={{ color: conciergeTheme.accentText }}>{formatDate(review.created_at)}</small>
+                      <p>{review.comment || "Avis publié sans commentaire."}</p>
+                      <small>{formatDate(review.created_at)}</small>
                     </article>
                   ))}
                 </div>

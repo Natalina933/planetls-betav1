@@ -1,11 +1,11 @@
-# Audit du début d'expérience (inscription) — Lynda & Christa
+# Audit du début d'expérience (inscription) — Persona simplicit� & Persona expert
 
 _Date: 25 avril 2026_
 
 ## Objectif
 Vérifier si le **début du parcours utilisateur** est bien orienté pour deux profils concierge très différents:
-- **Lynda** (50 ans, peu à l'aise avec le digital, contraintes visuelles et mobilité locale),
-- **Christa** (40 ans, expérimentée, orientée efficacité, gestion multi-biens).
+- **Persona simplicit�** (50 ans, peu à l'aise avec le digital, contraintes visuelles et mobilité locale),
+- **Persona expert** (40 ans, expérimentée, orientée efficacité, gestion multi-biens).
 
 ---
 
@@ -24,13 +24,13 @@ Vérifier si le **début du parcours utilisateur** est bien orienté pour deux p
 
 ## 2) Analyse persona par persona sur le début d'expérience
 
-## A. Lynda — Est-ce que le démarrage est rassurant et simple ?
+## A. Persona simplicit� — Est-ce que le démarrage est rassurant et simple ?
 
 ### Ce qui fonctionne pour elle
 - Le découpage en popups limite l'effet "mur d'informations".
 - Les textes de guidance existent (ex: ville reconnue).
 
-### Ce qui peut bloquer Lynda dès le départ
+### Ce qui peut bloquer Persona simplicit� dès le départ
 1. **Trop de modales successives**: l'utilisateur peut se perdre (où j'en suis ? combien d'étapes restantes ?).
 2. **Libellés encore trop techniques**: certains mots ne sont pas orientés "terrain".
 3. **Accessibilité pas explicite dès l'entrée**: pas de mode contraste/texte agrandi dans l'onboarding.
@@ -44,13 +44,13 @@ Vérifier si le **début du parcours utilisateur** est bien orienté pour deux p
 
 ---
 
-## B. Christa — Est-ce que le démarrage est utile et rapide ?
+## B. Persona expert — Est-ce que le démarrage est utile et rapide ?
 
 ### Ce qui fonctionne pour elle
 - Le parcours collecte des informations pertinentes (expérience, services, zone).
 - Le récapitulatif est utile avant confirmation.
 
-### Ce qui peut frustrer Christa
+### Ce qui peut frustrer Persona expert
 1. **Pas de mode “rapide”**: elle veut aller vite, or le tunnel impose toutes les étapes.
 2. **Pas d'import initial**: aucune possibilité d'importer ses bases (Excel/CSV) dès l'onboarding.
 3. **Manque de projection business immédiate**: on ne montre pas ce qu'elle gagnera après inscription (packs, multi-biens, pilotage).
@@ -79,8 +79,8 @@ Ces 3 points évitent des incohérences qui cassent la perception "pro" dès les
 **Oui, tu pars bien**: l'architecture du tunnel d'inscription est déjà propre et suffisamment robuste pour itérer vite.
 
 ### Ce qu'il te manque pour un “excellent départ UX”
-- **Pour Lynda**: plus de repères visuels, plus de simplicité lexicale, et une promesse locale rassurante.
-- **Pour Christa**: un mode rapide, une perspective business immédiate, et une passerelle vers ses outils existants.
+- **Pour Persona simplicit�**: plus de repères visuels, plus de simplicité lexicale, et une promesse locale rassurante.
+- **Pour Persona expert**: un mode rapide, une perspective business immédiate, et une passerelle vers ses outils existants.
 
 ---
 

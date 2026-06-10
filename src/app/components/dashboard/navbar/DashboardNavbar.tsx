@@ -14,9 +14,11 @@ import {
   OWNER_SERVICE_REPLY_SEEN_EVENT,
 } from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
+import { ReadabilityControlsIcon } from "@/components/dashboard";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
+  isSidebarOpen?: boolean;
   toggleSidebar: () => void;
   notificationCount?: number;
 }
@@ -167,7 +169,7 @@ const PAGE_LABELS: Record<string, string> = {
   devis: "Devis",
   logements: "Logements",
   contacts: "Contacts",
-  conciergerie: "Conciergerie",
+  conciergerie: "Conciergeries",
   recherche: "Recherche",
   demandes: "Demandes",
   objectifs: "Objectifs",
@@ -185,6 +187,7 @@ function formatPathSegment(segment: string) {
 }
 
 export default function DashboardNavbar({
+  isSidebarOpen = false,
   toggleSidebar,
   notificationCount = 0,
 }: DashboardNavbarProps) {
@@ -352,7 +355,7 @@ export default function DashboardNavbar({
                   id: item.id,
                   title: repliedRecipient?.concierge_name || item.title || "Réponse concierge",
                   description: `${responseLabel}${item.city ? ` • ${item.city}` : ""}`,
-                  href: "/dashboard/owner/conciergerie",
+                  href: "/dashboard/owner/demandes",
                   count: 1,
                   kind: repliedRecipient?.status === "quoted" ? "quote" : "request",
                 } satisfies NotificationItem;
@@ -577,7 +580,7 @@ export default function DashboardNavbar({
           onClick={handleMenuClick}
           className={styles.menuButton}
           aria-label="Ouvrir ou fermer le menu"
-          aria-expanded="false"
+          aria-expanded={isSidebarOpen}
         >
           <Menu size={24} aria-hidden="true" />
         </button>
@@ -628,6 +631,8 @@ export default function DashboardNavbar({
             </div>
           )}
         </div>
+
+        <ReadabilityControlsIcon />
 
         {isAuthenticated && (
           <div className={styles.rightInfoBlock}>
@@ -695,9 +700,8 @@ export default function DashboardNavbar({
                       <button
                         key={value}
                         type="button"
-                        className={`${styles.notificationFilterButton} ${
-                          notificationFilter === value ? styles.notificationFilterButtonActive : ""
-                        }`}
+                        className={`${styles.notificationFilterButton} ${notificationFilter === value ? styles.notificationFilterButtonActive : ""
+                          }`}
                         onClick={() => setNotificationFilter(value)}
                       >
                         {label}
@@ -749,34 +753,34 @@ export default function DashboardNavbar({
         )}
 
         <div className={styles.accountMenuWrapper} ref={accountMenuRef}>
-        <button
-          type="button"
-          className={styles.userProfile}
-          onClick={handleProfileClick}
-          aria-label={`Menu du compte de ${userName}`}
-          title={`Compte de ${userName}`}
-          aria-haspopup="menu"
-          aria-expanded={accountMenuOpen}
-        >
-          {loading ? (
-            <div className={styles.avatarSkeleton} role="status" aria-label="Chargement du profil" />
-          ) : isAuthenticated && user ? (
-            <div className={styles.avatarWrapperOuter}>
-              <Image
-                src={avatarSrc}
-                alt={`Avatar de ${userName}`}
-                width={48}
-                height={48}
-                className={styles.avatar}
-                priority
-              />
-            </div>
-          ) : (
-            <div className={styles.avatarPlaceholder} aria-label="Non connecté">
-              <User size={22} aria-hidden="true" />
-            </div>
-          )}
-        </button>
+          <button
+            type="button"
+            className={styles.userProfile}
+            onClick={handleProfileClick}
+            aria-label={`Menu du compte de ${userName}`}
+            title={`Compte de ${userName}`}
+            aria-haspopup="menu"
+            aria-expanded={accountMenuOpen}
+          >
+            {loading ? (
+              <div className={styles.avatarSkeleton} role="status" aria-label="Chargement du profil" />
+            ) : isAuthenticated && user ? (
+              <div className={styles.avatarWrapperOuter}>
+                <Image
+                  src={avatarSrc}
+                  alt={`Avatar de ${userName}`}
+                  width={48}
+                  height={48}
+                  className={styles.avatar}
+                  priority
+                />
+              </div>
+            ) : (
+              <div className={styles.avatarPlaceholder} aria-label="Non connecté">
+                <User size={22} aria-hidden="true" />
+              </div>
+            )}
+          </button>
 
           {accountMenuOpen && isAuthenticated ? (
             <div className={styles.accountDropdown} role="menu" aria-label="Menu du compte">

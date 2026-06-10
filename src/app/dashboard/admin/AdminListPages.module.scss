@@ -1,0 +1,171 @@
+.pageBody {
+  display: grid;
+  gap: 16px;
+}
+
+.list {
+  display: grid;
+  gap: 14px;
+}
+
+.card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(31, 41, 55, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(176, 134, 54, 0.11), transparent 32%),
+    rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.06);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  display: grid;
+  gap: 5px;
+}
+
+.cardTitle span {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cardTitle h3 {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+}
+
+.cardTitle p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.primaryLink,
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.primaryLink {
+  background: #172033;
+  color: #fff;
+}
+
+.ghostButton {
+  border: 1px solid rgba(31, 41, 55, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+  color: #172033;
+}
+
+.factsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fact {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.86);
+  border: 1px solid rgba(100, 116, 139, 0.1);
+}
+
+.fact span {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.fact strong {
+  color: #172033;
+  font-size: 0.93rem;
+}
+
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.services span {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(176, 134, 54, 0.12);
+  color: #7a5a16;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.42rem 0.7rem;
+}
+
+.sectionIntro {
+  display: grid;
+  gap: 6px;
+}
+
+.sectionIntro h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 1.2rem;
+}
+
+.sectionIntro p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+@media (max-width: 980px) {
+  .factsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .card {
+    padding: 14px;
+  }
+
+  .factsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardActions {
+    width: 100%;
+  }
+
+  .primaryLink,
+  .ghostButton {
+    width: 100%;
+  }
+}

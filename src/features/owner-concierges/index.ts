@@ -17,7 +17,6 @@ export {
   buildOwnerConciergeFilterOptions,
   buildOwnerConciergeSearchParams,
   getOwnerCitySuggestions,
-  getOwnerRegionSuggestions,
   hasOwnerConciergeSearchCriteria,
   toggleOwnerConciergeService,
   toggleOwnerConciergeValue,

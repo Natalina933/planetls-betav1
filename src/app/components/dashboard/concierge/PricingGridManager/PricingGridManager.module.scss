@@ -1,11 +1,27 @@
+@use "@/app/styles/abstracts/variables" as var;
+
 .root {
-  --accent: #b8941e;
-  --accent-light: #d4af37;
+  --ui-color-bg: #f4f6f8;
+  --ui-color-surface: #ffffff;
+  --ui-color-surface-soft: #ebeff2;
+  --ui-color-border: #d5dbdf;
+  --ui-color-text: #2c3e50;
+  --ui-color-text-muted: #5d6d7e;
+  --ui-color-primary: #d4af37;
+  --ui-color-primary-strong: #b5a642;
+  --ui-color-accent: #1a2530;
+  --ui-button-radius: 4px;
+  --ui-input-radius: 4px;
+  --ui-card-radius: 4px;
+  --ui-shadow-sm: 0 4px 12px rgba(44, 62, 80, 0.05);
+  --ui-shadow-md: 0 12px 24px rgba(44, 62, 80, 0.09);
+  --accent: var(--ui-color-primary-strong);
+  --accent-light: var(--ui-color-primary);
   --accent-soft: rgba(212, 175, 55, 0.14);
-  --accent-border: rgba(184, 148, 30, 0.26);
+  --accent-border: rgba(212, 175, 55, 0.36);
   display: grid;
   gap: 1rem;
-  color: #0f172a;
+  color: var(--ui-color-text);
 }
 
 .toolbar {
@@ -20,6 +36,44 @@
   background:
     radial-gradient(circle at 0% 0%, var(--accent-soft) 0%, rgba(212, 175, 55, 0.04) 52%, transparent 100%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 248, 0.98));
+}
+
+.feedbackSuccess,
+.feedbackError {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.78rem 0.9rem;
+  border-radius: var(--ui-card-radius);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.feedbackSuccess {
+  border: 1px solid rgba(40, 85, 64, 0.16);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.feedbackError {
+  border: 1px solid rgba(142, 47, 47, 0.16);
+  background: #f8e7e4;
+  color: #8e2f2f;
+}
+
+.feedbackSuccess button,
+.feedbackError button {
+  min-height: 34px;
+  padding: 0.36rem 0.62rem;
+  border: 1px solid currentColor;
+  border-radius: var(--ui-button-radius);
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  cursor: pointer;
+  font-weight: 850;
 }
 
 .priorityCard {
@@ -421,6 +475,85 @@
   color: #64748b;
 }
 
+.suggestedPricingBlock {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.1), transparent 36%),
+    var(--ui-color-surface);
+}
+
+.suggestedPricingHeader {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.suggestedPricingHeader span {
+  color: var(--ui-color-accent);
+  font-family: var.$font-title;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.suggestedPricingHeader p {
+  margin: 0;
+  color: var(--ui-color-text-muted);
+  font-size: 0.84rem;
+}
+
+.suggestedPricingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.65rem;
+}
+
+.suggestedPricingCard {
+  display: grid;
+  gap: 0.32rem;
+  min-height: 142px;
+  padding: 0.85rem;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.suggestedPricingCard:hover {
+  border-color: rgba(212, 175, 55, 0.62);
+  box-shadow: var(--ui-shadow-md);
+  transform: translateY(-2px);
+}
+
+.suggestedPricingCard strong {
+  color: var(--ui-color-accent);
+  font-size: 0.95rem;
+}
+
+.suggestedPricingCard span {
+  color: var(--ui-color-text);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.suggestedPricingCard small,
+.suggestedPricingCard em {
+  color: var(--ui-color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.suggestedPricingCard em {
+  font-style: normal;
+}
+
 .checkboxGroup {
   display: grid;
   gap: 0.45rem;
@@ -807,4 +940,192 @@
   .searchInput {
     width: 100%;
   }
+}
+
+/* Art deco pricing surface ------------------------------------------------- */
+.toolbar,
+.priorityCard,
+.formCard,
+.tableCard,
+.quickStatsCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-card-radius);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.toolbar::before,
+.formCard::before,
+.tableCard::before,
+.quickStatsCard::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+}
+
+.toolbar {
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 0% 0%, var(--accent-soft) 0%, rgba(212, 175, 55, 0.04) 52%, transparent 100%),
+    var(--ui-color-surface);
+}
+
+.headingTitle,
+.priorityHeader h4,
+.formTitle,
+.quickStatsTitle {
+  color: var(--ui-color-accent);
+  font-family: var.$font-elegant;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.headingTitle {
+  font-size: 1.45rem;
+}
+
+.priorityHeader h4,
+.formTitle {
+  font-size: 1.25rem;
+}
+
+.headingText,
+.priorityHeader p,
+.fieldHint,
+.packageBar p,
+.serviceMeta,
+.packToggleText,
+.quickStatLabel,
+.linkedNoticeContent span {
+  color: var(--ui-color-text-muted);
+}
+
+.headingPackHint,
+.inlineStat,
+.linkedPackMeta,
+.emptyAction {
+  color: var(--ui-color-primary-strong);
+}
+
+.inlineStat,
+.togglePill,
+.badge,
+.unlinkInlineButton {
+  border-radius: var(--ui-button-radius);
+}
+
+.controlsPanel,
+.filterGroup,
+.linkedNotice,
+.packageBar,
+.quickStatItem,
+.priorityInput,
+.priorityTypeSelect,
+.selectControl,
+.inputControl,
+.searchInput {
+  border-color: var(--ui-color-border);
+  border-radius: var(--ui-input-radius);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text);
+}
+
+.controlsPanel,
+.filterGroup,
+.linkedNotice,
+.packageBar,
+.quickStatItem {
+  border-radius: var(--ui-card-radius);
+}
+
+.selectControl:focus,
+.inputControl:focus,
+.searchInput:focus,
+.priorityInput:focus,
+.priorityTypeSelect:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.72);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+}
+
+.primaryButton,
+.successButton {
+  border-color: var(--ui-color-accent);
+  border-radius: var(--ui-button-radius);
+  background: var(--ui-color-accent);
+  color: #ffffff;
+}
+
+.primaryButton:hover:not(:disabled),
+.successButton:hover:not(:disabled),
+.packLinkButton:hover:not(:disabled) {
+  box-shadow: var(--ui-shadow-md);
+  transform: translateY(-1px);
+}
+
+.secondaryButton,
+.ghostButton,
+.packLinkButton,
+.priorityEditButton,
+.iconActionButton {
+  border-color: var(--ui-color-border);
+  border-radius: var(--ui-button-radius);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-accent);
+}
+
+.packLinkButton {
+  background: var(--ui-color-accent);
+  color: #ffffff;
+}
+
+.tableHeaderRow {
+  background: var(--ui-color-surface-soft);
+  border-bottom-color: rgba(212, 175, 55, 0.32);
+}
+
+.tableHeadCell,
+.priorityTable th {
+  color: var(--ui-color-text-muted);
+  font-family: var.$font-title;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tableRow,
+.priorityTable th,
+.priorityTable td {
+  border-bottom-color: var(--ui-color-border);
+}
+
+.tableRow:hover {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.labelText,
+.priorityServiceCell strong,
+.basePriceValue,
+.quickStatValue {
+  color: var(--ui-color-accent);
+}
+
+.priceCell {
+  color: #2d6a4f;
+}
+
+.badgeDefault {
+  background: rgba(212, 175, 55, 0.16);
+  color: var(--ui-color-accent);
+}
+
+.root :is(button, input, select, a):focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.32);
+  outline-offset: 2px;
 }

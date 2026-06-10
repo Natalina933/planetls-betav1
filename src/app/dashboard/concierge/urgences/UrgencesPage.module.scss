@@ -1,25 +1,10 @@
 .page {
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.actionLink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.75rem 1rem;
-  border-radius: 999px;
-  background: #f5efe4;
-  color: #5c4938;
-  text-decoration: none;
-  font-weight: 700;
+.operationalPanel {
+  min-width: 0;
 }
 
 .list {
@@ -30,10 +15,11 @@
 .card {
   display: grid;
   gap: 1rem;
-  padding: 1.25rem;
-  border-radius: 24px;
-  border: 1px solid rgba(84, 67, 48, 0.14);
-  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  box-shadow: 0 14px 34px rgba(17, 24, 39, 0.06);
 }
 
 .topline {
@@ -44,12 +30,17 @@
 
 .topline h2 {
   margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.25;
 }
 
 .meta {
   display: grid;
   gap: 0.4rem;
-  color: #5f4c3d;
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
 }
 
 .badge {
@@ -58,10 +49,11 @@
   justify-content: center;
   padding: 0.4rem 0.7rem;
   border-radius: 999px;
-  background: #eef9ef;
-  color: #296947;
+  background: rgba(47, 125, 87, 0.12);
+  color: #1d5944;
   font-weight: 800;
   height: fit-content;
+  white-space: nowrap;
 }
 
 .stats {
@@ -73,9 +65,10 @@
 .stats span {
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
-  background: #f6f1e8;
-  color: #503f31;
+  background: var(--surface-muted);
+  color: var(--text-primary);
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .acceptButton {
@@ -83,8 +76,8 @@
   min-height: 46px;
   padding: 0.85rem 1rem;
   border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2f7d57, #1d5944);
+  border-radius: 8px;
+  background: #1d5944;
   color: #fff;
   font-weight: 800;
   cursor: pointer;
@@ -97,8 +90,38 @@
 
 .message {
   padding: 0.9rem 1rem;
-  border-radius: 16px;
-  background: #fff7eb;
+  border-radius: 8px;
+  background: rgba(255, 247, 235, 0.9);
   color: #6b4a21;
   font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 0.9rem;
+  }
+
+  .topline {
+    display: grid;
+  }
+
+  .badge,
+  .acceptButton {
+    width: 100%;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stats span {
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
 }

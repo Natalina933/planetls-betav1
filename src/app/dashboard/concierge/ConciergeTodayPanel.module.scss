@@ -1,0 +1,134 @@
+.body {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.taskGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.taskCard {
+  position: relative;
+  display: grid;
+  gap: 0.42rem;
+  min-height: 154px;
+  padding: 0.9rem;
+  border: 1px solid rgba(198, 166, 107, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 251, 245, 0.94);
+  color: #202532;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+
+  strong {
+    padding-right: 3.2rem;
+    font-size: 0.98rem;
+    line-height: 1.25;
+  }
+
+  span:last-child {
+    color: #5b6578;
+    font-size: 0.86rem;
+    line-height: 1.4;
+  }
+}
+
+.taskCardDone {
+  border-color: rgba(34, 139, 97, 0.34);
+  background: rgba(239, 252, 245, 0.96);
+
+  strong,
+  span:last-child {
+    color: #587061;
+  }
+}
+
+.taskIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(198, 166, 107, 0.16);
+  color: #7b5b23;
+}
+
+.taskStatus {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  background: #fff3d5;
+  color: #7b5b23;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.progressBadge,
+.checkButton,
+.taskLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.progressBadge {
+  color: #3e5747;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.checkButton {
+  width: fit-content;
+  min-height: 34px;
+  padding: 0.35rem 0.58rem;
+  border: 1px solid rgba(32, 37, 50, 0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #3e4656;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    border-color: rgba(34, 139, 97, 0.35);
+    background: #eaf8ef;
+    color: #216444;
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+}
+
+.taskLink {
+  width: fit-content;
+  margin-top: 0.2rem;
+  color: #75531a;
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 820px) {
+  .taskGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .taskCard {
+    min-height: 132px;
+  }
+}

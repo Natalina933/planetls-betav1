@@ -473,8 +473,14 @@ $transition-slow: 380ms $easing-soft;
 // ============================================
 
 .section {
-  @include missions-hero-surface;
-  @include card-sheen-overlay;
+  scroll-margin-top: 92px;
+  overflow: hidden;
+  border: 1px solid rgba($color-primary, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba($color-primary, 0.045), transparent 58%),
+    $color-bg-card;
+  box-shadow: 0 14px 30px rgba(41, 28, 13, 0.07);
   transition:
     box-shadow $transition-base,
     border-color $transition-base,
@@ -482,9 +488,8 @@ $transition-slow: 380ms $easing-soft;
   will-change: transform;
 
   &:hover {
-    box-shadow: 0 20px 38px rgba(15, 23, 42, 0.08);
-    border-color: rgba(212, 175, 55, 0.28);
-    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(41, 28, 13, 0.1);
+    border-color: rgba($color-primary-dark, 0.28);
   }
 }
 
@@ -492,23 +497,15 @@ $transition-slow: 380ms $easing-soft;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(
-    to right,
-    rgba($color-primary, 0.03),
-    rgba($color-primary, 0.01)
-  );
-  border-bottom: 1px solid $color-border-light;
+  padding: 0.85rem 1rem;
+  background: rgba($color-bg-main, 0.72);
+  border-bottom: 1px solid rgba($color-primary, 0.14);
   transition:
     background $transition-base,
     border-color $transition-base;
 
   &:hover {
-    background: linear-gradient(
-      to right,
-      rgba($color-primary, 0.05),
-      rgba($color-primary, 0.02)
-    );
+    background: rgba($color-primary, 0.055);
   }
 }
 
@@ -752,6 +749,254 @@ $transition-slow: 380ms $easing-soft;
   line-height: 1.5;
 }
 
+.onboardingDetails {
+  display: grid;
+  gap: 1rem;
+}
+
+.onboardingDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.onboardingDetailItem,
+.onboardingDetailGroup {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-sm;
+  background: rgba($color-primary, 0.045);
+}
+
+.onboardingDetailItem span {
+  color: $color-text-secondary;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.onboardingDetailItem strong,
+.onboardingDetailGroup strong {
+  color: $color-text-primary;
+  font-size: 0.95rem;
+}
+
+.onboardingDetailGroup p {
+  margin: 0;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
+.onboardingChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+
+  span {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: rgba($color-primary, 0.12);
+    color: $color-text-primary;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+}
+
+.operationalPanel {
+  min-width: 0;
+}
+
+.ficheEditIntro {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba($color-border, 0.9);
+  border-radius: 8px;
+  background: rgba($color-bg-main, 0.72);
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+}
+
+.ficheSectionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0.42rem 0.65rem;
+    border: 1px solid rgba($color-primary, 0.28);
+    border-radius: 999px;
+    background: $color-bg-card;
+    color: $color-text-primary;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  a:hover,
+  a:focus-visible {
+    border-color: $color-primary-dark;
+    background: $color-primary-dark;
+    color: #fff;
+    outline: none;
+  }
+}
+
+.operationalPanel {
+  .sectionTitle {
+    color: $color-text-primary;
+    font-size: 0.98rem;
+    font-weight: 900;
+    letter-spacing: 0;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  .sectionIcon {
+    border: 1px solid rgba($color-primary-dark, 0.2);
+    border-radius: 8px;
+    background: rgba($color-primary, 0.14);
+    color: $color-primary-dark;
+    box-shadow: none;
+  }
+
+  .sectionContentOpen {
+    padding: 1rem;
+  }
+}
+
+.ficheReadinessPanel {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba($color-border, 0.9);
+  border-radius: 8px;
+  background: $color-bg-card;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+
+  > div:first-child {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  span {
+    color: $color-text-secondary;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: $color-text-primary;
+    font-size: 1.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+}
+
+.ficheReadinessList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+
+  span {
+    padding: 0.38rem 0.58rem;
+    border: 1px solid rgba($color-border, 0.9);
+    border-radius: 999px;
+    background: rgba($color-bg-main, 0.8);
+    color: $color-text-secondary;
+    text-transform: none;
+  }
+}
+
+.ficheReadinessDone {
+  border-color: rgba(28, 132, 84, 0.25) !important;
+  background: rgba(28, 132, 84, 0.1) !important;
+  color: #1c8454 !important;
+}
+
+.missionsFocusedLayout {
+  display: grid;
+  gap: 1rem;
+}
+
+.missionsCurrentPanel,
+.missionsServicesPanel {
+  min-width: 0;
+}
+
+.missionsCurrentList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.missionsCurrentItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid rgba($color-primary, 0.16);
+  border-radius: 8px;
+  background: rgba($color-bg-main, 0.62);
+
+  div {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  strong {
+    color: $color-text-primary;
+    font-size: 0.95rem;
+  }
+
+  span {
+    color: $color-text-secondary;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0.42rem 0.65rem;
+    border-radius: 999px;
+    background: $color-primary-dark;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+}
+
+.missionsEmptyText {
+  margin: 0;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
 .presentationExample {
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
@@ -771,6 +1016,110 @@ $transition-slow: 380ms $easing-soft;
     color: $color-text-secondary;
     font-size: 0.88rem;
     line-height: 1.45;
+  }
+}
+
+.publicCoverPicker {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.42fr) minmax(0, 0.58fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba($color-primary, 0.18);
+  border-radius: $radius-md;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.publicCoverPreview {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  border-radius: $radius-sm;
+  background: rgba($color-primary, 0.08);
+
+  img {
+    object-fit: cover;
+  }
+}
+
+.publicCoverContent {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+
+  strong {
+    color: $color-text-primary;
+  }
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+    line-height: 1.45;
+  }
+}
+
+.publicCoverOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.publicCoverOptions button {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.45rem;
+  border: 1px solid rgba($color-primary, 0.18);
+  border-radius: $radius-sm;
+  background: #fff;
+  color: $color-text-primary;
+  cursor: pointer;
+  text-align: left;
+
+  img {
+    width: 100%;
+    height: 46px;
+    object-fit: cover;
+    border-radius: calc($radius-sm - 2px);
+  }
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+}
+
+.publicCoverOptionActive {
+  border-color: rgba($color-primary, 0.72) !important;
+  box-shadow: 0 0 0 2px rgba($color-primary, 0.12);
+}
+
+.publicCoverUpload {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.55rem 0.8rem;
+  border-radius: $radius-sm;
+  background: #2f4a5f;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+
+  input {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .publicCoverPicker {
+    grid-template-columns: 1fr;
+  }
+
+  .publicCoverOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

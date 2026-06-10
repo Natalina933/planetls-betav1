@@ -2,6 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
   padding: 1.2rem 2rem;
   background: var(--background);
   border-bottom: 1px solid rgba(212, 175, 55, 0.25);
@@ -24,6 +25,7 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  min-width: 0;
 
   a {
     display: inline-flex;
@@ -35,11 +37,13 @@
 .logoWrapper {
   display: inline-block;
   line-height: 0;
+  max-width: 100%;
 
   img {
     display: block;
     height: auto;
-    width: 260px;
+    width: clamp(150px, 34vw, 260px);
+    max-width: 100%;
     transition: transform 0.3s ease;
 
     /* Effet premium */
@@ -47,16 +51,8 @@
       transform: scale(1.03);
     }
 
-    @media (max-width: 768px) {
-      width: 220px;
-    }
-
-    @media (max-width: 480px) {
-      width: 190px;
-    }
-
     @media (max-width: 380px) {
-      width: 230px;
+      width: min(170px, 48vw);
     }
   }
 }

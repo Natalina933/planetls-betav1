@@ -1,5 +1,12 @@
-﻿import Link from "next/link";
+"use client";
+
+import Link from "next/link";
 import type { ReactNode } from "react";
+import {
+  BriefcaseBusiness,
+  Home,
+  Wrench,
+} from "lucide-react";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { StatsWidget } from "../StatsWidget/StatsWidget";
@@ -7,6 +14,7 @@ import { QuickActions } from "../QuickActions/QuickActions";
 import { ActivityFeed } from "../ActivityFeed/ActivityFeed";
 import { ProfileSummary } from "../ProfileSummary/ProfileSummary";
 import { Sidebar } from "../Sidebar/Sidebar";
+import { DashboardBottomNav } from "./DashboardBottomNav";
 import type {
   DashboardActivityItem,
   DashboardNavItem,
@@ -35,6 +43,9 @@ interface DashboardLayoutProps {
     badge?: string;
     avatarSrc?: string;
   };
+  hideHeader?: boolean;
+  hideProfileSummary?: boolean;
+  showBottomNav?: boolean;
   children?: ReactNode;
 }
 
@@ -42,6 +53,24 @@ function getLevelVariant(level: DashboardNotificationItem["level"]) {
   if (level === "danger") return "danger";
   if (level === "warning") return "warning";
   return "info";
+}
+
+function getPersonaLabel(persona: DashboardPersona) {
+  if (persona === "owner") return "Propriétaire";
+  if (persona === "artisan") return "Artisan";
+  if (persona === "conciergerie") return "Conciergerie";
+  return "Admin";
+}
+
+function getPersonaIcon(persona: DashboardPersona) {
+  if (persona === "owner") return Home;
+  if (persona === "artisan") return Wrench;
+  return BriefcaseBusiness;
+}
+
+function formatCount(count: number) {
+  if (count > 99) return "99+";
+  return `${count}`;
 }
 
 export function DashboardLayout({
@@ -56,25 +85,62 @@ export function DashboardLayout({
   notifications,
   shortcuts,
   profile,
+  hideHeader = false,
+  hideProfileSummary = false,
+  showBottomNav = true,
   children,
 }: DashboardLayoutProps) {
+  const PersonaIcon = getPersonaIcon(persona);
+
   return (
     <div className={styles.page}>
-      <div className={styles.grid}>
-        <div className={styles.main}>
-          <section className={styles.intro}>
-            <p className={styles.eyebrow}>{persona}</p>
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
-          </section>
-          <StatsWidget items={stats} />
-          <QuickActions actions={actions} />
-          {children ? <div className={styles.mainSections}>{children}</div> : null}
+      {!hideHeader ? (
+        <header className={styles.header}>
+          <div className={styles.identity}>
+            <span className={styles.avatar}>
+              <PersonaIcon size={24} aria-hidden="true" />
+            </span>
+            <div className={styles.identityCopy}>
+              <p className={styles.identityEyebrow}>{getPersonaLabel(persona)}</p>
+              <h1>{title}</h1>
+              <p>{profile.name}</p>
+            </div>
+          </div>
+          <div className={styles.headerSummary}>
+            <span className={styles.headerPill}>{profile.badge ?? getPersonaLabel(persona)}</span>
+            <span className={styles.headerSummaryText}>{subtitle}</span>
+          </div>
+        </header>
+      ) : null}
+
+      <section className={styles.todaySection} aria-labelledby={`${persona}-today-title`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <Badge variant="gold">{getPersonaLabel(persona)}</Badge>
+            <h2 id={`${persona}-today-title`}>Vue rapide</h2>
+          </div>
         </div>
+        <StatsWidget items={stats} />
+      </section>
+
+      <div className={styles.grid}>
+        <main className={styles.main}>
+          {children ? <div className={styles.mainSections}>{children}</div> : null}
+
+          <section className={styles.actionsSection} aria-labelledby={`${persona}-actions-title`}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <Badge variant="neutral">Actions rapides</Badge>
+                <h2 id={`${persona}-actions-title`}>Faire maintenant</h2>
+              </div>
+            </div>
+            <QuickActions actions={actions} showHeader={false} />
+          </section>
+        </main>
 
         <aside className={styles.aside}>
           <Sidebar title={navTitle} items={navItems} />
-          <ProfileSummary {...profile} />
+          {!hideProfileSummary ? <ProfileSummary {...profile} /> : null}
           <ActivityFeed items={activity} />
           <Card className={styles.panel}>
             <CardHeader className={styles.panelHeader}>
@@ -101,13 +167,23 @@ export function DashboardLayout({
             <CardBody className={styles.shortcutBody}>
               {shortcuts.map((item) => (
                 <Link key={item.href} href={item.href} className={styles.shortcut}>
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.badgeCount && item.badgeCount > 0 ? (
+                    <span className={styles.shortcutBadge}>{formatCount(item.badgeCount)}</span>
+                  ) : null}
                 </Link>
               ))}
             </CardBody>
           </Card>
         </aside>
       </div>
+
+      {showBottomNav ? (
+        <DashboardBottomNav
+          items={shortcuts}
+          ariaLabel={`Navigation ${getPersonaLabel(persona).toLowerCase()}`}
+        />
+      ) : null}
     </div>
   );
 }

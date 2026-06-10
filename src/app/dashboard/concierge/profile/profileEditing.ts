@@ -1,4 +1,4 @@
-﻿import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
+import type { PricingFallbackInput } from "@/app/components/tariffs/pricingEngine";
 import type { PricingV2Config, SeasonalPricingConfig } from "@/app/components/tariffs/types";
 
 export type SectionEditSnapshots = Record<string, string>;
@@ -124,6 +124,7 @@ interface ProfileIdentityLike {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  image?: string | null;
   id?: string;
   onboarding_complete?: boolean;
   availability_hours?: string | null;

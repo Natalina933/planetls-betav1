@@ -7,6 +7,7 @@ import { ConversationFilters, DashboardSectionShell } from "@/components/dashboa
 import { Button, ButtonLink, Textarea } from "@/components/ui";
 import styles from "./OwnerMessagesPage.module.scss";
 import { markOwnerConversationSeen } from "../messageActivity";
+import { ownerApiError } from "../ownerFeedback";
 
 type OwnerConversationRow = {
   id: string;
@@ -68,6 +69,25 @@ function getParticipantName(
   );
 }
 
+function getConversationContextLabel(source?: string | null, status?: string | null) {
+  switch ((source ?? "").trim().toLowerCase()) {
+    case "mission":
+      return "Mission";
+    case "quote":
+      return "Devis";
+    case "search":
+      return "Recherche concierge";
+    case "service_request":
+    case "request":
+      return "Demande";
+    case "manual":
+    case "direct":
+      return "Conversation directe";
+    default:
+      return status || source || "Conversation";
+  }
+}
+
 function OwnerMessagesContent() {
   const searchParams = useSearchParams();
   const preferredConversationId =
@@ -97,7 +117,7 @@ function OwnerMessagesContent() {
       const payload = (await response.json()) as OwnerConversationsListPayload & { error?: string };
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger vos conversations.");
+        throw new Error(ownerApiError("Impossible de charger vos conversations.", payload?.error));
       }
 
       const rows = Array.isArray(payload?.items) ? payload.items : [];
@@ -112,7 +132,7 @@ function OwnerMessagesContent() {
       setActiveConversationId(nextId);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de charger vos conversations.",
+        err instanceof Error ? err.message : ownerApiError("Impossible de charger vos conversations."),
       );
     } finally {
       setLoading(false);
@@ -135,7 +155,7 @@ function OwnerMessagesContent() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de charger cette conversation.");
+        throw new Error(ownerApiError("Impossible de charger cette conversation.", payload?.error));
       }
 
       setDetail(payload);
@@ -143,7 +163,7 @@ function OwnerMessagesContent() {
       setSeenVersion((current) => current + 1);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Impossible de charger cette conversation.",
+        err instanceof Error ? err.message : ownerApiError("Impossible de charger cette conversation."),
       );
     } finally {
       setDetailLoading(false);
@@ -217,7 +237,7 @@ function OwnerMessagesContent() {
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Impossible d'envoyer votre message.");
+        throw new Error(ownerApiError("Impossible d'envoyer votre message.", payload?.error));
       }
 
       setDraftMessage("");
@@ -227,9 +247,17 @@ function OwnerMessagesContent() {
       setSeenVersion((current) => current + 1);
       setSuccess("Message envoyé.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible d'envoyer votre message.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible d'envoyer votre message."));
     } finally {
       setSending(false);
+    }
+  }
+
+  async function retryMessages() {
+    setSuccess(null);
+    await loadConversations(activeConversationId || preferredConversationId);
+    if (activeConversationId) {
+      await loadConversationDetail(activeConversationId);
     }
   }
 
@@ -255,9 +283,16 @@ function OwnerMessagesContent() {
         { label: "Voir le planning", href: "/dashboard/owner/planning" },
       ]}
     >
-      <div className={styles.page}>
-        {success ? <p className={styles.successBox} role="status">{success}</p> : null}
-        {error ? <p className={styles.errorBox} role="alert">{error}</p> : null}
+      <div className={styles.page} aria-busy={loading || detailLoading}>
+        {success ? <div className={styles.successBox} role="status">{success}</div> : null}
+        {error ? (
+          <div className={styles.errorBox} role="alert">
+            <span>{error}</span>
+            <Button type="button" variant="secondary" size="sm" onClick={() => void retryMessages()}>
+              Réessayer
+            </Button>
+          </div>
+        ) : null}
 
         <div className={styles.layout}>
           <aside className={styles.sidebar}>
@@ -348,7 +383,9 @@ function OwnerMessagesContent() {
               <>
                 <div className={styles.threadHeader}>
                   <h2>{detail.conversation.subject || "Conversation"}</h2>
-                  <span>{detail.conversation.status || detail.conversation.source}</span>
+                  <span>
+                    {getConversationContextLabel(detail.conversation.source, detail.conversation.status)}
+                  </span>
                 </div>
 
                 <div className={styles.messageList}>

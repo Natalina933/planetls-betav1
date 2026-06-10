@@ -4,6 +4,7 @@ import { getApiAuthContext } from "@/app/lib/apiAuth";
 import type { Json } from "@/types/supabase";
 import type { ConciergeHousing, HousingInsert } from "@/types/housing";
 import { buildHousingMutationPayload, canAccessHousing } from "@/types/housing";
+import { EMPTY_HOUSING_STOCK_MANAGEMENT } from "@/app/lib/housingStock";
 
 const DEFAULT_LOGEMENT_PHOTO = "/images/default-logement.png";
 
@@ -102,6 +103,7 @@ function coerceIncomingPayload(rawBody: unknown, userId: string): HousingInsert 
         roomCount: body.characteristics?.roomCount ?? null,
         bedroomCount: body.characteristics?.bedroomCount ?? null,
         bathroomCount: body.characteristics?.bathroomCount ?? null,
+        bathrooms: body.characteristics?.bathrooms ?? [],
         bedCount: body.characteristics?.bedCount ?? null,
         guestCapacity: body.characteristics?.guestCapacity ?? null,
         wifiInfo: body.characteristics?.wifiInfo ?? "",
@@ -116,6 +118,7 @@ function coerceIncomingPayload(rawBody: unknown, userId: string): HousingInsert 
         amenities: body.characteristics?.amenities ?? [],
         description: body.characteristics?.description ?? "",
       },
+      stockManagement: body.stockManagement ?? EMPTY_HOUSING_STOCK_MANAGEMENT,
       services: body.services ?? { items: [], housekeepingNotes: "", internalNotes: "" },
       timeline: body.timeline ?? [],
       documentsList: body.documentsList ?? [],

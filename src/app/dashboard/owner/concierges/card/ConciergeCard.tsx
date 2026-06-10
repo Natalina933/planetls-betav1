@@ -1,170 +1,110 @@
 "use client";
 
 import { memo } from "react";
-import { Badge, Button, ButtonLink, Tag } from "@/components/ui";
-import styles from "./ConciergeCard.module.scss";
+import { Button, ButtonLink } from "@/components/ui";
+import { ConciergePreviewCard } from "@/features/public-concierges";
 import type { ConciergeSearchRow } from "../conciergeSearchTypes";
-import {
-  formatAmount,
-  formatReviewDate,
-  getAvailabilityLabel,
-  getConciergeLocation,
-  getPrimaryActionLabel,
-} from "../conciergeSearchUtils";
-import { ConciergeAvatar } from "../ConciergeAvatar";
+import { getPrimaryActionLabel } from "../conciergeSearchUtils";
+import type { OwnerConciergeSearchFilters } from "../searchHelpers";
+import styles from "./ConciergeCard.module.scss";
 
 type ConciergeCardProps = {
   item: ConciergeSearchRow;
   index: number;
   isSelected: boolean;
+  filters: OwnerConciergeSearchFilters;
   onToggle: (itemId: string) => void;
 };
 
-function ConciergeCardComponent({ item, index, isSelected, onToggle }: ConciergeCardProps) {
-  const visibleServices = item.services.slice(0, 5);
-  const hiddenServicesCount = Math.max(item.services.length - visibleServices.length, 0);
+const normalizeMatchValue = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 
+function getMatchHighlights(item: ConciergeSearchRow, filters: OwnerConciergeSearchFilters) {
+  const highlights: string[] = [];
+  const serviceSet = new Set(item.services.map(normalizeMatchValue));
+  const matchedServices = filters.selectedServices.filter((service) =>
+    serviceSet.has(normalizeMatchValue(service)),
+  );
+
+  if (matchedServices.length > 0) {
+    highlights.push(
+      `${matchedServices.length} service${matchedServices.length > 1 ? "s" : ""} demandé${
+        matchedServices.length > 1 ? "s" : ""
+      }`,
+    );
+  } else if (item.services.length > 0) {
+    highlights.push(`${item.services.length} service${item.services.length > 1 ? "s" : ""} proposé${item.services.length > 1 ? "s" : ""}`);
+  }
+
+  if (filters.city.trim() && [item.city, item.service_area, item.location].some((value) =>
+    value ? normalizeMatchValue(value).includes(normalizeMatchValue(filters.city)) : false,
+  )) {
+    highlights.push("Zone compatible");
+  } else if (item.city || item.service_area || item.location) {
+    highlights.push("Zone renseignée");
+  }
+
+  if (item.is_available_now) {
+    highlights.push("Disponible maintenant");
+  } else if (item.is_pro) {
+    highlights.push("Profil PRO");
+  }
+
+  if (typeof item.average_rating === "number" && item.reviews_count > 0) {
+    highlights.push(`${item.average_rating.toFixed(1)} / 5`);
+  } else if (typeof item.hourly_rate === "number" || typeof item.monthly_rate === "number") {
+    highlights.push("Tarif visible");
+  }
+
+  return highlights;
+}
+
+function ConciergeCardComponent({ item, index, isSelected, filters, onToggle }: ConciergeCardProps) {
   return (
     <article
       role="article"
       aria-label={`Profil concierge ${item.display_name}`}
-      className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
+      className={`${styles.sharedCardShell} ${isSelected ? styles.sharedCardSelected : ""}`}
       style={{ ["--card-index" as string]: String(index) }}
     >
-      <div className={styles.cardSelectionRail}>
-        <Badge className={styles.cardSelectionLabel}>{isSelected ? "Selectionne" : "Disponible"}</Badge>
-      </div>
-
-      <div className={styles.cardHead}>
-        <div className={styles.cardIdentityWrap}>
-          <div className={styles.avatarFrame}>
-            <ConciergeAvatar
-              src={item.avatar_url}
-              alt={
-                item.avatar_url
-                  ? `Avatar de ${item.display_name}`
-                  : `Avatar par defaut de ${item.display_name}`
-              }
-              className={styles.avatarImage}
-              width={88}
-              height={88}
-            />
-          </div>
-          <div className={styles.cardIdentity}>
-            <div className={styles.identityTopline}>
-              <h2>{item.display_name}</h2>
-              {typeof item.average_rating === "number" ? (
-                <Badge className={styles.inlineRating}>{item.average_rating.toFixed(1)} / 5</Badge>
-              ) : null}
-            </div>
-            <p>{getConciergeLocation(item)}</p>
-            <div className={styles.identityMeta}>
-              <Tag className={styles.metaPill}>{item.reviews_count} avis</Tag>
-              <Tag className={styles.metaPill}>
-                {typeof item.service_radius_km === "number"
-                  ? `${item.service_radius_km} km autour`
-                  : "Zone a preciser"}
-              </Tag>
-            </div>
-          </div>
-        </div>
-        <div className={styles.badgesCol}>
-          <Badge className={item.is_available_now ? styles.availableBadge : styles.standardBadge}>
-            {getAvailabilityLabel(item)}
-          </Badge>
-          <Badge className={item.is_pro ? styles.proBadge : styles.standardBadge}>
-            {item.is_pro ? "PRO" : "Standard"}
-          </Badge>
-          <Badge className={styles.ratingBadge}>
-            {typeof item.average_rating === "number" ? "Avis verifies" : "Sans avis"}
-          </Badge>
-        </div>
-      </div>
-
-      <div className={styles.kpiRow}>
-        <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Experience</span>
-          <strong>
-            {typeof item.years_experience === "number"
-              ? `${item.years_experience} ans`
-              : item.experience_level || "Non renseignée"}
-          </strong>
-        </div>
-        <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Rayon</span>
-          <strong>
-            {typeof item.service_radius_km === "number" ? `${item.service_radius_km} km` : "Non renseigne"}
-          </strong>
-        </div>
-        <div className={styles.kpiCard}>
-          <span className={styles.kpiLabel}>Avis</span>
-          <strong>{item.reviews_count}</strong>
-        </div>
-      </div>
-
-      <div className={styles.pricing}>
-        <div className={styles.priceCard}>
-          <span className={styles.kpiLabel}>Tarif horaire</span>
-          <strong>{formatAmount(item.hourly_rate, "/ h")}</strong>
-        </div>
-        <div className={styles.priceCard}>
-          <span className={styles.kpiLabel}>Tarif mensuel</span>
-          <strong>{formatAmount(item.monthly_rate, "/ mois")}</strong>
-        </div>
-      </div>
-
-      {item.property_types && item.property_types.length > 0 ? (
-        <div className={styles.tagGroup}>
-          <p className={styles.tagGroupLabel}>Biens couverts</p>
-          <div className={styles.tags}>
-            {item.property_types.map((propertyType) => (
-              <Tag key={`${item.id}-property-${propertyType}`} className={styles.propertyTag}>
-                {propertyType}
-              </Tag>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className={styles.tagGroup}>
-        <div className={styles.tagGroupHead}>
-          <p className={styles.tagGroupLabel}>Services cles</p>
-          {hiddenServicesCount > 0 ? <span className={styles.tagGroupCount}>+{hiddenServicesCount}</span> : null}
-        </div>
-        <div className={styles.tags}>
-          {item.services.length > 0 ? (
-            visibleServices.map((serviceLabel) => (
-              <Tag key={`${item.id}-${serviceLabel}`} className={styles.tag}>
-                {serviceLabel}
-              </Tag>
-            ))
-          ) : (
-            <Tag className={styles.tagMuted}>Services non renseignes</Tag>
-          )}
-        </div>
-      </div>
-
-      {item.latest_review_comment ? (
-        <div className={styles.reviewSnippet}>
-          <strong>Avis recent</strong>
-          <p>{item.latest_review_comment}</p>
-          {item.latest_review_at ? <small>{formatReviewDate(item.latest_review_at)}</small> : null}
-        </div>
-      ) : null}
-
-      <div className={styles.cardActions}>
-        <ButtonLink href={`/concierges/${item.id}`} variant="secondary" className={styles.secondaryBtn}>
-          Voir le profil
-        </ButtonLink>
-        <Button
-          className={isSelected ? styles.destructiveBtn : styles.primaryBtn}
-          aria-pressed={isSelected}
-          aria-label={`${isSelected ? "Retirer" : "Selectionner"} ${item.display_name}`}
-          onClick={() => onToggle(item.id)}
-        >
-          {getPrimaryActionLabel(isSelected, item.is_available_now)}
-        </Button>
-      </div>
+      <ConciergePreviewCard
+        id={item.id}
+        avatarUrl={item.avatar_url}
+        coverImageUrl={item.image}
+        displayName={item.display_name}
+        city={item.city}
+        serviceArea={item.service_area}
+        services={item.services}
+        hourlyRate={item.hourly_rate}
+        monthlyRate={item.monthly_rate}
+        yearsExperience={item.years_experience}
+        isPro={item.is_pro}
+        averageRating={item.average_rating}
+        reviewsCount={item.reviews_count}
+        latestReviewComment={item.latest_review_comment}
+        matchHighlights={getMatchHighlights(item, filters)}
+        badgeLabel={item.is_available_now ? "Disponible" : "Standard"}
+        badgeVariant={item.is_available_now ? "success" : item.is_pro ? "warning" : "neutral"}
+        className={styles.sharedCard}
+        primaryAction={
+          <ButtonLink href={`/concierges/${item.id}`} variant="secondary" size="sm">
+            Voir le profil
+          </ButtonLink>
+        }
+        secondaryAction={
+          <Button
+            aria-pressed={isSelected}
+            aria-label={`${isSelected ? "Retirer" : "Sélectionner"} ${item.display_name}`}
+            onClick={() => onToggle(item.id)}
+          >
+            {getPrimaryActionLabel(isSelected, item.is_available_now)}
+          </Button>
+        }
+      />
     </article>
   );
 }

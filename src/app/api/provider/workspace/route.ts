@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profile, error } = await db
     .from("profiles")
-    .select("id, first_name, last_name, username, email, phone, city, postal_code, company_name, website, role, category")
+    .select("id, first_name, last_name, username, email, phone, city, postal_code, company_name, website, availability_hours, service_area, service_radius_km, role, category")
     .eq("id", userId)
     .maybeSingle();
 
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
           profile.company_name ||
           profile.username ||
           "Artisan",
-        location: [profile.postal_code, profile.city].filter(Boolean).join(" ") || null,
+        location: [profile.postal_code, profile.city].filter(Boolean).join(" ") || profile.service_area || null,
         is_pro: profile.role === "provider_pro" || profile.role === "artisan_pro",
       },
     },

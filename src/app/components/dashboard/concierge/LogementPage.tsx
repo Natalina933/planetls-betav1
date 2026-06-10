@@ -21,8 +21,14 @@ import {
   normalizeHousingRow,
   validateHousingDraft,
 } from "@/types/housing";
+import {
+  createStockItemId,
+  getHousingStockSummary,
+  type HousingStockBed,
+  type HousingStockConsumable,
+} from "@/app/lib/housingStock";
 
-type TabId = "synthese" | "infos" | "services" | "timeline" | "docs" | "quotes";
+type TabId = "synthese" | "infos" | "stocks" | "services" | "timeline" | "docs" | "quotes";
 
 type ConciergeProfileService = {
   label: string;
@@ -79,6 +85,7 @@ type ServiceSelectionMode = "pack" | "manual";
 const tabs: Array<{ id: TabId; label: string }> = [
   { id: "synthese", label: "Synthèse" },
   { id: "infos", label: "Infos" },
+  { id: "stocks", label: "Stocks" },
   { id: "services", label: "Services" },
   { id: "timeline", label: "Historique" },
   { id: "docs", label: "Docs" },
@@ -292,6 +299,47 @@ export default function LogementPage() {
     setDraft((current) => (current ? { ...current, [key]: value } : current));
   }
 
+  function updateStockBed(index: number, field: keyof HousingStockBed, value: string) {
+    if (!draft) return;
+    updateDraft("stockManagement", {
+      ...draft.stockManagement,
+      beds: draft.stockManagement.beds.map((bed, bedIndex) =>
+        bedIndex === index
+          ? {
+              ...bed,
+              [field]: field === "quantity" ? Number(value) || 0 : value,
+            }
+          : bed,
+      ),
+    });
+  }
+
+  function updateStockConsumable(index: number, field: keyof HousingStockConsumable, value: string) {
+    if (!draft) return;
+    updateDraft("stockManagement", {
+      ...draft.stockManagement,
+      consumables: draft.stockManagement.consumables.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              [field]: field === "currentQty" || field === "minQty" ? Number(value) || 0 : value,
+            }
+          : item,
+      ),
+    });
+  }
+
+  function updateLaundry(field: keyof ConciergeHousing["stockManagement"]["laundry"], value: string) {
+    if (!draft) return;
+    updateDraft("stockManagement", {
+      ...draft.stockManagement,
+      laundry: {
+        ...draft.stockManagement.laundry,
+        [field]: typeof draft.stockManagement.laundry[field] === "number" ? Number(value) || 0 : value,
+      },
+    });
+  }
+
   async function uploadHousingPhotos(files: FileList | null) {
     if (!files || files.length === 0 || !draft) return;
 
@@ -448,6 +496,8 @@ export default function LogementPage() {
   if (!draft) {
     return <section className={styles.panel}><p className={styles.messageError}>{error || "Logement introuvable."}</p></section>;
   }
+
+  const stockSummary = getHousingStockSummary(draft.stockManagement);
 
   return (
     <div className={styles.page}>
@@ -1240,6 +1290,301 @@ export default function LogementPage() {
                           })
                         }
                       />
+                    </label>
+                  </div>
+                </section>
+              </div>
+            ) : null}
+
+            {activeTab === "stocks" ? (
+              <div className={styles.page}>
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Logistique partagée</p>
+                      <h2 className={styles.cardTitle}>Stocks, linge et couchages</h2>
+                      <p className={styles.muted}>
+                        Ces informations sont renseignées par le propriétaire et modifiables par la conciergerie
+                        rattachée au logement.
+                      </p>
+                    </div>
+                    {!editing ? (
+                      <button className={styles.tabEditButton} type="button" onClick={() => setEditing(true)}>
+                        <FiEdit2 /> Modifier cet onglet
+                      </button>
+                    ) : (
+                      <span className={styles.tabEditBadge}>
+                        <FiEdit2 /> Édition active
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={styles.factGrid}>
+                    <article className={styles.factCard}>
+                      <span>Lits déclarés</span>
+                      <strong>{stockSummary.bedCount}</strong>
+                    </article>
+                    <article className={styles.factCard}>
+                      <span>Pièces linge</span>
+                      <strong>{stockSummary.laundryTotal}</strong>
+                    </article>
+                    <article className={styles.factCard}>
+                      <span>Consommables</span>
+                      <strong>{stockSummary.consumableCount}</strong>
+                    </article>
+                    <article className={styles.factCard}>
+                      <span>À réassortir</span>
+                      <strong>{stockSummary.lowConsumableCount}</strong>
+                    </article>
+                  </div>
+
+                  <label className={`${styles.label} ${styles.fieldFull}`}>
+                    <span>Équipements et repères utiles</span>
+                    <input
+                      className={styles.field}
+                      value={draft.characteristics.amenities.join(", ")}
+                      disabled={!editing}
+                      onChange={(event) => {
+                        const amenities = event.target.value
+                          .split(",")
+                          .map((item) => item.trim())
+                          .filter(Boolean);
+                        updateDraft("characteristics", {
+                          ...draft.characteristics,
+                          amenities,
+                          equipements: amenities,
+                        });
+                      }}
+                      placeholder="Aspirateur, lit parapluie, coffre, produits piscine..."
+                    />
+                  </label>
+                </section>
+
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Couchages</p>
+                      <h2 className={styles.cardTitle}>Lits et kits draps</h2>
+                    </div>
+                    {editing ? (
+                      <button
+                        className={styles.editBtn}
+                        type="button"
+                        onClick={() =>
+                          updateDraft("stockManagement", {
+                            ...draft.stockManagement,
+                            beds: [
+                              ...draft.stockManagement.beds,
+                              {
+                                id: createStockItemId("bed"),
+                                room: "",
+                                type: "Lit double",
+                                quantity: 1,
+                                mattressSize: "140x190",
+                                linenKit: "Drap housse + housse de couette + 2 taies",
+                                notes: "",
+                              },
+                            ],
+                          })
+                        }
+                      >
+                        Ajouter un lit
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className={styles.formGrid}>
+                    {draft.stockManagement.beds.map((bed, index) => (
+                      <div className={styles.panel} key={bed.id}>
+                        <div className={styles.fieldGrid}>
+                          <label className={styles.label}>
+                            <span>Pièce</span>
+                            <input className={styles.field} value={bed.room} disabled={!editing} onChange={(event) => updateStockBed(index, "room", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Type</span>
+                            <input className={styles.field} value={bed.type} disabled={!editing} onChange={(event) => updateStockBed(index, "type", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Quantité</span>
+                            <input className={styles.field} min={0} type="number" value={bed.quantity} disabled={!editing} onChange={(event) => updateStockBed(index, "quantity", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Taille matelas</span>
+                            <input className={styles.field} value={bed.mattressSize} disabled={!editing} onChange={(event) => updateStockBed(index, "mattressSize", event.target.value)} />
+                          </label>
+                          <label className={`${styles.label} ${styles.fieldFull}`}>
+                            <span>Kit linge</span>
+                            <input className={styles.field} value={bed.linenKit} disabled={!editing} onChange={(event) => updateStockBed(index, "linenKit", event.target.value)} />
+                          </label>
+                          <label className={`${styles.label} ${styles.fieldFull}`}>
+                            <span>Notes</span>
+                            <input className={styles.field} value={bed.notes} disabled={!editing} onChange={(event) => updateStockBed(index, "notes", event.target.value)} />
+                          </label>
+                        </div>
+                        {editing ? (
+                          <button
+                            className={styles.cancelBtn}
+                            type="button"
+                            onClick={() =>
+                              updateDraft("stockManagement", {
+                                ...draft.stockManagement,
+                                beds: draft.stockManagement.beds.filter((_, bedIndex) => bedIndex !== index),
+                              })
+                            }
+                          >
+                            Supprimer
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                    {draft.stockManagement.beds.length === 0 ? <p className={styles.muted}>Aucun lit renseigné.</p> : null}
+                  </div>
+                </section>
+
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Linge</p>
+                      <h2 className={styles.cardTitle}>Stock linge disponible</h2>
+                    </div>
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    {[
+                      ["sheetSets", "Parures draps"],
+                      ["duvetCovers", "Housses couette"],
+                      ["pillowcases", "Taies"],
+                      ["towelSets", "Kits serviettes"],
+                      ["bathMats", "Tapis bain"],
+                      ["blankets", "Plaids"],
+                    ].map(([field, label]) => (
+                      <label className={styles.label} key={field}>
+                        <span>{label}</span>
+                        <input
+                          className={styles.field}
+                          min={0}
+                          type="number"
+                          value={draft.stockManagement.laundry[field as keyof ConciergeHousing["stockManagement"]["laundry"]] as number}
+                          disabled={!editing}
+                          onChange={(event) => updateLaundry(field as keyof ConciergeHousing["stockManagement"]["laundry"], event.target.value)}
+                        />
+                      </label>
+                    ))}
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Rangement linge</span>
+                      <input className={styles.field} value={draft.stockManagement.laundry.storageLocation} disabled={!editing} onChange={(event) => updateLaundry("storageLocation", event.target.value)} />
+                    </label>
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Notes linge</span>
+                      <textarea className={styles.textArea} value={draft.stockManagement.laundry.notes} disabled={!editing} onChange={(event) => updateLaundry("notes", event.target.value)} />
+                    </label>
+                  </div>
+                </section>
+
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Consommables</p>
+                      <h2 className={styles.cardTitle}>Réassort à suivre</h2>
+                    </div>
+                    {editing ? (
+                      <button
+                        className={styles.editBtn}
+                        type="button"
+                        onClick={() =>
+                          updateDraft("stockManagement", {
+                            ...draft.stockManagement,
+                            consumables: [
+                              ...draft.stockManagement.consumables,
+                              {
+                                id: createStockItemId("consumable"),
+                                name: "",
+                                category: "Accueil",
+                                currentQty: 0,
+                                minQty: 1,
+                                unit: "unité",
+                                storageLocation: "",
+                                notes: "",
+                              },
+                            ],
+                          })
+                        }
+                      >
+                        Ajouter un consommable
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className={styles.formGrid}>
+                    {draft.stockManagement.consumables.map((item, index) => (
+                      <div className={styles.panel} key={item.id}>
+                        <div className={styles.fieldGrid}>
+                          <label className={styles.label}>
+                            <span>Nom</span>
+                            <input className={styles.field} value={item.name} disabled={!editing} onChange={(event) => updateStockConsumable(index, "name", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Catégorie</span>
+                            <input className={styles.field} value={item.category} disabled={!editing} onChange={(event) => updateStockConsumable(index, "category", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Quantité</span>
+                            <input className={styles.field} min={0} type="number" value={item.currentQty} disabled={!editing} onChange={(event) => updateStockConsumable(index, "currentQty", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Seuil</span>
+                            <input className={styles.field} min={0} type="number" value={item.minQty} disabled={!editing} onChange={(event) => updateStockConsumable(index, "minQty", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Unité</span>
+                            <input className={styles.field} value={item.unit} disabled={!editing} onChange={(event) => updateStockConsumable(index, "unit", event.target.value)} />
+                          </label>
+                          <label className={styles.label}>
+                            <span>Rangement</span>
+                            <input className={styles.field} value={item.storageLocation} disabled={!editing} onChange={(event) => updateStockConsumable(index, "storageLocation", event.target.value)} />
+                          </label>
+                          <label className={`${styles.label} ${styles.fieldFull}`}>
+                            <span>Notes</span>
+                            <input className={styles.field} value={item.notes} disabled={!editing} onChange={(event) => updateStockConsumable(index, "notes", event.target.value)} />
+                          </label>
+                        </div>
+                        {editing ? (
+                          <button
+                            className={styles.cancelBtn}
+                            type="button"
+                            onClick={() =>
+                              updateDraft("stockManagement", {
+                                ...draft.stockManagement,
+                                consumables: draft.stockManagement.consumables.filter((_, itemIndex) => itemIndex !== index),
+                              })
+                            }
+                          >
+                            Supprimer
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                    {draft.stockManagement.consumables.length === 0 ? <p className={styles.muted}>Aucun consommable renseigné.</p> : null}
+                  </div>
+                </section>
+
+                <section className={styles.panel}>
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Consignes</p>
+                      <h2 className={styles.cardTitle}>Repères terrain</h2>
+                    </div>
+                  </div>
+                  <div className={styles.fieldGrid}>
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Notes équipements</span>
+                      <textarea className={styles.textArea} value={draft.stockManagement.equipmentNotes} disabled={!editing} onChange={(event) => updateDraft("stockManagement", { ...draft.stockManagement, equipmentNotes: event.target.value })} />
+                    </label>
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Rangements importants</span>
+                      <textarea className={styles.textArea} value={draft.stockManagement.storageNotes} disabled={!editing} onChange={(event) => updateDraft("stockManagement", { ...draft.stockManagement, storageNotes: event.target.value })} />
+                    </label>
+                    <label className={`${styles.label} ${styles.fieldFull}`}>
+                      <span>Consignes propriétaire</span>
+                      <textarea className={styles.textArea} value={draft.stockManagement.conciergeInstructions} disabled={!editing} onChange={(event) => updateDraft("stockManagement", { ...draft.stockManagement, conciergeInstructions: event.target.value })} />
                     </label>
                   </div>
                 </section>

@@ -1,62 +1,50 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Building2,
-  BriefcaseBusiness,
-  Shield,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Building2, Sparkles } from "lucide-react";
+import { OnboardingIllustration } from "@/features/onboarding-assistant/components/OnboardingIllustration";
+import { PUBLIC_PARCOURS_VISUALS } from "@/features/onboarding-assistant/visuals";
 import styles from "./page.module.scss";
 
 const paths = [
   {
-    title: "Proprietaire",
-    eyebrow: "Controle du parc",
+    title: "Propriétaire",
+    eyebrow: "Contrôle du parc",
     description:
       "Suivez vos logements, choisissez votre conciergerie, gardez la main sur les missions et vos finances.",
     href: "/owner",
-    cta: "Decouvrir le parcours proprietaire",
+    cta: "Découvrir le parcours propriétaire",
     icon: Building2,
     tone: "owner",
+    visual: PUBLIC_PARCOURS_VISUALS.owner,
   },
   {
-    title: "Concierge ou independant",
-    eyebrow: "Demarrage ou developpement d'activite",
+    title: "Concierge",
+    eyebrow: "Démarrage ou développement d'activité",
     description:
       "Activez votre profil, trouvez vos premiers clients, convertissez vos leads et pilotez vos missions.",
     href: "/concierge",
-    cta: "Decouvrir le parcours concierge",
+    cta: "Découvrir le parcours concierge",
     icon: Sparkles,
     tone: "concierge",
+    visual: PUBLIC_PARCOURS_VISUALS.concierge,
   },
   {
-    title: "Artisan / partenaire",
-    eyebrow: "Execution terrain",
+    title: "Artisans",
+    eyebrow: "Exécution terrain",
     description:
-      "Gerez alertes, interventions, clients et devis dans un espace plus clair et plus rapide.",
+      "Recevez des missions locales, suivez vos interventions, vos clients et vos devis dans un espace plus clair.",
     href: "/provider",
-    cta: "Decouvrir le parcours partenaire",
+    cta: "Découvrir le parcours des artisans",
     icon: BriefcaseBusiness,
     tone: "provider",
-  },
-  {
-    title: "Administration",
-    eyebrow: "Pilotage plateforme",
-    description:
-      "Accedez au tableau de bord global pour superviser comptes, activite et indicateurs de plateforme.",
-    href: "/dashboard/admin",
-    cta: "Ouvrir l'administration",
-    icon: Shield,
-    tone: "admin",
+    visual: PUBLIC_PARCOURS_VISUALS.provider,
   },
 ] as const;
 
 export const metadata: Metadata = {
   title: "Parcours | Choisissez votre espace PlanetLS",
   description:
-    "Choisissez le parcours PlanetLS adapte a votre role : proprietaire, concierge, independant, artisan partenaire ou administration.",
+    "Choisissez le parcours PlanetLS adapté à votre rôle : propriétaire, concierge ou artisans.",
 };
 
 export default function ParcoursPage() {
@@ -65,10 +53,10 @@ export default function ParcoursPage() {
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <span className={styles.kicker}>Choix du parcours</span>
-          <h1>Choisissez l&apos;espace PlanetLS adapte a votre role.</h1>
+          <h1>Choisissez l&apos;espace PlanetLS adapté à votre rôle.</h1>
           <p className={styles.lead}>
-            Proprietaire, concierge, independant, artisan ou administration : chaque parcours a sa
-            propre entree, sa logique metier et sa lecture produit.
+            Propriétaire, concierge ou artisans : chaque parcours public a sa propre entrée, sa
+            logique métier et sa lecture produit.
           </p>
 
           <div className={styles.heroActions}>
@@ -76,21 +64,26 @@ export default function ParcoursPage() {
               Me connecter
             </Link>
             <Link href="/home" className={styles.secondaryCta}>
-              Revenir a l&apos;accueil
+              Revenir à l&apos;accueil
             </Link>
           </div>
         </div>
 
         <aside className={styles.heroPanel}>
+          <OnboardingIllustration
+            visual={PUBLIC_PARCOURS_VISUALS.overview}
+            variant="hero"
+            className={styles.heroVisual}
+          />
           <p className={styles.panelEyebrow}>Vision</p>
-          <h2>Un produit, plusieurs entrees metier</h2>
+          <h2>Un produit, trois entrées métier publiques</h2>
           <p className={styles.panelLead}>
-            L&apos;objectif n&apos;est pas d&apos;avoir une interface generique, mais un point d&apos;entree clair pour
-            chaque role, y compris pour ceux qui commencent a petite echelle.
+            L&apos;objectif n&apos;est pas d&apos;avoir une interface générique, mais un point d&apos;entrée
+            clair pour chaque rôle public. L&apos;administration reste un espace de gestion interne.
           </p>
           <div className={styles.panelMetrics}>
             <article>
-              <strong>4</strong>
+              <strong>3</strong>
               <span>parcours distincts</span>
             </article>
             <article>
@@ -99,7 +92,7 @@ export default function ParcoursPage() {
             </article>
             <article>
               <strong>0</strong>
-              <span>doublon inutile</span>
+              <span>entrée ambiguë</span>
             </article>
           </div>
         </aside>
@@ -107,11 +100,11 @@ export default function ParcoursPage() {
 
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <span className={styles.sectionKicker}>Selection</span>
+          <span className={styles.sectionKicker}>Sélection</span>
           <h2>Entrez par votre vrai besoin</h2>
           <p>
-            Chaque parcours renvoie vers une page publique dediee, puis vers un dashboard structure
-            autour de ses priorites reelles.
+            Chaque parcours renvoie vers une page publique dédiée, puis vers un dashboard structuré
+            autour de ses priorités réelles.
           </p>
         </div>
 
@@ -120,6 +113,11 @@ export default function ParcoursPage() {
             const Icon = path.icon;
             return (
               <article key={path.title} className={`${styles.pathCard} ${styles[path.tone]}`}>
+                <OnboardingIllustration
+                  visual={path.visual}
+                  variant="card"
+                  className={styles.pathVisual}
+                />
                 <div className={styles.pathTop}>
                   <span className={styles.pathIcon}>
                     <Icon size={20} />
@@ -135,37 +133,6 @@ export default function ParcoursPage() {
               </article>
             );
           })}
-        </div>
-      </section>
-
-      <section className={styles.bottomCta}>
-        <div>
-          <span className={styles.sectionKicker}>Suite</span>
-          <h2>Choisir, comprendre, agir</h2>
-          <p>
-            Si vous decouvrez encore le produit, commencez par la page parcours correspondante avant
-            d&apos;ouvrir le dashboard. La lecture sera plus rapide et plus coherente.
-          </p>
-        </div>
-
-        <div className={styles.bottomActions}>
-          <Link href="/concierge" className={styles.primaryCta}>
-            Voir un exemple de parcours
-          </Link>
-          <Link href="/home#pour-qui" className={styles.secondaryCta}>
-            Revenir au comparatif
-          </Link>
-        </div>
-
-        <div className={styles.trustRow}>
-          <span>
-            <Users size={15} />
-            Une entree claire par role
-          </span>
-          <span>
-            <Sparkles size={15} />
-            Une logique produit coherente
-          </span>
         </div>
       </section>
     </main>

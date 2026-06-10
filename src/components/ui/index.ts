@@ -17,6 +17,10 @@ export type { StatsCardProps } from "./StatsCard";
 
 export { Tag } from "./Tag";
 export type { TagProps } from "./Tag";
+export { ServiceCategoryIcon } from "./ServiceCategoryIcon";
+export type { ServiceCategoryIconProps } from "./ServiceCategoryIcon";
+export { ServiceCatalogPicker } from "./ServiceCatalogPicker";
+export type { ServiceCatalogPickerMode, ServiceCatalogPickerProps } from "./ServiceCatalogPicker";
 
 export { Avatar } from "./Avatar";
 export type { AvatarProps } from "./Avatar";

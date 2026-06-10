@@ -1,3 +1,29 @@
+.operationalPanel {
+  border-radius: 8px;
+}
+
+.calendarSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.85rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 88%, transparent);
+}
+
+.calendarSummary span {
+  color: var(--dash-text-muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.calendarSummary strong {
+  color: var(--dash-text);
+}
+
 .planningLayout {
   gap: 1.15rem;
 }
@@ -7,7 +33,18 @@
 .planningHeroProgressHint,
 .planningStatLabel,
 .heroStatHint {
-  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+@supports (text-wrap: balance) {
+  .planningHeroHeading,
+  .planningHeroLead,
+  .planningHeroProgressHint,
+  .planningStatLabel,
+  .heroStatHint {
+    overflow-wrap: normal;
+    text-wrap: balance;
+  }
 }
 
 .planningHeroProgressMeta strong,
@@ -87,6 +124,315 @@
   margin: 0;
   color: #6f5a3b;
   line-height: 1.55;
+}
+
+.optimizerSection {
+  display: grid;
+  gap: 1rem;
+}
+
+.optimizerHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.optimizerHeader h3,
+.optimizerHeader p {
+  margin: 0;
+}
+
+.optimizerHeader h3 {
+  color: #2b2113;
+  font-size: 1.15rem;
+}
+
+.optimizerHeader p {
+  color: #6f5a3b;
+  line-height: 1.55;
+}
+
+.optimizerEyebrow {
+  margin: 0 0 0.25rem;
+  color: #8a6a2c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.primaryAction,
+.routeActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  border: 1px solid rgba(123, 91, 35, 0.26);
+  border-radius: 12px;
+  padding: 0.7rem 0.95rem;
+  background: #7b5b23;
+  color: #fff8ea;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryAction:disabled,
+.routeActions button:disabled,
+.routeStopActions button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.optimizerGrid,
+.routeResultGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 1rem;
+}
+
+.startPointGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(100px, 0.8fr) minmax(100px, 0.8fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.startPointGrid label {
+  display: grid;
+  gap: 0.35rem;
+  color: #6f5a3b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.startPointGrid input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(198, 166, 107, 0.24);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: #2f2415;
+}
+
+.missionSelectList,
+.routeStopList {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.missionSelectItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.8rem;
+  border: 1px solid rgba(198, 166, 107, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.missionSelectBody {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.missionSelectBody strong,
+.routeStopBody strong {
+  color: #2f2415;
+}
+
+.missionSelectBody span,
+.routeStopBody span,
+.routeStopBody em {
+  color: #6f5a3b;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.routeMap {
+  position: relative;
+  min-height: 280px;
+  overflow: hidden;
+  border: 1px solid rgba(198, 166, 107, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(198, 166, 107, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(198, 166, 107, 0.08) 1px, transparent 1px),
+    linear-gradient(140deg, rgba(252, 248, 236, 0.96), rgba(238, 229, 207, 0.88));
+  background-size: 42px 42px, 42px 42px, auto;
+}
+
+.mapPin {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.16rem;
+  min-width: 38px;
+  min-height: 34px;
+  border-radius: 999px;
+  background: #7b5b23;
+  color: #fff8ea;
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(68, 45, 10, 0.24);
+}
+
+.mapEmpty,
+.optimizerEmpty {
+  color: #6f5a3b;
+  line-height: 1.55;
+}
+
+.mapEmpty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  text-align: center;
+}
+
+.routeSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.routeSummaryGrid span {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: rgba(247, 239, 221, 0.72);
+  color: #6f5a3b;
+  font-size: 0.76rem;
+}
+
+.routeSummaryGrid strong {
+  color: #2f2415;
+  font-size: 0.96rem;
+}
+
+.warningBox,
+.dirtyNotice,
+.providerNotice,
+.successNotice,
+.errorNotice {
+  margin: 0.8rem 0 0;
+  border-radius: 14px;
+  padding: 0.75rem 0.85rem;
+  line-height: 1.5;
+}
+
+.warningBox {
+  border: 1px solid rgba(197, 85, 63, 0.22);
+  background: rgba(197, 85, 63, 0.1);
+  color: #8f3229;
+}
+
+.warningBox p {
+  margin: 0;
+}
+
+.warningBox p + p {
+  margin-top: 0.35rem;
+}
+
+.dirtyNotice {
+  border: 1px solid rgba(198, 166, 107, 0.24);
+  background: rgba(198, 166, 107, 0.12);
+  color: #6b531f;
+}
+
+.providerNotice {
+  border: 1px solid rgba(79, 118, 138, 0.2);
+  background: rgba(79, 118, 138, 0.08);
+  color: #37596b;
+}
+
+.successNotice {
+  border: 1px solid rgba(79, 138, 91, 0.22);
+  background: rgba(79, 138, 91, 0.1);
+  color: #2f6b3c;
+}
+
+.errorNotice {
+  border: 1px solid rgba(197, 85, 63, 0.22);
+  background: rgba(197, 85, 63, 0.1);
+  color: #8f3229;
+}
+
+.routeStopList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.routeStopItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.8rem;
+  border: 1px solid rgba(198, 166, 107, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.routeStopOrder {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(123, 91, 35, 0.12);
+  color: #6b531f;
+  font-weight: 900;
+}
+
+.routeStopBody {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.routeStopBody em {
+  color: #8f3229;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.routeStopActions,
+.routeActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.routeStopActions {
+  flex-direction: column;
+}
+
+.routeStopActions button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(198, 166, 107, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #6b531f;
+  cursor: pointer;
+}
+
+.routeActions {
+  margin-top: 0.9rem;
+  flex-wrap: wrap;
 }
 
 .inlineAction {
@@ -186,6 +532,7 @@
 .weekEventContent {
   display: grid;
   gap: 0.15rem;
+  min-width: 0;
 }
 
 .weekEventTitle {
@@ -203,6 +550,16 @@
     grid-template-columns: 1fr;
   }
 
+  .optimizerGrid,
+  .routeResultGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .routeSummaryGrid,
+  .startPointGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .weekBoard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -217,10 +574,14 @@
 }
 
 :global([data-theme="mucha-dark"]) .planningHeroHeading,
+:global([data-theme="mucha-dark"]) .optimizerHeader h3,
 :global([data-theme="mucha-dark"]) .planningHeroProgressMeta strong,
 :global([data-theme="mucha-dark"]) .planningStat strong,
 :global([data-theme="mucha-dark"]) .planningAlertCard strong,
 :global([data-theme="mucha-dark"]) .priorityTitle,
+:global([data-theme="mucha-dark"]) .missionSelectBody strong,
+:global([data-theme="mucha-dark"]) .routeStopBody strong,
+:global([data-theme="mucha-dark"]) .routeSummaryGrid strong,
 :global([data-theme="mucha-dark"]) .weekDate,
 :global([data-theme="mucha-dark"]) .weekEventTitle,
 :global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionSnapshotHeader h4),
@@ -229,6 +590,11 @@
 }
 
 :global([data-theme="mucha-dark"]) .planningHeroLead,
+:global([data-theme="mucha-dark"]) .optimizerHeader p,
+:global([data-theme="mucha-dark"]) .missionSelectBody span,
+:global([data-theme="mucha-dark"]) .routeStopBody span,
+:global([data-theme="mucha-dark"]) .mapEmpty,
+:global([data-theme="mucha-dark"]) .optimizerEmpty,
 :global([data-theme="mucha-dark"]) .planningHeroProgressHint,
 :global([data-theme="mucha-dark"]) .heroStatHint,
 :global([data-theme="mucha-dark"]) .priorityMeta,
@@ -247,6 +613,8 @@
 }
 
 :global([data-theme="mucha-dark"]) .planningHeroProgressMeta,
+:global([data-theme="mucha-dark"]) .optimizerEyebrow,
+:global([data-theme="mucha-dark"]) .startPointGrid label,
 :global([data-theme="mucha-dark"]) .planningStatLabel,
 :global([data-theme="mucha-dark"]) .weekLabel,
 :global([data-theme="mucha-dark"]) .weekEventTime,
@@ -257,6 +625,9 @@
 
 :global([data-theme="mucha-dark"]) .planningStat,
 :global([data-theme="mucha-dark"]) .priorityItem,
+:global([data-theme="mucha-dark"]) .missionSelectItem,
+:global([data-theme="mucha-dark"]) .routeStopItem,
+:global([data-theme="mucha-dark"]) .routeSummaryGrid span,
 :global([data-theme="mucha-dark"]) .weekColumn,
 :global([data-theme="mucha-dark"]) .planningAlertCard,
 :global([data-theme="mucha-dark"]) :global(.ConciergeProfilePage-module-scss-module__ObZtFG__missionSnapshotCard) {
@@ -280,6 +651,14 @@
 :global([data-theme="mucha-dark"]) .weekEvent {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(221, 185, 122, 0.14);
+}
+
+:global([data-theme="mucha-dark"]) .routeMap,
+:global([data-theme="mucha-dark"]) .startPointGrid input,
+:global([data-theme="mucha-dark"]) .routeStopActions button {
+  border-color: rgba(221, 185, 122, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8f3e8;
 }
 
 :global([data-theme="mucha-dark"]) .heroBadge,
@@ -323,11 +702,50 @@
 }
 
 @media (max-width: 640px) {
+  .optimizerHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .optimizerHeader > *,
+  .primaryAction,
+  .routeActions button {
+    width: 100%;
+  }
+
+  .routeSummaryGrid,
+  .startPointGrid,
   .weekBoard {
     grid-template-columns: 1fr;
   }
 
-  .priorityItem {
+  .routeMap {
+    min-height: 220px;
+  }
+
+  .routeStopItem {
+    grid-template-columns: auto 1fr;
+  }
+
+  .routeStopActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .routeStopActions button {
+    width: 42px;
+    height: 38px;
+  }
+
+  .priorityItem,
+  .routeActions {
     flex-direction: column;
+  }
+
+  .priorityItem,
+  .missionSelectItem,
+  .routeStopItem,
+  .weekEvent {
+    border-radius: 12px;
   }
 }

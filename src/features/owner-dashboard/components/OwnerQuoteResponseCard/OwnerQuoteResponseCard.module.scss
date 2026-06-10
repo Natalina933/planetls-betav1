@@ -23,6 +23,10 @@
   gap: 0.55rem;
 }
 
+.workflowTimeline {
+  min-width: 0;
+}
+
 .factRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

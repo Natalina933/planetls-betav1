@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/app/lib/dbServer";
 import { normalizeProfileLocationFields } from "../../../../lib/profileLocation.ts";
+import { parsePublicConciergeServices } from "../../public-concierges/shared";
 
 type PublicProfileRow = {
   id: string;
@@ -8,6 +9,7 @@ type PublicProfileRow = {
   last_name: string | null;
   username: string | null;
   avatar_url: string | null;
+  image: string | null;
   company_name: string | null;
   city: string | null;
   country: string | null;
@@ -22,39 +24,6 @@ type PublicProfileRow = {
   role: string | null;
 };
 
-const splitServices = (value: string): string[] =>
-  value
-    .split(/[;,|]/g)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-const parseServices = (optionValue: string | null, availabilityHours: string | null): string[] => {
-  const values = new Set<string>();
-
-  if (optionValue) {
-    splitServices(optionValue).forEach((item) => values.add(item));
-  }
-
-  if (availabilityHours) {
-    try {
-      const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
-      const missionProfile = parsed?.missionProfile as
-        | { missions?: Array<Record<string, unknown>> }
-        | undefined;
-
-      missionProfile?.missions?.forEach((mission) => {
-        if (mission?.isActive === true && typeof mission.label === "string") {
-          values.add(mission.label);
-        }
-      });
-    } catch {
-      // Ignore malformed legacy payloads.
-    }
-  }
-
-  return Array.from(values);
-};
-
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -65,7 +34,7 @@ export async function GET(
     const { data: profile, error: profileError } = await db
       .from("profiles")
       .select(
-        "id, first_name, last_name, username, avatar_url, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role",
+        "id, first_name, last_name, username, avatar_url, image, company_name, city, country, service_area, service_radius_km, experience_level, years_experience, hourly_rate, monthly_rate, option, availability_hours, role",
       )
       .eq("id", id)
       .maybeSingle<PublicProfileRow>();
@@ -119,6 +88,7 @@ export async function GET(
         id: profile.id,
         display_name: displayName,
         avatar_url: profile.avatar_url,
+        image: profile.image,
         company_name: profile.company_name,
         city: normalizedProfile.city,
         country: profile.country,
@@ -129,7 +99,7 @@ export async function GET(
         hourly_rate: profile.hourly_rate,
         monthly_rate: profile.monthly_rate,
         role: profile.role,
-        services: parseServices(profile.option, profile.availability_hours),
+        services: parsePublicConciergeServices(profile.option, profile.availability_hours),
       },
       reviews: reviews ?? [],
       stats: {

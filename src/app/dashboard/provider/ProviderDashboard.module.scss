@@ -1,419 +1,525 @@
-.dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-.header {
-  margin-bottom: 2.5rem;
-  
-  h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-  }
-  
-  p {
-    font-size: 1.1rem;
-    color: #7f8c8d;
-  }
-}
-
-// Grille de statistiques
-.statsGrid {
+.sectionBlock {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  gap: 1rem;
 }
 
-.statCard {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.12);
-  }
+.sectionLead {
+  display: grid;
+  gap: 0.35rem;
 }
 
-.statIcon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+.sectionLead h2,
+.panelHeader h3 {
+  margin: 0;
+  color: var(--dash-text);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.sectionLead h2 {
+  font-size: clamp(1.14rem, 2vw, 1.5rem);
+}
+
+.sectionLead p,
+.healthDetail,
+.signalCard p,
+.priorityHero p,
+.timelineRow p,
+.requestCard p,
+.financeCard p,
+.propertyHead p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.58;
+  text-wrap: pretty;
+}
+
+.sectionEyebrow,
+.panelEyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroPanel,
+.panelCard,
+.priorityHero,
+.healthCard,
+.signalCard,
+.requestCard,
+.financeCard,
+.quickActionCard,
+.timelineRow,
+.emptyCard,
+.disclosureBlock {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 16px 34px rgba(74, 54, 22, 0.06);
+}
+
+.heroPanel {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.2rem, 2.4vw, 1.8rem);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 14%, transparent), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.heroBadge,
+.priorityBadge {
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 15%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.heroCopy p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--dash-text-muted);
+  line-height: 1.62;
+}
+
+.heroMetrics {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.heroMetric,
+.financeCard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+}
+
+.heroMetric span,
+.heroMetric small {
+  color: var(--dash-text-muted);
+  font-size: 0.8rem;
+}
+
+.heroMetric strong,
+.healthValue,
+.financeValue {
+  color: var(--dash-text);
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.heroActions,
+.priorityActions,
+.requestActions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink,
+.healthCard,
+.signalCard,
+.quickActionCard,
+.timelineRow {
+  color: inherit;
+  text-decoration: none;
+}
+
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
-  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.statContent {
-  flex: 1;
-  
-  h3 {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #7f8c8d;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
+.primaryLink {
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: white;
+  box-shadow: 0 14px 28px rgba(127, 88, 32, 0.18);
 }
 
-.statValue {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0;
+.secondaryLink,
+.inlineLink,
+.ghostLink {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 22%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
 }
 
-// Contrôles (filtres et tri)
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
-  flex-wrap: wrap;
+.ghostLink {
+  color: var(--dash-text-muted);
 }
 
-.filters {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  
-  button {
-    padding: 0.625rem 1.25rem;
-    border: 2px solid #e0e0e0;
-    background: white;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #7f8c8d;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      border-color: #3498db;
-      color: #3498db;
-    }
-  }
-}
-
-.filterActive {
-  background: #3498db !important;
-  color: white !important;
-  border-color: #3498db !important;
-}
-
-.sortSelect {
-  padding: 0.625rem 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: white;
-  color: #2c3e50;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-  
-  &:hover,
-  &:focus {
-    outline: none;
-    border-color: #3498db;
-  }
-}
-
-// Liste des chantiers
-.jobsList {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.jobCard {
-  background: white;
-  border-radius: 16px;
-  padding: 1.75rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-  }
-}
-
-.jobHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  gap: 1rem;
-  
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0 0 0.25rem 0;
-  }
-}
-
-.jobService {
-  font-size: 0.875rem;
-  color: #7f8c8d;
-  margin: 0;
-}
-
-.jobStatus {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.jobDescription {
-  color: #5a6c7d;
-  line-height: 1.6;
-  margin-bottom: 1.25rem;
-}
-
-.jobDetails {
+.healthGrid,
+.financeGrid,
+.quickActions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  padding: 1.25rem;
-  background: #f8f9fa;
-  border-radius: 12px;
-  margin-bottom: 1.25rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.jobDetail {
-  font-size: 0.9rem;
-  color: #5a6c7d;
-  
-  strong {
-    color: #2c3e50;
-    font-weight: 600;
-    margin-right: 0.5rem;
-  }
-}
-
-.jobActions {
-  display: flex;
+.healthCard {
+  display: grid;
   gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 22px;
+}
+
+.healthTop,
+.signalTop,
+.requestTop,
+.panelHeader,
+.priorityHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.healthDot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.good {
+  background: #1f8b4d;
+}
+
+.warn {
+  background: #d49b23;
+}
+
+.info {
+  background: #3a7bd5;
+}
+
+.healthLabel,
+.financeLabel {
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.priorityLayout,
+.dualGrid,
+.quotesGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.priorityHero,
+.panelCard,
+.quickActionCard {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.15rem;
+  border-radius: 26px;
+}
+
+.priorityHero {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 16%, transparent), transparent 32%),
+    linear-gradient(150deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+}
+
+.priorityHeader strong {
+  display: block;
+  color: var(--dash-text);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.priorityIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+  color: var(--dash-accent-strong);
+  flex: 0 0 auto;
+}
+
+.priorityMeta,
+.requestMeta {
+  display: flex;
   flex-wrap: wrap;
-  
-  button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-  }
+  gap: 0.6rem;
 }
 
-.btnAccept {
-  background: #27ae60;
-  color: white;
-  
-  &:hover {
-    background: #229954;
-  }
+.priorityMeta span,
+.requestMeta span,
+.inlineStatus,
+.timelineLabel,
+.timelineTime,
+.timelineDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 900;
 }
 
-.btnStart {
-  background: #9b59b6;
-  color: white;
-  
-  &:hover {
-    background: #8e44ad;
-  }
+.signalList,
+.timelineList,
+.requestList,
+.quoteList {
+  display: grid;
+  gap: 0.85rem;
 }
 
-.btnComplete {
-  background: #3498db;
-  color: white;
-  
-  &:hover {
-    background: #2980b9;
-  }
+.signalCard {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem;
+  border-radius: 18px;
 }
 
-.btnDetails {
-  background: white;
-  color: #7f8c8d;
-  border: 2px solid #e0e0e0;
-  
-  &:hover {
-    border-color: #3498db;
-    color: #3498db;
-  }
+.signalTop span {
+  color: var(--dash-text);
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
-// État vide
-.emptyState {
+.signalTop strong {
+  color: var(--dash-accent-strong);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+}
+
+.panelHeader {
+  align-items: center;
+}
+
+.panelHeader h3 {
+  font-size: 1.12rem;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+}
+
+.timelineRow strong,
+.requestCard strong {
+  color: var(--dash-text);
+  line-height: 1.2;
+}
+
+.requestCard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 20px;
+}
+
+.requestTop {
+  align-items: center;
+}
+
+.quoteStats {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quoteStats div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+}
+
+.quoteStats span {
+  color: var(--dash-text-muted);
+  font-size: 0.78rem;
+}
+
+.quoteStats strong {
+  color: var(--dash-text);
+  font-size: 1.2rem;
+}
+
+.quickActions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.quickActionCard {
+  place-items: center;
   text-align: center;
-  padding: 4rem 2rem;
-  color: #95a5a6;
-  
-  svg {
-    margin-bottom: 1rem;
-  }
-  
-  p {
-    font-size: 1.1rem;
-    margin: 0;
-  }
+  min-height: 128px;
+  font-weight: 900;
 }
 
-// Responsive
-@media (max-width: 768px) {
-  .dashboard {
-    padding: 1rem;
+.quickActionCard svg {
+  color: var(--dash-accent-strong);
+}
+
+.disclosureBlock {
+  display: grid;
+  gap: 0;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.disclosureSummary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1rem 1.1rem;
+}
+
+.disclosureSummary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosureSummary > div {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.disclosureSummary strong {
+  color: var(--dash-text);
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+.disclosureSummary p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 72ch;
+}
+
+.disclosureContent {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1.1rem 1.1rem;
+}
+
+.emptyCard {
+  display: grid;
+  place-items: center;
+  min-height: 110px;
+  padding: 1rem;
+  border-radius: 20px;
+  border-style: dashed;
+  color: var(--dash-accent-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.primaryLink:hover,
+.secondaryLink:hover,
+.ghostLink:hover,
+.inlineLink:hover,
+.healthCard:hover,
+.signalCard:hover,
+.timelineRow:hover,
+.quickActionCard:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .heroMetrics,
+  .healthGrid,
+  .financeGrid,
+  .quickActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
-  .header h1 {
-    font-size: 1.75rem;
-  }
-  
-  .statsGrid {
+
+  .priorityLayout,
+  .dualGrid,
+  .quotesGrid {
     grid-template-columns: 1fr;
   }
-  
-  .controls {
+}
+
+@media (max-width: 720px) {
+  .heroMetrics,
+  .healthGrid,
+  .financeGrid,
+  .quickActions,
+  .quoteStats {
+    grid-template-columns: 1fr;
+  }
+
+  .heroActions,
+  .priorityActions,
+  .requestActions {
     flex-direction: column;
-    align-items: stretch;
   }
-  
-  .filters {
-    width: 100%;
-    
-    button {
-      flex: 1;
-      min-width: 0;
-    }
-  }
-  
-  .sortSelect {
+
+  .primaryLink,
+  .secondaryLink,
+  .ghostLink,
+  .inlineLink {
     width: 100%;
   }
-  
-  .jobHeader {
+
+  .timelineRow {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeader,
+  .requestTop,
+  .priorityHeader {
     flex-direction: column;
     align-items: flex-start;
   }
-  
-  .jobDetails {
-    grid-template-columns: 1fr;
-  }
-  
-  .jobActions {
-    flex-direction: column;
-    
-    button {
-      width: 100%;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .statValue {
-    font-size: 1.5rem;
-  }
-  
-  .statIcon {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-  }
-}
-
-:global([data-theme="art-deco"]) .dashboard {
-  background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 34%),
-    linear-gradient(180deg, #f4f6f8 0%, #ebeff2 100%);
-}
-
-:global([data-theme="art-deco"]) .header h1 {
-  color: #1a2530;
-  font-family: var(--font-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-:global([data-theme="art-deco"]) .header p,
-:global([data-theme="art-deco"]) .jobDescription,
-:global([data-theme="art-deco"]) .jobDetail {
-  color: #5d6d7e;
-}
-
-:global([data-theme="art-deco"]) .statCard,
-:global([data-theme="art-deco"]) .jobCard,
-:global([data-theme="art-deco"]) .jobDetails {
-  border-radius: 4px;
-  border: 1px solid #d5dbdf;
-  box-shadow: 0 10px 22px rgba(44, 62, 80, 0.08);
-}
-
-:global([data-theme="art-deco"]) .statValue,
-:global([data-theme="art-deco"]) .jobHeader h3,
-:global([data-theme="art-deco"]) .jobDetail strong {
-  color: #1a2530;
-}
-
-:global([data-theme="art-deco"]) .filters button,
-:global([data-theme="art-deco"]) .sortSelect,
-:global([data-theme="art-deco"]) .jobActions button {
-  border-radius: 4px;
-}
-
-:global([data-theme="art-deco"]) .filters button {
-  border-color: rgba(212, 175, 55, 0.44);
-  background: #ffffff;
-  color: #2c3e50;
-}
-
-:global([data-theme="art-deco"]) .filterActive {
-  background: #f9f1d8 !important;
-  color: #1a2530 !important;
-  border-color: rgba(212, 175, 55, 0.6) !important;
-}
-
-:global([data-theme="art-deco"]) .sortSelect {
-  border-color: #d5dbdf;
-  color: #2c3e50;
-}
-
-:global([data-theme="art-deco"]) .btnAccept,
-:global([data-theme="art-deco"]) .btnStart,
-:global([data-theme="art-deco"]) .btnComplete {
-  background: linear-gradient(125deg, #1a2530, #2c3e50);
-  color: #f9f1d8;
-}
-
-:global([data-theme="art-deco"]) .btnDetails {
-  border-color: rgba(212, 175, 55, 0.46);
-  color: #2c3e50;
-  background: #ffffff;
 }

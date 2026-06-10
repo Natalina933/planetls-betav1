@@ -9,6 +9,7 @@ import {
   Save,
   ShieldCheck,
   Sparkles,
+  Tag,
   Unlink,
   X,
   Zap,
@@ -34,6 +35,7 @@ interface ServicePackage {
   name: string;
   description?: string;
   category: string;
+  accent: PackAccent;
   service_ids: string[];
   services: Service[];
   attached_pricings: AttachedPricing[];
@@ -58,6 +60,7 @@ interface ApiPackage {
   name: string;
   description?: string | null;
   category?: string | null;
+  accent?: PackAccent | null;
   service_ids?: string[];
   services_package_items?: ApiPackageItem[];
 }
@@ -85,6 +88,18 @@ const PROPOSED_SERVICES: Service[] = [
   { id: "35", category: "Courses", service: "Courses d'arrivée", description: "Produits première nécessité", isProposed: true },
 ];
 
+type PackAccent = DefaultPackTemplate["accent"];
+
+const PACK_ACCENTS: Array<{ id: PackAccent; label: string }> = [
+  { id: "teal", label: "Aqua" },
+  { id: "sand", label: "Sable" },
+  { id: "gold", label: "Or" },
+  { id: "slate", label: "Ardoise" },
+];
+
+const toAccentClassName = (accent: PackAccent) =>
+  `templateCard${accent.charAt(0).toUpperCase()}${accent.slice(1)}`;
+
 const normalizePackage = (pkg: ApiPackage, services: Service[]): ServicePackage => {
   const idsFromItems = Array.isArray(pkg.services_package_items)
     ? pkg.services_package_items.map((item) => item.service_id)
@@ -97,6 +112,7 @@ const normalizePackage = (pkg: ApiPackage, services: Service[]): ServicePackage 
     name: pkg.name,
     description: pkg.description ?? "",
     category: pkg.category ?? "Général",
+    accent: pkg.accent ?? "teal",
     service_ids: serviceIds,
     services: services.filter((svc) => serviceIds.includes(svc.id)),
     attached_pricings: [],
@@ -124,6 +140,10 @@ const ServicePackageManager: React.FC<Props> = ({
     name: "",
     description: "",
     category: "",
+    level: "Essentiel",
+    startingPrice: "",
+    promise: "",
+    accent: "teal" as PackAccent,
     selected_service_ids: [] as string[],
   });
 
@@ -158,13 +178,33 @@ const ServicePackageManager: React.FC<Props> = ({
     [packages],
   );
 
+  const usedAccents = useMemo(
+    () => new Set(packages.map((pkg) => pkg.accent)),
+    [packages],
+  );
+
+  const availableAccents = useMemo(
+    () => PACK_ACCENTS.filter((accent) => !usedAccents.has(accent.id)),
+    [usedAccents],
+  );
+
   const suggestedTemplates = useMemo(
     () =>
       DEFAULT_SERVICE_PACK_TEMPLATES.filter(
-        (template) => !existingPackageNames.has(normalizeServicePackageName(template.name)),
+        (template) =>
+          !existingPackageNames.has(normalizeServicePackageName(template.name)) &&
+          !usedAccents.has(template.accent),
       ),
-    [existingPackageNames],
+    [existingPackageNames, usedAccents],
   );
+
+  React.useEffect(() => {
+    if (!usedAccents.has(formData.accent)) return;
+    const nextAccent = availableAccents[0]?.id;
+    if (nextAccent) {
+      setFormData((prev) => ({ ...prev, accent: nextAccent }));
+    }
+  }, [availableAccents, formData.accent, usedAccents]);
 
   React.useEffect(() => {
     const loadPackages = async () => {
@@ -229,6 +269,14 @@ const ServicePackageManager: React.FC<Props> = ({
     return grouped;
   }, [availableServices]);
 
+  const selectedServicesPreview = useMemo(
+    () =>
+      availableServices.filter((service) =>
+        formData.selected_service_ids.includes(service.id),
+      ),
+    [availableServices, formData.selected_service_ids],
+  );
+
   const handleCreatePackage = useCallback(async () => {
     const availableIdSet = new Set(availableServices.map((service) => service.id));
     const selectedAllowedServiceIds = formData.selected_service_ids.filter((id) =>
@@ -246,6 +294,11 @@ const ServicePackageManager: React.FC<Props> = ({
       return;
     }
 
+    if (usedAccents.has(formData.accent)) {
+      alert("Choisissez une couleur disponible pour ce pack.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/services/packages", {
@@ -255,6 +308,7 @@ const ServicePackageManager: React.FC<Props> = ({
           name: formData.name,
           description: formData.description,
           category: formData.category,
+          accent: formData.accent,
           service_ids: selectedAllowedServiceIds,
         }),
       });
@@ -271,7 +325,16 @@ const ServicePackageManager: React.FC<Props> = ({
       });
       onPackCreated?.(newPackage);
       setSelectedPackId(newPackage.id);
-      setFormData({ name: "", description: "", category: "", selected_service_ids: [] });
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        level: "Essentiel",
+        startingPrice: "",
+        promise: "",
+        accent: availableAccents[0]?.id ?? "teal",
+        selected_service_ids: [],
+      });
       setShowNewPackForm(false);
     } catch (err) {
       console.error("Erreur création pack:", err);
@@ -279,7 +342,7 @@ const ServicePackageManager: React.FC<Props> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [availableServices, existingPackageNames, formData, onPackCreated, onPacksLoaded, proposedServices]);
+  }, [availableAccents, availableServices, existingPackageNames, formData, onPackCreated, onPacksLoaded, proposedServices, usedAccents]);
 
   const handleCreateTemplate = useCallback(
     async (template: DefaultPackTemplate) => {
@@ -310,6 +373,7 @@ const ServicePackageManager: React.FC<Props> = ({
             name: template.name,
             description: template.description,
             category: template.category,
+            accent: template.accent,
             service_ids: uniqueServiceIds,
           }),
         });
@@ -430,26 +494,43 @@ const ServicePackageManager: React.FC<Props> = ({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2>
-          <Package size={24} /> Packs de services
-        </h2>
-        <p>Groupez vos services proposés pour créer des packages tarifaires et contractuels.</p>
+        <div>
+          <h2>
+            <Sparkles size={24} /> Offres
+          </h2>
+          <p>Visualisez vos packs et composez une nouvelle offre.</p>
+        </div>
+        <button
+          type="button"
+          className={styles.backButton}
+          onClick={() => router.back()}
+        >
+          Retour
+        </button>
       </div>
 
-      <div className={styles.content}>
+      <div className={`${styles.content} ${!selectedPackage ? styles.contentSingle : ""}`}>
         <div className={styles.packsList}>
           <div className={styles.listHeader}>
-            <h3>Mes packs ({packages.length})</h3>
+            <h3>{showNewPackForm ? "Composition" : "Packs existants"}</h3>
             {!showNewPackForm && (
               <button onClick={() => setShowNewPackForm(true)} className={styles.addButton}>
-                <Plus size={18} /> Nouveau pack
+                <Plus size={18} /> Créer un pack
               </button>
             )}
           </div>
 
           {showNewPackForm && (
             <div className={styles.newPackForm}>
-              <h4>Créer un nouveau pack</h4>
+              <div className={styles.formHeader}>
+                <span>
+                  <Sparkles size={18} />
+                </span>
+                <div>
+                  <h4>Informations de l&apos;offre</h4>
+                  <p>Nom, description et services.</p>
+                </div>
+              </div>
 
               <div className={styles.formGroup}>
                 <label>Nom du pack *</label>
@@ -471,8 +552,19 @@ const ServicePackageManager: React.FC<Props> = ({
               </div>
 
               <div className={styles.formGroup}>
-                <label>Catégorie principale *</label>
+                <label>Promesse</label>
+                <input
+                  type="text"
+                  placeholder="Ex : Accueil fluide, logement prêt, voyageurs rassurés"
+                  value={formData.promise}
+                  onChange={(e) => setFormData({ ...formData, promise: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="service-package-category">Catégorie principale *</label>
                 <select
+                  id="service-package-category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
@@ -485,13 +577,61 @@ const ServicePackageManager: React.FC<Props> = ({
                 </select>
               </div>
 
+              <div className={styles.formGroup}>
+                <label htmlFor="service-package-level">Niveau</label>
+                <select
+                  id="service-package-level"
+                  value={formData.level}
+                  onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                >
+                  <option value="Essentiel">Essentiel</option>
+                  <option value="Confort">Confort</option>
+                  <option value="Premium">Premium</option>
+                  <option value="Sur-mesure">Sur-mesure</option>
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Prix indicatif</label>
+                <input
+                  type="text"
+                  placeholder="Ex : À partir de 149 €"
+                  value={formData.startingPrice}
+                  onChange={(e) => setFormData({ ...formData, startingPrice: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.colorChoice}>
+                <label>Couleur du pack</label>
+                <div className={styles.colorOptions}>
+                  {PACK_ACCENTS.map((accent) => {
+                    const disabled = usedAccents.has(accent.id);
+                    return (
+                      <button
+                        key={accent.id}
+                        type="button"
+                        className={`${styles.colorOption} ${styles[`colorOption${accent.id.charAt(0).toUpperCase()}${accent.id.slice(1)}`]} ${
+                          formData.accent === accent.id ? styles.colorOptionActive : ""
+                        }`}
+                        onClick={() => setFormData({ ...formData, accent: accent.id })}
+                        disabled={disabled}
+                        aria-pressed={formData.accent === accent.id}
+                      >
+                        <span />
+                        {accent.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {availableAccents.length === 0 ? (
+                  <p className={styles.hint}>Toutes les couleurs sont déjà utilisées.</p>
+                ) : null}
+              </div>
+
               <div className={styles.serviceSelection}>
-                <label>Services du pack *</label>
+                <label>Services inclus *</label>
                 <p className={styles.hint}>
-                  Sélectionnez au moins un service proposé actif dans Missions :
-                </p>
-                <p className={styles.hint}>
-                  {availableServices.length} service(s) disponible(s) selon vos services actifs.
+                  {availableServices.length} service(s) disponible(s).
                 </p>
 
                 {availableServices.length === 0 && (
@@ -523,13 +663,34 @@ const ServicePackageManager: React.FC<Props> = ({
                 ))}
               </div>
 
+              <aside
+                className={`${styles.ownerPreview} ${styles[toAccentClassName(formData.accent)]}`}
+                aria-label="Aperçu propriétaire"
+              >
+                <div className={styles.previewTopline}>
+                  <span>
+                    <Tag size={15} />
+                    {formData.level || "Essentiel"}
+                  </span>
+                  <strong>{formData.startingPrice || "Prix à préciser"}</strong>
+                </div>
+                <h4>{formData.name || "Nom du pack"}</h4>
+                <p>{formData.promise || formData.description || "Promesse courte visible côté propriétaire."}</p>
+                <div className={styles.previewServices}>
+                  {selectedServicesPreview.slice(0, 4).map((service) => (
+                    <span key={service.id}>{service.service}</span>
+                  ))}
+                  {selectedServicesPreview.length === 0 ? <span>Services à sélectionner</span> : null}
+                </div>
+              </aside>
+
               <div className={styles.formActions}>
                 <button
                   onClick={handleCreatePackage}
                   disabled={isSubmitting}
                   className={styles.saveButton}
                 >
-                  <Save size={18} /> {isSubmitting ? "Création..." : "Créer le pack"}
+                  <Save size={18} /> {isSubmitting ? "Enregistrement..." : "Enregistrer l'offre"}
                 </button>
                 <button
                   onClick={() => {
@@ -538,18 +699,44 @@ const ServicePackageManager: React.FC<Props> = ({
                       name: "",
                       description: "",
                       category: "",
+                      level: "Essentiel",
+                      startingPrice: "",
+                      promise: "",
+                      accent: availableAccents[0]?.id ?? "teal",
                       selected_service_ids: [],
                     });
                   }}
                   className={styles.cancelButton}
                 >
-                  Annuler
+                  Voir les packs existants
                 </button>
               </div>
             </div>
           )}
 
           <div className={styles.packItems}>
+            {!isLoadingPackages && !loadError && !showNewPackForm && packages.length > 0 && (
+              <div className={styles.packsIntro}>
+                <div className={styles.emptyIcon}>
+                  <Package size={20} />
+                </div>
+                <div>
+                  <strong>Construisez votre première offre prête à vendre</strong>
+                  <p>Créez un pack à partir de vos services.</p>
+                </div>
+              </div>
+            )}
+
+            {!isLoadingPackages && !loadError && packages.length > 0 && (
+              <div className={styles.existingPacksHeader}>
+                <div>
+                  <h4>Packs existants</h4>
+                  <p>Sélectionnez un pack pour voir le détail.</p>
+                </div>
+                <span>{packages.length}</span>
+              </div>
+            )}
+
             {loadError && (
               <div className={styles.empty}>
                 <p>{loadError}</p>
@@ -569,20 +756,28 @@ const ServicePackageManager: React.FC<Props> = ({
               </div>
             )}
 
-            {!isLoadingPackages && !loadError && packages.length === 0 && !showNewPackForm && (
+            {!isLoadingPackages && !loadError && packages.length === 0 && (
               <div className={styles.empty}>
                 <div className={styles.emptyHero}>
                   <div className={styles.emptyIcon}>
                     <Sparkles size={20} />
                   </div>
                   <div className={styles.emptyContent}>
-                    <strong>Construisez votre première offre prête à vendre</strong>
+                    <strong>Aucun pack pour le moment</strong>
                     <p>
-                      Commencez avec un modèle conciergerie, puis ajustez les services,
-                      les tarifs et les contrats selon votre façon de travailler.
+                      Utilisez un modèle ou créez votre propre pack.
                     </p>
                   </div>
                 </div>
+                {!showNewPackForm && (
+                  <button
+                    type="button"
+                    className={styles.addButton}
+                    onClick={() => setShowNewPackForm(true)}
+                  >
+                    <Plus size={18} /> Créer un pack
+                  </button>
+                )}
               </div>
             )}
 
@@ -591,21 +786,31 @@ const ServicePackageManager: React.FC<Props> = ({
                 <div className={styles.templatesHeader}>
                   <div>
                     <h5>{packages.length === 0 ? "Modèles proposés" : "Autres modèles disponibles"}</h5>
-                    <p>Des offres déjà structurées pour aller plus vite sans repartir de zéro.</p>
+                    <p>Des bases prêtes.</p>
                   </div>
                 </div>
                 <div className={styles.templateGrid}>
                   {suggestedTemplates.map((template) => (
                     <article
                       key={template.id}
-                      className={`${styles.templateCard} ${styles[`templateCard${template.accent.charAt(0).toUpperCase()}${template.accent.slice(1)}`]}`}
+                      className={`${styles.templateCard} ${styles[toAccentClassName(template.accent)]}`}
                     >
+                      <div className={styles.templateVisual}>
+                        <span className={styles.templateVisualWindow} />
+                        <span className={styles.templateVisualKey} />
+                        <span className={styles.templateVisualTag} />
+                        <div className={styles.templateVisualCopy}>
+                          <span>{template.category}</span>
+                          <strong>{template.name}</strong>
+                          <small>{template.id === "premium" ? "Recommandé" : "Prêt à adapter"}</small>
+                        </div>
+                      </div>
                       <div className={styles.templateTopRow}>
                         <span className={styles.templateCategory}>{template.category}</span>
                         {template.id === "premium" ? (
                           <span className={styles.templateRecommended}>Recommandé</span>
                         ) : (
-                          <span className={styles.templateState}>Prêt à créer</span>
+                          <span className={styles.templateState}>Prêt à adapter</span>
                         )}
                       </div>
                       <div className={styles.templateBody}>
@@ -627,7 +832,7 @@ const ServicePackageManager: React.FC<Props> = ({
                         onClick={() => handleCreateTemplate(template)}
                         disabled={isSubmitting}
                       >
-                        {isSubmitting ? "Création..." : "Créer ce pack"}
+                        {isSubmitting ? "Enregistrement..." : "Utiliser ce modèle"}
                       </button>
                     </article>
                   ))}
@@ -638,7 +843,7 @@ const ServicePackageManager: React.FC<Props> = ({
             {packages.map((pkg) => (
               <div
                 key={pkg.id}
-                className={`${styles.packItem} ${selectedPackId === pkg.id ? styles.active : ""}`}
+                className={`${styles.packItem} ${styles[toAccentClassName(pkg.accent)]} ${selectedPackId === pkg.id ? styles.active : ""}`}
                 onClick={() => setSelectedPackId(pkg.id)}
               >
                 <div className={styles.packItemHeader}>
@@ -659,10 +864,12 @@ const ServicePackageManager: React.FC<Props> = ({
             <div className={styles.detailsHeader}>
               <h3>{selectedPackage.name}</h3>
               <button
+                type="button"
                 onClick={() => {
                   handleRemovePackage(selectedPackage.id);
                 }}
                 className={styles.deleteButton}
+                aria-label={`Supprimer le pack ${selectedPackage.name}`}
               >
                 <X size={18} />
               </button>
@@ -748,7 +955,11 @@ const ServicePackageManager: React.FC<Props> = ({
                   {selectedPackage.attached_contract_ids.map((contractId) => (
                     <li key={contractId}>
                       <span>Contrat #{contractId}</span>
-                      <button className={styles.unlinkButton}>
+                      <button
+                        className={styles.unlinkButton}
+                        type="button"
+                        aria-label={`Détacher le modèle de contrat ${contractId}`}
+                      >
                         <Unlink size={14} />
                       </button>
                     </li>
@@ -760,8 +971,7 @@ const ServicePackageManager: React.FC<Props> = ({
             <div className={styles.infoBox}>
               <AlertCircle size={18} />
               <p>
-                Ce pack regroupe vos services proposés. Vous pouvez le lier à des tarifs
-                spécifiques et à des modèles de contrats.
+                Reliez ce pack à ses tarifs et contrats.
               </p>
             </div>
           </div>

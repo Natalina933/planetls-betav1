@@ -19,7 +19,10 @@ interface CategoryPopupProps {
   initialSelectedOptions?: string[];
   experienceLevel?: string;
   signupMode?: string;
+  onboardingGoal?: string;
   onSignupModeChange?: (mode: string) => void;
+  onOnboardingGoalChange?: (goal: string) => void;
+  onBack?: () => void;
   onClose: () => void;
   onNext: (selectedOptions: string[]) => void;
 }
@@ -142,6 +145,12 @@ const PROFILE_CONTENT: Record<
   },
 };
 
+const OWNER_GOALS = [
+  { value: "gestion_complete", label: "Déléguer la gestion complète", text: "Vous cherchez un partenaire pour prendre le relais sur la location." },
+  { value: "besoin_ponctuel", label: "Service ponctuel", text: "Vous avez une demande précise: ménage, accueil, intervention ou remise en état." },
+  { value: "comparer_concierges", label: "Comparer plusieurs concierges", text: "Vous voulez voir plusieurs profils avant de choisir." },
+];
+
 const getProfileKey = (category: string): ProfileKey => {
   if (category === "proprietaire" || category === "artisan" || category === "concierge") {
     return category;
@@ -154,7 +163,10 @@ export default function CategoryPopup({
   initialSelectedOptions = [],
   experienceLevel,
   signupMode = "simple",
+  onboardingGoal = "",
   onSignupModeChange,
+  onOnboardingGoalChange,
+  onBack,
   onClose,
   onNext,
 }: CategoryPopupProps) {
@@ -195,6 +207,20 @@ export default function CategoryPopup({
     };
   }, [handleOutsideClick]);
 
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose]);
+
   const toggle = (value: string) => {
     setSelected((current) =>
       current.includes(value)
@@ -226,6 +252,28 @@ export default function CategoryPopup({
         <p className={styles.introText}>{content.intro}</p>
 
         <div className={styles.content}>
+          {profileKey === "proprietaire" ? (
+            <section className={styles.goalSuggestion} aria-label="Objectif propriétaire">
+              <div>
+                <strong>Votre objectif principal</strong>
+                <span>On adaptera la première demande et la suite du parcours à ce choix.</span>
+              </div>
+              <div className={styles.goalGrid}>
+                {OWNER_GOALS.map((goal) => (
+                  <button
+                    key={goal.value}
+                    type="button"
+                    className={onboardingGoal === goal.value ? styles.goalActive : ""}
+                    onClick={() => onOnboardingGoalChange?.(goal.value)}
+                  >
+                    <strong>{goal.label}</strong>
+                    <span>{goal.text}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           {showConciergeModeSuggestion ? (
             <section className={styles.modeSuggestion} aria-label="Mode d'inscription recommandé">
               <div>
@@ -278,7 +326,7 @@ export default function CategoryPopup({
         </div>
 
         <div className={styles.actions}>
-          <button type="button" onClick={onClose}>
+          <button type="button" onClick={onBack ?? onClose}>
             Retour
           </button>
           <button type="button" onClick={() => onNext(selected)} disabled={selected.length === 0}>

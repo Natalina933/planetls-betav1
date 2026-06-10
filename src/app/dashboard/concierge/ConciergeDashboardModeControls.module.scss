@@ -1,0 +1,84 @@
+.controls {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.modeGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.button,
+.activeButton {
+  display: grid;
+  gap: 0.2rem;
+  min-height: 74px;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(198, 166, 107, 0.26);
+  border-radius: 8px;
+  background: rgba(255, 251, 245, 0.92);
+  color: #202532;
+  text-align: left;
+  cursor: pointer;
+
+  strong {
+    font-size: 0.92rem;
+  }
+
+  span {
+    color: #5b6578;
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+}
+
+.activeButton {
+  border-color: rgba(123, 91, 35, 0.5);
+  background: #fff3d5;
+  box-shadow: inset 0 0 0 2px rgba(198, 166, 107, 0.22);
+}
+
+.accessibilityGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+
+  > div {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.2rem;
+    border: 1px solid rgba(198, 166, 107, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.smallButton,
+.smallActive {
+  min-height: 34px;
+  padding: 0.4rem 0.62rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #3b2d0e;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.smallActive {
+  background: #c6a66b;
+  color: #211805;
+}
+
+@media (max-width: 680px) {
+  .modeGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .accessibilityGroup {
+    justify-content: stretch;
+  }
+}

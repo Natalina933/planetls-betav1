@@ -3,3 +3,25 @@
 @use "animations";
 @use "base";
 @use "layout";
+
+body[data-concierge-text-scale="large"] {
+  --planetls-dashboard-font-scale: 1.08;
+}
+
+body[data-concierge-text-scale="large"] main,
+body[data-concierge-text-scale="large"] [class*="DashboardLayout"] {
+  font-size: calc(1rem * var(--planetls-dashboard-font-scale));
+}
+
+body[data-concierge-contrast="high"] {
+  filter: contrast(1.08);
+}
+
+body[data-concierge-contrast="high"] a:focus-visible,
+body[data-concierge-contrast="high"] button:focus-visible,
+body[data-concierge-contrast="high"] input:focus-visible,
+body[data-concierge-contrast="high"] select:focus-visible,
+body[data-concierge-contrast="high"] textarea:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}

@@ -1,0 +1,1034 @@
+.page {
+  --traveler-panel: var(--dash-bg-panel, #fbfcfb);
+  --traveler-panel-soft: var(--dash-bg-panel-soft, #edf3f5);
+  --traveler-ink: var(--dash-text, #253241);
+  --traveler-muted: var(--dash-text-muted, #61707c);
+  --traveler-accent: var(--dash-accent, #4d7287);
+  --traveler-accent-strong: var(--dash-accent-strong, #253f52);
+  --traveler-border: rgba(77, 114, 135, 0.2);
+  --traveler-border-soft: rgba(77, 114, 135, 0.13);
+  --traveler-gold: #d4af37;
+  --traveler-shadow: 0 14px 28px rgba(37, 50, 65, 0.08);
+  --traveler-shadow-hover: 0 18px 34px rgba(37, 50, 65, 0.12);
+
+  display: grid;
+  gap: 1.15rem;
+  width: min(100%, 1680px);
+  margin-inline: auto;
+  padding: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.hero,
+.creationPanel,
+.planningImportPanel,
+.travelerMissionForm,
+.travelerMissionAside,
+.travelerMissionListSection,
+.travelerMissionCard {
+  border: 1px solid var(--traveler-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 96% 0%, rgba(184, 92, 72, 0.14), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--traveler-panel) 94%, white), var(--traveler-panel-soft));
+  box-shadow: var(--traveler-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.32fr);
+  gap: 1rem;
+  align-items: stretch;
+  padding: clamp(1.2rem, 3vw, 1.8rem);
+  overflow: hidden;
+}
+
+.heroContent,
+.travelerMissionPage,
+.travelerMissionForm,
+.travelerFormSection,
+.planningImportPanel,
+.travelerMissionAside,
+.travelerSummaryCard,
+.travelerMissionListSection,
+.travelerMissionCard {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.heroContent {
+  gap: 0.75rem;
+  align-content: center;
+}
+
+.heroContent h1 {
+  margin: 0;
+  color: var(--traveler-ink);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.02;
+}
+
+.heroContent p,
+.heroSnapshot p,
+.meta,
+.quoteNote {
+  margin: 0;
+  color: var(--traveler-muted);
+  line-height: 1.55;
+}
+
+.heroActions,
+.travelerChecklist,
+.cardFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.primaryLink,
+.buttonSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 42px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.primaryLink {
+  border: 0;
+  padding: 0.65rem 0.95rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--traveler-accent), var(--traveler-accent-strong));
+  color: var(--traveler-panel);
+  box-shadow: 0 10px 22px rgba(109, 53, 41, 0.2);
+  cursor: pointer;
+}
+
+.heroSnapshot {
+  display: grid;
+  gap: 0.45rem;
+  align-content: center;
+  padding: 1rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--traveler-panel) 88%, white);
+}
+
+.heroSnapshot span,
+.trustBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.heroSnapshot span {
+  color: var(--traveler-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.heroSnapshot strong {
+  color: var(--traveler-accent-strong);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  line-height: 0.95;
+}
+
+.heroProgress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.16);
+  overflow: hidden;
+}
+
+.heroProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--traveler-accent), var(--traveler-gold));
+}
+
+.eyebrow,
+.cardLabel {
+  margin: 0;
+  color: var(--traveler-accent-strong);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.message {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  font-weight: 760;
+}
+
+.messageSuccess {
+  border: 1px solid rgba(40, 85, 64, 0.15);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.messageError {
+  border: 1px solid rgba(142, 47, 47, 0.16);
+  background: #f8e7e4;
+  color: #8e2f2f;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.statCard {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: center;
+  min-width: 0;
+  padding: 0.95rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--traveler-panel) 88%, white);
+  box-shadow: var(--traveler-shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.statCard:hover,
+.travelerMissionCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(184, 92, 72, 0.34);
+  box-shadow: var(--traveler-shadow-hover);
+}
+
+.statIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--traveler-accent), var(--traveler-accent-strong));
+  color: var(--traveler-panel);
+}
+
+.statCard strong {
+  display: block;
+  color: var(--traveler-accent-strong);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.statCard p {
+  margin: 0.18rem 0 0;
+  color: var(--traveler-muted);
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.creationPanel {
+  padding: 1.1rem;
+}
+
+.creationLauncher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--traveler-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--traveler-panel) 90%, white);
+  box-shadow: var(--traveler-shadow);
+}
+
+.creationLauncher h2 {
+  margin: 0.1rem 0 0.25rem;
+  color: var(--traveler-ink);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.syncPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid rgba(77, 114, 135, 0.18);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(237, 243, 245, 0.82)),
+    color-mix(in srgb, var(--traveler-panel) 92%, white);
+  box-shadow: var(--traveler-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.syncMain {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.syncMain h2 {
+  margin: 0;
+  color: var(--traveler-ink);
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+}
+
+.syncBadgeReady,
+.syncBadgeWaiting {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: 0.42rem;
+  min-height: 34px;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 880;
+}
+
+.syncBadgeReady {
+  border: 1px solid rgba(40, 85, 64, 0.16);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.syncBadgeWaiting {
+  border: 1px solid rgba(176, 132, 37, 0.2);
+  background: #fff7df;
+  color: #7a5a17;
+}
+
+.syncSteps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.syncStepDone,
+.syncStepTodo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.55rem 0.45rem;
+  border-radius: 14px;
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.syncStepDone {
+  border: 1px solid rgba(40, 85, 64, 0.14);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.syncStepTodo {
+  border: 1px solid var(--traveler-border-soft);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--traveler-muted);
+}
+
+.assignmentWorkbench {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.assignmentPanel {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.assignmentPanel h2,
+.assignmentPanel h3 {
+  margin: 0.12rem 0 0;
+  color: var(--traveler-ink);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+}
+
+.assignmentGrid,
+.platformGrid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.assignmentGrid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.platformGrid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.assignmentCard,
+.assignmentCardActive,
+.platformCard,
+.platformCardActive,
+.modeTab,
+.modeTabActive {
+  border: 1px solid var(--traveler-border-soft);
+  background: color-mix(in srgb, var(--traveler-panel) 92%, white);
+  color: var(--traveler-ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.assignmentCard,
+.assignmentCardActive {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 188px;
+  padding: 0.9rem;
+  border-radius: 18px;
+}
+
+.assignmentPhoto {
+  min-height: 72px;
+  margin: -0.2rem -0.2rem 0.25rem;
+  border-radius: 14px;
+  background-color: #d9e5ea;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.assignmentCard span,
+.assignmentCardActive span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--traveler-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.assignmentCard strong,
+.assignmentCardActive strong {
+  color: var(--traveler-ink);
+  font-size: 1rem;
+  line-height: 1.22;
+}
+
+.assignmentCard small,
+.assignmentCardActive small,
+.assignmentCard small,
+.assignmentCardActive small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--traveler-muted);
+  line-height: 1.35;
+}
+
+.platformCard,
+.platformCardActive {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 126px;
+  padding: 0.85rem;
+  border-radius: 16px;
+}
+
+.platformCard svg,
+.platformCardActive svg {
+  color: var(--traveler-accent-strong);
+}
+
+.platformCard strong,
+.platformCardActive strong {
+  color: var(--traveler-ink);
+}
+
+.assignmentCard:hover,
+.platformCard:hover,
+.modeTab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(184, 92, 72, 0.34);
+  box-shadow: var(--traveler-shadow);
+}
+
+.assignmentCardActive,
+.platformCardActive,
+.modeTabActive {
+  border-color: rgba(40, 85, 64, 0.28);
+  background: #e8f3ed;
+  box-shadow: 0 12px 24px rgba(40, 85, 64, 0.08);
+}
+
+.creationModeTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.35rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.modeTab,
+.modeTabActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 14px;
+  font-weight: 850;
+}
+
+.hiddenPanel {
+  display: none;
+}
+
+.modalOverlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(42, 35, 28, 0.48);
+  backdrop-filter: blur(5px);
+}
+
+.missionModal {
+  display: grid;
+  gap: 1rem;
+  width: min(1160px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  padding: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 26px 68px rgba(42, 35, 28, 0.24);
+  box-sizing: border-box;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modalHeader h2 {
+  margin: 0.1rem 0 0;
+  color: var(--traveler-ink);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--traveler-ink);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  border-color: rgba(184, 92, 72, 0.34);
+  background: #fbf4ef;
+}
+
+.sectionHeading h2,
+.travelerMissionCard h3 {
+  margin: 0;
+  color: var(--traveler-ink);
+}
+
+.travelerSummaryCard span,
+.travelerMissionFacts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 0;
+  color: var(--traveler-muted);
+}
+
+.planningImportPanel {
+  padding: 1rem;
+}
+
+.planningImportGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 0.72fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.importReadiness {
+  margin: 0.8rem 0 0;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid rgba(40, 85, 64, 0.14);
+  border-radius: 14px;
+  background: #eef7f2;
+  color: #285540;
+  font-size: 0.86rem;
+  font-weight: 820;
+  line-height: 1.45;
+}
+
+.parsedStayList {
+  display: grid;
+  gap: 0.7rem;
+  max-height: 430px;
+  overflow: auto;
+}
+
+.parsedStayCard,
+.parsedStayCardMuted {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.parsedStayCardMuted {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.parsedStayHeader,
+.parsedStayFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.parsedStayHeader {
+  align-items: flex-start;
+}
+
+.parsedStayHeader > div {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.parsedStayEditor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.parsedStayEditor .label {
+  gap: 0.34rem;
+  font-size: 0.76rem;
+}
+
+.parsedStayFooter {
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 0.1rem;
+}
+
+.parsedStayActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.parsedStayCard strong,
+.parsedStayCardMuted strong {
+  color: var(--traveler-ink);
+}
+
+.parsedStayCard span,
+.parsedStayCardMuted span {
+  color: var(--traveler-muted);
+  font-size: 0.84rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.parsedStayFooter > span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--traveler-muted);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.travelerMissionLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.55fr);
+  gap: 1rem;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.travelerMissionForm,
+.travelerMissionAside,
+.travelerMissionListSection,
+.travelerMissionCard {
+  padding: 1rem;
+}
+
+.advancedNoticeDetails {
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.travelerFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.label {
+  display: grid;
+  gap: 0.42rem;
+  color: var(--traveler-ink);
+  font-size: 0.84rem;
+  font-weight: 820;
+}
+
+.travelerChecklist {
+  align-items: stretch;
+}
+
+.advancedNoticeDetails {
+  overflow: hidden;
+}
+
+.advancedNoticeDetails summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: 48px;
+  padding: 0.75rem 0.9rem;
+  color: var(--traveler-ink);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 850;
+}
+
+.advancedNoticeDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedNoticeDetails summary span,
+.advancedNoticeDetails summary small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.advancedNoticeDetails summary small {
+  padding: 0.25rem 0.52rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--traveler-panel-soft) 82%, white);
+  color: var(--traveler-muted);
+  font-size: 0.72rem;
+  font-weight: 820;
+}
+
+.advancedNoticeContent {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0 0.9rem 0.9rem;
+}
+
+.noticeSubmitButton {
+  justify-self: start;
+}
+
+.travelerCheck,
+.travelerCheckActive,
+.travelerActionPill,
+.serviceChip,
+.plannedChip,
+.pendingChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0.35rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--traveler-border-soft);
+  background: color-mix(in srgb, var(--traveler-panel) 92%, white);
+  color: var(--traveler-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.plannedChip {
+  border-color: rgba(40, 85, 64, 0.16);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.pendingChip {
+  border-color: rgba(176, 132, 37, 0.2);
+  background: #fff7df;
+  color: #7a5a17;
+}
+
+.travelerCheck,
+.travelerCheckActive {
+  cursor: pointer;
+}
+
+.travelerCheckActive,
+.travelerActionPill {
+  border-color: rgba(40, 85, 64, 0.16);
+  background: #e8f3ed;
+  color: #285540;
+}
+
+.travelerSummaryCard {
+  padding: 0.95rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.travelerSummaryCard strong {
+  color: var(--traveler-ink);
+  font-size: 1.05rem;
+}
+
+.travelerMissionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(315px, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.travelerMissionTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.travelerMissionFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.travelerMissionFacts span {
+  min-height: 42px;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  overflow-wrap: anywhere;
+}
+
+.statusBubble,
+.statusUrgent,
+.trustBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 30px;
+  padding: 0.28rem 0.68rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.statusBubble {
+  border: 1px solid rgba(49, 91, 101, 0.16);
+  background: #e9f2f4;
+  color: #315b65;
+}
+
+.statusUrgent {
+  border: 1px solid rgba(142, 47, 47, 0.16);
+  background: #f8e7e4;
+  color: #8e2f2f;
+}
+
+.buttonSecondary {
+  width: fit-content;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--traveler-border-soft);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--traveler-panel) 88%, white);
+  color: var(--traveler-accent-strong);
+  cursor: pointer;
+}
+
+.buttonSecondary:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+:global([data-theme="art-deco"]) .hero,
+:global([data-theme="art-deco"]) .creationPanel,
+:global([data-theme="art-deco"]) .creationLauncher,
+:global([data-theme="art-deco"]) .syncPanel,
+:global([data-theme="art-deco"]) .assignmentPanel,
+:global([data-theme="art-deco"]) .missionModal,
+:global([data-theme="art-deco"]) .planningImportPanel,
+:global([data-theme="art-deco"]) .travelerMissionForm,
+:global([data-theme="art-deco"]) .travelerMissionAside,
+:global([data-theme="art-deco"]) .travelerMissionListSection,
+:global([data-theme="art-deco"]) .travelerMissionCard,
+:global([data-theme="art-deco"]) .statCard {
+  border-radius: 4px;
+}
+
+:global([data-theme="art-deco"]) .heroContent h1,
+:global([data-theme="art-deco"]) .planningImportPanel h2,
+:global([data-theme="art-deco"]) .sectionHeading h2,
+:global([data-theme="art-deco"]) .travelerMissionCard h3 {
+  font-family: var(--dash-artdeco-heading-font);
+  letter-spacing: var(--dash-artdeco-heading-ls);
+}
+
+@media (max-width: 1180px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .planningImportGrid,
+  .syncPanel,
+  .assignmentWorkbench,
+  .travelerMissionLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .syncSteps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .heroSnapshot {
+    order: -1;
+  }
+
+  .travelerMissionAside {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding: 0.75rem;
+  }
+
+  .statsGrid,
+  .syncSteps,
+  .travelerFieldGrid,
+  .travelerMissionFacts,
+  .parsedStayEditor,
+  .parsedStayCard,
+  .parsedStayCardMuted {
+    grid-template-columns: 1fr;
+  }
+
+  .travelerMissionTopline,
+  .creationLauncher,
+  .creationModeTabs,
+  .sectionHeading,
+  .cardFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .creationLauncher > button,
+  .noticeSubmitButton,
+  .modeTab,
+  .modeTabActive {
+    width: 100%;
+  }
+
+  .hero,
+  .creationPanel,
+  .planningImportPanel,
+  .travelerMissionForm,
+  .travelerMissionAside,
+  .travelerMissionListSection,
+  .travelerMissionCard,
+  .syncPanel,
+  .assignmentWorkbench,
+  .travelerMissionLayout,
+  .travelerMissionGrid,
+  .missionModal {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .heroActions,
+  .travelerChecklist,
+  .cardFooter,
+  .parsedStayActions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .primaryLink,
+  .buttonSecondary,
+  .travelerCheck,
+  .travelerCheckActive,
+  .travelerActionPill {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, {
   useState,
@@ -103,6 +103,7 @@ import {
 } from "./profileMissionPricing";
 import {
   CONCIERGE_TABS,
+  CONCIERGE_PROFILE_TAB_IDS,
   ConciergeTabId,
 } from "@/app/components/dashboard/concierge/conciergeTabsConfig";
 import { parsePricingV2FromAvailabilityHours } from "@/app/components/tariffs/pricingEngine";
@@ -262,6 +263,39 @@ const parseLegacySelectedOptions = (value?: string | null): string[] => {
   return Array.from(new Set(options));
 };
 
+const readOnboardingSelectedServices = (availabilityHours?: string | null): string[] => {
+  if (!availabilityHours) return [];
+
+  try {
+    const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
+    const onboarding =
+      parsed.onboarding && typeof parsed.onboarding === "object"
+        ? (parsed.onboarding as Record<string, unknown>)
+        : {};
+    const preferences =
+      parsed.preferences && typeof parsed.preferences === "object"
+        ? (parsed.preferences as Record<string, unknown>)
+        : {};
+    const selected = [
+      ...(Array.isArray(onboarding.selectedServices) ? onboarding.selectedServices : []),
+      ...(Array.isArray(preferences.selectedServices) ? preferences.selectedServices : []),
+    ];
+
+    return Array.from(
+      new Set(
+        selected.filter((item): item is string => typeof item === "string" && item.trim().length > 0),
+      ),
+    );
+  } catch {
+    return [];
+  }
+};
+
+const getMeaningfulTokens = (value: string) =>
+  normalizeServiceLabel(value)
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 4 && !["avec", "pour", "dans", "entre"].includes(token));
+
 const ONBOARDING_OPTION_CATEGORY_MATCHERS: Record<string, string[]> = {
   menage: ["menage", "nettoyage"],
   linge: ["linge", "blanchisserie", "textile"],
@@ -301,7 +335,16 @@ const matchesOnboardingOption = (
   }
 
   const labelKeywords = ONBOARDING_OPTION_LABEL_FALLBACK[optionNormalized] ?? [];
-  return labelKeywords.some((keyword) => normalizedLabel.includes(keyword));
+  if (labelKeywords.some((keyword) => normalizedLabel.includes(keyword))) {
+    return true;
+  }
+
+  const optionTokens = getMeaningfulTokens(optionNormalized);
+  if (optionTokens.length === 0) return false;
+
+  return optionTokens.some(
+    (token) => normalizedCategory.includes(token) || normalizedLabel.includes(token),
+  );
 };
 
 
@@ -311,8 +354,8 @@ export default function ConciergeProfilePage() {
   const searchParams = useSearchParams();
 
   const tabFromUrl = useMemo(() => {
-    const tab = searchParams.get("tab") as TabId;
-    return CONCIERGE_TABS.some((t) => t.id === tab) ? tab : "overview";
+    const tab = searchParams.get("tab");
+    return CONCIERGE_PROFILE_TAB_IDS.includes(tab as TabId) ? (tab as TabId) : "overview";
   }, [searchParams]);
 
   const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
@@ -719,7 +762,12 @@ export default function ConciergeProfilePage() {
       return;
     }
 
-    const selectedOptions = parseLegacySelectedOptions(editProfile.option);
+    const selectedOptions = Array.from(
+      new Set([
+        ...parseLegacySelectedOptions(editProfile.option),
+        ...readOnboardingSelectedServices(editProfile.availability_hours),
+      ]),
+    );
     if (selectedOptions.length === 0) {
       didSeedFromOnboardingRef.current = true;
       return;
@@ -2041,6 +2089,7 @@ export default function ConciergeProfilePage() {
         styles={styles}
         title={title}
         icon={icon}
+        sectionId={sectionId}
         canEdit={canEdit}
         collapsible={collapsible}
         isOpen={isOpen}

@@ -4,10 +4,12 @@
 @use "sass:color";
 
 .howItWorks {
-  background-color: rgba(255, 255, 255, 0.8);
   font-family: "Montserrat", $font-elegant, sans-serif; // Montserrat + fallback
-  background-image: url("/textures/mucha-background-pattern.png");
-  background-blend-mode: lighten;
+  background:
+    var(--theme-texture-wash),
+    var(--theme-texture-ornament-image) center / var(--theme-texture-ornament-size, cover) repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(247, 242, 233, 0.8));
+  background-blend-mode: normal, var(--theme-texture-ornament-blend, soft-light), normal;
   background-attachment: local;
   padding: 4rem 1.5rem;
   text-align: center;
@@ -39,7 +41,10 @@
 
 :global([data-theme="art-deco"]) .howItWorks {
   background:
+    var(--theme-texture-wash),
+    var(--theme-texture-ornament-image) center / var(--theme-texture-ornament-size, cover) repeat,
     linear-gradient(180deg, #f7f9fb 0%, #ebeff2 100%);
+  background-blend-mode: normal, var(--theme-texture-ornament-blend, soft-light), normal;
   color: #2c3e50;
   border-bottom: 1px solid rgba(212, 175, 55, 0.42);
   border-top: 1px solid rgba(212, 175, 55, 0.42);
@@ -208,6 +213,30 @@
   .cta {
     min-width: min(100%, 320px);
     @include no-select;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 3.5rem 1.25rem;
+
+    h2 {
+      width: min(100%, 620px);
+      font-size: clamp(1.85rem, 4vw, 2.05rem);
+      line-height: 1.12;
+    }
+
+    .step {
+      padding: 1.35rem;
+
+      h3 {
+        font-size: 1.15rem;
+        line-height: 1.2;
+      }
+
+      p {
+        line-height: 1.58;
+        text-wrap: pretty;
+      }
+    }
   }
 
   @media (max-width: 600px) {

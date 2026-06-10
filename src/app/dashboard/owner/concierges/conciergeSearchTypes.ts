@@ -3,6 +3,7 @@
 export type ConciergeSearchRow = {
   id: string;
   avatar_url?: string | null;
+  image?: string | null;
   display_name: string;
   city: string | null;
   postal_code?: string | null;

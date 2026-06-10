@@ -13,7 +13,7 @@ function getNotificationsPageHref(role?: string | null) {
     role === "artisan" ||
     role === "artisan_pro"
   ) {
-    return "/dashboard/provider/messages";
+    return "/dashboard/provider/alertes";
   }
   return "/dashboard";
 }

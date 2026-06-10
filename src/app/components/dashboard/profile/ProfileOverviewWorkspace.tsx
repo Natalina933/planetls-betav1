@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import SimpleOverviewWorkspace from "@/app/dashboard/_components/SimpleOverviewWorkspace";
+import SimpleOverviewWorkspace from "../../../dashboard/_components/SimpleOverviewWorkspace";
 
 type ProfileOverviewWorkspaceProps = {
   tone: "owner" | "concierge" | "provider";

@@ -33,6 +33,25 @@
   flex: 1 1 0;
 }
 
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.titleIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(184, 92, 72, 0.16), rgba(212, 175, 55, 0.16));
+  color: #7a4a3c;
+  flex: 0 0 auto;
+}
+
 .eyebrow {
   margin: 0;
   width: fit-content;
@@ -116,7 +135,9 @@
   padding: 0.8rem 0.9rem;
   border-radius: 18px;
   border: 1px solid rgba(184, 92, 72, 0.12);
-  background: rgba(255, 255, 255, 0.72);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 36%),
+    rgba(255, 255, 255, 0.8);
 }
 
 .factCard span {
@@ -147,6 +168,7 @@
   border: 1px solid rgba(184, 92, 72, 0.12);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 242, 236, 0.94));
   text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .secondaryFactCard span {
@@ -180,6 +202,9 @@
 }
 
 .sectionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   margin: 0;
   font-size: 0.74rem;
   font-weight: 800;
@@ -197,6 +222,9 @@
 }
 
 .metaText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 0.88rem;
 }
 
@@ -207,14 +235,30 @@
 
 .responseItem {
   position: relative;
-  padding: 0.8rem 0.9rem;
+  padding: 0.85rem 0.95rem 0.85rem 1rem;
   border-radius: 16px;
   border: 1px solid rgba(184, 92, 72, 0.12);
   background: rgba(255, 255, 255, 0.72);
 }
 
 .responseItem::before {
-  content: none;
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(184, 92, 72, 0.85), rgba(212, 175, 55, 0.7));
+}
+
+.extraContent {
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.06), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 242, 236, 0.92));
 }
 
 @media (max-width: 1100px) {

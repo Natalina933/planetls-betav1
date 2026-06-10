@@ -12,6 +12,9 @@
     margin: 3rem auto;
     padding: 1.5rem;
     gap: 2.5rem; // Espacement entre la carte et la liste
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: clip;
 
     @include mq(lg) {
         flex-direction: row; // Disposition côte à côte sur les grands écrans
@@ -54,6 +57,8 @@
 .profilesListColumn,
 .list {
     flex: 1; // La liste des profils prendra 1 part de l'espace disponible
+    min-width: 0;
+    width: 100%;
     // Pas besoin de styles supplémentaires ici, car .profilesDisplay gère déjà l'apparence.
     // Cependant, on peut ajuster le padding ou la largeur max si besoin
     max-width: 100%; // Pour éviter le débordement sur petits écrans
@@ -101,6 +106,21 @@
 .customMapMarker-artisan {
     background-color: var(--artisan-primary);
     border-color: var(--artisan-dark);
+}
+
+@media (max-width: 640px) {
+    .mapListContainer,
+    .container {
+        margin: 1.5rem auto;
+        padding: 0.85rem;
+        gap: 1rem;
+    }
+
+    .mapContainer,
+    .map {
+        min-height: 320px;
+        border-radius: 20px;
+    }
 }
 
 // Vous pourriez ajouter des icônes à l'intérieur via CSS si nécessaire

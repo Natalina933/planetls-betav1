@@ -9,6 +9,9 @@ export interface ProviderCurrentProfile {
   postal_code?: string | null;
   phone?: string | null;
   website?: string | null;
+  availability_hours?: string | null;
+  service_radius_km?: number | null;
+  service_area?: string | null;
   role?: string | null;
   category?: string | null;
 }

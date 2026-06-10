@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
+import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import type { Json } from "@/types/supabase";
 import { getApiAuthContext } from "@/app/lib/apiAuth";
 import { z } from "zod";
@@ -46,11 +48,16 @@ const ALLOWED_BILLING_ROLES = new Set([
   "super_admin",
   "concierge",
   "concierge_pro",
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
   "owner",
   "owner_pro",
 ]);
 
 const OWNER_BILLING_ROLES = new Set(["owner", "owner_pro"]);
+const dbAny = asLooseSupabaseClient(db);
 
 const isUuidLike = (value: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -69,6 +76,8 @@ const quoteItemSchema = z.object({
 const createQuoteBodySchema = z.object({
   owner_profile_id: z.string().uuid().optional().nullable(),
   mission_id: z.string().uuid().optional().nullable(),
+  service_request_id: z.string().uuid().optional().nullable(),
+  service_request_recipient_id: z.string().uuid().optional().nullable(),
   package_id: z.string().uuid().optional().nullable(),
   status: z.enum(VALID_QUOTE_STATUS).optional(),
   currency: z.string().trim().length(3).optional().nullable(),
@@ -150,12 +159,24 @@ const parseQuoteItems = (rawItems: QuoteItemInput[] | undefined): QuoteItemInput
   return parsedItems;
 };
 
+function attachQuoteWorkflow<T extends { status?: string | null }>(quote: T) {
+  const workflowStatus = deriveQuoteWorkflowStatus(quote.status);
+
+  return {
+    ...quote,
+    workflow_status: workflowStatus,
+    quote_workflow_status: workflowStatus,
+  };
+}
+
 const quoteSelect = `
   id,
   quote_number,
   concierge_profile_id,
   owner_profile_id,
   mission_id,
+  service_request_id,
+  service_request_recipient_id,
   package_id,
   status,
   currency,
@@ -231,14 +252,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "ownerProfileId invalide" }, { status: 400 });
     }
 
-    let query = db
+    let query = dbAny
       .from("quotes")
       .select(quoteSelect)
       .order("created_at", { ascending: false })
       .limit(limit);
 
     if (OWNER_BILLING_ROLES.has(role)) {
+      if (status === "draft") {
+        return NextResponse.json([]);
+      }
       query = query.eq("owner_profile_id", userId);
+      if (!status) {
+        query = query.neq("status", "draft");
+      }
     } else {
       query = query.eq("concierge_profile_id", userId);
     }
@@ -265,7 +292,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data ?? []);
+    return NextResponse.json((data ?? []).map(attachQuoteWorkflow));
   } catch (err) {
     console.error("[GET /api/quotes] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -315,13 +342,23 @@ export async function POST(req: NextRequest) {
       body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
         ? (body.metadata as Record<string, unknown>)
         : {};
+    const metadataServiceRequestId =
+      typeof safeMetadata.service_request_id === "string" && isUuidLike(safeMetadata.service_request_id)
+        ? safeMetadata.service_request_id
+        : null;
+    const metadataRecipientId =
+      typeof safeMetadata.service_request_recipient_id === "string" && isUuidLike(safeMetadata.service_request_recipient_id)
+        ? safeMetadata.service_request_recipient_id
+        : null;
 
-    const { data: createdQuote, error: quoteError } = await db
+    const { data: createdQuote, error: quoteError } = await dbAny
       .from("quotes")
       .insert({
         concierge_profile_id: userId,
         owner_profile_id: body.owner_profile_id ?? null,
         mission_id: body.mission_id ?? null,
+        service_request_id: body.service_request_id ?? metadataServiceRequestId,
+        service_request_recipient_id: body.service_request_recipient_id ?? metadataRecipientId,
         package_id: body.package_id ?? null,
         status,
         currency: sanitizeCurrency(body.currency),
@@ -365,7 +402,7 @@ export async function POST(req: NextRequest) {
       const { error: itemsError } = await db.from("quote_items").insert(itemsToInsert);
       if (itemsError) {
         console.error("[POST /api/quotes] create items error:", itemsError);
-        await db.from("quotes").delete().eq("id", createdQuote.id);
+        await dbAny.from("quotes").delete().eq("id", createdQuote.id);
         if (MISSING_TABLE_CODES.has(itemsError.code ?? "")) {
           return buildFeatureDisabledResponse("devis");
         }
@@ -390,7 +427,7 @@ export async function POST(req: NextRequest) {
       console.error("[POST /api/quotes] event error:", eventError);
     }
 
-    const { data: hydrated, error: hydratedError } = await db
+    const { data: hydrated, error: hydratedError } = await dbAny
       .from("quotes")
       .select(quoteSelect)
       .eq("id", createdQuote.id)
@@ -398,10 +435,10 @@ export async function POST(req: NextRequest) {
 
     if (hydratedError || !hydrated) {
       console.error("[POST /api/quotes] hydrate error:", hydratedError);
-      return NextResponse.json(createdQuote, { status: 201 });
+      return NextResponse.json(attachQuoteWorkflow(createdQuote), { status: 201 });
     }
 
-    return NextResponse.json(hydrated, { status: 201 });
+    return NextResponse.json(attachQuoteWorkflow(hydrated), { status: 201 });
   } catch (err) {
     console.error("[POST /api/quotes] ERROR:", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

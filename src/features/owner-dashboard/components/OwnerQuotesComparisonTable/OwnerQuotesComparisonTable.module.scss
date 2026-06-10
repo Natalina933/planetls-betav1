@@ -7,21 +7,21 @@
   display: grid;
   gap: 0;
   min-width: 100%;
-  border: 1px solid rgba(184, 92, 72, 0.14);
-  border-radius: 22px;
+  border: 1px solid var(--ds-border-subtle, rgba(90, 110, 128, 0.14));
+  border-radius: var(--ds-radius-panel, 12px);
   overflow: hidden;
   background:
-    radial-gradient(circle at top right, rgba(184, 92, 72, 0.06), transparent 30%),
-    linear-gradient(180deg, rgba(255, 253, 250, 0.96), rgba(247, 236, 229, 0.94));
-  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.06);
+    radial-gradient(circle at top right, rgba(198, 167, 92, 0.09), transparent 30%),
+    linear-gradient(180deg, var(--ds-surface-raised, #fffdfa), var(--ds-surface-muted, #f7f1ea));
+  box-shadow: var(--ds-shadow-sm, 0 14px 32px rgba(45, 55, 72, 0.08));
 }
 
 .labelCell,
 .valueCell {
   min-height: 82px;
   padding: 0.9rem 1rem;
-  border-right: 1px solid rgba(184, 92, 72, 0.12);
-  border-bottom: 1px solid rgba(184, 92, 72, 0.12);
+  border-right: 1px solid rgba(90, 110, 128, 0.1);
+  border-bottom: 1px solid rgba(90, 110, 128, 0.1);
 }
 
 .labelCell {
@@ -29,10 +29,10 @@
   align-items: center;
   font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dash-accent-strong);
-  background: rgba(184, 92, 72, 0.06);
+  background: rgba(42, 111, 122, 0.06);
 }
 
 .valueCell {

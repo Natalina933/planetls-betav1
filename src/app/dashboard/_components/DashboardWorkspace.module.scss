@@ -252,7 +252,14 @@
   font-size: clamp(2rem, 3.2vw, 3rem);
   line-height: 0.98;
   color: color-mix(in srgb, var(--workspace-accent-text) 56%, var(--workspace-ink));
-  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+@supports (text-wrap: balance) {
+  .title {
+    overflow-wrap: normal;
+    text-wrap: balance;
+  }
 }
 
 .description,

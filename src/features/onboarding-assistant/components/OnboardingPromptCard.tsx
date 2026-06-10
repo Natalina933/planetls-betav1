@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Button, Card, CardBody, CardFooter, CardHeader } from "@/components/ui";
 import { ONBOARDING_JOURNEYS, getPendingActions } from "../config";
 import type { OnboardingActionStatus, OnboardingPath } from "../types";
+import { getOnboardingActionVisual, getOnboardingJourneyVisual } from "../visuals";
+import { OnboardingIllustration } from "./OnboardingIllustration";
 import styles from "./OnboardingPromptCard.module.scss";
 
 interface OnboardingPromptCardProps {
@@ -21,6 +23,13 @@ export function OnboardingPromptCard({ path, actionStatus, onDismiss }: Onboardi
       <CardHeader className={styles.header}>
         <p className={styles.subtitle}>{config.subtitle}</p>
         <h3>{config.title}</h3>
+        <div className={styles.headerVisual}>
+          <OnboardingIllustration visual={getOnboardingJourneyVisual(path)} variant="card" />
+        </div>
+        <div className={styles.headerCopy}>
+          <p className={styles.subtitle}>{config.subtitle}</p>
+          <h3>{config.title}</h3>
+        </div>
       </CardHeader>
       <CardBody>
         <p className={styles.hook}>{config.hook}</p>
@@ -29,6 +38,10 @@ export function OnboardingPromptCard({ path, actionStatus, onDismiss }: Onboardi
           {pendingActions.map((action) => (
             <li key={action.id}>
               <Link href={action.href}>{action.label}</Link>
+              <Link href={action.href}>
+                <OnboardingIllustration visual={getOnboardingActionVisual(action.id, path)} variant="thumbnail" />
+                <span>{action.label}</span>
+              </Link>
             </li>
           ))}
         </ul>

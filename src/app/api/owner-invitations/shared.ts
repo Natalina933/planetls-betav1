@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { Json } from "@/types/supabase";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/app/lib/dbServer";
 import { canAccessHousing } from "@/types/housing";
 import {
@@ -12,11 +13,7 @@ import {
   normalizeInvitationStatus,
 } from "@/types/ownerInvitations";
 
-type UntypedDb = {
-  from: (table: string) => ReturnType<typeof db.from>;
-};
-
-const dbAny = db as unknown as UntypedDb;
+const dbAny = asLooseSupabaseClient(db);
 
 type HousingAccessRow = {
   id: number;
@@ -204,7 +201,7 @@ export async function loadHousingInvitations(housingId: string | number, concier
     throw new Error("Impossible de charger les invitations.");
   }
 
-  return (data ?? []) as InvitationRow[];
+  return (data ?? []) as unknown as InvitationRow[];
 }
 
 export async function loadInvitationById(id: string) {
@@ -214,7 +211,7 @@ export async function loadInvitationById(id: string) {
     throw new Error("Impossible de charger l'invitation.");
   }
 
-  return (data ?? null) as InvitationRow | null;
+  return (data ?? null) as unknown as InvitationRow | null;
 }
 
 export async function findReusableInvitation(
@@ -238,7 +235,7 @@ export async function findReusableInvitation(
     return null;
   }
 
-  return (data ?? null) as InvitationRow | null;
+  return (data ?? null) as unknown as InvitationRow | null;
 }
 
 export async function insertInvitationEvent(

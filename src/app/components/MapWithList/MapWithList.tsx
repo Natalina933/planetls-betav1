@@ -150,6 +150,8 @@ export default function MapWithList() {
     );
   });
 
+  const isConciergeOnly = filter === "concierge";
+
   const center: LatLngExpression =
     visibleProfiles.length > 0
       ? [visibleProfiles[0].latitude, visibleProfiles[0].longitude]
@@ -160,19 +162,21 @@ export default function MapWithList() {
       <ToastContainer />
 
       <div className={styles.container}>
-        <div className={styles.list}>
-          <ProfilesDisplay
-            visibleProfiles={visibleProfiles.map((profile) => ({
-              id: profile.id,
-              name: profile.name,
-              type: profile.type,
-              services: profile.services,
-              available: true,
-            }))}
-            onHover={(id: string) => setHoveredId(id)}
-            onLeave={() => setHoveredId(null)}
-          />
-        </div>
+        {!isConciergeOnly ? (
+          <div className={styles.list}>
+            <ProfilesDisplay
+              visibleProfiles={visibleProfiles.map((profile) => ({
+                id: profile.id,
+                name: profile.name,
+                type: profile.type,
+                services: profile.services,
+                available: true,
+              }))}
+              onHover={(id: string) => setHoveredId(id)}
+              onLeave={() => setHoveredId(null)}
+            />
+          </div>
+        ) : null}
 
         <div className={styles.map}>
           <MapContainer

@@ -34,6 +34,16 @@ const assignString = (
   }
 };
 
+const formatFirstName = (value: string) =>
+  value
+    .trim()
+    .toLocaleLowerCase("fr-FR")
+    .replace(/(^|[\s'-])([\p{L}])/gu, (match, separator: string, letter: string) =>
+      `${separator}${letter.toLocaleUpperCase("fr-FR")}`
+    );
+
+const formatLastName = (value: string) => value.trim().toLocaleUpperCase("fr-FR");
+
 const assignNumber = (
   source: Record<string, unknown>,
   target: ProfileUpdatePayload,
@@ -80,6 +90,7 @@ export async function PATCH(req: NextRequest) {
       "last_name",
       "phone",
       "avatar_url",
+      "image",
       "additional_info",
       "category",
       "location",
@@ -142,6 +153,14 @@ export async function PATCH(req: NextRequest) {
       ) {
         updateData.experience_level = body.experience_level;
       }
+    }
+
+    if (typeof updateData.first_name === "string") {
+      updateData.first_name = formatFirstName(updateData.first_name);
+    }
+
+    if (typeof updateData.last_name === "string") {
+      updateData.last_name = formatLastName(updateData.last_name);
     }
 
     if (onboardingCompleteInput !== null) {

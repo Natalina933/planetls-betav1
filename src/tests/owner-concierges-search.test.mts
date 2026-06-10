@@ -21,7 +21,7 @@ import {
   upsertOwnerConciergeSearchAlert,
 } from "../app/dashboard/owner/searchAlerts.ts";
 
-test("parseProfileServices merges option and active mission labels", () => {
+test("parseProfileServices prefers active mission labels over legacy option", () => {
   const result = parseProfileServices(
     "Menage, Check-in",
     JSON.stringify({
@@ -34,7 +34,7 @@ test("parseProfileServices merges option and active mission labels", () => {
     }),
   );
 
-  assert.deepEqual(result, ["Menage", "Check-in", "Maintenance"]);
+  assert.deepEqual(result, ["Maintenance"]);
 });
 
 test("mapPropertyTypesByProfile groups and deduplicates property types", () => {

@@ -1,0 +1,516 @@
+.dashboard {
+  display: grid;
+  gap: 1.1rem;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1rem 0.75rem 2rem;
+}
+
+.sectionBlock {
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionLead {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sectionLead h2,
+.panelHeader h3 {
+  margin: 0;
+  color: var(--dash-text);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.sectionLead h2 {
+  font-size: clamp(1.14rem, 2vw, 1.5rem);
+}
+
+.sectionLead p,
+.healthDetail,
+.signalCard p,
+.priorityHero p,
+.priorityNote,
+.timelineRow p,
+.requestCard p,
+.financeCard p,
+.alertCard p,
+.propertyHead p {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.58;
+  text-wrap: pretty;
+}
+
+.sectionEyebrow,
+.panelEyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heroPanel,
+.panelCard,
+.priorityHero,
+.healthCard,
+.signalCard,
+.requestCard,
+.financeCard,
+.propertyCard,
+.quickActionCard,
+.alertCard,
+.timelineRow,
+.emptyCard {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 16px 34px rgba(74, 54, 22, 0.06);
+}
+
+.heroPanel {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.2rem, 2.4vw, 1.8rem);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 14%, transparent), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.heroBadge,
+.priorityBadge {
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 15%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(1.7rem, 3vw, 2.55rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.heroCopy p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--dash-text-muted);
+  line-height: 1.62;
+}
+
+.heroMetrics {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.heroMetric,
+.financeCard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+}
+
+.heroMetric span,
+.heroMetric small {
+  color: var(--dash-text-muted);
+  font-size: 0.8rem;
+}
+
+.heroMetric strong,
+.healthValue,
+.financeValue {
+  color: var(--dash-text);
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.heroActions,
+.priorityActions,
+.requestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink,
+.healthCard,
+.signalCard,
+.propertyCard,
+.quickActionCard,
+.alertCard,
+.timelineRow {
+  color: inherit;
+  text-decoration: none;
+}
+
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.primaryLink {
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: white;
+  box-shadow: 0 14px 28px rgba(127, 88, 32, 0.18);
+}
+
+.secondaryLink,
+.inlineLink,
+.ghostLink {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 22%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+}
+
+.ghostLink {
+  color: var(--dash-text-muted);
+}
+
+.healthGrid,
+.financeGrid,
+.alertGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.healthCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 22px;
+}
+
+.healthTop,
+.signalTop,
+.requestTop,
+.propertyHead,
+.panelHeader,
+.priorityHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.healthDot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.good {
+  background: #1f8b4d;
+}
+
+.warn {
+  background: #d49b23;
+}
+
+.info {
+  background: #3a7bd5;
+}
+
+.healthLabel,
+.financeLabel {
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.priorityLayout,
+.dualGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.priorityHero,
+.panelCard,
+.propertyCard,
+.quickActionCard,
+.alertCard {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.15rem;
+  border-radius: 26px;
+}
+
+.priorityHero {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 16%, transparent), transparent 32%),
+    linear-gradient(150deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+}
+
+.priorityHeader strong {
+  display: block;
+  color: var(--dash-text);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.priorityIcon,
+.propertyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+  color: var(--dash-accent-strong);
+  flex: 0 0 auto;
+}
+
+.priorityMeta,
+.requestMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.priorityMeta span,
+.requestMeta span,
+.inlineStatus,
+.timelineLabel,
+.timelineTime,
+.timelineDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  min-height: 30px;
+  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.priorityNote {
+  font-weight: 700;
+}
+
+.signalList,
+.timelineList,
+.requestList,
+.quickActions,
+.propertiesGrid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.signalCard {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem;
+  border-radius: 18px;
+}
+
+.signalTop span {
+  color: var(--dash-text);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.signalTop strong {
+  color: var(--dash-accent-strong);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+}
+
+.panelHeader {
+  align-items: center;
+}
+
+.panelHeader h3 {
+  font-size: 1.12rem;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+}
+
+.timelineRow strong,
+.requestCard strong,
+.propertyHead strong,
+.alertCard strong {
+  color: var(--dash-text);
+  line-height: 1.2;
+}
+
+.requestCard {
+  border-radius: 20px;
+}
+
+.requestTop {
+  align-items: center;
+}
+
+.propertiesGrid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.propertyStats {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.propertyStats div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+}
+
+.propertyStats span {
+  color: var(--dash-text-muted);
+  font-size: 0.78rem;
+}
+
+.quickActions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.quickActionCard {
+  place-items: center;
+  text-align: center;
+  min-height: 128px;
+  font-weight: 900;
+}
+
+.quickActionCard svg,
+.alertCard svg {
+  color: var(--dash-accent-strong);
+}
+
+.alertCard {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.emptyCard {
+  display: grid;
+  place-items: center;
+  min-height: 110px;
+  padding: 1rem;
+  border-radius: 20px;
+  border-style: dashed;
+  color: var(--dash-accent-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.primaryLink:hover,
+.secondaryLink:hover,
+.ghostLink:hover,
+.inlineLink:hover,
+.healthCard:hover,
+.signalCard:hover,
+.timelineRow:hover,
+.propertyCard:hover,
+.quickActionCard:hover,
+.alertCard:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .heroMetrics,
+  .healthGrid,
+  .financeGrid,
+  .alertGrid,
+  .quickActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .priorityLayout,
+  .dualGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard {
+    padding: 0.85rem 0.6rem 1.4rem;
+  }
+
+  .heroMetrics,
+  .healthGrid,
+  .financeGrid,
+  .alertGrid,
+  .quickActions {
+    grid-template-columns: 1fr;
+  }
+
+  .heroActions,
+  .priorityActions,
+  .requestActions {
+    flex-direction: column;
+  }
+
+  .primaryLink,
+  .secondaryLink,
+  .ghostLink,
+  .inlineLink {
+    width: 100%;
+  }
+
+  .timelineRow {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeader,
+  .requestTop,
+  .propertyHead,
+  .priorityHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

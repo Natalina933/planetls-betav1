@@ -1,8 +1,11 @@
 "use client";
 
+import ReadabilityControls, {
+  type ReadabilityScale,
+} from "@/app/components/onboarding/ReadabilityControls/ReadabilityControls";
 import styles from "./OnboardingStepHeader.module.scss";
 
-export type ReadabilityScale = "normal" | "large" | "xlarge";
+export type { ReadabilityScale };
 
 interface OnboardingStepHeaderProps {
   title: string;
@@ -44,32 +47,11 @@ export default function OnboardingStepHeader({
           </div>
         </div>
 
-        <div className={styles.readabilityControls} role="group" aria-label="Taille du texte">
-          <button
-            type="button"
-            className={readabilityScale === "normal" ? styles.readabilityActive : styles.readabilityButton}
-            onClick={() => onReadabilityChange("normal")}
-            aria-pressed={readabilityScale === "normal"}
-          >
-            A
-          </button>
-          <button
-            type="button"
-            className={readabilityScale === "large" ? styles.readabilityActive : styles.readabilityButton}
-            onClick={() => onReadabilityChange("large")}
-            aria-pressed={readabilityScale === "large"}
-          >
-            A+
-          </button>
-          <button
-            type="button"
-            className={readabilityScale === "xlarge" ? styles.readabilityActive : styles.readabilityButton}
-            onClick={() => onReadabilityChange("xlarge")}
-            aria-pressed={readabilityScale === "xlarge"}
-          >
-            A++
-          </button>
-        </div>
+        <ReadabilityControls
+          value={readabilityScale}
+          onChange={onReadabilityChange}
+          className={styles.readabilityControls}
+        />
       </div>
     </div>
   );

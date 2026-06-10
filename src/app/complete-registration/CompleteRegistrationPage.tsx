@@ -21,6 +21,7 @@ import {
 import { Button, Input } from "@/components/ui";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
+import { trackOnboardingEvent } from "@/app/lib/onboardingAnalytics";
 
 import AvatarUpload from "../components/ui/AvatarUpload/AvatarUpload";
 import Confetti from "../components/ui/Confetti/Confetti";
@@ -54,6 +55,11 @@ interface ProfileData {
   existingTools: string[];
   businessLink: string;
   propertyTypes: string[];
+  propertyType: string;
+  needVolume: string;
+  tradeBody: string;
+  startingPriceRange: string;
+  firstRequestTemplate: string;
   experienceLevel: ExperienceLevel | "";
   yearsExperience: string;
 }
@@ -77,7 +83,7 @@ const getDashboardPathFromCategory = (category: string): string => {
       return "/dashboard/provider";
     case "proprietaire":
     default:
-      return "Votre profil est prêt à être présenté de façon claire avant validation.";
+      return "/dashboard/owner";
   }
 };
 
@@ -115,6 +121,16 @@ const formatChoice = (value: string): string => {
     interventions_planifiees: "Interventions planifiées",
     assurance_ok: "Assurance professionnelle à jour",
     assurance_a_preciser: "Assurance à préciser plus tard",
+    gestion_complete: "Déléguer la gestion complète",
+    comparer_concierges: "Comparer plusieurs concierges",
+    occasionnel: "Occasionnel",
+    regulier: "Régulier",
+    saisonnier: "Saisonnier",
+    urgent: "Besoin urgent",
+    sur_devis: "Sur devis",
+    moins_50: "Moins de 50 € / h",
+    "50_80": "50 à 80 € / h",
+    "80_plus": "80 € / h et +",
   };
 
   return labels[value] ?? value;
@@ -155,18 +171,69 @@ const getServicesList = (value: string): string[] => {
 };
 
 const getProfileSummaryText = (profile: ProfileData): string => {
-  const targetLabel = formatCategoryLabel(profile.searchTarget);
   const servicesCount = getServicesList(profile.option).length;
 
   switch (profile.category) {
     case "concierge":
-      return `Vous avez un profil de conciergerie. Vous recherchez des ${targetLabel.toLowerCase()} cherchant un partenaire local fiable${servicesCount > 0 ? " pour ces services" : ""}.`;
+      return `Vous avez un profil de conciergerie. Vous souhaitez rencontrer des propriétaires qui cherchent une équipe locale fiable${servicesCount > 0 ? " pour ces services" : ""}.`;
     case "proprietaire":
-      return `Vous avez un profil de propriétaire. Vous recherchez une ${targetLabel.toLowerCase()} capable de vous accompagner${servicesCount > 0 ? " sur les services sélectionnés" : ""}.`;
+      return `Vous avez un profil de propriétaire. Vous recherchez une conciergerie capable de vous accompagner${servicesCount > 0 ? " sur les services sélectionnés" : ""}.`;
     case "artisan":
-      return `Vous avez un profil d'artisan. Vous recherchez des ${targetLabel.toLowerCase()} ayant besoin d'un professionnel de confiance${servicesCount > 0 ? " pour vos prestations" : ""}.`;
+      return `Vous avez un profil d'artisan. Vous souhaitez recevoir des demandes de propriétaires ou de conciergeries ayant besoin d'un professionnel de confiance${servicesCount > 0 ? " pour vos prestations" : ""}.`;
     default:
       return "Votre profil est prêt à être présenté de façon claire avant validation.";
+  }
+};
+
+const getSearchIntentText = (profile: ProfileData): string => {
+  switch (profile.category) {
+    case "concierge":
+      return "Je souhaite rencontrer des propriétaires";
+    case "artisan":
+      return "Je souhaite recevoir des missions locales";
+    case "proprietaire":
+      return "Je recherche une conciergerie";
+    default:
+      return profile.searchTarget
+        ? `Je souhaite collaborer avec ${formatCategoryLabel(profile.searchTarget).toLowerCase()}`
+        : "Recherche à préciser";
+  }
+};
+
+const getReadinessScore = (profile: ProfileData): number => {
+  const checks = [
+    profile.location,
+    profile.option,
+    profile.serviceRadiusKm,
+    profile.missionPreference,
+    profile.category === "proprietaire" ? profile.onboardingGoal : profile.availability || profile.supportNeed,
+    profile.category === "artisan" ? profile.tradeBody : profile.propertyType || profile.propertyTypes.length > 0,
+  ];
+
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+};
+
+const getNextActions = (profile: ProfileData) => {
+  switch (profile.category) {
+    case "proprietaire":
+      return [
+        { title: "Envoyer ma première demande", text: "Votre demande peut être pré-remplie avec l'objectif choisi." },
+        { title: "Comparer 3 concierges", text: "Repérez les profils proches de votre bien avant d'engager la conversation." },
+        { title: "Ajouter mon bien", text: "Complétez le type de bien et le volume de besoin pour affiner le matching." },
+      ];
+    case "artisan":
+      return [
+        { title: "Publier mon profil", text: "Mettez en avant métier, zone, urgences et créneaux disponibles." },
+        { title: "Préparer un devis type", text: "Gagnez du temps avec une réponse rapide pour les demandes fréquentes." },
+        { title: "Ajouter mes preuves", text: "SIRET, assurance et photos rassurent les propriétaires et conciergeries." },
+      ];
+    case "concierge":
+    default:
+      return [
+        { title: "Configurer mes services", text: "Transformez vos prestations en offres lisibles et faciles à demander." },
+        { title: "Ajouter mon premier bien", text: "Ajoutez votre premier logement ou une zone de mission proche." },
+        { title: "Répondre à une demande", text: "Retrouvez vite vos premières opportunités depuis l'espace concierge." },
+      ];
   }
 };
 
@@ -205,6 +272,11 @@ export default function CompleteRegistrationPage() {
     existingTools: [],
     businessLink: "",
     propertyTypes: [],
+    propertyType: "",
+    needVolume: "",
+    tradeBody: "",
+    startingPriceRange: "",
+    firstRequestTemplate: "",
     experienceLevel: "",
     yearsExperience: "",
   });
@@ -222,6 +294,8 @@ export default function CompleteRegistrationPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showMobileAccountPopup, setShowMobileAccountPopup] = useState(false);
+  const [mobileAccountPopupDismissed, setMobileAccountPopupDismissed] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | null>(null);
@@ -230,7 +304,13 @@ export default function CompleteRegistrationPage() {
   const [avatarOffsetY, setAvatarOffsetY] = useState(0);
   const [avatarRotation, setAvatarRotation] = useState(0);
   const [locationError, setLocationError] = useState("");
+  const accountFormRef = useRef<HTMLFormElement | null>(null);
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
+  const hasOnboardingContext = Boolean(
+    (searchParams.get("category") || profile.category) &&
+      (searchParams.get("location") || profile.location) &&
+      (searchParams.get("email") || profile.email)
+  );
 
   useEffect(() => {
     if (isInitialized.current) return;
@@ -264,6 +344,11 @@ export default function CompleteRegistrationPage() {
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean),
+      propertyType: searchParams.get("propertyType") ?? "",
+      needVolume: searchParams.get("needVolume") ?? "",
+      tradeBody: searchParams.get("tradeBody") ?? "",
+      startingPriceRange: searchParams.get("startingPriceRange") ?? "",
+      firstRequestTemplate: searchParams.get("firstRequestTemplate") ?? "",
       experienceLevel: (searchParams.get("experienceLevel") as ExperienceLevel) || "",
       yearsExperience: searchParams.get("yearsExperience") || "",
     }));
@@ -273,6 +358,37 @@ export default function CompleteRegistrationPage() {
     if (profile.category !== "concierge" || profile.serviceRadiusKm) return;
     setProfile((prev) => ({ ...prev, serviceRadiusKm: "15" }));
   }, [profile.category, profile.serviceRadiusKm]);
+
+  useEffect(() => {
+    const accountForm = accountFormRef.current;
+    if (!accountForm || mobileAccountPopupDismissed) return;
+
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+
+    const syncPopupState = () => {
+      if (!mediaQuery.matches) {
+        setShowMobileAccountPopup(false);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (mediaQuery.matches && entry.isIntersecting) {
+          setShowMobileAccountPopup(true);
+        }
+      },
+      { rootMargin: "0px 0px -38% 0px", threshold: 0.18 }
+    );
+
+    observer.observe(accountForm);
+    syncPopupState();
+    mediaQuery.addEventListener("change", syncPopupState);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener("change", syncPopupState);
+    };
+  }, [mobileAccountPopupDismissed]);
 
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -326,6 +442,11 @@ export default function CompleteRegistrationPage() {
       existingTools: data.existingTools,
       businessLink: data.businessLink,
       propertyTypes: data.propertyTypes,
+      propertyType: data.propertyType,
+      needVolume: data.needVolume,
+      tradeBody: data.tradeBody,
+      startingPriceRange: data.startingPriceRange,
+      firstRequestTemplate: data.firstRequestTemplate,
     }));
     setShowAccessPopup(false);
   };
@@ -357,6 +478,7 @@ export default function CompleteRegistrationPage() {
 
   const canSubmit =
     form.username.length >= 3 &&
+    validatePassword(form.password) === "" &&
     !errors.password &&
     !errors.confirmPassword &&
     form.password === form.confirmPassword;
@@ -421,6 +543,11 @@ export default function CompleteRegistrationPage() {
         existingTools: profile.existingTools,
         businessLink: profile.businessLink,
         propertyTypes: profile.propertyTypes,
+        propertyType: profile.propertyType,
+        needVolume: profile.needVolume,
+        tradeBody: profile.tradeBody,
+        startingPriceRange: profile.startingPriceRange,
+        firstRequestTemplate: profile.firstRequestTemplate,
         category: profile.category,
         search_target: profile.searchTarget,
         option: profile.option,
@@ -432,6 +559,12 @@ export default function CompleteRegistrationPage() {
 
     const data = await res.json();
     if (!res.ok) {
+      trackOnboardingEvent({
+        step: FINAL_STEP,
+        category: profile.category,
+        action: "onboarding_account_creation_failed",
+        metadata: { reason: data.error || "unknown", signupMode: profile.signupMode },
+      });
       alert(data.error || "Erreur lors de l'inscription");
       setLoading(false);
       return;
@@ -447,13 +580,133 @@ export default function CompleteRegistrationPage() {
 
     if (loginResult?.error) {
       setLoading(false);
+      trackOnboardingEvent({
+        step: FINAL_STEP,
+        category: profile.category,
+        action: "onboarding_auto_login_failed",
+        metadata: { signupMode: profile.signupMode, onboardingVariant: profile.signupMode },
+      });
       alert("Compte cr\u00e9\u00e9, mais la connexion automatique a \u00e9chou\u00e9. Merci de vous connecter manuellement.");
       router.replace("/login");
       return;
     }
 
+    trackOnboardingEvent({
+      step: FINAL_STEP,
+      category: profile.category,
+      action: profile.category === "concierge" ? "concierge_onboarding_step_completed" : "onboarding_account_created",
+      metadata: {
+        signupMode: profile.signupMode,
+        onboardingVariant: profile.signupMode,
+        onboardingGoal: profile.onboardingGoal,
+        readinessScore: getReadinessScore(profile),
+        timeToCompleteSeconds: null,
+      },
+    });
     router.replace(getDashboardPathFromCategory(profile.category));
   };
+
+  const renderAccountFields = () => (
+    <>
+      <Input
+        bare
+        name="username"
+        placeholder="Nom d'utilisateur"
+        value={form.username}
+        onChange={handleFormChange}
+        autoComplete="username"
+        required
+      />
+
+      <div className={styles.passwordWrapper}>
+        <Input
+          bare
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="Mot de passe"
+          value={form.password}
+          onChange={handleFormChange}
+          autoComplete="new-password"
+          required
+        />
+        <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword((v) => !v)}>
+          {showPassword ? <FaEyeSlash /> : <FaEye />}
+        </Button>
+      </div>
+
+      {errors.password && (
+        <small className={styles.errorMsg}><FaTimesCircle /> {errors.password}</small>
+      )}
+      {!errors.password && form.password && (
+        <small className={styles.successMsg}><FaCheckCircle /> Mot de passe assez sÃ©curisÃ©</small>
+      )}
+
+      <div className={styles.passwordWrapper}>
+        <Input
+          bare
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          placeholder="Confirmation"
+          value={form.confirmPassword}
+          onChange={handleFormChange}
+          autoComplete="new-password"
+          required
+        />
+        <Button type="button" variant="ghost" size="sm" onClick={() => setShowConfirmPassword((v) => !v)}>
+          {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+        </Button>
+      </div>
+
+      {form.confirmPassword && !errors.confirmPassword && (
+        <small className={styles.successMsg}><FaCheckCircle /> Les mots de passe correspondent</small>
+      )}
+
+      {errors.confirmPassword && (
+        <small className={styles.errorMsg}><FaTimesCircle /> {errors.confirmPassword}</small>
+      )}
+
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        disabled={!canSubmit || loading}
+        className={styles.submitButton}
+      >
+        {loading ? "Inscription..." : "Finaliser mon inscription"}
+      </Button>
+    </>
+  );
+
+  if (!hasOnboardingContext) {
+    return (
+      <div className={styles.pageContainer}>
+        <OnboardingStepHeader
+          title={"Inscription guidée"}
+          step={1}
+          totalSteps={ONBOARDING_TOTAL_STEPS}
+          progressPercent={0}
+          readabilityScale={readabilityScale}
+          onReadabilityChange={setReadabilityScale}
+        />
+
+        <section className={styles.recapSection}>
+          <h1 className={styles.title}>Commencez par choisir votre parcours</h1>
+          <p className={styles.recapMuted}>
+            Cette page finalise un profil déjà préparé. Pour éviter un compte incomplet, reprenez
+            depuis le choix de parcours puis laissez-vous guider jusqu&apos;à la création du compte.
+          </p>
+          <div className={styles.recapActions}>
+            <Button type="button" variant="primary" size="lg" onClick={() => router.push("/parcours")}>
+              Choisir mon parcours
+            </Button>
+            <Button type="button" variant="outline" size="lg" onClick={() => router.push("/home")}>
+              Revenir à l&apos;accueil
+            </Button>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -513,13 +766,11 @@ export default function CompleteRegistrationPage() {
               {/* <p className={styles.recapMiniBadge}>Profil en construction ✨</p> */}
 
               <div className={styles.recapIdentityCopy}>
-                <p className={styles.recapIdentityEyebrow}> j&apos;ai un profil de  
+                <p className={styles.recapIdentityEyebrow}>J&apos;ai un profil de{" "}
                   {formatCategoryLabel(profile.category)}
                 </p>
 
-                <p className={styles.recapIdentityMeta}> je recherche des missions de
-                  {formatCategoryLabel(profile.searchTarget)}
-                </p>
+                <p className={styles.recapIdentityMeta}>{getSearchIntentText(profile)}</p>
 
                 <p className={styles.recapIdentityMeta}>
                   {profile.location || "à définir"}
@@ -606,40 +857,63 @@ export default function CompleteRegistrationPage() {
                 <strong>{"Activité"}</strong>
               </div>
               <ul className={styles.detailList}>
-                <li><span>Structure</span><strong>{profile.companyName || "préciser"}</strong></li>
+                <li><span>Structure</span><strong>{profile.companyName || "à préciser"}</strong></li>
                 <li><span>Parcours</span><strong>{formatChoice(profile.signupMode || "simple")}</strong></li>
-                <li><span>Rayon</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "préciser"}</strong></li>
-                <li><span>{"Disponibilité"}</span><strong>{profile.availability ? formatChoice(profile.availability) : "préciser"}</strong></li>
+                <li><span>Rayon</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "à préciser"}</strong></li>
+                <li><span>{"Disponibilité"}</span><strong>{profile.availability ? formatChoice(profile.availability) : "à préciser"}</strong></li>
                 <li><span>Collaboration</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "Ouverte aux opportunités"}</strong></li>
-                <li><span>{"Biens gérés"}</span><strong>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "préciser"}</strong></li>
+                <li><span>{"Biens gérés"}</span><strong>{profile.propertyTypes.length ? profile.propertyTypes.join(", ") : "à préciser"}</strong></li>
+              </ul>
+            </div>
+          )}
+
+          {profile.category === "proprietaire" && (
+            <div className={styles.recapBlock}>
+              <div className={styles.recapBlockTitle}>
+                <span className={styles.recapIcon}><FaBullseye /></span>
+                <strong>{"Votre projet"}</strong>
+              </div>
+              <ul className={styles.detailList}>
+                <li><span>Objectif</span><strong>{profile.onboardingGoal ? formatChoice(profile.onboardingGoal) : "À préciser"}</strong></li>
+                <li><span>Type de bien</span><strong>{profile.propertyType || "À préciser"}</strong></li>
+                <li><span>Volume</span><strong>{profile.needVolume ? formatChoice(profile.needVolume) : "À définir"}</strong></li>
+                <li><span>Besoin</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "À définir"}</strong></li>
+              </ul>
+            </div>
+          )}
+
+          {profile.category === "artisan" && (
+            <div className={styles.recapBlock}>
+              <div className={styles.recapBlockTitle}>
+                <span className={styles.recapIcon}><FaTools /></span>
+                <strong>{"Profil mission"}</strong>
+              </div>
+              <ul className={styles.detailList}>
+                <li><span>Métier</span><strong>{profile.tradeBody || "À définir"}</strong></li>
+                <li><span>Zone</span><strong>{profile.serviceRadiusKm ? `${profile.serviceRadiusKm} km` : "À préciser"}</strong></li>
+                <li><span>Urgences</span><strong>{profile.missionPreference ? formatChoice(profile.missionPreference) : "À définir"}</strong></li>
+                <li><span>Confiance</span><strong>{profile.supportNeed ? formatChoice(profile.supportNeed) : "Assurance à préciser"}</strong></li>
+                <li><span>Tarif</span><strong>{profile.startingPriceRange ? formatChoice(profile.startingPriceRange) : "Sur devis"}</strong></li>
               </ul>
             </div>
           )}
         </div>
       </section>
-
-      {profile.category === "concierge" && (
-        <section className={styles.nextActionsSection}>
-          <h2>{"Après inscription, choisissez votre première action"}</h2>
-          <div className={styles.nextActionsGrid}>
-            <div>
-              <strong>{"Créer un bien"}</strong>
-              <p>Ajoutez votre premier logement ou une zone de mission proche.</p>
+      <section className={styles.nextActionsSection}>
+        <h2>{"Après inscription, choisissez votre première action"}</h2>
+        <p className={styles.readinessText}>Profil prêt à recevoir des opportunités : {getReadinessScore(profile)}%</p>
+        <div className={styles.nextActionsGrid}>
+          {getNextActions(profile).map((action) => (
+            <div key={action.title}>
+              <strong>{action.title}</strong>
+              <p>{action.text}</p>
             </div>
-            <div>
-              <strong>{"Créer une offre"}</strong>
-              <p>Transformez vos services en packs simples \u00e0 proposer.</p>
-            </div>
-            <div>
-              <strong>{"Inviter un propriétaire"}</strong>
-              <p>Retrouvez vite vos premiers contacts dans l&apos;espace concierge.</p>
-            </div>
-          </div>
-        </section>
-      )}
+          ))}
+        </div>
+      </section>
 
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <form ref={accountFormRef} onSubmit={handleSubmit} className={styles.form}>
         <h2>{"Création du compte"}</h2>
 
         <Input
@@ -670,6 +944,9 @@ export default function CompleteRegistrationPage() {
 
         {errors.password && (
           <small className={styles.errorMsg}><FaTimesCircle /> {errors.password}</small>
+        )}
+        {!errors.password && form.password && (
+          <small className={styles.successMsg}><FaCheckCircle /> Mot de passe assez sécurisé</small>
         )}
 
         <div className={styles.passwordWrapper}>
@@ -707,6 +984,32 @@ export default function CompleteRegistrationPage() {
         </Button>
       </form>
 
+      {showMobileAccountPopup && (
+        <div className={styles.mobileAccountOverlay} role="dialog" aria-modal="true" aria-labelledby="mobile-account-title">
+          <form onSubmit={handleSubmit} className={styles.mobileAccountSheet}>
+            <div className={styles.mobileAccountHeader}>
+              <div>
+                <p>Derni&egrave;re action</p>
+                <h2 id="mobile-account-title">Cr&eacute;ez votre compte</h2>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowMobileAccountPopup(false);
+                  setMobileAccountPopupDismissed(true);
+                }}
+                aria-label="Fermer la fenetre de creation du compte"
+              >
+                <FaTimesCircle />
+              </Button>
+            </div>
+            {renderAccountFields()}
+          </form>
+        </div>
+      )}
+
       {showExperiencePopup && (
         <ExperiencePopup
           category={profile.category}
@@ -721,8 +1024,12 @@ export default function CompleteRegistrationPage() {
           initialSelectedOptions={getServicesList(profile.option)}
           experienceLevel={profile.experienceLevel}
           signupMode={profile.signupMode}
+          onboardingGoal={profile.onboardingGoal}
           onSignupModeChange={(signupMode) => {
             setProfile((prev) => ({ ...prev, signupMode }));
+          }}
+          onOnboardingGoalChange={(onboardingGoal) => {
+            setProfile((prev) => ({ ...prev, onboardingGoal }));
           }}
           onClose={() => setShowCategoryPopup(false)}
           onNext={handleServicesValidate}
@@ -749,6 +1056,11 @@ export default function CompleteRegistrationPage() {
             existingTools: profile.existingTools,
             businessLink: profile.businessLink,
             propertyTypes: profile.propertyTypes,
+            propertyType: profile.propertyType,
+            needVolume: profile.needVolume,
+            tradeBody: profile.tradeBody,
+            startingPriceRange: profile.startingPriceRange,
+            firstRequestTemplate: profile.firstRequestTemplate,
           }}
           recap={{
             category: profile.category,

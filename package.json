@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx,.mts",

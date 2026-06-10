@@ -1,520 +1,457 @@
 @use "sass:color";
-@use "sass:math";
-@use "../styles/abstracts/mixins" as *;
-@use "../styles/abstracts/variables" as *;
 
-// Couleurs principales
 $gold: #d4af37;
 $gold-light: color.adjust($gold, $lightness: 12%);
-$gold-dark:  color.adjust($gold, $lightness: -12%);
-$text-color: var(--color-text, #222);
-$bg-color: var(--background, #faf9f6);
-$border-color: rgba(0, 0, 0, 0.1);
+$gold-dark: color.adjust($gold, $lightness: -12%);
+$ink: #2f2415;
+$muted: rgba(57, 43, 18, 0.72);
+$danger: #e74c3c;
 
-$page-width: 900px;
+.pageShell {
+  min-height: calc(100dvh - 96px);
+  padding: clamp(0.75rem, 2vw, 2rem);
+  background:
+    linear-gradient(135deg, rgba(247, 241, 229, 0.86), rgba(255, 252, 246, 0.96)),
+    url("/textures/elegant-fibers.png");
+  color: $ink;
+}
 
-// ============================================================================
-// PAGE STRUCTURE
-// ============================================================================
+.authLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.78fr);
+  gap: clamp(0.85rem, 2.4vw, 1.8rem);
+  align-items: stretch;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.visualPanel,
+.pageContainer,
+.form {
+  border: 1px solid rgba($gold, 0.16);
+  box-shadow:
+    0 20px 60px rgba(34, 26, 12, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.65) inset;
+}
+
+.visualPanel {
+  position: relative;
+  isolation: isolate;
+  min-height: min(720px, calc(100dvh - 132px));
+  overflow: hidden;
+  border-radius: 28px;
+  background: #2c2117;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.visualShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(31, 22, 13, 0.76), rgba(31, 22, 13, 0.26) 58%, rgba(31, 22, 13, 0.1)),
+    linear-gradient(180deg, rgba(31, 22, 13, 0.16), rgba(31, 22, 13, 0.82));
+}
+
+.visualContent {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: clamp(0.9rem, 2vw, 1.6rem);
+  min-height: 100%;
+  padding: clamp(1rem, 2.6vw, 2rem);
+  color: #fff8e7;
+}
+
+.logo {
+  width: min(178px, 58vw);
+  height: auto;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.22));
+}
+
+.visualText {
+  align-self: end;
+  display: grid;
+  gap: 0.75rem;
+  max-width: 620px;
+}
+
+.visualEyebrow,
+.eyebrow,
+.visualStats span {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.visualEyebrow {
+  min-height: 32px;
+  padding: 0.32rem 0.72rem;
+  border: 1px solid rgba(255, 232, 178, 0.28);
+  background: rgba(255, 248, 232, 0.12);
+  color: #ffe8aa;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+}
+
+.visualText h2 {
+  margin: 0;
+  max-width: 13ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.15rem, 4vw, 4rem);
+  line-height: 0.98;
+  color: #fff9eb;
+  text-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
+}
+
+.visualText p {
+  margin: 0;
+  max-width: 54ch;
+  color: rgba(255, 248, 232, 0.88);
+  line-height: 1.65;
+}
+
+.previewStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.previewImage {
+  width: 100%;
+  height: clamp(76px, 9vw, 112px);
+  object-fit: cover;
+  border: 1px solid rgba(255, 240, 202, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.24);
+}
+
+.visualStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.visualStats span {
+  min-height: 34px;
+  padding: 0.34rem 0.78rem;
+  border: 1px solid rgba(255, 232, 178, 0.22);
+  background: rgba(18, 12, 8, 0.32);
+  color: #ffe8aa;
+  font-size: 0.82rem;
+}
+
 .pageContainer {
-  max-width: $page-width;
-  margin: 3rem auto;
-  padding: clamp(1.25rem, 2vw, 2rem);
+  align-self: center;
+  display: grid;
+  gap: 1.35rem;
+  width: 100%;
+  padding: clamp(1rem, 2vw, 2rem);
+  border-radius: 28px;
   background:
     radial-gradient(circle at top, rgba($gold, 0.16), transparent 35%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 240, 0.92));
-  border: 1px solid rgba($gold, 0.18);
-  border-radius: 28px;
-  box-shadow:
-    0 20px 60px rgba(34, 26, 12, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.7) inset;
-  position: relative;
-  z-index: 10;
-  color: $text-color;
+  color: $ink;
   font-family: var(--font-inter), var(--font-text), system-ui, sans-serif;
 }
 
 .headerBlock {
   text-align: center;
-  margin-bottom: 1.75rem;
 }
 
 .eyebrow {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  padding: 0.38rem 0.8rem;
-  border-radius: 999px;
-  background: rgba($gold, 0.12);
+  min-height: 30px;
+  padding: 0.34rem 0.78rem;
   border: 1px solid rgba($gold, 0.24);
+  background: rgba($gold, 0.12);
   color: $gold-dark;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
 }
 
-// ============================================================================
-// TITRE & SECTIONS
-// ============================================================================
 .title {
-  text-align: center;
+  margin: 0.8rem 0 0.7rem;
+  color: #4f3a10;
   font-size: clamp(2rem, 3vw, 2.6rem);
   font-weight: 700;
-  color: #4f3a10;
-  margin: 0.9rem 0 0.8rem;
-  position: relative;
+  line-height: 1.05;
+  text-align: center;
+}
 
-  &::after {
-    content: "";
-    display: block;
-    width: 80px;
-    height: 3px;
-    background: $gold;
-    border-radius: 4px;
-    margin: 0.5rem auto 0;
-  }
+.title::after {
+  content: "";
+  display: block;
+  width: 80px;
+  height: 3px;
+  margin: 0.5rem auto 0;
+  border-radius: 4px;
+  background: $gold;
 }
 
 .subtitle {
   max-width: 620px;
   margin: 0 auto;
-  color: rgba(57, 43, 18, 0.78);
-  line-height: 1.65;
+  color: $muted;
   font-size: 1rem;
-}
-
-.summary,
-.form {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba($gold, 0.12);
-  border-radius: 22px;
-  padding: clamp(1.25rem, 2vw, 2rem);
-  box-shadow:
-    0 12px 32px rgba(66, 45, 9, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.75) inset;
-  margin-bottom: 2rem;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 16px 36px rgba($gold, 0.16);
-    transform: translateY(-2px);
-  }
-
-  h2 {
-    color: $gold-dark;
-    font-size: 1.3rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-  }
+  line-height: 1.65;
 }
 
 .form {
   display: grid;
   gap: 0.65rem;
+  padding: clamp(1rem, 2vw, 1.7rem);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .fieldLabel {
   display: inline-flex;
-  align-items: center;
-  margin-top: 0.3rem;
+  margin-top: 0.25rem;
   color: #4b3715;
   font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
 }
 
-// =================================================================
-// RÉCAPITULATIF
-// ============================================================================
-.summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-
-  .summaryItem {
-    background: $bg-color;
-    border: 1px solid $border-color;
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-
-    strong {
-      display: block;
-      color: $gold-dark;
-      margin-bottom: 0.3rem;
-      font-weight: 600;
-    }
-  }
-}
-
-.services {
-  margin-top: 1rem;
-
-  ul {
-    margin-top: 0.5rem;
-    padding-left: 1.2rem;
-
-    li {
-      margin-bottom: 0.3rem;
-      list-style: "✨ ";
-    }
-  }
-}
-
-.divider {
-  margin: 1.5rem 0;
-  border: none;
-  height: 1px;
-  background: linear-gradient(to right, transparent, $gold, transparent);
-}
-
-// ============================================================================
-// PROFIL & FORM INFOS
-// ============================================================================
-.profileHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.8rem;
-
-  h2 {
-    margin: 0;
-  }
-
-  button {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    border: 1px solid $gold;
-    background: transparent;
-    color: $gold;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: $gold;
-      color: white;
-      box-shadow: 0 0 6px rgba($gold, 0.4);
-    }
-  }
-}
-
-.editModeBadge {
-  background: $gold-light;
-  color: $gold-dark;
-  font-size: 0.9rem;
-  text-align: center;
-  padding: 0.4rem 0.8rem;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-}
-
-.profileGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.2rem;
-
-  .profileField {
-    display: flex;
-    flex-direction: column;
-
-    strong {
-      margin-bottom: 0.3rem;
-      color: $gold-dark;
-    }
-  }
-}
-
-.textarea {
-  resize: vertical;
-  padding: 0.7rem;
-  border: 1px solid $border-color;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-
-  &:focus {
-    border-color: $gold;
-    box-shadow: 0 0 4px rgba($gold, 0.3);
-    outline: none;
-  }
-}
-
-// ============================================================================
-// INPUTS & VALIDATION
-// ============================================================================
-.inputWrapper {
+.inputWrapper,
+.passwordInputWrapper {
   position: relative;
+  min-width: 0;
 }
 
-.input {
+.input,
+.inputError {
   width: 100%;
   min-height: 50px;
   padding: 0.8rem 1rem;
-  border-radius: 14px;
   border: 1px solid rgba(108, 83, 35, 0.18);
+  border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(251, 247, 239, 0.98));
-  color: #2f2415;
-  transition: all 0.3s ease;
+  color: $ink;
   font-size: 0.98rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
-  &:focus {
-    border-color: $gold;
-    box-shadow: 0 0 0 4px rgba($gold, 0.16);
-    outline: none;
-  }
+.input:focus,
+.inputError:focus {
+  border-color: $gold;
+  box-shadow: 0 0 0 4px rgba($gold, 0.16);
+  outline: none;
+}
 
-  &::placeholder {
-    color: rgba(80, 62, 30, 0.5);
-  }
+.input::placeholder,
+.inputError::placeholder {
+  color: rgba(80, 62, 30, 0.5);
 }
 
 .inputError {
-  border-color: #e74c3c !important;
-  box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.14);
+  border-color: $danger;
+  box-shadow: 0 0 0 4px rgba($danger, 0.14);
 }
 
-.inputValid {
-  border-color: #2ecc71;
+.inputWrapper .input,
+.inputWrapper .inputError {
+  padding-right: 2.45rem;
+}
+
+.passwordInputWrapper .input,
+.passwordInputWrapper .inputError {
+  padding-right: 3.25rem;
 }
 
 .validationIcon {
   position: absolute;
-  top: 50%;
-  right: 0.8rem;
+  top: 25px;
+  right: 0.85rem;
+  display: inline-flex;
   transform: translateY(-50%);
   pointer-events: none;
 }
 
+.passwordInputWrapper .passwordToggle {
+  position: absolute !important;
+  top: 25px !important;
+  right: 0.45rem !important;
+  z-index: 2;
+  width: 42px;
+  min-width: 42px;
+  max-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 !important;
+  border-radius: 999px;
+  color: $gold-dark;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: none !important;
+  transform: translateY(-50%) !important;
+}
+
+.passwordInputWrapper .passwordToggle:hover {
+  color: $gold;
+  background: transparent;
+  transform: translateY(-50%) !important;
+}
+
 .errorMsg {
-  color: #e74c3c;
-  font-size: 0.88rem;
   margin-top: 0.3rem;
+  color: $danger;
+  font-size: 0.88rem;
   font-weight: 600;
 }
 
 .authError {
-  margin-top: 1rem;
   padding: 0.85rem 1rem;
+  border: 1px solid rgba($danger, 0.2);
   border-radius: 14px;
-  border: 1px solid rgba(231, 76, 60, 0.2);
-  background: rgba(231, 76, 60, 0.08);
+  background: rgba($danger, 0.08);
 }
 
-.successMsg {
-  color: #2ecc71;
-  font-size: 0.85rem;
-  margin-top: 0.2rem;
-}
-
-.infoMsg {
-  background: rgba($gold, 0.05);
-  border-left: 3px solid $gold;
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  color: $text-color;
-}
-
-// ============================================================================
-// PASSWORD INPUTS
-// ============================================================================
-.passwordInputWrapper {
-  position: relative;
-
-  input {
-    width: 100%;
-    padding-right: 2.5rem;
-  }
-}
-
-.passwordToggle {
-  position: absolute;
-  top: 50%;
-  right: 0.6rem;
-  transform: translateY(-50%);
-  min-height: 0;
-  padding: 0;
-  cursor: pointer;
-  color: $gold-dark;
-  font-size: 1.1rem;
-  transition: color 0.3s ease;
-  box-shadow: none !important;
-
-  &:hover {
-    color: $gold;
-    background: transparent;
-    transform: translateY(-50%);
-  }
-}
-
-// ============================================================================
-// AVATAR
-// ============================================================================
-.avatarSection {
-  margin-top: 1.5rem;
-  background: $bg-color;
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid rgba($gold, 0.1);
-
-  h3 {
-    color: $gold-dark;
-    margin-bottom: 1rem;
-  }
-}
-
-// ============================================================================
-// SUBMIT BUTTON
-// ============================================================================
 .submitButton {
+  min-width: 220px;
+  margin: 1.2rem auto 0;
+  border: 0;
+  border-radius: 999px;
   background: $gold;
   color: #fffaf0;
-  font-weight: 600;
-  border: none;
-  border-radius: 50px;
-  padding: 0.9rem 1.8rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  font-size: 1rem;
   box-shadow: 0 0 8px rgba($gold, 0.25);
-  display: block;
-  margin: 1.5rem auto 0;
-  min-width: 220px;
-
-  &:hover:not(:disabled) {
-    background: $gold-light;
-    color: rgb(95, 56, 0);
-    box-shadow: 0 0 10px rgba($gold, 0.4);
-  }
-
-  &:active:not(:disabled) {
-    animation: goldPulse 0.6s ease-out;
-  }
-
-  &:disabled {
-    background: #ccc;
-    color: #666;
-    cursor: not-allowed;
-    opacity: 0.7;
-    box-shadow: none;
-  }
 }
 
-@keyframes goldPulse {
-  0% {
-    box-shadow: 0 0 0 rgba($gold, 0.6);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 18px rgba($gold, 0.8);
-    transform: scale(1.05);
-  }
-  100% {
-    box-shadow: 0 0 0 rgba($gold, 0);
-    transform: scale(1);
-  }
+.submitButton:hover:not(:disabled) {
+  background: $gold-light;
+  color: #5f3800;
+  box-shadow: 0 0 10px rgba($gold, 0.4);
 }
 
-// ============================================================================
-// SUCCESS BANNER
-// ============================================================================
-.successBanner {
-  background: linear-gradient(90deg, $gold-light, $gold);
-  color: #fff;
-  text-align: center;
-  padding: 1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba($gold, 0.25);
-  margin-bottom: 1.5rem;
-  animation: fadeIn 0.6s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.submitButton:disabled {
+  background: #ccc;
+  color: #666;
+  box-shadow: none;
 }
 
 :global([data-theme="mucha-dark"]) {
-  .pageContainer {
+  .pageShell {
     background:
-      radial-gradient(circle at top, rgba(198, 167, 92, 0.18), transparent 35%),
-      linear-gradient(180deg, rgba(30, 22, 15, 0.96), rgba(20, 14, 10, 0.96));
-    border-color: rgba(198, 167, 92, 0.24);
-    box-shadow:
-      0 24px 60px rgba(0, 0, 0, 0.38),
-      0 1px 0 rgba(255, 255, 255, 0.04) inset;
+      linear-gradient(135deg, rgba(17, 14, 18, 0.9), rgba(28, 22, 18, 0.96)),
+      url("/textures/mucha-background-patternv3.png");
+  }
+
+  .pageContainer,
+  .form {
+    border-color: rgba(198, 167, 92, 0.2);
+    background: linear-gradient(180deg, rgba(30, 22, 15, 0.96), rgba(20, 14, 10, 0.96));
     color: #f7f0db;
   }
 
-  .eyebrow {
-    background: rgba(198, 167, 92, 0.12);
-    border-color: rgba(198, 167, 92, 0.26);
+  .title,
+  .fieldLabel,
+  .passwordToggle {
     color: #e6cf92;
   }
 
-  .title {
-    color: #f4e8c4;
+  .eyebrow {
+    border-color: rgba(198, 167, 92, 0.26);
+    background: rgba(198, 167, 92, 0.12);
+    color: #e6cf92;
   }
 
   .subtitle {
     color: rgba(244, 232, 196, 0.78);
   }
 
-  .form,
-  .summary {
-    background: linear-gradient(180deg, rgba(43, 31, 21, 0.96), rgba(29, 21, 15, 0.96));
-    border-color: rgba(198, 167, 92, 0.16);
-    box-shadow:
-      0 18px 40px rgba(0, 0, 0, 0.34),
-      0 1px 0 rgba(255, 255, 255, 0.03) inset;
-  }
-
-  .fieldLabel,
-  .passwordToggle,
-  .summary h2,
-  .form h2 {
-    color: #e6cf92;
-  }
-
-  .input {
-    background: linear-gradient(180deg, rgba(21, 15, 12, 0.95), rgba(34, 25, 19, 0.95));
+  .input,
+  .inputError {
     border-color: rgba(198, 167, 92, 0.2);
+    background: linear-gradient(180deg, rgba(21, 15, 12, 0.95), rgba(34, 25, 19, 0.95));
     color: #fff7e6;
+  }
 
-    &::placeholder {
-      color: rgba(247, 240, 219, 0.45);
-    }
-
-    &:focus {
-      box-shadow: 0 0 0 4px rgba(198, 167, 92, 0.18);
-    }
+  .input::placeholder,
+  .inputError::placeholder {
+    color: rgba(247, 240, 219, 0.45);
   }
 }
 
-// ============================================================================
-// RESPONSIVE
-// ============================================================================
+@media (max-width: 1020px) {
+  .authLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .visualPanel {
+    min-height: 420px;
+  }
+
+  .visualText h2 {
+    max-width: 16ch;
+  }
+}
+
 @media (max-width: 768px) {
+  .authLayout {
+    gap: 0.85rem;
+  }
+
+  .visualPanel,
   .pageContainer {
-    margin: 1.25rem auto;
+    border-radius: 22px;
+  }
+
+  .visualPanel {
+    min-height: 330px;
+  }
+
+  .visualContent,
+  .pageContainer,
+  .form {
     padding: 1rem;
   }
 
-  .summary,
-  .form {
-    padding: 1.2rem;
+  .visualText h2 {
+    font-size: clamp(1.8rem, 10vw, 2.5rem);
   }
 
+  .visualText p,
   .subtitle {
-    font-size: 0.95rem;
+    font-size: 0.94rem;
+  }
+
+  .previewStrip {
+    grid-template-columns: repeat(3, minmax(78px, 1fr));
+    overflow: hidden;
+  }
+
+  .previewImage {
+    height: 72px;
+    border-radius: 12px;
+  }
+
+  .visualStats {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .visualPanel {
+    min-height: 286px;
+  }
+
+  .previewStrip {
+    display: none;
+  }
+
+  .submitButton {
+    width: 100%;
+    min-width: 0;
   }
 }

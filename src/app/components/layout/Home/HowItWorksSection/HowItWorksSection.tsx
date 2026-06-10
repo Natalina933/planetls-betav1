@@ -82,31 +82,31 @@ const stepsByCategory: Record<string, StepCategory> = {
     ],
   },
   professionnels: {
-    label: "Prestataires",
+    label: "Artisans",
     icon: Briefcase,
-    ctaLabel: "Explorer la plateforme",
-    ctaLink: "/home",
+    ctaLabel: "Découvrir le parcours artisan",
+    ctaLink: "/provider",
     steps: [
       {
         Icon: Users,
-        title: "Accédez au réseau local",
+        title: "Accédez aux missions locales",
         description:
-          "Positionnez votre savoir-faire auprès des conciergeries, des indépendants et des propriétaires actifs.",
-        link: "/home",
+          "Rendez votre savoir-faire visible auprès des conciergeries, des indépendants et des propriétaires actifs.",
+        link: "/provider",
       },
       {
         Icon: Lightbulb,
         title: "Recevez des missions ciblées",
         description:
           "Travaillez avec des demandes plus claires et un cadre plus professionnel.",
-        link: "/home",
+        link: "/provider",
       },
       {
         Icon: Handshake,
         title: "Renforcez votre visibilité",
         description:
           "Mettez en avant votre fiabilité, vos services et la qualité de vos interventions.",
-        link: "/home",
+        link: "/provider",
       },
     ],
   },

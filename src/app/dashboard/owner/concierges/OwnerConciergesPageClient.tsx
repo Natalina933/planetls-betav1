@@ -1,10 +1,21 @@
 ﻿"use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  CheckCircle2,
+  Clock3,
+  FilePenLine,
+  FileText,
+  Handshake,
+  MapPin,
+  PartyPopper,
+  Search as SearchIcon,
+  Send,
+} from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui";
 import styles from "./OwnerConciergesPage.module.scss";
 import type { ServiceCatalogItem, SortMode, ViewMode } from "./conciergeSearchTypes";
@@ -20,11 +31,20 @@ import {
   toggleOwnerConciergeValue,
   type OwnerConciergeSearchFilters,
 } from "./searchHelpers";
-import { getOwnerCitySuggestions, getOwnerRegionSuggestions } from "./locationSuggestions";
+import { getOwnerCitySuggestions } from "./locationSuggestions";
 import { upsertOwnerConciergeSearchAlert } from "../searchAlerts";
 import { ResultsGrid, ResultsHeader, RequestPanel, SearchFilters } from "@/features/owner-concierges/components";
+import { ConciergeAvatar } from "@/features/owner-concierges/components/ConciergeAvatar";
+import { OwnerJourneyRail } from "@/features/owner-dashboard";
+import { CONCIERGE_PROPERTY_TYPES } from "@/features/shared/data/propertyTypes";
 import type { RequestWorkflowStatus } from "@/app/lib/requestStatus";
+import {
+  buildServiceRequestBrief,
+  getServiceRequestBriefDefaults,
+  inferRequestTypeFromCollaboration,
+} from "@/app/lib/serviceRequestBrief";
 import type { RequestFormState } from "@/features/owner-concierges/types";
+import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 
 const initialFilters: OwnerConciergeSearchFilters = {
   region: "",
@@ -38,9 +58,20 @@ const initialFilters: OwnerConciergeSearchFilters = {
 };
 
 const initialRequestForm: RequestFormState = {
-  requestType: "ponctuel",
+  requestType: "durable",
+  ownerGoal: "find_concierge",
+  collaborationType: "partial_management",
+  frequency: "unknown",
+  estimatedDuration: "",
+  responsibilityLevel: "shared",
   title: "",
   description: "",
+  housingId: "",
+  propertyName: "",
+  propertyAddress: "",
+  propertyType: "",
+  sleepingCapacity: "",
+  propertyConstraints: "",
   city: "",
   postalCode: "",
   desiredDate: "",
@@ -49,9 +80,124 @@ const initialRequestForm: RequestFormState = {
   urgency: false,
 };
 
+type OwnerServiceRequestRecipient = {
+  id: string;
+  concierge_profile_id?: string | null;
+  status?: string | null;
+  concierge_name?: string | null;
+  concierge_avatar_url?: string | null;
+  quote_id?: string | null;
+  quote_status?: string | null;
+};
+
+type OwnerServiceRequestRow = {
+  id: string;
+  title: string;
+  request_type?: string | null;
+  status?: string | null;
+  workflow_status?: string | null;
+  request_workflow_status?: string | null;
+  quote_workflow_status?: string | null;
+  mission_workflow_status?: string | null;
+  property_name?: string | null;
+  property_housing_id?: string | null;
+  city?: string | null;
+  created_at?: string | null;
+  mission_id?: string | null;
+  selected_concierge_profile_id?: string | null;
+  selected_concierge_name?: string | null;
+  selected_concierge_avatar_url?: string | null;
+  recipients?: OwnerServiceRequestRecipient[];
+};
+
+type OwnerRequestsPayload = {
+  items?: OwnerServiceRequestRow[];
+  error?: string;
+};
+
 function parseSliderValue(value: string) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function normalizeStatus(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function getOwnerRequestStatus(request: OwnerServiceRequestRow) {
+  const workflowStatus = normalizeStatus(request.request_workflow_status ?? request.workflow_status);
+  if (workflowStatus === "accepted" || workflowStatus === "archived") return "accepted";
+  if (workflowStatus === "quote_sent" || workflowStatus === "in_discussion") return "discussion";
+  if (workflowStatus === "viewed") return "viewed";
+  if (workflowStatus === "sent") return "sent";
+  if (workflowStatus === "declined") return "declined";
+  if (workflowStatus === "expired") return "expired";
+  if (workflowStatus === "new") return "draft";
+
+  const status = normalizeStatus(request.status);
+  if (request.mission_id || status === "accepted" || status === "mission_created") return "accepted";
+  if (status === "quoted" || status === "quote_sent") return "discussion";
+  if (status === "viewed" || status === "in_review") return "viewed";
+  if (status === "declined" || status === "closed") return "declined";
+  if (status === "expired" || status === "cancelled" || status === "canceled") return "expired";
+  if (status === "draft" || status === "new") return "draft";
+  return "sent";
+}
+
+function formatOwnerRequestStatus(request: OwnerServiceRequestRow) {
+  const status = getOwnerRequestStatus(request);
+  if (status === "accepted") return "Devis accepté";
+  if (status === "discussion") return "En discussion";
+  if (status === "viewed") return "Consultée";
+  if (status === "sent") return "Envoyée";
+  if (status === "declined") return "Refusée";
+  if (status === "expired") return "Expirée";
+  return "Brouillon";
+}
+
+function getQuoteCount(request: OwnerServiceRequestRow) {
+  return (request.recipients ?? []).filter((recipient) => {
+    const quoteStatus = normalizeStatus(recipient.quote_status);
+    return Boolean(recipient.quote_id) || quoteStatus === "sent" || quoteStatus === "accepted" || quoteStatus === "quoted";
+  }).length;
+}
+
+function getAcceptedConcierge(request: OwnerServiceRequestRow) {
+  const selectedRecipient = (request.recipients ?? []).find((recipient) => normalizeStatus(recipient.status) === "selected");
+  return {
+    id: request.selected_concierge_profile_id || selectedRecipient?.concierge_profile_id || null,
+    name: request.selected_concierge_name || selectedRecipient?.concierge_name || "Concierge retenu",
+    avatarUrl: request.selected_concierge_avatar_url || selectedRecipient?.concierge_avatar_url || null,
+  };
+}
+
+function isRequestWaitingForReply(request: OwnerServiceRequestRow) {
+  return ["sent", "viewed"].includes(getOwnerRequestStatus(request)) && getQuoteCount(request) === 0;
+}
+
+function getOwnerRequestActionLabel(request: OwnerServiceRequestRow) {
+  const status = getOwnerRequestStatus(request);
+  if (status === "draft") return "Compléter";
+  if (status === "accepted") return request.mission_id ? "Voir la mission" : "Confier une mission";
+  if (getQuoteCount(request) > 0) return "Comparer les devis";
+  if (isRequestWaitingForReply(request)) return "Relancer / alerte";
+  if (status === "discussion") return "Suivre l'échange";
+  if (status === "declined" || status === "expired") return "Reprendre";
+  return "Suivre";
+}
+
+function buildOwnerRequestActionHref(request: OwnerServiceRequestRow) {
+  const status = getOwnerRequestStatus(request);
+  if (status === "accepted" && request.mission_id) {
+    return `/dashboard/owner/missions/${encodeURIComponent(request.mission_id)}`;
+  }
+  if (status === "accepted") {
+    return `/dashboard/owner/missions/voyageurs?request=${encodeURIComponent(request.id)}`;
+  }
+  if (getQuoteCount(request) > 0) {
+    return `/dashboard/owner/devis?request=${encodeURIComponent(request.id)}`;
+  }
+  return `/dashboard/owner/demandes?request=${encodeURIComponent(request.id)}`;
 }
 
 export default function OwnerConciergesPageClient() {
@@ -65,9 +211,12 @@ export default function OwnerConciergesPageClient() {
   const [sortMode, setSortMode] = useState<SortMode>("available");
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [requestComposerOpen, setRequestComposerOpen] = useState(false);
   const [selectedConciergeIds, setSelectedConciergeIds] = useState<string[]>([]);
   const [requestForm, setRequestForm] = useState<RequestFormState>(initialRequestForm);
   const [serviceCatalog, setServiceCatalog] = useState<ServiceCatalogItem[]>([]);
+  const [ownerRequests, setOwnerRequests] = useState<OwnerServiceRequestRow[]>([]);
+  const [ownerRequestsLoading, setOwnerRequestsLoading] = useState(true);
   const [openServiceSections, setOpenServiceSections] = useState<Record<string, boolean>>({});
   const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
   const [lastSubmittedStatus, setLastSubmittedStatus] = useState<RequestWorkflowStatus | null>(null);
@@ -79,6 +228,7 @@ export default function OwnerConciergesPageClient() {
   const { items, loading, error, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
   const requestPanelRef = useRef<HTMLElement | null>(null);
+  const requestReturnFocusRef = useRef<HTMLElement | null>(null);
   const lastToastMessageRef = useRef<string | null>(null);
 
   const selectedIdSet = useMemo(() => new Set(selectedConciergeIds), [selectedConciergeIds]);
@@ -110,6 +260,25 @@ export default function OwnerConciergesPageClient() {
     () => mergeSortedOptions(serverOptions.services, clientOptions.services),
     [clientOptions.services, serverOptions.services],
   );
+  const catalogServicesByCategory = useMemo(() => {
+    const groups = new Map<string, Set<string>>();
+
+    serviceCatalog.forEach((item) => {
+      const category = item.category.trim();
+      const service = item.service.trim();
+
+      if (!category || !service) return;
+      if (!groups.has(category)) groups.set(category, new Set<string>());
+      groups.get(category)?.add(service);
+    });
+
+    return Array.from(groups.entries())
+      .map(([category, services]) => ({
+        category,
+        services: Array.from(services).sort((left, right) => left.localeCompare(right, "fr")),
+      }))
+      .sort((left, right) => left.category.localeCompare(right.category, "fr"));
+  }, [serviceCatalog]);
   const categoriesByService = useMemo(() => {
     const nextMap = new Map<string, string>();
     serviceCatalog.forEach((item) => {
@@ -118,38 +287,101 @@ export default function OwnerConciergesPageClient() {
     return nextMap;
   }, [serviceCatalog]);
   const categoryOptions = useMemo(() => {
+    if (catalogServicesByCategory.length > 0) {
+      return catalogServicesByCategory.map((group) => group.category);
+    }
+
     const serviceDerived = serviceOptions
       .map((service) => categoriesByService.get(service))
       .filter((value): value is string => Boolean(value));
     return mergeSortedOptions(serverOptions.categories, serviceDerived);
-  }, [categoriesByService, serverOptions.categories, serviceOptions]);
-  const visibleServiceOptions = useMemo(() => {
-    if (filters.selectedCategories.length === 0) return [];
-    const allowedServices = new Set(serviceOptions);
-    return serviceCatalog
-      .filter(
-        (item) =>
-          filters.selectedCategories.includes(item.category) && allowedServices.has(item.service),
-      )
-      .map((item) => item.service)
-      .sort((left, right) => left.localeCompare(right));
-  }, [filters.selectedCategories, serviceCatalog, serviceOptions]);
+  }, [catalogServicesByCategory, categoriesByService, serverOptions.categories, serviceOptions]);
   const visibleServicesByCategory = useMemo(() => {
+    if (catalogServicesByCategory.length > 0) {
+      return filters.selectedCategories
+        .map((category) => catalogServicesByCategory.find((group) => group.category === category))
+        .filter(
+          (
+            group,
+          ): group is {
+            category: string;
+            services: string[];
+          } => Boolean(group),
+        );
+    }
+
+    const allowedServices = new Set(serviceOptions);
     return filters.selectedCategories
       .map((category) => ({
         category,
-        services: visibleServiceOptions.filter((service) => categoriesByService.get(service) === category),
+        services: serviceCatalog
+          .filter((item) => category === item.category && allowedServices.has(item.service))
+          .map((item) => item.service)
+          .sort((left, right) => left.localeCompare(right, "fr")),
       }))
       .filter((group) => group.services.length > 0);
-  }, [categoriesByService, filters.selectedCategories, visibleServiceOptions]);
+  }, [catalogServicesByCategory, filters.selectedCategories, serviceCatalog, serviceOptions]);
 
   const propertyTypeOptions = useMemo(
-    () => mergeSortedOptions(serverOptions.propertyTypes, clientOptions.propertyTypes),
-    [clientOptions.propertyTypes, serverOptions.propertyTypes],
+    () => Array.from(CONCIERGE_PROPERTY_TYPES),
+    [],
   );
 
   const activeSearchSummary = useMemo(() => getActiveSearchSummary(filters), [filters]);
   const hasSearchCriteria = useMemo(() => hasOwnerConciergeSearchCriteria(filters), [filters]);
+  const requestFollowUp = useMemo(() => {
+    const activeRequests = ownerRequests.filter((request) =>
+      ["draft", "sent", "viewed", "discussion"].includes(getOwnerRequestStatus(request)),
+    );
+    const acceptedRequests = ownerRequests.filter((request) => getOwnerRequestStatus(request) === "accepted");
+    const draftRequests = ownerRequests.filter((request) => getOwnerRequestStatus(request) === "draft");
+    const unansweredRequests = ownerRequests.filter(isRequestWaitingForReply);
+    const totalQuotes = ownerRequests.reduce((total, request) => total + getQuoteCount(request), 0);
+    const latestRequests = [...ownerRequests]
+      .sort((left, right) => new Date(right.created_at ?? 0).getTime() - new Date(left.created_at ?? 0).getTime())
+      .slice(0, 4);
+    const nextRequest =
+      [...ownerRequests]
+        .filter((request) => !["declined", "expired"].includes(getOwnerRequestStatus(request)))
+        .sort((left, right) => {
+          const rank = (request: OwnerServiceRequestRow) => {
+            const status = getOwnerRequestStatus(request);
+            if (status === "draft") return 0;
+            if (getQuoteCount(request) > 0 && status !== "accepted") return 1;
+            if (isRequestWaitingForReply(request)) return 2;
+            if (status === "accepted") return 3;
+            return 4;
+          };
+          const rankDiff = rank(left) - rank(right);
+          if (rankDiff !== 0) return rankDiff;
+          return new Date(right.created_at ?? 0).getTime() - new Date(left.created_at ?? 0).getTime();
+        })[0] ?? null;
+    const acceptedRequest = acceptedRequests[0] ?? null;
+    const acceptedConcierge = acceptedRequest ? getAcceptedConcierge(acceptedRequest) : null;
+
+    return {
+      activeRequests,
+      acceptedRequests,
+      draftRequests,
+      unansweredRequests,
+      totalQuotes,
+      latestRequests,
+      nextRequest,
+      acceptedRequest,
+      acceptedConcierge,
+    };
+  }, [ownerRequests]);
+  const existingHousingRequest = useMemo(() => {
+    if (!requestForm.housingId || requestForm.requestType === "renfort") return null;
+    return (
+      ownerRequests.find(
+        (request) => request.request_type !== "renfort" && String(request.property_housing_id ?? "") === requestForm.housingId,
+      ) ?? null
+    );
+  }, [ownerRequests, requestForm.housingId, requestForm.requestType]);
+  const existingHousingRequestIsBlocking = Boolean(
+    existingHousingRequest && getOwnerRequestStatus(existingHousingRequest) !== "draft",
+  );
 
   function updateFilters<Key extends keyof OwnerConciergeSearchFilters>(
     key: Key,
@@ -164,7 +396,43 @@ export default function OwnerConciergesPageClient() {
   ) {
     setFeedback(null);
     setLastSentSummary(null);
-    setRequestForm((prev) => ({ ...prev, [key]: value }));
+    setRequestForm((prev) => {
+      if (key === "ownerGoal") {
+        const ownerGoal = value as RequestFormState["ownerGoal"];
+        const defaults = getServiceRequestBriefDefaults(ownerGoal);
+        return {
+          ...prev,
+          ownerGoal,
+          collaborationType: defaults.collaborationType,
+          requestType: inferRequestTypeFromCollaboration(defaults.collaborationType),
+          frequency: defaults.frequency,
+          responsibilityLevel: defaults.responsibilityLevel,
+        };
+      }
+
+      if (key === "collaborationType") {
+        const collaborationType = value as RequestFormState["collaborationType"];
+        return {
+          ...prev,
+          collaborationType,
+          requestType: inferRequestTypeFromCollaboration(collaborationType),
+          frequency:
+            collaborationType === "one_off"
+              ? "once"
+              : prev.frequency === "once"
+                ? "unknown"
+                : prev.frequency,
+          responsibilityLevel:
+            collaborationType === "full_management"
+              ? "full"
+              : collaborationType === "partial_management"
+                ? "shared"
+                : prev.responsibilityLevel,
+        };
+      }
+
+      return { ...prev, [key]: value };
+    });
   }
 
   useEffect(() => {
@@ -199,6 +467,23 @@ export default function OwnerConciergesPageClient() {
     };
   }, []);
 
+  const loadOwnerRequests = useCallback(async () => {
+    try {
+      setOwnerRequestsLoading(true);
+      const response = await fetch("/api/service-requests?limit=100", { cache: "no-store" });
+      const payload = (await response.json()) as OwnerRequestsPayload;
+      setOwnerRequests(response.ok && Array.isArray(payload.items) ? payload.items : []);
+    } catch {
+      setOwnerRequests([]);
+    } finally {
+      setOwnerRequestsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadOwnerRequests();
+  }, [loadOwnerRequests]);
+
   useEffect(() => {
     const queryValue = filters.city.trim();
     const looksLikePostalCode = /^\d{4,6}$/.test(queryValue);
@@ -229,17 +514,60 @@ export default function OwnerConciergesPageClient() {
       radiusKm: searchParams.get("radiusKm") ?? "",
       proOnly: searchParams.get("proOnly") === "1",
     };
+    const nextRequestForm: RequestFormState = {
+      ...initialRequestForm,
+      requestType:
+        searchParams.get("requestType") === "renfort" || searchParams.get("requestType") === "durable"
+          ? (searchParams.get("requestType") as RequestFormState["requestType"])
+          : "ponctuel",
+      ownerGoal:
+        (searchParams.get("ownerGoal") as RequestFormState["ownerGoal"] | null) ??
+        initialRequestForm.ownerGoal,
+      collaborationType:
+        (searchParams.get("collaborationType") as RequestFormState["collaborationType"] | null) ??
+        initialRequestForm.collaborationType,
+      frequency:
+        (searchParams.get("frequency") as RequestFormState["frequency"] | null) ??
+        initialRequestForm.frequency,
+      estimatedDuration: searchParams.get("estimatedDuration") ?? "",
+      responsibilityLevel:
+        (searchParams.get("responsibilityLevel") as RequestFormState["responsibilityLevel"] | null) ??
+        initialRequestForm.responsibilityLevel,
+      title: searchParams.get("requestTitle") ?? "",
+      description: searchParams.get("requestDescription") ?? "",
+      housingId: searchParams.get("housingId") ?? "",
+      propertyName: searchParams.get("propertyName") ?? "",
+      propertyAddress: searchParams.get("propertyAddress") ?? "",
+      propertyType: searchParams.get("propertyType") ?? "",
+      sleepingCapacity: searchParams.get("sleepingCapacity") ?? "",
+      propertyConstraints: searchParams.get("propertyConstraints") ?? "",
+      city: searchParams.get("city") ?? "",
+      postalCode: searchParams.get("postalCode") ?? "",
+      budgetMax: searchParams.get("budgetMax") ?? "",
+      currency: searchParams.get("requestCurrency") ?? "EUR",
+    };
     const nextEditingAlertId = searchParams.get("alertId");
+    const hasRequestPrefill = Boolean(
+        nextRequestForm.title ||
+        nextRequestForm.description ||
+        nextRequestForm.housingId ||
+        nextRequestForm.propertyName ||
+        nextRequestForm.city ||
+        nextRequestForm.postalCode ||
+        nextRequestForm.budgetMax,
+    );
 
     const hasUrlFilters = hasOwnerConciergeSearchCriteria(nextFilters);
     if (!hasUrlFilters) {
       hydratedFromUrlRef.current = true;
       setEditingAlertId(nextEditingAlertId);
+      if (hasRequestPrefill) setRequestForm(nextRequestForm);
       return;
     }
 
     hydratedFromUrlRef.current = true;
     setEditingAlertId(nextEditingAlertId);
+    if (hasRequestPrefill) setRequestForm(nextRequestForm);
     setFilters(nextFilters);
     setHasSubmittedSearch(true);
     void search(nextFilters);
@@ -268,6 +596,44 @@ export default function OwnerConciergesPageClient() {
       pauseOnHover: true,
     });
   }, [error]);
+
+  function openRequestComposer() {
+    requestReturnFocusRef.current =
+      typeof document !== "undefined" && document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    setRequestComposerOpen(true);
+  }
+
+  function closeRequestComposer() {
+    setRequestComposerOpen(false);
+    window.setTimeout(() => requestReturnFocusRef.current?.focus(), 0);
+  }
+
+  useEffect(() => {
+    if (!requestComposerOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => focusFirstModalElement(requestPanelRef.current), 0);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeRequestComposer();
+        return;
+      }
+
+      trapFocusInModal(event, requestPanelRef.current);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [requestComposerOpen]);
 
   function clearResults() {
     clear();
@@ -363,6 +729,13 @@ export default function OwnerConciergesPageClient() {
   async function handleSendRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (existingHousingRequestIsBlocking && existingHousingRequest) {
+      setError("Ce logement a déjà une demande. Complétez ou suivez la demande existante.");
+      closeRequestComposer();
+      router.push(`/dashboard/owner/demandes?request=${encodeURIComponent(existingHousingRequest.id)}`);
+      return;
+    }
+
     if (selectedConciergeIds.length === 0) {
       setError("Sélectionnez au moins un concierge avant d'envoyer une demande.");
       return;
@@ -383,13 +756,44 @@ export default function OwnerConciergesPageClient() {
         headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             request_type: requestForm.requestType,
+            owner_goal: requestForm.ownerGoal,
+            collaboration_type: requestForm.collaborationType,
+            collaboration_frequency: requestForm.frequency,
+            collaboration_duration: requestForm.estimatedDuration.trim() || null,
+            responsibility_level: requestForm.responsibilityLevel,
+            request_summary: buildServiceRequestBrief({
+              ownerGoal: requestForm.ownerGoal,
+              collaborationType: requestForm.collaborationType,
+              frequency: requestForm.frequency,
+              estimatedDuration: requestForm.estimatedDuration,
+              responsibilityLevel: requestForm.responsibilityLevel,
+              city: requestForm.city,
+              propertyName: requestForm.propertyName,
+              propertyAddress: requestForm.propertyAddress,
+              propertyType: requestForm.propertyType,
+              sleepingCapacity: requestForm.sleepingCapacity,
+              propertyConstraints: requestForm.propertyConstraints,
+              requestedServices:
+                filters.selectedServices.length > 0 ? filters.selectedServices : filters.selectedCategories,
+              desiredDate: requestForm.desiredDate,
+              urgency: requestForm.urgency,
+              description: requestForm.description,
+            }).summary,
+            housing_id: requestForm.housingId || null,
+            property_name: requestForm.propertyName.trim() || null,
+            property_address: requestForm.propertyAddress.trim() || null,
+            property_type: requestForm.propertyType.trim() || null,
+            sleeping_capacity: requestForm.sleepingCapacity.trim() || null,
+            property_constraints: requestForm.propertyConstraints.trim() || null,
             title: requestForm.title.trim(),
             description: requestForm.description.trim(),
             requested_services:
               filters.selectedServices.length > 0 ? filters.selectedServices : filters.selectedCategories,
+            region: filters.region?.trim() || null,
             city: requestForm.city.trim(),
             postal_code: requestForm.postalCode.trim(),
-            desired_date: requestForm.desiredDate ? new Date(requestForm.desiredDate).toISOString() : null,
+            desired_date: requestForm.desiredDate || null,
+            radius_km: filters.radiusKm ? Number(filters.radiusKm) : null,
           urgency: requestForm.urgency,
           budget_max: requestForm.budgetMax ? Number(requestForm.budgetMax) : null,
           currency: requestForm.currency,
@@ -419,7 +823,8 @@ export default function OwnerConciergesPageClient() {
         city: /^\d{4,6}$/.test(filters.city.trim()) ? "" : filters.city,
         postalCode: /^\d{4,6}$/.test(filters.city.trim()) ? filters.city : "",
       });
-      requestPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      await loadOwnerRequests();
+      closeRequestComposer();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'envoyer votre demande.");
       requestPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -428,12 +833,65 @@ export default function OwnerConciergesPageClient() {
     }
   }
 
-  const filtersLabel = [filters.region.trim(), filters.city.trim()].filter(Boolean).join(" · ");
+  const filtersLabel = [filters.city.trim()].filter(Boolean).join(" · ");
+  const activeRegion = filters.region?.trim() ?? "";
+  const cockpitMetrics = [
+    {
+      label: "Résultats",
+      value: `${items.length}`,
+      detail: hasSubmittedSearch ? `${stats.totalAvailable} disponible(s)` : "À lancer",
+      progress: hasSubmittedSearch ? (items.length > 0 ? Math.min(100, 24 + items.length * 12) : 8) : 0,
+      Icon: SearchIcon,
+    },
+    {
+      label: "Zone",
+      value: filters.radiusKm.trim() ? `${filters.radiusKm} km` : "Libre",
+      detail: filters.city.trim() || activeRegion || "Ville à préciser",
+      progress: filters.city.trim() || activeRegion ? 100 : 0,
+      Icon: MapPin,
+    },
+    {
+      label: "Sélection",
+      value: `${selectedConciergeIds.length}`,
+      detail: selectedConciergeIds.length > 0 ? "À contacter" : "Aucun profil",
+      progress: selectedConciergeIds.length > 0 ? Math.min(100, selectedConciergeIds.length * 25) : 0,
+      Icon: CheckCircle2,
+    },
+    {
+      label: "Devis",
+      value: `${requestFollowUp.totalQuotes}`,
+      detail:
+        requestFollowUp.acceptedRequests.length > 0
+          ? `${requestFollowUp.acceptedRequests.length} accepté(s)`
+          : "À recevoir",
+      progress: requestFollowUp.totalQuotes > 0 ? Math.min(100, 30 + requestFollowUp.totalQuotes * 25) : 0,
+      Icon: FileText,
+    },
+  ];
 
   return (
     <section className="dashboard-grid">
       <div className={styles.page}>
         <ToastContainer newestOnTop position="top-right" />
+        <OwnerJourneyRail activeStep={selectedConciergeIds.length > 0 ? "selection" : "search"} />
+        <section className={styles.cockpitStrip} aria-label="Pilotage recherche concierge">
+          {cockpitMetrics.map((metric) => (
+            <article key={metric.label} className={styles.cockpitCard}>
+              <span
+                className={styles.cockpitChart}
+                style={{ "--progress": `${Math.max(0, Math.min(100, metric.progress)) * 3.6}deg` } as React.CSSProperties}
+                aria-hidden="true"
+              >
+                <metric.Icon size={18} strokeWidth={2.2} />
+              </span>
+              <span className={styles.cockpitMeta}>
+                <span className={styles.cockpitLabel}>{metric.label}</span>
+                <strong className={styles.cockpitValue}>{metric.value}</strong>
+                <span className={styles.cockpitDetail}>{metric.detail}</span>
+              </span>
+            </article>
+          ))}
+        </section>
         <SearchFilters
           styles={styles}
           filters={filters}
@@ -443,9 +901,6 @@ export default function OwnerConciergesPageClient() {
           openServiceSections={openServiceSections}
           loading={loading}
           viewMode={viewMode}
-          itemsCount={items.length}
-          stats={stats}
-          selectedConciergeCount={selectedConciergeIds.length}
           onSubmit={handleSubmit}
           onReset={resetFilters}
           onOpenMobileFilters={() => setMobileFiltersOpen(true)}
@@ -454,7 +909,6 @@ export default function OwnerConciergesPageClient() {
           onToggleCategory={toggleCategory}
           onToggleService={toggleService}
           onToggleServiceSection={toggleServiceSection}
-          getRegionSuggestions={getOwnerRegionSuggestions}
           getCitySuggestions={getOwnerCitySuggestions}
           parseSliderValue={parseSliderValue}
         />
@@ -471,7 +925,6 @@ export default function OwnerConciergesPageClient() {
               onSortModeChange={setSortMode}
               onViewModeChange={setViewMode}
             />
-
             <ResultsGrid
               styles={styles}
               loading={loading}
@@ -479,6 +932,7 @@ export default function OwnerConciergesPageClient() {
               hasSubmittedSearch={hasSubmittedSearch}
               hasSearchCriteria={hasSearchCriteria}
               filtersLabel={filtersLabel}
+              filters={filters}
               items={sortedItems}
               selectedIds={selectedIdSet}
               viewMode={viewMode}
@@ -487,22 +941,210 @@ export default function OwnerConciergesPageClient() {
             />
           </div>
 
-          <aside className={styles.sidebar} ref={requestPanelRef}>
-            <RequestPanel
-              styles={styles}
-              selectedConcierges={selectedConcierges}
-              selectedServices={filters.selectedServices}
-              activeSearchSummary={activeSearchSummary}
-              requestForm={requestForm}
-              submittingRequest={submittingRequest}
-              requestFeedback={feedback}
-              requestError={error}
-              lastSubmittedStatus={lastSubmittedStatus}
-              lastSentSummary={lastSentSummary}
-              onSubmit={handleSendRequest}
-              onRequestFormChange={updateRequestForm}
-              getCitySuggestions={getOwnerCitySuggestions}
-            />
+          <aside className={styles.sidebar}>
+            <div className={styles.requestDock}>
+              <div>
+                <p className={styles.eyebrow}>Short-list</p>
+                <h2 className={styles.requestTitle}>Préparer une demande</h2>
+              </div>
+              <p className={styles.requestIntro}>
+                Sélectionnez les concierges à contacter, puis envoyez un brief court et exploitable.
+              </p>
+              {existingHousingRequestIsBlocking && existingHousingRequest ? (
+                <div className={styles.existingRequestNotice} role="status">
+                  <div>
+                    <strong>Demande déjà ouverte</strong>
+                    <span>{existingHousingRequest.property_name || requestForm.propertyName || "Logement sélectionné"}</span>
+                  </div>
+                  <ButtonLink
+                    href={buildOwnerRequestActionHref(existingHousingRequest)}
+                    variant="secondary"
+                    className={styles.secondaryBtn}
+                  >
+                    {getOwnerRequestActionLabel(existingHousingRequest)}
+                  </ButtonLink>
+                </div>
+              ) : null}
+              <div className={styles.selectionSummary}>
+                <span className={styles.requestSectionLabel}>Sélection</span>
+                <strong>{selectedConciergeIds.length} concierge(s) sélectionné(s)</strong>
+                {selectedConcierges.length > 0 ? (
+                  <div className={styles.summaryChips}>
+                    {selectedConcierges.slice(0, 4).map((item) => (
+                      <span key={item.id} className={styles.summaryChip}>
+                        {item.display_name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className={styles.tagMuted}>Sélectionnez un profil dans les résultats.</span>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="primary"
+                className={styles.primaryBtn}
+                disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
+                onClick={openRequestComposer}
+              >
+                Lancer la recherche
+              </Button>
+              <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
+                Suivre mes demandes
+              </ButtonLink>
+            </div>
+
+            <div className={styles.followUpPanel}>
+              <div className={styles.followUpHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Suivi</p>
+                  <h2 className={styles.requestTitle}>Demandes concierge</h2>
+                </div>
+                <ButtonLink href="/dashboard/owner/demandes" variant="secondary" className={styles.secondaryBtn}>
+                  Ouvrir
+                </ButtonLink>
+              </div>
+
+              <div className={styles.followUpMetrics}>
+                <div className={styles.followUpMetric}>
+                  <FilePenLine size={16} aria-hidden="true" />
+                  <span>Brouillons</span>
+                  <strong>{requestFollowUp.draftRequests.length}</strong>
+                </div>
+                <div className={styles.followUpMetric}>
+                  <Clock3 size={16} aria-hidden="true" />
+                  <span>Sans réponse</span>
+                  <strong>{requestFollowUp.unansweredRequests.length}</strong>
+                </div>
+                <div className={styles.followUpMetric}>
+                  <FileText size={16} aria-hidden="true" />
+                  <span>Devis</span>
+                  <strong>{requestFollowUp.totalQuotes}</strong>
+                </div>
+                <div className={styles.followUpMetric}>
+                  <CheckCircle2 size={16} aria-hidden="true" />
+                  <span>Validées</span>
+                  <strong>{requestFollowUp.acceptedRequests.length}</strong>
+                </div>
+              </div>
+
+              {requestFollowUp.nextRequest ? (
+                <article className={styles.followUpNextAction}>
+                  <div>
+                    <span>Prochaine action</span>
+                    <strong>{requestFollowUp.nextRequest.title}</strong>
+                    <small>
+                      {formatOwnerRequestStatus(requestFollowUp.nextRequest)}
+                      {requestFollowUp.nextRequest.property_name ? ` · ${requestFollowUp.nextRequest.property_name}` : ""}
+                    </small>
+                  </div>
+                  <ButtonLink
+                    href={buildOwnerRequestActionHref(requestFollowUp.nextRequest)}
+                    variant="secondary"
+                    className={styles.secondaryBtn}
+                  >
+                    {getOwnerRequestActionLabel(requestFollowUp.nextRequest)}
+                  </ButtonLink>
+                </article>
+              ) : null}
+
+              {!ownerRequestsLoading && ownerRequests.length === 0 ? (
+                <article className={styles.firstRequestCard}>
+                  <div className={styles.confettiMark} aria-hidden="true">
+                    <PartyPopper size={20} />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div>
+                    <strong>Première demande de conciergerie</strong>
+                    <p>
+                      Choisissez les services utiles, contactez les bons profils, puis gardez la date du devis accepté
+                      comme anniversaire de collaboration.
+                    </p>
+                  </div>
+                </article>
+              ) : requestFollowUp.acceptedRequest && requestFollowUp.acceptedConcierge ? (
+                <article className={styles.acceptedConciergeCard}>
+                  <div className={styles.acceptedConciergeTop}>
+                    <ConciergeAvatar
+                      src={requestFollowUp.acceptedConcierge.avatarUrl}
+                      alt={requestFollowUp.acceptedConcierge.name}
+                      width={44}
+                      height={44}
+                      className={styles.acceptedConciergeAvatar}
+                    />
+                    <div>
+                      <span>Devis accepté</span>
+                      <strong>{requestFollowUp.acceptedConcierge.name}</strong>
+                    </div>
+                  </div>
+                  <p>{requestFollowUp.acceptedRequest.title}</p>
+                  <div className={styles.followUpChips}>
+                    {requestFollowUp.acceptedRequest.property_name ? (
+                      <span>{requestFollowUp.acceptedRequest.property_name}</span>
+                    ) : null}
+                    {requestFollowUp.acceptedRequest.city ? <span>{requestFollowUp.acceptedRequest.city}</span> : null}
+                    <span>Partenaire retenu</span>
+                  </div>
+                  <ButtonLink
+                    href={buildOwnerRequestActionHref(requestFollowUp.acceptedRequest)}
+                    variant="primary"
+                    className={styles.primaryBtn}
+                  >
+                    {getOwnerRequestActionLabel(requestFollowUp.acceptedRequest)}
+                  </ButtonLink>
+                  {requestFollowUp.acceptedConcierge.id ? (
+                    <ButtonLink
+                      href={`/concierges/${encodeURIComponent(requestFollowUp.acceptedConcierge.id)}`}
+                      variant="secondary"
+                      className={styles.secondaryBtn}
+                    >
+                      Voir la fiche concierge
+                    </ButtonLink>
+                  ) : null}
+                </article>
+              ) : (
+                <div className={styles.followUpEmpty}>
+                  <Handshake size={18} aria-hidden="true" />
+                  <span>Aucun devis accepté pour le moment.</span>
+                </div>
+              )}
+
+              <div className={styles.followUpList}>
+                <div className={styles.followUpListHeader}>
+                  <span>Dernières demandes</span>
+                  {ownerRequestsLoading ? <small>Chargement...</small> : null}
+                </div>
+                {requestFollowUp.latestRequests.length > 0 ? (
+                  requestFollowUp.latestRequests.map((request) => (
+                    <article className={styles.followUpRequestRow} key={request.id}>
+                      <Send size={15} aria-hidden="true" />
+                      <div>
+                        <strong>{request.title}</strong>
+                        <span>
+                          {formatOwnerRequestStatus(request)}
+                          {getQuoteCount(request) > 0 ? ` · ${getQuoteCount(request)} devis` : ""}
+                        </span>
+                      </div>
+                      <ButtonLink
+                        href={buildOwnerRequestActionHref(request)}
+                        variant="secondary"
+                        size="sm"
+                        className={styles.followUpRowAction}
+                      >
+                        {getOwnerRequestActionLabel(request)}
+                      </ButtonLink>
+                    </article>
+                  ))
+                ) : !ownerRequestsLoading && ownerRequests.length === 0 ? (
+                  <p className={styles.followUpEmptyText}>La première recherche apparaîtra ici.</p>
+                ) : (
+                  <p className={styles.followUpEmptyText}>Aucune demande envoyée.</p>
+                )}
+              </div>
+            </div>
           </aside>
         </div>
 
@@ -515,10 +1157,78 @@ export default function OwnerConciergesPageClient() {
                 : "Ajoutez des profils pour envoyer une demande."}
             </span>
           </div>
-          <ButtonLink href="#owner-request-panel" variant="primary" className={styles.primaryBtn}>
-            Voir ma demande
-          </ButtonLink>
+          <Button
+            type="button"
+            variant="primary"
+            className={styles.primaryBtn}
+            disabled={selectedConciergeIds.length === 0 || existingHousingRequestIsBlocking}
+            onClick={openRequestComposer}
+          >
+            Lancer la recherche
+          </Button>
         </div>
+
+        {requestComposerOpen ? (
+          <div className={styles.modalOverlay} onMouseDown={closeRequestComposer}>
+            <section
+              ref={requestPanelRef}
+              className={styles.requestModal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="owner-request-composer-title"
+              tabIndex={-1}
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <div className={styles.modalHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Recherche concierge</p>
+                  <h2 id="owner-request-composer-title" className={styles.requestTitle}>
+                    Lancer une recherche concierge
+                  </h2>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className={styles.secondaryBtn}
+                  onClick={closeRequestComposer}
+                >
+                  Fermer
+                </Button>
+              </div>
+              {existingHousingRequestIsBlocking && existingHousingRequest ? (
+                <div className={styles.existingRequestNotice} role="status">
+                  <div>
+                    <strong>Une demande existe déjà pour ce logement</strong>
+                    <span>{existingHousingRequest.title}</span>
+                  </div>
+                  <ButtonLink
+                    href={buildOwnerRequestActionHref(existingHousingRequest)}
+                    variant="secondary"
+                    className={styles.secondaryBtn}
+                  >
+                    {getOwnerRequestActionLabel(existingHousingRequest)}
+                  </ButtonLink>
+                </div>
+              ) : null}
+              <RequestPanel
+                styles={styles}
+                selectedConcierges={selectedConcierges}
+                selectedServices={filters.selectedServices}
+                selectedCategories={filters.selectedCategories}
+                activeSearchSummary={activeSearchSummary}
+                requestForm={requestForm}
+                submittingRequest={submittingRequest}
+                requestFeedback={feedback}
+                requestError={error}
+                lastSubmittedStatus={lastSubmittedStatus}
+                lastSentSummary={lastSentSummary}
+                onSubmit={handleSendRequest}
+                onRequestFormChange={updateRequestForm}
+                getCitySuggestions={getOwnerCitySuggestions}
+              />
+            </section>
+          </div>
+        ) : null}
 
         {mobileFiltersOpen ? (
           <div className={styles.mobileDrawerBackdrop} onClick={() => setMobileFiltersOpen(false)}>
@@ -554,9 +1264,6 @@ export default function OwnerConciergesPageClient() {
                   openServiceSections={openServiceSections}
                   loading={loading}
                   viewMode={viewMode}
-                  itemsCount={items.length}
-                  stats={stats}
-                  selectedConciergeCount={selectedConciergeIds.length}
                   onSubmit={handleSubmit}
                   onReset={resetFilters}
                   onOpenMobileFilters={() => setMobileFiltersOpen(true)}
@@ -565,7 +1272,6 @@ export default function OwnerConciergesPageClient() {
                   onToggleCategory={toggleCategory}
                   onToggleService={toggleService}
                   onToggleServiceSection={toggleServiceSection}
-                  getRegionSuggestions={getOwnerRegionSuggestions}
                   getCitySuggestions={getOwnerCitySuggestions}
                   parseSliderValue={parseSliderValue}
                 />

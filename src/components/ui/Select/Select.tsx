@@ -15,15 +15,35 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   ref,
 ) {
   const classes = [styles.select, styles[tone], error ? styles.error : "", className].filter(Boolean).join(" ");
+  const accessibleNameProps =
+    label || props["aria-label"] || props["aria-labelledby"] || props.title
+      ? {}
+      : { "aria-label": "Selection" };
 
   if (bare) {
-    return <select ref={ref} id={id} className={classes} aria-invalid={Boolean(error)} {...props} />;
+    return (
+      <select
+        ref={ref}
+        id={id}
+        className={classes}
+        aria-invalid={Boolean(error)}
+        {...accessibleNameProps}
+        {...props}
+      />
+    );
   }
 
   return (
     <label className={styles.wrapper} htmlFor={id}>
       {label ? <span className={styles.label}>{label}</span> : null}
-      <select ref={ref} id={id} className={classes} aria-invalid={Boolean(error)} {...props} />
+      <select
+        ref={ref}
+        id={id}
+        className={classes}
+        aria-invalid={Boolean(error)}
+        {...accessibleNameProps}
+        {...props}
+      />
       {error ? <span className={styles.errorText}>{error}</span> : null}
     </label>
   );

@@ -1,9 +1,14 @@
-"use client";
+﻿"use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import OnboardingStepHeader from "@/app/components/onboarding/OnboardingStepHeader/OnboardingStepHeader";
 import useReadabilityScale from "@/app/components/onboarding/useReadabilityScale";
+import { trackOnboardingEvent } from "@/app/lib/onboardingAnalytics";
+import {
+  CONCIERGE_PROPERTY_TYPES,
+  OWNER_PROPERTY_TYPES,
+} from "@/features/shared/data/propertyTypes";
 import styles from "./AccessPopup.module.scss";
 
 export interface FormData {
@@ -23,6 +28,11 @@ export interface FormData {
   existingTools: string[];
   businessLink: string;
   propertyTypes: string[];
+  propertyType: string;
+  needVolume: string;
+  tradeBody: string;
+  startingPriceRange: string;
+  firstRequestTemplate: string;
 }
 
 interface AccessPopupProps {
@@ -41,6 +51,7 @@ interface AccessPopupProps {
 }
 
 type ProfileKey = "proprietaire" | "concierge" | "artisan";
+type ExpressStep = 1 | 2 | 3;
 
 const PROFILE_COPY: Record<
   ProfileKey,
@@ -89,10 +100,34 @@ const CONCIERGE_TOOLS = [
 ];
 
 const OWNER_GOALS = [
-  { value: "deleguer_location", label: "Déléguer la gestion locative" },
-  { value: "trouver_concierge", label: "Trouver une conciergerie fiable" },
-  { value: "securiser_interventions", label: "Sécuriser les interventions" },
-  { value: "optimiser_revenus", label: "Optimiser mes revenus" },
+  { value: "gestion_complete", label: "Déléguer la gestion complète" },
+  { value: "besoin_ponctuel", label: "Service ponctuel" },
+  { value: "comparer_concierges", label: "Comparer plusieurs concierges" },
+];
+
+const OWNER_NEED_VOLUMES = [
+  { value: "occasionnel", label: "Occasionnel" },
+  { value: "regulier", label: "Régulier" },
+  { value: "saisonnier", label: "Saisonnier" },
+  { value: "urgent", label: "Besoin urgent" },
+];
+
+const TRADE_BODIES = [
+  "Plomberie",
+  "Électricité",
+  "Ménage professionnel",
+  "Peinture",
+  "Jardin / piscine",
+  "Petits travaux",
+  "Serrurerie",
+  "Autre métier",
+];
+
+const ARTISAN_PRICE_RANGES = [
+  { value: "sur_devis", label: "Sur devis" },
+  { value: "moins_50", label: "Moins de 50 € / h" },
+  { value: "50_80", label: "50 à 80 € / h" },
+  { value: "80_plus", label: "80 € / h et +" },
 ];
 
 const ARTISAN_URGENCY_LEVELS = [
@@ -113,24 +148,13 @@ const ARTISAN_SLOTS = [
   "Week-end",
 ];
 
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
 const getProfileKey = (category: string): ProfileKey => {
   if (category === "proprietaire" || category === "artisan" || category === "concierge") {
     return category;
   }
   return "concierge";
-};
-
-const formatProfileLabel = (category: string) => {
-  switch (category) {
-    case "proprietaire":
-      return "Propriétaire";
-    case "concierge":
-      return "Conciergerie";
-    case "artisan":
-      return "Artisan";
-    default:
-      return category;
-  }
 };
 
 export default function AccessPopup({
@@ -161,15 +185,22 @@ export default function AccessPopup({
     existingTools: initialData?.existingTools ?? [],
     businessLink: initialData?.businessLink ?? "",
     propertyTypes: initialData?.propertyTypes ?? [],
+    propertyType: initialData?.propertyType ?? "",
+    needVolume: initialData?.needVolume ?? "",
+    tradeBody: initialData?.tradeBody ?? "",
+    startingPriceRange: initialData?.startingPriceRange ?? "",
+    firstRequestTemplate: initialData?.firstRequestTemplate ?? "",
   });
   const { readabilityScale, setReadabilityScale } = useReadabilityScale();
   const [submitError, setSubmitError] = useState("");
+  const [expressStep, setExpressStep] = useState<ExpressStep>(1);
   const popupRef = useRef<HTMLDivElement>(null);
   const copy = PROFILE_COPY[profileKey];
   const isSimpleMode = form.signupMode === "simple";
   const isExpressMode = form.signupMode === "express";
   const isBusinessMode = form.signupMode === "business";
   const titleId = "access-popup-title";
+  const isConciergeExpress = profileKey === "concierge" && isExpressMode;
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -197,8 +228,19 @@ export default function AccessPopup({
       existingTools: initialData.existingTools ?? [],
       businessLink: initialData.businessLink ?? "",
       propertyTypes: initialData.propertyTypes ?? [],
+      propertyType: initialData.propertyType ?? "",
+      needVolume: initialData.needVolume ?? "",
+      tradeBody: initialData.tradeBody ?? "",
+      startingPriceRange: initialData.startingPriceRange ?? "",
+      firstRequestTemplate: initialData.firstRequestTemplate ?? "",
     });
   }, [defaultSignupMode, initialData]);
+
+  useEffect(() => {
+    if (!isConciergeExpress) {
+      setExpressStep(1);
+    }
+  }, [isConciergeExpress]);
 
   const handleOutsideClick = useCallback(
     (e: MouseEvent) => {
@@ -216,6 +258,20 @@ export default function AccessPopup({
     };
   }, [handleOutsideClick]);
 
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -227,6 +283,9 @@ export default function AccessPopup({
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (submitError) {
+      setSubmitError("");
+    }
   };
 
   const togglePropertyType = (propertyType: string) => {
@@ -247,31 +306,72 @@ export default function AccessPopup({
     }));
   };
 
-  const quickContext = useMemo(
-    () => [
-      { label: "Profil", value: formatProfileLabel(recap.category) },
-      { label: copy.targetLabel, value: recap.searchTarget || "À définir" },
-      { label: "Ville", value: recap.location || "À définir" },
-      {
-        label: "Services",
-        value:
-          selectedOptions.length > 0
-            ? `${selectedOptions.length} sélection${selectedOptions.length > 1 ? "s" : ""}`
-            : "À définir",
+  const advanceExpressStep = () => {
+    if (expressStep === 1 && !form.serviceRadiusKm) {
+      setSubmitError("Choisissez un rayon d'intervention pour continuer en express.");
+      return;
+    }
+
+    if (expressStep === 2 && !form.missionPreference) {
+      setSubmitError("Précisez le type de collaboration recherché pour finaliser le mode express.");
+      return;
+    }
+
+    trackOnboardingEvent({
+      step: 4,
+      category: recap.category,
+      action: "concierge_onboarding_step_completed",
+      metadata: {
+        signupMode: "express",
+        onboardingVariant: "express",
+        expressStep,
+        serviceRadiusKm: form.serviceRadiusKm,
+        missionPreference: form.missionPreference,
+        selectedServicesCount: selectedOptions.length,
       },
-    ],
-    [copy.targetLabel, recap.category, recap.location, recap.searchTarget, selectedOptions.length]
-  );
+    });
+    setSubmitError("");
+    setExpressStep((current) => (current + 1) as ExpressStep);
+  };
+
+  const handleBackAction = () => {
+    if (isConciergeExpress && expressStep > 1) {
+      setExpressStep((current) => (current - 1) as ExpressStep);
+      setSubmitError("");
+      return;
+    }
+
+    onBack();
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.firstName || !form.lastName || !form.email) {
+    if (isConciergeExpress && expressStep < 3) {
+      advanceExpressStep();
+      return;
+    }
+
+    const firstName = form.firstName.trim();
+    const lastName = form.lastName.trim();
+    const email = form.email.trim();
+
+    if (!firstName || !lastName || !email) {
       setSubmitError("Veuillez renseigner au minimum votre prénom, votre nom et votre email.");
       return;
     }
 
-    onValidate(form);
+    if (!isValidEmail(email)) {
+      setSubmitError("Veuillez saisir une adresse email valide pour continuer.");
+      return;
+    }
+
+    onValidate({
+      ...form,
+      firstName,
+      lastName,
+      email,
+    });
   };
 
   return (
@@ -291,18 +391,158 @@ export default function AccessPopup({
         <h2 id={titleId}>{copy.title}</h2>
         <p className={styles.introText}>{copy.intro}</p>
 
-        <section className={styles.contextPanel} aria-label="Contexte rapide">
-          {quickContext.map((item) => (
-            <div key={item.label} className={styles.contextCard}>
-              <strong>{item.label}</strong>
-              <span>{item.value}</span>
-            </div>
-          ))}
-        </section>
-
         <form className={styles.form} onSubmit={handleSubmit}>
           {submitError ? <p className={styles.formAlert}>{submitError}</p> : null}
 
+          {isConciergeExpress ? (
+            <section className={styles.expressFlow} aria-label="Onboarding express concierge">
+              <div className={styles.expressHeader}>
+                <span>Express {expressStep}/3</span>
+                <strong>
+                  {expressStep === 1
+                    ? "Zone + services"
+                    : expressStep === 2
+                      ? "Capacité + activité"
+                      : "Confirmation + contact"}
+                </strong>
+              </div>
+
+              {expressStep === 1 ? (
+                <div className={styles.expressPanel}>
+                  <div className={styles.expressSummary}>
+                    <strong>Services sélectionnés</strong>
+                    <span>
+                      {selectedOptions.length > 0
+                        ? selectedOptions.join(", ")
+                        : "Vous pourrez les ajuster depuis votre profil."}
+                    </span>
+                  </div>
+
+                  <label className={styles.radiusField}>
+                    <span>
+                      Rayon maximum
+                      <small>Autour de {recap.location || "votre ville"} pour recevoir des missions réalistes.</small>
+                    </span>
+                    <select name="serviceRadiusKm" value={form.serviceRadiusKm} onChange={handleSelectChange}>
+                      <option value="10">10 km maximum</option>
+                      <option value="20">20 km maximum</option>
+                      <option value="30">30 km maximum</option>
+                      <option value="50">50 km maximum</option>
+                    </select>
+                  </label>
+
+                  <fieldset className={styles.checkboxGroup}>
+                    <legend>Types de biens que vous pouvez gérer</legend>
+                    {CONCIERGE_PROPERTY_TYPES.map((propertyType) => (
+                      <label key={propertyType}>
+                        <input
+                          type="checkbox"
+                          checked={form.propertyTypes.includes(propertyType)}
+                          onChange={() => togglePropertyType(propertyType)}
+                        />
+                        <span>{propertyType}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                </div>
+              ) : null}
+
+              {expressStep === 2 ? (
+                <div className={styles.expressPanel}>
+                  <div className={styles.expressSummary}>
+                    <strong>{recap.yearsExperience || "Expérience confirmée"}</strong>
+                    <span>On garde l&apos;essentiel pour vous projeter vite vers vos premières actions métier.</span>
+                  </div>
+
+                  <label>
+                    Objectif principal
+                    <select name="onboardingGoal" value={form.onboardingGoal} onChange={handleSelectChange}>
+                      <option value="">À préciser plus tard</option>
+                      <option value="premieres_missions">Trouver mes premières missions</option>
+                      <option value="structurer_activite">Structurer mon activité de conciergerie</option>
+                      <option value="developper_portefeuille">Développer mon portefeuille clients</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    Type de collaboration recherchée
+                    <select name="missionPreference" value={form.missionPreference} onChange={handleSelectChange}>
+                      <option value="">Choisir une option</option>
+                      <option value="ponctuelles">Missions ponctuelles</option>
+                      <option value="regulieres">Contrats réguliers</option>
+                      <option value="les_deux">Les deux</option>
+                    </select>
+                  </label>
+
+                  <fieldset className={styles.checkboxGroup}>
+                    <legend>Outils déjà utilisés</legend>
+                    {CONCIERGE_TOOLS.map((tool) => (
+                      <label key={tool}>
+                        <input
+                          type="checkbox"
+                          checked={form.existingTools.includes(tool)}
+                          onChange={() => toggleExistingTool(tool)}
+                        />
+                        <span>{tool}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                </div>
+              ) : null}
+
+              {expressStep === 3 ? (
+                <div className={styles.expressPanel}>
+                  <div className={styles.expressSummary}>
+                    <strong>Votre profil express est prêt</strong>
+                    <span>
+                      {form.serviceRadiusKm} km autour de {recap.location || "votre ville"} ·{" "}
+                      {selectedOptions.length} service{selectedOptions.length > 1 ? "s" : ""} ·{" "}
+                      {form.missionPreference ? "collaboration ciblée" : "collaboration à préciser"}
+                    </span>
+                  </div>
+
+                  <div className={styles.identityGrid}>
+                    <label>
+                      Prénom *
+                      <input name="firstName" value={form.firstName} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                      Nom *
+                      <input name="lastName" value={form.lastName} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                      Email *
+                      <input name="email" type="email" value={form.email} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                      Téléphone
+                      <input name="phone" value={form.phone} onChange={handleChange} />
+                    </label>
+                  </div>
+
+                  <label>
+                    Nom de conciergerie ou entreprise
+                    <input
+                      name="companyName"
+                      value={form.companyName}
+                      onChange={handleChange}
+                      placeholder="Ex : Maison Clés, Horizon Concierge..."
+                    />
+                  </label>
+
+                  <div className={styles.expressPromise}>
+                    <strong>Après inscription</strong>
+                    <span>Vous arriverez directement sur les actions métier: créer un bien, créer une offre, inviter un propriétaire.</span>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+
+          {!isConciergeExpress ? (
           <div className={styles.identityGrid}>
             <label>
               Prénom *
@@ -324,8 +564,9 @@ export default function AccessPopup({
               <input name="phone" value={form.phone} onChange={handleChange} />
             </label>
           </div>
+          ) : null}
 
-          {profileKey === "concierge" && (
+          {profileKey === "concierge" && !isConciergeExpress && (
             <section className={styles.conciergeFields}>
               <h3>Votre activité de conciergerie</h3>
 
@@ -518,6 +759,43 @@ Type de collaboration recherchée (retravaillé)
                   <option value="les_deux">Les deux</option>
                 </select>
               </label>
+              <div className={styles.identityGrid}>
+                <label>
+                  Type de bien
+                  <select name="propertyType" value={form.propertyType} onChange={handleSelectChange}>
+                    <option value="">À préciser plus tard</option>
+                    {OWNER_PROPERTY_TYPES.map((propertyType) => (
+                      <option key={propertyType} value={propertyType}>
+                        {propertyType}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Volume du besoin
+                  <select name="needVolume" value={form.needVolume} onChange={handleSelectChange}>
+                    <option value="">À définir</option>
+                    {OWNER_NEED_VOLUMES.map((volume) => (
+                      <option key={volume.value} value={volume.value}>
+                        {volume.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label>
+                Première demande pré-remplie
+                <textarea
+                  name="firstRequestTemplate"
+                  value={form.firstRequestTemplate}
+                  onChange={handleChange}
+                  placeholder="Ex : Je cherche une conciergerie pour gérer les arrivées, le ménage et le suivi voyageurs."
+                />
+              </label>
+              <div className={styles.profilePromise}>
+                <strong>Après inscription</strong>
+                <span>Vous pourrez envoyer cette première demande en 2 minutes et comparer les réponses depuis votre espace propriétaire.</span>
+              </div>
             </section>
           )}
 
@@ -525,6 +803,18 @@ Type de collaboration recherchée (retravaillé)
             <section className={styles.profileVariantFields}>
               <h3>Votre activité artisan</h3>
               <div className={styles.identityGrid}>
+                <label>
+                  Corps de métier
+                  <select name="tradeBody" value={form.tradeBody} onChange={handleSelectChange}>
+                    <option value="">À définir</option>
+                    {TRADE_BODIES.map((tradeBody) => (
+                      <option key={tradeBody} value={tradeBody}>
+                        {tradeBody}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
                 <label>
                   Urgence acceptée
                   <select name="missionPreference" value={form.missionPreference} onChange={handleSelectChange}>
@@ -569,6 +859,18 @@ Type de collaboration recherchée (retravaillé)
                     <option value="50">50 km maximum</option>
                   </select>
                 </label>
+
+                <label>
+                  Tarif de départ
+                  <select name="startingPriceRange" value={form.startingPriceRange} onChange={handleSelectChange}>
+                    <option value="">À préciser plus tard</option>
+                    {ARTISAN_PRICE_RANGES.map((range) => (
+                      <option key={range.value} value={range.value}>
+                        {range.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
 
               <fieldset className={styles.checkboxGroup}>
@@ -584,9 +886,14 @@ Type de collaboration recherchée (retravaillé)
                   </label>
                 ))}
               </fieldset>
+              <div className={styles.profilePromise}>
+                <strong>Promesse plateforme</strong>
+                <span>Vous recevrez des demandes qualifiées proches de votre zone, avec les infos utiles pour répondre vite et transformer en devis.</span>
+              </div>
             </section>
           )}
 
+          {!isConciergeExpress ? (
           <label>
             {copy.needLabel}
             <textarea
@@ -596,13 +903,14 @@ Type de collaboration recherchée (retravaillé)
               placeholder="Ajoutez ici une précision utile pour la suite."
             />
           </label>
+          ) : null}
 
           <div className={styles.actions}>
-            <button type="button" className={styles.secondaryButton} onClick={onBack}>
+            <button type="button" className={styles.secondaryButton} onClick={handleBackAction}>
               Retour
             </button>
             <button type="submit" className={styles.primaryButton}>
-              Continuer
+              {isConciergeExpress && expressStep < 3 ? "Continuer l'express" : "Continuer"}
             </button>
           </div>
         </form>

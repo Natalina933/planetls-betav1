@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
 import {
   createOrRefreshInvitation,
   dispatchOwnerInvitationEmail,
@@ -16,13 +16,9 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await getApiAuthContext(req);
-    if (!auth.userId) {
-      return NextResponse.json({ error: "Non authentifie." }, { status: 401 });
-    }
-    if (!ALLOWED_ROLES.has(auth.role)) {
-      return NextResponse.json({ error: "Acces refuse." }, { status: 403 });
-    }
+    const guard = await requireApiRole(req, ALLOWED_ROLES);
+    if (!guard.ok) return guard.response;
+    const auth = guard.auth;
 
     const { id } = await context.params;
     const invitation = await loadInvitationById(id);

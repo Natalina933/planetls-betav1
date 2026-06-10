@@ -96,6 +96,7 @@ $admin-accent-soft: #e3e8f2;
     top: 0;
     left: 0;
     width: 280px;
+    max-width: 100vw;
     height: 100vh;
     background: $mucha-paper;
     color: $text-dark;
@@ -117,9 +118,9 @@ $admin-accent-soft: #e3e8f2;
     }
 
     @media (max-width: 700px) {
-        width: 100vw;
+        width: min(86vw, 340px);
         border-right: none;
-        box-shadow: none;
+        box-shadow: 18px 0 42px rgba(41, 28, 13, 0.22);
     }
 }
 
@@ -130,6 +131,10 @@ $admin-accent-soft: #e3e8f2;
     height: 100vh;
     background: rgba($text-dark, 0.4);
     z-index: 999;
+
+    @media (min-width: 901px) {
+        display: none;
+    }
 }
 
 /* =====================
@@ -151,6 +156,7 @@ $admin-accent-soft: #e3e8f2;
     color: $gold-dark;
     letter-spacing: 0.03em;
     text-transform: capitalize;
+    overflow-wrap: anywhere;
 }
 
 .closeBtn {
@@ -214,6 +220,8 @@ $admin-accent-soft: #e3e8f2;
     border-bottom: none;
     border-radius: 8px;
     text-align: left;
+    min-height: 42px;
+    min-width: 0;
     transition:
         background $transition,
         color $transition,
@@ -262,6 +270,12 @@ $admin-accent-soft: #e3e8f2;
             color: white;
         }
     }
+}
+
+.link span,
+.sublink span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .itemBadge {

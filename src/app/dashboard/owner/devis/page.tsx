@@ -1,14 +1,19 @@
 ﻿"use client";
 
 import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { CheckCircle2, Eye, FileText, Route, XCircle } from "lucide-react";
 import { SearchBar, StatsCard, Tag } from "@/components/ui";
 import { EmptyState } from "@/features/shared/components/EmptyState/EmptyState";
+import type { WorkflowTimelineStep } from "@/features/service-requests";
 import {
+  OwnerJourneyRail,
   OwnerQuoteResponseCard,
   OwnerQuotesComparisonTable,
   OwnerRequestSummaryCard,
 } from "@/features/owner-dashboard";
+import { ownerApiError } from "../ownerFeedback";
 import OwnerWorkspacePage from "../_components/OwnerWorkspacePage";
 import styles from "../OwnerDashboardPages.module.scss";
 
@@ -25,6 +30,8 @@ type OwnerQuoteRow = {
   status: string | null;
   workflow_status?: string | null;
   mission_id?: string | null;
+  service_request_id?: string | null;
+  service_request_recipient_id?: string | null;
   total_amount: number | null;
   valid_until: string | null;
   created_at: string | null;
@@ -92,6 +99,17 @@ type PropertyGroup = {
   groups: QuoteGroup[];
 };
 
+type AcceptedWorkflowPayload = {
+  accepted_workflow?: {
+    mission_id?: string | null;
+    invoice_id?: string | null;
+  } | null;
+  completed_action?: {
+    next_action?: string | null;
+    next_href?: string | null;
+  } | null;
+};
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "-";
   const date = new Date(value);
@@ -136,6 +154,7 @@ function getRequestTypeLabel(value?: OwnerServiceRequestRow["request_type"]) {
 }
 
 function getRequestIdFromQuote(quote: OwnerQuoteRow) {
+  if (quote.service_request_id) return quote.service_request_id;
   const metadata =
     quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
       ? quote.metadata
@@ -146,6 +165,7 @@ function getRequestIdFromQuote(quote: OwnerQuoteRow) {
 }
 
 function getRequestRecipientIdFromQuote(quote: OwnerQuoteRow) {
+  if (quote.service_request_recipient_id) return quote.service_request_recipient_id;
   const metadata =
     quote.metadata && typeof quote.metadata === "object" && !Array.isArray(quote.metadata)
       ? quote.metadata
@@ -173,6 +193,57 @@ function getPropertyLabel(request: OwnerServiceRequestRow | null) {
   return request.property_name || request.title || "Logement";
 }
 
+function getAcceptedWorkflowMessage(payload: AcceptedWorkflowPayload) {
+  const nextAction =
+    payload.completed_action?.next_action && payload.completed_action.next_action.trim()
+      ? ` Prochaine étape : ${payload.completed_action.next_action.trim()}`
+      : "";
+  const missionReady = Boolean(payload.accepted_workflow?.mission_id);
+  const invoiceReady = Boolean(payload.accepted_workflow?.invoice_id);
+
+  if (missionReady && invoiceReady) {
+    return `Accepté : la conciergerie devient partenaire. La mission commerciale est créée et une facture brouillon est disponible dans les finances.${nextAction || " Vous pouvez ensuite transmettre les séjours voyageurs."}`;
+  }
+  if (missionReady) {
+    return `Accepté : la conciergerie devient partenaire. La mission commerciale est créée.${nextAction || " Vous pouvez ensuite transmettre les séjours voyageurs depuis l’espace dédié."}`;
+  }
+  return `Accepté : la collaboration est validée et les onglets partenaires, demandes et finances sont synchronisés.${nextAction}`;
+}
+
+function getQuoteWorkflowSteps(quote: OwnerQuoteRow): WorkflowTimelineStep[] {
+  const status = (quote.status ?? "draft").toLowerCase();
+  const sent = ["sent", "accepted", "rejected", "expired", "canceled"].includes(status);
+  const decided = ["accepted", "rejected", "expired", "canceled"].includes(status);
+  const accepted = status === "accepted";
+
+  return [
+    {
+      label: "Devis préparé",
+      detail: quote.quote_number ?? "Brouillon",
+      state: "done",
+      Icon: FileText,
+    },
+    {
+      label: "Consultation",
+      detail: sent ? "Envoyé au propriétaire" : "À envoyer",
+      state: sent ? "done" : "active",
+      Icon: Eye,
+    },
+    {
+      label: accepted ? "Accepté" : status === "rejected" ? "Refusé" : "Décision",
+      detail: decided ? "Décision enregistrée" : "À arbitrer",
+      state: decided ? "done" : sent ? "active" : "todo",
+      Icon: status === "rejected" ? XCircle : CheckCircle2,
+    },
+    {
+      label: "Mission",
+      detail: quote.mission_id ? "Mission créée" : "Après acceptation",
+      state: quote.mission_id ? "done" : accepted ? "active" : "todo",
+      Icon: Route,
+    },
+  ];
+}
+
 export default function OwnerQuotesPage() {
   return (
     <Suspense
@@ -198,6 +269,8 @@ function OwnerQuotesContent() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [compareSelection, setCompareSelection] = useState<Record<string, string[]>>({});
   const [selectingRequestId, setSelectingRequestId] = useState<string | null>(null);
+  const [busyQuoteAction, setBusyQuoteAction] = useState<string | null>(null);
+  const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
   const targetQuoteId = searchParams.get("quote");
   const targetRequestId = searchParams.get("request");
 
@@ -215,17 +288,17 @@ function OwnerQuotesContent() {
       const requestsPayload = (await requestsResponse.json()) as ServiceRequestsPayload;
 
       if (!quotesResponse.ok) {
-        throw new Error(quotesPayload?.error || "Impossible de charger vos devis.");
+        throw new Error(ownerApiError("Impossible de charger vos devis.", quotesPayload?.error));
       }
 
       if (!requestsResponse.ok) {
-        throw new Error(requestsPayload?.error || "Impossible de charger le contexte des demandes.");
+        throw new Error(ownerApiError("Impossible de charger le contexte des demandes.", requestsPayload?.error));
       }
 
       setQuotes(Array.isArray(quotesPayload) ? quotesPayload : []);
       setRequests(Array.isArray(requestsPayload?.items) ? requestsPayload.items : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de charger vos devis.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de charger vos devis."));
     } finally {
       setLoading(false);
     }
@@ -340,6 +413,15 @@ function OwnerQuotesContent() {
   );
 
   const propertyCountWithQuotes = useMemo(() => propertyGroups.length, [propertyGroups]);
+  const decisionCounts = useMemo(
+    () => ({
+      toCompare: filteredQuotes.filter((quote) => ["draft", "sent", null].includes(quote.status)).length,
+      accepted: filteredQuotes.filter((quote) => quote.status === "accepted").length,
+      rejected: filteredQuotes.filter((quote) => quote.status === "rejected").length,
+      expired: filteredQuotes.filter((quote) => quote.status === "expired").length,
+    }),
+    [filteredQuotes],
+  );
 
   function exportQuotesCsv() {
     const rows = [
@@ -410,46 +492,85 @@ function OwnerQuotesContent() {
       });
       const payload = await response.json();
 
-      if (!response.ok) {
-        throw new Error(payload?.error || "Impossible de retenir ce concierge.");
-      }
+      if (!response.ok) throw new Error(ownerApiError("Impossible de retenir ce concierge.", payload?.error));
 
       await loadData();
-      setSuccess("Le concierge a été retenu pour cette demande.");
+      setSuccess(getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Impossible de retenir ce concierge.");
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de retenir ce concierge."));
     } finally {
       setSelectingRequestId(null);
     }
   }
 
+  async function handleUpdateQuoteStatus(quoteId: string, status: "accepted" | "rejected") {
+    try {
+      setBusyQuoteAction(`${quoteId}:${status}`);
+      setSuccess(null);
+      setError(null);
+
+      const response = await fetch(`/api/quotes/${quoteId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          reason: status === "rejected" ? rejectReasons[quoteId]?.trim() || undefined : undefined,
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) throw new Error(ownerApiError("Impossible de mettre à jour ce devis.", payload?.error));
+
+      await loadData();
+      setSuccess(
+        status === "accepted"
+          ? getAcceptedWorkflowMessage(payload as AcceptedWorkflowPayload)
+          : "Refus enregistré : le devis est sorti de la comparaison active et la conciergerie est notifiée.",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : ownerApiError("Impossible de mettre à jour ce devis."));
+    } finally {
+      setBusyQuoteAction(null);
+    }
+  }
+
+  function handleViewQuote(quoteId: string) {
+    void fetch(`/api/quotes/${quoteId}/view`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+    }).catch(() => undefined);
+  }
+
   return (
     <div className="dashboard-grid">
       <OwnerWorkspacePage
-        eyebrow="Devis"
-        title="Devis reçus"
+        eyebrow="Conciergeries"
+        title="Propositions reçues"
         description={
           loading
             ? "Chargement des devis..."
             : error ||
               (targetRequestId
-                ? "Retrouvez ici uniquement les devis liés à cette demande pour ce logement."
-                : "Retrouvez chaque demande, comparez clairement les réponses des concierges et retenez la proposition la plus adaptée.")
+                ? "Retrouvez ici uniquement les propositions liées à cette demande pour ce logement."
+                : "Comparez les propositions des conciergeries et retenez le partenaire le plus adapté.")
         }
         chips={undefined}
         metrics={[
-          { label: "Devis", value: loading ? "..." : String(filteredQuotes.length) },
+          { label: "Propositions", value: loading ? "..." : String(filteredQuotes.length) },
           { label: "Logements suivis", value: loading ? "..." : String(propertyCountWithQuotes) },
           { label: "À arbitrer", value: loading ? "..." : String(pendingQuotes.length) },
         ]}
         actions={[
-          { label: "Voir mes demandes", href: "/dashboard/owner/demandes" },
-          { label: "Trouver un concierge", href: "/dashboard/owner/concierges" },
+          { label: "Voir les demandes", href: "/dashboard/owner/demandes" },
+          { label: "Rechercher", href: "/dashboard/owner/concierges" },
         ]}
         cards={[]}
       />
 
       <section className={styles.conciergeDashboardFlow}>
+        <OwnerJourneyRail activeStep="quotes" />
+
         <div className={styles.toolbar}>
           <SearchBar
             defaultValue={searchTerm}
@@ -462,15 +583,15 @@ function OwnerQuotesContent() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
             className={styles.select}
+            aria-label="Filtrer les devis par statut"
           >
             <option value="all">Tous statuts</option>
             <option value="NEW">Nouveau</option>
             <option value="IN_DISCUSSION">En discussion</option>
-            <option value="QUOTE_SENT">Devis envoyé</option>
-            <option value="ACCEPTED">Accepté</option>
-            <option value="MISSION_CREATED">Mission créée</option>
-            <option value="IN_PROGRESS">En cours</option>
-            <option value="COMPLETED">Terminée</option>
+            <option value="QUOTE_SENT">Proposition reçue</option>
+            <option value="ACCEPTED">Acceptée</option>
+            <option value="DECLINED">Refusée</option>
+            <option value="EXPIRED">Expirée</option>
           </select>
           <button
             type="button"
@@ -481,6 +602,27 @@ function OwnerQuotesContent() {
             Export CSV
           </button>
         </div>
+
+        {!loading && !error ? (
+          <div className={styles.decisionRail} aria-label="Synthèse de décision des devis">
+            <button type="button" onClick={() => setStatusFilter("all")}>
+              <span>À comparer</span>
+              <strong>{decisionCounts.toCompare}</strong>
+            </button>
+            <button type="button" onClick={() => setStatusFilter("accepted")}>
+              <span>Acceptés</span>
+              <strong>{decisionCounts.accepted}</strong>
+            </button>
+            <button type="button" onClick={() => setStatusFilter("rejected")}>
+              <span>Refusés</span>
+              <strong>{decisionCounts.rejected}</strong>
+            </button>
+            <button type="button" onClick={() => setStatusFilter("expired")}>
+              <span>Expirés</span>
+              <strong>{decisionCounts.expired}</strong>
+            </button>
+          </div>
+        ) : null}
 
         {!loading && !error && groupedQuotes.length > 0 ? (
           <div className={styles.conciergeKpiGrid}>
@@ -601,8 +743,10 @@ function OwnerQuotesContent() {
                           }`,
                         },
                         {
-                          label: "Début mission",
-                          value: formatDateTime(group.request.desired_date),
+                          label: "Début collaboration",
+                          value: group.request.desired_date
+                            ? formatDateTime(group.request.desired_date)
+                            : "À préciser après devis",
                         },
                         {
                           label: "Budget",
@@ -661,6 +805,7 @@ function OwnerQuotesContent() {
                             target="_blank"
                             rel="noreferrer"
                             className={styles.linkButton}
+                            onClick={() => handleViewQuote(quote.id)}
                           >
                             Voir le PDF
                           </a>
@@ -668,12 +813,28 @@ function OwnerQuotesContent() {
                             <button
                               type="button"
                               className={styles.buttonPrimary}
-                              disabled={selectingRequestId === group.request.id}
+                              disabled={
+                                selectingRequestId === group.request.id ||
+                                quote.status === "accepted" ||
+                                quote.status === "rejected"
+                              }
                               onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
                             >
-                              {selectingRequestId === group.request.id
+                              {quote.status === "accepted"
+                                ? "Accepté"
+                                : selectingRequestId === group.request.id
                                 ? "Sélection..."
                                 : "Retenir ce concierge"}
+                            </button>
+                          ) : null}
+                          {quote.status !== "accepted" && quote.status !== "rejected" ? (
+                            <button
+                              type="button"
+                              className={styles.buttonSecondary}
+                              disabled={busyQuoteAction === `${quote.id}:rejected`}
+                              onClick={() => void handleUpdateQuoteStatus(quote.id, "rejected")}
+                            >
+                              {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser"}
                             </button>
                           ) : null}
                         </>
@@ -711,6 +872,7 @@ function OwnerQuotesContent() {
                           status={quote.status || "-"}
                           workflowStatus={quote.workflow_status}
                           hasMission={Boolean(quote.mission_id)}
+                          workflowSteps={getQuoteWorkflowSteps(quote)}
                           badges={
                             <>
                               {isCheapest ? (
@@ -755,6 +917,7 @@ function OwnerQuotesContent() {
                                 target="_blank"
                                 rel="noreferrer"
                                 className={styles.linkButton}
+                                onClick={() => handleViewQuote(quote.id)}
                               >
                                 Ouvrir le devis PDF
                               </a>
@@ -762,13 +925,62 @@ function OwnerQuotesContent() {
                                 <button
                                   type="button"
                                   className={styles.buttonPrimary}
-                                  disabled={selectingRequestId === group.request.id}
+                                  disabled={
+                                    selectingRequestId === group.request.id ||
+                                    quote.status === "accepted" ||
+                                    quote.status === "rejected"
+                                  }
                                   onClick={() => void handleSelectConcierge(group.request!.id, recipientId)}
                                 >
-                                  {selectingRequestId === group.request.id
+                                  {quote.status === "accepted"
+                                    ? "Accepté"
+                                    : selectingRequestId === group.request.id
                                     ? "Sélection..."
                                     : "Retenir ce concierge"}
                                 </button>
+                              ) : null}
+                              {!group.request?.id && quote.status !== "accepted" && quote.status !== "rejected" ? (
+                                <button
+                                  type="button"
+                                  className={styles.buttonPrimary}
+                                  disabled={busyQuoteAction === `${quote.id}:accepted`}
+                                  onClick={() => void handleUpdateQuoteStatus(quote.id, "accepted")}
+                                >
+                                  {busyQuoteAction === `${quote.id}:accepted` ? "Acceptation..." : "Accepter le devis"}
+                                </button>
+                              ) : null}
+                              {quote.status !== "accepted" && quote.status !== "rejected" ? (
+                                <>
+                                  <input
+                                    type="text"
+                                    className={styles.field}
+                                    value={rejectReasons[quote.id] ?? ""}
+                                    onChange={(event) =>
+                                      setRejectReasons((current) => ({
+                                        ...current,
+                                        [quote.id]: event.target.value,
+                                      }))
+                                    }
+                                    placeholder="Motif de refus optionnel"
+                                    aria-label="Motif de refus du devis"
+                                  />
+                                <button
+                                  type="button"
+                                  className={styles.buttonSecondary}
+                                  disabled={busyQuoteAction === `${quote.id}:rejected`}
+                                  onClick={() => void handleUpdateQuoteStatus(quote.id, "rejected")}
+                                >
+                                  {busyQuoteAction === `${quote.id}:rejected` ? "Refus..." : "Refuser le devis"}
+                                </button>
+                                </>
+                              ) : null}
+                              {quote.status === "accepted" ? (
+                                <Link
+                                  href={`/dashboard/owner/missions/voyageurs?quote=${encodeURIComponent(quote.id)}`}
+                                  className={styles.buttonPrimary}
+                                >
+                                  Transmettre un séjour voyageur
+                                </Link>
                               ) : null}
                             </>
                           }

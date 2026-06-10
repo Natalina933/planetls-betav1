@@ -6,6 +6,7 @@ export {
   buildConciergeOwnersCompletion,
   buildConciergeProfileCompletion,
   buildOwnerConciergeCompletion,
+  buildOwnerActivationCompletion,
   buildOwnerFinancesCompletion,
   buildOwnerHousingCompletion,
   buildOwnerMissionsCompletion,

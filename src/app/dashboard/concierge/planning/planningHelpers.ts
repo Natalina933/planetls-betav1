@@ -1,4 +1,4 @@
-﻿export type MissionRow = {
+export type MissionRow = {
   id: string;
   title: string | null;
   status: string | null;

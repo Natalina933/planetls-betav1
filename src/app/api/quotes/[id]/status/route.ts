@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
+import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWorkflow";
+import { recordWorkflowEvent } from "@/app/api/_shared/workflowEvents";
+import { deriveQuoteWorkflowStatus } from "@/app/lib/commercialWorkflow";
 import { db } from "@/app/lib/dbServer";
-import { getApiAuthContext } from "@/app/lib/apiAuth";
+import { requireApiRole } from "@/server/auth/roleGuards";
+import { deriveServiceRequestStatus, type ServiceRequestRecipientStatus } from "@/server/service-requests/workflow";
 import { createHousingFromQuote } from "@/app/api/profiles/housing/shared";
 
-type UntypedDb = {
-  from: (table: string) => ReturnType<typeof db.from>;
-};
-
-const untypedDb = db as unknown as UntypedDb;
+const untypedDb = asLooseSupabaseClient(db);
 
 type QuoteStatus =
   | "draft"
@@ -19,6 +20,7 @@ type QuoteStatus =
 
 interface UpdateQuoteStatusBody {
   status?: QuoteStatus;
+  reason?: string;
 }
 
 type ServiceRequestRow = {
@@ -32,6 +34,16 @@ type ServiceRequestRow = {
   currency?: string | null;
   urgency?: boolean | null;
   metadata?: Record<string, unknown> | null;
+};
+
+type QuoteNotificationContext = {
+  quoteId: string;
+  quoteNumber?: string | null;
+  ownerProfileId?: string | null;
+  conciergeProfileId?: string | null;
+  actorProfileId: string;
+  status: QuoteStatus;
+  reason?: string | null;
 };
 
 const VALID_QUOTE_STATUS: QuoteStatus[] = [
@@ -48,37 +60,209 @@ const ALLOWED_BILLING_ROLES = new Set([
   "super_admin",
   "concierge",
   "concierge_pro",
+  "provider",
+  "provider_pro",
+  "artisan",
+  "artisan_pro",
+  "owner",
+  "owner_pro",
 ]);
+
+const OWNER_BILLING_ROLES = new Set(["owner", "owner_pro"]);
+const SERVICE_BILLING_ROLES = new Set(["concierge", "concierge_pro", "provider", "provider_pro", "artisan", "artisan_pro"]);
+const OWNER_ALLOWED_STATUS = new Set<QuoteStatus>(["accepted", "rejected"]);
+
+const cleanReason = (value: unknown) =>
+  typeof value === "string" ? value.trim().slice(0, 500) : "";
+
+async function notifyQuoteStatusChange(context: QuoteNotificationContext) {
+  if (!context.ownerProfileId || !context.conciergeProfileId) return null;
+
+  const subject = context.quoteNumber ? `Devis ${context.quoteNumber}` : "Suivi devis";
+  const statusLabel = context.status === "accepted" ? "accepté" : context.status === "rejected" ? "refusé" : "mis à jour";
+  const body =
+    context.status === "rejected" && context.reason
+      ? `Le devis ${context.quoteNumber ?? ""} a été refusé. Motif : ${context.reason}`.trim()
+      : `Le devis ${context.quoteNumber ?? ""} a été ${statusLabel}.`.trim();
+
+  const { data: existingConversation } = await untypedDb
+    .from("contact_conversations")
+    .select("id, metadata")
+    .eq("owner_profile_id", context.ownerProfileId)
+    .eq("concierge_profile_id", context.conciergeProfileId)
+    .eq("source", "quote")
+    .eq("source_reference", context.quoteId)
+    .limit(1);
+
+  let conversationId = existingConversation?.[0]?.id ?? null;
+
+  if (!conversationId) {
+    const { data: createdConversation, error: conversationError } = await untypedDb
+      .from("contact_conversations")
+      .insert({
+        owner_profile_id: context.ownerProfileId,
+        concierge_profile_id: context.conciergeProfileId,
+        source: "quote",
+        source_reference: context.quoteId,
+        subject,
+        metadata: {
+          quote_id: context.quoteId,
+          quote_status: context.status,
+          notification_reason: "quote_status",
+          last_quote_notification_at: new Date().toISOString(),
+        },
+      })
+      .select("id")
+      .single();
+
+    if (conversationError) {
+      console.error("[PATCH /api/quotes/:id/status] conversation create error:", conversationError);
+      return null;
+    }
+
+    conversationId = createdConversation?.id ?? null;
+  }
+
+  if (!conversationId) return null;
+
+  await untypedDb.from("contact_messages").insert({
+    conversation_id: conversationId,
+    sender_profile_id: context.actorProfileId,
+    message_type: "text",
+    body,
+    metadata: {
+      quote_id: context.quoteId,
+      quote_status: context.status,
+      quote_rejection_reason: context.reason ?? null,
+      system_context: "quote_status",
+    },
+  });
+
+  await untypedDb
+    .from("contact_conversations")
+    .update({
+      metadata: {
+        quote_id: context.quoteId,
+        quote_status: context.status,
+        notification_reason: "quote_status",
+        last_quote_notification_at: new Date().toISOString(),
+      },
+    })
+    .eq("id", conversationId);
+
+  return conversationId;
+}
+
+async function syncServiceRequestFromQuoteStatus(input: {
+  serviceRequestId: string | null;
+  serviceRequestRecipientId: string | null;
+  quoteId: string;
+  quoteStatus: QuoteStatus;
+}) {
+  if (!input.serviceRequestId) return null;
+
+  if (input.serviceRequestRecipientId) {
+    const recipientStatus =
+      input.quoteStatus === "sent"
+        ? "quoted"
+        : input.quoteStatus === "rejected" || input.quoteStatus === "expired" || input.quoteStatus === "canceled"
+          ? "declined"
+          : null;
+
+    if (recipientStatus) {
+      await untypedDb
+        .from("service_request_recipients")
+        .update({
+          status: recipientStatus,
+          responded_at: new Date().toISOString(),
+        })
+        .eq("id", input.serviceRequestRecipientId);
+    }
+  }
+
+  const { data: relatedRecipients } = await untypedDb
+    .from("service_request_recipients")
+    .select("status")
+    .eq("service_request_id", input.serviceRequestId);
+
+  let nextRequestStatus = deriveServiceRequestStatus(
+    Array.isArray(relatedRecipients)
+      ? relatedRecipients
+          .map((row: { status?: string | null }) => row.status)
+          .filter((status): status is ServiceRequestRecipientStatus => typeof status === "string")
+      : [],
+    null,
+  );
+
+  if (input.quoteStatus === "accepted") nextRequestStatus = "quote_accepted";
+  if (input.quoteStatus === "rejected" || input.quoteStatus === "canceled") nextRequestStatus = "quote_refused";
+  if (input.quoteStatus === "expired") nextRequestStatus = "expired";
+
+  const { data: requestRow } = await untypedDb
+    .from("service_requests")
+    .select("metadata")
+    .eq("id", input.serviceRequestId)
+    .maybeSingle();
+
+  const requestMetadata =
+    requestRow?.metadata && typeof requestRow.metadata === "object" && !Array.isArray(requestRow.metadata)
+      ? requestRow.metadata
+      : {};
+
+  await untypedDb
+    .from("service_requests")
+    .update({
+      status: nextRequestStatus,
+      metadata: {
+        ...requestMetadata,
+        last_quote_status: input.quoteStatus,
+        last_quote_id: input.quoteId,
+        last_quote_status_at: new Date().toISOString(),
+      },
+    })
+    .eq("id", input.serviceRequestId);
+
+  return nextRequestStatus;
+}
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { userId, role } = await getApiAuthContext(req);
-    if (!userId) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
-    }
-    if (!ALLOWED_BILLING_ROLES.has(role)) {
-      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
-    }
+    const guard = await requireApiRole(req, ALLOWED_BILLING_ROLES);
+    if (!guard.ok) return guard.response;
+    const { userId, role } = guard.auth;
 
     const { id } = await params;
     const body: UpdateQuoteStatusBody = await req.json();
     const nextStatus = body.status;
+    const reason = cleanReason(body.reason);
 
     if (!nextStatus || !VALID_QUOTE_STATUS.includes(nextStatus)) {
       return NextResponse.json({ error: "Statut devis invalide" }, { status: 400 });
     }
+    if (OWNER_BILLING_ROLES.has(role) && !OWNER_ALLOWED_STATUS.has(nextStatus)) {
+      return NextResponse.json(
+        { error: "Un proprietaire peut uniquement accepter ou refuser un devis." },
+        { status: 403 },
+      );
+    }
 
-    const { data: existing, error: existingError } = await db
+    let existingQuery = untypedDb
       .from("quotes")
       .select(
-        "id, status, sent_at, accepted_at, rejected_at, canceled_at, owner_profile_id, concierge_profile_id, mission_id, total_amount, currency, notes, metadata",
+        "id, status, sent_at, accepted_at, rejected_at, canceled_at, owner_profile_id, concierge_profile_id, mission_id, service_request_id, service_request_recipient_id, total_amount, currency, notes, metadata",
       )
-      .eq("id", id)
-      .eq("concierge_profile_id", userId)
-      .maybeSingle();
+      .eq("id", id);
+
+    if (OWNER_BILLING_ROLES.has(role)) {
+      existingQuery = existingQuery.eq("owner_profile_id", userId);
+    } else if (SERVICE_BILLING_ROLES.has(role)) {
+      existingQuery = existingQuery.eq("concierge_profile_id", userId);
+    }
+
+    const { data: existing, error: existingError } = await existingQuery.maybeSingle();
 
     if (existingError) {
       console.error("[PATCH /api/quotes/:id/status] read error:", existingError);
@@ -102,8 +286,7 @@ export async function PATCH(
       updatePayload.canceled_at = new Date().toISOString();
     }
 
-    let linkedMissionId =
-      typeof existing.mission_id === "string" && existing.mission_id.trim() ? existing.mission_id : null;
+    const actorIsOwner = OWNER_BILLING_ROLES.has(role);
 
     if (nextStatus === "accepted") {
       const metadata =
@@ -112,11 +295,17 @@ export async function PATCH(
           : {};
 
       const serviceRequestId =
-        typeof metadata.service_request_id === "string" ? metadata.service_request_id : null;
+        typeof existing.service_request_id === "string"
+          ? existing.service_request_id
+          : typeof metadata.service_request_id === "string"
+            ? metadata.service_request_id
+            : null;
       const serviceRequestRecipientId =
-        typeof metadata.service_request_recipient_id === "string"
-          ? metadata.service_request_recipient_id
-          : null;
+        typeof existing.service_request_recipient_id === "string"
+          ? existing.service_request_recipient_id
+          : typeof metadata.service_request_recipient_id === "string"
+            ? metadata.service_request_recipient_id
+            : null;
 
       let serviceRequest: ServiceRequestRow | null = null;
       if (serviceRequestId) {
@@ -134,97 +323,27 @@ export async function PATCH(
         serviceRequest = (requestRow as ServiceRequestRow | null) ?? null;
       }
 
-      if (!linkedMissionId) {
-        let safePropertyId: string | null = null;
-
-        if (typeof serviceRequest?.property_id === "string" && serviceRequest.property_id.trim()) {
-          const { data: propertyRow, error: propertyError } = await db
-            .from("properties")
-            .select("id")
-            .eq("id", serviceRequest.property_id)
-            .eq("owner_id", serviceRequest.owner_profile_id ?? existing.owner_profile_id ?? "")
-            .maybeSingle();
-
-          if (propertyError) {
-            console.error("[PATCH /api/quotes/:id/status] property lookup error:", propertyError);
-          } else if (propertyRow?.id) {
-            safePropertyId = propertyRow.id;
-          }
-        }
-
-        const { data: missionRow, error: missionError } = await db
-          .from("missions")
-          .insert({
-            concierge_profile_id: existing.concierge_profile_id,
-            owner_profile_id: serviceRequest?.owner_profile_id ?? existing.owner_profile_id ?? null,
-            property_id: safePropertyId,
-            service_id: null,
-            title: serviceRequest?.title ?? "Mission issue d'un devis accepte",
-            description: serviceRequest?.description ?? existing.notes ?? null,
-            status: "accepted",
-            priority: serviceRequest?.urgency ? "urgent" : "normal",
-            amount:
-              typeof existing.total_amount === "number"
-                ? existing.total_amount
-                : serviceRequest?.budget_max ?? null,
-            currency: existing.currency ?? serviceRequest?.currency ?? "EUR",
-            scheduled_start: serviceRequest?.desired_date ?? null,
-            scheduled_end: null,
-            metadata: {
-              source: "quote_acceptance",
-              quote_id: existing.id,
-              service_request_id: serviceRequestId,
-              service_request_recipient_id: serviceRequestRecipientId,
-            },
-          })
-          .select("id")
-          .single();
-
-        if (missionError || !missionRow) {
-          console.error("[PATCH /api/quotes/:id/status] mission create error:", missionError);
-          return NextResponse.json({ error: "Impossible de creer la mission liee." }, { status: 500 });
-        }
-
-        linkedMissionId = missionRow.id;
-
-        const { error: missionEventError } = await db.from("mission_events").insert({
-          mission_id: missionRow.id,
-          actor_profile_id: userId,
-          event_type: "created",
-          payload: {
-            source: "quote_acceptance",
-            quote_id: existing.id,
-            service_request_id: serviceRequestId,
-          },
-        });
-
-        if (missionEventError) {
-          console.error("[PATCH /api/quotes/:id/status] mission event error:", missionEventError);
-        }
-      }
-
-      updatePayload.mission_id = linkedMissionId;
-
       if (serviceRequestId) {
         const requestMetadata =
           serviceRequest?.metadata && typeof serviceRequest.metadata === "object" && !Array.isArray(serviceRequest.metadata)
             ? { ...serviceRequest.metadata }
             : {};
+        delete requestMetadata.selected_mission_id;
 
         const { error: requestUpdateError } = await untypedDb
           .from("service_requests")
           .update({
             selected_concierge_profile_id: existing.concierge_profile_id,
-            status: "accepted",
-            mission_id: linkedMissionId,
+            status: "quote_accepted",
+            mission_id: null,
             metadata: {
               ...requestMetadata,
               selected_at: new Date().toISOString(),
-              selected_mission_id: linkedMissionId,
               selected_quote_id: existing.id,
             },
           })
-          .eq("id", serviceRequestId);
+          .eq("id", serviceRequestId)
+          .eq("owner_profile_id", serviceRequest?.owner_profile_id ?? existing.owner_profile_id ?? "");
 
         if (requestUpdateError) {
           console.error("[PATCH /api/quotes/:id/status] request update error:", requestUpdateError);
@@ -257,15 +376,71 @@ export async function PATCH(
       }
     }
 
-    const { data: updated, error: updateError } = await db
+    if (nextStatus === "rejected") {
+      const metadata =
+        existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+          ? existing.metadata
+          : {};
+      const serviceRequestRecipientId =
+        typeof existing.service_request_recipient_id === "string"
+          ? existing.service_request_recipient_id
+          : typeof metadata.service_request_recipient_id === "string"
+            ? metadata.service_request_recipient_id
+            : null;
+
+      if (actorIsOwner && serviceRequestRecipientId) {
+        const { error: recipientUpdateError } = await untypedDb
+          .from("service_request_recipients")
+          .update({
+            status: "declined",
+            responded_at: new Date().toISOString(),
+          })
+          .eq("id", serviceRequestRecipientId);
+
+        if (recipientUpdateError) {
+          console.error("[PATCH /api/quotes/:id/status] recipient decline error:", recipientUpdateError);
+        }
+      }
+    }
+
+    const metadata =
+      existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+        ? existing.metadata
+        : {};
+    const serviceRequestId =
+      typeof existing.service_request_id === "string"
+        ? existing.service_request_id
+        : typeof metadata.service_request_id === "string"
+          ? metadata.service_request_id
+          : null;
+    const serviceRequestRecipientId =
+      typeof existing.service_request_recipient_id === "string"
+        ? existing.service_request_recipient_id
+        : typeof metadata.service_request_recipient_id === "string"
+          ? metadata.service_request_recipient_id
+          : null;
+    const syncedRequestStatus = await syncServiceRequestFromQuoteStatus({
+      serviceRequestId,
+      serviceRequestRecipientId,
+      quoteId: id,
+      quoteStatus: nextStatus,
+    });
+
+    let updateQuery = untypedDb
       .from("quotes")
       .update(updatePayload)
       .eq("id", id)
-      .eq("concierge_profile_id", userId)
       .select(
-        "id, quote_number, status, owner_profile_id, mission_id, package_id, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, sent_at, accepted_at, rejected_at, canceled_at, created_at, updated_at",
-      )
-      .single();
+        "id, quote_number, status, owner_profile_id, concierge_profile_id, mission_id, service_request_id, service_request_recipient_id, package_id, currency, subtotal, discount_amount, tax_rate, tax_amount, total_amount, valid_until, sent_at, accepted_at, rejected_at, canceled_at, created_at, updated_at",
+      );
+
+    if (OWNER_BILLING_ROLES.has(role)) {
+      updateQuery = updateQuery.eq("owner_profile_id", userId);
+    } else if (SERVICE_BILLING_ROLES.has(role)) {
+      updateQuery = updateQuery.eq("concierge_profile_id", userId);
+    }
+
+    const { data: updated, error: updateError } = await updateQuery.single();
 
     if (updateError || !updated) {
       console.error("[PATCH /api/quotes/:id/status] update error:", updateError);
@@ -287,6 +462,7 @@ export async function PATCH(
       payload: {
         from: existing.status,
         to: nextStatus,
+        reason: nextStatus === "rejected" ? reason || null : null,
       },
     });
     if (eventError) {
@@ -294,16 +470,100 @@ export async function PATCH(
     }
 
     let autoHousingResult: { housingId: number; created: boolean } | null = null;
+    let workflowResult: Awaited<ReturnType<typeof finalizeAcceptedQuoteWorkflow>> | null = null;
     if (nextStatus === "accepted") {
+      workflowResult = await finalizeAcceptedQuoteWorkflow({
+        db: untypedDb,
+        quoteId: id,
+        actorProfileId: userId,
+        serviceRequestId,
+        serviceRequestRecipientId,
+      });
+
       try {
-        autoHousingResult = await createHousingFromQuote(id, userId);
+        autoHousingResult = await createHousingFromQuote(id, existing.concierge_profile_id);
       } catch (autoHousingError) {
         console.error("[PATCH /api/quotes/:id/status] auto housing error:", autoHousingError);
       }
     }
 
+    if (nextStatus === "accepted" || nextStatus === "rejected") {
+      await notifyQuoteStatusChange({
+        quoteId: id,
+        quoteNumber: updated.quote_number,
+        ownerProfileId: existing.owner_profile_id,
+        conciergeProfileId: existing.concierge_profile_id,
+        actorProfileId: userId,
+        status: nextStatus,
+        reason: nextStatus === "rejected" ? reason || null : null,
+      });
+    }
+
+    const workflowEvent = await recordWorkflowEvent(untypedDb, {
+      actorProfileId: userId,
+      ownerProfileId: existing.owner_profile_id,
+      conciergeProfileId: existing.concierge_profile_id,
+      serviceRequestId,
+      serviceRequestRecipientId,
+      quoteId: id,
+      missionId: workflowResult?.mission?.id ?? updated.mission_id ?? null,
+      eventType: `quote_${eventType}`,
+      title:
+        nextStatus === "sent"
+          ? "Devis envoyé"
+          : nextStatus === "accepted"
+            ? "Devis accepté"
+            : nextStatus === "rejected"
+              ? "Devis refusé"
+              : "Statut devis mis à jour",
+      body: nextStatus === "rejected" && reason ? reason : null,
+      actionHref: `/dashboard/owner/devis?quote=${id}`,
+      serviceRequestStatus: syncedRequestStatus,
+      quoteStatus: nextStatus,
+      missionStatus: workflowResult?.mission?.status ?? null,
+      hasMission: Boolean(workflowResult?.mission?.id ?? updated.mission_id),
+      metadata: {
+        from: existing.status,
+        to: nextStatus,
+      },
+    });
+
     return NextResponse.json({
       ...updated,
+      mission_id: workflowResult?.mission?.id ?? updated.mission_id,
+      workflow_status: deriveQuoteWorkflowStatus(nextStatus),
+      quote_workflow_status: deriveQuoteWorkflowStatus(nextStatus),
+      request_workflow_status: workflowEvent.workflow.request_workflow_status,
+      mission_workflow_status: workflowEvent.workflow.mission_workflow_status,
+      accepted_workflow: {
+        mission_id: workflowResult?.mission?.id ?? updated.mission_id ?? null,
+        invoice_id: workflowResult?.invoice?.id ?? null,
+      },
+      completed_action: {
+        request_status: syncedRequestStatus,
+        next_action:
+          nextStatus === "accepted"
+            ? workflowResult?.mission?.id
+              ? "Choisir ou confirmer la date de mission, puis transmettre les séjours voyageurs."
+              : "Créer ou rattacher la mission commerciale avant de transmettre les séjours voyageurs."
+            : nextStatus === "sent"
+              ? "Attendre la décision du propriétaire ou relancer depuis la conversation."
+              : "Comparer les autres devis actifs ou relancer une nouvelle recherche si nécessaire.",
+        next_href:
+          nextStatus === "accepted" && workflowResult?.mission?.id
+            ? `/dashboard/owner/missions/${workflowResult.mission.id}`
+            : nextStatus === "accepted"
+              ? "/dashboard/owner/demandes"
+              : nextStatus === "sent"
+                ? `/dashboard/owner/devis?quote=${id}`
+                : "/dashboard/owner/devis",
+        visible_in:
+          nextStatus === "accepted"
+            ? ["planning", "missions", "finances", "partenaires"]
+            : nextStatus === "sent"
+              ? ["devis_recus", "demandes", "messages"]
+              : ["devis_clotures", "demandes", "messages"],
+      },
       auto_housing: autoHousingResult,
     });
   } catch (err) {

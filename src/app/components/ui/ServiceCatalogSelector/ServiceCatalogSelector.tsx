@@ -1,8 +1,14 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { LucideLoader2, ChevronsDown, ChevronsUp } from "lucide-react";
+import { LucideLoader2 } from "lucide-react";
+import { ServiceCatalogPicker } from "@/components/ui";
+import {
+    groupServiceCatalog,
+    sortServiceCatalogCategories,
+    type ServiceCatalogItem,
+} from "@/app/lib/serviceCatalog";
 import styles from "./ServiceCatalogSelector.module.scss";
 
-interface ServiceItem {
+interface ServiceItem extends ServiceCatalogItem {
     id: number;
     category: string;
     service: string;
@@ -25,19 +31,6 @@ interface ServiceCatalogSelectorProps {
 
 type GroupedCatalog = Record<string, ServiceItem[]>;
 
-const CATEGORY_ORDER = [
-    "Ménage",
-    "Linge",
-    "Accueil",
-    "Maintenance",
-    "Courses",
-    "Administratif",
-    "Extérieur",
-    "Sécurité",
-    "Confort",
-    "Éco",
-];
-
 const normalizeText = (value: string): string =>
     value
         .normalize("NFD")
@@ -46,9 +39,8 @@ const normalizeText = (value: string): string =>
         .trim();
 
 const groupServices = (data: ServiceItem[]): GroupedCatalog => {
-    return data.reduce((acc: GroupedCatalog, item: ServiceItem) => {
-        if (!acc[item.category]) acc[item.category] = [];
-        acc[item.category].push(item);
+    return groupServiceCatalog(data).reduce((acc: GroupedCatalog, group) => {
+        acc[group.category] = group.services as ServiceItem[];
         return acc;
     }, {} as GroupedCatalog);
 };
@@ -57,7 +49,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     selected,
     onChange,
     disabled = false,
-    hints,
     introText,
     searchPlaceholder = "Rechercher un service, une description...",
     priorityCategories = [],
@@ -67,28 +58,9 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     const [catalog, setCatalog] = useState<GroupedCatalog>({});
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [showAllCategories, setShowAllCategories] = useState(false);
-
-    const toggleCategory = (category: string) => {
-        setOpenCategories((prev) => ({
-            ...prev,
-            [category]: !prev[category],
-        }));
-    };
-
-    const setAllCategoriesOpenState = useCallback(
-        (isOpen: boolean) => {
-            setOpenCategories(() =>
-                Object.fromEntries(
-                    Object.keys(catalog).map((category) => [category, isOpen])
-                )
-            );
-        },
-        [catalog]
-    );
 
     useEffect(() => {
         const loadCatalog = async () => {
@@ -111,11 +83,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 const groupedCatalog = groupServices(data);
                 setCatalog(groupedCatalog);
 
-                const initialOpenState: Record<string, boolean> = {};
-                Object.keys(groupedCatalog).forEach((category) => {
-                    initialOpenState[category] = false;
-                });
-                setOpenCategories(initialOpenState);
             } catch (err) {
                 const errorMessage =
                     err instanceof Error ? err.message : "Erreur inconnue";
@@ -145,22 +112,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
         [selected, onChange, disabled]
     );
 
-    const normalizeHintKey = (value: string): string =>
-        value
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .toLowerCase()
-            .trim();
-
-    const getHintForItem = (item: ServiceItem): string | null => {
-        if (!hints) return null;
-        const byService = hints[normalizeHintKey(item.service)];
-        if (byService) return byService;
-        const byCategory = hints[normalizeHintKey(item.category)];
-        if (byCategory) return byCategory;
-        return null;
-    };
-
     const orderedCategories = useMemo(() => {
         const categories = Object.keys(catalog);
         return categories.sort((a, b) => {
@@ -173,13 +124,7 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 return priorityIndexA - priorityIndexB;
             }
 
-            const indexA = CATEGORY_ORDER.indexOf(a);
-            const indexB = CATEGORY_ORDER.indexOf(b);
-
-            if (indexA === -1 && indexB === -1) return a.localeCompare(b, "fr");
-            if (indexA === -1) return 1;
-            if (indexB === -1) return -1;
-            return indexA - indexB;
+            return sortServiceCatalogCategories(a, b);
         });
     }, [catalog, priorityCategories]);
 
@@ -219,6 +164,10 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
     }, [filteredCatalogEntries, searchQuery, activeCategory, showAllCategories, initialCategoryCount]);
 
     const hiddenCategoryCount = Math.max(filteredCatalogEntries.length - visibleCatalogEntries.length, 0);
+    const visibleCatalogItems = useMemo(
+        () => visibleCatalogEntries.flatMap(([, services]) => services),
+        [visibleCatalogEntries]
+    );
     const selectedServicesPreview = useMemo(() => selected.slice(0, 6), [selected]);
     const recentServicesPreview = useMemo(
         () => recentServices.filter((service) => !selected.includes(service)).slice(0, 6),
@@ -306,26 +255,6 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 <span className={styles.catalogSelectionCount}>
                     {selected.length} sélectionné{selected.length > 1 ? "s" : ""}
                 </span>
-                <span className={styles.catalogActionDivider}>·</span>
-                <button
-                    type="button"
-                    className={styles.catalogLinkAction}
-                    onClick={() => setAllCategoriesOpenState(true)}
-                    disabled={disabled || orderedCategories.length === 0}
-                >
-                    <ChevronsDown size={14} aria-hidden="true" />
-                    Tout déplier
-                </button>
-                <span className={styles.catalogActionDivider}>·</span>
-                <button
-                    type="button"
-                    className={styles.catalogLinkAction}
-                    onClick={() => setAllCategoriesOpenState(false)}
-                    disabled={disabled || orderedCategories.length === 0}
-                >
-                    <ChevronsUp size={14} aria-hidden="true" />
-                    Tout replier
-                </button>
             </div>
 
             {hiddenCategoryCount > 0 && (
@@ -386,64 +315,13 @@ const ServiceCatalogSelector: React.FC<ServiceCatalogSelectorProps> = ({
                 {filteredCatalogEntries.length === 0 ? (
                     <div className={styles.noResult}>Aucun service ne correspond à votre recherche.</div>
                 ) : (
-                    visibleCatalogEntries.map(([category, services]) => {
-                        const isOpen = openCategories[category] ?? false;
-                        const totalServices = services.length;
-                        const selectedCount = services.filter((item) => selected.includes(item.service)).length;
-
-                        return (
-                            <div key={category} className={styles.categorySection}>
-                                <button
-                                    type="button"
-                                    className={`${styles.categoryHeader} ${isOpen ? styles.categoryHeaderOpen : ""}`}
-                                    onClick={() => toggleCategory(category)}
-                                >
-                                    <span className={styles.categoryTitle}>{category}</span>
-                                    <span className={styles.categoryStats}>
-                                        {selectedCount} / {totalServices}
-                                    </span>
-                                    <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}>▾</span>
-                                </button>
-
-                                {isOpen && (
-                                    <div className={styles.serviceGrid}>
-                                        {services.map((item) => {
-                                            const isSelected = selected.includes(item.service);
-                                            const hint = getHintForItem(item);
-
-                                            return (
-                                                <label
-                                                    key={item.id}
-                                                    className={`${styles.serviceItem} ${isSelected ? styles.selected : ""
-                                                        } ${disabled ? styles.disabled : ""}`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isSelected}
-                                                        onChange={() => toggle(item.service)}
-                                                        disabled={disabled}
-                                                        className={styles.serviceCheckbox}
-                                                    />
-                                                    <div className={styles.serviceContent}>
-                                                        <div className={styles.serviceLabelRow}>
-                                                            <span className={styles.serviceLabel}>{item.service}</span>
-                                                            {hint && (
-                                                                <span className={styles.serviceHintBadge} title={hint}>
-                                                                    ?
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className={styles.serviceDescription}>{item.description}</p>
-                                                        {hint && <p className={styles.serviceHintText}>{hint}</p>}
-                                                    </div>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })
+                    <ServiceCatalogPicker
+                        items={visibleCatalogItems}
+                        selected={selected}
+                        onChange={onChange}
+                        disabled={disabled}
+                        mode="offer"
+                    />
                 )}
             </div>
         </div>

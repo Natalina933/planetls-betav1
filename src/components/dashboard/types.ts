@@ -10,11 +10,16 @@ export interface DashboardStatItem {
   value: string;
   hint?: string;
   trend?: string;
+  progress?: number;
 }
 
 export interface DashboardQuickAction {
   label: string;
   href: string;
+  description?: string;
+  badge?: string;
+  completed?: boolean;
+  completedLabel?: string;
 }
 
 export interface DashboardActivityItem {
@@ -23,6 +28,8 @@ export interface DashboardActivityItem {
   description?: string;
   href?: string;
   dateLabel?: string;
+  statusLabel?: string;
+  actionLabel?: string;
 }
 
 export interface DashboardNotificationItem {
@@ -35,4 +42,5 @@ export interface DashboardNotificationItem {
 export interface DashboardShortcutItem {
   label: string;
   href: string;
+  badgeCount?: number;
 }

@@ -27,6 +27,7 @@ type UpdateQuoteBody = {
   notes?: string | null;
   discount_amount?: number | null;
   tax_rate?: number | null;
+  metadata?: Record<string, unknown> | null;
   items?: QuoteItemInput[];
 };
 
@@ -40,6 +41,8 @@ const quoteSelect = `
   concierge_profile_id,
   owner_profile_id,
   mission_id,
+  service_request_id,
+  service_request_recipient_id,
   package_id,
   status,
   currency,
@@ -132,7 +135,7 @@ export async function PATCH(
 
     const { data: existing, error: existingError } = await db
       .from("quotes")
-      .select("id, status, concierge_profile_id")
+      .select("id, status, concierge_profile_id, metadata")
       .eq("id", id)
       .eq("concierge_profile_id", userId)
       .maybeSingle();
@@ -179,13 +182,28 @@ export async function PATCH(
           )
       : [];
 
-    const updatePayload = {
+    const existingMetadata =
+      existing.metadata && typeof existing.metadata === "object" && !Array.isArray(existing.metadata)
+        ? (existing.metadata as Record<string, unknown>)
+        : {};
+    const nextMetadata =
+      body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
+        ? {
+            ...existingMetadata,
+            ...body.metadata,
+          }
+        : existingMetadata;
+
+    const updatePayload: Record<string, unknown> = {
       package_id: typeof body.package_id === "string" && body.package_id.trim() ? body.package_id : null,
       valid_until: body.valid_until ?? null,
       notes: body.notes ?? null,
       discount_amount: round2(Number(body.discount_amount ?? 0)),
       tax_rate: round2(Number(body.tax_rate ?? 0)),
     };
+    if (body.metadata !== undefined) {
+      updatePayload.metadata = nextMetadata;
+    }
 
     const { error: updateError } = await db
       .from("quotes")

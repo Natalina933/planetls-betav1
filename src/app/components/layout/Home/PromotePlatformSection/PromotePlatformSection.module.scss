@@ -218,3 +218,32 @@
 :global([data-theme="mucha-dark"]) .pillarItem h4 {
   color: #fff8ef;
 }
+
+@media (max-width: 1024px) {
+  .heroBanner {
+    padding: 1.4rem;
+  }
+
+  .heroTitle {
+    font-size: clamp(1.8rem, 4.2vw, 2.4rem);
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .heroSubtitle {
+    max-width: 58ch;
+    line-height: 1.58;
+    text-wrap: pretty;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .heroButton,
+  .secondaryButton {
+    width: 100%;
+  }
+}

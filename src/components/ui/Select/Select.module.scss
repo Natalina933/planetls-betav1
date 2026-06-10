@@ -1,3 +1,5 @@
+@use "../../../styles/mixins" as *;
+
 .wrapper {
   display: grid;
   gap: var(--ds-space-2);
@@ -5,30 +7,22 @@
 }
 
 .label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--ds-color-text-soft);
+  @include ui-label;
 }
 
 .select {
-  width: 100%;
-  min-height: 44px;
-  border-radius: var(--ui-select-radius, var(--ds-radius-md));
-  border: 1px solid var(--ds-color-border);
-  background: var(--ds-color-surface);
-  color: var(--ds-color-text);
-  padding: 0.6rem 0.75rem;
-  font-size: 0.92rem;
-  font-family: var(--ds-font-body);
+  @include ui-control-shell;
+  border-radius: var(--ui-select-radius, var(--ds-radius-control));
+  padding: 0.62rem 0.8rem;
+  cursor: pointer;
 }
 
 .select:focus-visible {
-  outline: 2px solid rgba(212, 175, 55, 0.45);
-  outline-offset: 2px;
+  @include ui-control-focus;
 }
 
 .soft {
-  background: var(--ds-color-surface-soft);
+  background: color-mix(in srgb, var(--ds-color-surface-soft) 72%, white);
 }
 
 .dark {
@@ -38,7 +32,7 @@
 }
 
 .error {
-  border-color: rgba(175, 63, 63, 0.45);
+  border-color: color-mix(in srgb, var(--ds-color-danger) 56%, transparent);
 }
 
 .errorText {

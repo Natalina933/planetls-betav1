@@ -1,15 +1,23 @@
 export type ServiceRequestStatus =
+  | "received"
   | "sent"
+  | "viewed"
   | "in_review"
+  | "information_requested"
   | "quoted"
+  | "quote_accepted"
+  | "quote_refused"
   | "accepted"
   | "closed"
-  | "cancelled";
+  | "cancelled"
+  | "expired";
 
 export type ServiceRequestRecipientStatus =
   | "sent"
   | "viewed"
   | "interested"
+  | "information_requested"
+  | "date_proposed"
   | "quoted"
   | "declined"
   | "selected"
@@ -34,7 +42,14 @@ export function deriveServiceRequestStatus(
     return "quoted";
   }
 
-  if (recipientStatuses.some((status) => status === "interested" || status === "viewed")) {
+  if (
+    recipientStatuses.some((status) =>
+      status === "interested" ||
+      status === "information_requested" ||
+      status === "date_proposed" ||
+      status === "viewed"
+    )
+  ) {
     return "in_review";
   }
 

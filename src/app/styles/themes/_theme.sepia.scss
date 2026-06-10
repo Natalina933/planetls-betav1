@@ -67,6 +67,22 @@
     // --- TEXTURES & EFFETS (BONUS) ---
     --texture-pattern: "repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(91, 70, 54, 0.03) 2px, rgba(91, 70, 54, 0.03) 4px)";
     --paper-texture: url("data:image/svg+xml,%3Csvg width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100' height='100' fill='%23f5ede3' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+
+    // --- TEXTURES DE SURFACE ---
+    --theme-texture-paper-image: url("/textures/elegant-fibers.png");
+    --theme-texture-paper-size: 440px auto;
+    --theme-texture-paper-opacity: 0.24;
+    --theme-texture-paper-blend: multiply;
+    --theme-texture-hero-image: url("/textures/elegant-fibers.png");
+    --theme-texture-hero-size: 500px auto;
+    --theme-texture-hero-opacity: 0.28;
+    --theme-texture-hero-blend: multiply;
+    --theme-texture-ornament-image: url("/textures/mucha-background-pattern-light.png");
+    --theme-texture-ornament-size: cover;
+    --theme-texture-ornament-opacity: 0.2;
+    --theme-texture-ornament-blend: multiply;
+    --theme-texture-wash: linear-gradient(180deg, rgba(245, 237, 227, 0.92), rgba(237, 229, 219, 0.88));
+    --theme-texture-wash-opacity: 0.78;
 }
 
 // Applique au document sans attribut data-theme (défaut light)

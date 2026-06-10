@@ -42,7 +42,7 @@ export default function RootLayout({
           <ThemeProvider>
             <SearchPopupProvider>
               <AppChrome />
-              <main>{children}</main>
+              {children}
             </SearchPopupProvider>
           </ThemeProvider>
         </Providers>

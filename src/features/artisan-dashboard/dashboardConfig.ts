@@ -14,9 +14,24 @@ export const ARTISAN_NAV_ITEMS: DashboardNavItem[] = [
 ];
 
 export const ARTISAN_QUICK_ACTIONS: DashboardQuickAction[] = [
-  { label: "Accepter une mission", href: "/dashboard/provider/interventions" },
-  { label: "Mettre a jour le planning", href: "/dashboard/provider/planning" },
-  { label: "Envoyer un devis", href: "/dashboard/provider/devis" },
+  {
+    label: "Completer mon profil metier",
+    href: "/dashboard/provider/settings",
+    badge: "A faire en premier",
+    description: "Precisez votre zone, vos specialites et vos coordonnees pour rendre votre profil exploitable.",
+  },
+  {
+    label: "Suivre les interventions",
+    href: "/dashboard/provider/interventions",
+    badge: "Terrain",
+    description: "Gardez les missions ouvertes, les urgences et les dossiers a confirmer au meme endroit.",
+  },
+  {
+    label: "Envoyer un devis",
+    href: "/dashboard/provider/devis",
+    badge: "Conversion",
+    description: "Transformez une demande qualifiee en proposition claire pour votre client.",
+  },
 ];
 
 export const ARTISAN_SHORTCUTS: DashboardShortcutItem[] = [

@@ -11,6 +11,12 @@ import type { ProviderInsert, ProviderRow } from "@/types/supabase-provider";
 type ProviderConversationRow = ProviderRow<"provider_conversations">;
 type ProviderClientLookupRow = Pick<ProviderRow<"provider_clients">, "id" | "client_name" | "company_name">;
 
+function toMessagePreview(value: string, maxLength = 180) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1)}…`;
+}
+
 export async function GET(req: NextRequest) {
   const authResult = await requireProviderAuth(req);
   if (!authResult.ok) {
@@ -161,6 +167,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Erreur creation premier message" }, { status: 500 });
     }
     createdMessage = message;
+
+    const { error: conversationUpdateError } = await providerDb
+      .from("provider_conversations")
+      .update({
+        last_message_preview: toMessagePreview(content),
+        last_message_at: createdMessage.created_at,
+        status: "open",
+      } satisfies Partial<ProviderInsert<"provider_conversations">>)
+      .eq("id", conversation.id)
+      .eq("provider_profile_id", providerProfileId);
+
+    if (conversationUpdateError) {
+      if (isProviderSchemaMissing(conversationUpdateError)) {
+        return providerSchemaMissingResponse("provider_conversations");
+      }
+      return NextResponse.json({ error: "Erreur mise a jour conversation" }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ conversation, message: createdMessage }, { status: 201 });

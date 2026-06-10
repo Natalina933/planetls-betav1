@@ -1,0 +1,1521 @@
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+[GET /api/service-requests] concierge recipients error: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
+[GET /api/service-requests] ERROR: Error: Impossible de charger les demandes recues.
+    at hydrateConciergeRequests (src\app\api\service-requests\route.ts:468:11)
+    at async GET (src\app\api\service-requests\route.ts:903:21)
+  466 |   if (error) {
+  467 |     console.error("[GET /api/service-requests] concierge recipients error:", error);
+> 468 |     throw new Error("Impossible de charger les demandes recues.");
+      |           ^
+  469 |   }
+  470 |
+  471 |   const requestIds = (recipients ?? []).map((row: { service_request_id: string }) => row.service_request_id);
+[GET /api/messages/conversations] DB error: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
+[GET /api/service-requests] concierge recipients error: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:120:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
+[GET /api/service-requests] ERROR: Error: Impossible de charger les demandes recues.
+    at hydrateConciergeRequests (src\app\api\service-requests\route.ts:468:11)
+    at async GET (src\app\api\service-requests\route.ts:903:21)
+  466 |   if (error) {
+  467 |     console.error("[GET /api/service-requests] concierge recipients error:", error);
+> 468 |     throw new Error("Impossible de charger les demandes recues.");
+      |           ^
+  469 |   }
+  470 |
+  471 |   const requestIds = (recipients ?? []).map((row: { service_request_id: string }) => row.service_request_id);
+TypeError: fetch failed
+    at ignore-listed frames {
+  [cause]: Error: getaddrinfo ENOTFOUND dyqlixssykeecvtqmcxh.supabase.co
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'dyqlixssykeecvtqmcxh.supabase.co'
+  }
+}
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/components/dashboard/housing/HousingListPage.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/logements/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/logements/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/logements/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/logements/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/concierge/logements/overview/page.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m { useMemo } [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { buildConciergeHousingCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useConciergeOverviewData } [36mfrom[39m [32m"../../useConciergeOverviewData"[39m[33m;[39m
+ [90m 7 |[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/logements/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/conciergerie/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerConciergeCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/conciergerie/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerConciergeCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/conciergerie/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerConciergeCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/dashboard/owner/conciergerie/overview/page.tsx:3:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 1 |[39m [32m"use client"[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m { useCurrentUser } [36mfrom[39m [32m"@/app/components/hooks/useCurrentUser"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { buildOwnerConciergeCompletion } [36mfrom[39m [32m"@/app/dashboard/shared"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useOwnerDashboardData } [36mfrom[39m [32m"../../useOwnerDashboardData"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/owner/conciergerie/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/missions/overview/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx:4:1
+Module not found: Can't resolve '@/app/dashboard/_components/SimpleOverviewWorkspace'
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33mReact[39m [36mfrom[39m [32m"react"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mSimpleOverviewWorkspace[39m [36mfrom[39m [32m"@/app/dashboard/_components/SimpleOverviewWorkspace"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m type [33mProfileOverviewWorkspaceProps[39m [33m=[39m {
+ [90m 7 |[39m   tone[33m:[39m [32m"owner"[39m [33m|[39m [32m"concierge"[39m [33m|[39m [32m"provider"[39m[33m;[39m[0m
+
+Import map: aliased to relative './src/app/dashboard/_components/SimpleOverviewWorkspace' inside of [project]/
+
+
+Import traces:
+  Client Component Browser:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component Browser]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/components/dashboard/profile/ProfileOverviewWorkspace.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/profileTabSections.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Client Component SSR]
+    ./src/app/dashboard/concierge/profile/ConciergeProfilePage.tsx [Server Component]
+    ./src/features/concierge-profile/components/ConciergeProfileFeature.tsx [Server Component]
+    ./src/app/dashboard/concierge/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+

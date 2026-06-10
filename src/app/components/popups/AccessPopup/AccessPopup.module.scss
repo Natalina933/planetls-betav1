@@ -10,6 +10,7 @@
 .popup {
   @include common.container(840px, 1.3rem);
   @include common.mobileBottomSheet(1rem);
+  overflow: hidden;
 
   h2 {
     @include common.title;
@@ -49,52 +50,16 @@
   font-size: 0.95rem;
 }
 
-.contextPanel {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.55rem;
-  margin-bottom: 0.9rem;
-
-  @media (max-width: 760px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (max-width: 460px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.contextCard {
-  display: grid;
-  gap: 0.18rem;
-  padding: 0.8rem 0.9rem;
-  border-radius: 14px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-
-  strong {
-    color: #6f4f00;
-    font-size: 0.76rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  span {
-    color: #111827;
-    font-size: 0.92rem;
-    font-weight: 700;
-    line-height: 1.35;
-  }
-}
-
 .form {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
+  padding-bottom: 0.35rem;
   scrollbar-width: thin;
 
   label {
@@ -182,6 +147,61 @@
   }
 }
 
+.expressFlow {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(80, 103, 170, 0.24);
+  border-radius: 16px;
+  background: rgba(80, 103, 170, 0.06);
+}
+
+.expressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  span {
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    background: #d4af37;
+    color: #211805;
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  strong {
+    color: #202532;
+    font-size: 0.95rem;
+  }
+}
+
+.expressPanel {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.expressSummary {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(80, 103, 170, 0.18);
+  border-radius: 14px;
+  background: #ffffff;
+
+  strong {
+    color: #22345f;
+    font-size: 0.9rem;
+  }
+
+  span {
+    color: #4b5565;
+    font-size: 0.84rem;
+    line-height: 1.42;
+  }
+}
+
 .modeSwitch {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -212,7 +232,8 @@
 
 .localPromise,
 .expressPromise,
-.businessPromise {
+.businessPromise,
+.profilePromise {
   display: grid;
   gap: 0.35rem;
   padding: 0.8rem;
@@ -260,6 +281,26 @@
 
 .businessPromise {
   border-color: rgba(64, 95, 160, 0.24);
+}
+
+@media (max-width: 600px) {
+  .popup {
+    display: flex;
+    max-height: 100dvh;
+  }
+
+  .form {
+    padding-bottom: calc(0.7rem + env(safe-area-inset-bottom));
+  }
+}
+
+.profilePromise {
+  border-color: rgba(64, 120, 87, 0.22);
+  background: #ffffff;
+
+  strong {
+    color: #315f45;
+  }
 }
 
 .radiusField {
@@ -344,24 +385,12 @@
     color: #d5dcef;
   }
 
-  .contextCard,
   .localPromise,
   .expressPromise,
-  .businessPromise {
+  .businessPromise,
+  .profilePromise {
     background: #171c28;
     color: #ffffff;
-  }
-
-  .contextCard {
-    border-color: rgba(240, 205, 103, 0.18);
-
-    strong {
-      color: #ffe9a3;
-    }
-
-    span {
-      color: #ffffff;
-    }
   }
 
   .form label,
@@ -398,6 +427,25 @@
     border-color: rgba(124, 148, 213, 0.3);
   }
 
+  .expressFlow {
+    background: rgba(80, 103, 170, 0.12);
+    border-color: rgba(124, 148, 213, 0.3);
+  }
+
+  .expressHeader strong {
+    color: #ffffff;
+  }
+
+  .expressSummary {
+    background: #171c28;
+    border-color: rgba(124, 148, 213, 0.28);
+
+    strong,
+    span {
+      color: #ffffff;
+    }
+  }
+
   .radiusField {
     border-color: rgba(112, 168, 132, 0.34);
     background: linear-gradient(135deg, rgba(112, 168, 132, 0.14), rgba(212, 175, 55, 0.12));
@@ -423,44 +471,66 @@
 
 :global(body[data-readability-scale="large"]) {
   .popup {
-    font-size: 1.08rem;
+    font-size: 1.16rem;
   }
 
-  .contextCard span,
+  .close,
+  .actions button,
+  .modeSwitch button,
+  .checkboxGroup label,
+  .localPromise li,
+  .expressPromise li,
+  .businessPromise li,
+  .profilePromise li,
   .form label,
   .form input,
   .form select,
   .form textarea {
-    font-size: 1rem;
+    font-size: 1.12rem;
+    line-height: 1.48;
   }
 
   .introText,
+  .formAlert,
+  .radiusField small,
   .localPromise span,
   .expressPromise span,
-  .businessPromise span {
-    font-size: 1.02rem;
-    line-height: 1.5;
+  .businessPromise span,
+  .profilePromise span {
+    font-size: 1.12rem;
+    line-height: 1.6;
   }
 }
 
 :global(body[data-readability-scale="xlarge"]) {
   .popup {
-    font-size: 1.16rem;
+    font-size: 1.32rem;
   }
 
-  .contextCard span,
+  .close,
+  .actions button,
+  .modeSwitch button,
+  .checkboxGroup label,
+  .localPromise li,
+  .expressPromise li,
+  .businessPromise li,
+  .profilePromise li,
   .form label,
   .form input,
   .form select,
   .form textarea {
-    font-size: 1.08rem;
+    font-size: 1.24rem;
+    line-height: 1.55;
   }
 
   .introText,
+  .formAlert,
+  .radiusField small,
   .localPromise span,
   .expressPromise span,
-  .businessPromise span {
-    font-size: 1.12rem;
-    line-height: 1.55;
+  .businessPromise span,
+  .profilePromise span {
+    font-size: 1.28rem;
+    line-height: 1.68;
   }
 }

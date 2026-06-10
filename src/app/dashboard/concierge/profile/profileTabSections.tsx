@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 import {
   buildMissionProfileFromSelection,
@@ -22,11 +23,24 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { ChevronDown, Edit2, LucideUser, Save, Shield, Star, X as LucideX } from "lucide-react";
+import {
+  BadgeCheck,
+  Building2,
+  Camera,
+  ClipboardCheck,
+  FileText,
+  Globe2,
+  IdCard,
+  MapPinned,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 import ServicePackageManager from "@/app/components/dashboard/concierge/ServicePackageManager/ServicePackageManager";
 import ProfileSummary from "@/app/components/dashboard/concierge/ProfileSummary/ProfileSummary";
-import MissionsTabLayout from "@/app/components/dashboard/concierge/MissionsTabLayout";
 import MissionSnapshotShell from "@/app/components/dashboard/concierge/MissionSnapshotShell";
 import SocialLinksManager from "@/app/components/dashboard/SocialLinksManager/SocialLinksManager";
+import { DashboardOperationalPage, DashboardPanel } from "@/components/dashboard";
 import { ProfileIdentity } from "@/app/components/dashboard/concierge/ProfileSummary/profileIdentity";
 import { ProfileOverviewWorkspace } from "@/app/components/dashboard/profile/ProfileOverviewWorkspace";
 import MissionDetails from "@/app/components/dashboard/concierge/MissionDetails/MissionDetails";
@@ -38,6 +52,7 @@ import type { ConciergeTabId } from "@/app/components/dashboard/concierge/concie
 import { buildConciergeProfileCompletion } from "@/app/dashboard/shared";
 import type { MissionAvailability, WeekDay } from "@/app/components/missions/types";
 import { ConciergeProfileShell } from "./profileShellSections";
+import { CONCIERGE_CARD_COVER_OPTIONS } from "@/features/public-concierges";
 
 type RenderSection = (
   title: string,
@@ -48,6 +63,7 @@ type RenderSection = (
   showEditTop?: boolean,
 ) => React.ReactNode;
 
+type DynamicValue = ReturnType<typeof JSON.parse>;
 type RenderField = (label: string, ...args: unknown[]) => React.ReactNode;
 type TabIconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
 type MissionProgressStepItem = {
@@ -73,11 +89,154 @@ type MissionProfileItem = {
   urgentMultiplier: number;
 };
 type MissionPayloadState = {
-  missionProfile: { missions: MissionProfileItem[] };
+  missionProfile: {
+    missions: MissionProfileItem[];
+    specialConditions?: {
+      acceptHighSeasonInterventions?: boolean;
+    };
+  };
   missionCatalog: MissionCatalogItem[];
-  preferences: unknown;
+  preferences: {
+    priorityFlags: {
+      urgent: boolean;
+    };
+  };
 };
 type MissionAvailabilityState = MissionAvailability;
+type ExperienceLevel = "debutant" | "intermediaire" | "experimente";
+type ConciergeProfileDraft = {
+  availability_hours?: string | null;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  avatar_url?: string | null;
+  image?: string | null;
+  avatar_scale?: number | null;
+  avatar_offset_x?: number | null;
+  avatar_offset_y?: number | null;
+  avatar_rotation?: number | null;
+  years_experience?: number | string | null;
+  experience_level?: ExperienceLevel | null;
+  website?: string | null;
+  linkedin?: string | null;
+  instagram?: string | null;
+  facebook?: string | null;
+};
+
+type OnboardingProfileDetails = {
+  selectedServices: string[];
+  propertyTypes: string[];
+  existingTools: string[];
+  availability: string | null;
+  missionPreference: string | null;
+  signupMode: string | null;
+  onboardingGoal: string | null;
+  supportNeed: string | null;
+  propertyType: string | null;
+  needVolume: string | null;
+  tradeBody: string | null;
+  startingPriceRange: string | null;
+  firstRequestTemplate: string | null;
+};
+
+const formatOnboardingChoice = (value?: string | null) => {
+  if (!value) return "";
+  const labels: Record<string, string> = {
+    simple: "Mode simple",
+    express: "Mode express",
+    business: "Mode business",
+    temps_plein: "Temps plein",
+    temps_partiel: "Temps partiel",
+    soirs_weekends: "Soirs et week-ends",
+    sur_demande: "Sur demande selon les missions",
+    ponctuelles: "Missions ponctuelles",
+    regulieres: "Contrats réguliers",
+    les_deux: "Missions ponctuelles et contrats réguliers",
+    premieres_missions: "Trouver mes premières missions",
+    complement_revenu: "Compléter mes revenus",
+    structurer_activite: "Structurer mon activité",
+    developper_portefeuille: "Développer mon portefeuille clients",
+    guidage_simple: "Guidage simple",
+    modeles_outils: "Modèles, tarifs et outils",
+    missions_qualifiees: "Demandes qualifiées",
+    autonome: "Autonome",
+    deleguer_location: "Déléguer la gestion locative",
+    trouver_concierge: "Trouver une conciergerie fiable",
+    securiser_interventions: "Sécuriser les interventions",
+    optimiser_revenus: "Optimiser mes revenus",
+    besoin_ponctuel: "Besoin ponctuel",
+    suivi_regulier: "Suivi régulier",
+    urgence_24h: "Urgences sous 24 h",
+    interventions_planifiees: "Interventions planifiées",
+    assurance_ok: "Assurance professionnelle à jour",
+    assurance_a_preciser: "Assurance à préciser plus tard",
+    sur_devis: "Sur devis",
+    moins_50: "Moins de 50 € / h",
+    "50_80": "50 à 80 € / h",
+    "80_plus": "80 € / h et +",
+  };
+  return labels[value] ?? value;
+};
+
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
+
+const asNullableString = (value: unknown): string | null =>
+  typeof value === "string" && value.trim() ? value : null;
+
+const parseOnboardingProfileDetails = (availabilityHours?: string | null): OnboardingProfileDetails => {
+  const empty: OnboardingProfileDetails = {
+    selectedServices: [],
+    propertyTypes: [],
+    existingTools: [],
+    availability: null,
+    missionPreference: null,
+    signupMode: null,
+    onboardingGoal: null,
+    supportNeed: null,
+    propertyType: null,
+    needVolume: null,
+    tradeBody: null,
+    startingPriceRange: null,
+    firstRequestTemplate: null,
+  };
+
+  if (!availabilityHours) return empty;
+
+  try {
+    const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
+    const onboarding =
+      typeof parsed.onboarding === "object" && parsed.onboarding !== null
+        ? (parsed.onboarding as Record<string, unknown>)
+        : {};
+    const preferences =
+      typeof parsed.preferences === "object" && parsed.preferences !== null
+        ? (parsed.preferences as Record<string, unknown>)
+        : {};
+    const source = { ...preferences, ...onboarding };
+
+    return {
+      selectedServices: asStringArray(source.selectedServices),
+      propertyTypes: asStringArray(source.propertyTypes),
+      existingTools: asStringArray(source.existingTools),
+      availability: asNullableString(source.availability),
+      missionPreference: asNullableString(source.missionPreference),
+      signupMode: asNullableString(source.signupMode),
+      onboardingGoal: asNullableString(source.onboardingGoal),
+      supportNeed: asNullableString(source.supportNeed),
+      propertyType: asNullableString(source.propertyType),
+      needVolume: asNullableString(source.needVolume),
+      tradeBody: asNullableString(source.tradeBody),
+      startingPriceRange: asNullableString(source.startingPriceRange),
+      firstRequestTemplate: asNullableString(source.firstRequestTemplate),
+    };
+  } catch {
+    return empty;
+  }
+};
 type EditProfileStateLike = {
   availability_hours?: string | null;
   [key: string]: unknown;
@@ -89,7 +248,7 @@ type TariffOverviewControlsLike = {
   scrollToTariffSection: (sectionId: string) => void;
   handleTabChange: (tabId: ConciergeTabId) => void;
 };
-type SetEditProfile = React.Dispatch<React.SetStateAction<EditProfileStateLike>>;
+type SetEditProfile = React.Dispatch<React.SetStateAction<ConciergeProfileDraft | null>>;
 type PricingModalState = {
   id?: string;
   serviceId: string;
@@ -150,6 +309,55 @@ type PricingScenario = {
   id: string;
   name: string;
   is_default: boolean;
+};
+type PricingV2State = {
+  base: {
+    hourlyRate: number;
+    travelFee: number;
+    minimumInvoice: number;
+  };
+  globalModifiers: {
+    urgentPercent: number;
+    nightPercent: number;
+    weekendPercent: number;
+    highSeasonPercent: number;
+  };
+};
+type PricingMetaState = {
+  commissionRatePct: number;
+  setupFee: number;
+};
+type PricingProjection = {
+  commissionEffectivePct: number;
+  total: number;
+  commissionAmount: number;
+  setupAmount: number;
+  actAmount: number;
+  narrative: string;
+};
+type CatalogService = {
+  id: number;
+  service: string;
+};
+type ConciergeTariffsTabContentProps = {
+  styles: Record<string, string>;
+  renderSection: RenderSection;
+  sectionIds: Record<string, string>;
+  mode?: "tarifs" | "devis";
+  tariffOverviewControls: TariffOverviewControlsLike;
+  tariffFoundationControls: DynamicValue;
+  tariffConfigControls: DynamicValue;
+  editingSection: string | null;
+  pricingCatalogRows: DynamicValue;
+  activeMissionServiceLabels: string[];
+  renderField: RenderField;
+  tariffCatalogControls: DynamicValue;
+  pricingSegmentsControls: DynamicValue;
+  pricingRulesControls: DynamicValue;
+  pricingScenarioControls: DynamicValue;
+  pricingModalControls: DynamicValue;
+  billingDeskSectionProps: DynamicValue;
+  formatExperienceLabel: (level: ExperienceLevel | null) => string;
 };
 
 const DAY_LABELS: Record<WeekDay, string> = {
@@ -246,6 +454,7 @@ interface EditableProfileSectionProps {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
+  sectionId?: string;
   canEdit?: boolean;
   collapsible?: boolean;
   isOpen: boolean;
@@ -278,7 +487,7 @@ interface DocumentsTabSectionProps {
 interface FicheTabSectionProps {
   styles: Record<string, string>;
   ficheControls: {
-    profile: any;
+    profile: ConciergeProfileDraft | null;
     avatarFile: File | null;
     defaultAvatar: string;
     sectionIds: {
@@ -292,7 +501,7 @@ interface FicheTabSectionProps {
     ) => void;
     errors: Record<string, string>;
   };
-  editProfile: any;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   renderSection: RenderSection;
   renderField: RenderField;
@@ -304,8 +513,8 @@ interface FicheTabSectionProps {
 
 interface FicheSidebarCardProps {
   styles: Record<string, string>;
-  profile: any;
-  editProfile: any;
+  profile: ConciergeProfileDraft | null;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   avatarFile: File | null;
   defaultAvatar: string;
@@ -319,6 +528,8 @@ interface FichePresentationSectionProps {
   styles: Record<string, string>;
   renderSection: RenderSection;
   renderField: RenderField;
+  editProfile: ConciergeProfileDraft;
+  setEditProfile: SetEditProfile;
   editingSection: string | null;
   sectionId: string;
 }
@@ -327,7 +538,7 @@ interface FichePersonalInfoSectionProps {
   styles: Record<string, string>;
   renderSection: RenderSection;
   renderField: RenderField;
-  editProfile: any;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   sectionId: string;
   setEditProfile: SetEditProfile;
@@ -341,7 +552,7 @@ interface FicheSimpleSectionProps {
 
 interface FicheSocialSectionProps {
   renderSection: RenderSection;
-  editProfile: any;
+  editProfile: ConciergeProfileDraft;
   editingSection: string | null;
   beginSectionEdit: (sectionId: string) => void;
   handleSocialChange: (
@@ -353,7 +564,7 @@ interface FicheSocialSectionProps {
 
 interface FicheStaticSidebarSectionProps {
   styles: Record<string, string>;
-  profile: any;
+  profile: ConciergeProfileDraft;
   renderSection: RenderSection;
 }
 
@@ -454,6 +665,7 @@ export function EditableProfileSection({
   title,
   icon,
   children,
+  sectionId,
   canEdit = true,
   collapsible = true,
   isOpen,
@@ -489,7 +701,7 @@ export function EditableProfileSection({
   );
 
   return (
-    <div className={styles.section}>
+    <div id={sectionId} className={styles.section}>
       <div className={styles.sectionHeader}>
         {collapsible ? (
           <div
@@ -700,15 +912,15 @@ interface ConciergeProfileActiveTabContentProps {
     activeMissionServiceLabels: string[];
   };
   tariffOverviewControls: TariffOverviewControlsLike;
-  tariffFoundationControls: unknown;
-  tariffConfigControls: unknown;
-  pricingCatalogRows: unknown;
-  tariffCatalogControls: unknown;
-  pricingSegmentsControls: unknown;
-  pricingRulesControls: unknown;
-  pricingScenarioControls: unknown;
-  pricingModalControls: unknown;
-  billingDeskSectionProps: unknown;
+  tariffFoundationControls: ConciergeTariffsTabContentProps["tariffFoundationControls"];
+  tariffConfigControls: ConciergeTariffsTabContentProps["tariffConfigControls"];
+  pricingCatalogRows: DynamicValue;
+  tariffCatalogControls: ConciergeTariffsTabContentProps["tariffCatalogControls"];
+  pricingSegmentsControls: ConciergeTariffsTabContentProps["pricingSegmentsControls"];
+  pricingRulesControls: ConciergeTariffsTabContentProps["pricingRulesControls"];
+  pricingScenarioControls: ConciergeTariffsTabContentProps["pricingScenarioControls"];
+  pricingModalControls: ConciergeTariffsTabContentProps["pricingModalControls"];
+  billingDeskSectionProps: ConciergeTariffsTabContentProps["billingDeskSectionProps"];
 }
 
 interface ConciergeMissionsTabContentProps {
@@ -933,17 +1145,11 @@ export function PacksTabSection({
   return (
     <div>
       {renderSection(
-        "Mes packs de services",
+        "Composer l'offre",
         <FiBriefcase />,
         <>
           <p>
-            Créez et gérez vos packs directement depuis votre profil concierge.
-            Vous pourrez ensuite les relier à votre grille tarifaire et vos modèles de contrats.
-          </p>
-          <p>
-            <Link href="/dashboard/concierge/services-packages/seed">
-              Ouvrir la page seed test (2 packs + 2 modèles)
-            </Link>
+            Sélectionnez les services inclus, donnez un nom clair à l&apos;offre, puis reliez-la aux tarifs et contrats.
           </p>
           <ServicePackageManager
             activeMissionServiceIds={activeMissionServiceIds}
@@ -1059,10 +1265,132 @@ export function ConciergeProfileActiveTabContent({
   if (!ficheControls?.profile || !profileEditorControls?.editProfile) return null;
 
   const profileCompletion = buildConciergeProfileCompletion(ficheControls.profile);
+  const profileMissingItems = profileCompletion.missingItems.slice(0, 5);
+  const tabActions = [
+    { label: "Vue d'ensemble", href: "/dashboard/concierge/profile" },
+    { label: "Fiche", href: "/dashboard/concierge/profile?tab=fiche" },
+    { label: "Missions", href: "/dashboard/concierge/profile?tab=missions" },
+    { label: "Packs", href: "/dashboard/concierge/profile?tab=packs" },
+    { label: "Tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
+    { label: "Devis", href: "/dashboard/concierge/profile?tab=devis" },
+    { label: "Équipe", href: "/dashboard/concierge/profile?tab=equipe" },
+    { label: "Documents", href: "/dashboard/concierge/profile?tab=documents" },
+  ];
+  const profileDetailSections = [
+    {
+      id: "profil",
+      title: "Éléments à compléter",
+      description: "Les points qui améliorent directement la crédibilité du profil.",
+      emptyText: "Le profil est complet sur les points principaux.",
+      items: profileMissingItems.map((item) => ({
+        title: item,
+        meta: "À compléter",
+        description: "Complétez cette information depuis l'onglet Fiche pour renforcer la visibilité du profil.",
+        action: { label: "Ouvrir la fiche", href: "/dashboard/concierge/profile?tab=fiche" },
+      })),
+    },
+    {
+      id: "navigation",
+      title: "Onglets du profil",
+      description: "Chaque onglet garde son rôle, avec la même lecture opérationnelle.",
+      emptyText: "Aucun onglet disponible.",
+      items: tabActions.map((action) => ({
+        title: action.label,
+        meta: "Onglet",
+        description: "Accéder directement à cette partie du profil concierge.",
+        action,
+      })),
+    },
+  ];
+  const wrapProfileTab = ({
+    title,
+    description,
+    metrics,
+    focus,
+    risks,
+    cadence,
+    detailsBadge = "Profil",
+    detailsTitle = "Sections liées",
+    detailsDescription = "Cliquez sur un indicateur pour isoler les informations utiles de cet onglet.",
+    detailSections = profileDetailSections,
+    showDetails,
+    illustration,
+    children,
+  }: {
+    title: string;
+    description: string;
+    metrics: React.ComponentProps<typeof DashboardOperationalPage>["metrics"];
+    focus: React.ComponentProps<typeof DashboardOperationalPage>["focus"];
+    risks: React.ComponentProps<typeof DashboardOperationalPage>["risks"];
+    cadence: React.ComponentProps<typeof DashboardOperationalPage>["cadence"];
+    detailsBadge?: string;
+    detailsTitle?: string;
+    detailsDescription?: string;
+    detailSections?: React.ComponentProps<typeof DashboardOperationalPage>["detailSections"];
+    showDetails?: React.ComponentProps<typeof DashboardOperationalPage>["showDetails"];
+    illustration?: React.ComponentProps<typeof DashboardOperationalPage>["illustration"];
+    children: React.ReactNode;
+  }) => (
+    <DashboardOperationalPage
+      tone="concierge"
+      badge="Vue opérationnelle"
+      title={title}
+      description={description}
+      primaryActions={tabActions}
+      metrics={metrics}
+      focus={focus}
+      risks={risks}
+      cadenceTitle="Cadence de pilotage"
+      cadence={cadence}
+      detailsBadge={detailsBadge}
+      detailsTitle={detailsTitle}
+      detailsDescription={detailsDescription}
+      detailSections={detailSections}
+      showDetails={showDetails}
+      illustration={illustration}
+    >
+      <DashboardPanel title={title} className={styles.operationalPanel}>
+        {children}
+      </DashboardPanel>
+    </DashboardOperationalPage>
+  );
   switch (activeTab) {
     case "overview":
-      return (
-        <ProfileOverviewWorkspace
+      return wrapProfileTab({
+        title: "Profil concierge",
+        description: "Suivez la complétion du profil, les informations publiques et les onglets à maintenir pour une présence professionnelle.",
+        metrics: [
+          { label: "Complétion", value: `${profileCompletion.percentage}%`, hint: `${profileCompletion.completedCount}/${profileCompletion.totalCount} éléments`, detailSectionId: "profil" },
+          { label: "Manquants", value: String(profileMissingItems.length), hint: "Points à compléter", detailSectionId: "profil" },
+          { label: "Onglets", value: String(tabActions.length), hint: "Espaces du profil", detailSectionId: "navigation" },
+          { label: "Statut", value: profileCompletion.percentage >= 90 ? "Prêt" : "À faire", hint: "Visibilité profil", detailSectionId: "profil" },
+        ],
+        focus: {
+          title: "Priorité profil",
+          status: profileCompletion.percentage >= 90 ? "Prêt" : "À compléter",
+          statusVariant: profileCompletion.percentage >= 90 ? "success" : "warning",
+          icon: profileCompletion.percentage >= 90 ? <BadgeCheck size={28} /> : <ClipboardCheck size={28} />,
+          heading: profileMissingItems[0] ?? "Profil bien renseigné",
+          description: profileMissingItems.length > 0
+            ? "Complétez les informations manquantes pour renforcer la confiance propriétaire."
+            : "Votre profil est prêt, pensez à le relire régulièrement.",
+          action: { label: "Compléter ma fiche", href: "/dashboard/concierge/profile?tab=fiche" },
+        },
+        risks: [
+          { label: "Fiche", value: `${profileCompletion.percentage}%`, hint: "Complétion", icon: UserRound, tone: profileCompletion.percentage >= 90 ? "success" : "warning", detailSectionId: "profil" },
+          { label: "Documents", value: "Avis", hint: "Justificatifs", icon: FileText, tone: "info", detailSectionId: "navigation" },
+          { label: "Missions", value: `${missionProgressControls.missionProgressPercent}%`, hint: "Configuration", icon: ClipboardCheck, tone: missionProgressControls.missionProgressPercent >= 90 ? "success" : "warning", detailSectionId: "navigation" },
+          { label: "Tarifs", value: `${tariffOverviewControls.tariffReadinessPercent}%`, hint: "Prêts", icon: Building2, tone: tariffOverviewControls.tariffReadinessPercent >= 90 ? "success" : "warning", detailSectionId: "navigation" },
+        ],
+        cadence: [
+          { label: "Aujourd'hui", text: "Traiter les champs manquants les plus visibles.", icon: ClipboardCheck },
+          { label: "Cette semaine", text: "Relire missions, tarifs et documents associés.", icon: ShieldCheck },
+          { label: "Chaque mois", text: "Actualiser expérience, présentation et preuves de confiance.", icon: Sparkles },
+        ],
+        showDetails: false,
+        illustration: { mainIcon: UserRound, topLeftIcon: BadgeCheck, topRightIcon: FileText },
+        children: (
+          <ProfileOverviewWorkspace
           tone="concierge"
           eyebrow="Pilotage du profil"
           title="Profil"
@@ -1091,8 +1419,9 @@ export function ConciergeProfileActiveTabContent({
             actionLabel: "Compléter ma fiche",
             actionHref: "/dashboard/concierge/profile?tab=fiche",
           }}
-        />
-      );
+          />
+        ),
+      });
     case "fiche":
       return (
         <ConciergeFicheTabContent
@@ -1109,7 +1438,101 @@ export function ConciergeProfileActiveTabContent({
         />
       );
     case "missions":
-      return (
+      return wrapProfileTab({
+        title: "Profil missions",
+        description: "Configurez les prestations acceptées, la couverture et les disponibilités qui alimentent vos missions.",
+        metrics: [
+          { label: "Progression", value: `${missionProgressControls.missionProgressPercent}%`, hint: `${missionProgressControls.missionProgressDoneCount}/${missionProgressControls.missionProgressSteps.length} étapes`, detailSectionId: "progression", href: `/dashboard/concierge/profile?tab=missions#${missionProgressControls.missionProgressSteps.find((step) => !step.done)?.sectionId ?? missionSectionIds.SERVICES}` },
+          { label: "Services", value: String(missionOverviewStats.displayedActiveMissionCount), hint: "Prestations acceptées", detailSectionId: "services", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.SERVICES}` },
+          { label: "Zones", value: String(missionOverviewStats.missionAvailability?.zones.length ?? 0), hint: "Couverture terrain", detailSectionId: "zone", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.ZONE_RULES}` },
+          { label: "Horaires", value: `${missionOverviewStats.missionOpenDaysCount}/7`, hint: `${missionOverviewStats.missionRangesCount} plage(s)`, detailSectionId: "disponibilites", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.WEEKLY_AVAILABILITY}` },
+        ],
+        focus: {
+          title: "Priorité missions",
+          status: missionProgressControls.missionProgressPercent >= 90 ? "Prêt" : "À configurer",
+          statusVariant: missionProgressControls.missionProgressPercent >= 90 ? "success" : "warning",
+          icon: <ClipboardCheck size={28} />,
+          heading: missionProgressControls.missionProgressSteps.find((step) => !step.done)?.label ?? "Configuration missions prête",
+          description: "Gardez services, zone et disponibilités cohérents avec votre capacité réelle.",
+          action: {
+            label: "Configurer cette partie",
+            href: `/dashboard/concierge/profile?tab=missions#${missionProgressControls.missionProgressSteps.find((step) => !step.done)?.sectionId ?? missionSectionIds.SERVICES}`,
+          },
+        },
+        risks: [
+          { label: "Services", value: missionOverviewStats.displayedActiveMissionCount, hint: "Actifs", icon: ClipboardCheck, tone: missionOverviewStats.displayedActiveMissionCount > 0 ? "success" : "warning", detailSectionId: "services", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.SERVICES}` },
+          { label: "Zone", value: missionOverviewStats.missionAvailability?.zones.length ?? 0, hint: "Zones", icon: MapPinned, tone: (missionOverviewStats.missionAvailability?.zones.length ?? 0) > 0 ? "success" : "warning", detailSectionId: "zone", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.ZONE_RULES}` },
+          { label: "Planning", value: `${missionOverviewStats.missionOpenDaysCount}/7`, hint: "Jours ouverts", icon: ClipboardCheck, tone: missionOverviewStats.missionOpenDaysCount > 0 ? "success" : "warning", detailSectionId: "disponibilites", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.WEEKLY_AVAILABILITY}` },
+          { label: "Catalogue", value: missionOverviewStats.unrecognizedActiveMissionLabels.length, hint: "À nettoyer", icon: ShieldCheck, tone: missionOverviewStats.unrecognizedActiveMissionLabels.length > 0 ? "warning" : "success", detailSectionId: "services", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.SERVICES}` },
+        ],
+        cadence: [
+          { label: "Aujourd'hui", text: "Finaliser les étapes missions incomplètes.", icon: ClipboardCheck },
+          { label: "Cette semaine", text: "Adapter zone et horaires à la charge terrain.", icon: MapPinned },
+          { label: "Avant publication", text: "Relire les services visibles et les règles d'urgence.", icon: ShieldCheck },
+        ],
+        detailsBadge: "Missions",
+        detailsTitle: "Configuration missions",
+        detailsDescription: "Chaque bloc renvoie vers la section d'édition qui pilote vos missions terrain.",
+        showDetails: false,
+        detailSections: [
+          {
+            id: "progression",
+            title: "Étapes de configuration",
+            description: "Points nécessaires pour rendre le profil missions exploitable.",
+            emptyText: "Toutes les étapes missions sont configurées.",
+            items: missionProgressControls.missionProgressSteps
+              .filter((step) => !step.done)
+              .map((step) => ({
+                title: step.label,
+                meta: "À configurer",
+                description: step.hint,
+                action: {
+                  label: "Configurer",
+                  href: `/dashboard/concierge/profile?tab=missions#${step.sectionId ?? missionSectionIds.SERVICES}`,
+                },
+              })),
+          },
+          {
+            id: "services",
+            title: "Services acceptés",
+            description: "Prestations visibles dans votre profil missions.",
+            emptyText: "Aucun service actif pour le moment.",
+            items: missionOverviewStats.activeMissionRawLabels.map((label) => ({
+              title: label,
+              meta: "Actif",
+              description: "Service proposé aux propriétaires dans le cadre des missions.",
+              action: { label: "Modifier", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.SERVICES}` },
+            })),
+          },
+          {
+            id: "zone",
+            title: "Zone d'intervention",
+            description: "Couverture géographique utilisée pour qualifier les demandes.",
+            emptyText: "Aucune zone d'intervention configurée.",
+            items: (missionOverviewStats.missionAvailability?.zones ?? []).map((zone) => ({
+              title: zone.label,
+              meta: `${missionOverviewStats.missionAvailability?.radiusKm ?? 0} km`,
+              description: "Zone active pour vos missions concierge.",
+              action: { label: "Ajuster", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.ZONE_RULES}` },
+            })),
+          },
+          {
+            id: "disponibilites",
+            title: "Disponibilités hebdomadaires",
+            description: "Créneaux utilisés pour cadrer les missions et urgences.",
+            emptyText: "Aucune disponibilité hebdomadaire configurée.",
+            items: (missionOverviewStats.missionAvailability?.schedule ?? [])
+              .filter((day) => day.ranges.length > 0)
+              .map((day) => ({
+                title: DAY_LABELS[day.day],
+                meta: `${day.ranges.length} plage(s)`,
+                description: day.ranges.map((range) => `${range.start}-${range.end}`).join(", "),
+                action: { label: "Ajuster", href: `/dashboard/concierge/profile?tab=missions#${missionSectionIds.WEEKLY_AVAILABILITY}` },
+              })),
+          },
+        ],
+        illustration: { mainIcon: ClipboardCheck, topLeftIcon: MapPinned, topRightIcon: ShieldCheck },
+        children: (
         <ConciergeMissionsTabContent
           styles={styles}
           renderSection={profileEditorControls.renderSection}
@@ -1121,76 +1544,327 @@ export function ConciergeProfileActiveTabContent({
           missionQuoteControls={missionQuoteControls}
           missionFoundationControls={missionFoundationControls}
         />
-      );
+        ),
+      });
     case "packs":
-      return (
-        <ConciergePacksTabContent
-          styles={styles}
-          renderSection={simpleTabControls.renderSection}
-          activeMissionServiceIds={simpleTabControls.activeMissionServiceCatalogIds}
-          activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
-        />
-      );
+      return wrapProfileTab({
+        title: "Atelier packs",
+        description: "Composez une offre prête à vendre en sélectionnant les services inclus, la promesse commerciale et les éléments à relier aux tarifs.",
+        metrics: [
+          {
+            label: "Services disponibles",
+            value: String(simpleTabControls.activeMissionServiceLabels.length),
+            hint: "À inclure dans le pack",
+            href: "/dashboard/concierge/profile?tab=missions",
+          },
+          {
+            label: "Pack",
+            value: "Offre",
+            hint: "Offre en construction",
+          },
+          {
+            label: "Catalogue",
+            value: String(simpleTabControls.activeMissionServiceCatalogIds.length),
+            hint: "Services reliés",
+          },
+          {
+            label: "Statut",
+            value: simpleTabControls.activeMissionServiceLabels.length > 0 ? "Prêt" : "À préparer",
+            hint: "Composition",
+          },
+        ],
+        focus: {
+          title: "Priorité atelier",
+          status: simpleTabControls.activeMissionServiceLabels.length > 0 ? "Base prête" : "Services requis",
+          statusVariant: simpleTabControls.activeMissionServiceLabels.length > 0 ? "success" : "warning",
+          icon: <Building2 size={28} />,
+          heading:
+            simpleTabControls.activeMissionServiceLabels.length > 0
+              ? "Composer un pack clair"
+              : "Configurer les services missions",
+          description:
+            "Un bon pack se lit vite : un nom explicite, quelques services inclus, une promesse propriétaire et des limites faciles à comprendre.",
+          action: {
+            label:
+              simpleTabControls.activeMissionServiceLabels.length > 0
+                ? "Composer l'offre"
+                : "Configurer les services",
+            href:
+              simpleTabControls.activeMissionServiceLabels.length > 0
+                ? "/dashboard/concierge/profile?tab=packs"
+                : "/dashboard/concierge/profile?tab=missions",
+          },
+        },
+        risks: [
+          {
+            label: "Services",
+            value: simpleTabControls.activeMissionServiceLabels.length,
+            hint: "Actifs",
+            icon: ClipboardCheck,
+            tone: simpleTabControls.activeMissionServiceLabels.length > 0 ? "success" : "warning",
+            href: "/dashboard/concierge/profile?tab=missions",
+          },
+          {
+            label: "Promesse",
+            value: "Claire",
+            hint: "À formuler",
+            icon: Sparkles,
+            tone: "info",
+          },
+          {
+            label: "Tarifs",
+            value: `${tariffOverviewControls.tariffReadinessPercent}%`,
+            hint: "Cohérence prix",
+            icon: Building2,
+            tone: tariffOverviewControls.tariffReadinessPercent >= 90 ? "success" : "warning",
+            href: "/dashboard/concierge/profile?tab=tarifs",
+          },
+          {
+            label: "Devis",
+            value: "Reliés",
+            hint: "Conversion",
+            icon: FileText,
+            tone: "info",
+            href: "/dashboard/concierge/profile?tab=devis",
+          },
+        ],
+        cadence: [
+          { label: "Étape 1", text: "Choisir les services inclus dans le pack.", icon: ClipboardCheck },
+          { label: "Étape 2", text: "Nommer l'offre et clarifier sa promesse propriétaire.", icon: Sparkles },
+          { label: "Étape 3", text: "Relier le pack aux tarifs et contrats avant publication.", icon: ShieldCheck },
+        ],
+        showDetails: false,
+        illustration: { mainIcon: Building2, topLeftIcon: Sparkles, topRightIcon: ClipboardCheck },
+        children: (
+          <ConciergePacksTabContent
+            styles={styles}
+            renderSection={simpleTabControls.renderSection}
+            activeMissionServiceIds={simpleTabControls.activeMissionServiceCatalogIds}
+            activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
+          />
+        ),
+      });
     case "tarifs":
-      return (
-        <ConciergeTariffsTabContent
-          styles={styles}
-          renderSection={profileEditorControls.renderSection}
-          sectionIds={tariffSectionIds}
-          mode="tarifs"
-          tariffOverviewControls={tariffOverviewControls}
-          tariffFoundationControls={tariffFoundationControls}
-          tariffConfigControls={tariffConfigControls}
-          editingSection={profileEditorControls.editingSection}
-          pricingCatalogRows={pricingCatalogRows}
-          activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
-          renderField={profileEditorControls.renderField as RenderField}
-          tariffCatalogControls={tariffCatalogControls}
-          pricingSegmentsControls={pricingSegmentsControls}
-          pricingRulesControls={pricingRulesControls}
-          pricingScenarioControls={pricingScenarioControls}
-          pricingModalControls={pricingModalControls}
-          billingDeskSectionProps={billingDeskSectionProps}
-          formatExperienceLabel={profileEditorControls.formatExperienceLabel}
-        />
-      );
+      return wrapProfileTab({
+        title: "Tarifs concierge",
+        description: "Pilotez les bases tarifaires, les règles de variation et la cohérence prix avant publication.",
+        metrics: [
+          { label: "Préparation", value: `${tariffOverviewControls.tariffReadinessPercent}%`, hint: "Tarifs prêts" },
+          { label: "Prix configurés", value: String(tariffOverviewControls.configuredPricingCount), hint: "Lignes actives" },
+          { label: "Services", value: String(simpleTabControls.activeMissionServiceLabels.length), hint: "Prestations reliées", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "À traiter", value: String(tariffOverviewControls.pendingTariffReadinessChecks.length), hint: "Contrôles restants" },
+        ],
+        focus: {
+          title: "Priorité tarifs",
+          status: tariffOverviewControls.tariffReadinessPercent >= 90 ? "Prêt" : "À compléter",
+          statusVariant: tariffOverviewControls.tariffReadinessPercent >= 90 ? "success" : "warning",
+          icon: <Building2 size={28} />,
+          heading: tariffOverviewControls.pendingTariffReadinessChecks[0]?.label ?? "Tarifs cohérents",
+          description: "Gardez des tarifs lisibles, reliés aux services actifs et faciles à transformer en devis.",
+          action: { label: "Configurer les tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
+        },
+        risks: [
+          { label: "Base", value: `${tariffOverviewControls.tariffReadinessPercent}%`, hint: "Préparation", icon: ClipboardCheck, tone: tariffOverviewControls.tariffReadinessPercent >= 90 ? "success" : "warning" },
+          { label: "Services", value: simpleTabControls.activeMissionServiceLabels.length, hint: "Reliés", icon: ShieldCheck, tone: simpleTabControls.activeMissionServiceLabels.length > 0 ? "success" : "warning", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "Packs", value: "Offres", hint: "À aligner", icon: Building2, tone: "info", href: "/dashboard/concierge/profile?tab=packs" },
+          { label: "Devis", value: "Simulation", hint: "Conversion", icon: FileText, tone: "info", href: "/dashboard/concierge/profile?tab=devis" },
+        ],
+        cadence: [
+          { label: "Aujourd'hui", text: "Compléter les prix manquants sur les services vendus.", icon: ClipboardCheck },
+          { label: "Cette semaine", text: "Vérifier les majorations, frais et minimums facturables.", icon: ShieldCheck },
+          { label: "Avant devis", text: "Comparer les tarifs avec les packs et les conditions terrain.", icon: Sparkles },
+        ],
+        showDetails: false,
+        illustration: { mainIcon: Building2, topLeftIcon: ClipboardCheck, topRightIcon: FileText },
+        children: (
+          <ConciergeTariffsTabContent
+            styles={styles}
+            renderSection={profileEditorControls.renderSection}
+            sectionIds={tariffSectionIds}
+            mode="tarifs"
+            tariffOverviewControls={tariffOverviewControls}
+            tariffFoundationControls={tariffFoundationControls}
+            tariffConfigControls={tariffConfigControls}
+            editingSection={profileEditorControls.editingSection}
+            pricingCatalogRows={pricingCatalogRows}
+            activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
+            renderField={profileEditorControls.renderField as RenderField}
+            tariffCatalogControls={tariffCatalogControls}
+            pricingSegmentsControls={pricingSegmentsControls}
+            pricingRulesControls={pricingRulesControls}
+            pricingScenarioControls={pricingScenarioControls}
+            pricingModalControls={pricingModalControls}
+            billingDeskSectionProps={billingDeskSectionProps}
+            formatExperienceLabel={profileEditorControls.formatExperienceLabel}
+          />
+        ),
+      });
     case "devis":
-      return (
-        <ConciergeTariffsTabContent
-          styles={styles}
-          renderSection={profileEditorControls.renderSection}
-          sectionIds={tariffSectionIds}
-          mode="devis"
-          tariffOverviewControls={tariffOverviewControls}
-          tariffFoundationControls={tariffFoundationControls}
-          tariffConfigControls={tariffConfigControls}
-          editingSection={profileEditorControls.editingSection}
-          pricingCatalogRows={pricingCatalogRows}
-          activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
-          renderField={profileEditorControls.renderField as RenderField}
-          tariffCatalogControls={tariffCatalogControls}
-          pricingSegmentsControls={pricingSegmentsControls}
-          pricingRulesControls={pricingRulesControls}
-          pricingScenarioControls={pricingScenarioControls}
-          pricingModalControls={pricingModalControls}
-          billingDeskSectionProps={billingDeskSectionProps}
-          formatExperienceLabel={profileEditorControls.formatExperienceLabel}
-        />
-      );
+      return wrapProfileTab({
+        title: "Devis concierge",
+        description: "Préparez les simulations, scénarios et éléments de facturation qui transforment une demande en proposition claire.",
+        metrics: [
+          { label: "Tarifs", value: `${tariffOverviewControls.tariffReadinessPercent}%`, hint: "Base prête", href: "/dashboard/concierge/profile?tab=tarifs" },
+          { label: "Services", value: String(simpleTabControls.activeMissionServiceLabels.length), hint: "Prestations devisables", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "Contrôles", value: String(tariffOverviewControls.pendingTariffReadinessChecks.length), hint: "À finaliser" },
+          { label: "Statut", value: tariffOverviewControls.tariffReadinessPercent >= 90 ? "Prêt" : "À préparer", hint: "Création devis" },
+        ],
+        focus: {
+          title: "Priorité devis",
+          status: tariffOverviewControls.tariffReadinessPercent >= 90 ? "Prêt" : "Tarifs requis",
+          statusVariant: tariffOverviewControls.tariffReadinessPercent >= 90 ? "success" : "warning",
+          icon: <FileText size={28} />,
+          heading: tariffOverviewControls.pendingTariffReadinessChecks[0]?.label ?? "Base de devis exploitable",
+          description: "Un devis fiable dépend de tarifs complets, de services actifs et de conditions de mission explicites.",
+          action: { label: "Préparer les devis", href: "/dashboard/concierge/profile?tab=devis" },
+        },
+        risks: [
+          { label: "Tarifs", value: `${tariffOverviewControls.tariffReadinessPercent}%`, hint: "Prêts", icon: Building2, tone: tariffOverviewControls.tariffReadinessPercent >= 90 ? "success" : "warning", href: "/dashboard/concierge/profile?tab=tarifs" },
+          { label: "Services", value: simpleTabControls.activeMissionServiceLabels.length, hint: "Actifs", icon: ClipboardCheck, tone: simpleTabControls.activeMissionServiceLabels.length > 0 ? "success" : "warning", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "Scénarios", value: "Test", hint: "Simulation", icon: Sparkles, tone: "info" },
+          { label: "Facturation", value: "Base", hint: "À vérifier", icon: ShieldCheck, tone: "info" },
+        ],
+        cadence: [
+          { label: "Aujourd'hui", text: "Vérifier les services et tarifs nécessaires à un devis propre.", icon: ClipboardCheck },
+          { label: "Cette semaine", text: "Tester un scénario type propriétaire avec frais, urgences et options.", icon: Sparkles },
+          { label: "Avant envoi", text: "Relire le total, les conditions et les limites de prestation.", icon: ShieldCheck },
+        ],
+        showDetails: false,
+        illustration: { mainIcon: FileText, topLeftIcon: Building2, topRightIcon: Sparkles },
+        children: (
+          <ConciergeTariffsTabContent
+            styles={styles}
+            renderSection={profileEditorControls.renderSection}
+            sectionIds={tariffSectionIds}
+            mode="devis"
+            tariffOverviewControls={tariffOverviewControls}
+            tariffFoundationControls={tariffFoundationControls}
+            tariffConfigControls={tariffConfigControls}
+            editingSection={profileEditorControls.editingSection}
+            pricingCatalogRows={pricingCatalogRows}
+            activeMissionServiceLabels={simpleTabControls.activeMissionServiceLabels}
+            renderField={profileEditorControls.renderField as RenderField}
+            tariffCatalogControls={tariffCatalogControls}
+            pricingSegmentsControls={pricingSegmentsControls}
+            pricingRulesControls={pricingRulesControls}
+            pricingScenarioControls={pricingScenarioControls}
+            pricingModalControls={pricingModalControls}
+            billingDeskSectionProps={billingDeskSectionProps}
+            formatExperienceLabel={profileEditorControls.formatExperienceLabel}
+          />
+        ),
+      });
     case "equipe":
-      return (
-        <ConciergeTeamTabContent
-          renderSection={profileEditorControls.renderSection}
-          renderField={profileEditorControls.renderField as RenderField}
-        />
-      );
+      return wrapProfileTab({
+        title: "Équipe concierge",
+        description: "Préparez l'organisation, les zones et les relais qui soutiennent vos missions terrain.",
+        metrics: [
+          { label: "Équipe", value: "À structurer", hint: "Collaborateurs" },
+          { label: "Zone", value: missionOverviewStats.missionAvailability?.zones[0]?.label ?? "À définir", hint: "Couverture" },
+          { label: "Missions", value: `${missionProgressControls.missionProgressPercent}%`, hint: "Configuration", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "Profil", value: `${profileCompletion.percentage}%`, hint: "Base publique", href: "/dashboard/concierge/profile?tab=fiche" },
+        ],
+        focus: {
+          title: "Priorité équipe",
+          status: "À structurer",
+          statusVariant: "info",
+          icon: <UserRound size={28} />,
+          heading: "Clarifier les relais opérationnels",
+          description: "L'équipe doit rester reliée aux zones, disponibilités et types de missions réellement acceptés.",
+          action: { label: "Voir les missions", href: "/dashboard/concierge/profile?tab=missions" },
+        },
+        risks: [
+          { label: "Zones", value: missionOverviewStats.missionAvailability?.zones.length ?? 0, hint: "Couverture", icon: MapPinned, tone: (missionOverviewStats.missionAvailability?.zones.length ?? 0) > 0 ? "success" : "warning", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "Horaires", value: `${missionOverviewStats.missionOpenDaysCount}/7`, hint: "Ouverture", icon: ClipboardCheck, tone: missionOverviewStats.missionOpenDaysCount > 0 ? "success" : "warning", href: "/dashboard/concierge/profile?tab=missions" },
+          { label: "Documents", value: "À venir", hint: "Confiance", icon: FileText, tone: "info", href: "/dashboard/concierge/profile?tab=documents" },
+          { label: "Fiche", value: `${profileCompletion.percentage}%`, hint: "Crédibilité", icon: BadgeCheck, tone: profileCompletion.percentage >= 90 ? "success" : "warning", href: "/dashboard/concierge/profile?tab=fiche" },
+        ],
+        cadence: [
+          { label: "Aujourd'hui", text: "Vérifier que la zone d'intervention correspond à la capacité réelle.", icon: MapPinned },
+          { label: "Cette semaine", text: "Préparer les rôles, relais et disponibilités nécessaires.", icon: UserRound },
+          { label: "Avant croissance", text: "Relier équipe, missions, documents et responsabilités.", icon: ShieldCheck },
+        ],
+        showDetails: false,
+        illustration: { mainIcon: UserRound, topLeftIcon: MapPinned, topRightIcon: ShieldCheck },
+        children: (
+          <ConciergeTeamTabContent
+            renderSection={profileEditorControls.renderSection}
+            renderField={profileEditorControls.renderField as RenderField}
+          />
+        ),
+      });
     case "documents":
-      return (
-        <ConciergeDocumentsTabContent
-          renderSection={simpleTabControls.renderSection}
-          placeholderClassName={simpleTabControls.placeholderClassName}
-        />
-      );
+      return wrapProfileTab({
+        title: "Documents & avis",
+        description: "Centralisez les justificatifs professionnels, les preuves de confiance et les avis clients liés à votre profil.",
+        metrics: [
+          { label: "Documents", value: "2", hint: "Espaces prévus", detailSectionId: "documents" },
+          { label: "Avis", value: "À venir", hint: "Retours clients", detailSectionId: "avis" },
+          { label: "Profil", value: `${profileCompletion.percentage}%`, hint: "Complétion", detailSectionId: "profil" },
+          { label: "Statut", value: "Préparation", hint: "Module documents", detailSectionId: "documents" },
+        ],
+        focus: {
+          title: "Priorité documents",
+          status: "À structurer",
+          statusVariant: "info",
+          icon: <FileText size={28} />,
+          heading: "Justificatifs professionnels",
+          description: "Préparez les documents qui rassurent les propriétaires : assurance, Kbis, certifications et preuves d'activité.",
+          action: { label: "Revenir à la fiche", href: "/dashboard/concierge/profile?tab=fiche" },
+        },
+        risks: [
+          { label: "Assurance", value: "RC Pro", hint: "À déposer", icon: ShieldCheck, tone: "info", detailSectionId: "documents" },
+          { label: "Entreprise", value: "Kbis", hint: "À préparer", icon: Building2, tone: "info", detailSectionId: "documents" },
+          { label: "Avis", value: "Clients", hint: "À connecter", icon: BadgeCheck, tone: "info", detailSectionId: "avis" },
+          { label: "Fiche", value: `${profileCompletion.percentage}%`, hint: "Base profil", icon: UserRound, tone: profileCompletion.percentage >= 90 ? "success" : "warning", detailSectionId: "profil" },
+        ],
+        cadence: [
+          { label: "Aujourd'hui", text: "Vérifier que les informations de fiche sont cohérentes avec les documents.", icon: ClipboardCheck },
+          { label: "Cette semaine", text: "Préparer assurance, justificatifs entreprise et certifications.", icon: ShieldCheck },
+          { label: "Après mission", text: "Collecter les avis clients utiles à la preuve sociale.", icon: BadgeCheck },
+        ],
+        detailsBadge: "Documents",
+        detailsTitle: "Preuves de confiance",
+        detailsDescription: "Gardez une vue claire sur les documents et avis qui renforceront votre profil.",
+        showDetails: false,
+        detailSections: [
+          {
+            id: "documents",
+            title: "Documents professionnels",
+            description: "Justificatifs à déposer ou à relier au profil.",
+            emptyText: "Aucun document à afficher pour le moment.",
+            items: [
+              {
+                title: "Assurance professionnelle",
+                meta: "RC Pro",
+                description: "Document clé pour rassurer les propriétaires avant intervention.",
+                action: { label: "Compléter la fiche", href: "/dashboard/concierge/profile?tab=fiche" },
+              },
+              {
+                title: "Justificatif entreprise",
+                meta: "Kbis / SIRET",
+                description: "Vérifiez la cohérence avec les informations entreprise de la fiche.",
+                action: { label: "Voir entreprise", href: "/dashboard/concierge/profile?tab=fiche#Informations_entreprise" },
+              },
+            ],
+          },
+          {
+            id: "avis",
+            title: "Avis clients",
+            description: "Retours propriétaires et preuves sociales à valoriser.",
+            emptyText: "Aucun avis disponible pour le moment.",
+            items: [],
+          },
+          profileDetailSections[0],
+        ],
+        illustration: { mainIcon: FileText, topLeftIcon: ShieldCheck, topRightIcon: BadgeCheck },
+        children: (
+          <ConciergeDocumentsTabContent
+            renderSection={simpleTabControls.renderSection}
+            placeholderClassName={simpleTabControls.placeholderClassName}
+          />
+        ),
+      });
     default:
       return null;
   }
@@ -1228,12 +1902,12 @@ function FicheSidebarCard({
           existingRotation={editProfile.avatar_rotation ?? 0}
           onAvatarChange={setAvatarFile}
           onAvatarScaleChange={(scale) =>
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev ? { ...prev, avatar_scale: scale } : prev,
             )
           }
           onAvatarOffsetChange={(offsetX, offsetY) =>
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev
                 ? {
                     ...prev,
@@ -1244,14 +1918,14 @@ function FicheSidebarCard({
             )
           }
           onAvatarRotationChange={(rotation) =>
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev ? { ...prev, avatar_rotation: rotation } : prev,
             )
           }
           onAvatarSave={() => handleSaveSection("Photo de profil")}
           onAvatarRemove={() => {
             setAvatarFile(null);
-            setEditProfile((prev: EditProfileStateLike) =>
+            setEditProfile((prev) =>
               prev
                 ? {
                     ...prev,
@@ -1278,7 +1952,7 @@ function FicheSidebarCard({
           <div className={styles.profileStatItem}>
             <p className={styles.profileStatLabel}>Expérience</p>
             <p className={styles.profileStatValue}>
-              {profile.years_experience != null
+              {profile?.years_experience != null
                 ? `${profile.years_experience} ans`
                 : "Non renseigné"}
             </p>
@@ -1293,9 +1967,32 @@ function FichePresentationSection({
   styles,
   renderSection,
   renderField,
+  editProfile,
+  setEditProfile,
   editingSection,
   sectionId,
 }: FichePresentationSectionProps) {
+  const isEditing = editingSection === sectionId;
+  const currentCover = editProfile.image || CONCIERGE_CARD_COVER_OPTIONS[0].url;
+  const handleCoverUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch("/api/profiles/avatar", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await response.json();
+
+    if (!response.ok || typeof result?.url !== "string") {
+      throw new Error(result?.error || "Impossible d'envoyer l'image.");
+    }
+
+    setEditProfile((prev) => (prev ? { ...prev, image: result.url } : prev));
+  };
+
   return (
     <div className={styles.presentationFeatured}>
       {renderSection(
@@ -1314,6 +2011,49 @@ function FichePresentationSection({
                 voyageurs, ménage et intendance.
               </p>
             </div>
+          )}
+          <div className={styles.publicCoverPicker}>
+            <div className={styles.publicCoverPreview}>
+              <Image src={currentCover} alt="" fill sizes="(max-width: 768px) 100vw, 360px" />
+            </div>
+            <div className={styles.publicCoverContent}>
+              <strong>Image de couverture publique</strong>
+              <p>
+                Cette image apparaît sur vos cards publiques. Choisissez un visuel PlanetLS ou
+                ajoutez votre propre image.
+              </p>
+              {isEditing ? (
+                <>
+                  <div className={styles.publicCoverOptions}>
+                    {CONCIERGE_CARD_COVER_OPTIONS.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={editProfile.image === option.url ? styles.publicCoverOptionActive : ""}
+                        onClick={() =>
+                          setEditProfile((prev) => (prev ? { ...prev, image: option.url } : prev))
+                        }
+                      >
+                        <Image src={option.url} alt="" width={64} height={44} />
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <label className={styles.publicCoverUpload}>
+                    Ajouter mon image
+                    <input type="file" accept="image/*" onChange={handleCoverUpload} />
+                  </label>
+                </>
+              ) : null}
+            </div>
+          </div>
+          {renderField(
+            "URL image de couverture",
+            "image",
+            sectionId,
+            false,
+            false,
+            CONCIERGE_CARD_COVER_OPTIONS[0].url,
           )}
           {renderField(
             "Ma présentation",
@@ -1381,7 +2121,7 @@ function FichePersonalInfoSection({
             value={editProfile.experience_level ?? ""}
             onChange={(e) => {
               const value = e.target.value as "" | "debutant" | "intermediaire" | "experimente";
-              setEditProfile((prev: EditProfileStateLike) =>
+              setEditProfile((prev) =>
                 prev
                   ? {
                       ...prev,
@@ -1399,7 +2139,7 @@ function FichePersonalInfoSection({
           </select>
         ) : (
           <span className={styles.fieldValue}>
-            {formatExperienceLabel(editProfile.experience_level)}
+            {formatExperienceLabel(editProfile.experience_level ?? null)}
           </span>
         )}
       </div>
@@ -1527,6 +2267,95 @@ function FicheSocialSection({
   );
 }
 
+function FicheOnboardingDetailsSection({
+  styles,
+  renderSection,
+  editProfile,
+}: {
+  styles: Record<string, string>;
+  renderSection: RenderSection;
+  editProfile: ConciergeProfileDraft;
+}) {
+  const details = parseOnboardingProfileDetails(editProfile.availability_hours);
+  const rows = [
+    { label: "Mode d'inscription", value: formatOnboardingChoice(details.signupMode) },
+    { label: "Objectif", value: formatOnboardingChoice(details.onboardingGoal) },
+    { label: "Disponibilité", value: formatOnboardingChoice(details.availability) },
+    { label: "Collaboration recherchée", value: formatOnboardingChoice(details.missionPreference) },
+    { label: "Accompagnement", value: formatOnboardingChoice(details.supportNeed) },
+    { label: "Type de bien principal", value: details.propertyType },
+    { label: "Volume du besoin", value: formatOnboardingChoice(details.needVolume) },
+    { label: "Métier", value: details.tradeBody },
+    { label: "Tarif de départ", value: formatOnboardingChoice(details.startingPriceRange) },
+  ].filter((row) => row.value);
+  const hasContent =
+    rows.length > 0 ||
+    details.selectedServices.length > 0 ||
+    details.propertyTypes.length > 0 ||
+    details.existingTools.length > 0 ||
+    Boolean(details.firstRequestTemplate);
+
+  if (!hasContent) return null;
+
+  return renderSection(
+    "Informations renseignées à l’inscription",
+    <FiCheckCircleOutline />,
+    <div className={styles.onboardingDetails}>
+      {rows.length > 0 ? (
+        <div className={styles.onboardingDetailsGrid}>
+          {rows.map((row) => (
+            <div key={row.label} className={styles.onboardingDetailItem}>
+              <span>{row.label}</span>
+              <strong>{row.value}</strong>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {details.propertyTypes.length > 0 ? (
+        <div className={styles.onboardingDetailGroup}>
+          <strong>Types de biens que vous pouvez gérer</strong>
+          <div className={styles.onboardingChips}>
+            {details.propertyTypes.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {details.selectedServices.length > 0 ? (
+        <div className={styles.onboardingDetailGroup}>
+          <strong>Services sélectionnés à l’inscription</strong>
+          <div className={styles.onboardingChips}>
+            {details.selectedServices.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {details.existingTools.length > 0 ? (
+        <div className={styles.onboardingDetailGroup}>
+          <strong>Outils déjà utilisés</strong>
+          <div className={styles.onboardingChips}>
+            {details.existingTools.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {details.firstRequestTemplate ? (
+        <div className={styles.onboardingDetailGroup}>
+          <strong>Première demande / note</strong>
+          <p>{details.firstRequestTemplate}</p>
+        </div>
+      ) : null}
+    </div>,
+    false,
+  );
+}
+
 function FicheBadgeSection({ styles }: Pick<FicheStaticSidebarSectionProps, "styles">) {
   return (
     <div className={styles.badgeCard}>
@@ -1546,7 +2375,12 @@ function FicheSummarySection({
   profile,
   renderSection,
 }: Pick<FicheStaticSidebarSectionProps, "profile" | "renderSection">) {
-  return renderSection("Résumé du profil", <FiBarChart />, <ProfileSummary profile={profile} />, false);
+  return renderSection(
+    "Résumé du profil",
+    <FiBarChart />,
+    profile ? <ProfileSummary profile={profile as React.ComponentProps<typeof ProfileSummary>["profile"]} /> : null,
+    false,
+  );
 }
 
 export function FicheTabSection({
@@ -1561,58 +2395,331 @@ export function FicheTabSection({
   handleSaveSection,
   beginSectionEdit,
 }: FicheTabSectionProps) {
+  const completion = buildConciergeProfileCompletion(ficheControls.profile ?? editProfile);
+  const readProfileValue = (key: string) =>
+    String((editProfile as Record<string, unknown>)[key] ?? "").trim();
+  const additionalInfo = readProfileValue("additional_info");
+  const legalForm = readProfileValue("legal_form");
+  const siren = readProfileValue("siren");
+  const siret = readProfileValue("siret");
+  const streetAddress = readProfileValue("street_address");
+  const postalCode = readProfileValue("postal_code");
+  const insuranceCompany = readProfileValue("insurance_company");
+  const insuranceNumber = readProfileValue("insurance_number");
+  const certifications = readProfileValue("certifications");
+  const fullName = [editProfile.first_name, editProfile.last_name].filter(Boolean).join(" ").trim();
+  const displayName = fullName || editProfile.username || "Profil concierge";
+  const identityReady = Boolean(editProfile.first_name && editProfile.last_name && editProfile.email && editProfile.phone);
+  const presentationReady = Boolean(additionalInfo);
+  const companyReady = Boolean(legalForm && siren && siret);
+  const addressReady = Boolean(streetAddress && postalCode && editProfile.location);
+  const insuranceReady = Boolean(insuranceCompany || insuranceNumber || certifications);
+  const socialLinksCount = [editProfile.website, editProfile.linkedin, editProfile.instagram, editProfile.facebook].filter(Boolean).length;
+  const missingItems = completion.missingItems.slice(0, 4);
+  const priorityLabel = missingItems[0] ?? "Fiche prête à publier";
+  const hasAvatar = Boolean(ficheControls.avatarFile || editProfile.avatar_url);
+  const readinessItems = [
+    { label: "Photo", ready: hasAvatar },
+    { label: "Coordonnées", ready: identityReady },
+    { label: "Présentation", ready: presentationReady },
+    { label: "Entreprise", ready: companyReady },
+    { label: "Localisation", ready: addressReady },
+    { label: "Confiance", ready: insuranceReady },
+  ];
+  const profileHref = "/dashboard/concierge/profile?tab=fiche";
+  const profileTabActions = [
+    { label: "Vue d'ensemble", href: "/dashboard/concierge/profile" },
+    { label: "Fiche", href: "/dashboard/concierge/profile?tab=fiche" },
+    { label: "Missions", href: "/dashboard/concierge/profile?tab=missions" },
+    { label: "Packs", href: "/dashboard/concierge/profile?tab=packs" },
+    { label: "Tarifs", href: "/dashboard/concierge/profile?tab=tarifs" },
+    { label: "Devis", href: "/dashboard/concierge/profile?tab=devis" },
+    { label: "Équipe", href: "/dashboard/concierge/profile?tab=equipe" },
+    { label: "Documents", href: "/dashboard/concierge/profile?tab=documents" },
+  ];
+  const toProfileAction = (label: string, hash: string) => ({
+    label,
+    href: `${profileHref}#${hash}`,
+  });
+  const detailSections = [
+    {
+      id: "identite",
+      title: "Identité publique",
+      description: "Les informations qui permettent aux propriétaires de vous identifier et de vous contacter.",
+      emptyText: "Les informations d’identité sont complètes.",
+      items: [
+        {
+          title: displayName,
+          meta: identityReady ? "Complet" : "À compléter",
+          description: editProfile.email
+            ? `${editProfile.email}${editProfile.phone ? ` - ${editProfile.phone}` : ""}`
+            : "Ajoutez au minimum nom, prénom, email et téléphone.",
+          action: toProfileAction("Modifier", ficheControls.sectionIds.INFO_PERSO),
+        },
+      ],
+    },
+    {
+      id: "presentation",
+      title: "Présentation commerciale",
+      description: "Le texte et les éléments qui donnent de la crédibilité à votre fiche.",
+      emptyText: "La présentation est complète.",
+      items: [
+        {
+          title: "Présentation",
+          meta: presentationReady ? "Visible" : "À rédiger",
+          description: presentationReady
+            ? additionalInfo.slice(0, 150)
+            : "Présentez votre zone, vos services clés et votre différence.",
+          action: toProfileAction("Rédiger", ficheControls.sectionIds.PRESENTATION),
+        },
+        {
+          title: "Entreprise",
+          meta: companyReady ? "Renseignée" : "À vérifier",
+          description: legalForm || "Ajoutez forme juridique, SIREN et SIRET.",
+          action: toProfileAction("Vérifier", "Informations_entreprise"),
+        },
+      ],
+    },
+    {
+      id: "confiance",
+      title: "Confiance et conformité",
+      description: "Adresse, assurance, certifications et signaux de réassurance.",
+      emptyText: "Les éléments de confiance sont renseignés.",
+      items: [
+        {
+          title: "Adresse professionnelle",
+          meta: addressReady ? "Localisée" : "À compléter",
+          description: editProfile.location || "Ajoutez adresse, code postal, ville et pays.",
+          action: toProfileAction("Compléter", "Adresse_professionnelle"),
+        },
+        {
+          title: "Assurance & certifications",
+          meta: insuranceReady ? "Documentée" : "À renforcer",
+          description: insuranceCompany || "Ajoutez votre RC Pro ou vos certifications.",
+          action: toProfileAction("Renforcer", "Assurance___Certifications"),
+        },
+      ],
+    },
+    {
+      id: "visibilite",
+      title: "Visibilité",
+      description: "Canaux qui enrichissent votre présence et facilitent la vérification.",
+      emptyText: "Aucun canal externe renseigné.",
+      items: [
+        {
+          title: "Web & réseaux sociaux",
+          meta: `${socialLinksCount} lien(s)`,
+          description:
+            socialLinksCount > 0
+              ? "Vos liens renforcent la lecture de votre activité."
+              : "Ajoutez un site ou un réseau professionnel si vous en avez un.",
+          action: toProfileAction("Gérer", "Web___R_seaux_sociaux"),
+        },
+      ],
+    },
+  ];
+
   return (
-    <div className={styles.grid}>
-      <aside className={styles.leftColumn}>
-        <FicheSidebarCard
-          styles={styles}
-          profile={ficheControls.profile}
-          editProfile={editProfile}
-          editingSection={editingSection}
-          avatarFile={ficheControls.avatarFile}
-          defaultAvatar={ficheControls.defaultAvatar}
-          setAvatarFile={ficheControls.setAvatarFile}
-          setEditProfile={setEditProfile}
-          handleSaveSection={handleSaveSection}
-          beginSectionEdit={beginSectionEdit}
-        />
+    <DashboardOperationalPage
+      tone="concierge"
+      badge="Vue opérationnelle"
+      title="Fiche concierge"
+      description="Pilotez votre identité publique, votre présentation, vos informations légales et les signaux de confiance visibles par les propriétaires."
+      primaryActions={profileTabActions}
+      metrics={[
+        {
+          label: "Complétion",
+          value: `${completion.percentage}%`,
+          hint: `${completion.completedCount}/${completion.totalCount} éléments validés`,
+          detailSectionId: "presentation",
+          href: `${profileHref}#fiche-publication`,
+        },
+        {
+          label: "Identité",
+          value: identityReady ? "OK" : "À faire",
+          hint: "Contact et expérience",
+          detailSectionId: "identite",
+          href: `${profileHref}#${ficheControls.sectionIds.INFO_PERSO}`,
+        },
+        {
+          label: "Confiance",
+          value: `${[addressReady, insuranceReady, companyReady].filter(Boolean).length}/3`,
+          hint: "Entreprise, adresse, assurance",
+          detailSectionId: "confiance",
+          href: `${profileHref}#Assurance___Certifications`,
+        },
+        {
+          label: "Visibilité",
+          value: String(socialLinksCount),
+          hint: "Liens externes",
+          detailSectionId: "visibilite",
+          href: `${profileHref}#Web___R_seaux_sociaux`,
+        },
+      ]}
+      focus={{
+        title: "Priorité fiche",
+        status: completion.percentage >= 90 ? "Prêt" : "À compléter",
+        statusVariant: completion.percentage >= 90 ? "success" : "warning",
+        icon: completion.percentage >= 90 ? <BadgeCheck size={28} /> : <ClipboardCheck size={28} />,
+        heading: priorityLabel,
+        description:
+          completion.percentage >= 90
+            ? "Votre fiche est suffisamment complète pour inspirer confiance. Gardez les informations à jour."
+            : "Complétez les champs manquants pour améliorer la lisibilité et la crédibilité de votre profil.",
+        action: { label: "Continuer la fiche", href: profileHref },
+      }}
+      risks={[
+        {
+          label: "Identité",
+          value: identityReady ? "OK" : "Manquant",
+          hint: "Coordonnées",
+          icon: IdCard,
+          tone: identityReady ? "success" : "warning",
+          detailSectionId: "identite",
+          href: `${profileHref}#${ficheControls.sectionIds.INFO_PERSO}`,
+        },
+        {
+          label: "Présentation",
+          value: presentationReady ? "OK" : "À rédiger",
+          hint: "Texte public",
+          icon: FileText,
+          tone: presentationReady ? "success" : "warning",
+          detailSectionId: "presentation",
+          href: `${profileHref}#${ficheControls.sectionIds.PRESENTATION}`,
+        },
+        {
+          label: "Assurance",
+          value: insuranceReady ? "OK" : "À vérifier",
+          hint: "RC Pro / labels",
+          icon: ShieldCheck,
+          tone: insuranceReady ? "success" : "info",
+          detailSectionId: "confiance",
+          href: `${profileHref}#Assurance___Certifications`,
+        },
+        {
+          label: "Liens",
+          value: socialLinksCount,
+          hint: "Site et réseaux",
+          icon: Globe2,
+          tone: socialLinksCount > 0 ? "success" : "info",
+          detailSectionId: "visibilite",
+          href: `${profileHref}#Web___R_seaux_sociaux`,
+        },
+      ]}
+      cadenceTitle="Cadence de mise à jour"
+      cadence={[
+        {
+          label: "Aujourd’hui",
+          text: "Corriger les informations manquantes qui bloquent la confiance.",
+          icon: ClipboardCheck,
+        },
+        {
+          label: "Cette semaine",
+          text: "Relire la présentation et vérifier la cohérence entreprise, adresse et assurance.",
+          icon: Building2,
+        },
+        {
+          label: "Chaque mois",
+          text: "Actualiser photo, liens, expérience et éléments différenciants.",
+          icon: Sparkles,
+        },
+      ]}
+      detailsBadge="Fiche"
+      detailsTitle="Sections à harmoniser"
+      detailsDescription="Cliquez sur un indicateur pour isoler les parties de la fiche à corriger ou à enrichir."
+      detailSections={detailSections}
+      showDetails={false}
+      illustration={{
+        mainIcon: UserRound,
+        topLeftIcon: Camera,
+        topRightIcon: MapPinned,
+      }}
+    >
+      <DashboardPanel title="Édition reliée de la fiche" className={styles.operationalPanel}>
+        <div id="fiche-publication" className={styles.ficheEditIntro}>
+          <p>
+            Les indicateurs au-dessus renvoient aux mêmes familles que les sections ci-dessous. Utilisez ces raccourcis pour aller directement au bloc à corriger.
+          </p>
+          <div className={styles.ficheSectionLinks}>
+            <Link href={`${profileHref}#${ficheControls.sectionIds.INFO_PERSO}`}>Identité</Link>
+            <Link href={`${profileHref}#${ficheControls.sectionIds.PRESENTATION}`}>Présentation</Link>
+            <Link href={`${profileHref}#Informations_entreprise`}>Entreprise</Link>
+            <Link href={`${profileHref}#Adresse_professionnelle`}>Adresse</Link>
+            <Link href={`${profileHref}#Assurance___Certifications`}>Confiance</Link>
+            <Link href={`${profileHref}#Web___R_seaux_sociaux`}>Visibilité</Link>
+          </div>
+        </div>
+        <div className={styles.grid}>
+          <aside className={styles.leftColumn}>
+            <FicheSidebarCard
+              styles={styles}
+              profile={ficheControls.profile}
+              editProfile={editProfile}
+              editingSection={editingSection}
+              avatarFile={ficheControls.avatarFile}
+              defaultAvatar={ficheControls.defaultAvatar}
+              setAvatarFile={ficheControls.setAvatarFile}
+              setEditProfile={setEditProfile}
+              handleSaveSection={handleSaveSection}
+              beginSectionEdit={beginSectionEdit}
+            />
 
-        <FichePresentationSection
-          styles={styles}
-          renderSection={renderSection}
-          renderField={renderField}
-          editingSection={editingSection}
-          sectionId={ficheControls.sectionIds.PRESENTATION}
-        />
+            <FichePresentationSection
+              styles={styles}
+              renderSection={renderSection}
+              renderField={renderField}
+              editProfile={editProfile}
+              setEditProfile={setEditProfile}
+              editingSection={editingSection}
+              sectionId={ficheControls.sectionIds.PRESENTATION}
+            />
 
-        <FicheBadgeSection styles={styles} />
-        <FicheSummarySection profile={ficheControls.profile} renderSection={renderSection} />
-      </aside>
+            <div className={styles.ficheReadinessPanel}>
+              <div>
+                <span>Repères de publication</span>
+                <strong>{completion.percentage}% complet</strong>
+              </div>
+              <div className={styles.ficheReadinessList}>
+                {readinessItems.map((item) => (
+                  <span key={item.label} className={item.ready ? styles.ficheReadinessDone : ""}>
+                    {item.label}
+                  </span>
+                ))}
+              </div>
+              {missingItems.length > 0 ? (
+                <p>Priorité : {missingItems[0]}</p>
+              ) : (
+                <p>La fiche est cohérente. Pensez seulement à la relire régulièrement.</p>
+              )}
+            </div>
+          </aside>
 
-      <section className={styles.rightColumn}>
-        <FichePersonalInfoSection
-          styles={styles}
-          renderSection={renderSection}
-          renderField={renderField}
-          editProfile={editProfile}
-          editingSection={editingSection}
-          sectionId={ficheControls.sectionIds.INFO_PERSO}
-          setEditProfile={setEditProfile}
-          formatExperienceLabel={formatExperienceLabel}
-        />
-        <FicheCompanySection renderSection={renderSection} renderField={renderField} />
-        <FicheAddressSection renderSection={renderSection} renderField={renderField} />
-        <FicheInsuranceSection renderSection={renderSection} renderField={renderField} />
-        <FicheSocialSection
-          renderSection={renderSection}
-          editProfile={editProfile}
-          editingSection={editingSection}
-          beginSectionEdit={beginSectionEdit}
-          handleSocialChange={ficheControls.handleSocialChange}
-          errors={ficheControls.errors}
-        />
-      </section>
-    </div>
+          <section className={styles.rightColumn}>
+            <FichePersonalInfoSection
+              styles={styles}
+              renderSection={renderSection}
+              renderField={renderField}
+              editProfile={editProfile}
+              editingSection={editingSection}
+              sectionId={ficheControls.sectionIds.INFO_PERSO}
+              setEditProfile={setEditProfile}
+              formatExperienceLabel={formatExperienceLabel}
+            />
+            <FicheCompanySection renderSection={renderSection} renderField={renderField} />
+            <FicheAddressSection renderSection={renderSection} renderField={renderField} />
+            <FicheInsuranceSection renderSection={renderSection} renderField={renderField} />
+            <FicheSocialSection
+              renderSection={renderSection}
+              editProfile={editProfile}
+              editingSection={editingSection}
+              beginSectionEdit={beginSectionEdit}
+              handleSocialChange={ficheControls.handleSocialChange}
+              errors={ficheControls.errors}
+            />
+          </section>
+        </div>
+      </DashboardPanel>
+    </DashboardOperationalPage>
   );
 }
 
@@ -2091,42 +3198,31 @@ export function ConciergeMissionsTabContent({
   missionQuoteControls,
   missionFoundationControls,
 }: ConciergeMissionsTabContentProps) {
+  const missionRows = missionQuoteControls.missionRows.slice(0, 3);
+
   return (
-    <div className={styles.missionsPageWide}>
-      <MissionsTabLayout
-        styles={styles}
-        missionProgressPercent={missionProgressControls.missionProgressPercent}
-        missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
-        missionProgressTotal={missionProgressControls.missionProgressSteps.length}
-        showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
-        onTogglePendingSteps={() =>
-          missionProgressControls.setShowPendingMissionStepsOnly((prev: boolean) => !prev)
-        }
-        displayedActiveMissionCount={missionOverviewStats.displayedActiveMissionCount}
-        totalAvailableMissionCount={missionOverviewStats.totalAvailableMissionCount}
-        recognizedActiveMissionCount={missionOverviewStats.recognizedActiveMissionCount}
-        unrecognizedActiveMissionLabelsCount={missionOverviewStats.unrecognizedActiveMissionLabels.length}
-        missionOpenDaysCount={missionOverviewStats.missionOpenDaysCount}
-        missionRangesCount={missionOverviewStats.missionRangesCount}
-        missionZonesCount={missionOverviewStats.missionAvailability?.zones.length ?? 0}
-        missionProgressSteps={missionProgressControls.missionProgressSteps}
-        openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
-        showCompletionCard={false}
-        showSecondaryContent={false}
-        secondaryContent={
-          <MissionsSecondaryPanels
-            styles={styles}
-            missionProgressDoneCount={missionProgressControls.missionProgressDoneCount}
-            missionProgressTotal={missionProgressControls.missionProgressSteps.length}
-            showPendingMissionStepsOnly={missionProgressControls.showPendingMissionStepsOnly}
-            setShowPendingMissionStepsOnly={missionProgressControls.setShowPendingMissionStepsOnly}
-            missionProgressSteps={missionProgressControls.missionProgressSteps}
-            openMissionSectionForEdit={missionProgressControls.openMissionSectionForEdit}
-            renderSection={renderSection}
-            missionQuoteControls={missionQuoteControls}
-          />
-        }
-      >
+    <div className={styles.missionsFocusedLayout}>
+      <DashboardPanel title="Missions en cours" className={styles.missionsCurrentPanel}>
+        {missionRows.length > 0 ? (
+          <div className={styles.missionsCurrentList}>
+            {missionRows.map((mission) => (
+              <div key={mission.id} className={styles.missionsCurrentItem}>
+                <div>
+                  <strong>{mission.title}</strong>
+                  <span>{mission.status}</span>
+                </div>
+                <Link href="/dashboard/concierge/missions">Voir</Link>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.missionsEmptyText}>
+            Aucune mission en cours à afficher ici. Cette page sert surtout à configurer les services qui généreront les prochaines missions.
+          </p>
+        )}
+      </DashboardPanel>
+
+      <DashboardPanel title="Services proposés pour les missions" className={styles.missionsServicesPanel}>
         <MissionsPrimarySections
           styles={styles}
           renderSection={renderSection}
@@ -2157,7 +3253,7 @@ export function ConciergeMissionsTabContent({
           toMissionTypeId={missionFoundationControls.toMissionTypeId}
           normalizeMissionSchedule={missionFoundationControls.normalizeMissionSchedule}
         />
-      </MissionsTabLayout>
+      </DashboardPanel>
     </div>
   );
 }
@@ -3486,7 +4582,7 @@ export function ConciergeTariffsTabContent({
   pricingModalControls,
   billingDeskSectionProps,
   formatExperienceLabel,
-}: any) {
+}: ConciergeTariffsTabContentProps) {
   if (mode === "devis") {
     return (
       <div className={styles.financeGrid}>
@@ -3554,7 +4650,7 @@ export function ConciergeTariffsTabContent({
         <div className={styles.tariffSimpleGrid}>
           <TariffContextSection
             styles={styles}
-            experienceLabel={tariffFoundationControls.formatExperienceLabel(tariffFoundationControls.editProfile.experience_level)}
+            experienceLabel={tariffFoundationControls.formatExperienceLabel(tariffFoundationControls.editProfile.experience_level ?? null)}
             locationLabel={tariffConfigControls.tariffLocationLabel}
             radiusKm={tariffFoundationControls.missionAvailability?.radiusKm ?? 0}
             urgentEnabled={tariffFoundationControls.missionPayload.preferences.priorityFlags.urgent}

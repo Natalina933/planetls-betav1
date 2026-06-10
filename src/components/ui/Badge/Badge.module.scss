@@ -1,19 +1,23 @@
+@use "../../../styles/mixins" as *;
+
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
   min-height: 24px;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--ds-radius-pill);
+  padding: 0.22rem 0.58rem;
+  border-radius: var(--ds-radius-control);
   border: 1px solid transparent;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   font-family: var(--ds-font-ui);
+  white-space: nowrap;
 }
 
 .neutral {
-  background: var(--ds-color-surface-soft);
+  background: color-mix(in srgb, var(--ds-color-surface-soft) 78%, white);
   border-color: var(--ds-color-border-soft);
   color: var(--ds-color-text-soft);
 }
@@ -31,9 +35,9 @@
 }
 
 .success {
-  background: color-mix(in srgb, var(--ds-color-success) 14%, transparent);
-  border-color: color-mix(in srgb, var(--ds-color-success) 35%, transparent);
-  color: #245e4e;
+  background: color-mix(in srgb, var(--ds-color-success) 16%, white);
+  border-color: color-mix(in srgb, var(--ds-color-success) 34%, transparent);
+  color: color-mix(in srgb, var(--ds-color-success) 76%, #10241d);
 }
 
 .warning {
@@ -43,15 +47,21 @@
 }
 
 .danger {
-  background: color-mix(in srgb, var(--ds-color-danger) 14%, transparent);
+  background: color-mix(in srgb, var(--ds-color-danger) 14%, white);
   border-color: color-mix(in srgb, var(--ds-color-danger) 34%, transparent);
-  color: #7f2d2d;
+  color: color-mix(in srgb, var(--ds-color-danger) 78%, #2b1010);
 }
 
 .info {
   background: color-mix(in srgb, var(--ds-color-info) 14%, transparent);
   border-color: color-mix(in srgb, var(--ds-color-info) 34%, transparent);
   color: #35507b;
+}
+
+.progress {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
 }
 
 :global([data-theme="art-deco"]) .badge {
@@ -71,10 +81,11 @@
 :global([data-theme="art-deco"]) .success::before,
 :global([data-theme="art-deco"]) .warning::before,
 :global([data-theme="art-deco"]) .gold::before {
-  content: "?";
-  font-size: 0.58rem;
-  margin-right: 0.35rem;
-  color: #b5a642;
+  content: "";
+  width: 0.38rem;
+  height: 0.38rem;
+  background: var(--ds-color-gold-strong);
+  transform: rotate(45deg);
 }
 
 :global([data-theme="mucha-dark"]) .gold,

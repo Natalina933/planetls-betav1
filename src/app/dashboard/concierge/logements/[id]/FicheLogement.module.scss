@@ -56,6 +56,60 @@
   flex-wrap: wrap;
 }
 
+.headerConciergeCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-width: min(100%, 300px);
+  max-width: 380px;
+  padding: 0.75rem 0.85rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 22px rgba(109, 53, 41, 0.06);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+
+  &:hover {
+    border-color: rgba(184, 92, 72, 0.34);
+    box-shadow: 0 14px 28px rgba(109, 53, 41, 0.1);
+    transform: translateY(-1px);
+  }
+
+  div {
+    display: grid;
+    gap: 0.14rem;
+    min-width: 0;
+  }
+
+  span {
+    color: #8a4030;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #3f241c;
+    font-size: 0.98rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: #6f4338;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+}
+
 .housingAvatar {
   flex-shrink: 0;
   border: 3px solid rgba(255, 255, 255, 0.9);
@@ -121,6 +175,1165 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.quickGallery {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 520px;
+}
+
+.quickGalleryPanel {
+  width: 100%;
+  justify-items: start;
+}
+
+.summaryMediaInfoLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(460px, 1.05fr);
+  gap: 1rem;
+  align-items: start;
+
+  .quickGallery {
+    max-width: none;
+  }
+
+  .quickGalleryImage {
+    max-height: 260px;
+  }
+}
+
+.quickGalleryTopline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+
+  div {
+    display: grid;
+    gap: 0.18rem;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #7a4d43;
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+}
+
+.quickGalleryUpload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.55rem 0.82rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.2);
+  background: rgba(255, 255, 255, 0.88);
+  color: #793528;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.quickGalleryFrame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.quickGalleryImageWrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.quickGalleryImage {
+  display: block;
+  width: 100%;
+  max-height: 190px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.quickGalleryCounter {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  min-height: 28px;
+  padding: 0.28rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(46, 29, 23, 0.72);
+  color: #fffaf6;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.quickGalleryBadge {
+  position: absolute;
+  left: 0.65rem;
+  top: 0.65rem;
+  min-height: 28px;
+  padding: 0.28rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(255, 250, 246, 0.92);
+  color: #793528;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.quickGalleryProfileButton {
+  position: absolute;
+  left: 0.65rem;
+  bottom: 0.65rem;
+  min-height: 30px;
+  padding: 0.3rem 0.66rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 250, 246, 0.72);
+  background: rgba(46, 29, 23, 0.78);
+  color: #fffaf6;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 850;
+  backdrop-filter: blur(8px);
+}
+
+.quickGalleryNav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.2);
+  background: rgba(255, 255, 255, 0.88);
+  color: #793528;
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.38;
+  }
+}
+
+.quickGalleryThumbs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.quickGalleryThumb {
+  position: relative;
+  flex: 0 0 68px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+
+  span {
+    position: absolute;
+    inset: auto 0.25rem 0.25rem;
+    padding: 0.12rem 0.25rem;
+    border-radius: 999px;
+    background: rgba(46, 29, 23, 0.72);
+    color: #fffaf6;
+    font-size: 0.62rem;
+    font-weight: 800;
+  }
+}
+
+.quickGalleryThumbActive {
+  border-color: #9f4838;
+}
+
+.quickGalleryThumbImage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.conciergeInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.summaryInfoGrid {
+  grid-template-columns: repeat(2, minmax(190px, 1fr));
+  gap: 0.75rem;
+  align-content: start;
+
+  .conciergeInfoCard:first-child {
+    grid-column: 1 / -1;
+
+    .infoTileGrid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .conciergeInfoCard:nth-child(n + 2) {
+    gap: 0.65rem;
+    padding: 0.85rem;
+    border-radius: 18px;
+
+    .infoTile {
+      padding: 0.62rem 0.7rem;
+    }
+
+    strong {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.conciergeInfoCard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.08), transparent 32%),
+    rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 22px rgba(109, 53, 41, 0.05);
+}
+
+.infoTileGrid {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.infoTile {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: 14px;
+  background: rgba(255, 250, 247, 0.86);
+  border: 1px solid rgba(184, 92, 72, 0.12);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.36rem;
+    color: #8a4030;
+    font-size: 0.74rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #4a2018;
+    font-size: 0.96rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+}
+
+.summaryCardTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  svg {
+    padding: 0.28rem;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 999px;
+    background: rgba(184, 92, 72, 0.1);
+    color: #8a4030;
+  }
+}
+
+.infoSectionBanner {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 244, 240, 0.88)),
+    radial-gradient(circle at top right, rgba(184, 92, 72, 0.1), transparent 38%);
+
+  p {
+    margin: 0;
+    color: #8a4030;
+    font-size: 0.86rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  span {
+    color: #6f4338;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+}
+
+.priorityPanel {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.priorityGrid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.35fr) minmax(140px, 0.65fr);
+  gap: 0.75rem;
+
+  label {
+    display: grid;
+    gap: 0.42rem;
+    min-width: 0;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #7a4d43;
+    font-size: 0.82rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.8rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(184, 92, 72, 0.22);
+    background: #fff;
+    color: #3b3126;
+    font: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(184, 92, 72, 0.45);
+      box-shadow: 0 0 0 4px rgba(184, 92, 72, 0.08);
+    }
+
+    &:disabled {
+      background: #fffaf7;
+      color: #64463f;
+    }
+  }
+}
+
+.priorityMainField {
+  input {
+    font-weight: 850;
+  }
+}
+
+.propertyTypePicker {
+  display: grid;
+  gap: 0.55rem;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #7a4d43;
+    font-size: 0.82rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+.propertyTypeOption {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.55rem 0.7rem;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 250, 247, 0.88);
+  color: #6f4338;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+
+  span {
+    min-width: 0;
+    line-height: 1.15;
+    white-space: normal;
+  }
+}
+
+.propertyTypeOption:disabled {
+  cursor: default;
+  opacity: 0.76;
+}
+
+.propertyTypeOptionActive {
+  border-color: rgba(184, 92, 72, 0.42);
+  background: rgba(184, 92, 72, 0.12);
+  color: #4a2018;
+}
+
+.priorityAddressGrid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.3fr) minmax(150px, 0.8fr) minmax(120px, 0.6fr) minmax(150px, 0.8fr);
+  gap: 0.75rem;
+
+  label {
+    display: grid;
+    gap: 0.42rem;
+    min-width: 0;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #7a4d43;
+    font-size: 0.82rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.8rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(184, 92, 72, 0.22);
+    background: #fff;
+    color: #3b3126;
+    font: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(184, 92, 72, 0.45);
+      box-shadow: 0 0 0 4px rgba(184, 92, 72, 0.08);
+    }
+
+    &:disabled {
+      background: #fffaf7;
+      color: #64463f;
+    }
+  }
+}
+
+.priorityAddressMain {
+  input {
+    font-weight: 700;
+  }
+}
+
+.platformPicker {
+  display: grid;
+  gap: 0.55rem;
+
+  > span {
+    color: #7a4d43;
+    font-size: 0.82rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+.platformCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.45rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 250, 247, 0.88);
+  color: #6f4338;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 800;
+
+  input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #9f4838;
+  }
+}
+
+.platformCheck:has(input:disabled) {
+  cursor: default;
+  opacity: 0.76;
+}
+
+.platformCheckActive {
+  border-color: rgba(184, 92, 72, 0.38);
+  background: rgba(184, 92, 72, 0.12);
+  color: #4a2018;
+}
+
+.terrainSections {
+  display: grid;
+  gap: 1rem;
+}
+
+.terrainSectionsCompact {
+  .terrainCard {
+    padding: 0.95rem;
+  }
+
+  .terrainFieldGrid {
+    grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1fr) minmax(260px, 1.4fr);
+  }
+
+  .terrainFieldWide {
+    grid-column: auto;
+  }
+
+  textarea {
+    min-height: 46px;
+  }
+}
+
+.terrainCard {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.terrainCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  p {
+    margin: 0;
+    color: #8a4030;
+    font-size: 0.86rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  small {
+    display: block;
+    margin-top: 0.16rem;
+    color: #6f4338;
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+}
+
+.terrainIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.18);
+  background: rgba(255, 250, 247, 0.9);
+  color: #8a4030;
+}
+
+.terrainFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+
+  label {
+    display: grid;
+    gap: 0.42rem;
+    min-width: 0;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    color: #7a4d43;
+    font-size: 0.82rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.8rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(184, 92, 72, 0.22);
+    background: #fff;
+    color: #3b3126;
+    font: inherit;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(184, 92, 72, 0.45);
+      box-shadow: 0 0 0 4px rgba(184, 92, 72, 0.08);
+    }
+
+    &:disabled {
+      background: #fffaf7;
+      color: #64463f;
+    }
+  }
+
+  textarea {
+    min-height: 112px;
+    resize: vertical;
+  }
+}
+
+.terrainFieldWide {
+  grid-column: 1 / -1;
+}
+
+.terrainFieldWithIcon {
+  span {
+    color: #6f352c;
+  }
+}
+
+.housekeepingChecklistPanel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 250, 247, 0.84)),
+    rgba(255, 250, 247, 0.72);
+}
+
+.housekeepingChecklistHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  div {
+    display: grid;
+    gap: 0.18rem;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    color: #8a4030;
+    font-size: 0.82rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  small {
+    color: #6f4338;
+    font-size: 0.86rem;
+  }
+
+  strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem;
+    min-height: 2rem;
+    border-radius: 999px;
+    background: rgba(184, 92, 72, 0.12);
+    color: #7a352a;
+    font-size: 0.86rem;
+    font-weight: 900;
+  }
+}
+
+.housekeepingQuickChecks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.42rem;
+}
+
+.housekeepingCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0.36rem 0.52rem;
+  border-radius: 11px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.86);
+  color: #6f4338;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+
+  input {
+    width: 13px;
+    height: 13px;
+    margin: 0;
+    accent-color: #9f4838;
+  }
+
+  span {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+}
+
+.housekeepingCheck:has(input:disabled) {
+  cursor: default;
+  opacity: 0.76;
+}
+
+.housekeepingCheckActive {
+  border-color: rgba(184, 92, 72, 0.38);
+  background:
+    linear-gradient(180deg, rgba(184, 92, 72, 0.14), rgba(184, 92, 72, 0.08)),
+    rgba(255, 250, 247, 0.9);
+  color: #4a2018;
+}
+
+.housekeepingAddRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+
+  input {
+    min-height: 38px;
+    padding: 0.58rem 0.72rem;
+    border-radius: 12px;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 38px;
+    padding: 0.5rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(184, 92, 72, 0.22);
+    background: rgba(255, 255, 255, 0.9);
+    color: #793528;
+    cursor: pointer;
+    font-weight: 850;
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+  }
+}
+
+.housekeepingNotesField {
+  display: grid;
+  gap: 0.38rem;
+  padding-top: 0.15rem;
+
+  textarea {
+    min-height: 110px;
+    background: #fff;
+  }
+}
+
+.inlineCheckPanel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 0.8rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.metricIconGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.metricIconField {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.76);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    color: #8a4030;
+    font-size: 0.8rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
+
+.metricInputWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+
+  small {
+    color: #7a4d43;
+    font-weight: 800;
+  }
+}
+
+.bathroomChoicePanel,
+.bathroomInventoryPanel,
+.conditionalDetailsGrid,
+.bedInventoryPanel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.bathroomChoicePanel {
+  grid-template-columns: minmax(140px, 0.7fr) repeat(3, auto) minmax(220px, 1fr);
+  align-items: end;
+}
+
+.bathroomCountField,
+.bathroomNotesField,
+.detailCard label,
+.bathroomRow label,
+.bedRow label {
+  display: grid;
+  gap: 0.35rem;
+
+  span {
+    color: #7a4d43;
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
+
+.iconChoice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 46px;
+  padding: 0.65rem 0.78rem;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 250, 247, 0.88);
+  color: #7a4d43;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.iconChoiceActive {
+  border-color: rgba(184, 92, 72, 0.4);
+  background: rgba(184, 92, 72, 0.12);
+  color: #4a2018;
+}
+
+.conditionalDetailsGrid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: stretch;
+}
+
+.detailCard {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 246, 0.92)),
+    rgba(255, 250, 247, 0.9);
+  box-shadow: 0 10px 22px rgba(109, 53, 41, 0.05);
+
+  p {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: fit-content;
+    margin: 0;
+    padding: 0.38rem 0.62rem;
+    border-radius: 999px;
+    background: rgba(184, 92, 72, 0.1);
+    color: #8a4030;
+    font-size: 0.8rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  label {
+    min-width: 0;
+  }
+
+  input {
+    min-height: 44px;
+    border-radius: 13px;
+    background: #fff;
+  }
+
+  input::placeholder {
+    color: rgba(111, 67, 56, 0.52);
+  }
+}
+
+.bedInventoryHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+
+  div {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  p {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    color: #8a4030;
+    font-size: 0.86rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  span {
+    color: #6f4338;
+    font-size: 0.9rem;
+  }
+}
+
+.smallInlineButton {
+  min-height: 38px;
+  padding: 0.52rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.22);
+  background: rgba(255, 250, 247, 0.9);
+  color: #793528;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.emptyInlineText {
+  margin: 0;
+  color: #7a4d43;
+}
+
+.requestsSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.requestMetricCard,
+.housingRequestCard {
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 12px 26px rgba(59, 49, 38, 0.06);
+}
+
+.requestMetricCard {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem;
+}
+
+.requestMetricCard span {
+  color: #7d6f61;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.requestMetricCard strong {
+  color: #6d3529;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.housingRequestGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  gap: 0.9rem;
+}
+
+.housingRequestCard {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.housingRequestCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.housingRequestCardHeader span {
+  display: block;
+  color: #9d6a55;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.housingRequestCardHeader h3 {
+  margin: 0.18rem 0 0;
+  color: #3b3126;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.housingRequestCardHeader strong {
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 0.25rem 0.62rem;
+  border-radius: 999px;
+  background: #fff4ce;
+  color: #755f18;
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.housingRequestFacts,
+.housingRequestChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.housingRequestFacts span,
+.housingRequestChips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(184, 92, 72, 0.14);
+  border-radius: 999px;
+  background: #fffdf9;
+  color: #66584d;
+  font-size: 0.78rem;
+  font-weight: 780;
+}
+
+.bedRows {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bathroomRows {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bathroomRow {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(250px, 1.2fr) minmax(220px, 1fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+  padding: 0.85rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 250, 247, 0.84);
+}
+
+.bathroomTypeChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.bedRow {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) 80px minmax(110px, 0.8fr) minmax(210px, 1.3fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+  padding: 0.85rem;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 92, 72, 0.12);
+  background: rgba(255, 250, 247, 0.84);
+}
+
+.bedLinenField {
+  min-width: 0;
+}
+
+.iconDangerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(220, 38, 38, 0.08);
+  color: #991b1b;
+  cursor: pointer;
 }
 
 .eyebrow {
@@ -595,6 +1808,120 @@
   }
 }
 
+.equipmentCatalog {
+  display: grid;
+  gap: 1rem;
+}
+
+.equipmentCategory {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.equipmentCategoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  h3 {
+    margin: 0;
+    color: #4a2018;
+    font-size: 1.05rem;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    border-radius: 999px;
+    background: rgba(184, 92, 72, 0.1);
+    color: #8a4030;
+    font-size: 0.85rem;
+    font-weight: 850;
+  }
+}
+
+.equipmentSubcategoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
+}
+
+.equipmentSubcategory {
+  display: grid;
+  gap: 0.65rem;
+  align-content: start;
+
+  p {
+    margin: 0;
+    color: #8a4030;
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+.equipmentChecklist,
+.equipmentChipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.equipmentCheck,
+.equipmentChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 92, 72, 0.16);
+  background: rgba(255, 250, 247, 0.88);
+  color: #6f4338;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.equipmentCheck {
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #9f4838;
+  }
+
+  input:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.equipmentCheck:has(input:disabled) {
+  cursor: default;
+  opacity: 0.76;
+}
+
+.equipmentCheckActive {
+  border-color: rgba(184, 92, 72, 0.38);
+  background: rgba(184, 92, 72, 0.12);
+  color: #4a2018;
+}
+
+.equipmentChip {
+  background: rgba(184, 92, 72, 0.08);
+  color: #7a3f32;
+}
+
 .list {
   display: grid;
   gap: 0.85rem;
@@ -627,6 +1954,20 @@
 
 .error {
   color: #991b1b;
+}
+
+@media (max-width: 1100px) {
+  .summaryMediaInfoLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryInfoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .requestsSummaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -664,5 +2005,68 @@
   .mediaRow {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .quickGallery {
+    max-width: 100%;
+  }
+
+  .summaryMediaInfoLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryInfoGrid {
+    grid-template-columns: 1fr;
+
+    .conciergeInfoCard:first-child {
+      .infoTileGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .requestsSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .housingRequestCardHeader {
+    flex-direction: column;
+  }
+
+  .quickGalleryFrame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quickGalleryNav {
+    display: none;
+  }
+
+  .bathroomChoicePanel,
+  .bathroomRow,
+  .bedRow {
+    grid-template-columns: 1fr;
+  }
+
+  .priorityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .priorityAddressGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .terrainSectionsCompact {
+    .terrainFieldGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .housekeepingAddRow {
+    grid-template-columns: 1fr;
+  }
+
+  .metricIconGrid,
+  .conditionalDetailsGrid {
+    grid-template-columns: 1fr;
   }
 }

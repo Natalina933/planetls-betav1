@@ -1,39 +1,7 @@
-.ownerHighlights {
+.summaryGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
-}
-
-.highlightCard {
-  display: grid;
-  gap: 0.55rem;
-  padding: 1.1rem 1rem;
-  border-radius: 22px;
-  border: 1px solid rgba(184, 92, 72, 0.18);
-  background:
-    radial-gradient(circle at top right, rgba(184, 92, 72, 0.14), transparent 38%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 238, 232, 0.96));
-  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.07);
-}
-
-.highlightLabel {
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dash-accent-strong);
-}
-
-.highlightValue {
-  font-size: clamp(1.8rem, 4vw, 2.3rem);
-  line-height: 1;
-  color: var(--dash-text);
-}
-
-.highlightText {
-  margin: 0;
-  color: var(--dash-text-muted);
-  line-height: 1.55;
 }
 
 .ownerCard {
@@ -125,34 +93,6 @@
   white-space: nowrap;
 }
 
-.factsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.factCard {
-  display: grid;
-  gap: 0.22rem;
-  padding: 0.85rem 0.9rem;
-  border-radius: 18px;
-  border: 1px solid rgba(184, 92, 72, 0.12);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(249, 242, 236, 0.94));
-}
-
-.factCard span {
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--dash-text-muted);
-}
-
-.factCard strong {
-  color: var(--dash-text);
-  font-size: 1rem;
-}
-
 .ownerDescription {
   line-height: 1.6;
 }
@@ -176,29 +116,9 @@
 }
 
 .ownerFooter {
-  align-items: end;
+  justify-content: flex-end;
   padding-top: 0.8rem;
   border-top: 1px solid rgba(184, 92, 72, 0.12);
-}
-
-.ownerFooterCopy {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.footerLabel {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--dash-accent-strong);
-}
-
-.footerHint {
-  color: var(--dash-text-muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
-  max-width: 20rem;
 }
 
 .ownerViewButton {
@@ -207,8 +127,8 @@
 }
 
 @media (max-width: 1024px) {
-  .ownerHighlights {
-    grid-template-columns: 1fr;
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -220,7 +140,7 @@
     align-items: stretch;
   }
 
-  .factsGrid {
+  .summaryGrid {
     grid-template-columns: 1fr;
   }
 
