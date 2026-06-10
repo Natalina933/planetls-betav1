@@ -28,6 +28,10 @@ const WORKSPACES: Record<WorkspaceKey, { label: string; href: string; descriptio
   },
 };
 
+function buildWorkspaceLinkMarker(email: string) {
+  return `workspace_parent_email:${email.toLowerCase()}`;
+}
+
 function roleToWorkspace(role: string | null | undefined): WorkspaceKey | null {
   const normalized = String(role ?? "")
     .toLowerCase()
@@ -65,10 +69,11 @@ export async function GET(req: NextRequest) {
   const currentProfileId = activeProfileId ?? userId;
 
   if (email) {
+    const linkMarker = buildWorkspaceLinkMarker(email);
     const { data, error } = await db
       .from("profiles")
-      .select("id,email,role,category,option,search_target")
-      .eq("email", email);
+      .select("id,email,role,category,option,search_target,additional_info")
+      .or(`email.eq.${email},additional_info.ilike.%${linkMarker}%`);
 
     if (error) {
       console.error("[profiles/workspaces] DB error:", error);
@@ -122,9 +127,8 @@ export async function POST(req: NextRequest) {
 
   const { data: profile, error } = await db
     .from("profiles")
-    .select("id,email,role,category")
+    .select("id,email,role,category,additional_info")
     .eq("id", profileId)
-    .eq("email", email)
     .maybeSingle();
 
   if (error) {
@@ -134,6 +138,15 @@ export async function POST(req: NextRequest) {
 
   if (!profile) {
     return NextResponse.json({ error: "Profile not available" }, { status: 404 });
+  }
+
+  const linkMarker = buildWorkspaceLinkMarker(email);
+  const isSameEmail = profile.email?.toLowerCase() === email.toLowerCase();
+  const isLinkedProfile =
+    typeof profile.additional_info === "string" && profile.additional_info.toLowerCase().includes(linkMarker);
+
+  if (!isSameEmail && !isLinkedProfile) {
+    return NextResponse.json({ error: "Profile not linked to current account" }, { status: 403 });
   }
 
   const workspace = roleToWorkspace(profile.role) || roleToWorkspace(profile.category);

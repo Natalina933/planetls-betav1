@@ -6,6 +6,10 @@ import { resolveUserRole } from "@/app/utils/roles";
 
 export const ACTIVE_PROFILE_COOKIE = "planetls_active_profile_id";
 
+function buildWorkspaceLinkMarker(email: string) {
+  return `workspace_parent_email:${email.toLowerCase()}`;
+}
+
 const SESSION_COOKIE_NAMES = [
   "__Secure-authjs.session-token",
   "authjs.session-token",
@@ -29,12 +33,20 @@ async function resolveActiveProfile(req: NextRequest, context: Omit<ApiAuthConte
 
   const { data: profile, error } = await db
     .from("profiles")
-    .select("id,email,role,category")
+    .select("id,email,role,category,additional_info")
     .eq("id", requestedProfileId)
-    .eq("email", context.email)
     .maybeSingle();
 
   if (error || !profile) {
+    return context;
+  }
+
+  const isSameEmail = profile.email?.toLowerCase() === context.email.toLowerCase();
+  const isLinkedProfile =
+    typeof profile.additional_info === "string" &&
+    profile.additional_info.toLowerCase().includes(buildWorkspaceLinkMarker(context.email));
+
+  if (!isSameEmail && !isLinkedProfile) {
     return context;
   }
 
