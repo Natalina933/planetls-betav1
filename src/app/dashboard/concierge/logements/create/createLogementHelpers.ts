@@ -4,7 +4,7 @@ import {
   normalizeOwnerFromProfile,
   validateHousingDraft,
 } from "../../../../../types/housing.ts";
-import { EMPTY_HOUSING_STOCK_MANAGEMENT } from "@/app/lib/housingStock";
+import { EMPTY_HOUSING_STOCK_MANAGEMENT } from "../../../../lib/housingStock.ts";
 
 export interface ManualCreateFormState {
   housingName: string;

@@ -17,15 +17,15 @@ test("normalizeMissionStatus maps legacy UI statuses to canonical mission status
 });
 
 test("getMissionStatusLabel returns readable French labels", () => {
-  assert.equal(getMissionStatusLabel("assigned"), "A planifier");
-  assert.equal(getMissionStatusLabel("date_requested"), "Date demandee");
-  assert.equal(getMissionStatusLabel("date_confirmed"), "Date confirmee");
-  assert.equal(getMissionStatusLabel("scheduled"), "Planifiee");
-  assert.equal(getMissionStatusLabel("awaiting_owner_validation"), "Validation proprietaire");
-  assert.equal(getMissionStatusLabel("validated"), "Validee");
-  assert.equal(getMissionStatusLabel("closed"), "Cloturee");
-  assert.equal(getMissionStatusLabel("completed"), "Terminee");
-  assert.equal(getMissionStatusLabel("canceled"), "Annulee");
+  assert.equal(getMissionStatusLabel("assigned"), "À planifier");
+  assert.equal(getMissionStatusLabel("date_requested"), "Date demandée");
+  assert.equal(getMissionStatusLabel("date_confirmed"), "Date confirmée");
+  assert.equal(getMissionStatusLabel("scheduled"), "Planifiée");
+  assert.equal(getMissionStatusLabel("awaiting_owner_validation"), "Validation propriétaire");
+  assert.equal(getMissionStatusLabel("validated"), "Validée");
+  assert.equal(getMissionStatusLabel("closed"), "Clôturée");
+  assert.equal(getMissionStatusLabel("completed"), "Terminée");
+  assert.equal(getMissionStatusLabel("canceled"), "Annulée");
 });
 
 test("canTransitionMissionStatus blocks terminal states and allows operational steps", () => {

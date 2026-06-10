@@ -21,6 +21,7 @@ import type { DashboardUserIdentity } from "../shared";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import {
   FirstLoginOnboardingPopup,
+  DashboardOnboardingSummary,
   OnboardingPromptCard,
   shouldShowDashboardReminder,
   shouldShowFirstLoginPopup,
@@ -707,42 +708,6 @@ export default function OwnerDashboardPage() {
     }
     setFirstLoginOpen(false);
   };
-
-
-
-  const onboardingPath: OnboardingPath = "business+";
-  const [firstLoginOpen, setFirstLoginOpen] = useState(false);
-  const [reminderDismissed, setReminderDismissed] = useState(false);
-  const actionStatus = useMemo<Record<string, OnboardingActionStatus>>(() => ({
-    "configure-packs": properties.length > 0 ? "done" : "todo",
-    "set-pricing": latestQuotes.length > 0 ? "done" : "todo",
-    "prepare-docs": latestInvoices.length > 0 ? "done" : "todo",
-  }), [latestInvoices.length, latestQuotes.length, properties.length]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    const seenFlag = window.localStorage.getItem(`owner-onboarding-first-login-seen:${user.id}`);
-    const shouldOpen = shouldShowFirstLoginPopup({
-      firstLogin: !seenFlag,
-      completionState: "in_progress",
-      actionStatus,
-    });
-    setFirstLoginOpen(shouldOpen);
-  }, [actionStatus, user?.id]);
-
-  const showDashboardReminder = shouldShowDashboardReminder(onboardingPath, {
-    firstLogin: false,
-    completionState: "in_progress",
-    actionStatus,
-  }) && !reminderDismissed;
-
-  const handleCloseFirstLogin = () => {
-    if (user?.id) {
-      window.localStorage.setItem(`owner-onboarding-first-login-seen:${user.id}`, "1");
-    }
-    setFirstLoginOpen(false);
-  };
-
   if (userLoading || !isAuthenticated) {
     return <DashboardLoadingScreen label="Chargement de votre espace propriétaire..." />;
   }
@@ -821,62 +786,6 @@ export default function OwnerDashboardPage() {
         <OnboardingPromptCard path={onboardingPath} actionStatus={actionStatus} onDismiss={() => setReminderDismissed(true)} />
       ) : null}
 
-      <DashboardPanel title="Vue d’ensemble">
-        <AsyncState loading={loading} error={error}>
-          <p>
-            {activeCount} logement(s) actif(s) sur {properties.length}, avec {ongoingMissions.length} opération(s)
-            ouverte(s) et {pendingInvoices.length} facture(s) à surveiller.
-          </p>
-          <p>
-            {properties[0]
-              ? `Bien le plus récent: ${properties[0].nom_logement || "Logement sans nom"} à ${
-                  properties[0].ville || "ville à préciser"
-                }.`
-              : "Aucun bien publié pour le moment."}
-          </p>
-          <Link href="/dashboard/owner/logements/overview">Ouvrir la vue synthèse des logements</Link>
-        </AsyncState>
-      </DashboardPanel>
-
-      <DashboardPanel title="Pilotage stratégique">
-        <AsyncState loading={loading} error={error}>
-          <p>
-            {draftCount > 0
-              ? `${draftCount} fiche(s) logement restent à finaliser avant de fiabiliser la lecture business.`
-              : "Le parc est structuré pour un pilotage plus serein."}
-          </p>
-          <p>
-            {averageRating
-              ? `Satisfaction moyenne à ${averageRating.toFixed(1)} / 5, avec ${unreadConversationCount} message(s) non lu(s) côté conciergerie.`
-              : `Aucune note consolidée pour l’instant, mais ${unreadConversationCount} message(s) méritent une revue rapide.`}
-          </p>
-          <p>
-            {pendingInvoices.length > 0
-              ? "Priorité recommandée: sécuriser les règlements en attente avant d’ouvrir de nouvelles demandes."
-              : "Priorité recommandée: arbitrer les prochaines actions avec votre conciergerie pour améliorer la performance du parc."}
-          </p>
-        </AsyncState>
-      </DashboardPanel>
-
-      <DashboardPanel title="Reporting de gestion">
-        <AsyncState loading={loading} error={error}>
-          {latestInvoices.length > 0 ? (
-            <p>
-              Dernière facture: {latestInvoices[0].invoice_number || "sans numéro"} · solde{" "}
-              {formatEuroAmountLabel(latestInvoices[0].balance_amount)}.
-            </p>
-          ) : (
-            <p>Aucune facture récente.</p>
-          )}
-          {latestQuotes.length > 0 ? (
-            <p>
-              Dernier devis: {latestQuotes[0].quote_number || "sans numéro"} ·{" "}
-              {formatEuroAmountLabel(latestQuotes[0].total_amount)}.
-            </p>
-          ) : (
-            <p>Aucun devis récent.</p>
-          )}
-          {ongoingMissions.length > 0 ? (
       <section className={styles.sectionBlock} aria-labelledby="owner-welcome-title">
         <div className={styles.heroPanel}>
           <div className={styles.heroCopy}>

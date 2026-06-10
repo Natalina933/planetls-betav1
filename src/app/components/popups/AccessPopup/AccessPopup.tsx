@@ -82,14 +82,6 @@ const PROFILE_COPY: Record<
   },
 };
 
-const CONCIERGE_PROPERTY_TYPES = [
-  "Appartement",
-  "Maison",
-  "Immeuble multi-lots",
-  "Villa haut de gamme",
-  "Résidence secondaire",
-];
-
 const CONCIERGE_TOOLS = [
   "Airbnb",
   "Booking",

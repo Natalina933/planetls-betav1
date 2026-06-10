@@ -3,7 +3,7 @@ import {
   EMPTY_HOUSING_STOCK_MANAGEMENT,
   normalizeHousingStockManagement,
   type HousingStockManagement,
-} from "@/app/lib/housingStock";
+} from "../app/lib/housingStock.ts";
 
 export type HousingRow = Database["public"]["Tables"]["housing"]["Row"];
 export type HousingInsert = Database["public"]["Tables"]["housing"]["Insert"];

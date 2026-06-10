@@ -120,7 +120,7 @@ export function canTransitionMissionStatus(from: unknown, to: unknown): boolean 
     in_progress: ["awaiting_owner_validation", "completed", "canceled"],
     awaiting_owner_validation: ["validated", "completed", "canceled"],
     validated: ["closed", "canceled"],
-    completed: ["validated", "closed", "canceled"],
+    completed: ["validated", "closed"],
     closed: [],
     canceled: [],
   };
