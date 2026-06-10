@@ -68,6 +68,18 @@
   border: 1px solid rgba(184, 92, 72, 0.16);
   background: rgba(255, 255, 255, 0.78);
   box-shadow: 0 10px 22px rgba(109, 53, 41, 0.06);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+
+  &:hover {
+    border-color: rgba(184, 92, 72, 0.34);
+    box-shadow: 0 14px 28px rgba(109, 53, 41, 0.1);
+    transform: translateY(-1px);
+  }
 
   div {
     display: grid;

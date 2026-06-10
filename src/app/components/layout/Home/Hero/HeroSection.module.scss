@@ -84,7 +84,8 @@
   line-height: 1.02;
   letter-spacing: -0.02em;
   max-width: none;
-  white-space: nowrap;
+  white-space: normal;
+  text-wrap: balance;
   text-align: center;
   background-image:
     linear-gradient(180deg, #f8e7b5 0%, #d4af37 42%, #946a1f 100%),
@@ -104,7 +105,8 @@
   font-size: 1.16rem;
   font-weight: 650;
   line-height: 1.45;
-  white-space: nowrap;
+  white-space: normal;
+  text-wrap: pretty;
   background-image:
     linear-gradient(180deg, #f2dfab 0%, #cda535 48%, #8f6820 100%),
     url("/textures/elegant-fibers.png");
@@ -197,6 +199,28 @@
     min-height: 0;
     padding: 4rem 0 3rem;
   }
+
+  .content {
+    width: min(100%, 760px);
+  }
+
+  .copyTop {
+    gap: 0.75rem;
+  }
+
+  .content h1 {
+    font-size: clamp(2.15rem, 4.8vw, 2.95rem);
+    line-height: 1.08;
+    max-width: 16ch;
+    margin-inline: auto;
+  }
+
+  .subHeadline {
+    max-width: 34ch;
+    margin-inline: auto;
+    font-size: clamp(1rem, 2.1vw, 1.08rem);
+    line-height: 1.5;
+  }
 }
 
 @media (max-width: 640px) {
@@ -234,14 +258,15 @@
   .content h1 {
     font-size: clamp(1.9rem, 9vw, 2.35rem);
     line-height: 1.04;
-    white-space: normal;
+    max-width: none;
+    margin-inline: 0;
   }
 
   .subHeadline {
     max-width: none;
     font-size: 0.95rem;
     line-height: 1.52;
-    white-space: normal;
+    margin-inline: 0;
   }
 
   .quickPoints {

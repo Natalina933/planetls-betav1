@@ -315,6 +315,22 @@
 }
 
 @media (max-width: 980px) {
+  .introBlock {
+    max-width: 640px;
+  }
+
+  .planetLSTitle {
+    font-size: clamp(2.1rem, 5vw, 3.3rem);
+    line-height: 1.04;
+    text-wrap: balance;
+  }
+
+  .planetLSIntro {
+    max-width: 58ch;
+    line-height: 1.68;
+    text-wrap: pretty;
+  }
+
   .blocks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -329,6 +345,11 @@
     padding-inline: 1rem;
   }
 
+  .planetLSTitle,
+  .planetLSIntro {
+    max-width: none;
+  }
+
   .blocks {
     grid-template-columns: 1fr;
   }
@@ -340,6 +361,15 @@
   .block {
     padding: 1.5rem;
     border-radius: 1.4rem;
+
+    h3 {
+      font-size: 1.7rem;
+      line-height: 1.04;
+    }
+
+    p {
+      line-height: 1.62;
+    }
   }
 
   .buttonsRow {

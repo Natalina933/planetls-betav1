@@ -59,32 +59,32 @@ export function normalizeMissionPriority(value: unknown): MissionPriority {
 export function getMissionStatusLabel(status: unknown): string {
   switch (normalizeMissionStatus(status)) {
     case "draft":
-      return "A qualifier";
+      return "À qualifier";
     case "assigned":
     case "to_schedule":
-      return "A planifier";
+      return "À planifier";
     case "date_requested":
-      return "Date demandee";
+      return "Date demandée";
     case "date_proposed":
-      return "Date proposee";
+      return "Date proposée";
     case "date_confirmed":
-      return "Date confirmee";
+      return "Date confirmée";
     case "scheduled":
-      return "Planifiee";
+      return "Planifiée";
     case "accepted":
-      return "Acceptee";
+      return "Acceptée";
     case "in_progress":
       return "En cours";
     case "awaiting_owner_validation":
-      return "Validation proprietaire";
+      return "Validation propriétaire";
     case "validated":
-      return "Validee";
+      return "Validée";
     case "completed":
-      return "Terminee";
+      return "Terminée";
     case "closed":
-      return "Cloturee";
+      return "Clôturée";
     case "canceled":
-      return "Annulee";
+      return "Annulée";
   }
 }
 
@@ -120,7 +120,7 @@ export function canTransitionMissionStatus(from: unknown, to: unknown): boolean 
     in_progress: ["awaiting_owner_validation", "completed", "canceled"],
     awaiting_owner_validation: ["validated", "completed", "canceled"],
     validated: ["closed", "canceled"],
-    completed: ["validated", "closed"],
+    completed: ["validated", "closed", "canceled"],
     closed: [],
     canceled: [],
   };

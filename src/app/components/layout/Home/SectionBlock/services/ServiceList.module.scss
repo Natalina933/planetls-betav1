@@ -44,6 +44,23 @@ $radius: 1.2rem;
   }
 }
 
+@media (max-width: 1024px) {
+  .platformHeader {
+    margin-bottom: 2.25rem;
+
+    .sectionIntro {
+      max-width: 60ch;
+      margin-inline: auto;
+      line-height: 1.62;
+      text-wrap: pretty;
+    }
+  }
+
+  .ctaZone .CTAButton {
+    font-size: 1rem;
+  }
+}
+
 .keyPoints {
   display: flex;
   flex-wrap: wrap;
@@ -137,6 +154,10 @@ $radius: 1.2rem;
 
   .serviceGrid::before {
     inset: 10px;
+  }
+
+  .keyPoints {
+    gap: 0.6rem;
   }
 }
 

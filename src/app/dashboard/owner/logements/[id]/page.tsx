@@ -1254,6 +1254,15 @@ export default function OwnerHousingDetailPage() {
     { field: "nonSmoking", label: "Non fumeur", icon: CigaretteOff },
     { field: "barbecue", label: "Barbecue", icon: Flame },
   ];
+  const ownerRequestHref = {
+    pathname: "/dashboard/owner/demandes",
+    query: {
+      source: "logement",
+      propertyId: String(id),
+      propertyName: draft.nom_logement ?? "",
+      city: draft.locationInfo.city ?? draft.ville ?? "",
+    },
+  };
 
   return (
     <div className={styles.ficheLogement}>
@@ -1302,7 +1311,11 @@ export default function OwnerHousingDetailPage() {
               </div>
             </div>
           </div>
-          <div className={styles.headerConciergeCard}>
+          <Link
+            className={styles.headerConciergeCard}
+            href={ownerRequestHref}
+            aria-label={`Faire une demande pour ${draft.nom_logement ?? "ce logement"}`}
+          >
             <Avatar
               src={conciergeDisplay.avatarUrl}
               name={conciergeDisplay.name}
@@ -1313,8 +1326,9 @@ export default function OwnerHousingDetailPage() {
               <span>Concierge du logement</span>
               <strong>{conciergeDisplay.name}</strong>
               <small>{conciergeDisplay.subtitle}</small>
+              <small>Faire une demande ou suivre le rattachement</small>
             </div>
-          </div>
+          </Link>
           <div className={styles.headerActions}>
             <Link className={styles.cancelBtn} href="/dashboard/owner/logements">
               Retour aux logements
@@ -2458,7 +2472,7 @@ export default function OwnerHousingDetailPage() {
                           ))}
                         </div>
                       ) : null}
-                      <Link className={styles.smallInlineButton} href="/dashboard/owner/demandes">
+                      <Link className={styles.smallInlineButton} href={ownerRequestHref}>
                         Ouvrir les demandes
                       </Link>
                     </article>

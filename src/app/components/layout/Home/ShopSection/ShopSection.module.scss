@@ -107,3 +107,30 @@
   color: #f9f1d8;
   box-shadow: 0 10px 22px rgba(26, 37, 48, 0.2);
 }
+
+@media (max-width: 1024px) {
+  .shop h2 {
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .shopContent p {
+    line-height: 1.62;
+    text-wrap: pretty;
+  }
+}
+
+@media (max-width: 640px) {
+  .shop {
+    width: calc(100% - 20px);
+    padding-inline: 1rem;
+  }
+
+  .shopContent {
+    padding: 1.5rem 1rem;
+  }
+
+  .shopButton {
+    width: 100%;
+  }
+}

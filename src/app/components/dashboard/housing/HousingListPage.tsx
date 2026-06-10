@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { FiMapPin, FiPlus, FiTarget, FiUsers } from "react-icons/fi";
-import { DashboardSectionShell } from "@/components/dashboard";
+import { DashboardSectionShell, MetricDonut } from "@/components/dashboard";
 import cardStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
 import pageStyles from "@/app/dashboard/owner/OwnerDashboardPages.module.scss";
 import profileStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
-import ownerHousingStyles from "./HousingListPage.module.scss";
 import { EditableProfileSection } from "@/app/dashboard/concierge/profile/profileTabSections";
+import ownerHousingStyles from "./HousingListPage.module.scss";
 
 export interface HousingListItem {
   id: number;
@@ -35,8 +35,6 @@ type HousingListPageProps = {
 function getSafePhoto(photo?: string) {
   return photo && photo.trim() !== "" ? photo : "/images/default-logement.png";
 }
-
-type PieStyle = CSSProperties & { "--value": string };
 
 function getPercent(value: number, total: number) {
   if (total <= 0) return 0;
@@ -105,8 +103,7 @@ export default function HousingListPage({
   const firstEditableHousingHref =
     detailHrefBase && logements.length > 0 ? `${detailHrefBase}/${logements[0].id}` : addHref;
   const movementCount = stats.arrivees + stats.departs;
-  const readinessRate =
-    stats.total > 0 ? Math.round((stats.prets / Math.max(stats.total, 1)) * 100) : 0;
+  const readinessRate = stats.total > 0 ? Math.round((stats.prets / stats.total) * 100) : 0;
 
   const completedHousingCount = useMemo(
     () =>
@@ -173,6 +170,153 @@ export default function HousingListPage({
     </EditableProfileSection>
   );
 
+  const renderHousingCards = (cardClassName?: string) => (
+    <div className={cardStyles.logementsGrid}>
+      {logements.map((logement) => {
+        const cardContent = (
+          <>
+            <div className={cardStyles.cardImageWrapper}>
+              <Image
+                src={getSafePhoto(logement.photo_principale)}
+                alt={logement.nom_logement}
+                width={220}
+                height={180}
+                className={cardStyles.cardImage}
+              />
+            </div>
+
+            <div className={cardStyles.cardBody}>
+              <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
+              <p className={cardStyles.cardMeta}>
+                <span className={cardStyles.metaItem}>Type : {logement.infos?.categorie || "Appartement"}</span>
+                <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
+                <span className={cardStyles.metaItem}>
+                  Capacité : {logement.infos?.capacite ?? "-"} voyageur(s)
+                </span>
+                <span className={cardStyles.metaItem}>
+                  Équipements :{" "}
+                  {Array.isArray(logement.infos?.equipements) && logement.infos.equipements.length > 0
+                    ? logement.infos.equipements.slice(0, 3).join(", ")
+                    : "-"}
+                </span>
+              </p>
+
+              {logement.infos?.description ? (
+                <p className={cardStyles.cardDescription}>{logement.infos.description}</p>
+              ) : null}
+
+              <div className={cardStyles.cardFooter}>
+                <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
+                  {renderStatusLabel(logement.statut)}
+                </span>
+                <span className={cardStyles.btnView}>{detailHrefBase ? "Voir" : "Logement"}</span>
+              </div>
+            </div>
+          </>
+        );
+        const fullClassName = [cardStyles.logementCard, cardClassName].filter(Boolean).join(" ");
+
+        if (!detailHrefBase) {
+          return (
+            <div key={logement.id} className={fullClassName}>
+              {cardContent}
+            </div>
+          );
+        }
+
+        return (
+          <Link key={logement.id} href={`${detailHrefBase}/${logement.id}`} className={fullClassName}>
+            {cardContent}
+          </Link>
+        );
+      })}
+    </div>
+  );
+
+  const renderOwnerHousingCards = () => (
+    <div className={cardStyles.logementsGrid}>
+      {logements.map((logement) => {
+        const equipments = Array.isArray(logement.infos?.equipements)
+          ? logement.infos.equipements.slice(0, 4)
+          : [];
+        const ownerCardClassName = `${cardStyles.logementCard} ${ownerHousingStyles.ownerCard}`;
+        const ownerStatusClassName = `${cardStyles.status} ${cardStyles[`status-${logement.statut}`]} ${ownerHousingStyles.ownerStatus}`;
+        const cardContent = (
+          <>
+            <div className={`${cardStyles.cardImageWrapper} ${ownerHousingStyles.ownerImageWrapper}`}>
+              <Image
+                src={getSafePhoto(logement.photo_principale)}
+                alt={logement.nom_logement}
+                width={220}
+                height={180}
+                className={cardStyles.cardImage}
+              />
+              <div className={ownerHousingStyles.imageOverlay} />
+              <div className={ownerHousingStyles.imageTopline}>
+                <span className={ownerStatusClassName}>{renderStatusLabel(logement.statut)}</span>
+                <span className={ownerHousingStyles.cityPill}>
+                  <FiMapPin />
+                  {logement.ville}
+                </span>
+              </div>
+            </div>
+
+            <div className={`${cardStyles.cardBody} ${ownerHousingStyles.ownerCardBody}`}>
+              <div className={ownerHousingStyles.cardHeading}>
+                <div>
+                  <p className={ownerHousingStyles.cardEyebrow}>
+                    {logement.infos?.categorie || "Appartement"}
+                  </p>
+                  <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
+                </div>
+                <span className={ownerHousingStyles.capacityBadge}>
+                  <FiUsers />
+                  {getOccupancyLabel(logement.infos?.capacite)}
+                </span>
+              </div>
+
+              {logement.infos?.description ? (
+                <p className={`${cardStyles.cardDescription} ${ownerHousingStyles.ownerDescription}`}>
+                  {logement.infos.description}
+                </p>
+              ) : null}
+
+              {equipments.length > 0 ? (
+                <div className={ownerHousingStyles.equipmentRow}>
+                  {equipments.map((equipment) => (
+                    <span key={`${logement.id}-${equipment}`} className={ownerHousingStyles.equipmentChip}>
+                      {equipment}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className={`${cardStyles.cardFooter} ${ownerHousingStyles.ownerFooter}`}>
+                <span className={`${cardStyles.btnView} ${ownerHousingStyles.ownerViewButton}`}>
+                  {detailHrefBase ? "Ouvrir" : "Logement"}
+                </span>
+              </div>
+            </div>
+          </>
+        );
+
+        if (!detailHrefBase) {
+          return (
+            <div key={logement.id} className={ownerCardClassName}>
+              {cardContent}
+            </div>
+          );
+        }
+
+        return (
+          <Link key={logement.id} href={`${detailHrefBase}/${logement.id}`} className={ownerCardClassName}>
+            {cardContent}
+          </Link>
+        );
+      })}
+    </div>
+  );
+
   return (
     <DashboardSectionShell
       persona={persona}
@@ -184,20 +328,13 @@ export default function HousingListPage({
         {!loading && !error && !isConcierge && logements.length > 0 ? (
           <section className={ownerHousingStyles.summaryGrid} aria-label="Synthèse des logements">
             {summaryCards.map((card) => (
-              <article key={card.label} className={ownerHousingStyles.summaryCard}>
-                <div
-                  className={ownerHousingStyles.summaryPie}
-                  style={{ "--value": `${card.percent}%` } as PieStyle}
-                  aria-hidden="true"
-                >
-                  <span className={ownerHousingStyles.summaryPieValue}>{card.percent}%</span>
-                </div>
-                <div className={ownerHousingStyles.summaryCopy}>
-                  <span className={ownerHousingStyles.summaryLabel}>{card.label}</span>
-                  <strong className={ownerHousingStyles.summaryValue}>{card.value}</strong>
-                  <span className={ownerHousingStyles.summaryDetail}>{card.detail}</span>
-                </div>
-              </article>
+              <MetricDonut
+                key={card.label}
+                label={card.label}
+                value={card.value}
+                detail={card.detail}
+                percent={card.percent}
+              />
             ))}
           </section>
         ) : null}
@@ -252,179 +389,18 @@ export default function HousingListPage({
 
         {!loading && !error && logements.length > 0
           ? isConcierge
-            ? renderConciergeEditableSection(
-                "Tous les logements",
-                firstEditableHousingHref,
-                <div className={cardStyles.logementsGrid}>
-                  {logements.map((logement) => {
-                    const cardContent = (
-                      <>
-                        <div className={cardStyles.cardImageWrapper}>
-                          <Image
-                            src={getSafePhoto(logement.photo_principale)}
-                            alt={logement.nom_logement}
-                            width={220}
-                            height={180}
-                            className={cardStyles.cardImage}
-                          />
-                        </div>
-
-                        <div className={cardStyles.cardBody}>
-                          <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
-
-                          <p className={cardStyles.cardMeta}>
-                            <span className={cardStyles.metaItem}>
-                              Type : {logement.infos?.categorie || "Appartement"}
-                            </span>
-                            <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
-                            <span className={cardStyles.metaItem}>
-                              Capacité : {logement.infos?.capacite ?? "-"} voyageur(s)
-                            </span>
-                            <span className={cardStyles.metaItem}>
-                              Équipements :{" "}
-                              {Array.isArray(logement.infos?.equipements) &&
-                              logement.infos.equipements.length > 0
-                                ? logement.infos.equipements.slice(0, 3).join(", ")
-                                : "-"}
-                            </span>
-                          </p>
-
-                          {logement.infos?.description ? (
-                            <p className={cardStyles.cardDescription}>{logement.infos.description}</p>
-                          ) : null}
-
-                          <div className={cardStyles.cardFooter}>
-                            <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
-                              {renderStatusLabel(logement.statut)}
-                            </span>
-                            <span className={cardStyles.btnView}>{detailHrefBase ? "Voir" : "Logement"}</span>
-                          </div>
-                        </div>
-                      </>
-                    );
-
-                    if (!detailHrefBase) {
-                      return (
-                        <div key={logement.id} className={cardStyles.logementCard}>
-                          {cardContent}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={logement.id}
-                        href={`${detailHrefBase}/${logement.id}`}
-                        className={cardStyles.logementCard}
-                      >
-                        {cardContent}
-                      </Link>
-                    );
-                  })}
-                </div>,
-              )
+            ? renderConciergeEditableSection("Tous les logements", firstEditableHousingHref, renderHousingCards())
             : (
               <section className={pageStyles.panel}>
                 <div className={pageStyles.sectionHeading}>
-                  <div>
-                    <h2 className={pageStyles.terracottaSectionTitle}>Logements</h2>
-                  </div>
+                  <h2 className={pageStyles.terracottaSectionTitle}>Logements</h2>
                   <div className={pageStyles.inlineActions}>
                     <Link href={addHref} className={pageStyles.buttonPrimary}>
                       <FiPlus /> Ajouter
                     </Link>
                   </div>
                 </div>
-
-                <div className={cardStyles.logementsGrid}>
-                  {logements.map((logement) => {
-                    const equipments = Array.isArray(logement.infos?.equipements)
-                      ? logement.infos?.equipements.slice(0, 4)
-                      : [];
-                    const ownerCardClassName = `${cardStyles.logementCard} ${ownerHousingStyles.ownerCard}`;
-                    const ownerStatusClassName = `${cardStyles.status} ${cardStyles[`status-${logement.statut}`]} ${ownerHousingStyles.ownerStatus}`;
-                    const housingHref = detailHrefBase ? `${detailHrefBase}/${logement.id}` : "";
-                    const cardContent = (
-                      <>
-                        <div
-                          className={`${cardStyles.cardImageWrapper} ${ownerHousingStyles.ownerImageWrapper}`}
-                        >
-                          <Image
-                            src={getSafePhoto(logement.photo_principale)}
-                            alt={logement.nom_logement}
-                            width={220}
-                            height={180}
-                            className={cardStyles.cardImage}
-                          />
-                          <div className={ownerHousingStyles.imageOverlay} />
-                          <div className={ownerHousingStyles.imageTopline}>
-                            <span className={ownerStatusClassName}>
-                              {renderStatusLabel(logement.statut)}
-                            </span>
-                            <span className={ownerHousingStyles.cityPill}>
-                              <FiMapPin />
-                              {logement.ville}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className={`${cardStyles.cardBody} ${ownerHousingStyles.ownerCardBody}`}>
-                          <div className={ownerHousingStyles.cardHeading}>
-                            <div>
-                              <p className={ownerHousingStyles.cardEyebrow}>
-                                {logement.infos?.categorie || "Appartement"}
-                              </p>
-                              <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
-                            </div>
-                            <span className={ownerHousingStyles.capacityBadge}>
-                              <FiUsers />
-                              {getOccupancyLabel(logement.infos?.capacite)}
-                            </span>
-                          </div>
-
-                          {logement.infos?.description ? (
-                            <p className={`${cardStyles.cardDescription} ${ownerHousingStyles.ownerDescription}`}>
-                              {logement.infos.description}
-                            </p>
-                          ) : null}
-
-                          {equipments.length > 0 ? (
-                            <div className={ownerHousingStyles.equipmentRow}>
-                              {equipments.map((equipment) => (
-                                <span
-                                  key={`${logement.id}-${equipment}`}
-                                  className={ownerHousingStyles.equipmentChip}
-                                >
-                                  {equipment}
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
-
-                          <div className={`${cardStyles.cardFooter} ${ownerHousingStyles.ownerFooter}`}>
-                            <span className={`${cardStyles.btnView} ${ownerHousingStyles.ownerViewButton}`}>
-                              {detailHrefBase ? "Ouvrir" : "Logement"}
-                            </span>
-                          </div>
-                        </div>
-                      </>
-                    );
-
-                    if (!detailHrefBase) {
-                      return (
-                        <div key={logement.id} className={ownerCardClassName}>
-                          {cardContent}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <Link key={logement.id} href={housingHref} className={ownerCardClassName}>
-                        {cardContent}
-                      </Link>
-                    );
-                  })}
-                </div>
+                {renderOwnerHousingCards()}
               </section>
             )
           : null}

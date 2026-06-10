@@ -1,0 +1,322 @@
+.page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.36fr);
+  gap: 1rem;
+  align-items: stretch;
+  padding: clamp(1rem, 2.4vw, 1.35rem);
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 18%, var(--dash-border));
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 13%, transparent), transparent 32%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 6%, white));
+  box-shadow: 0 20px 42px rgba(74, 54, 22, 0.08);
+}
+
+.heroCopy {
+  display: grid;
+  align-content: center;
+  gap: 0.55rem;
+}
+
+.eyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.sectionHeader h2 {
+  margin: 0;
+  color: var(--dash-text);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.hero h1 {
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+}
+
+.hero p,
+.housingCard p,
+.panelText {
+  margin: 0;
+  color: var(--dash-text-muted);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.heroScore {
+  display: grid;
+  align-content: center;
+}
+
+.state {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+  color: var(--dash-text-muted);
+  font-weight: 800;
+}
+
+.donutGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.mainColumn,
+.sideColumn,
+.sectionHeader,
+.panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.sideColumn {
+  position: sticky;
+  top: 1rem;
+}
+
+.housingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.housingCard,
+.panel,
+.emptyCard {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 8%, transparent), transparent 30%),
+    color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 16px 32px rgba(74, 54, 22, 0.06);
+}
+
+.housingCard {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.housingCard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--dash-accent) 34%, var(--dash-border));
+  box-shadow: 0 20px 38px rgba(74, 54, 22, 0.1);
+}
+
+.housingTop,
+.factRow,
+.chipRow,
+.checkRow,
+.cardAction {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.housingTop {
+  justify-content: space-between;
+}
+
+.homeIcon {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+  color: var(--dash-accent-strong);
+}
+
+.status,
+.chipRow span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.status {
+  padding: 0.3rem 0.65rem;
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+  color: var(--dash-accent-strong);
+  text-transform: uppercase;
+}
+
+.housingCard strong {
+  color: var(--dash-text);
+  font-size: 1.16rem;
+  line-height: 1.18;
+}
+
+.city {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--dash-text-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.factRow {
+  flex-wrap: wrap;
+}
+
+.factRow span {
+  padding: 0.45rem 0.6rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.chipRow {
+  flex-wrap: wrap;
+}
+
+.chipRow span {
+  padding: 0.25rem 0.6rem;
+  background: color-mix(in srgb, var(--dash-accent) 9%, transparent);
+  color: #7a3f32;
+}
+
+.cardAction {
+  width: fit-content;
+  color: var(--dash-accent-strong);
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.panel {
+  padding: 1rem;
+}
+
+.checkList,
+.todoList {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+}
+
+.checkRow {
+  justify-content: space-between;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--dash-accent) 12%, transparent);
+}
+
+.checkRow:last-child {
+  border-bottom: 0;
+}
+
+.checkRow svg {
+  color: var(--dash-accent-strong);
+}
+
+.checkRow span {
+  flex: 1;
+  color: var(--dash-text-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.checkRow strong {
+  color: var(--dash-text);
+}
+
+.todoList {
+  list-style: none;
+}
+
+.todoList li {
+  padding: 0.65rem 0.75rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--dash-accent) 8%, transparent);
+  color: var(--dash-text);
+  font-weight: 800;
+}
+
+.primaryLink,
+.emptyCard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  color: inherit;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.primaryLink {
+  width: fit-content;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: white;
+}
+
+.emptyCard {
+  min-height: 180px;
+  padding: 1rem;
+  color: var(--dash-accent-strong);
+}
+
+@media (max-width: 1100px) {
+  .hero,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sideColumn {
+    position: static;
+  }
+
+  .donutGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero,
+  .housingCard,
+  .panel {
+    border-radius: 18px;
+  }
+
+  .donutGrid,
+  .housingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .primaryLink {
+    width: 100%;
+  }
+}

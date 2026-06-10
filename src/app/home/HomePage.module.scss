@@ -337,8 +337,40 @@
     grid-template-columns: 1fr;
   }
 
+  .page {
+    width: min(100%, calc(100% - 28px));
+    padding: 24px 0 64px;
+  }
+
+  .hero {
+    gap: 22px;
+    padding: 24px;
+  }
+
   .heroCopy h1 {
-    max-width: none;
+    max-width: 14ch;
+    font-size: clamp(2.1rem, 5vw, 3.2rem);
+    text-wrap: balance;
+  }
+
+  .heroLead,
+  .heroSupport,
+  .sectionHeading p,
+  .featureCard p,
+  .audienceCard p,
+  .stepCard p,
+  .ctaCard p,
+  .carouselSectionHeader p {
+    max-width: 60ch;
+    line-height: 1.62;
+    text-wrap: pretty;
+  }
+
+  .sectionHeading h2,
+  .ctaCard h2,
+  .carouselSectionHeader h2 {
+    line-height: 1.1;
+    text-wrap: balance;
   }
 
   .carouselSection {
@@ -379,6 +411,13 @@
   .carouselSectionHeader {
     margin-bottom: 1rem;
     text-align: left;
+  }
+
+  .heroCopy h1,
+  .sectionHeading h2,
+  .ctaCard h2,
+  .carouselSectionHeader h2 {
+    max-width: none;
   }
 
   .carouselPanel {

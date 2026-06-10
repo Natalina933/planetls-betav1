@@ -121,3 +121,30 @@
 :global([data-theme="art-deco"]) .trustItems div p {
   color: #5d6d7e;
 }
+
+@media (max-width: 1024px) {
+  .trust {
+    padding-inline: 1.25rem;
+
+    h2 {
+      line-height: 1.12;
+      text-wrap: balance;
+    }
+  }
+
+  .trustItems div p {
+    line-height: 1.58;
+    text-wrap: pretty;
+  }
+}
+
+@media (max-width: 640px) {
+  .trust {
+    width: calc(100% - 20px);
+    padding-inline: 1rem;
+  }
+
+  .trustItems div {
+    padding: 1.5rem 1rem;
+  }
+}

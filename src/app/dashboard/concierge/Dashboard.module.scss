@@ -2,519 +2,515 @@
   display: grid;
   gap: 1.1rem;
   width: 100%;
-  max-width: 1180px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 0.55rem 0.75rem 5.6rem;
-  overflow-x: hidden;
+  padding: 1rem 0.75rem 2rem;
 }
 
-.header {
+.sectionBlock {
   display: grid;
-  gap: 0.8rem;
-  padding: 0.25rem 0 0.35rem;
-}
-
-.identity,
-.headerActions,
-.sectionHeader,
-.kpiBody,
-.missionMeta {
-  display: flex;
-  align-items: center;
-}
-
-.identity {
-  gap: 0.75rem;
-  min-width: 0;
-
-  h1,
-  p {
-    margin: 0;
-  }
-
-  h1 {
-    color: var(--dash-text);
-    font-size: 1.45rem;
-    line-height: 1.05;
-  }
-
-  p {
-    color: var(--dash-text-muted);
-    font-size: 0.9rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.avatar,
-.iconButton,
-.kpiIcon,
-.missionIllustration {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-}
-
-.avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
-  color: var(--dash-accent-strong);
-}
-
-.headerActions {
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.modeSwitch {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: min(100%, 260px);
-  padding: 0.24rem;
-  border: 1px solid var(--dash-border);
-  border-radius: 999px;
-  background: var(--dash-bg-panel);
-
-  button {
-    min-height: 38px;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--dash-text-muted);
-    cursor: pointer;
-    font-size: 0.86rem;
-    font-weight: 900;
-  }
-
-  button[aria-pressed="true"] {
-    background: var(--dash-accent);
-    color: #2b2113;
-    box-shadow: 0 8px 18px rgba(198, 166, 107, 0.2);
-  }
-}
-
-.iconButton {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--dash-border);
-  border-radius: 14px;
-  background: var(--dash-bg-panel);
-  color: var(--dash-text);
-  text-decoration: none;
-}
-
-.notificationBadge {
-  position: absolute;
-  top: -0.28rem;
-  right: -0.28rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.3rem;
-  border-radius: 999px;
-  background: #a83b30;
-  color: white;
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.todaySection,
-.missionsSection,
-.actionsSection {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.sectionHeader {
-  justify-content: space-between;
   gap: 1rem;
-
-  h2 {
-    margin: 0.35rem 0 0;
-    color: var(--dash-text);
-    font-size: 1.15rem;
-  }
 }
 
-.reorderButton,
-.inlineLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 36px;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--dash-border);
-  border-radius: 999px;
-  background: var(--dash-bg-panel);
-  color: var(--dash-text);
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.kpiGrid {
+.sectionLead {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
+  gap: 0.35rem;
 }
 
-.kpiCard {
-  border: 1px solid var(--dash-border);
-  border-radius: 16px;
+.sectionLead h2,
+.panelHeader h3 {
+  margin: 0;
+  color: var(--dash-text);
+  line-height: 1.08;
+  text-wrap: balance;
 }
 
-.kpiBody {
-  gap: 0.9rem;
+.sectionLead h2 {
+  font-size: clamp(1.14rem, 2vw, 1.5rem);
 }
 
-.kpiIcon {
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
-  color: var(--dash-accent-strong);
-}
-
-.kpiBody p,
-.kpiBody small {
+.sectionLead p,
+.healthDetail,
+.signalCard p,
+.priorityHero p,
+.priorityNote,
+.timelineRow p,
+.requestCard p,
+.financeCard p,
+.alertCard p,
+.propertyHead p {
   margin: 0;
   color: var(--dash-text-muted);
+  line-height: 1.58;
+  text-wrap: pretty;
 }
 
-.kpiBody p {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.82rem;
+.sectionEyebrow,
+.panelEyebrow {
+  color: var(--dash-accent-strong);
+  font-size: 0.75rem;
   font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-
-  span {
-    flex: 0 0 auto;
-    min-height: 24px;
-    padding: 0.22rem 0.5rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
-    color: var(--dash-accent-strong);
-    font-size: 0.68rem;
-  }
 }
 
-.kpiBody strong {
-  display: block;
-  margin: 0.1rem 0;
+.heroPanel,
+.panelCard,
+.priorityHero,
+.healthCard,
+.signalCard,
+.requestCard,
+.financeCard,
+.propertyCard,
+.quickActionCard,
+.alertCard,
+.timelineRow,
+.emptyCard {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 16%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+  box-shadow: 0 16px 34px rgba(74, 54, 22, 0.06);
+}
+
+.heroPanel {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.2rem, 2.4vw, 1.8rem);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 14%, transparent), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.heroBadge,
+.priorityBadge {
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 15%, transparent);
+  color: var(--dash-accent-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 {
+  margin: 0;
   color: var(--dash-text);
-  font-size: 1.7rem;
+  font-size: clamp(1.7rem, 3vw, 2.55rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.heroCopy p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--dash-text-muted);
+  line-height: 1.62;
+}
+
+.heroMetrics {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.heroMetric,
+.financeCard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--dash-bg-panel) 94%, white);
+}
+
+.heroMetric span,
+.heroMetric small {
+  color: var(--dash-text-muted);
+  font-size: 0.8rem;
+}
+
+.heroMetric strong,
+.healthValue,
+.financeValue {
+  color: var(--dash-text);
+  font-size: clamp(1.45rem, 2vw, 2rem);
   line-height: 1;
 }
 
-.kpiProgress {
-  display: block;
-  width: 100%;
-  height: 7px;
-  margin: 0.42rem 0 0.34rem;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--dash-accent) 13%, transparent);
+.heroActions,
+.priorityActions,
+.requestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.kpiProgress span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--dash-accent-strong), var(--dash-accent));
-}
-
-.danger .kpiIcon {
-  background: rgba(192, 58, 43, 0.12);
-  color: #a83b30;
-}
-
-.success .kpiIcon {
-  background: rgba(28, 132, 84, 0.12);
-  color: #1c8454;
-}
-
-.info .kpiIcon {
-  background: rgba(47, 111, 156, 0.12);
-  color: #2f6f9c;
-}
-
-.missionRail {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(240px, 78%);
-  gap: 0.85rem;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  padding-bottom: 0.15rem;
-  scrollbar-width: thin;
-}
-
-.missionCard {
-  display: grid;
-  gap: 0.5rem;
-  min-width: 0;
-  min-height: 190px;
-  padding: 1rem;
-  border: 1px solid var(--dash-border);
-  border-radius: 18px;
-  background:
-    linear-gradient(150deg, color-mix(in srgb, var(--dash-accent) 10%, transparent), transparent 42%),
-    var(--dash-bg-panel);
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink,
+.healthCard,
+.signalCard,
+.propertyCard,
+.quickActionCard,
+.alertCard,
+.timelineRow {
   color: inherit;
   text-decoration: none;
 }
 
-.missionIllustration {
-  width: 68px;
-  height: 68px;
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
-  color: var(--dash-accent-strong);
-}
-
-.missionCard strong {
-  color: var(--dash-text);
-  font-size: 1rem;
-  line-height: 1.25;
-}
-
-.missionCard p {
-  margin: 0;
-  color: var(--dash-text-muted);
-  font-size: 0.9rem;
-}
-
-.statusBadge,
-.missionCta {
+.primaryLink,
+.secondaryLink,
+.ghostLink,
+.inlineLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.primaryLink {
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: white;
+  box-shadow: 0 14px 28px rgba(127, 88, 32, 0.18);
+}
+
+.secondaryLink,
+.inlineLink,
+.ghostLink {
+  border: 1px solid color-mix(in srgb, var(--dash-accent) 22%, var(--dash-border));
+  background: color-mix(in srgb, var(--dash-bg-panel) 96%, white);
+}
+
+.ghostLink {
+  color: var(--dash-text-muted);
+}
+
+.healthGrid,
+.financeGrid,
+.alertGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.healthCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 22px;
+}
+
+.healthTop,
+.signalTop,
+.requestTop,
+.propertyHead,
+.panelHeader,
+.priorityHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.healthDot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.good {
+  background: #1f8b4d;
+}
+
+.warn {
+  background: #d49b23;
+}
+
+.info {
+  background: #3a7bd5;
+}
+
+.healthLabel,
+.financeLabel {
+  color: var(--dash-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.priorityLayout,
+.dualGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.priorityHero,
+.panelCard,
+.propertyCard,
+.quickActionCard,
+.alertCard {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.15rem;
+  border-radius: 26px;
+}
+
+.priorityHero {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--dash-accent) 16%, transparent), transparent 32%),
+    linear-gradient(150deg, color-mix(in srgb, var(--dash-bg-panel) 97%, white), color-mix(in srgb, var(--dash-accent) 7%, white));
+}
+
+.priorityHeader strong {
+  display: block;
+  color: var(--dash-text);
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.priorityIcon,
+.propertyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--dash-accent) 16%, transparent);
+  color: var(--dash-accent-strong);
+  flex: 0 0 auto;
+}
+
+.priorityMeta,
+.requestMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.priorityMeta span,
+.requestMeta span,
+.inlineStatus,
+.timelineLabel,
+.timelineTime,
+.timelineDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   width: fit-content;
   min-height: 30px;
+  padding: 0.3rem 0.58rem;
   border-radius: 999px;
+  background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+  color: var(--dash-accent-strong);
   font-size: 0.76rem;
   font-weight: 900;
 }
 
-.statusBadge {
-  padding: 0.28rem 0.62rem;
-  background: color-mix(in srgb, var(--dash-accent) 14%, transparent);
+.priorityNote {
+  font-weight: 700;
+}
+
+.signalList,
+.timelineList,
+.requestList,
+.quickActions,
+.propertiesGrid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.signalCard {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem;
+  border-radius: 18px;
+}
+
+.signalTop span {
+  color: var(--dash-text);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.signalTop strong {
+  color: var(--dash-accent-strong);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+}
+
+.panelHeader {
+  align-items: center;
+}
+
+.panelHeader h3 {
+  font-size: 1.12rem;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+}
+
+.timelineRow strong,
+.requestCard strong,
+.propertyHead strong,
+.alertCard strong {
+  color: var(--dash-text);
+  line-height: 1.2;
+}
+
+.requestCard {
+  border-radius: 20px;
+}
+
+.requestTop {
+  align-items: center;
+}
+
+.propertiesGrid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.propertyStats {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+.propertyStats div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+}
+
+.propertyStats span {
+  color: var(--dash-text-muted);
+  font-size: 0.78rem;
+}
+
+.quickActions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.quickActionCard {
+  place-items: center;
+  text-align: center;
+  min-height: 128px;
+  font-weight: 900;
+}
+
+.quickActionCard svg,
+.alertCard svg {
   color: var(--dash-accent-strong);
 }
 
-.missionCta {
-  gap: 0.35rem;
-  margin-top: auto;
-  padding: 0.42rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--dash-accent) 46%, var(--dash-border));
-  background: var(--dash-bg-panel);
-  color: var(--dash-text);
+.alertCard {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
 }
 
-.missionMeta {
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-
-  span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.28rem;
-    min-width: 0;
-    padding: 0.34rem 0.55rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
-    color: var(--dash-accent-strong);
-    font-size: 0.78rem;
-    font-weight: 900;
-    white-space: nowrap;
-  }
-}
-
-.actionGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.actionCard {
+.emptyCard {
   display: grid;
   place-items: center;
-  gap: 0.55rem;
-  min-height: 116px;
-  min-width: 0;
-  padding: 0.9rem;
-  border: 1px solid var(--dash-border);
-  border-radius: 16px;
-  background: var(--dash-bg-panel);
-  color: var(--dash-text);
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  font: inherit;
-  font-weight: 900;
-
-  svg {
-    color: var(--dash-accent-strong);
-  }
-
-  span {
-    max-width: 12ch;
-    line-height: 1.18;
-  }
-}
-
-.bottomNav {
-  position: fixed;
-  right: 0.75rem;
-  bottom: 0.75rem;
-  left: 0.75rem;
-  z-index: 30;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.25rem;
-  padding: 0.35rem;
-  border: 1px solid var(--dash-border);
+  min-height: 110px;
+  padding: 1rem;
   border-radius: 20px;
-  background: color-mix(in srgb, var(--dash-bg-panel) 90%, transparent);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
-  backdrop-filter: blur(14px);
+  border-style: dashed;
+  color: var(--dash-accent-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-align: center;
+}
 
-  a {
-    display: grid;
-    place-items: center;
-    gap: 0.15rem;
-    min-width: 0;
-    min-height: 54px;
-    border-radius: 16px;
-    color: var(--dash-text-muted);
-    text-decoration: none;
-    font-size: 0.72rem;
-    font-weight: 900;
+.primaryLink:hover,
+.secondaryLink:hover,
+.ghostLink:hover,
+.inlineLink:hover,
+.healthCard:hover,
+.signalCard:hover,
+.timelineRow:hover,
+.propertyCard:hover,
+.quickActionCard:hover,
+.alertCard:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1100px) {
+  .heroMetrics,
+  .healthGrid,
+  .financeGrid,
+  .alertGrid,
+  .quickActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  a[aria-current="page"] {
-    background: color-mix(in srgb, var(--dash-accent) 18%, transparent);
-    color: var(--dash-accent-strong);
+  .priorityLayout,
+  .dualGrid {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (min-width: 680px) {
+@media (max-width: 720px) {
   .dashboard {
-    gap: 1.3rem;
-    padding: 1.25rem 1.25rem 6rem;
+    padding: 0.85rem 0.6rem 1.4rem;
   }
 
-  .header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    padding: 0.75rem 0;
-    background: color-mix(in srgb, var(--dash-bg) 88%, transparent);
-    backdrop-filter: blur(14px);
+  .heroMetrics,
+  .healthGrid,
+  .financeGrid,
+  .alertGrid,
+  .quickActions {
+    grid-template-columns: 1fr;
   }
 
-  .headerActions {
-    justify-content: end;
+  .heroActions,
+  .priorityActions,
+  .requestActions {
+    flex-direction: column;
   }
 
-  .kpiGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .missionRail {
-    grid-auto-columns: minmax(260px, 34%);
-  }
-
-  .actionGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 520px) {
-  .identity h1 {
-    font-size: 1.2rem;
-  }
-
-  .identity p {
-    max-width: 58vw;
-    font-size: 0.82rem;
-  }
-
-  .headerActions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .headerActions > :first-child {
-    display: none;
-  }
-
-  .modeSwitch {
+  .primaryLink,
+  .secondaryLink,
+  .ghostLink,
+  .inlineLink {
     width: 100%;
   }
 
-  .modeSwitch button {
-    min-height: 34px;
-    font-size: 0.78rem;
+  .timelineRow {
+    grid-template-columns: 1fr;
   }
 
-  .sectionHeader {
-    align-items: flex-end;
-  }
-
-  .sectionHeader h2 {
-    font-size: 1rem;
-  }
-
-  .reorderButton {
-    width: 36px;
-    min-width: 36px;
-    padding: 0;
-    overflow: hidden;
-    color: transparent;
-  }
-
-  .reorderButton svg {
-    color: var(--dash-text);
-  }
-
-  .kpiBody {
-    gap: 0.7rem;
-  }
-}
-
-@media (min-width: 1040px) {
-  .dashboard {
-    padding-bottom: 2rem;
-  }
-
-  .missionRail {
-    grid-auto-flow: initial;
-    grid-auto-columns: initial;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    overflow: visible;
-  }
-
-  .bottomNav {
-    position: sticky;
-    bottom: 1rem;
-    width: min(720px, 100%);
-    margin: 0 auto;
+  .panelHeader,
+  .requestTop,
+  .propertyHead,
+  .priorityHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

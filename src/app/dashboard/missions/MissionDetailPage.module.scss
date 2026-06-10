@@ -3,6 +3,14 @@
   gap: 1.25rem;
 }
 
+.ownerMissionView > .hero {
+  display: none;
+}
+
+.ownerMissionView > .layout {
+  display: none;
+}
+
 .message {
   display: flex;
   flex-wrap: wrap;
@@ -206,6 +214,13 @@
   font-weight: 800;
 }
 
+.label small {
+  color: #756959;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .timeline {
   display: grid;
 }
@@ -228,6 +243,36 @@
 .checklist {
   display: grid;
   gap: 0.55rem;
+}
+
+.checklistSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.checklistSummary div {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid rgba(32, 25, 18, 0.1);
+  border-radius: 12px;
+  background: #fffaf2;
+}
+
+.checklistSummary span {
+  color: #8a642f;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.checklistSummary strong {
+  color: #201912;
+  line-height: 1.35;
 }
 
 .checkItem {
@@ -285,15 +330,324 @@
   text-decoration: none;
 }
 
+.ownerPanel {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(120, 86, 64, 0.14);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(202, 164, 106, 0.12), transparent 32%),
+    linear-gradient(145deg, #fffdf9 0%, #faf4ec 100%);
+  padding: clamp(1rem, 2vw, 1.25rem);
+  box-shadow: 0 16px 34px rgba(82, 54, 39, 0.07);
+}
+
+.ownerPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ownerPanelHeader h2 {
+  margin: 0;
+  color: #201912;
+  font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+}
+
+.ownerSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ownerSummaryGrid article,
+.ownerCard {
+  min-width: 0;
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 12px 26px rgba(82, 54, 39, 0.05);
+}
+
+.ownerSummaryGrid article {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem;
+}
+
+.ownerSummaryGrid span {
+  color: #8a642f;
+  font-size: 0.74rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ownerSummaryGrid strong {
+  color: #201912;
+  line-height: 1.3;
+}
+
+.ownerSummaryGrid small {
+  color: #756959;
+  font-weight: 700;
+}
+
+.ownerWorkflowGrid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 0.75rem;
+}
+
+.ownerWorkflowGrid > section {
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 0.95rem;
+  box-shadow: 0 12px 26px rgba(82, 54, 39, 0.05);
+}
+
+.bookingAlert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid rgba(190, 72, 58, 0.18);
+  border-radius: 16px;
+  background: #fff8f6;
+  color: #7f332b;
+  padding: 0.85rem 1rem;
+}
+
+.bookingAlert strong {
+  color: #913c32;
+}
+
+.bookingAlert span {
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.ownerInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ownerInfoCard {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 1rem;
+  box-shadow: 0 12px 26px rgba(82, 54, 39, 0.05);
+}
+
+.ownerInfoCard h3 {
+  margin: 0;
+  color: #201912;
+}
+
+.infoRows {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem 0.75rem;
+  align-items: baseline;
+}
+
+.infoRows span {
+  color: #8a642f;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.infoRows strong {
+  min-width: 0;
+  color: #201912;
+  line-height: 1.35;
+}
+
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 2.35rem;
+  border: 1px solid rgba(138, 100, 47, 0.22);
+  border-radius: 999px;
+  background: #fffaf2;
+  color: #3b3024;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.86rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.serviceChipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.serviceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #3b3024;
+  padding: 0.34rem 0.65rem;
+  font-size: 0.84rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.serviceChip svg {
+  color: #8a642f;
+  flex: 0 0 auto;
+}
+
+.ownerSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.ownerCard {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.ownerEditForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  border-radius: 16px;
+  background: #fffaf2;
+  padding: 0.85rem;
+}
+
+.ownerCard h4 {
+  margin: 0;
+  color: #201912;
+  font-size: 0.98rem;
+}
+
+.ownerProofs {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(120, 86, 64, 0.12);
+}
+
+.ownerProofList {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ownerProofLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 14px;
+  background: #fffaf2;
+  color: #201912;
+  padding: 0.72rem 0.8rem;
+  text-decoration: none;
+}
+
+.ownerProofLink strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ownerProofLink span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(138, 100, 47, 0.1);
+  color: #8a642f;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.cancelBox {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: 16px;
+  background: #fffaf2;
+  padding: 0.8rem;
+}
+
+.ownerActivity {
+  display: grid;
+  gap: 0.85rem;
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  padding: 1rem;
+  box-shadow: 0 12px 26px rgba(82, 54, 39, 0.05);
+}
+
+.ownerActivityList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ownerActivityItem {
+  display: grid;
+  gap: 0.25rem;
+  border-left: 3px solid #caa46a;
+  border-radius: 0 14px 14px 0;
+  background: #fffaf2;
+  padding: 0.75rem 0.85rem;
+}
+
+.ownerActivityItem strong {
+  color: #201912;
+}
+
+.ownerActivityItem p {
+  margin: 0;
+  color: #5d5245;
+  line-height: 1.45;
+}
+
+.ownerActivityItem span {
+  color: #8a642f;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 @media (max-width: 920px) {
   .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ownerSummaryGrid,
+  .ownerWorkflowGrid,
+  .ownerInfoGrid,
+  .ownerSplit,
+  .ownerEditForm {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
   .heroTop,
-  .sectionHeader {
+  .sectionHeader,
+  .ownerPanelHeader {
     align-items: stretch;
     flex-direction: column;
   }
@@ -304,5 +658,14 @@
 
   .segmentedControl {
     grid-template-columns: 1fr;
+  }
+
+  .checklistSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .bookingAlert {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

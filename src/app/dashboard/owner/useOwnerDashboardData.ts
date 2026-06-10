@@ -117,7 +117,14 @@ export function getOwnerHousingStatusLabel(status: string | null) {
   }
 }
 
-export function useOwnerDashboardData(isAuthenticated: boolean) {
+type UseOwnerDashboardDataOptions = {
+  missionLimit?: number;
+};
+
+export function useOwnerDashboardData(
+  isAuthenticated: boolean,
+  options: UseOwnerDashboardDataOptions = {},
+) {
   const [properties, setProperties] = useState<OwnerHousingRow[]>([]);
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [quotes, setQuotes] = useState<OwnerQuoteRow[]>([]);
@@ -135,6 +142,7 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
       try {
         setLoading(true);
         setError(null);
+        const missionLimit = options.missionLimit ?? 12;
 
         const [
           housingPayload,
@@ -148,7 +156,7 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
           await Promise.all([
             fetchJsonOrThrow<OwnerHousingRow[]>("/api/housing", "Impossible de charger vos logements."),
             fetchJsonOrThrow<OwnerMissionRow[]>(
-              "/api/missions?scope=owner&limit=12",
+              `/api/missions?scope=owner&limit=${missionLimit}`,
               "Impossible de charger vos missions.",
             ),
             fetchJsonOrThrow<OwnerQuoteRow[]>("/api/quotes?limit=8", "Impossible de charger vos devis."),
@@ -184,7 +192,7 @@ export function useOwnerDashboardData(isAuthenticated: boolean) {
     }
 
     void fetchOwnerDashboard();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, options.missionLimit]);
 
   const activeCount = useMemo(
     () => properties.filter((property) => isActiveHousingStatus(property.statut)).length,

@@ -1,0 +1,100 @@
+.missionPage {
+  display: grid;
+  width: 100%;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1rem, 2vw, 1.25rem);
+  border: 1px solid rgba(120, 86, 64, 0.14);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(202, 164, 106, 0.18), transparent 36%),
+    linear-gradient(135deg, #fffdf9, #f7eee5);
+  box-shadow: 0 18px 38px rgba(82, 54, 39, 0.07);
+}
+
+.hero p,
+.hero h2 {
+  margin: 0;
+}
+
+.hero p {
+  color: #8a642f;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h2 {
+  margin-top: 0.25rem;
+  color: #201912;
+  font-size: clamp(1.45rem, 3vw, 2.15rem);
+  line-height: 1.05;
+}
+
+.heroFacts {
+  display: grid;
+  gap: 0.45rem;
+  max-width: 420px;
+  color: #5d5245;
+  font-weight: 750;
+  text-align: right;
+}
+
+.heroFacts span {
+  line-height: 1.35;
+}
+
+.heroFacts strong {
+  color: #201912;
+}
+
+.statusPill {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.65rem;
+  padding: 0.32rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(120, 86, 64, 0.1);
+  color: #5d5245;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.en_retard {
+  background: rgba(190, 72, 58, 0.14);
+  color: #913c32;
+}
+
+.en_attente_validation,
+.a_faire {
+  background: rgba(208, 139, 63, 0.16);
+  color: #7a5429;
+}
+
+.en_cours {
+  background: rgba(73, 119, 176, 0.14);
+  color: #345d86;
+}
+
+.termine {
+  background: rgba(82, 143, 96, 0.14);
+  color: #3e6a49;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+    border-radius: 18px;
+  }
+
+  .heroFacts {
+    text-align: left;
+  }
+}

@@ -1,0 +1,133 @@
+.row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.25fr) minmax(180px, 0.75fr) minmax(180px, 0.75fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid rgba(120, 86, 64, 0.13);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(82, 54, 39, 0.05);
+}
+
+.main,
+.meta,
+.assignee {
+  min-width: 0;
+}
+
+.main {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.main h3,
+.main p {
+  margin: 0;
+}
+
+.main h3 {
+  color: #201912;
+  font-size: 1.05rem;
+}
+
+.main p,
+.meta span,
+.assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #62584c;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.meta {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.meta span:last-child {
+  color: #8a642f;
+}
+
+.statusBadge {
+  width: fit-content;
+  padding: 0.24rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(120, 86, 64, 0.1);
+  color: #5d5245;
+  font-size: 0.73rem;
+  font-weight: 900;
+}
+
+.a_faire,
+.en_attente_validation {
+  background: rgba(208, 139, 63, 0.16);
+  color: #7a5429;
+}
+
+.en_cours {
+  background: rgba(73, 119, 176, 0.14);
+  color: #345d86;
+}
+
+.en_retard {
+  background: rgba(190, 72, 58, 0.14);
+  color: #913c32;
+}
+
+.termine {
+  background: rgba(82, 143, 96, 0.14);
+  color: #3e6a49;
+}
+
+.actions {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.actionLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  background: #3b3024;
+  color: #fffaf2;
+  font-size: 0.88rem;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.secondaryLink {
+  border: 1px solid rgba(138, 100, 47, 0.22);
+  background: #fffaf2;
+  color: #3b3024;
+}
+
+@media (max-width: 1080px) {
+  .row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actionLink,
+  .secondaryLink {
+    width: fit-content;
+  }
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+    border-radius: 17px;
+  }
+
+  .actionLink,
+  .secondaryLink {
+    width: 100%;
+  }
+}

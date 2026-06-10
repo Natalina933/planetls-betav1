@@ -4,71 +4,6 @@
   gap: 1rem;
 }
 
-.summaryCard {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 1.1rem 1rem;
-  border-radius: 20px;
-  border: 1px solid rgba(184, 92, 72, 0.18);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(249, 238, 232, 0.96));
-  box-shadow: 0 14px 28px rgba(109, 53, 41, 0.07);
-}
-
-.summaryPie {
-  --value: 0%;
-  position: relative;
-  display: grid;
-  flex: 0 0 72px;
-  width: 72px;
-  aspect-ratio: 1;
-  place-items: center;
-  border-radius: 50%;
-  background: conic-gradient(var(--dash-accent-strong) var(--value), rgba(184, 92, 72, 0.13) 0);
-}
-
-.summaryPie::after {
-  position: absolute;
-  inset: 9px;
-  border-radius: inherit;
-  background: #fffaf6;
-  content: "";
-}
-
-.summaryPieValue {
-  position: relative;
-  z-index: 1;
-  color: var(--dash-text);
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.summaryCopy {
-  display: grid;
-  min-width: 0;
-  gap: 0.2rem;
-}
-
-.summaryLabel {
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dash-accent-strong);
-}
-
-.summaryValue {
-  font-size: clamp(1.35rem, 3vw, 1.8rem);
-  line-height: 1;
-  color: var(--dash-text);
-}
-
-.summaryDetail {
-  color: var(--dash-text-muted);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
 .ownerCard {
   position: relative;
   overflow: hidden;
@@ -207,10 +142,6 @@
 
   .summaryGrid {
     grid-template-columns: 1fr;
-  }
-
-  .summaryCard {
-    align-items: center;
   }
 
   .ownerViewButton {

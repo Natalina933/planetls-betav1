@@ -1,0 +1,160 @@
+.priorities {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(120, 86, 64, 0.14);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 14px 28px rgba(82, 54, 39, 0.06);
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.header p,
+.header h2 {
+  margin: 0;
+}
+
+.header p {
+  color: #8a642f;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  color: #201912;
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+}
+
+.header > span {
+  color: #756959;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.priorityList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.priorityCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 18px;
+  background: #fffaf2;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(138, 100, 47, 0.1);
+  color: #8a642f;
+}
+
+.content {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.content span {
+  width: fit-content;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(138, 100, 47, 0.1);
+  color: #8a642f;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.content h3,
+.content p {
+  margin: 0;
+}
+
+.content h3 {
+  color: #201912;
+  font-size: 1rem;
+}
+
+.content p {
+  color: #62584c;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: #3b3024;
+  color: #fffaf2;
+  font-size: 0.86rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.en_retard {
+  border-color: rgba(190, 72, 58, 0.22);
+  background: #fff8f6;
+}
+
+.en_attente_validation,
+.a_faire {
+  border-color: rgba(208, 139, 63, 0.24);
+  background: #fffcf6;
+}
+
+.termine {
+  border-color: rgba(82, 143, 96, 0.2);
+  background: #f8fff7;
+}
+
+.emptyState {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem;
+  border-radius: 16px;
+  background: rgba(82, 143, 96, 0.1);
+  color: #386443;
+  font-weight: 750;
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .header,
+  .priorityCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .priorityCard {
+    grid-template-columns: 1fr;
+  }
+
+  .actionLink {
+    width: 100%;
+  }
+}

@@ -13,7 +13,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { AsyncState } from "@/components/ui";
-import { DashboardLayout, DashboardLoadingScreen, DashboardPanel } from "@/components/dashboard";
+import { DashboardLayout, DashboardLoadingScreen, DashboardPanel, MetricDonut } from "@/components/dashboard";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { takeFirst } from "../shared";
@@ -384,6 +384,47 @@ export default function OwnerDashboardPage() {
       },
     ],
     [activeCount, draftCount, ongoingMissions.length, partnerRows, properties.length, todayMissions.length],
+  );
+
+  const dashboardDonuts = useMemo(
+    () => [
+      {
+        label: "Logements prêts",
+        value: properties.length > 0 ? `${activeCount}/${properties.length}` : "0",
+        detail: draftCount > 0 ? `${draftCount} à finaliser` : "Parc exploitable",
+        percent: properties.length > 0 ? Math.round((activeCount / properties.length) * 100) : 0,
+      },
+      {
+        label: "Missions",
+        value: `${ongoingMissions.length}`,
+        detail: todayMissions.length > 0 ? `${todayMissions.length} aujourd'hui` : "Aucune urgence",
+        percent: Math.min(100, ongoingMissions.length * 18),
+      },
+      {
+        label: "Conciergeries",
+        value: `${partnerRows.length}`,
+        detail: partnerRows.length > 0 ? "Partenaires actifs" : "À rattacher",
+        percent:
+          properties.length > 0 ? Math.min(100, Math.round((partnerRows.length / properties.length) * 100)) : 0,
+      },
+      {
+        label: "Flux à arbitrer",
+        value: `${quoteAwaitingCount + pendingInvoices.length + unreadConversationCount}`,
+        detail: `${quoteAwaitingCount} devis · ${pendingInvoices.length} facture(s)`,
+        percent: Math.min(100, (quoteAwaitingCount + pendingInvoices.length + unreadConversationCount) * 18),
+      },
+    ],
+    [
+      activeCount,
+      draftCount,
+      ongoingMissions.length,
+      partnerRows.length,
+      pendingInvoices.length,
+      properties.length,
+      quoteAwaitingCount,
+      todayMissions.length,
+      unreadConversationCount,
+    ],
   );
 
   const businessSignals = useMemo(
@@ -795,6 +836,19 @@ export default function OwnerDashboardPage() {
         </div>
       </section>
 
+      <section className={styles.dashboardDonutRail} aria-label="Indicateurs propriétaires">
+        {dashboardDonuts.map((donut) => (
+          <MetricDonut
+            key={donut.label}
+            label={donut.label}
+            value={donut.value}
+            detail={donut.detail}
+            percent={donut.percent}
+            className={styles.dashboardDonutCard}
+          />
+        ))}
+      </section>
+
       <section className={styles.sectionBlock} aria-labelledby="owner-health-title">
         <div className={styles.sectionLead}>
           <span className={styles.sectionEyebrow}>Santé du parc</span>
@@ -802,15 +856,15 @@ export default function OwnerDashboardPage() {
           <p>Une lecture courte pour savoir si vos logements, missions et partenaires sont sous contrôle.</p>
         </div>
         <div className={styles.healthGrid}>
-          {healthCards.map((card) => (
-            <article key={card.label} className={styles.healthCard}>
-              <div className={styles.healthTop}>
-                <span className={`${styles.healthDot} ${card.tone}`} />
-                <span className={styles.healthLabel}>{card.label}</span>
-              </div>
-              <strong className={styles.healthValue}>{card.value}</strong>
-              <p className={styles.healthDetail}>{card.detail}</p>
-            </article>
+          {dashboardDonuts.slice(0, 3).map((donut) => (
+            <MetricDonut
+              key={`health-${donut.label}`}
+              label={donut.label}
+              value={donut.value}
+              detail={donut.detail}
+              percent={donut.percent}
+              className={styles.dashboardDonutCard}
+            />
           ))}
         </div>
       </section>

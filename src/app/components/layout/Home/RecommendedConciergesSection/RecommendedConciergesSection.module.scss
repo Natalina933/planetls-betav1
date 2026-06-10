@@ -185,3 +185,32 @@
   background: #f9f1d8;
   color: #2c3e50;
 }
+
+@media (max-width: 1024px) {
+  .section {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .header h2 {
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .header p,
+  .info,
+  .quote {
+    line-height: 1.58;
+    text-wrap: pretty;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 2rem 1rem;
+  }
+
+  .cardHead {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

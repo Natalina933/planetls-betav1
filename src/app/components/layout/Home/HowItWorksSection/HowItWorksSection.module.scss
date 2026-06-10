@@ -215,6 +215,30 @@
     @include no-select;
   }
 
+  @media (max-width: 1024px) {
+    padding: 3.5rem 1.25rem;
+
+    h2 {
+      width: min(100%, 620px);
+      font-size: clamp(1.85rem, 4vw, 2.05rem);
+      line-height: 1.12;
+    }
+
+    .step {
+      padding: 1.35rem;
+
+      h3 {
+        font-size: 1.15rem;
+        line-height: 1.2;
+      }
+
+      p {
+        line-height: 1.58;
+        text-wrap: pretty;
+      }
+    }
+  }
+
   @media (max-width: 600px) {
     padding: 3rem 1rem;
 

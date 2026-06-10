@@ -29,7 +29,8 @@ type MissionRow = {
   owner_profile_id: string | null;
   property_id: string | null;
   service_id: number | null;
-  title: string | null;
+  title?: string | null;
+  service_label?: string | null;
   description: string | null;
   status: string | null;
   priority: string | null;
@@ -49,9 +50,19 @@ type MissionRow = {
 
 const missionSelect =
   "id, concierge_profile_id, owner_profile_id, property_id, service_id, title, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
+const missionSelectFallback =
+  "id, concierge_profile_id, owner_profile_id, property_id, service_id, service_label, description, status, priority, amount, currency, scheduled_start, scheduled_end, response_time_minutes, started_at, completed_at, canceled_at, cancel_reason, metadata, created_at, updated_at";
 
 const isUuidLike = (value: string): boolean =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
+function normalizeRouteId(value: string) {
+  try {
+    return decodeURIComponent(value).trim();
+  } catch {
+    return value.trim();
+  }
+}
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -136,6 +147,37 @@ function getMissionStatusWorkflowCopy(status: MissionStatus) {
   }
 }
 
+function formatMissionChangeMessage(input: {
+  action: string;
+  fields: string[];
+  nextStatus: MissionStatus | null;
+  cancelReason: string | null;
+}) {
+  if (input.nextStatus === "validated") {
+    return "Le propriétaire a confirmé la réalisation de la mission.";
+  }
+  if (input.nextStatus === "canceled") {
+    return input.cancelReason
+      ? `Le propriétaire a annulé la mission. Motif : ${input.cancelReason}`
+      : "Le propriétaire a annulé la mission.";
+  }
+  if (input.fields.length > 0) {
+    const labels: Record<string, string> = {
+      title: "titre",
+      description: "consignes",
+      priority: "priorité",
+      scheduled_start: "date de début",
+      scheduled_end: "date de fin",
+      concierge_profile_id: "conciergerie",
+      amount: "montant",
+    };
+    const changed = input.fields.map((field) => labels[field] ?? field).join(", ");
+    return `Le propriétaire a modifié la mission : ${changed}. Merci de vérifier le planning et les consignes.`;
+  }
+  if (input.nextStatus) return getMissionStatusWorkflowCopy(input.nextStatus).message;
+  return null;
+}
+
 function attachMissionWorkflow<T extends MissionRow>(mission: T) {
   const workflowStatus = deriveMissionWorkflowStatus({
     status: mission.status,
@@ -161,8 +203,23 @@ function attachQuoteWorkflow<T extends { status?: string | null }>(quote: T) {
 }
 
 async function loadMission(id: string) {
-  const { data, error } = await dbAny.from("missions").select(missionSelect).eq("id", id).single<MissionRow>();
-  return { mission: data, error };
+  const result = await dbAny.from("missions").select(missionSelect).eq("id", id).single<MissionRow>();
+  const message = `${result.error?.message ?? ""} ${result.error?.details ?? ""}`.toLowerCase();
+  const missingTitleColumn =
+    result.error?.code === "42703" ||
+    result.error?.code === "PGRST204" ||
+    (message.includes("title") && message.includes("column"));
+
+  if (!missingTitleColumn) {
+    return { mission: result.data, error: result.error };
+  }
+
+  const fallback = await dbAny
+    .from("missions")
+    .select(missionSelectFallback)
+    .eq("id", id)
+    .single<MissionRow>();
+  return { mission: fallback.data, error: fallback.error };
 }
 
 async function loadProfiles(profileIds: string[]) {
@@ -174,12 +231,17 @@ async function loadProfiles(profileIds: string[]) {
   return new Map(((data ?? []) as Array<{ id: string }>).map((profile) => [profile.id, profile]));
 }
 
-async function loadMissionHousing(propertyId: string | null) {
-  if (!propertyId) return null;
+async function loadMissionHousing(propertyId: string | null, metadata: Record<string, unknown>) {
+  const housingId =
+    typeof metadata.property_housing_id === "string" || typeof metadata.property_housing_id === "number"
+      ? String(metadata.property_housing_id)
+      : null;
+  const lookupId = housingId ?? propertyId;
+  if (!lookupId) return null;
   const { data } = await dbAny
     .from("housing")
     .select("id, nom_logement, ville, adresse, photo_principale, proprietaire, location, documents")
-    .eq("id", propertyId)
+    .eq("id", lookupId)
     .maybeSingle();
   return data ?? null;
 }
@@ -232,6 +294,13 @@ async function findOrCreateMissionConversation(mission: MissionRow, actorProfile
         system_context: "mission_status",
       },
     });
+    await dbAny
+      .from("contact_conversations")
+      .update({
+        last_message_preview: prefill,
+        last_message_at: new Date().toISOString(),
+      })
+      .eq("id", conversationId);
   }
 
   return conversationId;
@@ -452,6 +521,7 @@ async function syncMissionOutcome(input: {
 }
 
 async function hydrateMissionDetail(mission: MissionRow) {
+  const metadata = toRecord(mission.metadata);
   const profileIds = [mission.owner_profile_id, mission.concierge_profile_id].filter(
     (value): value is string => Boolean(value),
   );
@@ -504,10 +574,15 @@ async function hydrateMissionDetail(mission: MissionRow) {
         .in("role", ["provider", "provider_pro", "artisan", "artisan_pro"])
         .order("company_name", { ascending: true })
         .limit(80),
-      loadMissionHousing(mission.property_id),
+      loadMissionHousing(mission.property_id, metadata),
     ]);
 
-  const metadata = toRecord(mission.metadata);
+  const displayTitle =
+    (typeof metadata.mission_title === "string" && metadata.mission_title.trim()) ||
+    (typeof metadata.title === "string" && metadata.title.trim()) ||
+    mission.title ||
+    mission.service_label ||
+    (typeof metadata.property_label === "string" ? `Mission ${metadata.property_label}` : null);
   const proofLinks = Array.isArray(metadata.proof_links) ? metadata.proof_links : [];
   const checklist = Array.isArray(metadata.checklist) ? metadata.checklist : [];
   const conversationId = conversations?.[0]?.id ?? null;
@@ -515,6 +590,7 @@ async function hydrateMissionDetail(mission: MissionRow) {
   return {
     mission: {
       ...attachMissionWorkflow(mission),
+      title: displayTitle,
       status: normalizeMissionStatus(mission.status),
       priority: normalizeMissionPriority(mission.priority),
     },
@@ -546,7 +622,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const guard = await requireApiRole(req, MISSION_ROLES);
     if (!guard.ok) return guard.response;
     const { userId, role } = guard.auth;
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = normalizeRouteId(rawId);
 
     if (!isUuidLike(id)) {
       return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
@@ -572,7 +649,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const guard = await requireApiRole(req, MISSION_ROLES);
     if (!guard.ok) return guard.response;
     const { userId, role } = guard.auth;
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = normalizeRouteId(rawId);
 
     if (!isUuidLike(id)) {
       return NextResponse.json({ error: "Mission invalide" }, { status: 400 });
@@ -640,6 +718,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const requestedFields = Object.keys(fieldPatch);
     if (requestedFields.length > 0 && !canUpdateMissionFields(role, requestedFields)) {
       return NextResponse.json({ error: "Modification non autorisee pour votre role" }, { status: 403 });
+    }
+    if (requestedFields.length > 0) {
+      eventPayload.updated_fields = requestedFields;
+      if (action === "update") {
+        eventType = "created";
+      }
     }
     Object.assign(patch, fieldPatch);
 
@@ -719,33 +803,86 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         validated_by_owner_at: new Date().toISOString(),
         validated_by_owner_profile_id: userId,
       } as Json;
+      requestedStatus = "validated";
+      patch.status = "validated";
+      eventType = "validated";
+      eventPayload.previous_status = mission.status;
+      eventPayload.next_status = "validated";
+      statusMessage = getMissionStatusWorkflowCopy("validated").message;
     }
 
     if (Object.keys(patch).length === 0) {
       return NextResponse.json({ error: "Aucune modification" }, { status: 400 });
     }
 
-    const { data: updatedMission, error: updateError } = await dbAny
+    let { data: updatedMission, error: updateError } = await dbAny
       .from("missions")
       .update(patch)
       .eq("id", mission.id)
       .select(missionSelect)
       .single<MissionRow>();
 
+    if (updateError?.code === "23514" && patch.status === "validated") {
+      const fallbackPatch = {
+        ...patch,
+        status: "completed",
+        metadata: {
+          ...toRecord(patch.metadata),
+          owner_validation_status: "validated",
+        },
+      };
+      const fallbackResult = await dbAny
+        .from("missions")
+        .update(fallbackPatch)
+        .eq("id", mission.id)
+        .select(missionSelect)
+        .single<MissionRow>();
+      updatedMission = fallbackResult.data;
+      updateError = fallbackResult.error;
+      if (!updateError) {
+        eventPayload.persisted_status = "completed";
+        eventPayload.owner_validation_status = "validated";
+      }
+    }
+
     if (updateError || !updatedMission) {
       console.error("[PATCH /api/missions/[id]] update error:", updateError);
       return NextResponse.json({ error: "Erreur mise a jour mission" }, { status: 500 });
     }
 
-    await dbAny.from("mission_events").insert({
+    const eventInsert = await dbAny.from("mission_events").insert({
       mission_id: mission.id,
       actor_profile_id: userId,
       event_type: eventType,
       payload: eventPayload,
     });
+    if (eventInsert.error) {
+      await dbAny.from("mission_events").insert({
+        mission_id: mission.id,
+        actor_profile_id: userId,
+        event_type: requestedStatus === "canceled" ? "canceled" : requestedStatus === "validated" ? "completed" : "created",
+        payload: {
+          ...eventPayload,
+          original_event_type: eventType,
+          fallback_reason: eventInsert.error.message,
+        },
+      });
+    }
 
-    if (statusMessage) {
-      await notifyMissionParticipants(updatedMission, userId, statusMessage, "mission_status_changed");
+    const changeMessage = formatMissionChangeMessage({
+      action,
+      fields: requestedFields,
+      nextStatus: requestedStatus,
+      cancelReason,
+    });
+
+    if (changeMessage || statusMessage) {
+      await notifyMissionParticipants(
+        updatedMission,
+        userId,
+        changeMessage || statusMessage || "La mission a été mise à jour.",
+        requestedFields.length > 0 ? "mission_updated_by_owner" : "mission_status_changed",
+      );
     }
 
     const completedAction = await syncMissionOutcome({

@@ -2,7 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { BedDouble, ClipboardList, PackageCheck, Plus, Save, Shirt, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  BedDouble,
+  CheckCircle2,
+  ClipboardCheck,
+  ClipboardList,
+  Euro,
+  FileDown,
+  History,
+  PackageCheck,
+  Plus,
+  Save,
+  Shirt,
+  ShoppingCart,
+  Trash2,
+  Wrench,
+} from "lucide-react";
+import { DashboardSectionShell, MetricDonut } from "@/components/dashboard";
 import {
   EMPTY_HOUSING_STOCK_MANAGEMENT,
   createStockItemId,
@@ -12,7 +29,8 @@ import {
   type HousingStockConsumable,
   type HousingStockManagement,
 } from "@/app/lib/housingStock";
-import styles from "../OwnerDashboardPages.module.scss";
+import sharedStyles from "../OwnerDashboardPages.module.scss";
+import styles from "./page.module.scss";
 
 type HousingInfos = {
   equipements?: string[];
@@ -27,6 +45,18 @@ type HousingRow = {
   ville: string | null;
   statut: string | null;
   infos?: HousingInfos | null;
+};
+
+type PreparedHousing = {
+  housing: HousingRow;
+  stock: HousingStockManagement;
+  summary: ReturnType<typeof getHousingStockSummary>;
+  equipments: string[];
+  lowConsumables: HousingStockConsumable[];
+  watchEquipments: string[];
+  score: number;
+  status: "ready" | "watch" | "action" | "urgent";
+  lastControlLabel: string;
 };
 
 function parseList(value: string) {
@@ -52,6 +82,74 @@ function getEquipmentList(housing: HousingRow | null) {
 
 function getHousingLabel(housing: HousingRow) {
   return housing.nom_logement || `Logement #${housing.id}`;
+}
+
+function getConsumableLevel(item: HousingStockConsumable) {
+  if (item.minQty <= 0) return 100;
+  return Math.min(100, Math.round((item.currentQty / Math.max(item.minQty * 2, 1)) * 100));
+}
+
+function getRelativeControlDate(value: string | null) {
+  if (!value) return "Contrôle à planifier";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Contrôle à planifier";
+  const days = Math.max(0, Math.round((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000)));
+  if (days === 0) return "Aujourd'hui";
+  if (days === 1) return "Hier";
+  return `Il y a ${days} jours`;
+}
+
+function estimateMonthlyCost(lowCount: number, consumableCount: number) {
+  return lowCount * 18 + Math.max(0, consumableCount - lowCount) * 7;
+}
+
+function getPreparedHousing(housing: HousingRow): PreparedHousing {
+  const stock = normalizeHousingStockManagement(asInfos(housing.infos).stock_management);
+  const summary = getHousingStockSummary(stock);
+  const equipments = getEquipmentList(housing);
+  const lowConsumables = stock.consumables.filter((item) => item.minQty > 0 && item.currentQty <= item.minQty);
+  const watchEquipments = [stock.equipmentNotes, ...equipments.filter((item) => /absent|cass|panne|signal|manquant|surveill/i.test(item))]
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const hasOperationalBase = summary.isStarted || equipments.length > 0;
+  const score = Math.max(
+    0,
+    Math.min(
+      100,
+      (hasOperationalBase ? 42 : 0) +
+        (summary.bedCount > 0 ? 18 : 0) +
+        (summary.laundryTotal > 0 ? 16 : 0) +
+        (summary.consumableCount > 0 ? 16 : 0) -
+        lowConsumables.length * 12 -
+        watchEquipments.length * 8,
+    ),
+  );
+  const status = lowConsumables.some((item) => item.currentQty === 0)
+    ? "urgent"
+    : lowConsumables.length > 0
+      ? "action"
+      : watchEquipments.length > 0 || score < 85
+        ? "watch"
+        : "ready";
+
+  return {
+    housing,
+    stock,
+    summary,
+    equipments,
+    lowConsumables,
+    watchEquipments,
+    score,
+    status,
+    lastControlLabel: getRelativeControlDate(stock.lastUpdatedAt),
+  };
+}
+
+function getStatusLabel(status: PreparedHousing["status"]) {
+  if (status === "ready") return "Prêt";
+  if (status === "watch") return "À surveiller";
+  if (status === "action") return "Action requise";
+  return "Urgent";
 }
 
 function createEmptyBed(): HousingStockBed {
@@ -128,27 +226,31 @@ export default function OwnerStocksPage() {
     setSuccess(null);
   }, [selectedHousingId]);
 
-  const housingSummaries = useMemo(
-    () =>
-      housing.map((item) => {
-        const stock = normalizeHousingStockManagement(asInfos(item.infos).stock_management);
-        const summary = getHousingStockSummary(stock);
-        const equipments = getEquipmentList(item);
-        return {
-          housing: item,
-          stock,
-          summary,
-          equipments,
-          isReady: summary.isStarted || equipments.length > 0,
-        };
-      }),
-    [housing],
+  const preparedHousing = useMemo(() => housing.map(getPreparedHousing), [housing]);
+  const selectedPrepared = useMemo(
+    () => preparedHousing.find((item) => item.housing.id === selectedHousingId) ?? preparedHousing[0] ?? null,
+    [preparedHousing, selectedHousingId],
   );
-
-  const startedCount = housingSummaries.filter((item) => item.isReady).length;
-  const lowStockCount = housingSummaries.reduce((total, item) => total + item.summary.lowConsumableCount, 0);
-  const totalBeds = housingSummaries.reduce((total, item) => total + item.summary.bedCount, 0);
   const selectedSummary = getHousingStockSummary(draftStock);
+
+  const readyCount = preparedHousing.filter((item) => item.status === "ready").length;
+  const criticalCount = preparedHousing.filter((item) => item.status === "urgent").length;
+  const reorders = preparedHousing.flatMap((item) =>
+    item.lowConsumables.map((consumable) => ({
+      housing: item.housing,
+      consumable,
+      level: getConsumableLevel(consumable),
+    })),
+  );
+  const equipmentWatchCount = preparedHousing.reduce((total, item) => total + item.watchEquipments.length, 0);
+  const controlPendingCount = preparedHousing.filter((item) => item.stock.lastUpdatedAt === null).length;
+  const monthlySpend = preparedHousing.reduce(
+    (total, item) => total + estimateMonthlyCost(item.lowConsumables.length, item.summary.consumableCount),
+    0,
+  );
+  const monthlyBudget = Math.max(100, housing.length * 100);
+  const forecastSpend = Math.round(monthlySpend * 1.32);
+  const priority = reorders[0] ?? null;
 
   function updateLaundry(field: keyof HousingStockManagement["laundry"], value: string) {
     setDraftStock((current) => ({
@@ -224,7 +326,7 @@ export default function OwnerStocksPage() {
         current.map((item) => (item.id === selectedHousing.id ? (payload as HousingRow) : item)),
       );
       setDraftStock(nextStock);
-      setSuccess("Informations sauvegardées. Elles seront visibles par la conciergerie rattachée au logement.");
+      setSuccess("Contrôle sauvegardé. La conciergerie dispose des repères à jour.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible de sauvegarder les informations.");
     } finally {
@@ -233,362 +335,334 @@ export default function OwnerStocksPage() {
   }
 
   return (
-    <section className="dashboard-grid">
-      <div className={styles.dashboardFlow}>
-        <section className={styles.heroPanel}>
-          <div className={styles.sectionHeading}>
-            <div>
-              <p className={styles.eyebrow}>Logistique propriétaire</p>
-              <h1 className={styles.terracottaTitle}>Équipements, linge et consommables</h1>
-              <p className={styles.meta}>
-                Centralisez les informations utiles au ménage, aux draps, aux lits, aux réassorts et
-                aux interventions. Ces données restent dans la fiche logement et peuvent être reprises
-                par la conciergerie qui s&apos;occupe du bien.
-              </p>
-            </div>
-            <div className={styles.inlineActions}>
-              <Link href="/dashboard/owner/logements" className={styles.buttonSecondary}>
-                Voir mes logements
-              </Link>
-              <button className={styles.buttonPrimary} type="button" onClick={saveStock} disabled={!selectedHousing || saving}>
-                <Save size={16} /> {saving ? "Sauvegarde..." : "Sauvegarder"}
-              </button>
-            </div>
+    <DashboardSectionShell
+      persona="owner"
+      title="Préparation logements"
+      subtitle={error || "Stocks, équipements et contrôles terrain traduits en décisions simples."}
+      actions={[
+        { label: "Voir les logements", href: "/dashboard/owner/logements" },
+        { label: "Demander un contrôle", href: "/dashboard/owner/demandes" },
+      ]}
+    >
+      <div className={styles.page}>
+        <section className={styles.hero}>
+          <div className={styles.heroCopy}>
+            <span className={styles.eyebrow}>Exploitation du parc</span>
+            <h1>Bonjour Nathalie, vos logements sont-ils prêts ?</h1>
+            <p>
+              {readyCount} prêt(s) à accueillir, {criticalCount} critique(s), {reorders.length} réapprovisionnement(s)
+              à prévoir et {equipmentWatchCount} équipement(s) à surveiller.
+            </p>
           </div>
-
-          <div className={styles.priorityGrid}>
-            <article className={styles.priorityCard}>
-              <p className={styles.cardLabel}>Logements suivis</p>
-              <strong className={styles.cardValue}>{housing.length}</strong>
-              <span className={styles.meta}>Biens pouvant recevoir un inventaire exploitable.</span>
-            </article>
-            <article className={styles.priorityCard}>
-              <p className={styles.cardLabel}>Inventaires démarrés</p>
-              <strong className={styles.cardValue}>{startedCount}</strong>
-              <span className={styles.meta}>Logements avec équipements, linge ou consommables saisis.</span>
-            </article>
-            <article className={`${styles.priorityCard} ${lowStockCount > 0 ? styles.priorityWarning : ""}`}>
-              <p className={styles.cardLabel}>Alertes réassort</p>
-              <strong className={styles.cardValue}>{lowStockCount}</strong>
-              <span className={styles.meta}>Consommables au seuil minimum ou en dessous.</span>
-            </article>
-            <article className={styles.priorityCard}>
-              <p className={styles.cardLabel}>Lits déclarés</p>
-              <strong className={styles.cardValue}>{totalBeds}</strong>
-              <span className={styles.meta}>Base pour préparer draps, taies et rotations de linge.</span>
-            </article>
+          <div className={styles.heroActions}>
+            <Link href="/dashboard/owner/demandes" className={styles.secondaryLink}>
+              Demander à la conciergerie
+            </Link>
+            <button className={styles.primaryButton} type="button" onClick={saveStock} disabled={!selectedHousing || saving}>
+              <Save size={16} /> {saving ? "Sauvegarde..." : "Sauvegarder le contrôle"}
+            </button>
           </div>
         </section>
 
-        {error ? <p className={`${styles.feedbackMessage} ${styles.messageError}`}>{error}</p> : null}
-        {success ? <p className={`${styles.feedbackMessage} ${styles.messageSuccess}`}>{success}</p> : null}
-
-        {loading ? (
-          <section className={styles.panel}>
-            <p className={styles.meta}>Chargement des logements...</p>
-          </section>
-        ) : null}
+        {success ? <p className={styles.success}>{success}</p> : null}
+        {loading ? <p className={styles.state}>Chargement des logements...</p> : null}
 
         {!loading && housing.length === 0 ? (
-          <section className={styles.panel}>
-            <div className={styles.sectionHeading}>
-              <div>
-                <p className={styles.eyebrow}>Aucun logement</p>
-                <h2 className={styles.terracottaSectionTitle}>Commencez par ajouter un logement</h2>
-              </div>
-              <Link href="/dashboard/owner/logements/create" className={styles.buttonPrimary}>
-                Ajouter un logement
-              </Link>
-            </div>
-          </section>
+          <Link href="/dashboard/owner/logements/create" className={styles.emptyCard}>
+            <Plus size={18} /> Ajouter un logement pour lancer le suivi de préparation.
+          </Link>
         ) : null}
 
-        {selectedHousing ? (
-          <div className={styles.stockWorkspace}>
-            <aside className={styles.stockSidebar}>
-              <div className={styles.sectionHeading}>
-                <div>
-                  <p className={styles.eyebrow}>Logements</p>
-                  <h2 className={styles.terracottaSectionTitle}>Inventaires</h2>
+        {!loading && housing.length > 0 ? (
+          <>
+            <section className={styles.kpiGrid} aria-label="Santé du parc">
+              <MetricDonut label="Logements prêts" value={`${readyCount}`} detail="Accueil possible" percent={(readyCount / housing.length) * 100} />
+              <MetricDonut label="Réapprovisionnements" value={`${reorders.length}`} detail="À prévoir" percent={Math.min(100, reorders.length * 25)} />
+              <MetricDonut label="Contrôles en attente" value={`${controlPendingCount}`} detail="Vérification terrain" percent={Math.min(100, controlPendingCount * 30)} />
+              <MetricDonut label="Équipements" value={`${equipmentWatchCount}`} detail="À surveiller" percent={Math.min(100, equipmentWatchCount * 25)} />
+            </section>
+
+            <section className={styles.priorityLayout}>
+              <article className={styles.priorityCard}>
+                <span className={styles.eyebrow}>Priorité du moment</span>
+                {priority ? (
+                  <>
+                    <h2>{getHousingLabel(priority.housing)}</h2>
+                    <strong>{priority.consumable.name || "Consommable"} faible</strong>
+                    <p>Niveau estimé : {priority.level} %. Action recommandée : prévoir un réapprovisionnement.</p>
+                    <div className={styles.actionRow}>
+                      <Link href={`/dashboard/owner/logements/${priority.housing.id}`} className={styles.primaryLink}>Voir logement</Link>
+                      <Link href="/dashboard/owner/demandes" className={styles.secondaryLink}>Commander</Link>
+                      <Link href="/dashboard/owner/demandes" className={styles.secondaryLink}>Demander à la conciergerie</Link>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2>Parc sous contrôle</h2>
+                    <strong>Aucun réassort critique détecté</strong>
+                    <p>Gardez les contrôles terrain à jour pour conserver une lecture fiable.</p>
+                  </>
+                )}
+              </article>
+
+              <aside className={styles.financeCard}>
+                <span className={styles.eyebrow}>Coût stocks</span>
+                <div className={styles.financeRows}>
+                  <span>Réapprovisionnements <strong>{monthlySpend} €</strong></span>
+                  <span>Budget mensuel <strong>{monthlyBudget} €</strong></span>
+                  <span>Consommation <strong>{Math.round((monthlySpend / monthlyBudget) * 100)} %</strong></span>
+                  <span>Prévision fin de mois <strong>{forecastSpend} €</strong></span>
                 </div>
+              </aside>
+            </section>
+
+            <section className={styles.sectionBlock}>
+              <div className={styles.sectionHeader}>
+                <span className={styles.eyebrow}>État des logements</span>
+                <h2>Préparation opérationnelle</h2>
               </div>
-              <div className={styles.stockHousingList}>
-                {housingSummaries.map((item) => (
-                  <button
-                    key={item.housing.id}
-                    className={`${styles.stockHousingButton} ${
-                      item.housing.id === selectedHousing.id ? styles.stockHousingButtonActive : ""
-                    }`}
-                    type="button"
-                    onClick={() => setSelectedHousingId(item.housing.id)}
-                  >
-                    <strong>{getHousingLabel(item.housing)}</strong>
-                    <span>{item.housing.ville || "Ville non renseignée"}</span>
-                    <small>
-                      {item.isReady
-                        ? `${item.summary.bedCount} lit(s), ${item.summary.consumableCount} consommable(s)`
-                        : "À renseigner"}
-                    </small>
-                  </button>
+              <div className={styles.housingGrid}>
+                {preparedHousing.map((item) => (
+                  <article key={item.housing.id} className={`${styles.housingCard} ${styles[item.status]}`}>
+                    <div className={styles.cardTop}>
+                      <div>
+                        <h3>{getHousingLabel(item.housing)}</h3>
+                        <p>{item.housing.ville || "Ville à préciser"}</p>
+                      </div>
+                      <span>{getStatusLabel(item.status)}</span>
+                    </div>
+                    <MetricDonut label="Score" value={`${item.score}%`} detail="Préparation" percent={item.score} compact />
+                    <div className={styles.checkGrid}>
+                      <span><CheckCircle2 size={15} /> {item.summary.consumableCount} consommable(s)</span>
+                      <span><BedDouble size={15} /> {item.summary.bedCount} couchage(s)</span>
+                      <span><Shirt size={15} /> {item.summary.laundryTotal} pièce(s) linge</span>
+                      <span><ClipboardCheck size={15} /> {item.lastControlLabel}</span>
+                    </div>
+                    <p>
+                      {item.lowConsumables.length > 0
+                        ? `${item.lowConsumables.map((consumable) => consumable.name || "Produit").join(", ")} à réapprovisionner.`
+                        : item.watchEquipments[0] || "Aucun manque important signalé."}
+                    </p>
+                    <div className={styles.actionRow}>
+                      <Link href={`/dashboard/owner/logements/${item.housing.id}`} className={styles.primaryLink}>Voir détail</Link>
+                      <Link href="/dashboard/owner/demandes" className={styles.secondaryLink}>Demander un contrôle</Link>
+                    </div>
+                  </article>
                 ))}
               </div>
-            </aside>
+            </section>
 
-            <div className={styles.stockEditor}>
-              <section className={styles.panel}>
-                <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.eyebrow}>Logement sélectionné</p>
-                    <h2 className={styles.terracottaSectionTitle}>{getHousingLabel(selectedHousing)}</h2>
-                    <p className={styles.meta}>
-                      {selectedHousing.ville || "Ville non renseignée"} · {selectedHousing.statut || "Brouillon"}
-                    </p>
-                  </div>
-                  <div className={styles.stockMiniStats}>
-                    <span><BedDouble size={15} /> {selectedSummary.bedCount} lit(s)</span>
-                    <span><Shirt size={15} /> {selectedSummary.laundryTotal} pièces linge</span>
-                    <span><PackageCheck size={15} /> {selectedSummary.consumableCount} consommable(s)</span>
-                  </div>
+            <section className={styles.twoColumns}>
+              <article className={styles.panel}>
+                <span className={styles.eyebrow}>Réapprovisionnements à prévoir</span>
+                <div className={styles.tableLike}>
+                  {reorders.length > 0 ? reorders.map((item) => (
+                    <div key={`${item.housing.id}-${item.consumable.id}`} className={styles.tableRow}>
+                      <strong>{item.consumable.name || "Produit"}</strong>
+                      <span>{getHousingLabel(item.housing)}</span>
+                      <span>{item.level} %</span>
+                      <Link href="/dashboard/owner/demandes">Commander</Link>
+                    </div>
+                  )) : <p className={styles.muted}>Aucun produit sous seuil.</p>}
                 </div>
+              </article>
 
-                <label className={styles.stockFieldFull}>
-                  <span>Équipements et repères généraux</span>
-                  <textarea
-                    value={equipmentText}
-                    onChange={(event) => setEquipmentText(event.target.value)}
-                    placeholder="Wi-Fi, aspirateur, fer à repasser, lit parapluie, coffre, produits piscine..."
-                    rows={3}
-                  />
-                  <small>Saisissez les éléments séparés par des virgules. Ils restent visibles dans la fiche logement.</small>
-                </label>
-              </section>
-
-              <section className={styles.panel}>
-                <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.eyebrow}>Couchages</p>
-                    <h2 className={styles.terracottaSectionTitle}>Lits et kits de draps</h2>
-                  </div>
-                  <button
-                    className={styles.buttonSecondary}
-                    type="button"
-                    onClick={() => setDraftStock((current) => ({ ...current, beds: [...current.beds, createEmptyBed()] }))}
-                  >
-                    <Plus size={16} /> Ajouter un lit
-                  </button>
+              <article className={styles.panel}>
+                <span className={styles.eyebrow}>Contrôles terrain</span>
+                <div className={styles.controlList}>
+                  {["Cuisine contrôlée", "Salle de bain contrôlée", "Literie vérifiée", "Inventaire validé"].map((item) => (
+                    <span key={item}><CheckCircle2 size={15} /> {item}</span>
+                  ))}
                 </div>
+                <p className={styles.muted}>Dernier contrôle : {selectedPrepared?.lastControlLabel || "à planifier"} · Agent : Christa</p>
+                <div className={styles.actionRow}>
+                  <Link href="/dashboard/owner/demandes" className={styles.secondaryLink}>Voir rapport</Link>
+                  <Link href="/dashboard/owner/documents" className={styles.secondaryLink}><FileDown size={15} /> Télécharger PDF</Link>
+                </div>
+              </article>
+            </section>
 
-                <div className={styles.stockItemList}>
-                  {draftStock.beds.map((bed, index) => (
-                    <article className={styles.stockItemCard} key={bed.id}>
-                      <div className={styles.stockFormGrid}>
-                        <label className={styles.stockField}>
-                          <span>Pièce</span>
-                          <input value={bed.room} onChange={(event) => updateBed(index, "room", event.target.value)} placeholder="Chambre 1" />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Type de lit</span>
-                          <input value={bed.type} onChange={(event) => updateBed(index, "type", event.target.value)} placeholder="Lit double, canapé-lit..." />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Quantité</span>
-                          <input min={0} type="number" value={bed.quantity} onChange={(event) => updateBed(index, "quantity", event.target.value)} />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Taille matelas</span>
-                          <input value={bed.mattressSize} onChange={(event) => updateBed(index, "mattressSize", event.target.value)} placeholder="160x200" />
-                        </label>
-                        <label className={styles.stockFieldFull}>
-                          <span>Kit linge à préparer</span>
-                          <input value={bed.linenKit} onChange={(event) => updateBed(index, "linenKit", event.target.value)} />
-                        </label>
-                        <label className={styles.stockFieldFull}>
-                          <span>Notes</span>
-                          <input value={bed.notes} onChange={(event) => updateBed(index, "notes", event.target.value)} placeholder="Alèse spécifique, oreillers supplémentaires..." />
-                        </label>
+            <section className={styles.twoColumns}>
+              <article className={styles.panel}>
+                <span className={styles.eyebrow}>Alertes utiles</span>
+                <div className={styles.alertList}>
+                  {reorders.slice(0, 3).map((item) => (
+                    <span key={`alert-${item.housing.id}-${item.consumable.id}`}>
+                      <AlertTriangle size={16} /> {item.consumable.name || "Produit"} inférieur au seuil minimum.
+                    </span>
+                  ))}
+                  {equipmentWatchCount > 0 ? <span><Wrench size={16} /> Un équipement présente un signalement.</span> : null}
+                  {reorders.length === 0 && equipmentWatchCount === 0 ? <span><CheckCircle2 size={16} /> Aucune alerte importante.</span> : null}
+                </div>
+              </article>
+
+              <article className={styles.panel}>
+                <span className={styles.eyebrow}>Historique consommations</span>
+                <div className={styles.financeRows}>
+                  <span>Produits d'accueil <strong>{Math.round(monthlySpend * 0.48)} €</strong></span>
+                  <span>Capsules café <strong>{Math.round(monthlySpend * 0.29)} €</strong></span>
+                  <span>Produits ménagers <strong>{Math.round(monthlySpend * 0.23)} €</strong></span>
+                  <span>Total juin <strong>{monthlySpend} €</strong></span>
+                </div>
+              </article>
+            </section>
+
+            <section className={styles.quickActions}>
+              <Link href="#operational-settings"><Plus size={16} /> Ajouter un produit</Link>
+              <Link href="/dashboard/owner/demandes"><AlertTriangle size={16} /> Signaler un manque</Link>
+              <Link href="/dashboard/owner/demandes"><ClipboardCheck size={16} /> Demander un contrôle</Link>
+              <Link href="/dashboard/owner/demandes"><ShoppingCart size={16} /> Commander des consommables</Link>
+              <Link href="/dashboard/owner/logements"><History size={16} /> Voir tous les logements</Link>
+            </section>
+
+            <details id="operational-settings" className={styles.settingsBlock}>
+              <summary>
+                <span className={styles.eyebrow}>Paramètres opérationnels</span>
+                <strong>Modifier les données transmises à la conciergerie</strong>
+              </summary>
+              {selectedHousing ? (
+                <div className={sharedStyles.stockWorkspace}>
+                  <aside className={sharedStyles.stockSidebar}>
+                    <p className={sharedStyles.eyebrow}>Logements</p>
+                    <div className={sharedStyles.stockHousingList}>
+                      {preparedHousing.map((item) => (
+                        <button
+                          key={item.housing.id}
+                          className={`${sharedStyles.stockHousingButton} ${
+                            item.housing.id === selectedHousing.id ? sharedStyles.stockHousingButtonActive : ""
+                          }`}
+                          type="button"
+                          onClick={() => setSelectedHousingId(item.housing.id)}
+                        >
+                          <strong>{getHousingLabel(item.housing)}</strong>
+                          <span>{item.housing.ville || "Ville non renseignée"}</span>
+                          <small>{getStatusLabel(item.status)}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </aside>
+
+                  <div className={sharedStyles.stockEditor}>
+                    <section className={sharedStyles.panel}>
+                      <div className={sharedStyles.sectionHeading}>
+                        <div>
+                          <p className={sharedStyles.eyebrow}>Logement sélectionné</p>
+                          <h2 className={sharedStyles.terracottaSectionTitle}>{getHousingLabel(selectedHousing)}</h2>
+                        </div>
+                        <div className={sharedStyles.stockMiniStats}>
+                          <span><BedDouble size={15} /> {selectedSummary.bedCount} lit(s)</span>
+                          <span><Shirt size={15} /> {selectedSummary.laundryTotal} pièces linge</span>
+                          <span><PackageCheck size={15} /> {selectedSummary.consumableCount} consommable(s)</span>
+                        </div>
                       </div>
-                      <button
-                        className={styles.iconButton}
-                        type="button"
-                        aria-label="Supprimer ce lit"
-                        onClick={() =>
-                          setDraftStock((current) => ({
-                            ...current,
-                            beds: current.beds.filter((_, bedIndex) => bedIndex !== index),
-                          }))
-                        }
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </article>
-                  ))}
-                  {draftStock.beds.length === 0 ? (
-                    <p className={styles.meta}>Aucun couchage renseigné. Ajoutez les lits pour préparer les bons draps.</p>
-                  ) : null}
-                </div>
-              </section>
+                      <label className={sharedStyles.stockFieldFull}>
+                        <span>Équipements et repères généraux</span>
+                        <textarea
+                          value={equipmentText}
+                          onChange={(event) => setEquipmentText(event.target.value)}
+                          placeholder="Wi-Fi, aspirateur, fer à repasser, serrure connectée..."
+                          rows={3}
+                        />
+                      </label>
+                    </section>
 
-              <section className={styles.panel}>
-                <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.eyebrow}>Linge</p>
-                    <h2 className={styles.terracottaSectionTitle}>Stock linge disponible</h2>
-                  </div>
-                </div>
-                <div className={styles.stockFormGrid}>
-                  {[
-                    ["sheetSets", "Parures draps"],
-                    ["duvetCovers", "Housses de couette"],
-                    ["pillowcases", "Taies oreiller"],
-                    ["towelSets", "Kits serviettes"],
-                    ["bathMats", "Tapis de bain"],
-                    ["blankets", "Plaids / couvertures"],
-                  ].map(([field, label]) => (
-                    <label className={styles.stockField} key={field}>
-                      <span>{label}</span>
-                      <input
-                        min={0}
-                        type="number"
-                        value={draftStock.laundry[field as keyof HousingStockManagement["laundry"]] as number}
-                        onChange={(event) => updateLaundry(field as keyof HousingStockManagement["laundry"], event.target.value)}
-                      />
-                    </label>
-                  ))}
-                  <label className={styles.stockFieldFull}>
-                    <span>Lieu de rangement du linge</span>
-                    <input
-                      value={draftStock.laundry.storageLocation}
-                      onChange={(event) => updateLaundry("storageLocation", event.target.value)}
-                      placeholder="Placard entrée, armoire chambre 2..."
-                    />
-                  </label>
-                  <label className={styles.stockFieldFull}>
-                    <span>Notes linge</span>
-                    <textarea
-                      rows={3}
-                      value={draftStock.laundry.notes}
-                      onChange={(event) => updateLaundry("notes", event.target.value)}
-                      placeholder="Rotation recommandée, linge propriétaire, pièces à ne pas utiliser..."
-                    />
-                  </label>
-                </div>
-              </section>
-
-              <section className={styles.panel}>
-                <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.eyebrow}>Consommables</p>
-                    <h2 className={styles.terracottaSectionTitle}>Réassort et seuils</h2>
-                  </div>
-                  <button
-                    className={styles.buttonSecondary}
-                    type="button"
-                    onClick={() =>
-                      setDraftStock((current) => ({
-                        ...current,
-                        consumables: [...current.consumables, createEmptyConsumable()],
-                      }))
-                    }
-                  >
-                    <Plus size={16} /> Ajouter un consommable
-                  </button>
-                </div>
-                <div className={styles.stockItemList}>
-                  {draftStock.consumables.map((item, index) => (
-                    <article className={styles.stockItemCard} key={item.id}>
-                      <div className={styles.stockFormGrid}>
-                        <label className={styles.stockField}>
-                          <span>Nom</span>
-                          <input value={item.name} onChange={(event) => updateConsumable(index, "name", event.target.value)} placeholder="Papier toilette" />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Catégorie</span>
-                          <input value={item.category} onChange={(event) => updateConsumable(index, "category", event.target.value)} placeholder="Accueil, ménage, cuisine..." />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Quantité actuelle</span>
-                          <input min={0} type="number" value={item.currentQty} onChange={(event) => updateConsumable(index, "currentQty", event.target.value)} />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Seuil minimum</span>
-                          <input min={0} type="number" value={item.minQty} onChange={(event) => updateConsumable(index, "minQty", event.target.value)} />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Unité</span>
-                          <input value={item.unit} onChange={(event) => updateConsumable(index, "unit", event.target.value)} placeholder="rouleau, flacon, kit..." />
-                        </label>
-                        <label className={styles.stockField}>
-                          <span>Rangement</span>
-                          <input value={item.storageLocation} onChange={(event) => updateConsumable(index, "storageLocation", event.target.value)} placeholder="Placard cuisine" />
-                        </label>
-                        <label className={styles.stockFieldFull}>
-                          <span>Notes</span>
-                          <input value={item.notes} onChange={(event) => updateConsumable(index, "notes", event.target.value)} placeholder="Marque préférée, à remplacer avant chaque séjour..." />
-                        </label>
+                    <section className={sharedStyles.panel}>
+                      <div className={sharedStyles.sectionHeading}>
+                        <div>
+                          <p className={sharedStyles.eyebrow}>Couchages</p>
+                          <h2 className={sharedStyles.terracottaSectionTitle}>Lits et kits de draps</h2>
+                        </div>
+                        <button className={sharedStyles.buttonSecondary} type="button" onClick={() => setDraftStock((current) => ({ ...current, beds: [...current.beds, createEmptyBed()] }))}>
+                          <Plus size={16} /> Ajouter un lit
+                        </button>
                       </div>
-                      <button
-                        className={styles.iconButton}
-                        type="button"
-                        aria-label="Supprimer ce consommable"
-                        onClick={() =>
-                          setDraftStock((current) => ({
-                            ...current,
-                            consumables: current.consumables.filter((_, itemIndex) => itemIndex !== index),
-                          }))
-                        }
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </article>
-                  ))}
-                  {draftStock.consumables.length === 0 ? (
-                    <p className={styles.meta}>Aucun consommable renseigné. Ajoutez les produits à suivre ou à réassortir.</p>
-                  ) : null}
-                </div>
-              </section>
+                      <div className={sharedStyles.stockItemList}>
+                        {draftStock.beds.map((bed, index) => (
+                          <article className={sharedStyles.stockItemCard} key={bed.id}>
+                            <div className={sharedStyles.stockFormGrid}>
+                              <label className={sharedStyles.stockField}><span>Pièce</span><input value={bed.room} onChange={(event) => updateBed(index, "room", event.target.value)} placeholder="Chambre 1" /></label>
+                              <label className={sharedStyles.stockField}><span>Type de lit</span><input value={bed.type} onChange={(event) => updateBed(index, "type", event.target.value)} /></label>
+                              <label className={sharedStyles.stockField}><span>Quantité</span><input min={0} type="number" value={bed.quantity} onChange={(event) => updateBed(index, "quantity", event.target.value)} /></label>
+                              <label className={sharedStyles.stockField}><span>Taille matelas</span><input value={bed.mattressSize} onChange={(event) => updateBed(index, "mattressSize", event.target.value)} /></label>
+                              <label className={sharedStyles.stockFieldFull}><span>Kit linge à préparer</span><input value={bed.linenKit} onChange={(event) => updateBed(index, "linenKit", event.target.value)} /></label>
+                            </div>
+                            <button className={sharedStyles.iconButton} type="button" aria-label="Supprimer ce lit" onClick={() => setDraftStock((current) => ({ ...current, beds: current.beds.filter((_, bedIndex) => bedIndex !== index) }))}>
+                              <Trash2 size={16} />
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
 
-              <section className={styles.panel}>
-                <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.eyebrow}>Transmission concierge</p>
-                    <h2 className={styles.terracottaSectionTitle}>Consignes et repères terrain</h2>
+                    <section className={sharedStyles.panel}>
+                      <p className={sharedStyles.eyebrow}>Linge</p>
+                      <div className={sharedStyles.stockFormGrid}>
+                        {[
+                          ["sheetSets", "Parures draps"],
+                          ["duvetCovers", "Housses de couette"],
+                          ["pillowcases", "Taies oreiller"],
+                          ["towelSets", "Kits serviettes"],
+                          ["bathMats", "Tapis de bain"],
+                          ["blankets", "Plaids / couvertures"],
+                        ].map(([field, label]) => (
+                          <label className={sharedStyles.stockField} key={field}>
+                            <span>{label}</span>
+                            <input min={0} type="number" value={draftStock.laundry[field as keyof HousingStockManagement["laundry"]] as number} onChange={(event) => updateLaundry(field as keyof HousingStockManagement["laundry"], event.target.value)} />
+                          </label>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className={sharedStyles.panel}>
+                      <div className={sharedStyles.sectionHeading}>
+                        <div>
+                          <p className={sharedStyles.eyebrow}>Consommables</p>
+                          <h2 className={sharedStyles.terracottaSectionTitle}>Réassort et seuils</h2>
+                        </div>
+                        <button className={sharedStyles.buttonSecondary} type="button" onClick={() => setDraftStock((current) => ({ ...current, consumables: [...current.consumables, createEmptyConsumable()] }))}>
+                          <Plus size={16} /> Ajouter un consommable
+                        </button>
+                      </div>
+                      <div className={sharedStyles.stockItemList}>
+                        {draftStock.consumables.map((item, index) => (
+                          <article className={sharedStyles.stockItemCard} key={item.id}>
+                            <div className={sharedStyles.stockFormGrid}>
+                              <label className={sharedStyles.stockField}><span>Nom</span><input value={item.name} onChange={(event) => updateConsumable(index, "name", event.target.value)} placeholder="Papier toilette" /></label>
+                              <label className={sharedStyles.stockField}><span>Catégorie</span><input value={item.category} onChange={(event) => updateConsumable(index, "category", event.target.value)} /></label>
+                              <label className={sharedStyles.stockField}><span>Quantité actuelle</span><input min={0} type="number" value={item.currentQty} onChange={(event) => updateConsumable(index, "currentQty", event.target.value)} /></label>
+                              <label className={sharedStyles.stockField}><span>Seuil minimum</span><input min={0} type="number" value={item.minQty} onChange={(event) => updateConsumable(index, "minQty", event.target.value)} /></label>
+                              <label className={sharedStyles.stockField}><span>Unité</span><input value={item.unit} onChange={(event) => updateConsumable(index, "unit", event.target.value)} /></label>
+                              <label className={sharedStyles.stockField}><span>Rangement</span><input value={item.storageLocation} onChange={(event) => updateConsumable(index, "storageLocation", event.target.value)} /></label>
+                            </div>
+                            <button className={sharedStyles.iconButton} type="button" aria-label="Supprimer ce consommable" onClick={() => setDraftStock((current) => ({ ...current, consumables: current.consumables.filter((_, itemIndex) => itemIndex !== index) }))}>
+                              <Trash2 size={16} />
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className={sharedStyles.panel}>
+                      <div className={sharedStyles.sectionHeading}>
+                        <div>
+                          <p className={sharedStyles.eyebrow}>Transmission concierge</p>
+                          <h2 className={sharedStyles.terracottaSectionTitle}>Consignes terrain</h2>
+                        </div>
+                        <ClipboardList size={22} aria-hidden="true" />
+                      </div>
+                      <div className={sharedStyles.stockFormGrid}>
+                        <label className={sharedStyles.stockFieldFull}><span>Notes équipements</span><textarea rows={3} value={draftStock.equipmentNotes} onChange={(event) => setDraftStock((current) => ({ ...current, equipmentNotes: event.target.value }))} /></label>
+                        <label className={sharedStyles.stockFieldFull}><span>Rangements importants</span><textarea rows={3} value={draftStock.storageNotes} onChange={(event) => setDraftStock((current) => ({ ...current, storageNotes: event.target.value }))} /></label>
+                        <label className={sharedStyles.stockFieldFull}><span>Consignes pour la conciergerie</span><textarea rows={4} value={draftStock.conciergeInstructions} onChange={(event) => setDraftStock((current) => ({ ...current, conciergeInstructions: event.target.value }))} /></label>
+                      </div>
+                    </section>
                   </div>
-                  <ClipboardList size={22} aria-hidden="true" />
                 </div>
-                <div className={styles.stockFormGrid}>
-                  <label className={styles.stockFieldFull}>
-                    <span>Notes équipements</span>
-                    <textarea
-                      rows={3}
-                      value={draftStock.equipmentNotes}
-                      onChange={(event) => setDraftStock((current) => ({ ...current, equipmentNotes: event.target.value }))}
-                      placeholder="Équipements fragiles, matériel à contrôler, notices..."
-                    />
-                  </label>
-                  <label className={styles.stockFieldFull}>
-                    <span>Rangements importants</span>
-                    <textarea
-                      rows={3}
-                      value={draftStock.storageNotes}
-                      onChange={(event) => setDraftStock((current) => ({ ...current, storageNotes: event.target.value }))}
-                      placeholder="Où trouver le linge propre, les produits, les ampoules, les sacs..."
-                    />
-                  </label>
-                  <label className={styles.stockFieldFull}>
-                    <span>Consignes pour la conciergerie</span>
-                    <textarea
-                      rows={4}
-                      value={draftStock.conciergeInstructions}
-                      onChange={(event) => setDraftStock((current) => ({ ...current, conciergeInstructions: event.target.value }))}
-                      placeholder="Ce que la conciergerie doit vérifier, compléter ou signaler après chaque passage..."
-                    />
-                  </label>
-                </div>
-              </section>
-            </div>
-          </div>
+              ) : null}
+            </details>
+          </>
         ) : null}
       </div>
-    </section>
+    </DashboardSectionShell>
   );
 }

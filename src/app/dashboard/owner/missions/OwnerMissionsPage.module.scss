@@ -1,0 +1,36 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.routingHint {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.routingHint article {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid rgba(120, 86, 64, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 0.9rem;
+  box-shadow: 0 12px 26px rgba(82, 54, 39, 0.05);
+}
+
+.routingHint strong {
+  color: #201912;
+}
+
+.routingHint span {
+  color: #62584c;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 820px) {
+  .routingHint {
+    grid-template-columns: 1fr;
+  }
+}

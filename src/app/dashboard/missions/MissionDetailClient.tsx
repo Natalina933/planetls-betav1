@@ -5,9 +5,21 @@ import { useCallback, useEffect, useState } from "react";
 import {
   CalendarClock,
   CheckCircle2,
+  ClipboardCheck,
+  ClipboardList,
   FilePlus2,
+  FileText,
+  Handshake,
+  Home,
+  KeyRound,
   MessageSquareText,
+  PackageCheck,
+  ReceiptText,
+  Send,
   Play,
+  Shirt,
+  Sparkles,
+  Trees,
   Wrench,
   XCircle,
 } from "lucide-react";
@@ -22,6 +34,8 @@ import {
   type MissionStatus,
 } from "@/app/lib/missionStatus";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
+import OwnerMissionPage from "./OwnerMissionPage";
+import type { OwnerMissionItem, OwnerMissionKpi, OwnerMissionStatus } from "./ownerMissionTypes";
 import styles from "./MissionDetailPage.module.scss";
 
 type Persona = "owner" | "concierge";
@@ -77,7 +91,7 @@ type MissionDetail = {
     ville?: string | null;
     adresse?: string | null;
   } | null;
-  events: Array<{ id: string; event_type: string; created_at: string }>;
+  events: Array<{ id: string; event_type: string; created_at: string; payload?: Record<string, unknown> | null }>;
   conversations: Array<{
     id: string;
     subject: string | null;
@@ -131,6 +145,102 @@ function profileName(profile?: ProfileSummary | null) {
   );
 }
 
+const SERVICE_LABELS: Record<string, string> = {
+  check_in: "Arrivée voyageur",
+  checkin: "Arrivée voyageur",
+  check_out: "Départ voyageur",
+  checkout: "Départ voyageur",
+  cleaning: "Ménage",
+  menage: "Ménage",
+  ménage: "Ménage",
+  maintenance: "Maintenance",
+  inspection: "Contrôle logement",
+  linen: "Linge",
+  laundry: "Linge",
+  restocking: "Réapprovisionnement",
+  terrace: "Terrasse",
+};
+
+function normalizeServiceLabel(value: unknown) {
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  if (!raw) return null;
+  const key = raw.toLowerCase().replace(/[\s-]+/g, "_");
+  return SERVICE_LABELS[key] || raw.replace(/_/g, " ");
+}
+
+function collectServiceLabelsFromMetadata(metadata: Record<string, unknown> | null | undefined) {
+  if (!metadata) return [];
+  const values = [
+    metadata.requested_services,
+    metadata.services,
+    metadata.service_labels,
+    metadata.service_label,
+    metadata.service_type,
+    metadata.mission_type,
+  ];
+
+  return values.flatMap((value) => {
+    if (Array.isArray(value)) return value.map(normalizeServiceLabel).filter((entry): entry is string => Boolean(entry));
+    const label = normalizeServiceLabel(value);
+    return label ? [label] : [];
+  });
+}
+
+function buildMissionChecklist(detail: MissionDetail) {
+  const baseChecklist =
+    Array.isArray(detail.evidence?.checklist) && detail.evidence.checklist.length > 0
+      ? detail.evidence.checklist
+      : DEFAULT_CHECKLIST;
+  const serviceLabels = Array.from(new Set(collectServiceLabelsFromMetadata(detail.mission.metadata)));
+  const serviceChecklist = serviceLabels.map((service) => ({
+    id: `service_${service.toLowerCase().replace(/[^a-z0-9]+/gi, "_")}`,
+    label: `${service} contrôlé`,
+    done: false,
+  }));
+  const existingIds = new Set(baseChecklist.map((item) => item.id));
+
+  return [...baseChecklist, ...serviceChecklist.filter((item) => !existingIds.has(item.id))];
+}
+
+function cleanFrenchText(value: string) {
+  return value
+    .replaceAll("Ã€", "À")
+    .replaceAll("Ã‚", "Â")
+    .replaceAll("Ã©", "é")
+    .replaceAll("Ã¨", "è")
+    .replaceAll("Ãª", "ê")
+    .replaceAll("Ã¢", "â")
+    .replaceAll("Ã´", "ô")
+    .replaceAll("Ã®", "î")
+    .replaceAll("Ã¯", "ï")
+    .replaceAll("Ã§", "ç")
+    .replaceAll("Â·", "·");
+}
+
+function ServiceIcon({ label }: { label: string }) {
+  const normalized = cleanFrenchText(label).toLowerCase();
+  if (normalized.includes("check") || normalized.includes("arriv") || normalized.includes("départ")) {
+    return <KeyRound size={17} aria-hidden="true" />;
+  }
+  if (normalized.includes("ménage") || normalized.includes("menage")) {
+    return <Sparkles size={17} aria-hidden="true" />;
+  }
+  if (normalized.includes("linge")) {
+    return <Shirt size={17} aria-hidden="true" />;
+  }
+  if (normalized.includes("terrasse")) {
+    return <Trees size={17} aria-hidden="true" />;
+  }
+  if (normalized.includes("maintenance") || normalized.includes("réparation")) {
+    return <Wrench size={17} aria-hidden="true" />;
+  }
+  if (normalized.includes("contrôle") || normalized.includes("controle")) {
+    return <ClipboardCheck size={17} aria-hidden="true" />;
+  }
+  return <PackageCheck size={17} aria-hidden="true" />;
+}
+
 function toDatetimeLocal(value: string | null) {
   if (!value) return "";
   const date = new Date(value);
@@ -173,6 +283,25 @@ function getEventLabel(eventType: string) {
   }
 }
 
+function getEventDetail(event: { payload?: Record<string, unknown> | null }) {
+  const payload = event.payload && typeof event.payload === "object" ? event.payload : {};
+  const message = payload.message || payload.fallback_reason;
+  if (typeof message === "string" && message.trim()) return cleanFrenchText(message);
+  const fields = Array.isArray(payload.updated_fields) ? payload.updated_fields.filter((field): field is string => typeof field === "string") : [];
+  if (fields.length > 0) return `Champs modifiés : ${fields.join(", ")}`;
+  if (payload.next_status === "validated") return "Réalisation confirmée par le propriétaire.";
+  if (payload.next_status === "canceled") return "Mission annulée et concierge prévenue.";
+  return "Action enregistrée sur la mission.";
+}
+
+function getOwnerEventLabel(event: { event_type: string; payload?: Record<string, unknown> | null }) {
+  const payload = event.payload && typeof event.payload === "object" ? event.payload : {};
+  if (Array.isArray(payload.updated_fields)) return "Mission modifiée";
+  if (payload.next_status === "validated" || payload.owner_validation_status === "validated") return "Réalisation confirmée";
+  if (payload.next_status === "canceled") return "Mission annulée";
+  return getEventLabel(event.event_type);
+}
+
 function getMissionWorkflowSteps(status: MissionStatus): WorkflowTimelineStep[] {
   const currentStatus = normalizeMissionStatus(status);
   const doneStatuses = ["awaiting_owner_validation", "validated", "completed", "closed"];
@@ -209,11 +338,196 @@ function getMissionWorkflowSteps(status: MissionStatus): WorkflowTimelineStep[] 
   ];
 }
 
+function getOwnerRequestWorkflowSteps(input: {
+  hasRequest: boolean;
+  hasQuote: boolean;
+  quoteAccepted: boolean;
+  hasMission: boolean;
+}): WorkflowTimelineStep[] {
+  const quoteSent = input.hasQuote;
+  const quoteAccepted = input.quoteAccepted;
+
+  return [
+    {
+      label: "Demande envoyée",
+      detail: input.hasRequest ? "Votre besoin est transmis" : "À créer",
+      state: input.hasRequest ? "done" : "todo",
+      Icon: Send,
+    },
+    {
+      label: "Devis reçu",
+      detail: quoteSent ? "La conciergerie a répondu" : "En attente",
+      state: quoteSent ? "done" : input.hasRequest ? "active" : "todo",
+      Icon: FileText,
+    },
+    {
+      label: "Devis accepté",
+      detail: quoteAccepted ? "Services validés" : "Décision attendue",
+      state: quoteAccepted ? "done" : quoteSent ? "active" : "todo",
+      Icon: Handshake,
+    },
+    {
+      label: "Mission créée",
+      detail: input.hasMission ? "Visible dans le suivi" : "Après acceptation",
+      state: input.hasMission ? "done" : quoteAccepted ? "active" : "todo",
+      Icon: ClipboardList,
+    },
+  ];
+}
+
+function getOwnerMissionWorkflowSteps(input: {
+  status: MissionStatus;
+  hasPlanningDate: boolean;
+  hasConversation: boolean;
+  hasChecklistDone: boolean;
+  hasProofs: boolean;
+  ownerValidated: boolean;
+  hasPaidInvoice: boolean;
+}): WorkflowTimelineStep[] {
+  const status = normalizeMissionStatus(input.status);
+  const canceled = status === "canceled";
+  const activeStatuses = ["accepted", "in_progress", "awaiting_owner_validation", "completed", "validated", "closed"];
+  const completedStatuses = ["awaiting_owner_validation", "completed", "validated", "closed"];
+  const missionActive = activeStatuses.includes(status);
+  const missionCompleted = completedStatuses.includes(status);
+
+  return [
+    {
+      label: "Planifiée",
+      detail: input.hasPlanningDate ? "Date renseignée" : "Date à confirmer",
+      state: input.hasPlanningDate ? "done" : canceled ? "todo" : "active",
+      Icon: CalendarClock,
+    },
+    {
+      label: "Concierge prévenue",
+      detail: input.hasConversation ? "Message envoyé" : "Aucun message lié",
+      state: input.hasConversation ? "done" : input.hasPlanningDate ? "active" : "todo",
+      Icon: MessageSquareText,
+    },
+    {
+      label: "En cours",
+      detail: missionActive ? "Prise en charge" : "À démarrer",
+      state: missionActive ? "done" : input.hasConversation ? "active" : "todo",
+      Icon: Play,
+    },
+    {
+      label: "Checklist",
+      detail: input.hasChecklistDone ? "Contrôles cochés" : "À compléter",
+      state: input.hasChecklistDone ? "done" : missionActive ? "active" : "todo",
+      Icon: ClipboardCheck,
+    },
+    {
+      label: "Preuves",
+      detail: input.hasProofs ? "Photos ou documents ajoutés" : "En attente",
+      state: input.hasProofs ? "done" : input.hasChecklistDone ? "active" : "todo",
+      Icon: FilePlus2,
+    },
+    {
+      label: "Validation propriétaire",
+      detail: input.ownerValidated ? "Réalisation confirmée" : missionCompleted ? "À vérifier" : "Après réalisation",
+      state: input.ownerValidated ? "done" : missionCompleted ? "active" : "todo",
+      Icon: CheckCircle2,
+    },
+    {
+      label: "Règlement",
+      detail: input.hasPaidInvoice ? "Paiement enregistré" : "À suivre",
+      state: input.hasPaidInvoice ? "done" : input.ownerValidated ? "active" : "todo",
+      Icon: ReceiptText,
+    },
+  ];
+}
+
 function getProofHref(missionId: string, proof: ProofLink) {
   if (proof.storage_path && proof.id) {
     return `/api/missions/${encodeURIComponent(missionId)}/files/${encodeURIComponent(proof.id)}/download`;
   }
   return proof.url || null;
+}
+
+function getOwnerMissionType(value: string | null | undefined): OwnerMissionItem["type"] {
+  const key = (value || "").toLowerCase();
+  if (key.includes("clean") || key.includes("ménage") || key.includes("menage")) return "menage";
+  if (key.includes("maintenance") || key.includes("serrure") || key.includes("plomberie") || key.includes("réparation")) return "maintenance";
+  if (key.includes("check_in") || key.includes("check-in") || key.includes("arrivée") || key.includes("arrivee")) return "checkin";
+  if (key.includes("check_out") || key.includes("check-out") || key.includes("départ") || key.includes("depart")) return "checkout";
+  return "autre";
+}
+
+function getOwnerMissionStatus(status: string | null | undefined, scheduledStart: string | null | undefined): OwnerMissionStatus {
+  const normalized = normalizeMissionStatus(status);
+  const isPast = scheduledStart ? new Date(scheduledStart).getTime() < Date.now() : false;
+  const isOpen = !["completed", "validated", "closed", "canceled"].includes(normalized);
+
+  if (isPast && isOpen) return "en_retard";
+  if (["awaiting_owner_validation", "date_requested", "date_proposed", "to_schedule"].includes(normalized)) return "en_attente_validation";
+  if (["in_progress", "accepted", "assigned", "scheduled", "date_confirmed"].includes(normalized)) return "en_cours";
+  if (["completed", "validated", "closed"].includes(normalized)) return "termine";
+  return "a_faire";
+}
+
+function buildOwnerMissionKpis(missions: OwnerMissionItem[]): OwnerMissionKpi[] {
+  const inProgress = missions.filter((mission) => mission.status === "en_cours").length;
+  const waitingValidation = missions.filter((mission) => mission.status === "en_attente_validation").length;
+  const late = missions.filter((mission) => mission.status === "en_retard").length;
+  const completed = missions.filter((mission) => mission.status === "termine").length;
+  const criticalOpen = missions.filter((mission) => mission.isCriticalForNextStay && mission.status !== "termine").length;
+
+  return [
+    {
+      id: "en-cours",
+      label: "Missions en cours",
+      value: inProgress,
+      helperText: "Interventions suivies actuellement",
+      tone: "neutral",
+    },
+    {
+      id: "a-valider",
+      label: "Missions à valider",
+      value: waitingValidation,
+      helperText: waitingValidation > 0 ? "Votre accord est attendu" : "Rien à valider",
+      tone: waitingValidation > 0 ? "warning" : "positive",
+    },
+    {
+      id: "en-retard",
+      label: "Missions en retard",
+      value: late,
+      helperText: late > 0 ? "À traiter rapidement" : "Aucun retard",
+      tone: late > 0 ? "warning" : "positive",
+    },
+    {
+      id: "terminees",
+      label: "Missions terminées",
+      value: completed,
+      helperText: "Clôturées ou validées",
+      tone: "positive",
+    },
+    {
+      id: "voyageurs",
+      label: "Prêt voyageurs",
+      value: criticalOpen === 0 ? 1 : 0,
+      helperText: criticalOpen === 0 ? "Aucun blocage critique" : `${criticalOpen} point(s) à traiter`,
+      tone: criticalOpen === 0 ? "positive" : "warning",
+    },
+  ];
+}
+
+function getOwnerMissionPriorities(missions: OwnerMissionItem[]) {
+  return missions
+    .filter(
+      (mission) =>
+        mission.status === "en_retard" ||
+        mission.status === "en_attente_validation" ||
+        mission.isCriticalForNextStay,
+    )
+    .sort((a, b) => {
+      const score = (mission: OwnerMissionItem) => {
+        if (mission.status === "en_retard") return 0;
+        if (mission.status === "en_attente_validation") return 1;
+        if (mission.isCriticalForNextStay) return 2;
+        return 3;
+      };
+      return score(a) - score(b) || new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
 }
 
 export default function MissionDetailClient({ missionId, persona }: { missionId: string; persona: Persona }) {
@@ -259,11 +573,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
         scheduled_end: toDatetimeLocal(payload.mission?.scheduled_end ?? null),
         amount: typeof payload.mission?.amount === "number" ? String(payload.mission.amount) : "",
       });
-      setChecklist(
-        Array.isArray(payload.evidence?.checklist) && payload.evidence.checklist.length > 0
-          ? payload.evidence.checklist
-          : DEFAULT_CHECKLIST,
-      );
+      setChecklist(buildMissionChecklist(payload));
       setProviderForm((current) => ({
         ...current,
         provider_profile_id: current.provider_profile_id || payload.providers?.[0]?.id || "",
@@ -281,18 +591,82 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
 
   const mission = detail?.mission ?? null;
   const currentStatus = normalizeMissionStatus(mission?.status);
+  const missionMetadata =
+    mission?.metadata && typeof mission.metadata === "object" && !Array.isArray(mission.metadata)
+      ? mission.metadata
+      : {};
+  const ownerAlreadyValidated = Boolean(missionMetadata.validated_by_owner_at);
+  const missionConciergeName = profileName(detail?.participants.concierge);
   const messageHref = `/dashboard/${persona}/messages${detail?.conversation_id ? `?conversation=${detail.conversation_id}` : `?mission=${missionId}`}`;
   const canConciergeAct = persona === "concierge";
   const canShowAccept = canConciergeAct && ["draft", "assigned"].includes(currentStatus);
   const canShowStart = canConciergeAct && ["assigned", "accepted"].includes(currentStatus);
   const canShowComplete = canConciergeAct && currentStatus === "in_progress";
-  const canShowOwnerValidate = persona === "owner" && ["awaiting_owner_validation", "completed"].includes(currentStatus);
-  const canShowCancel = !["completed", "validated", "closed", "canceled"].includes(currentStatus);
+  const canShowOwnerValidate =
+    persona === "owner" && !ownerAlreadyValidated && ["awaiting_owner_validation", "completed"].includes(currentStatus);
+  const canShowCancel = !ownerAlreadyValidated && !["validated", "closed", "canceled"].includes(currentStatus);
   const hasPlanningDate = Boolean(editForm.scheduled_start || mission?.scheduled_start);
   const canRequestDate = ["to_schedule"].includes(currentStatus);
   const canProposeDate = ["to_schedule", "date_requested"].includes(currentStatus);
   const canConfirmDate = ["to_schedule", "date_requested", "date_proposed"].includes(currentStatus);
   const canScheduleDate = ["date_confirmed"].includes(currentStatus);
+  const latestQuote = detail?.quotes[0] ?? null;
+  const bookingSource =
+    typeof missionMetadata.booking_source === "string"
+      ? missionMetadata.booking_source
+      : typeof missionMetadata.source_plateforme === "string"
+        ? missionMetadata.source_plateforme
+        : typeof missionMetadata.platform === "string"
+          ? missionMetadata.platform
+          : "";
+  const guestName =
+    typeof missionMetadata.guest_name === "string"
+      ? missionMetadata.guest_name
+      : typeof missionMetadata.traveler_name === "string"
+        ? missionMetadata.traveler_name
+        : "";
+  const guestCount =
+    typeof missionMetadata.guest_count === "number"
+      ? missionMetadata.guest_count
+      : typeof missionMetadata.guests === "number"
+        ? missionMetadata.guests
+        : null;
+  const checkInDate =
+    typeof missionMetadata.check_in_date === "string"
+      ? missionMetadata.check_in_date
+      : typeof missionMetadata.checkin_date === "string"
+        ? missionMetadata.checkin_date
+        : "";
+  const checkOutDate =
+    typeof missionMetadata.check_out_date === "string"
+      ? missionMetadata.check_out_date
+      : typeof missionMetadata.checkout_date === "string"
+        ? missionMetadata.checkout_date
+        : "";
+  const bookingChanged = Boolean(missionMetadata.booking_changed || missionMetadata.bookingChanged);
+  const paymentStatus =
+    typeof missionMetadata.payment_status === "string"
+      ? missionMetadata.payment_status
+      : detail?.invoices.some((invoice) => invoice.status === "paid")
+        ? "paye"
+        : detail?.invoices.length
+          ? "en_attente"
+          : "a_payer";
+  const requestWorkflowSteps = getOwnerRequestWorkflowSteps({
+    hasRequest: Boolean(missionMetadata.service_request_id || latestQuote?.id || mission?.id),
+    hasQuote: Boolean(latestQuote?.id),
+    quoteAccepted: latestQuote?.status === "accepted" || Boolean(mission?.id),
+    hasMission: Boolean(mission?.id),
+  });
+  const missionWorkflowSteps = getOwnerMissionWorkflowSteps({
+    status: currentStatus,
+    hasPlanningDate: Boolean(mission?.scheduled_start || mission?.scheduled_end),
+    hasConversation: Boolean(detail?.conversation_id || detail?.conversations.length),
+    hasChecklistDone: checklist.some((item) => item.done),
+    hasProofs: Boolean(detail?.evidence.proof_links.length),
+    ownerValidated: ownerAlreadyValidated || currentStatus === "validated" || currentStatus === "closed",
+    hasPaidInvoice: paymentStatus === "paye",
+  });
 
   async function patchMission(payload: Record<string, unknown>, message: string) {
     try {
@@ -337,7 +711,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
         priority: editForm.priority,
         scheduled_start: fromDatetimeLocal(editForm.scheduled_start),
         scheduled_end: fromDatetimeLocal(editForm.scheduled_end),
-        amount: editForm.amount ? Number(editForm.amount) : undefined,
+        ...(canConciergeAct && editForm.amount ? { amount: Number(editForm.amount) } : {}),
       },
       "Mission mise à jour.",
     );
@@ -442,10 +816,362 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
     ...(firstInvoicePayment ? [{ label: "Paiement", value: firstInvoicePayment.workflow.nextActionOwner }] : []),
   ];
 
+  const ownerMissionItems: OwnerMissionItem[] = [
+    {
+      id: mission.id,
+      propertyName: detail.property?.nom_logement || "Logement à préciser",
+      city: detail.property?.ville || undefined,
+      type: getOwnerMissionType(mission.title || mission.description),
+      date: mission.scheduled_start || mission.created_at,
+      timeSlot:
+        mission.scheduled_start && mission.scheduled_end
+          ? `${formatDateValue(mission.scheduled_start, { hour: "2-digit", minute: "2-digit" })} - ${formatDateValue(mission.scheduled_end, { hour: "2-digit", minute: "2-digit" })}`
+          : undefined,
+      status: getOwnerMissionStatus(currentStatus, mission.scheduled_start),
+      assignedTo: missionConciergeName,
+      isCriticalForNextStay:
+        ["urgent", "high"].includes(mission.priority) ||
+        ["to_schedule", "date_requested", "date_proposed", "awaiting_owner_validation"].includes(currentStatus),
+      notes: mission.description || undefined,
+    },
+    ...detail.provider_interventions.map((intervention) => ({
+      id: intervention.id,
+      propertyName: detail.property?.nom_logement || "Logement à préciser",
+      city: detail.property?.ville || undefined,
+      type: getOwnerMissionType(intervention.title),
+      date: intervention.scheduled_start || mission.scheduled_start || mission.created_at,
+      status: getOwnerMissionStatus(intervention.status, intervention.scheduled_start || mission.scheduled_start),
+      assignedTo:
+        profileName(detail.providers.find((provider) => provider.id === intervention.provider_profile_id)) ||
+        "Prestataire à préciser",
+      isCriticalForNextStay: intervention.priority === "urgent" || intervention.priority === "high",
+      notes: intervention.title,
+    })),
+  ];
+  const ownerMissionKpis = buildOwnerMissionKpis(ownerMissionItems);
+  const ownerMissionPriorities = getOwnerMissionPriorities(ownerMissionItems);
+  const signedServiceLabels = Array.from(new Set(collectServiceLabelsFromMetadata(mission.metadata)));
+  const concernedConcierges = Array.from(
+    new Set(
+      [
+        profileName(detail.participants.concierge),
+        ...detail.providers.map((provider) => profileName(provider)),
+      ].filter((name) => name && name !== "Non renseignÃ©" && name !== "Contact"),
+    ),
+  );
+
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${persona === "owner" ? styles.ownerMissionView : ""}`}>
       {error ? <p className={`${styles.message} ${styles.messageError}`}>{error}</p> : null}
       {success ? <p className={`${styles.message} ${styles.messageSuccess}`}>{success}</p> : null}
+
+      {persona === "owner" ? (
+        <OwnerMissionPage
+          kpis={ownerMissionKpis}
+          priorities={ownerMissionPriorities}
+          missions={ownerMissionItems}
+        />
+      ) : null}
+
+      {persona === "owner" ? (
+        <section className={styles.ownerPanel} aria-labelledby="owner-mission-actions-title">
+          <div className={styles.ownerPanelHeader}>
+            <div>
+              <p className={styles.eyebrow}>Mission</p>
+              <h2 id="owner-mission-actions-title">{mission.title || "Mission à suivre"}</h2>
+            </div>
+            <span className={statusBadgeClass(currentStatus)}>{getMissionStatusLabel(currentStatus)}</span>
+          </div>
+
+          <div className={styles.ownerSummaryGrid}>
+            <article>
+              <span>Logement</span>
+              <strong>{detail.property?.nom_logement || mission.title || "Logement concerné"}</strong>
+              {detail.property?.ville ? <small>{detail.property.ville}</small> : null}
+            </article>
+            <article>
+              <span>Intervenant</span>
+              <strong>{cleanFrenchText(missionConciergeName)}</strong>
+            </article>
+            <article>
+              <span>Date prévue</span>
+              <strong>
+                {formatDateValue(mission.scheduled_start, {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </strong>
+            </article>
+            <article>
+              <span>Devis signé</span>
+              <strong>{detail.quotes[0]?.quote_number || "Devis accepté"}</strong>
+              <small>{formatEuroAmountLabel(detail.quotes[0]?.total_amount ?? mission.amount, "-")}</small>
+            </article>
+            <article>
+              <span>Services prévus</span>
+              {signedServiceLabels.length > 0 ? (
+                <div className={styles.serviceChipList}>
+                  {signedServiceLabels.map((service) => (
+                    <strong className={styles.serviceChip} key={service}>
+                      <ServiceIcon label={service} />
+                      {cleanFrenchText(service)}
+                    </strong>
+                  ))}
+                </div>
+              ) : (
+                <strong>Services du devis à préciser</strong>
+              )}
+            </article>
+            <article>
+              <span>Action attendue</span>
+              <strong>
+                {canShowOwnerValidate ? "Vérifier puis valider" : canShowCancel ? "Suivre l’avancement" : "Mission clôturée"}
+              </strong>
+            </article>
+          </div>
+
+          <div className={styles.ownerWorkflowGrid}>
+            <WorkflowTimeline title="Demande et devis" steps={requestWorkflowSteps} />
+            <WorkflowTimeline title="Étapes de la mission" steps={missionWorkflowSteps} />
+          </div>
+
+          {bookingChanged ? (
+            <div className={styles.bookingAlert}>
+              <strong>Réservation modifiée</strong>
+              <span>Vérifiez la date de mission, le nombre de voyageurs et les consignes envoyées à la conciergerie.</span>
+            </div>
+          ) : null}
+
+          <div className={styles.ownerInfoGrid}>
+            <article className={styles.ownerInfoCard}>
+              <p className={styles.eyebrow}>Devis signé</p>
+              <h3>{latestQuote?.quote_number || "Devis accepté"}</h3>
+              <div className={styles.infoRows}>
+                <span>Montant</span>
+                <strong>{formatEuroAmountLabel(latestQuote?.total_amount ?? mission.amount, "-")}</strong>
+                <span>Services</span>
+                <strong>{signedServiceLabels.length > 0 ? signedServiceLabels.map(cleanFrenchText).join(", ") : "À préciser"}</strong>
+              </div>
+              {latestQuote ? (
+                <Link href={`/dashboard/owner/devis?quote=${latestQuote.id}`} className={styles.secondaryLink}>
+                  Voir le devis signé
+                </Link>
+              ) : null}
+            </article>
+
+            <article className={styles.ownerInfoCard}>
+              <p className={styles.eyebrow}>Voyageurs</p>
+              <h3>{guestName || "Aucun voyageur renseigné"}</h3>
+              <div className={styles.infoRows}>
+                <span>Source</span>
+                <strong>{bookingSource ? cleanFrenchText(bookingSource) : "Airbnb / Abritel à préciser"}</strong>
+                <span>Séjour</span>
+                <strong>
+                  {checkInDate || checkOutDate
+                    ? `${formatDateValue(checkInDate, { day: "2-digit", month: "short" })} - ${formatDateValue(checkOutDate, { day: "2-digit", month: "short" })}`
+                    : "Dates à renseigner"}
+                </strong>
+                <span>Voyageurs</span>
+                <strong>{guestCount ? `${guestCount} voyageur(s)` : "Nombre à préciser"}</strong>
+              </div>
+            </article>
+
+            <article className={styles.ownerInfoCard}>
+              <p className={styles.eyebrow}>Paiement</p>
+              <h3>
+                {paymentStatus === "paye"
+                  ? "Payé"
+                  : paymentStatus === "litige"
+                    ? "Litige"
+                    : paymentStatus === "en_attente"
+                      ? "En attente"
+                      : "À payer"}
+              </h3>
+              <p className={styles.empty}>Le règlement sera relié aux factures de cette mission.</p>
+              <Link href="/dashboard/owner/factures" className={styles.secondaryLink}>
+                Voir les factures
+              </Link>
+            </article>
+          </div>
+
+          <div className={styles.ownerSplit}>
+            <div className={styles.ownerCard}>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Réalisation</p>
+                  <h3>Checklist cochée par la conciergerie</h3>
+                </div>
+              </div>
+              {signedServiceLabels.length > 0 ? (
+                <div className={styles.serviceChipList}>
+                  {signedServiceLabels.map((service) => (
+                    <span className={styles.serviceChip} key={`checklist-${service}`}>
+                      <ServiceIcon label={service} />
+                      {cleanFrenchText(service)}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.operationalHint}>Aucun service détaillé dans le devis.</p>
+              )}
+              <div className={styles.checklist}>
+                {checklist.map((item) => (
+                  <label key={item.id} className={styles.checkItem}>
+                    <input
+                      type="checkbox"
+                      disabled
+                      checked={Boolean(item.done)}
+                      readOnly
+                    />
+                    {cleanFrenchText(item.label)}
+                  </label>
+                ))}
+              </div>
+              <div className={styles.ownerProofs}>
+                <h4>Preuves ajoutées par la conciergerie</h4>
+                {detail.evidence.proof_links.length > 0 ? (
+                  <div className={styles.ownerProofList}>
+                    {detail.evidence.proof_links.map((proof, index) => {
+                      const proofHref = getProofHref(missionId, proof);
+                      return (
+                        <a
+                          key={proof.id || `${proof.url}-${index}`}
+                          href={proofHref || "#"}
+                          target={proofHref ? "_blank" : undefined}
+                          rel={proofHref ? "noreferrer" : undefined}
+                          className={styles.ownerProofLink}
+                        >
+                          <strong>{cleanFrenchText(proof.label || "Preuve terrain")}</strong>
+                          <span>{cleanFrenchText(proof.kind || proof.storage_bucket || "document")}</span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className={styles.empty}>Aucune preuve ajoutée pour le moment.</p>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.ownerCard}>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Décision</p>
+                  <h3>Votre action</h3>
+                </div>
+              </div>
+              <form className={styles.ownerEditForm} onSubmit={submitEdit}>
+                <label className={styles.label}>
+                  Début
+                  <Input
+                    type="datetime-local"
+                    value={editForm.scheduled_start}
+                    onChange={(event) => setEditForm((current) => ({ ...current, scheduled_start: event.target.value }))}
+                  />
+                </label>
+                <label className={styles.label}>
+                  Fin
+                  <Input
+                    type="datetime-local"
+                    value={editForm.scheduled_end}
+                    onChange={(event) => setEditForm((current) => ({ ...current, scheduled_end: event.target.value }))}
+                  />
+                </label>
+                <label className={`${styles.label} ${styles.fullWidth}`}>
+                  Message ou consigne pour la conciergerie
+                  <Textarea
+                    rows={3}
+                    value={editForm.description}
+                    onChange={(event) => setEditForm((current) => ({ ...current, description: event.target.value }))}
+                    placeholder="Exemple : merci de décaler le créneau, vérifier la terrasse, prévoir du linge supplémentaire..."
+                  />
+                </label>
+                <div className={styles.fullWidth}>
+                  <Button type="submit" variant="secondary" disabled={saving}>
+                    <CalendarClock size={16} aria-hidden="true" /> Modifier et prévenir la conciergerie
+                  </Button>
+                </div>
+              </form>
+              {canShowOwnerValidate ? (
+                <Button disabled={saving} onClick={() => patchMission({ action: "validate_completion" }, "Mission validée.")}>
+                  <CheckCircle2 size={16} aria-hidden="true" /> Confirmer la réalisation
+                </Button>
+              ) : null}
+              {canShowCancel ? (
+                <div className={styles.cancelBox}>
+                  <label className={`${styles.label} ${styles.fullWidth}`}>
+                    Motif d&apos;annulation
+                    <small>Indiquez la raison principale pour garder un historique clair.</small>
+                    <Textarea
+                      rows={3}
+                      value={cancelReason}
+                      onChange={(event) => setCancelReason(event.target.value)}
+                      placeholder="Exemple : voyageur absent, prestation reportée, demande annulée..."
+                    />
+                  </label>
+                  <Button
+                    variant="outline"
+                    disabled={saving}
+                    onClick={() => patchMission({ action: "cancel", cancel_reason: cancelReason }, "Mission annulée.")}
+                  >
+                    <XCircle size={16} aria-hidden="true" /> Annuler la mission
+                  </Button>
+                </div>
+              ) : null}
+              <Link href={messageHref} className={styles.linkButton}>
+                <MessageSquareText size={16} aria-hidden="true" /> Contacter la conciergerie
+              </Link>
+            </div>
+          </div>
+
+          <div className={styles.ownerActivity}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.eyebrow}>Preuves de suivi</p>
+                <h3>Modifications et messages envoyés</h3>
+              </div>
+              <Link href={messageHref} className={styles.linkButton}>
+                Voir la conversation
+              </Link>
+            </div>
+            <div className={styles.ownerActivityList}>
+              {detail.conversations[0]?.last_message_preview ? (
+                <article className={styles.ownerActivityItem}>
+                  <strong>Dernier message envoyé à la conciergerie</strong>
+                  <p>{cleanFrenchText(detail.conversations[0].last_message_preview)}</p>
+                  <span>
+                    {formatDateValue(detail.conversations[0].last_message_at, {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </article>
+              ) : null}
+              {detail.events.slice(0, 5).map((event) => (
+                <article className={styles.ownerActivityItem} key={event.id}>
+                  <strong>{getOwnerEventLabel(event)}</strong>
+                  <p>{getEventDetail(event)}</p>
+                  <span>
+                    {formatDateValue(event.created_at, {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className={styles.hero}>
         <div className={styles.heroTop}>
@@ -585,6 +1311,7 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
               </label>
               <label className={`${styles.label} ${styles.fullWidth}`}>
                 Motif d&apos;annulation
+                <small>Expliquez brièvement la raison : prestation reportée, voyageur absent, problème résolu ou autre décision.</small>
                 <Input value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder="Optionnel, utilisé si vous annulez la mission" />
               </label>
               <div className={styles.fullWidth}>
@@ -600,6 +1327,16 @@ export default function MissionDetailClient({ missionId, persona }: { missionId:
                 <h2>Checklist et pièces jointes</h2>
               </div>
               <Button variant="secondary" disabled={saving} onClick={saveChecklist}>Sauver la checklist</Button>
+            </div>
+            <div className={styles.checklistSummary}>
+              <div>
+                <span>Services signés</span>
+                <strong>{signedServiceLabels.length > 0 ? signedServiceLabels.join(", ") : "Aucun service détaillé dans le devis"}</strong>
+              </div>
+              <div>
+                <span>Conciergerie concernée</span>
+                <strong>{concernedConcierges.length > 0 ? concernedConcierges.join(", ") : "À préciser"}</strong>
+              </div>
             </div>
             <div className={styles.checklist}>
               {checklist.map((item) => (

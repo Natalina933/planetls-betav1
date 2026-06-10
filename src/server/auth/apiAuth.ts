@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { auth } from "@/server/auth/authOptions";
+import { db } from "@/app/lib/dbServer";
+import { resolveUserRole } from "@/app/utils/roles";
+
+export const ACTIVE_PROFILE_COOKIE = "planetls_active_profile_id";
 
 const SESSION_COOKIE_NAMES = [
   "__Secure-authjs.session-token",
@@ -14,6 +18,34 @@ export interface ApiAuthContext {
   email?: string;
   role: string;
   isAdmin: boolean;
+  sessionUserId?: string;
+  activeProfileId?: string;
+}
+
+async function resolveActiveProfile(req: NextRequest, context: Omit<ApiAuthContext, "isAdmin">) {
+  const requestedProfileId = req.cookies.get(ACTIVE_PROFILE_COOKIE)?.value;
+  if (!requestedProfileId || !context.email) return context;
+  if (requestedProfileId === context.userId) return { ...context, activeProfileId: requestedProfileId };
+
+  const { data: profile, error } = await db
+    .from("profiles")
+    .select("id,email,role,category")
+    .eq("id", requestedProfileId)
+    .eq("email", context.email)
+    .maybeSingle();
+
+  if (error || !profile) {
+    return context;
+  }
+
+  const role = resolveUserRole(profile.role, profile.category) ?? context.role;
+  return {
+    ...context,
+    userId: profile.id,
+    role,
+    activeProfileId: profile.id,
+    sessionUserId: context.sessionUserId ?? context.userId,
+  };
 }
 
 export async function getApiAuthContext(req: NextRequest): Promise<ApiAuthContext> {
@@ -39,9 +71,16 @@ export async function getApiAuthContext(req: NextRequest): Promise<ApiAuthContex
           : undefined;
     const email = typeof token.email === "string" ? token.email : undefined;
     const role = typeof token.role === "string" ? token.role : "";
-    const isAdmin = role === "admin" || role === "super_admin";
 
-    return { userId, email, role, isAdmin };
+    const resolved = await resolveActiveProfile(req, {
+      userId,
+      email,
+      role,
+      sessionUserId: userId,
+    });
+    const isAdmin = resolved.role === "admin" || resolved.role === "super_admin";
+
+    return { ...resolved, isAdmin };
   }
 
   const session = await auth();
@@ -49,12 +88,16 @@ export async function getApiAuthContext(req: NextRequest): Promise<ApiAuthContex
 
   if (sessionUser?.id) {
     const role = typeof sessionUser.role === "string" ? sessionUser.role : "";
-    const isAdmin = role === "admin" || role === "super_admin";
-
-    return {
+    const resolved = await resolveActiveProfile(req, {
       userId: sessionUser.id,
       email: typeof sessionUser.email === "string" ? sessionUser.email : undefined,
       role,
+      sessionUserId: sessionUser.id,
+    });
+    const isAdmin = resolved.role === "admin" || resolved.role === "super_admin";
+
+    return {
+      ...resolved,
       isAdmin,
     };
   }

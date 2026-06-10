@@ -1,79 +1,184 @@
 "use client";
 
-import Link from "next/link";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import WorkflowStatusBadge from "@/app/components/ui/WorkflowStatusBadge/WorkflowStatusBadge";
-import { DashboardSectionShell } from "@/components/dashboard";
-import { takeFirst } from "../../shared";
-import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ownerApiError } from "../ownerFeedback";
-import styles from "../OwnerDashboardPages.module.scss";
+import OwnerPlanningPage from "./OwnerPlanningPage";
+import { planningStatusLabels, planningTypeLabels } from "./planningLabels";
+import type { OwnerPlanningItem, OwnerPlanningKpi } from "./types";
 
 type OwnerMissionRow = {
   id: string;
-  title: string | null;
+  title?: string | null;
+  service_label?: string | null;
   status: string | null;
   priority: string | null;
   amount: number | null;
   scheduled_start: string | null;
   scheduled_end: string | null;
+  description?: string | null;
+  concierge_name?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
-function formatShortTime(value: string | null) {
-  if (!value) return "--:--";
+const urgentStatuses = new Set(["urgent"]);
+const validationStatuses = new Set(["pending", "quote_pending", "invoice_pending", "date_requested", "date_proposed", "to_schedule", "draft"]);
+const confirmedStatuses = new Set(["scheduled", "accepted", "assigned", "date_confirmed", "confirmed", "in_progress"]);
+const completedStatuses = new Set(["completed"]);
 
+function isSameDay(value: string, date: Date) {
+  const missionDate = new Date(value);
+  return (
+    missionDate.getFullYear() === date.getFullYear() &&
+    missionDate.getMonth() === date.getMonth() &&
+    missionDate.getDate() === date.getDate()
+  );
+}
+
+function isInNextDays(value: string, days: number) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "--:--";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function buildWeekBuckets(missions: OwnerMissionRow[]) {
   const now = new Date();
-  const monday = new Date(now);
-  const day = (now.getDay() + 6) % 7;
-  monday.setDate(now.getDate() - day);
-  monday.setHours(0, 0, 0, 0);
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const start = new Date(monday);
-    start.setDate(monday.getDate() + index);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 1);
-
-    const items = missions.filter((mission) => {
-      if (!mission.scheduled_start) return false;
-      const eventDate = new Date(mission.scheduled_start);
-      return eventDate >= start && eventDate < end;
-    });
-
-    return {
-      key: start.toISOString(),
-      label: new Intl.DateTimeFormat("fr-FR", { weekday: "short" }).format(start),
-      dateLabel: new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" }).format(start),
-      items,
-    };
-  });
+  const end = new Date(now);
+  end.setDate(now.getDate() + days);
+  return date >= now && date <= end;
 }
 
-export default function OwnerPlanningPage() {
+function getMetadataString(metadata: Record<string, unknown> | null | undefined, keys: string[]) {
+  if (!metadata) return null;
+  const value = keys.map((key) => metadata[key]).find((candidate) => typeof candidate === "string" && candidate.trim());
+  return typeof value === "string" ? value.trim() : null;
+}
+
+function getPropertyName(mission: OwnerMissionRow) {
+  return getMetadataString(mission.metadata, ["property_label", "housing_name", "property_name"]) || "Logement à préciser";
+}
+
+function getCity(mission: OwnerMissionRow) {
+  return getMetadataString(mission.metadata, ["property_city", "city"]);
+}
+
+function normalizeType(value: string | null | undefined): OwnerPlanningItem["type"] {
+  const key = (value || "").toLowerCase();
+
+  if (key.includes("clean") || key.includes("ménage") || key.includes("menage")) return "menage";
+  if (key.includes("maintenance") || key.includes("serrure") || key.includes("plomberie") || key.includes("réparation")) return "maintenance";
+  if (key.includes("check_in") || key.includes("check-in") || key.includes("arrivée") || key.includes("arrivee")) return "checkin";
+  if (key.includes("check_out") || key.includes("check-out") || key.includes("départ") || key.includes("depart")) return "checkout";
+
+  return "autre";
+}
+
+function getMissionType(mission: OwnerMissionRow): OwnerPlanningItem["type"] {
+  const requestedServices = mission.metadata?.requested_services;
+  const firstService = Array.isArray(requestedServices)
+    ? requestedServices.find((service): service is string => typeof service === "string" && service.trim().length > 0)
+    : null;
+
+  return normalizeType(
+    getMetadataString(mission.metadata, ["service_type", "category", "mission_type"]) ||
+      firstService ||
+      mission.service_label ||
+      mission.title,
+  );
+}
+
+function mapStatus(mission: OwnerMissionRow): OwnerPlanningItem["status"] {
+  if (mission.priority === "urgent" || urgentStatuses.has(mission.status || "")) return "urgent";
+  if (validationStatuses.has(mission.status || "")) return "en_attente_validation";
+  if (completedStatuses.has(mission.status || "")) return "pret_voyageurs";
+  if (confirmedStatuses.has(mission.status || "")) return "confirme";
+  return "a_faire";
+}
+
+function mapMissionToPlanningItem(mission: OwnerMissionRow): OwnerPlanningItem {
+  return {
+    id: mission.id,
+    date: mission.scheduled_start || new Date().toISOString(),
+    propertyName: getPropertyName(mission),
+    propertyCode: getMetadataString(mission.metadata, ["property_code"]) || undefined,
+    city: getCity(mission) || undefined,
+    type: getMissionType(mission),
+    status: mapStatus(mission),
+    assignedTo: mission.concierge_name || undefined,
+    notes: mission.description || undefined,
+    amount: mission.amount,
+  };
+}
+
+function buildKpis(items: OwnerPlanningItem[]): OwnerPlanningKpi[] {
+  const today = new Date();
+  const urgentCount = items.filter((item) => item.status === "urgent").length;
+  const validationCount = items.filter((item) => item.status === "en_attente_validation").length;
+  const toPrepareProperties = new Set(
+    items
+      .filter((item) => ["a_faire", "urgent", "en_attente_validation"].includes(item.status))
+      .map((item) => item.propertyName),
+  );
+  const readyProperties = new Set(items.filter((item) => item.status === "pret_voyageurs").map((item) => item.propertyName));
+  const upcomingCount = items.filter((item) => isInNextDays(item.date, 7)).length;
+  const todayCount = items.filter((item) => isSameDay(item.date, today)).length;
+
+  return [
+    {
+      id: "a-traiter",
+      label: "À traiter",
+      value: urgentCount + validationCount,
+      helperText: todayCount > 0 ? `${todayCount} mission(s) aujourd'hui` : "Aucune action aujourd'hui",
+      tone: urgentCount > 0 ? "warning" : "neutral",
+    },
+    {
+      id: "validations",
+      label: "En attente de validation",
+      value: validationCount,
+      helperText: validationCount > 0 ? "Votre accord est nécessaire" : "Rien à valider",
+      tone: validationCount > 0 ? "warning" : "positive",
+    },
+    {
+      id: "preparations",
+      label: "Logements à préparer",
+      value: toPrepareProperties.size,
+      helperText: "Avant les prochaines arrivées",
+      tone: toPrepareProperties.size > 0 ? "warning" : "positive",
+    },
+    {
+      id: "prets",
+      label: "Prêts pour les voyageurs",
+      value: readyProperties.size,
+      helperText: "Logements sans action bloquante",
+      tone: "positive",
+    },
+    {
+      id: "a-venir",
+      label: "Interventions à venir",
+      value: upcomingCount,
+      helperText: "Sur les 7 prochains jours",
+      tone: "neutral",
+    },
+  ];
+}
+
+function sortPlanningItems(a: OwnerPlanningItem, b: OwnerPlanningItem) {
+  const score = (item: OwnerPlanningItem) => {
+    if (item.status === "urgent") return 0;
+    if (item.status === "en_attente_validation") return 1;
+    if (item.status === "a_faire") return 2;
+    return 3;
+  };
+
+  return score(a) - score(b) || new Date(a.date).getTime() - new Date(b.date).getTime();
+}
+
+export default function OwnerPlanningRoutePage() {
   const [missions, setMissions] = useState<OwnerMissionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<"list" | "week" | "month">("list");
 
   const loadPlanning = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/missions?scope=owner&limit=30", { cache: "no-store" });
+      const response = await fetch("/api/missions?scope=owner&limit=80", { cache: "no-store" });
       const payload = await response.json();
 
       if (!response.ok) {
@@ -98,55 +203,28 @@ export default function OwnerPlanningPage() {
     return () => window.clearTimeout(timeout);
   }, [success]);
 
-  async function retryPlanning() {
-    setSuccess(null);
-    await loadPlanning();
-  }
-
-  const upcomingMissions = useMemo(
-    () =>
-      [...missions].sort((a, b) => {
-        const aTime = a.scheduled_start ? new Date(a.scheduled_start).getTime() : Number.MAX_SAFE_INTEGER;
-        const bTime = b.scheduled_start ? new Date(b.scheduled_start).getTime() : Number.MAX_SAFE_INTEGER;
-        return aTime - bTime;
-      }),
+  const items = useMemo(
+    () => missions.map(mapMissionToPlanningItem).sort(sortPlanningItems),
     [missions],
   );
 
-  const filteredMissions = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+  const kpis = useMemo(() => buildKpis(items), [items]);
 
-    return upcomingMissions.filter((mission) => {
-      const matchesStatus = statusFilter === "all" || (mission.status ?? "pending") === statusFilter;
-      if (!matchesStatus) return false;
-      if (!normalizedSearch) return true;
-
-      const haystack = [mission.title, mission.priority, mission.status]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(normalizedSearch);
-    });
-  }, [upcomingMissions, searchTerm, statusFilter]);
-
-  const visibleMissions = useMemo(
-    () => takeFirst(filteredMissions, viewMode === "list" ? 30 : 12),
-    [filteredMissions, viewMode],
+  const priorities = useMemo(
+    () => items.filter((item) => item.status === "urgent" || item.status === "en_attente_validation" || item.status === "a_faire"),
+    [items],
   );
-
-  const weekBuckets = useMemo(() => buildWeekBuckets(filteredMissions), [filteredMissions]);
 
   function exportPlanningCsv() {
     const rows = [
-      ["Mission", "Statut", "Priorite", "Debut", "Fin", "Montant"],
-      ...filteredMissions.map((mission) => [
-        mission.title ?? "",
-        mission.status ?? "",
-        mission.priority ?? "",
-        mission.scheduled_start ?? "",
-        mission.scheduled_end ?? "",
-        mission.amount?.toString() ?? "",
+      ["Date", "Logement", "Ville", "Type", "Responsable", "Statut"],
+      ...items.map((item) => [
+        item.date,
+        item.propertyName,
+        item.city || "",
+        planningTypeLabels[item.type],
+        item.assignedTo || "À assigner",
+        planningStatusLabels[item.status],
       ]),
     ];
 
@@ -158,211 +236,22 @@ export default function OwnerPlanningPage() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "owner-planning.csv";
+    link.download = "planning-proprietaire.csv";
     link.click();
     window.URL.revokeObjectURL(url);
     setSuccess("Export CSV généré.");
   }
 
   return (
-    <DashboardSectionShell
-      persona="owner"
-      title="Planning propriétaire"
-      subtitle="Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc."
-      stats={[
-        { label: "Interventions", value: loading ? "..." : `${missions.length}` },
-        {
-          label: "À traiter",
-          value: loading
-            ? "..."
-            : `${upcomingMissions.filter((mission) => mission.status !== "completed").length}`,
-        },
-        {
-          label: "Budget suivi",
-          value: loading
-            ? "..."
-            : formatEuroAmountLabel(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0), "-"),
-        },
-      ]}
-      actions={[
-        { label: "Mission urgente", href: "/dashboard/owner/mission-urgente" },
-        { label: "Messages", href: "/dashboard/owner/messages" },
-      ]}
-    >
-      <header>
-        <h1>Suivi des interventions</h1>
-        <p>Repérez en priorité ce qui doit être confirmé, exécuté ou replanifié sur votre parc.</p>
-      </header>
-
-      <div className="stats-row">
-        <div className="stat-card">
-          <h3>Interventions suivies</h3>
-          <p>{loading ? "..." : missions.length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>À traiter</h3>
-          <p>{loading ? "..." : upcomingMissions.filter((mission) => mission.status !== "completed").length}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Budget suivi</h3>
-          <p>
-            {loading
-              ? "..."
-              : formatEuroAmountLabel(filteredMissions.reduce((sum, mission) => sum + (mission.amount ?? 0), 0), "-")}
-          </p>
-        </div>
-      </div>
-
-      <div className="main-section" aria-busy={loading}>
-        <section className={styles.heroPanel}>
-          <div className={styles.sectionHeading}>
-            <div>
-              <p className={styles.eyebrow}>Vue planning</p>
-              <h2>Semaine propriétaire</h2>
-            </div>
-          </div>
-
-          <div className={styles.priorityGrid}>
-            {weekBuckets.slice(0, 4).map((bucket) => (
-              <article key={bucket.key} className={styles.priorityCard}>
-                <p className={styles.cardLabel}>
-                  {bucket.label} {bucket.dateLabel}
-                </p>
-                <strong className={styles.cardValue}>{bucket.items.length}</strong>
-                <p className={styles.meta}>
-                  {bucket.items.length > 0
-                    ? `${bucket.items.filter((mission) => mission.priority === "urgent").length} urgente(s) à surveiller.`
-                    : "Aucune intervention planifiée."}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <div className={styles.toolbar}>
-          <input
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Rechercher une intervention"
-            className={styles.field}
-          />
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-            className={styles.select}
-            aria-label="Filtrer les interventions par statut"
-            title="Filtrer les interventions par statut"
-          >
-            <option value="all">Tous statuts</option>
-            <option value="assigned">Assignées</option>
-            <option value="accepted">Acceptées</option>
-            <option value="in_progress">En cours</option>
-            <option value="completed">Terminées</option>
-          </select>
-          <select
-            value={viewMode}
-            onChange={(event) => setViewMode(event.target.value as "list" | "week" | "month")}
-            className={styles.select}
-            aria-label="Choisir le mode d'affichage du planning"
-            title="Choisir le mode d'affichage du planning"
-          >
-            <option value="list">Vue prioritaire</option>
-            <option value="week">Vue semaine</option>
-            <option value="month">Vue mois</option>
-          </select>
-          <button
-            type="button"
-            onClick={exportPlanningCsv}
-            disabled={filteredMissions.length === 0}
-            className={styles.buttonSecondary}
-          >
-            Export CSV
-          </button>
-        </div>
-
-        {success ? <p className={`${styles.feedbackMessage} ${styles.messageSuccess}`} role="status">{success}</p> : null}
-        {loading ? <p className={styles.feedbackMessage} role="status">Chargement du planning...</p> : null}
-        {!loading && error ? (
-          <div className={`${styles.feedbackMessage} ${styles.messageError}`} role="alert">
-            <span>{error}</span>
-            <button type="button" className={styles.buttonSecondary} onClick={() => void retryPlanning()}>
-              Réessayer
-            </button>
-          </div>
-        ) : null}
-
-        {!loading && !error && filteredMissions.length === 0 ? (
-          <p className={styles.feedbackMessage}>Aucune intervention planifiée pour le moment.</p>
-        ) : null}
-
-        {!loading && !error && filteredMissions.length > 0 ? (
-          viewMode === "list" ? (
-            <ul>
-              {visibleMissions.map((mission) => (
-                <li key={mission.id} className={styles.listItem}>
-                  <Link href={`/dashboard/owner/missions/${mission.id}`}>
-                    <strong>{mission.title || "Mission sans titre"}</strong>
-                  </Link>
-                  <br />
-                  Début : {formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} | Fin : {formatDateValue(mission.scheduled_end, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                  <br />
-                  Statut : {mission.status || "-"} | Priorité : {mission.priority || "-"} | Budget :{" "}
-                  {formatEuroAmountLabel(mission.amount, "-")}
-                </li>
-              ))}
-            </ul>
-          ) : viewMode === "week" ? (
-            <div className={styles.weekBoard}>
-              {weekBuckets.map((bucket) => (
-                <article key={bucket.key} className={styles.weekColumn}>
-                  <div className={styles.metricLabel}>
-                    <span>
-                      {bucket.label} {bucket.dateLabel}
-                    </span>
-                    <span>{bucket.items.length}</span>
-                  </div>
-                  {bucket.items.length > 0 ? (
-                    bucket.items.map((mission) => (
-                      <article key={mission.id} className={styles.weekEventCard}>
-                        <strong>{formatShortTime(mission.scheduled_start)}</strong>
-                        <Link href={`/dashboard/owner/missions/${mission.id}`}>
-                          {mission.title || "Mission sans titre"}
-                        </Link>
-                        <div className={styles.inlineActions}>
-                          <WorkflowStatusBadge value={mission.status || "pending"} />
-                          <WorkflowStatusBadge value={mission.priority || "normal"} />
-                        </div>
-                        <span className={styles.meta}>
-                          {mission.status || "-"} | {formatEuroAmountLabel(mission.amount, "-")}
-                        </span>
-                      </article>
-                    ))
-                  ) : (
-                    <p className={styles.meta}>Libre</p>
-                  )}
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.sectionGrid}>
-              {visibleMissions.map((mission) => (
-                <article key={mission.id} className={styles.panel}>
-                  <Link href={`/dashboard/owner/missions/${mission.id}`}>
-                    <strong>{mission.title || "Mission sans titre"}</strong>
-                  </Link>
-                  <span>{formatDateValue(mission.scheduled_start, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                  <div className={styles.inlineActions}>
-                    <WorkflowStatusBadge value={mission.status || "pending"} />
-                    <WorkflowStatusBadge value={mission.priority || "normal"} />
-                  </div>
-                  <span>Budget: {formatEuroAmountLabel(mission.amount, "-")}</span>
-                </article>
-              ))}
-            </div>
-          )
-        ) : null}
-      </div>
-    </DashboardSectionShell>
+    <OwnerPlanningPage
+      kpis={kpis}
+      priorities={priorities}
+      items={items}
+      loading={loading}
+      error={error}
+      success={success}
+      onRetry={() => void loadPlanning()}
+      onExport={exportPlanningCsv}
+    />
   );
 }
-

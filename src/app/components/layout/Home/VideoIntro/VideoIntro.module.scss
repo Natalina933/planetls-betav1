@@ -138,12 +138,28 @@
     font-weight: 600;
   }
 
+  @media (max-width: 1024px) {
+    padding: 3rem 1.25rem 3.5rem;
+
+    .featureItem {
+      max-width: min(100%, 620px);
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .joinMessage {
+      line-height: 1.55;
+      text-wrap: pretty;
+    }
+  }
+
   // Responsive
   @media (max-width: 700px) {
     padding: 2.5rem 1rem;
 
     .featureItem {
       font-size: 0.94rem;
+      max-width: none;
     }
 
     .playButton svg {

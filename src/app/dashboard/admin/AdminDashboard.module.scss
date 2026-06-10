@@ -92,3 +92,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+.processStrip {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(80px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.processStrip span {
+  min-width: 86px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(176, 134, 54, 0.16), rgba(31, 41, 55, 0.05));
+  color: #263241;
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.adminNote {
+  margin: 14px 0 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
