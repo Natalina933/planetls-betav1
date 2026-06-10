@@ -21,6 +21,8 @@ export function OnboardingPromptCard({ path, actionStatus, onDismiss }: Onboardi
   return (
     <Card tone="outlined" className={styles.card}>
       <CardHeader className={styles.header}>
+        <p className={styles.subtitle}>{config.subtitle}</p>
+        <h3>{config.title}</h3>
         <div className={styles.headerVisual}>
           <OnboardingIllustration visual={getOnboardingJourneyVisual(path)} variant="card" />
         </div>
@@ -35,6 +37,7 @@ export function OnboardingPromptCard({ path, actionStatus, onDismiss }: Onboardi
         <ul className={styles.actionsList}>
           {pendingActions.map((action) => (
             <li key={action.id}>
+              <Link href={action.href}>{action.label}</Link>
               <Link href={action.href}>
                 <OnboardingIllustration visual={getOnboardingActionVisual(action.id, path)} variant="thumbnail" />
                 <span>{action.label}</span>
