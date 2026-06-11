@@ -1,0 +1,80 @@
+.stack {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid var(--theme-border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.copy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--theme-accent) 10%, white);
+  color: var(--theme-accent-strong);
+}
+
+.neutral {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.72)),
+    rgba(255, 255, 255, 0.72);
+}
+
+.accent {
+  background:
+    linear-gradient(180deg, rgba(255, 252, 242, 0.96), rgba(255, 248, 232, 0.8)),
+    rgba(255, 255, 255, 0.72);
+}
+
+.soft {
+  background:
+    linear-gradient(180deg, rgba(245, 250, 246, 0.96), rgba(241, 247, 243, 0.8)),
+    rgba(255, 255, 255, 0.72);
+}
+
+.row span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--theme-soft);
+}
+
+.row p {
+  margin: 0.18rem 0 0;
+  color: var(--theme-text-soft);
+  line-height: 1.45;
+}
+
+.row strong {
+  color: var(--theme-accent-strong);
+  font-family: var(--ds-font-heading, "Cormorant Garamond", serif);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .row,
+  .copy {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,611 @@
+.primaryGrid,
+.disclosureStack,
+.visualGrid,
+.moodGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.primaryGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contentBlock,
+.progressBlock {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.disclosureIntroCard {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--theme-border);
+  background:
+    radial-gradient(circle at top right, rgba(229, 193, 88, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 245, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+  box-shadow: 0 14px 28px var(--theme-shadow);
+}
+
+.disclosureIntroHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.disclosureIntroIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--theme-accent-strong);
+}
+
+.disclosureIntroHeader strong,
+.disclosureBulletList strong {
+  margin: 0;
+  color: var(--theme-accent-strong);
+}
+
+.disclosureIntroHeader p,
+.disclosureBulletList p {
+  margin: 0.18rem 0 0;
+  color: var(--theme-text-soft);
+  line-height: 1.45;
+}
+
+.disclosureBulletList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.disclosureBulletList article {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.blockHeader {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.blockHeader h3,
+.moodCard strong {
+  margin: 0;
+  color: var(--theme-accent-strong);
+  font-family: var(--ds-font-heading, "Cormorant Garamond", serif);
+}
+
+.blockHeader h3 {
+  font-size: 1.45rem;
+  line-height: 1.02;
+}
+
+.blockHeader p,
+.progressBlock p,
+.moodCard p {
+  margin: 0;
+  color: var(--theme-text-soft);
+  line-height: 1.58;
+}
+
+.missionHeroList,
+.compactList,
+.sectionHubGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.missionHeroList {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.missionHeroCard {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid var(--theme-border);
+  background:
+    radial-gradient(circle at top right, rgba(229, 193, 88, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 245, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 16px 32px var(--theme-shadow);
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion);
+}
+
+.missionHeroCard:hover,
+.compactRow:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 36px var(--theme-shadow);
+}
+
+.missionHeroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.missionHeroIcon,
+.compactIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--theme-accent-strong);
+}
+
+.missionHeroStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(74, 107, 93, 0.12);
+  color: var(--theme-accent-strong);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.missionHeroCard strong,
+.compactCopy strong {
+  margin: 0;
+  color: var(--theme-accent-strong);
+}
+
+.missionHeroCard p,
+.missionHeroCard small,
+.compactCopy span,
+.compactMeta small,
+.emptyListState {
+  margin: 0;
+  color: var(--theme-text-soft);
+}
+
+.compactRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem 0.85rem;
+  border-radius: 16px;
+  border: 1px solid var(--theme-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 248, 246, 0.9)),
+    url("/textures/elegant-fibers.png"),
+    #fff;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion);
+}
+
+.compactCopy,
+.compactMeta {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.compactCopy span {
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.compactMeta {
+  justify-items: end;
+}
+
+.compactMeta strong {
+  color: var(--theme-accent-strong);
+  font-size: 0.88rem;
+}
+
+.compactMeta small {
+  font-size: 0.72rem;
+}
+
+.emptyListState {
+  display: grid;
+  place-items: center;
+  min-height: 88px;
+  padding: 0.9rem;
+  border-radius: 16px;
+  border: 1px dashed var(--theme-border);
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.sectionHubGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sectionHubCard {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 16px 30px var(--theme-shadow);
+}
+
+.sectionHubTop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+}
+
+.sectionHubIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.45rem;
+  height: 2.45rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--theme-accent-strong);
+}
+
+.sectionHubTop strong,
+.sectionHubTop p,
+.sectionHubCard small {
+  margin: 0;
+}
+
+.sectionHubTop strong {
+  color: var(--theme-accent-strong);
+}
+
+.sectionHubTop p {
+  color: var(--theme-accent-strong);
+  font-family: var(--ds-font-heading, "Cormorant Garamond", serif);
+  font-size: 1.5rem;
+  line-height: 0.95;
+}
+
+.sectionHubCard small {
+  color: var(--theme-text-soft);
+}
+
+.sectionHubLinks {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.sectionHubLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.58rem 0.7rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.54);
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.sectionSage {
+  background:
+    radial-gradient(circle at top right, rgba(74, 107, 93, 0.15), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(238, 244, 240, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #f0f4f1;
+}
+
+.sectionGold {
+  background:
+    radial-gradient(circle at top right, rgba(229, 193, 88, 0.18), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 243, 224, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+}
+
+.sectionMint {
+  background:
+    radial-gradient(circle at top right, rgba(116, 148, 126, 0.16), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(236, 244, 239, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #eef4f0;
+}
+
+.sectionPaper {
+  background:
+    radial-gradient(circle at top right, rgba(74, 107, 93, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 244, 238, 0.94)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+}
+
+.sectionInk {
+  background:
+    radial-gradient(circle at top right, rgba(48, 73, 63, 0.15), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(232, 239, 235, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #edf2ee;
+}
+
+.visualGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.visualCard {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 0.18rem;
+  justify-items: start;
+  align-content: start;
+  min-height: 102px;
+  padding: 0.72rem 0.72rem 0.68rem;
+  border-radius: 18px;
+  border: 1px solid var(--theme-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 14px 30px var(--theme-shadow);
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion),
+    border-color var(--dashboard-motion);
+}
+
+.visualCard::before {
+  position: absolute;
+  top: -18px;
+  right: -14px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  content: "";
+}
+
+.visualCard::after {
+  position: absolute;
+  inset: auto 9px 9px auto;
+  width: 24px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  content: "";
+}
+
+.visualCard:hover {
+  transform: translateY(-4px) rotate(-0.3deg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 20px 36px var(--theme-shadow);
+}
+
+.visualCard strong {
+  position: relative;
+  z-index: 1;
+  color: var(--theme-accent-strong);
+  font-family: var(--ds-font-heading, "Cormorant Garamond", serif);
+  font-size: 1.62rem;
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+}
+
+.visualCard span:last-child {
+  position: relative;
+  z-index: 1;
+  color: var(--theme-text-soft);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.visualIcon,
+.moodIcon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--theme-accent-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.visualIcon :global(svg),
+.moodIcon :global(svg) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.softMint {
+  background:
+    radial-gradient(circle at top right, rgba(74, 107, 93, 0.14), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(240, 244, 241, 0.92)),
+    url("/textures/elegant-fibers.png"),
+    #f0f4f1;
+}
+
+.softGold {
+  background:
+    radial-gradient(circle at top right, rgba(229, 193, 88, 0.18), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 243, 224, 0.9)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+}
+
+.softOlive {
+  background:
+    radial-gradient(circle at top right, rgba(102, 130, 114, 0.14), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(236, 242, 238, 0.9)),
+    url("/textures/elegant-fibers.png"),
+    #f2efe8;
+}
+
+.softPaper {
+  background:
+    radial-gradient(circle at top right, rgba(74, 107, 93, 0.08), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 244, 238, 0.94)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+}
+
+.moodGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.moodCard {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 0.28rem;
+  min-height: 122px;
+  padding: 0.78rem 0.82rem;
+  border-radius: 20px;
+  border: 1px solid var(--theme-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 16px 34px var(--theme-shadow);
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion),
+    border-color var(--dashboard-motion);
+}
+
+.moodCard::before {
+  position: absolute;
+  top: -20px;
+  right: -10px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  content: "";
+}
+
+.moodCard:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 22px 38px var(--theme-shadow);
+}
+
+.moodTop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.moodTitle {
+  color: var(--theme-accent-strong);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.moodCard strong {
+  position: relative;
+  z-index: 1;
+  font-size: 1.42rem;
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+}
+
+.moodCard p {
+  position: relative;
+  z-index: 1;
+  font-size: 0.76rem;
+  line-height: 1.28;
+  max-width: 18ch;
+}
+
+.tileOlive {
+  background:
+    radial-gradient(circle at top right, rgba(74, 107, 93, 0.16), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(238, 244, 240, 0.9)),
+    url("/textures/elegant-fibers.png"),
+    #f0f4f1;
+}
+
+.tileGold {
+  background:
+    radial-gradient(circle at top right, rgba(229, 193, 88, 0.2), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 242, 221, 0.88)),
+    url("/textures/elegant-fibers.png"),
+    #f7f4ee;
+}
+
+.tileInk {
+  background:
+    radial-gradient(circle at top right, rgba(74, 107, 93, 0.14), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(233, 240, 236, 0.88)),
+    url("/textures/elegant-fibers.png"),
+    #f2efe8;
+}
+
+.inlineLink {
+  width: fit-content;
+  color: var(--theme-accent-strong);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 1100px) {
+  .missionHeroList,
+  .visualGrid,
+  .sectionHubGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moodGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .primaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .missionHeroList,
+  .visualGrid,
+  .sectionHubGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .compactRow {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .compactMeta {
+    justify-items: start;
+  }
+}

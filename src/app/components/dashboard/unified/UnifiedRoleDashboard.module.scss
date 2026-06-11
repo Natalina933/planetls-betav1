@@ -1,0 +1,488 @@
+.dashboardRoot {
+  --theme-accent: #1a1a2e;
+  --theme-accent-strong: #111122;
+  --theme-secondary: #d4af37;
+  --theme-secondary-strong: #b8941e;
+  --theme-soft: #475569;
+  --theme-soft-surface: #ffffff;
+  --theme-muted-surface: #f7f4ee;
+  --theme-badge-surface: rgba(26, 26, 46, 0.08);
+  --theme-text: #1d1d25;
+  --theme-text-soft: #4d5664;
+  --theme-border: rgba(26, 26, 46, 0.16);
+  --theme-shadow: rgba(22, 24, 39, 0.12);
+  --theme-glow: rgba(212, 175, 55, 0.18);
+  --theme-panel-highlight: rgba(255, 255, 255, 0.86);
+  --paper-ivory: #f7f4ee;
+  --paper-warm: #f2efe8;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --dashboard-motion: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(1rem, 2vw, 1.75rem);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 30%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, var(--theme-secondary) 10%, transparent), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.3)),
+    url("/textures/elegant-fibers.png"),
+    var(--paper-warm);
+  color: var(--theme-text);
+}
+
+:global(.theme-concierge) .dashboardRoot {
+  --theme-accent: #1a1a2e;
+  --theme-accent-strong: #111122;
+  --theme-secondary: #d4af37;
+  --theme-secondary-strong: #b8941e;
+  --theme-soft: #475569;
+  --theme-soft-surface: #ffffff;
+  --theme-muted-surface: #fbfaf7;
+  --theme-badge-surface: rgba(26, 26, 46, 0.08);
+  --theme-text: #1d1d25;
+  --theme-text-soft: #475569;
+  --theme-border: rgba(26, 26, 46, 0.16);
+  --theme-shadow: rgba(22, 24, 39, 0.12);
+  --theme-glow: rgba(212, 175, 55, 0.2);
+}
+
+:global(.theme-owner) .dashboardRoot {
+  --theme-accent: #4a6b5d;
+  --theme-accent-strong: #30493f;
+  --theme-secondary: #e5c158;
+  --theme-secondary-strong: #c49f2d;
+  --theme-soft: #6b7d75;
+  --theme-soft-surface: #ffffff;
+  --theme-muted-surface: #f0f4f1;
+  --theme-badge-surface: rgba(74, 107, 93, 0.1);
+  --theme-text: #213129;
+  --theme-text-soft: #51645b;
+  --theme-border: rgba(74, 107, 93, 0.16);
+  --theme-shadow: rgba(52, 72, 63, 0.12);
+  --theme-glow: rgba(229, 193, 88, 0.22);
+}
+
+:global(.theme-artisan) .dashboardRoot {
+  --theme-accent: #b35d38;
+  --theme-accent-strong: #8c4324;
+  --theme-secondary: #2d2d2d;
+  --theme-secondary-strong: #111111;
+  --theme-soft: #7b584b;
+  --theme-soft-surface: #fffdfb;
+  --theme-muted-surface: #fdf6f0;
+  --theme-badge-surface: rgba(179, 93, 56, 0.1);
+  --theme-text: #2f251f;
+  --theme-text-soft: #6e564b;
+  --theme-border: rgba(179, 93, 56, 0.18);
+  --theme-shadow: rgba(80, 44, 28, 0.14);
+  --theme-glow: rgba(179, 93, 56, 0.16);
+}
+
+.heroCard,
+.kpiCard,
+.panelCard,
+.embeddedModule,
+.disclosureCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 18px 40px var(--theme-shadow);
+  background:
+    linear-gradient(180deg, var(--theme-panel-highlight), rgba(255, 255, 255, 0.92)),
+    var(--theme-soft-surface);
+}
+
+.heroCard {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  border-radius: calc(var(--radius-lg) + 8px);
+  background:
+    radial-gradient(circle at top right, var(--theme-glow), transparent 28%),
+    radial-gradient(circle at bottom left, color-mix(in srgb, var(--theme-accent) 10%, transparent), transparent 26%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.84)),
+    url("/textures/elegant-fibers.png"),
+    var(--theme-soft-surface);
+}
+
+.heroOrnament {
+  position: absolute;
+  inset: 12px 12px auto auto;
+  width: 130px;
+  height: 130px;
+  opacity: 0.18;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, transparent 52%, var(--theme-secondary) 53%, transparent 59%),
+    radial-gradient(circle at center, transparent 68%, color-mix(in srgb, var(--theme-accent) 45%, transparent) 69%, transparent 72%);
+}
+
+.heroCopy,
+.heroHeadline,
+.heroTitleWrap,
+.heroActions,
+.kpiContent,
+.panelBody,
+.sidebarStack,
+.disclosureList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.heroEyebrow,
+.panelEyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--theme-accent);
+}
+
+.heroHeadline {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.heroTitleWrap h1,
+.panelHeader h2,
+.embeddedHeader h3 {
+  margin: 0;
+  font-family: var(--ds-font-heading, "Cormorant Garamond", serif);
+  line-height: 0.98;
+  letter-spacing: 0.01em;
+}
+
+.heroTitleWrap h1 {
+  font-size: clamp(2rem, 3.8vw, 3.5rem);
+  color: var(--theme-accent-strong);
+}
+
+.heroTitleWrap p,
+.heroLead,
+.panelDescription,
+.kpiContent p,
+.embeddedHeader span,
+.disclosureCard summary small,
+.disclosureBody {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--theme-text-soft);
+}
+
+.heroBadges,
+.panelHeader,
+.frameBadge,
+.experienceBadge,
+.statusBadge,
+.kpiIcon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.heroBadges {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.experienceBadge,
+.statusBadge,
+.frameBadge {
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0.52rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 18%, transparent);
+  background: var(--theme-badge-surface);
+  color: var(--theme-accent-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.heroActions {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: 48px;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion),
+    background-color var(--dashboard-motion),
+    border-color var(--dashboard-motion),
+    color var(--dashboard-motion);
+}
+
+.actionButton:hover,
+.kpiCard:hover,
+.disclosureCard:hover {
+  transform: translateY(-4px);
+}
+
+.primaryAction {
+  background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-strong));
+  color: #fff;
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--theme-accent) 30%, transparent);
+}
+
+.secondaryAction {
+  border-color: color-mix(in srgb, var(--theme-secondary) 38%, transparent);
+  background: color-mix(in srgb, var(--theme-secondary) 14%, white);
+  color: var(--theme-accent-strong);
+}
+
+.ghostAction {
+  border-color: var(--theme-border);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--theme-text);
+}
+
+.kpiSection {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.kpiCard {
+  grid-column: span 3;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 114px;
+  padding: 0.85rem 0.9rem;
+  border-radius: calc(var(--radius-lg) + 2px);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--theme-secondary) 12%, transparent), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.82)),
+    url("/textures/elegant-fibers.png"),
+    var(--theme-soft-surface);
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion),
+    border-color var(--dashboard-motion);
+}
+
+.kpiIcon {
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--theme-accent) 11%, white);
+  color: var(--theme-accent-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  flex: 0 0 auto;
+}
+
+.kpiIcon :global(svg) {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.kpiContent {
+  gap: 0.32rem;
+}
+
+.kpiContent span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-soft);
+}
+
+.kpiContent strong {
+  font-family: var(--ds-font-heading, "Cormorant Garamond", serif);
+  font-size: clamp(1.65rem, 2.2vw, 2.15rem);
+  line-height: 0.95;
+  color: var(--theme-accent-strong);
+}
+
+.kpiContent p {
+  font-size: 0.86rem;
+  line-height: 1.38;
+}
+
+.dashboardGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.mainColumn,
+.sidebarColumn {
+  display: grid;
+  gap: 1rem;
+}
+
+.mainColumn {
+  grid-column: span 8;
+}
+
+.sidebarColumn {
+  grid-column: span 4;
+}
+
+.panelCard {
+  padding: clamp(1rem, 2vw, 1.3rem);
+  border-radius: calc(var(--radius-lg) + 4px);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--theme-accent) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.86)),
+    url("/textures/elegant-fibers.png"),
+    var(--theme-soft-surface);
+}
+
+.panelHeader {
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panelHeader h2 {
+  font-size: clamp(1.5rem, 2.3vw, 2rem);
+  color: var(--theme-accent-strong);
+}
+
+.panelAside {
+  flex: 0 0 auto;
+}
+
+.embeddedModule {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.9rem;
+  border-radius: calc(var(--radius-md) + 4px);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--theme-secondary) 8%, transparent), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.82)),
+    url("/textures/elegant-fibers.png"),
+    var(--theme-muted-surface);
+}
+
+.embeddedHeader {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.embeddedHeader h3 {
+  font-size: 1.4rem;
+  color: var(--theme-accent-strong);
+}
+
+.disclosureCard {
+  border-radius: calc(var(--radius-md) + 2px);
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion),
+    border-color var(--dashboard-motion);
+}
+
+.disclosureCard[open] {
+  border-color: color-mix(in srgb, var(--theme-secondary) 44%, var(--theme-border));
+}
+
+.disclosureCard summary {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.95rem 1rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.disclosureCard summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosureCard summary span {
+  font-weight: 700;
+  color: var(--theme-accent-strong);
+}
+
+.disclosureBody {
+  padding: 0 1rem 1rem;
+}
+
+.dashboardRoot :global(a),
+.dashboardRoot :global(button),
+.dashboardRoot :global(input),
+.dashboardRoot :global(select),
+.dashboardRoot :global(textarea) {
+  transition:
+    transform var(--dashboard-motion),
+    box-shadow var(--dashboard-motion),
+    border-color var(--dashboard-motion),
+    background-color var(--dashboard-motion),
+    color var(--dashboard-motion);
+}
+
+.dashboardRoot :global(button:hover),
+.dashboardRoot :global(a:hover) {
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--theme-accent) 12%, transparent);
+}
+
+.dashboardRoot :global(input:focus),
+.dashboardRoot :global(select:focus),
+.dashboardRoot :global(textarea:focus) {
+  outline: none;
+  border-color: color-mix(in srgb, var(--theme-secondary) 65%, var(--theme-accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-secondary) 18%, transparent);
+}
+
+@media (max-width: 1180px) {
+  .kpiCard {
+    grid-column: span 3;
+  }
+
+  .mainColumn,
+  .sidebarColumn {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 780px) {
+  .dashboardRoot,
+  .heroCard,
+  .panelCard {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+  }
+
+  .heroHeadline,
+  .panelHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .heroBadges {
+    justify-content: flex-start;
+  }
+
+  .kpiSection {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kpiCard {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 560px) {
+  .kpiSection {
+    grid-template-columns: 1fr;
+  }
+}

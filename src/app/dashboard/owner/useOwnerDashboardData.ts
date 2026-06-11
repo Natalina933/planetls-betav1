@@ -235,6 +235,7 @@ export function useOwnerDashboardData(
     quotes,
     invoices,
     conversations,
+    requestsCount: requests.length,
     loading,
     error,
     activeCount,

@@ -18,12 +18,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useCurrentUser();
 
   const isOwnerPage = pathname?.startsWith("/dashboard/owner");
-  const {
-    draftCount,
-    ongoingMissions,
-    pendingInvoices,
-    unreadConversationCount,
-  } = useOwnerDashboardData(Boolean(isAuthenticated && isOwnerPage));
+  const { draftCount, ongoingMissions, pendingInvoices, unreadConversationCount } = useOwnerDashboardData(
+    Boolean(isAuthenticated && isOwnerPage),
+  );
 
   const ownerBottomNavItems = useMemo(
     () => [
@@ -80,20 +77,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="dashboard-root">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={() => setIsSidebarOpen((current) => !current)}
-      />
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
       <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
-        <Navbar
-          isSidebarOpen={isSidebarOpen}
-          toggleSidebar={() => setIsSidebarOpen((current) => !current)}
-        />
+        <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
         <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
-          <img
-            src="/images/generated/dashboard/dashboard-header-bandeau.png"
-            alt="Bandeau chaleureux du tableau de bord"
-          />
+          <img src="/images/generated/dashboard/dashboard-header-bandeau.png" alt="Bandeau chaleureux du tableau de bord" />
           <div className="headerOverlay">
             {isOwnerPage ? (
               <div className="headerHero">
@@ -105,8 +93,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <span className="headerEyebrow">Cap du jour</span>
                     <h1>{currentOwnerSectionLabel}</h1>
                     <p>
-                      Retrouvez en un coup d'œil vos priorités, vos points de vigilance et la
-                      prochaine action utile pour faire avancer votre parc.
+                      Retrouvez en un coup d&apos;œil vos priorités, vos points de vigilance et la prochaine action utile
+                      pour faire avancer votre parc.
                     </p>
                   </div>
                 </div>
@@ -128,10 +116,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             ) : null}
           </div>
         </div>
-        <main className="dashboard-content">{children}</main>
         {isOwnerPage ? (
           <DashboardBottomNav items={ownerBottomNavItems} ariaLabel="Navigation propriétaire" />
         ) : null}
+        <main className="dashboard-content">{children}</main>
       </div>
     </div>
   );
