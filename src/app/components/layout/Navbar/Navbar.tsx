@@ -1,12 +1,13 @@
 "use client";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
-import styles from "./Navbar.module.scss";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
-import { useSession, signOut } from "next-auth/react";
 import { useUserType } from "@/app/context/UserTypeContext";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
+import styles from "./Navbar.module.scss";
 
 const Icons = {
   FaUser: dynamic(() => import("react-icons/fa").then((mod) => mod.FaUser), { ssr: false }),
@@ -47,7 +48,7 @@ function getWorkspaceFromRole(role: string | null | undefined): WorkspaceOption[
 const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
   owner: {
     id: "owner",
-    label: "Propriétaire",
+    label: "Proprietaire",
     href: "/dashboard/owner",
     description: "Logements, demandes et missions.",
   },
@@ -55,7 +56,7 @@ const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
     id: "concierge",
     label: "Conciergerie",
     href: "/dashboard/concierge",
-    description: "Demandes reçues, planning et devis.",
+    description: "Demandes recues, planning et devis.",
   },
   provider: {
     id: "provider",
@@ -67,7 +68,7 @@ const fallbackWorkspaces: Record<WorkspaceOption["id"], WorkspaceOption> = {
     id: "admin",
     label: "Administrateur",
     href: "/dashboard/admin",
-    description: "Contrôle global de la plateforme.",
+    description: "Controle global de la plateforme.",
   },
 };
 
@@ -77,17 +78,19 @@ export default function Navbar() {
   const { theme, changeTheme, themes, labels, getCurrentLabel } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const { data: session, status } = useSession();
-  const { userType } = useUserType();
-  const { setSearchOpen } = useSearchPopup();
-
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [workspaceLoadingId, setWorkspaceLoadingId] = useState<WorkspaceOption["id"] | null>(null);
   const [workspaces, setWorkspaces] = useState<WorkspaceOption[]>([]);
   const [showWarning, setShowWarning] = useState(false);
   const [warningDeadline, setWarningDeadline] = useState<number | null>(null);
   const [warningSecondsLeft, setWarningSecondsLeft] = useState(
     Math.floor(WARNING_BEFORE_LOGOUT / 1000),
   );
+
+  const { data: session, status } = useSession();
+  const { userType } = useUserType();
+  const { setSearchOpen } = useSearchPopup();
+
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warningTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showWarningRef = useRef(false);
@@ -102,7 +105,8 @@ export default function Navbar() {
     workspaces.find((workspace) => workspace.current) ??
     (getWorkspaceFromRole(session?.user?.role)
       ? fallbackWorkspaces[getWorkspaceFromRole(session?.user?.role) as WorkspaceOption["id"]]
-      : null);
+      : fallbackWorkspaces.owner);
+  const visibleWorkspaces = workspaces.length ? workspaces : Object.values(fallbackWorkspaces);
 
   const getDashboardPath = () => {
     if (!userType) {
@@ -326,7 +330,54 @@ export default function Navbar() {
     closeMenu();
     setWorkspaceMenuOpen(false);
 
-    if (workspace.profileId) {
+    if (!isAuthenticated) {
+      setWorkspaceLoadingId(workspace.id);
+
+      try {
+        const response = await fetch("/api/auth/dev-workspace-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspace: workspace.id }),
+        });
+
+        if (!response.ok) {
+          router.push(`/login?workspace=${workspace.id}`);
+          return;
+        }
+
+        const payload = (await response.json()) as {
+          email?: string;
+          password?: string;
+          href?: string;
+        };
+
+        if (!payload.email || !payload.password) {
+          router.push(`/login?workspace=${workspace.id}`);
+          return;
+        }
+
+        const result = await signIn("credentials", {
+          redirect: false,
+          email: payload.email,
+          password: payload.password,
+        });
+
+        if (result?.error) {
+          router.push(`/login?workspace=${workspace.id}`);
+          return;
+        }
+
+        window.location.assign(payload.href || workspace.href);
+        return;
+      } catch {
+        router.push(`/login?workspace=${workspace.id}`);
+        return;
+      } finally {
+        setWorkspaceLoadingId(null);
+      }
+    }
+
+    if (isAuthenticated && workspace.profileId) {
       const response = await fetch("/api/profiles/workspaces", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -356,6 +407,13 @@ export default function Navbar() {
       router.push("/home");
     }
   };
+
+  const canSelectWorkspace = (workspace: WorkspaceOption) =>
+    isAuthenticated ? Boolean(workspace.profileId) : true;
+
+  const workspaceHeaderText = isAuthenticated
+    ? "Profils rattaches a votre compte"
+    : "Acces rapide aux espaces en cours de test";
 
   return (
     <>
@@ -390,49 +448,51 @@ export default function Navbar() {
           )}
         </div>
 
-        {isAuthenticated ? (
-          <div className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
-            <button
-              type="button"
-              className={styles.workspaceTrigger}
-              onClick={() => setWorkspaceMenuOpen((open) => !open)}
-              aria-haspopup="menu"
-              aria-expanded={workspaceMenuOpen}
-            >
-              <Icons.FaExchangeAlt size={17} />
-              <span>Espaces</span>
-              <strong>{currentWorkspace?.label ?? "Profil"}</strong>
-            </button>
+        <div className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
+          <button
+            type="button"
+            className={styles.workspaceTrigger}
+            onClick={() => setWorkspaceMenuOpen((open) => !open)}
+            aria-haspopup="menu"
+            aria-expanded={workspaceMenuOpen}
+          >
+            <Icons.FaExchangeAlt size={17} />
+            <span>Espaces</span>
+            <strong>{currentWorkspace?.label ?? "Profil"}</strong>
+          </button>
 
-            {workspaceMenuOpen ? (
-              <div className={styles.workspaceDropdown} role="menu">
-                <div className={styles.workspaceDropdownHeader}>
-                  <strong>Changer d’espace</strong>
-                  <span>Profils rattachés à votre compte</span>
-                </div>
-                {(workspaces.length ? workspaces : currentWorkspace ? [currentWorkspace] : []).map((workspace) => (
-                  <button
-                    key={workspace.id}
-                    type="button"
-                    className={`${styles.workspaceOption} ${workspace.current ? styles.workspaceOptionActive : ""} ${
-                      !workspace.profileId ? styles.workspaceOptionDisabled : ""
-                    }`}
-                    onClick={() => handleWorkspaceSelect(workspace)}
-                    disabled={!workspace.profileId}
-                    role="menuitem"
-                  >
-                    <span>
-                      <strong>{workspace.label}</strong>
-                      <small>{workspace.description}</small>
-                    </span>
-                    {workspace.current ? <em>Actuel</em> : null}
-                    {!workspace.profileId ? <em className={styles.workspaceUnavailable}>Non rattaché</em> : null}
-                  </button>
-                ))}
+          {workspaceMenuOpen ? (
+            <div className={styles.workspaceDropdown} role="menu">
+              <div className={styles.workspaceDropdownHeader}>
+                <strong>Changer d'espace</strong>
+                <span>{workspaceHeaderText}</span>
               </div>
-            ) : null}
-          </div>
-        ) : null}
+              {visibleWorkspaces.map((workspace) => (
+                <button
+                  key={workspace.id}
+                  type="button"
+                  className={`${styles.workspaceOption} ${workspace.current ? styles.workspaceOptionActive : ""} ${
+                    !canSelectWorkspace(workspace) ? styles.workspaceOptionDisabled : ""
+                  }`}
+                  onClick={() => handleWorkspaceSelect(workspace)}
+                  disabled={!canSelectWorkspace(workspace) || workspaceLoadingId !== null}
+                  aria-busy={workspaceLoadingId === workspace.id}
+                  role="menuitem"
+                >
+                  <span>
+                    <strong>{workspace.label}</strong>
+                    <small>{workspace.description}</small>
+                  </span>
+                  {workspaceLoadingId === workspace.id ? <em>Connexion...</em> : null}
+                  {workspace.current ? <em>Actuel</em> : null}
+                  {!canSelectWorkspace(workspace) ? (
+                    <em className={styles.workspaceUnavailable}>Non rattache</em>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
 
         <button
           className={`${styles.burger} ${menuOpen ? styles.open : ""}`}
@@ -470,7 +530,7 @@ export default function Navbar() {
             </li>
           )}
 
-          {isAuthenticated && !isDashboardRoute && (
+          {!isDashboardRoute && (
             <li className={styles.workspaceSwitcher}>
               <button
                 type="button"
@@ -480,32 +540,36 @@ export default function Navbar() {
                 aria-expanded={workspaceMenuOpen}
               >
                 <Icons.FaExchangeAlt size={17} />
-                <span>{currentWorkspace?.label ?? "Changer d’espace"}</span>
+                <span>{currentWorkspace?.label ?? "Changer d'espace"}</span>
               </button>
 
               {workspaceMenuOpen ? (
                 <div className={styles.workspaceDropdown} role="menu">
                   <div className={styles.workspaceDropdownHeader}>
-                    <strong>Changer d’espace</strong>
-                    <span>Profils rattachés à votre compte</span>
+                    <strong>Changer d'espace</strong>
+                    <span>{workspaceHeaderText}</span>
                   </div>
-                  {(workspaces.length ? workspaces : currentWorkspace ? [currentWorkspace] : []).map((workspace) => (
+                  {visibleWorkspaces.map((workspace) => (
                     <button
                       key={workspace.id}
                       type="button"
                       className={`${styles.workspaceOption} ${workspace.current ? styles.workspaceOptionActive : ""} ${
-                        !workspace.profileId ? styles.workspaceOptionDisabled : ""
+                        !canSelectWorkspace(workspace) ? styles.workspaceOptionDisabled : ""
                       }`}
                       onClick={() => handleWorkspaceSelect(workspace)}
-                      disabled={!workspace.profileId}
+                      disabled={!canSelectWorkspace(workspace) || workspaceLoadingId !== null}
+                      aria-busy={workspaceLoadingId === workspace.id}
                       role="menuitem"
                     >
                       <span>
                         <strong>{workspace.label}</strong>
                         <small>{workspace.description}</small>
                       </span>
+                      {workspaceLoadingId === workspace.id ? <em>Connexion...</em> : null}
                       {workspace.current ? <em>Actuel</em> : null}
-                      {!workspace.profileId ? <em className={styles.workspaceUnavailable}>Non rattaché</em> : null}
+                      {!canSelectWorkspace(workspace) ? (
+                        <em className={styles.workspaceUnavailable}>Non rattache</em>
+                      ) : null}
                     </button>
                   ))}
                 </div>
@@ -539,7 +603,7 @@ export default function Navbar() {
         <div className={styles.warningOverlay}>
           <div className={styles.warningModal} ref={warningModalRef}>
             <h3>Session bientot expiree</h3>
-            <p>Vous serez déconnecté dans 2 minutes en raison d&apos;inactivité.</p>
+            <p>Vous serez deconnecte dans 2 minutes en raison d&apos;inactivite.</p>
             <p className={styles.warningSubtext}>
               Temps restant: <strong>{warningTimeLabel}</strong>. Cliquez sur
               &quot;Rester connecte&quot; pour continuer votre session.
