@@ -46,6 +46,7 @@ import {
   type UnifiedSpotlightItem,
   type UnifiedStatItem,
 } from "@/app/components/dashboard/unified";
+import { DashboardEmptyState, DashboardStatusBadge } from "@/app/components/dashboard/saas";
 import { useOwnerDashboardData } from "./useOwnerDashboardData";
 import { sidebarConfig } from "@/app/components/dashboard/Sidebar/sidebarconfig";
 import styles from "./OwnerUnifiedDashboard.module.scss";
@@ -556,14 +557,14 @@ export default function OwnerDashboardPage() {
     () => [
       {
         id: "ready",
-        label: "Prêt",
+        label: "Parc actif",
         value: `${activeCount}`,
         icon: <CheckCircle2 size={18} />,
         tone: styles.softMint,
       },
       {
         id: "today",
-        label: "Jour",
+        label: "Aujourd'hui",
         value: `${todayMissionCount}`,
         icon: <Clock3 size={18} />,
         tone: styles.softGold,
@@ -577,7 +578,7 @@ export default function OwnerDashboardPage() {
       },
       {
         id: "map",
-        label: "Biens",
+        label: "Logements",
         value: `${properties.length}`,
         icon: <MapPinned size={18} />,
         tone: styles.softPaper,
@@ -746,6 +747,8 @@ export default function OwnerDashboardPage() {
             value: `${activeCount}/${properties.length || 0}`,
             detail: draftCount > 0 ? `${draftCount} à revoir` : "Tous actifs",
             icon: <Building2 size={18} />,
+            statusLabel: draftCount > 0 ? "A revoir" : "Stable",
+            statusTone: draftCount > 0 ? "warning" : "success",
           },
           {
             id: "missions",
@@ -753,6 +756,8 @@ export default function OwnerDashboardPage() {
             value: `${ongoingMissions.length}`,
             detail: todayMissionCount > 0 ? `${todayMissionCount} aujourd'hui` : "Journée calme",
             icon: <CalendarDays size={18} />,
+            statusLabel: todayMissionCount > 0 ? "Aujourd'hui" : "Cadence",
+            statusTone: todayMissionCount > 0 ? "info" : "primary",
           },
           {
             id: "quotes",
@@ -760,6 +765,8 @@ export default function OwnerDashboardPage() {
             value: `${quoteAwaitingCount + pendingInvoices.length}`,
             detail: `${quoteAwaitingCount} devis · ${pendingInvoices.length} factures`,
             icon: <CircleDollarSign size={18} />,
+            statusLabel: quoteAwaitingCount + pendingInvoices.length > 0 ? "Action" : "A jour",
+            statusTone: quoteAwaitingCount + pendingInvoices.length > 0 ? "warning" : "success",
           },
           {
             id: "messages",
@@ -767,6 +774,8 @@ export default function OwnerDashboardPage() {
             value: `${unreadConversationCount}`,
             detail: unreadConversationCount > 0 ? "À lire" : "À jour",
             icon: <MessageSquareText size={18} />,
+            statusLabel: unreadConversationCount > 0 ? "A lire" : "A jour",
+            statusTone: unreadConversationCount > 0 ? "info" : "success",
           },
         ]}
         leftPrimary={
@@ -774,6 +783,7 @@ export default function OwnerDashboardPage() {
             <section className={styles.contentBlock}>
               <div className={styles.blockHeader}>
                 <h3>Missions en vue</h3>
+                <p>Les prochaines interventions et partenaires à suivre en priorité.</p>
               </div>
               {topMissionItems.length > 0 ? (
                 <div className={styles.missionHeroList}>
@@ -783,7 +793,7 @@ export default function OwnerDashboardPage() {
                         <span className={styles.missionHeroIcon}>
                           <CalendarDays size={18} />
                         </span>
-                        <span className={styles.missionHeroStatus}>{mission.status}</span>
+                        <DashboardStatusBadge label={mission.status} tone="info" className={styles.missionHeroStatus} />
                       </div>
                       <strong>{mission.title}</strong>
                       <p>{mission.partner}</p>
@@ -792,13 +802,17 @@ export default function OwnerDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className={styles.emptyListState}>Aucune mission active.</div>
+                <DashboardEmptyState
+                  title="Aucune mission active"
+                  copy="Ajoutez une nouvelle mission ou ouvrez le planning pour anticiper les prochains séjours."
+                />
               )}
             </section>
 
             <section className={styles.contentBlock}>
               <div className={styles.blockHeader}>
                 <h3>À traiter</h3>
+                <p>Devis, factures, messages et points terrain à arbitrer rapidement.</p>
               </div>
               <UnifiedSpotlightList items={priorityItems} emptyLabel="Aucun point urgent." />
             </section>
@@ -808,8 +822,13 @@ export default function OwnerDashboardPage() {
           <section className={styles.contentBlock}>
             <div className={styles.blockHeader}>
               <h3>Mes logements</h3>
+              <p>Votre parc, ses missions et les fiches à finaliser en une lecture.</p>
             </div>
-            <UnifiedPropertyPortfolio items={propertyItems} />
+            <UnifiedPropertyPortfolio
+              items={propertyItems}
+              emptyHref="/dashboard/owner/logements/create"
+              emptyLabel="Ajoutez votre premier logement pour alimenter votre cockpit propriétaire."
+            />
           </section>
         }
         mainSections={[
@@ -853,7 +872,10 @@ export default function OwnerDashboardPage() {
                     </Link>
                   ))
                 ) : (
-                  <div className={styles.emptyListState}>Aucun devis.</div>
+                  <DashboardEmptyState
+                    title="Aucun devis"
+                    copy="Les nouveaux devis reçus apparaîtront ici pour vous aider à arbitrer rapidement."
+                  />
                 )}
               </div>
             ),
@@ -882,7 +904,10 @@ export default function OwnerDashboardPage() {
                     </Link>
                   ))
                 ) : (
-                  <div className={styles.emptyListState}>Aucun message récent.</div>
+                  <DashboardEmptyState
+                    title="Aucun message récent"
+                    copy="Les échanges avec vos partenaires et conciergeries remonteront ici."
+                  />
                 )}
               </div>
             ),

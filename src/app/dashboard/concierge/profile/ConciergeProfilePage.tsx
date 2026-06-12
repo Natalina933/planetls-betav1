@@ -2397,6 +2397,7 @@ export default function ConciergeProfilePage() {
       sectionIds: {
         INFO_PERSO: SECTION_IDS.INFO_PERSO,
         PRESENTATION: SECTION_IDS.PRESENTATION,
+        INSPIRATION_VIDEOS: SECTION_IDS.INSPIRATION_VIDEOS,
       },
       setAvatarFile,
       handleSocialChange,

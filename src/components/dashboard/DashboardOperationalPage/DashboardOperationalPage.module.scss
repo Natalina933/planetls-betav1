@@ -14,6 +14,80 @@
   padding: 0.85rem 0.85rem 5.6rem;
 }
 
+.simpleHeader {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--op-border);
+  border-radius: var(--op-radius);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--op-accent) 8%, transparent), transparent 62%),
+    var(--op-bg);
+  box-shadow: var(--op-shadow);
+}
+
+.simpleCopy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.simpleBadge {
+  width: fit-content;
+  min-height: 30px;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--op-accent) 14%, transparent);
+  color: var(--op-accent-strong);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.simpleCopy h1 {
+  margin: 0;
+  color: var(--op-text);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1.08;
+}
+
+.simpleCopy p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--op-muted);
+  line-height: 1.55;
+}
+
+.simpleActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.simpleActionPrimary,
+.simpleActionSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--op-accent) 34%, var(--op-border));
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.simpleActionPrimary {
+  background: var(--op-accent);
+  color: #2b2113;
+}
+
+.simpleActionSecondary {
+  background: var(--op-bg);
+  color: var(--op-text);
+}
+
 .owner {
   --op-accent: #b85c48;
   --op-accent-strong: #7d3528;

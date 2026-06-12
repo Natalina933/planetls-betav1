@@ -17,6 +17,7 @@ import {
   FiGlobe,
   FiFile,
   FiMapPin as FiMapPinOutline,
+  FiPlayCircle,
   FiShield as FiShieldOutline,
   FiStar as FiStarOutline,
   FiTarget,
@@ -237,6 +238,96 @@ const parseOnboardingProfileDetails = (availabilityHours?: string | null): Onboa
     return empty;
   }
 };
+
+const parseAvailabilityPayloadJson = (availabilityHours?: string | null) => {
+  if (!availabilityHours) return {} as Record<string, unknown>;
+
+  try {
+    const parsed = JSON.parse(availabilityHours) as Record<string, unknown>;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const normalizeYoutubeUrl = (value: string) => value.trim();
+
+const extractYoutubeVideoId = (value: string): string | null => {
+  const raw = normalizeYoutubeUrl(value);
+  if (!raw) return null;
+
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+
+  try {
+    const url = new URL(withProtocol);
+    const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      const candidate = url.pathname.split("/").filter(Boolean)[0] ?? "";
+      return /^[a-zA-Z0-9_-]{11}$/.test(candidate) ? candidate : null;
+    }
+
+    if (host !== "youtube.com" && host !== "m.youtube.com" && host !== "music.youtube.com") {
+      return null;
+    }
+
+    const watchId = url.searchParams.get("v");
+    if (watchId && /^[a-zA-Z0-9_-]{11}$/.test(watchId)) {
+      return watchId;
+    }
+
+    const parts = url.pathname.split("/").filter(Boolean);
+    const marker = parts[0];
+    const candidate = parts[1] ?? "";
+    if (
+      (marker === "shorts" || marker === "embed" || marker === "live") &&
+      /^[a-zA-Z0-9_-]{11}$/.test(candidate)
+    ) {
+      return candidate;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+type YoutubeInspirationVideo = {
+  id: string;
+  sourceUrl: string;
+  embedUrl: string;
+  watchUrl: string;
+};
+
+const parseInspirationVideos = (availabilityHours?: string | null): YoutubeInspirationVideo[] => {
+  const payload = parseAvailabilityPayloadJson(availabilityHours);
+  const rawList = Array.isArray(payload.inspirationVideos) ? payload.inspirationVideos : [];
+  const seen = new Set<string>();
+
+  return rawList
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .map((item) => {
+      const id = extractYoutubeVideoId(item);
+      if (!id || seen.has(id)) return null;
+      seen.add(id);
+      return {
+        id,
+        sourceUrl: item.trim(),
+        embedUrl: `https://www.youtube.com/embed/${id}`,
+        watchUrl: `https://www.youtube.com/watch?v=${id}`,
+      };
+    })
+    .filter((item): item is YoutubeInspirationVideo => item !== null);
+};
+
+const buildAvailabilityHoursWithInspirationVideos = (
+  availabilityHours: string | null | undefined,
+  urls: string[],
+) =>
+  JSON.stringify({
+    ...parseAvailabilityPayloadJson(availabilityHours),
+    inspirationVideos: urls,
+  });
 type EditProfileStateLike = {
   availability_hours?: string | null;
   [key: string]: unknown;
@@ -493,6 +584,7 @@ interface FicheTabSectionProps {
     sectionIds: {
       INFO_PERSO: string;
       PRESENTATION: string;
+      INSPIRATION_VIDEOS: string;
     };
     setAvatarFile: (file: File | null) => void;
     handleSocialChange: (
@@ -560,6 +652,16 @@ interface FicheSocialSectionProps {
     value: string,
   ) => void;
   errors: Record<string, string>;
+}
+
+interface FicheInspirationVideosSectionProps {
+  styles: Record<string, string>;
+  renderSection: RenderSection;
+  editProfile: ConciergeProfileDraft;
+  editingSection: string | null;
+  beginSectionEdit: (sectionId: string) => void;
+  setEditProfile: SetEditProfile;
+  sectionId: string;
 }
 
 interface FicheStaticSidebarSectionProps {
@@ -2267,6 +2369,101 @@ function FicheSocialSection({
   );
 }
 
+function FicheInspirationVideosSection({
+  styles,
+  renderSection,
+  editProfile,
+  editingSection,
+  beginSectionEdit,
+  setEditProfile,
+  sectionId,
+}: FicheInspirationVideosSectionProps) {
+  const videos = parseInspirationVideos(editProfile.availability_hours);
+  const textareaValue = videos.map((video) => video.sourceUrl).join("\n");
+  const isEditing = editingSection === sectionId;
+
+  return renderSection(
+    "Videos d'inspiration",
+    <FiPlayCircle />,
+    <div className={styles.videoInspirationSection}>
+      <div className={styles.videoInspirationIntro}>
+        <p>
+          Collez ici vos liens YouTube pour garder des exemples de mise en scene, d'accueil, de menage ou de contenus
+          inspirants dans votre tableau de bord.
+        </p>
+        <span>Formats acceptes: `youtube.com/watch`, `youtube.com/shorts`, `youtu.be`.</span>
+      </div>
+
+      {isEditing ? (
+        <label className={styles.videoTextareaLabel}>
+          <span>Un lien par ligne</span>
+          <textarea
+            className={styles.videoTextarea}
+            rows={5}
+            value={textareaValue}
+            placeholder={
+              "https://www.youtube.com/shorts/h7PTdVaD15I\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            }
+            onChange={(event) => {
+              const nextUrls = event.target.value
+                .split(/\r?\n/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+              setEditProfile((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      availability_hours: buildAvailabilityHoursWithInspirationVideos(
+                        prev.availability_hours,
+                        nextUrls,
+                      ),
+                    }
+                  : prev,
+              );
+            }}
+          />
+        </label>
+      ) : null}
+
+      {videos.length === 0 ? (
+        <div className={styles.videoEmptyState}>
+          <strong>Aucune video pour le moment</strong>
+          <p>Ajoutez vos liens YouTube ou Shorts pour vous constituer une bibliotheque d'inspiration.</p>
+          {!isEditing ? (
+            <button type="button" className={styles.videoInlineAction} onClick={() => beginSectionEdit(sectionId)}>
+              Ajouter des videos
+            </button>
+          ) : null}
+        </div>
+      ) : (
+        <div className={styles.videoGrid}>
+          {videos.map((video) => (
+            <article key={video.id} className={styles.videoCard}>
+              <div className={styles.videoEmbedWrap}>
+                <iframe
+                  src={video.embedUrl}
+                  title={`Video YouTube ${video.id}`}
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+              <div className={styles.videoCardFooter}>
+                <span>{video.sourceUrl.includes("/shorts/") ? "Short YouTube" : "Video YouTube"}</span>
+                <a href={video.watchUrl} target="_blank" rel="noreferrer">
+                  Ouvrir sur YouTube
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>,
+    true,
+    sectionId,
+  );
+}
+
 function FicheOnboardingDetailsSection({
   styles,
   renderSection,
@@ -2415,6 +2612,8 @@ export function FicheTabSection({
   const addressReady = Boolean(streetAddress && postalCode && editProfile.location);
   const insuranceReady = Boolean(insuranceCompany || insuranceNumber || certifications);
   const socialLinksCount = [editProfile.website, editProfile.linkedin, editProfile.instagram, editProfile.facebook].filter(Boolean).length;
+  const inspirationVideos = parseInspirationVideos(editProfile.availability_hours);
+  const visibilityAssetsCount = socialLinksCount + inspirationVideos.length;
   const missingItems = completion.missingItems.slice(0, 4);
   const priorityLabel = missingItems[0] ?? "Fiche prête à publier";
   const hasAvatar = Boolean(ficheControls.avatarFile || editProfile.avatar_url);
@@ -2515,6 +2714,15 @@ export function FicheTabSection({
               : "Ajoutez un site ou un réseau professionnel si vous en avez un.",
           action: toProfileAction("Gérer", "Web___R_seaux_sociaux"),
         },
+        {
+          title: "Videos d'inspiration",
+          meta: `${inspirationVideos.length} video(s)`,
+          description:
+            inspirationVideos.length > 0
+              ? "Vos inspirations video restent consultables directement dans la fiche."
+              : "Ajoutez vos videos YouTube et Shorts de reference.",
+          action: toProfileAction("Organiser", ficheControls.sectionIds.INSPIRATION_VIDEOS),
+        },
       ],
     },
   ];
@@ -2550,10 +2758,10 @@ export function FicheTabSection({
         },
         {
           label: "Visibilité",
-          value: String(socialLinksCount),
-          hint: "Liens externes",
+          value: String(visibilityAssetsCount),
+          hint: "Liens + videos",
           detailSectionId: "visibilite",
-          href: `${profileHref}#Web___R_seaux_sociaux`,
+          href: `${profileHref}#${ficheControls.sectionIds.INSPIRATION_VIDEOS}`,
         },
       ]}
       focus={{
@@ -2598,12 +2806,12 @@ export function FicheTabSection({
         },
         {
           label: "Liens",
-          value: socialLinksCount,
-          hint: "Site et réseaux",
+          value: visibilityAssetsCount,
+          hint: "Site, réseaux, videos",
           icon: Globe2,
-          tone: socialLinksCount > 0 ? "success" : "info",
+          tone: visibilityAssetsCount > 0 ? "success" : "info",
           detailSectionId: "visibilite",
-          href: `${profileHref}#Web___R_seaux_sociaux`,
+          href: `${profileHref}#${ficheControls.sectionIds.INSPIRATION_VIDEOS}`,
         },
       ]}
       cadenceTitle="Cadence de mise à jour"
@@ -2647,6 +2855,7 @@ export function FicheTabSection({
             <Link href={`${profileHref}#Adresse_professionnelle`}>Adresse</Link>
             <Link href={`${profileHref}#Assurance___Certifications`}>Confiance</Link>
             <Link href={`${profileHref}#Web___R_seaux_sociaux`}>Visibilité</Link>
+            <Link href={`${profileHref}#${ficheControls.sectionIds.INSPIRATION_VIDEOS}`}>Videos</Link>
           </div>
         </div>
         <div className={styles.grid}>
@@ -2715,6 +2924,15 @@ export function FicheTabSection({
               beginSectionEdit={beginSectionEdit}
               handleSocialChange={ficheControls.handleSocialChange}
               errors={ficheControls.errors}
+            />
+            <FicheInspirationVideosSection
+              styles={styles}
+              renderSection={renderSection}
+              editProfile={editProfile}
+              editingSection={editingSection}
+              beginSectionEdit={beginSectionEdit}
+              setEditProfile={setEditProfile}
+              sectionId={ficheControls.sectionIds.INSPIRATION_VIDEOS}
             />
           </section>
         </div>

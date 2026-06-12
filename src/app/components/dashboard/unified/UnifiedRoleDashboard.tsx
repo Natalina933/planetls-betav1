@@ -11,6 +11,12 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
+import {
+  DashboardMetricCard,
+  DashboardSection,
+  DashboardStatusBadge,
+  type DashboardStatusTone,
+} from "@/app/components/dashboard/saas";
 import styles from "./UnifiedRoleDashboard.module.scss";
 
 type DashboardRole = "owner" | "concierge" | "artisan";
@@ -21,6 +27,8 @@ interface DashboardKpi {
   value: string;
   detail: string;
   icon?: ReactNode;
+  statusLabel?: string;
+  statusTone?: DashboardStatusTone;
 }
 
 interface DashboardAction {
@@ -125,34 +133,6 @@ function ActionButton({ action }: { action: DashboardAction }) {
   );
 }
 
-function DashboardPanel({
-  eyebrow,
-  title,
-  description,
-  children,
-  aside,
-}: {
-  eyebrow: string;
-  title: string;
-  description?: string;
-  children: ReactNode;
-  aside?: ReactNode;
-}) {
-  return (
-    <section className={styles.panelCard}>
-      <header className={styles.panelHeader}>
-        <div>
-          <p className={styles.panelEyebrow}>{eyebrow}</p>
-          <h2>{title}</h2>
-          {description ? <p className={styles.panelDescription}>{description}</p> : null}
-        </div>
-        {aside ? <div className={styles.panelAside}>{aside}</div> : null}
-      </header>
-      <div className={styles.panelBody}>{children}</div>
-    </section>
-  );
-}
-
 export default function UnifiedRoleDashboard({
   role,
   title,
@@ -186,11 +166,17 @@ export default function UnifiedRoleDashboard({
               <p>{subtitle}</p>
             </div>
             <div className={styles.heroBadges}>
-              <span className={styles.experienceBadge}>
-                <Sparkles size={14} />
-                {experienceBadge}
-              </span>
-              <span className={styles.statusBadge}>{statusLabel}</span>
+              <DashboardStatusBadge
+                label={experienceBadge}
+                tone="info"
+                icon={<Sparkles size={14} />}
+                className={styles.experienceBadge}
+              />
+              <DashboardStatusBadge
+                label={statusLabel}
+                tone="primary"
+                className={styles.statusBadge}
+              />
             </div>
           </div>
           <p className={styles.heroLead}>{roleMeta.lead}</p>
@@ -205,67 +191,64 @@ export default function UnifiedRoleDashboard({
 
       <section className={styles.kpiSection} aria-label="Indicateurs principaux">
         {kpis.slice(0, 4).map((kpi, index) => (
-          <article key={kpi.id} className={styles.kpiCard}>
-            <div className={styles.kpiIcon}>
-              {kpi.icon ?? DEFAULT_KPI_ICONS[index] ?? <BriefcaseBusiness size={24} />}
-            </div>
-            <div className={styles.kpiContent}>
-              <span>{kpi.label}</span>
-              <strong>{kpi.value}</strong>
-              <p>{kpi.detail}</p>
-            </div>
-          </article>
+          <DashboardMetricCard
+            key={kpi.id}
+            label={kpi.label}
+            value={kpi.value}
+            detail={kpi.detail}
+            icon={kpi.icon ?? DEFAULT_KPI_ICONS[index] ?? <BriefcaseBusiness size={24} />}
+            statusLabel={kpi.statusLabel}
+            statusTone={kpi.statusTone}
+          />
         ))}
       </section>
 
       <section className={styles.dashboardGrid}>
         <div className={styles.mainColumn}>
-          <DashboardPanel
+          <DashboardSection
             eyebrow="Pilotage métier"
             title="Vue principale"
             description={roleMeta.quickNote}
             aside={
-              <span className={styles.frameBadge}>
-                <MapPinned size={14} />
-                Lecture unifiée
-              </span>
+              <DashboardStatusBadge label="Lecture unifiee" tone="primary" icon={<MapPinned size={14} />} />
             }
           >
             {leftPrimary}
-          </DashboardPanel>
+          </DashboardSection>
 
           {mapModule ? (
-            <DashboardPanel
+            <DashboardSection
               eyebrow="Territoire & missions"
               title="Couverture géographique"
               description="Le sélecteur géographique et la cartographie restent visibles sans rompre la continuité visuelle."
             >
               {mapModule}
-            </DashboardPanel>
+            </DashboardSection>
           ) : null}
 
           {leftSecondary ? (
-            <DashboardPanel
-              eyebrow="Compléments"
+            <DashboardSection
+              eyebrow="Complements"
               title="Historique et modules contextuels"
-              description="Les informations secondaires sont présentes mais hiérarchisées pour éviter la surcharge cognitive."
+              description="Les informations secondaires sont presentes mais hierarchisees pour eviter la surcharge cognitive."
             >
               {leftSecondary}
-            </DashboardPanel>
+            </DashboardSection>
           ) : null}
 
           {mainSections.map((section) => (
-            <DashboardPanel key={section.id} eyebrow="Repère visuel" title={section.title} description={section.subtitle}>
+            <DashboardSection key={section.id} eyebrow="Repere visuel" title={section.title} description={section.subtitle}>
               {section.content}
-            </DashboardPanel>
+            </DashboardSection>
           ))}
         </div>
 
         <aside className={styles.sidebarColumn}>
-          <DashboardPanel
-            eyebrow="Réglages rapides"
+          <DashboardSection
+            eyebrow="Reglages rapides"
             title="Pilotage opérationnel"
-            description="Les actions fréquentes restent à portée de main, avec détails avancés révélés à la demande."
+            description="Les actions frequentes restent a portee de main, avec details avances reveles a la demande."
+            muted
           >
             <div className={styles.sidebarStack}>
               {pricingModule ? (
@@ -312,7 +295,7 @@ export default function UnifiedRoleDashboard({
                 </div>
               ) : null}
             </div>
-          </DashboardPanel>
+          </DashboardSection>
         </aside>
       </section>
     </main>

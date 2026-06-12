@@ -1,0 +1,223 @@
+.surface {
+  --dashboard-color-primary: var(--color-primary, #11845b);
+  --dashboard-color-primary-strong: var(--dashboard-color-primary-strong, #0d6a49);
+  --dashboard-color-success: var(--color-success, #1f8b4d);
+  --dashboard-color-warning: var(--color-warning, #d48a1f);
+  --dashboard-color-danger: var(--color-danger, #d64545);
+  --dashboard-color-info: var(--color-info, #2f7cf6);
+  --dashboard-color-bg: var(--color-bg, #f4f7f6);
+  --dashboard-color-surface: var(--color-surface, #ffffff);
+  --dashboard-color-surface-alt: #f8fbfa;
+  --dashboard-color-text: var(--color-text, #18251f);
+  --dashboard-color-text-soft: #607067;
+  --dashboard-color-border: rgba(17, 132, 91, 0.14);
+  --dashboard-radius-lg: var(--radius-lg, 24px);
+  --dashboard-radius-md: 18px;
+  --dashboard-radius-sm: 14px;
+  --dashboard-shadow-soft: var(--shadow-soft, 0 18px 42px rgba(17, 37, 29, 0.08));
+
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--dashboard-color-border);
+  border-radius: var(--dashboard-radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 250, 0.94)),
+    var(--dashboard-color-surface);
+  box-shadow: var(--dashboard-shadow-soft);
+}
+
+.surfaceMuted {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 247, 0.94)),
+    var(--dashboard-color-surface-alt);
+}
+
+.sectionCard {
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sectionTitleWrap {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--dashboard-color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--dashboard-color-text);
+  font-size: clamp(1.1rem, 1.9vw, 1.45rem);
+  line-height: 1.1;
+  font-family: var(--ds-font-heading, var(--font-primary, "Segoe UI", sans-serif));
+  font-weight: 700;
+}
+
+.sectionDescription {
+  margin: 0;
+  color: var(--dashboard-color-text-soft);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.metricCard {
+  display: grid;
+  gap: 0.7rem;
+  min-height: 132px;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--dashboard-color-border);
+  background:
+    radial-gradient(circle at top right, rgba(17, 132, 91, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 249, 0.94)),
+    var(--dashboard-color-surface);
+  box-shadow: 0 12px 28px rgba(17, 37, 29, 0.06);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.metricCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 32px rgba(17, 37, 29, 0.1);
+}
+
+.metricTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.metricIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 16px;
+  background: rgba(17, 132, 91, 0.1);
+  color: var(--dashboard-color-primary-strong);
+}
+
+.metricStatus {
+  flex: 0 0 auto;
+}
+
+.metricLabel {
+  margin: 0;
+  color: var(--dashboard-color-text-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metricValue {
+  margin: 0;
+  color: var(--dashboard-color-text);
+  font-size: clamp(1.6rem, 2.4vw, 2rem);
+  line-height: 0.98;
+  font-family: var(--ds-font-heading, var(--font-primary, "Segoe UI", sans-serif));
+  font-weight: 700;
+}
+
+.metricDetail {
+  margin: 0;
+  color: var(--dashboard-color-text-soft);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 30px;
+  padding: 0.24rem 0.58rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.statusDefault {
+  background: rgba(96, 112, 103, 0.12);
+  color: #516159;
+}
+
+.statusSuccess {
+  background: rgba(31, 139, 77, 0.12);
+  color: #1f8b4d;
+}
+
+.statusWarning {
+  background: rgba(212, 138, 31, 0.14);
+  color: #a56512;
+}
+
+.statusDanger {
+  background: rgba(214, 69, 69, 0.12);
+  color: #c63838;
+}
+
+.statusInfo {
+  background: rgba(47, 124, 246, 0.12);
+  color: #2f7cf6;
+}
+
+.statusPrimary {
+  background: rgba(17, 132, 91, 0.12);
+  color: var(--dashboard-color-primary-strong);
+}
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  min-height: 120px;
+  padding: 1rem;
+  border: 1px dashed var(--dashboard-color-border);
+  border-radius: var(--dashboard-radius-md);
+  background: rgba(248, 251, 250, 0.82);
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--dashboard-color-text);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.emptyCopy {
+  margin: 0;
+  color: var(--dashboard-color-text-soft);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 44ch;
+}
+
+@media (max-width: 720px) {
+  .sectionHeader,
+  .metricTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

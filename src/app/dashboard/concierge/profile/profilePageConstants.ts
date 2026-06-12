@@ -30,6 +30,7 @@ export const SECTION_IDS = {
   PRESENTATION: normalizeSectionId("Presentation de la conciergerie"),
   SERVICES_ZONE: normalizeSectionId("Services & Zone d'intervention"),
   TARIFS: normalizeSectionId("Ma grille tarifaire"),
+  INSPIRATION_VIDEOS: normalizeSectionId("Videos d'inspiration"),
 } as const;
 
 export const TARIFF_SECTION_IDS = {
