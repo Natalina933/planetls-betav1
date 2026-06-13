@@ -7,8 +7,9 @@ import { resolveUserRole } from "@/app/utils/roles";
 import { logAuthDebug } from "@/server/logging/authDebug";
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    "build-time-placeholder-service-role-key",
 );
 
 const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
@@ -28,7 +29,9 @@ const maskEmail = (email: string | null | undefined): string => {
   }
 
   const visibleLocal =
-    localPart.length <= 2 ? `${localPart.charAt(0)}*` : `${localPart.slice(0, 2)}***`;
+    localPart.length <= 2
+      ? `${localPart.charAt(0)}*`
+      : `${localPart.slice(0, 2)}***`;
   return `${visibleLocal}@${domainPart}`;
 };
 
@@ -68,10 +71,11 @@ const providers: NextAuthConfig["providers"] = [
           email: maskEmail(String(credentials.email)),
         });
 
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-          email: credentials.email as string,
-          password: credentials.password as string,
-        });
+        const { data: authData, error } =
+          await supabase.auth.signInWithPassword({
+            email: credentials.email as string,
+            password: credentials.password as string,
+          });
 
         if (error || !authData.user) {
           logAuthDebug("[NextAuth][credentials] Supabase auth rejected", {
@@ -103,7 +107,8 @@ const providers: NextAuthConfig["providers"] = [
           return null;
         }
 
-        const role: UserRole = resolveUserRole(profile.role, profile.category) ?? "owner";
+        const role: UserRole =
+          resolveUserRole(profile.role, profile.category) ?? "owner";
         const fullName =
           profile.first_name && profile.last_name
             ? `${profile.first_name} ${profile.last_name}`
@@ -112,7 +117,9 @@ const providers: NextAuthConfig["providers"] = [
         return {
           id: profile.id,
           email: profile.email,
-          emailVerified: profile.email_confirmed_at ? new Date(profile.email_confirmed_at) : null,
+          emailVerified: profile.email_confirmed_at
+            ? new Date(profile.email_confirmed_at)
+            : null,
           username: profile.username || null,
           name: fullName,
           firstName: profile.first_name || null,
@@ -145,13 +152,19 @@ if (googleClientId && googleClientSecret) {
 }
 
 export const authOptions: NextAuthConfig = {
-  session: { strategy: "jwt", maxAge: sessionMaxAgeSeconds, updateAge: 60 * 30 },
+  session: {
+    strategy: "jwt",
+    maxAge: sessionMaxAgeSeconds,
+    updateAge: 60 * 30,
+  },
   jwt: { maxAge: sessionMaxAgeSeconds },
   useSecureCookies: isProduction,
   providers,
   cookies: {
     sessionToken: {
-      name: isProduction ? "__Secure-authjs.session-token" : "authjs.session-token",
+      name: isProduction
+        ? "__Secure-authjs.session-token"
+        : "authjs.session-token",
       options: {
         httpOnly: true,
         sameSite: "lax",

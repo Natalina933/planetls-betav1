@@ -590,6 +590,11 @@
   border: 1px solid color-mix(in srgb, var(--kit-accent) 24%, transparent);
   border-radius: 18px;
   background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--kit-accent) 10%, white),
+      rgba(255, 255, 255, 0.88)
+    ),
     linear-gradient(180deg, color-mix(in srgb, var(--kit-accent) 10%, white), rgba(255, 255, 255, 0.88)),
     #ffffff;
   box-shadow: 0 14px 30px rgba(25, 44, 36, 0.055);
@@ -1034,6 +1039,244 @@
 
 @media (max-width: 680px) {
   .ownerReviewPanelPreview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sourceMapGrid,
+.popupReferenceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.sourceMapCard,
+.popupReferenceCard {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.sourceMapCard strong {
+  color: #20302a;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.sourceMapCard p {
+  margin: 0;
+  color: #62746b;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.popupReferenceTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.popupReferenceTopbar span {
+  color: #7a6a48;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.popupReferenceWindow {
+  position: relative;
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 252, 247, 0.96),
+      rgba(244, 249, 246, 0.92)
+    ),
+    #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgba(147, 112, 50, 0.12),
+    0 12px 26px rgba(25, 44, 36, 0.06);
+}
+
+.popupReferenceWindow button {
+  position: absolute;
+  top: 0.72rem;
+  right: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(32, 48, 42, 0.08);
+  color: #20302a;
+  font-weight: 900;
+}
+
+.popupReferenceWindow h3,
+.popupReferenceWindow p {
+  margin: 0;
+}
+
+.popupReferenceWindow h3 {
+  max-width: calc(100% - 2rem);
+  color: #1d2d26;
+  font-size: 1rem;
+}
+
+.popupReferenceWindow p:not(.eyebrow) {
+  color: #63746b;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.popupOptionPreview {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.popupOptionPreview span {
+  display: block;
+  padding: 0.52rem 0.62rem;
+  border: 1px solid rgba(147, 112, 50, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #53645c;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.popupActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.popupActionRow span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0.34rem 0.7rem;
+  border-radius: 999px;
+  background: #20302a;
+  color: #fffaf3;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+@media (max-width: 1100px) {
+  .sourceMapGrid,
+  .popupReferenceGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.serviceCatalogGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.serviceCatalogGroup {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  max-height: 520px;
+  overflow: auto;
+  padding: 0.85rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(248, 250, 247, 0.78)
+    ),
+    #ffffff;
+}
+
+.serviceCatalogHeader,
+.serviceCatalogItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.66rem;
+}
+
+.serviceCatalogHeader {
+  position: sticky;
+  top: -0.85rem;
+  z-index: 1;
+  margin: -0.85rem -0.85rem 0;
+  padding: 0.85rem;
+  border-bottom: 1px solid rgba(35, 67, 55, 0.1);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.serviceCatalogHeader > span,
+.serviceCatalogItem > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(39, 87, 68, 0.08);
+  color: #244f3d;
+}
+
+.serviceCatalogHeader > span {
+  width: 54px;
+  height: 54px;
+}
+
+.serviceCatalogItem > span {
+  width: 42px;
+  height: 42px;
+}
+
+.serviceCatalogHeader div,
+.serviceCatalogItem div {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.serviceCatalogHeader strong,
+.serviceCatalogItem strong {
+  color: #1d2d26;
+  font-size: 0.9rem;
+}
+
+.serviceCatalogList {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.serviceCatalogItem {
+  padding: 0.62rem;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.serviceCatalogItem p {
+  margin: 0;
+  color: #66766e;
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
+@media (max-width: 1100px) {
+  .serviceCatalogGrid {
     grid-template-columns: 1fr;
   }
 }
