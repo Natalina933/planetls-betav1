@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { readFile, readdir } from "fs/promises";
+import { readdir } from "fs/promises";
 import path from "path";
 import Image from "next/image";
 import {
@@ -186,113 +187,6 @@ const OWNER_HOUSING_REVIEW_STEPS = [
   },
 ];
 
-const POPUP_VISUAL_REFERENCES = [
-  {
-    name: "OnboardingExperiencePopup",
-    source: "src/app/components/popups/ExperiencePopup/ExperiencePopup.tsx",
-    route: "/complete-registration",
-    title: "Étape 2/5 - Votre expérience",
-    detail:
-      "Choix du niveau débutant, intermédiaire ou expérimenté par profil.",
-    actions: ["Retour", "Continuer"],
-  },
-  {
-    name: "OnboardingCategoryPopup",
-    source: "src/app/components/popups/CategoryPopup/CategoryPopup.tsx",
-    route: "/complete-registration",
-    title: "Quels services recherchez-vous ?",
-    detail:
-      "Sélection des services, objectifs owner et mode simple / express / business.",
-    actions: ["Retour", "Continuer"],
-  },
-  {
-    name: "OnboardingAccessPopup",
-    source: "src/app/components/popups/AccessPopup/AccessPopup.tsx",
-    route: "/complete-registration",
-    title: "Étape 4/5 - Vos coordonnées",
-    detail:
-      "Formulaire final avec coordonnées, activité, rayon, besoin, outils et préférences.",
-    actions: ["Retour", "Valider"],
-  },
-  {
-    name: "MobileAccountPopup",
-    source: "src/app/complete-registration/CompleteRegistrationPage.tsx",
-    route: "/complete-registration",
-    title: "Finalisez votre compte",
-    detail:
-      "Popup mobile pour terminer la création du compte sans perdre le parcours.",
-    actions: ["Plus tard", "Continuer"],
-  },
-  {
-    name: "AvatarUploadModal",
-    source: "src/app/components/ui/AvatarUpload/AvatarUpload.tsx",
-    route: "Profils / paramètres",
-    title: "Personnaliser l’avatar",
-    detail:
-      "Modale de recadrage avec upload, zoom, déplacement, rotation, suppression et enregistrement.",
-    actions: ["Annuler", "Supprimer", "Enregistrer"],
-  },
-  {
-    name: "ConciergeNextStepsPopup",
-    source: "src/app/dashboard/concierge/NextStepsPopup.tsx",
-    route: "/dashboard/concierge",
-    title: "Prochaines étapes",
-    detail:
-      "Plan personnalisé post-onboarding avec actions à compléter et visuels d’illustration.",
-    actions: ["Fermer"],
-  },
-  {
-    name: "MapSearchPopup",
-    source: "src/app/components/layout/MapPopup/MapPopup.tsx",
-    route: "/home",
-    title: "Recherche carte",
-    detail:
-      "Popup de recherche géolocalisée avec carte et fermeture par Escape.",
-    actions: ["Fermer", "Rechercher"],
-  },
-  {
-    name: "LeafletMarkerPopup",
-    source: "src/app/components/MapWithList/MapWithList.tsx",
-    route: "Cartes avec liste",
-    title: "Popup marqueur carte",
-    detail:
-      "Infobulle Leaflet affichée sur un marqueur de carte avec titre, adresse et action.",
-    actions: ["Voir"],
-  },
-];
-
-const OWNER_LOGEMENTS_SOURCE_ELEMENTS = [
-  {
-    name: "OwnerLogementsPage",
-    source: "src/app/dashboard/owner/logements/page.tsx",
-    usage:
-      "Route réelle /dashboard/owner/logements qui injecte HousingListPage en persona owner.",
-  },
-  {
-    name: "HousingListPage",
-    source: "src/app/components/dashboard/housing/HousingListPage.tsx",
-    usage:
-      "Composant partagé owner / concierge, charge /api/housing et construit les stats.",
-  },
-  {
-    name: "renderOwnerHousingCards",
-    source: "HousingListPage.tsx",
-    usage:
-      "Rendu réel des cartes logement propriétaire avec image, statut, ville, capacité et checklist.",
-  },
-  {
-    name: "OwnerLogementsPage.module.scss",
-    source: "src/app/dashboard/owner/logements/OwnerLogementsPage.module.scss",
-    usage: "Styles historiques de la page owner logements.",
-  },
-  {
-    name: "HousingListPage.module.scss",
-    source: "src/app/components/dashboard/housing/HousingListPage.module.scss",
-    usage:
-      "Styles réels des cartes owner, du panneau à revoir, des filtres et de la checklist.",
-  },
-];
-
 const ROLE_VISUAL_GROUPS = [
   {
     id: "common",
@@ -403,48 +297,6 @@ const ROLE_VISUAL_GROUPS = [
     ],
   },
 ];
-
-type VisualServiceCatalogItem = {
-  id: string;
-  category: string;
-  service: string;
-  description: string;
-};
-
-type VisualServiceCatalogGroup = {
-  category: string;
-  services: VisualServiceCatalogItem[];
-};
-
-function decodeSqlText(value: string) {
-  return value.replace(/''/g, "'");
-}
-
-async function getServiceCatalogGroups(): Promise<VisualServiceCatalogGroup[]> {
-  const sql = await readFile(SERVICES_CATALOG_SQL, "utf8");
-  const rows = [
-    ...sql.matchAll(
-      /\('([^']+)', '((?:''|[^'])*)', '((?:''|[^'])*)', '((?:''|[^'])*)'/g,
-    ),
-  ].map(([, id, category, service, description]) => ({
-    id,
-    category: decodeSqlText(category),
-    service: decodeSqlText(service),
-    description: decodeSqlText(description),
-  }));
-  const groups = new Map<string, VisualServiceCatalogItem[]>();
-
-  rows.forEach((row) => {
-    const services = groups.get(row.category) ?? [];
-    services.push(row);
-    groups.set(row.category, services);
-  });
-
-  return [...groups.entries()].map(([category, services]) => ({
-    category,
-    services,
-  }));
-}
 
 function getPieSegments(slices: VisualKitSlice[]) {
   const total = slices.reduce((sum, slice) => sum + slice.value, 0);
@@ -618,6 +470,554 @@ export default async function VisualReferencePage() {
                   </span>
                 </div>
               )}
+            </article>
+          ))}
+        </div>
+      </section>
+
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Kits profils réels</p>
+            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
+          </div>
+          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
+        </div>
+
+        <div className={styles.profileKitGrid}>
+          {PROFILE_VISUAL_KITS.map((kit) => (
+            <article key={kit.id} className={styles.profileKitCard} style={{ "--kit-accent": kit.accent } as CSSProperties}>
+              <div className={styles.profileKitHead}>
+                <Image src={kit.image} alt="" width={86} height={86} className={styles.profileKitImage} unoptimized />
+                <div>
+                  <p className={styles.eyebrow}>{kit.id}</p>
+                  <h3>{kit.title}</h3>
+                  <p>{kit.persona}</p>
+                </div>
+              </div>
+
+              <div className={styles.profileKitSurfaces}>
+                {kit.surfaces.map((surface) => (
+                  <div key={`${kit.id}-${surface.label}`} className={styles.profileKitSurface}>
+                    <strong>{surface.label}</strong>
+                    <p>{surface.description}</p>
+                    <code>{surface.token}</code>
+                    <span>{surface.usage}</span>
+                  </div>
+                ))}
+              </div>
+
+              {kit.charts.map((chart) => (
+                <div key={chart.title} className={styles.profileKitChart}>
+                  <VisualPieChart slices={chart.slices} label={chart.title} />
+                  <div>
+                    <strong>{chart.title}</strong>
+                    <p>{chart.description}</p>
+                    <ul>
+                      {chart.slices.map((slice) => (
+                        <li key={slice.label}>
+                          <span style={{ background: slice.color }} />
+                          {slice.label} <b>{slice.value}%</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Couleurs & typos</p>
+            <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
+          </div>
+          <code>variables.css + profileVisualKit.ts</code>
+        </div>
+        <div className={styles.tokenGroupGrid}>
+          {DESIGN_TOKEN_GROUPS.map((group) => (
+            <article key={group.title} className={styles.tokenGroup}>
+              <h3>{group.title}</h3>
+              {group.items.map((token) => (
+                <div key={token.name} className={styles.tokenRow}>
+                  <span
+                    className={styles.tokenSwatch}
+                    style={{
+                      background: token.value.startsWith("#")
+                        ? token.value
+                        : undefined,
+                    }}
+                  />
+                  <div>
+                    <code>{token.name}</code>
+                    <strong>{token.value}</strong>
+                    <p>{token.usage}</p>
+                  </div>
+                </div>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Kits profils réels</p>
+            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
+          </div>
+          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
+        </div>
+
+        <div className={styles.profileKitGrid}>
+          {PROFILE_VISUAL_KITS.map((kit) => (
+            <article
+              key={kit.id}
+              className={styles.profileKitCard}
+              style={{ "--kit-accent": kit.accent } as CSSProperties}
+            >
+              <div className={styles.profileKitHead}>
+                <Image
+                  src={kit.image}
+                  alt=""
+                  width={86}
+                  height={86}
+                  className={styles.profileKitImage}
+                  unoptimized
+                />
+                <div>
+                  <p className={styles.eyebrow}>{kit.id}</p>
+                  <h3>{kit.title}</h3>
+                  <p>{kit.persona}</p>
+                </div>
+              </div>
+
+              <div className={styles.profileKitTokens}>
+                <div>
+                  <strong>Couleurs nommées</strong>
+                  {kit.colors.map((token) => (
+                    <span key={token.name}>
+                      <i style={{ background: token.value }} />{" "}
+                      <code>{token.name}</code> {token.value}
+                    </span>
+                  ))}
+                </div>
+                <div>
+                  <strong>Typos nommées</strong>
+                  {kit.typography.map((token) => (
+                    <span key={token.name}>
+                      <code>{token.name}</code> {token.value}
+                    </span>
+                  ))}
+                </div>
+                <div>
+                  <strong>Éléments nommés</strong>
+                  {kit.components.map((component) => (
+                    <span key={component.name}>
+                      <code>{component.name}</code> {component.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.profileKitSurfaces}>
+                {kit.surfaces.map((surface) => (
+                  <div
+                    key={`${kit.id}-${surface.label}`}
+                    className={styles.profileKitSurface}
+                  >
+                    <strong>{surface.label}</strong>
+                    <p>{surface.description}</p>
+                    <code>{surface.token}</code>
+                    <span>{surface.usage}</span>
+                  </div>
+                ))}
+              </div>
+
+              {kit.charts.map((chart) => (
+                <div key={chart.title} className={styles.profileKitChart}>
+                  <VisualPieChart slices={chart.slices} label={chart.title} />
+                  <div>
+                    <strong>{chart.title}</strong>
+                    <p>{chart.description}</p>
+                    <ul>
+                      {chart.slices.map((slice) => (
+                        <li key={slice.label}>
+                          <span style={{ background: slice.color }} />
+                          {slice.label} <b>{slice.value}%</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section} id="owner-logements-reference">
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Page réelle owner</p>
+            <h2>Visuels de /dashboard/owner/logements</h2>
+          </div>
+          <code>HousingListPage + HousingListPage.module.scss</code>
+        </div>
+
+        <div className={styles.namedElementGrid}>
+          {OWNER_LOGEMENTS_VISUALS.map((card) => (
+            <article key={card.name} className={styles.namedElementCard}>
+              <code>{card.name}</code>
+              <MetricDonut
+                label={card.label}
+                value={card.value}
+                detail={card.detail}
+                percent={card.percent}
+              />
+            </article>
+          ))}
+        </div>
+
+        <div className={styles.ownerLogementPreview}>
+          <div className={styles.ownerReviewPanelPreview}>
+            <span className={styles.ownerPreviewIcon}>
+              <AlertTriangle size={22} />
+            </span>
+            <div>
+              <code>OwnerHousingReviewPanel</code>
+              <strong>1 logement à revoir</strong>
+              <p>
+                Ouvrez le premier logement, complétez les points signalés, puis
+                revenez ici pour vérifier que la liste diminue.
+              </p>
+            </div>
+            <span className={styles.ownerPreviewAction}>Commencer</span>
+          </div>
+
+          <article className={styles.ownerHousingCardPreview}>
+            <div className={styles.ownerHousingImagePreview}>
+              <Image
+                src="/images/default-logement.png"
+                alt="Aperçu logement"
+                width={420}
+                height={260}
+                unoptimized
+              />
+              <span className={styles.ownerStatusPreview}>À revoir</span>
+              <span className={styles.ownerCityPreview}>Paris</span>
+            </div>
+            <div className={styles.ownerHousingBodyPreview}>
+              <code>OwnerHousingCard</code>
+              <p className={styles.ownerHousingEyebrowPreview}>Appartement</p>
+              <h3>Appartement exemple</h3>
+              <span className={styles.ownerCapacityPreview}>
+                Capacité maximale · 4 personnes
+              </span>
+              <p>
+                Carte utilisée sur la page logements propriétaire : image,
+                statut, ville, capacité, équipements et checklist de correction.
+              </p>
+              <div className={styles.ownerEquipmentPreview}>
+                <span>Wifi</span>
+                <span>Linge</span>
+                <span>Climatisation</span>
+              </div>
+              <div className={styles.ownerChecklistPreview}>
+                <strong>Éléments nommés dans la checklist</strong>
+                {OWNER_HOUSING_REVIEW_STEPS.map((step, index) => (
+                  <div key={step.name}>
+                    <span>{index + 1}</span>
+                    <div>
+                      <code>{step.name}</code>
+                      <b>{step.label}</b>
+                      <p>{step.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Couleurs & typos</p>
+            <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
+          </div>
+          <code>variables.css + profileVisualKit.ts</code>
+        </div>
+        <div className={styles.tokenGroupGrid}>
+          {DESIGN_TOKEN_GROUPS.map((group) => (
+            <article key={group.title} className={styles.tokenGroup}>
+              <h3>{group.title}</h3>
+              {group.items.map((token) => (
+                <div key={token.name} className={styles.tokenRow}>
+                  <span
+                    className={styles.tokenSwatch}
+                    style={{
+                      background: token.value.startsWith("#")
+                        ? token.value
+                        : undefined,
+                    }}
+                  />
+                  <div>
+                    <code>{token.name}</code>
+                    <strong>{token.value}</strong>
+                    <p>{token.usage}</p>
+                  </div>
+                </div>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Kits profils réels</p>
+            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
+          </div>
+          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
+        </div>
+
+        <div className={styles.profileKitGrid}>
+          {PROFILE_VISUAL_KITS.map((kit) => (
+            <article
+              key={kit.id}
+              className={styles.profileKitCard}
+              style={{ "--kit-accent": kit.accent } as CSSProperties}
+            >
+              <div className={styles.profileKitHead}>
+                <Image
+                  src={kit.image}
+                  alt=""
+                  width={86}
+                  height={86}
+                  className={styles.profileKitImage}
+                  unoptimized
+                />
+                <div>
+                  <p className={styles.eyebrow}>{kit.id}</p>
+                  <h3>{kit.title}</h3>
+                  <p>{kit.persona}</p>
+                </div>
+              </div>
+
+              <div className={styles.profileKitTokens}>
+                <div>
+                  <strong>Couleurs nommées</strong>
+                  {kit.colors.map((token) => (
+                    <span key={token.name}>
+                      <i style={{ background: token.value }} />{" "}
+                      <code>{token.name}</code> {token.value}
+                    </span>
+                  ))}
+                </div>
+                <div>
+                  <strong>Typos nommées</strong>
+                  {kit.typography.map((token) => (
+                    <span key={token.name}>
+                      <code>{token.name}</code> {token.value}
+                    </span>
+                  ))}
+                </div>
+                <div>
+                  <strong>Éléments nommés</strong>
+                  {kit.components.map((component) => (
+                    <span key={component.name}>
+                      <code>{component.name}</code> {component.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.profileKitSurfaces}>
+                {kit.surfaces.map((surface) => (
+                  <div
+                    key={`${kit.id}-${surface.label}`}
+                    className={styles.profileKitSurface}
+                  >
+                    <strong>{surface.label}</strong>
+                    <p>{surface.description}</p>
+                    <code>{surface.token}</code>
+                    <span>{surface.usage}</span>
+                  </div>
+                ))}
+              </div>
+
+              {kit.charts.map((chart) => (
+                <div key={chart.title} className={styles.profileKitChart}>
+                  <VisualPieChart slices={chart.slices} label={chart.title} />
+                  <div>
+                    <strong>{chart.title}</strong>
+                    <p>{chart.description}</p>
+                    <ul>
+                      {chart.slices.map((slice) => (
+                        <li key={slice.label}>
+                          <span style={{ background: slice.color }} />
+                          {slice.label} <b>{slice.value}%</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section} id="owner-logements-reference">
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Page réelle owner</p>
+            <h2>Visuels de /dashboard/owner/logements</h2>
+          </div>
+          <code>HousingListPage + HousingListPage.module.scss</code>
+        </div>
+
+        <div className={styles.namedElementGrid}>
+          {OWNER_LOGEMENTS_VISUALS.map((card) => (
+            <article key={card.name} className={styles.namedElementCard}>
+              <code>{card.name}</code>
+              <MetricDonut
+                label={card.label}
+                value={card.value}
+                detail={card.detail}
+                percent={card.percent}
+              />
+            </article>
+          ))}
+        </div>
+
+        <div className={styles.ownerLogementPreview}>
+          <div className={styles.ownerReviewPanelPreview}>
+            <span className={styles.ownerPreviewIcon}>
+              <AlertTriangle size={22} />
+            </span>
+            <div>
+              <code>OwnerHousingReviewPanel</code>
+              <strong>1 logement à revoir</strong>
+              <p>
+                Ouvrez le premier logement, complétez les points signalés, puis
+                revenez ici pour vérifier que la liste diminue.
+              </p>
+            </div>
+            <span className={styles.ownerPreviewAction}>Commencer</span>
+          </div>
+
+          <article className={styles.ownerHousingCardPreview}>
+            <div className={styles.ownerHousingImagePreview}>
+              <Image
+                src="/images/default-logement.png"
+                alt="Aperçu logement"
+                width={420}
+                height={260}
+                unoptimized
+              />
+              <span className={styles.ownerStatusPreview}>À revoir</span>
+              <span className={styles.ownerCityPreview}>Paris</span>
+            </div>
+            <div className={styles.ownerHousingBodyPreview}>
+              <code>OwnerHousingCard</code>
+              <p className={styles.ownerHousingEyebrowPreview}>Appartement</p>
+              <h3>Appartement exemple</h3>
+              <span className={styles.ownerCapacityPreview}>
+                Capacité maximale · 4 personnes
+              </span>
+              <p>
+                Carte utilisée sur la page logements propriétaire : image,
+                statut, ville, capacité, équipements et checklist de correction.
+              </p>
+              <div className={styles.ownerEquipmentPreview}>
+                <span>Wifi</span>
+                <span>Linge</span>
+                <span>Climatisation</span>
+              </div>
+              <div className={styles.ownerChecklistPreview}>
+                <strong>Éléments nommés dans la checklist</strong>
+                {OWNER_HOUSING_REVIEW_STEPS.map((step, index) => (
+                  <div key={step.name}>
+                    <span>{index + 1}</span>
+                    <div>
+                      <code>{step.name}</code>
+                      <b>{step.label}</b>
+                      <p>{step.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className={styles.section} id="owner-logements-source-map">
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Sources page réelle</p>
+            <h2>Tout ce qui compose /dashboard/owner/logements</h2>
+          </div>
+          <code>route + composant partagé + styles owner</code>
+        </div>
+        <div className={styles.sourceMapGrid}>
+          {OWNER_LOGEMENTS_SOURCE_ELEMENTS.map((item) => (
+            <article key={item.name} className={styles.sourceMapCard}>
+              <code>{item.name}</code>
+              <strong>{item.source}</strong>
+              <p>{item.usage}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.section} id="popup-reference">
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Popups & modales utilisées</p>
+            <h2>Inventaire visuel nommé des fenêtres à réutiliser</h2>
+          </div>
+          <span className={styles.smallText}>
+            Chaque popup affiche son nom, sa source et ses actions.
+          </span>
+        </div>
+        <div className={styles.popupReferenceGrid}>
+          {POPUP_VISUAL_REFERENCES.map((popup) => (
+            <article key={popup.name} className={styles.popupReferenceCard}>
+              <div className={styles.popupReferenceTopbar}>
+                <code>{popup.name}</code>
+                <span>{popup.route}</span>
+              </div>
+              <div className={styles.popupReferenceWindow}>
+                <button
+                  type="button"
+                  aria-label={`Aperçu fermeture ${popup.name}`}
+                >
+                  ×
+                </button>
+                <p className={styles.eyebrow}>Popup</p>
+                <h3>{popup.title}</h3>
+                <p>{popup.detail}</p>
+                <div className={styles.popupOptionPreview}>
+                  <span>Option / champ principal</span>
+                  <span>État sélectionné</span>
+                  <span>Message d’aide</span>
+                </div>
+                <div className={styles.popupActionRow}>
+                  {popup.actions.map((action) => (
+                    <span key={`${popup.name}-${action}`}>{action}</span>
+                  ))}
+                </div>
+              </div>
+              <code>{popup.source}</code>
             </article>
           ))}
         </div>
