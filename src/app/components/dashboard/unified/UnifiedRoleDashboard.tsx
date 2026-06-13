@@ -29,6 +29,10 @@ interface DashboardKpi {
   icon?: ReactNode;
   statusLabel?: string;
   statusTone?: DashboardStatusTone;
+  statusIcon?: ReactNode;
+  statusIconOnly?: boolean;
+  statusText?: string;
+  href?: string;
 }
 
 interface DashboardAction {
@@ -199,6 +203,10 @@ export default function UnifiedRoleDashboard({
             icon={kpi.icon ?? DEFAULT_KPI_ICONS[index] ?? <BriefcaseBusiness size={24} />}
             statusLabel={kpi.statusLabel}
             statusTone={kpi.statusTone}
+            statusIcon={kpi.statusIcon}
+            statusIconOnly={kpi.statusIconOnly}
+            statusText={kpi.statusText}
+            href={kpi.href}
           />
         ))}
       </section>

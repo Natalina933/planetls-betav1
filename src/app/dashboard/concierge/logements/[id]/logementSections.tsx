@@ -53,12 +53,12 @@ export function InfosTabSection({ editMode, logement, setEditedData }: TabSectio
           />
         </label>
         <label className={styles.field}>
-          <span>Capacité</span>
+          <span>Capacité maximale</span>
           <input
             value={infos.capacite ?? ""}
             onChange={handleInfosChange("capacite")}
             disabled={!editMode}
-            placeholder="Capacité"
+            placeholder="Capacité maximale"
           />
         </label>
         <label className={styles.field}>

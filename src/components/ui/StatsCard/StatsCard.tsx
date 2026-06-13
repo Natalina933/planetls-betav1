@@ -1,4 +1,5 @@
 import { Card, CardBody } from "@/components/ui/Card";
+import type { ReactNode } from "react";
 import styles from "./StatsCard.module.scss";
 
 type StatsCardTone = "default" | "soft" | "dark";
@@ -10,9 +11,11 @@ export interface StatsCardProps {
   trend?: string;
   tone?: StatsCardTone;
   progress?: number;
+  visual?: ReactNode;
+  visualLabel?: string;
 }
 
-export function StatsCard({ label, value, hint, trend, tone = "default", progress }: StatsCardProps) {
+export function StatsCard({ label, value, hint, trend, tone = "default", progress, visual, visualLabel }: StatsCardProps) {
   const normalizedProgress =
     typeof progress === "number" && Number.isFinite(progress)
       ? Math.min(100, Math.max(0, progress))
@@ -25,7 +28,14 @@ export function StatsCard({ label, value, hint, trend, tone = "default", progres
           <span className={styles.label}>{label}</span>
           {trend ? <span className={styles.trend}>{trend}</span> : null}
         </div>
-        <strong className={styles.value}>{value}</strong>
+        <div className={styles.valueRow}>
+          <strong className={styles.value}>{value}</strong>
+          {visual ? (
+            <span className={styles.visual} aria-label={visualLabel}>
+              {visual}
+            </span>
+          ) : null}
+        </div>
         {normalizedProgress !== null ? (
           <span
             className={styles.progressTrack}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
 import { supabaseBrowser } from "@/app/lib/dbClient";
+import { getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import {
   AdminAlertList,
   AdminKpiGrid,
@@ -34,6 +35,20 @@ function getArrayPayload<T>(payload: unknown): T[] {
     return (payload as { items: T[] }).items;
   }
   return [];
+}
+
+function getDateTime(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isSameLocalDay(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
 }
 
 export default function AdminDashboard() {
@@ -112,6 +127,15 @@ export default function AdminDashboard() {
     () => missions.filter((mission) => Boolean(mission.scheduled_start)).length,
     [missions],
   );
+  const todayAdminMissionCount = useMemo(
+    () =>
+      missions.filter((mission) => {
+        const date = getDateTime(mission.scheduled_start);
+        return date ? isSameLocalDay(date, new Date()) : false;
+      }).length,
+    [missions],
+  );
+  const missionPaceMeta = useMemo(() => getDashboardMissionPaceMeta(todayAdminMissionCount), [todayAdminMissionCount]);
   const completedMissions = useMemo(
     () => missions.filter((mission) => ["Réalisée", "Facturée", "Réglée", "Clôturée"].includes(getMissionStatus(mission))).length,
     [missions],
@@ -198,7 +222,14 @@ export default function AdminDashboard() {
       stats={[
         { label: "Utilisateurs", value: String(stats.users), hint: "Profils actifs ou inscrits" },
         { label: "Partenaires", value: String(stats.activeProviders), hint: "Conciergeries et prestataires" },
-        { label: "Planning", value: String(stats.bookings), hint: "Évènements consolidés" },
+        {
+          label: "Planning",
+          value: String(stats.bookings),
+          hint: `${todayAdminMissionCount} mission(s) aujourd'hui`,
+          trend: missionPaceMeta.label,
+          visual: missionPaceMeta.icon,
+          visualLabel: missionPaceMeta.label,
+        },
         { label: "Factures", value: String(invoiceCount), hint: "Pièces de gestion suivies" },
       ]}
       actions={[

@@ -1211,7 +1211,7 @@ export default function OwnerHousingDetailPage() {
   ];
   const housingFacts = [
     { label: "Type", value: draft.characteristics.propertyType || "À compléter", icon: PropertyTypeIcon },
-    { label: "Personnes max", value: draft.characteristics.guestCapacity != null ? `${draft.characteristics.guestCapacity}` : "À compléter", icon: UsersRound },
+    { label: "Capacité maximale", value: draft.characteristics.guestCapacity != null ? `${draft.characteristics.guestCapacity}` : "À compléter", icon: UsersRound },
     { label: "Chambres", value: draft.characteristics.bedroomCount != null ? `${draft.characteristics.bedroomCount}` : "À compléter", icon: DoorOpen },
     { label: "Lits", value: draft.characteristics.bedCount != null ? `${draft.characteristics.bedCount}` : "À compléter", icon: BedDouble },
   ];
@@ -1224,7 +1224,7 @@ export default function OwnerHousingDetailPage() {
       field: "surfaceSqm" as const,
     },
     {
-      label: "Personnes max",
+      label: "Capacité maximale",
       icon: UsersRound,
       value: draft.characteristics.guestCapacity ?? "",
       field: "guestCapacity" as const,
@@ -1300,7 +1300,7 @@ export default function OwnerHousingDetailPage() {
               <div className={styles.heroMeta}>
                 <span className={styles.metaPill}>{draft.characteristics.propertyType || "Bien"}</span>
                 <span className={styles.metaPill}>
-                  {draft.characteristics.guestCapacity || "Personnes max à préciser"}
+                  {draft.characteristics.guestCapacity || "Capacité maximale à préciser"}
                 </span>
                 <span className={styles.metaPill}>
                   {draft.characteristics.bedroomCount || "Chambres à préciser"}
@@ -1381,7 +1381,7 @@ export default function OwnerHousingDetailPage() {
                 <strong className={styles.statValue}>{statusLabel}</strong>
               </div>
               <div className={styles.statCard}>
-                <p className={styles.statLabel}>Personnes max</p>
+                <p className={styles.statLabel}>Capacité maximale</p>
                 <strong className={styles.statValue}>
                   {draft.characteristics.guestCapacity ?? "À préciser"}
                 </strong>
@@ -1396,7 +1396,7 @@ export default function OwnerHousingDetailPage() {
               </div>
             </div>
             <div className={styles.summaryMediaInfoLayout}>
-            <div className={`${styles.panel} ${styles.quickGalleryPanel}`}>
+            <div id="photos" className={`${styles.panel} ${styles.quickGalleryPanel}`}>
               <div className={styles.quickGalleryTopline}>
                 <div>
                   <p className={styles.sectionTitle}>Galerie rapide</p>
@@ -1570,7 +1570,7 @@ export default function OwnerHousingDetailPage() {
         ) : null}
 
         {activeTab === "infos" ? (
-          <div className={styles.sectionStack}>
+          <div id="informations" className={styles.sectionStack}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIntro}>
                 <p className={styles.sectionTitle}>Informations du logement</p>
@@ -1950,7 +1950,7 @@ export default function OwnerHousingDetailPage() {
                         <BedDouble size={18} />
                         Chambres et couchages réels
                       </p>
-                      <span>La capacité indique les personnes autorisées. Ici, détaillez les lits et canapés-lits pour préparer le linge.</span>
+                      <span>La capacité maximale indique les personnes autorisées. Ici, détaillez les lits et canapés-lits pour préparer le linge.</span>
                     </div>
                     {editing ? (
                       <button type="button" className={styles.smallInlineButton} onClick={addStockBed}>
@@ -2556,7 +2556,7 @@ export default function OwnerHousingDetailPage() {
         ) : null}
 
         {activeTab === "stocks" ? (
-          <div className={styles.sectionStack}>
+          <div id="stocks" className={styles.sectionStack}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionIntro}>
                 <p className={styles.sectionTitle}>Stocks et équipements</p>

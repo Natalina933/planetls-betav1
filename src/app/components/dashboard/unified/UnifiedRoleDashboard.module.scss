@@ -350,8 +350,8 @@
 }
 
 @media (max-width: 1180px) {
-  .kpiCard {
-    grid-column: span 3;
+  .kpiSection > * {
+    grid-column: span 6;
   }
 
   .mainColumn,
@@ -381,7 +381,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .kpiCard {
+  .kpiSection > * {
     grid-column: span 1;
   }
 }
@@ -389,5 +389,9 @@
 @media (max-width: 560px) {
   .kpiSection {
     grid-template-columns: 1fr;
+  }
+
+  .kpiSection > * {
+    grid-column: span 1;
   }
 }

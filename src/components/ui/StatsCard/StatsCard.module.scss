@@ -60,6 +60,39 @@
   color: var(--dash-text, var(--ds-color-text));
 }
 
+.valueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 8px;
+}
+
+.valueRow .value {
+  margin: 0;
+}
+
+.visual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
+    color-mix(in srgb, var(--dash-accent, var(--ds-color-gold)) 12%, #ffffff);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 12px 22px color-mix(in srgb, var(--dash-accent, var(--ds-color-gold)) 14%, transparent);
+}
+
+.visual :global(.dashboardMissionPaceIcon) {
+  width: 48px !important;
+  height: 48px !important;
+}
+
 .progressTrack {
   display: block;
   width: 100%;

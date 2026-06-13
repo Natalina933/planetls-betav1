@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export type DashboardPersona = "admin" | "owner" | "conciergerie" | "artisan";
 
 export interface DashboardNavItem {
@@ -11,6 +13,8 @@ export interface DashboardStatItem {
   hint?: string;
   trend?: string;
   progress?: number;
+  visual?: ReactNode;
+  visualLabel?: string;
 }
 
 export interface DashboardQuickAction {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Camera, FileText, Home, MapPin, Plus, Wrench } from "lucide-react";
+import { ArrowRight, Camera, FileText, Home, MapPin, Wrench } from "lucide-react";
 import { DashboardSectionShell, MetricDonut } from "@/components/dashboard";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { buildOwnerHousingCompletion } from "@/app/dashboard/shared";
@@ -223,7 +223,11 @@ export default function OwnerHousingOverviewPage() {
                           </span>
                           <div className={styles.factRow}>
                             <span>{housing.infos?.categorie || "Type à préciser"}</span>
-                            <span>{housing.infos?.capacite ? `${housing.infos.capacite} voyageurs` : "Capacité à préciser"}</span>
+                            <span>
+                              {housing.infos?.capacite
+                                ? `Capacité maximale : ${housing.infos.capacite} personne(s)`
+                                : "Capacité maximale à préciser"}
+                            </span>
                           </div>
                           <div className={styles.chipRow}>
                             {(platforms.length > 0 ? platforms : ["Plateforme à préciser"]).slice(0, 3).map((item) => (
@@ -243,7 +247,7 @@ export default function OwnerHousingOverviewPage() {
                     })
                   ) : (
                     <Link href="/dashboard/owner/logements/create" className={styles.emptyCard}>
-                      <Plus size={18} />
+                      <Home size={18} />
                       Ajouter un logement
                     </Link>
                   )}

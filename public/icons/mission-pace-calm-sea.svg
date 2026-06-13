@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="calmSky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#dff8ff"/>
+      <stop offset="1" stop-color="#f7fdff"/>
+    </linearGradient>
+    <linearGradient id="calmSea" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#8ee6ef"/>
+      <stop offset="1" stop-color="#42c4d2"/>
+    </linearGradient>
+    <linearGradient id="calmSun" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffe9a9"/>
+      <stop offset="1" stop-color="#ffc95a"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="url(#calmSky)"/>
+  <circle cx="86" cy="42" r="13" fill="url(#calmSun)" opacity=".9"/>
+  <path d="M15 68h98v28a56 56 0 0 1-98 0Z" fill="url(#calmSea)"/>
+  <path d="M24 76h80" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4" opacity=".72"/>
+  <path d="M30 86h68" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3" opacity=".48"/>
+  <path d="M40 96h48" fill="none" stroke="#e8fbff" stroke-linecap="round" stroke-width="2.5" opacity=".52"/>
+</svg>

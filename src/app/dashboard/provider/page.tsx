@@ -21,6 +21,7 @@ import { DashboardLayout, DashboardLoadingScreen } from "@/components/dashboard"
 import { AsyncState } from "@/components/ui";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import { DashboardOnboardingSummary } from "@/features/onboarding-assistant";
+import { getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import {
   ARTISAN_DASHBOARD_CONFIG,
   ARTISAN_NAV_ITEMS,
@@ -67,7 +68,7 @@ function isWithinNextDays(value: string | null | undefined, days: number) {
 function getGreetingLabel() {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon apres-midi";
+  if (hour < 18) return "Bon après-midi";
   return "Bonsoir";
 }
 
@@ -93,7 +94,7 @@ function getInterventionStatusLabel(status: string | null | undefined) {
     case "canceled":
       return "Annulee";
     default:
-      return "A repondre";
+      return "À répondre";
   }
 }
 
@@ -209,6 +210,7 @@ export default function ProviderDashboardPage() {
         .sort((a, b) => (getDateTime(a.scheduled_start)?.getTime() ?? 0) - (getDateTime(b.scheduled_start)?.getTime() ?? 0)),
     [acceptedMissions],
   );
+  const missionPaceMeta = useMemo(() => getDashboardMissionPaceMeta(interventionsToday.length), [interventionsToday.length]);
   const upcomingMissions = useMemo(
     () =>
       openMissions
@@ -323,14 +325,16 @@ export default function ProviderDashboardPage() {
           label: "Missions a venir",
           value: `${acceptedMissions.length}`,
           hint: `${interventionsToday.length} aujourd'hui`,
-          trend: acceptedMissions.length > 0 ? "Planifie" : "Calme",
+          trend: missionPaceMeta.label,
           progress: Math.min(100, acceptedMissions.length * 18),
+          visual: missionPaceMeta.icon,
+          visualLabel: missionPaceMeta.label,
         },
         {
           label: "Devis en attente",
           value: `${pendingQuotes.length}`,
-          hint: "A suivre ou relancer",
-          trend: pendingQuotes.length > 0 ? "Action" : "A jour",
+          hint: "À suivre ou relancer",
+          trend: pendingQuotes.length > 0 ? "Action" : "À jour",
         },
         {
           label: "Missions a repondre",
@@ -437,9 +441,9 @@ export default function ProviderDashboardPage() {
 
       <section className={styles.sectionBlock} aria-labelledby="provider-health-title">
         <div className={styles.sectionLead}>
-          <span className={styles.sectionEyebrow}>Sante de l'activite</span>
+          <span className={styles.sectionEyebrow}>Sante de l&apos;activite</span>
           <h2 id="provider-health-title">Les signaux qui comptent pour intervenir et facturer</h2>
-          <p>Le cockpit met d'abord la mission, le revenu et la reponse client au premier plan.</p>
+          <p>Le cockpit met d&apos;abord la mission, le revenu et la reponse client au premier plan.</p>
         </div>
         <div className={styles.healthGrid}>
           <Link href="/dashboard/provider/interventions" className={styles.healthCard}>
@@ -448,7 +452,7 @@ export default function ProviderDashboardPage() {
               <span className={styles.healthLabel}>Missions confirmees</span>
             </div>
             <strong className={styles.healthValue}>{acceptedMissions.length}</strong>
-            <p className={styles.healthDetail}>Interventions deja acceptees ou en cours d'execution.</p>
+            <p className={styles.healthDetail}>Interventions deja acceptees ou en cours d&apos;execution.</p>
           </Link>
           <Link href="/dashboard/provider/devis" className={styles.healthCard}>
             <div className={styles.healthTop}>
@@ -464,7 +468,7 @@ export default function ProviderDashboardPage() {
               <span className={styles.healthLabel}>Interventions du jour</span>
             </div>
             <strong className={styles.healthValue}>{interventionsToday.length}</strong>
-            <p className={styles.healthDetail}>Ce qui doit etre execute aujourd'hui sans perte de temps.</p>
+            <p className={styles.healthDetail}>Ce qui doit etre execute aujourd&apos;hui sans perte de temps.</p>
           </Link>
           <Link href="/dashboard/provider/devis" className={styles.healthCard}>
             <div className={styles.healthTop}>
@@ -552,14 +556,14 @@ export default function ProviderDashboardPage() {
                 <span>Demain</span>
                 <strong>{acceptedMissions.filter((item) => isTomorrow(item.scheduled_start)).length}</strong>
               </div>
-              <p>Lecture rapide de la charge de demain avant de prendre d'autres missions.</p>
+              <p>Lecture rapide de la charge de demain avant de prendre d&apos;autres missions.</p>
             </Link>
             <Link href="/dashboard/provider/planning" className={styles.signalCard}>
               <div className={styles.signalTop}>
                 <span>Semaine</span>
                 <strong>{weekCount}</strong>
               </div>
-              <p>Volume d'interventions confirmees dans les 7 prochains jours.</p>
+              <p>Volume d&apos;interventions confirmees dans les 7 prochains jours.</p>
             </Link>
             <Link href="/dashboard/provider/devis" className={styles.signalCard}>
               <div className={styles.signalTop}>
@@ -612,7 +616,7 @@ export default function ProviderDashboardPage() {
             <div className={styles.panelHeader}>
               <div>
                 <span className={styles.panelEyebrow}>Missions recues</span>
-                <h3>A repondre</h3>
+                <h3>À répondre</h3>
               </div>
               <Link href="/dashboard/provider/interventions" className={styles.inlineLink}>
                 Voir toutes
@@ -748,7 +752,7 @@ export default function ProviderDashboardPage() {
           <article className={styles.financeCard}>
             <span className={styles.financeLabel}>Delai moyen paiement</span>
             <strong className={styles.financeValue}>--</strong>
-            <p>Signal prevu pour la version premium une fois l'historique paiements structure.</p>
+            <p>Signal prevu pour la version premium une fois l&apos;historique paiements structure.</p>
           </article>
         </div>
       </section>
@@ -771,7 +775,7 @@ export default function ProviderDashboardPage() {
               </Link>
             ))
           ) : (
-            <div className={styles.emptyCard}>Aucune activite recente exploitable pour l'instant.</div>
+            <div className={styles.emptyCard}>Aucune activite recente exploitable pour l&apos;instant.</div>
           )}
         </div>
       </section>

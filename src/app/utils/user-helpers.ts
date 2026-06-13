@@ -27,6 +27,6 @@ export const getRoleLabel = (role?: string | null): string => {
 export const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon apres-midi";
+  if (hour < 18) return "Bon après-midi";
   return "Bonsoir";
 };

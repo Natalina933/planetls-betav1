@@ -6,6 +6,7 @@ import {
   Bell,
   BriefcaseBusiness,
   ClipboardList,
+  Gauge,
   Home,
   MessageSquareText,
   UserRound,
@@ -20,6 +21,7 @@ type DashboardBottomNavProps = {
 
 function getNavIcon(item: DashboardShortcutItem, index: number) {
   const label = `${item.label} ${item.href}`.toLowerCase();
+  if (label.includes("tableau de bord") || label.includes("vue d'ensemble") || label.includes("overview")) return Gauge;
   if (label.includes("message")) return MessageSquareText;
   if (label.includes("profil") || label.includes("compte")) return UserRound;
   if (label.includes("alerte") || label.includes("notification")) return Bell;

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   BellRing,
-  Building2,
   CalendarDays,
   ClipboardList,
   CheckCircle2,
@@ -25,6 +24,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { DashboardLoadingScreen } from "@/components/dashboard";
+import { DashboardHomeIcon } from "@/components/ui/PublicIcon";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
@@ -46,7 +46,7 @@ import {
   type UnifiedSpotlightItem,
   type UnifiedStatItem,
 } from "@/app/components/dashboard/unified";
-import { DashboardEmptyState, DashboardStatusBadge } from "@/app/components/dashboard/saas";
+import { DashboardEmptyState, DashboardStatusBadge, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import { useOwnerDashboardData } from "./useOwnerDashboardData";
 import { sidebarConfig } from "@/app/components/dashboard/Sidebar/sidebarconfig";
 import styles from "./OwnerUnifiedDashboard.module.scss";
@@ -75,10 +75,11 @@ function isWithinNextDays(value: string | null | undefined, days: number) {
   return date >= now && date <= max;
 }
 
+
 function getGreetingLabel() {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon apres-midi";
+  if (hour < 18) return "Bon après-midi";
   return "Bonsoir";
 }
 
@@ -106,7 +107,7 @@ function getInvoiceStatusLabel(status: string | null | undefined) {
     case "overdue":
       return "En retard";
     default:
-      return "A verifier";
+      return "À vérifier";
   }
 }
 
@@ -130,7 +131,7 @@ function getMissionStatusLabel(status: string | null | undefined) {
     case "completed":
       return "Terminee";
     default:
-      return "A suivre";
+      return "À suivre";
   }
 }
 
@@ -153,9 +154,7 @@ export default function OwnerDashboardPage() {
   };
   const {
     properties,
-    missions,
     quotes,
-    invoices,
     conversations,
     requestsCount,
     loading,
@@ -218,6 +217,9 @@ export default function OwnerDashboardPage() {
     [ongoingMissions],
   );
 
+
+  const missionPaceMeta = useMemo(() => getDashboardMissionPaceMeta(todayMissionCount), [todayMissionCount]);
+
   const quoteAwaitingCount = useMemo(
     () => quotes.filter((quote) => quote.status !== "accepted" && quote.status !== "rejected").length,
     [quotes],
@@ -276,7 +278,7 @@ export default function OwnerDashboardPage() {
           id: String(property.id),
           name: property.nom_logement || `Logement #${property.id}`,
           location: property.ville || "Ville a preciser",
-          status: isActive ? "Actif" : "A finaliser",
+          status: isActive ? "Actif" : "À finaliser",
           icon: isActive ? <Home size={18} /> : <KeyRound size={18} />,
           tone,
           note:
@@ -469,7 +471,7 @@ export default function OwnerDashboardPage() {
         value: `${distinctPartners.length}`,
         icon: <UserRoundSearch size={16} />,
         tone: "soft",
-        detail: distinctPartners[0] ? distinctPartners[0] : "Aucun relie",
+        detail: distinctPartners[0] ? distinctPartners[0] : "Aucun relié",
       },
       {
         label: "Aujourd'hui",
@@ -585,36 +587,6 @@ export default function OwnerDashboardPage() {
       },
     ],
     [activeCount, pendingInvoices.length, properties.length, quoteAwaitingCount, todayMissionCount],
-  );
-
-  const moodCards = useMemo(
-    () => [
-      {
-        id: "park",
-        title: "Parc",
-        value: draftCount > 0 ? "A finir" : "Stable",
-        detail: draftCount > 0 ? `${draftCount} fiche(s)` : "Tout actif",
-        icon: <Building2 size={18} />,
-        tone: styles.tileOlive,
-      },
-      {
-        id: "ops",
-        title: "Terrain",
-        value: nextWeekMissionCount > 0 ? "Cadence" : "Calme",
-        detail: `${nextWeekMissionCount} sur 7 jours`,
-        icon: <CalendarDays size={18} />,
-        tone: styles.tileGold,
-      },
-      {
-        id: "talk",
-        title: "Échanges",
-        value: unreadConversationCount > 0 ? "Répondre" : "À jour",
-        detail: `${unreadConversationCount} message(s)`,
-        icon: <MessageSquareText size={18} />,
-        tone: styles.tileInk,
-      },
-    ],
-    [draftCount, nextWeekMissionCount, unreadConversationCount],
   );
 
   const onboardingDisclosure = (
@@ -745,36 +717,46 @@ export default function OwnerDashboardPage() {
             id: "properties",
             label: "Logements",
             value: `${activeCount}/${properties.length || 0}`,
-            detail: draftCount > 0 ? `${draftCount} à revoir` : "Tous actifs",
-            icon: <Building2 size={18} />,
-            statusLabel: draftCount > 0 ? "A revoir" : "Stable",
+            detail: draftCount > 0 ? `${draftCount} logement(s) à revoir` : `${activeCount} logement(s) actif(s)`,
+            icon: <DashboardHomeIcon size={26} />,
+            statusLabel: draftCount > 0 ? `${draftCount} logement(s) à revoir` : "Logements stables",
             statusTone: draftCount > 0 ? "warning" : "success",
+            href: draftCount > 0 ? "/dashboard/owner/logements?filter=review" : "/dashboard/owner/logements",
           },
           {
             id: "missions",
             label: "Missions",
             value: `${ongoingMissions.length}`,
-            detail: todayMissionCount > 0 ? `${todayMissionCount} aujourd'hui` : "Journée calme",
+            detail: todayMissionCount > 0 ? `${todayMissionCount} mission(s) aujourd'hui` : "Aucune mission aujourd'hui",
             icon: <CalendarDays size={18} />,
-            statusLabel: todayMissionCount > 0 ? "Aujourd'hui" : "Cadence",
-            statusTone: todayMissionCount > 0 ? "info" : "primary",
+            statusLabel: missionPaceMeta.label,
+            statusTone: missionPaceMeta.tone,
+            statusIcon: missionPaceMeta.icon,
+            statusIconOnly: missionPaceMeta.level === "calm",
+            statusText: missionPaceMeta.label,
           },
           {
             id: "quotes",
-            label: "Arbitrages",
-            value: `${quoteAwaitingCount + pendingInvoices.length}`,
-            detail: `${quoteAwaitingCount} devis · ${pendingInvoices.length} factures`,
+            label: "Devis & factures",
+            value: `${quoteAwaitingCount}/${pendingInvoices.length}`,
+            detail:
+              quoteAwaitingCount + pendingInvoices.length > 0
+                ? `${quoteAwaitingCount} devis à valider · ${pendingInvoices.length} facture(s) à valider`
+                : "Aucun devis ou facture à valider",
             icon: <CircleDollarSign size={18} />,
-            statusLabel: quoteAwaitingCount + pendingInvoices.length > 0 ? "Action" : "A jour",
+            statusLabel:
+              quoteAwaitingCount + pendingInvoices.length > 0
+                ? `${quoteAwaitingCount} devis et ${pendingInvoices.length} facture(s) à valider`
+                : "Finances à jour",
             statusTone: quoteAwaitingCount + pendingInvoices.length > 0 ? "warning" : "success",
           },
           {
             id: "messages",
-            label: "Messages",
+            label: "Messages non lus",
             value: `${unreadConversationCount}`,
-            detail: unreadConversationCount > 0 ? "À lire" : "À jour",
+            detail: unreadConversationCount > 0 ? `${unreadConversationCount} message(s) non lu(s)` : "Aucun message non lu",
             icon: <MessageSquareText size={18} />,
-            statusLabel: unreadConversationCount > 0 ? "A lire" : "A jour",
+            statusLabel: unreadConversationCount > 0 ? `${unreadConversationCount} message(s) non lu(s)` : "Messages à jour",
             statusTone: unreadConversationCount > 0 ? "info" : "success",
           },
         ]}

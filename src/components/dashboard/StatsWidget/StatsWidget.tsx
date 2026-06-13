@@ -18,6 +18,8 @@ export function StatsWidget({ items }: StatsWidgetProps) {
             hint={item.hint}
             trend={item.trend}
             progress={item.progress}
+            visual={item.visual}
+            visualLabel={item.visualLabel}
           />
         ))}
       </div>

@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FiMapPin, FiPlus, FiTarget, FiUsers } from "react-icons/fi";
+import { FiAlertTriangle, FiCheckCircle, FiMapPin, FiTarget, FiUsers } from "react-icons/fi";
 import { DashboardSectionShell, MetricDonut } from "@/components/dashboard";
+import { DashboardHomeIcon, DashboardHousesIcon } from "@/components/ui/PublicIcon";
 import cardStyles from "@/app/dashboard/concierge/logements/LogementsPage.module.scss";
 import pageStyles from "@/app/dashboard/owner/OwnerDashboardPages.module.scss";
 import profileStyles from "@/app/dashboard/concierge/profile/ConciergeProfilePage.module.scss";
@@ -22,8 +23,22 @@ export interface HousingListItem {
     equipements?: string[];
     description?: string;
   };
-  statut: "pret" | "menage" | "arrivee" | "depart";
+  characteristics?: {
+    propertyType?: string;
+    guestCapacity?: number | null;
+    capacite?: number | null;
+    amenities?: string[];
+    description?: string;
+  };
+  statut: "pret" | "menage" | "arrivee" | "depart" | "active" | "published" | "draft" | string;
 }
+
+type HousingReviewItem = {
+  id: string;
+  label: string;
+  detail: string;
+  hash: string;
+};
 
 type HousingListPageProps = {
   title: string;
@@ -36,22 +51,132 @@ function getSafePhoto(photo?: string) {
   return photo && photo.trim() !== "" ? photo : "/images/default-logement.png";
 }
 
+function hasCustomPhoto(photo?: string) {
+  return Boolean(photo && photo.trim() !== "" && !photo.includes("/images/default-logement.png"));
+}
+
 function getPercent(value: number, total: number) {
   if (total <= 0) return 0;
   return Math.min(100, Math.round((value / total) * 100));
 }
 
+function toPositiveNumber(value: unknown) {
+  const numericValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+}
+
+function getHousingCapacity(logement: HousingListItem) {
+  return (
+    toPositiveNumber(logement.characteristics?.guestCapacity) ??
+    toPositiveNumber(logement.characteristics?.capacite) ??
+    toPositiveNumber(logement.infos?.capacite)
+  );
+}
+
+function getHousingCategory(logement: HousingListItem) {
+  return logement.infos?.categorie || logement.characteristics?.propertyType || "Appartement";
+}
+
+function getHousingEquipments(logement: HousingListItem) {
+  const legacyEquipments = Array.isArray(logement.infos?.equipements) ? logement.infos.equipements : [];
+  const amenities = Array.isArray(logement.characteristics?.amenities) ? logement.characteristics.amenities : [];
+  return legacyEquipments.length > 0 ? legacyEquipments : amenities;
+}
+
+function getHousingDescription(logement: HousingListItem) {
+  return logement.infos?.description?.trim() || logement.characteristics?.description?.trim() || "";
+}
+
 function renderStatusLabel(statut: HousingListItem["statut"]) {
   if (statut === "pret") return "Prêt";
+  if (statut === "active" || statut === "published") return "Actif";
+  if (statut === "draft") return "Brouillon";
   if (statut === "menage") return "Ménage en cours";
   if (statut === "arrivee") return "Arrivée du jour";
-  return "Départ du jour";
+  if (statut === "depart") return "Départ du jour";
+  return "À revoir";
 }
 
 function getOccupancyLabel(capacite?: number) {
-  if (!capacite || capacite <= 0) return "Capacité à définir";
-  if (capacite === 1) return "1 voyageur";
-  return `${capacite} voyageurs`;
+  if (!capacite || capacite <= 0) return "Capacité maximale à définir";
+  if (capacite === 1) return "Capacité maximale · 1 personne";
+  return `Capacité maximale · ${capacite} personnes`;
+}
+
+function getHousingReviewItems(logement: HousingListItem): HousingReviewItem[] {
+  const items: HousingReviewItem[] = [];
+  const equipments = getHousingEquipments(logement);
+  const capacity = getHousingCapacity(logement);
+  const description = getHousingDescription(logement);
+
+  if (!logement.nom_logement?.trim()) {
+    items.push({
+      id: "name",
+      label: "Nom du logement",
+      detail: "Ajoutez un nom clair pour identifier la fiche.",
+      hash: "?tab=infos#informations",
+    });
+  }
+
+  if (!logement.ville?.trim()) {
+    items.push({
+      id: "city",
+      label: "Ville",
+      detail: "Renseignez la ville pour les missions et les recherches.",
+      hash: "?tab=infos#informations",
+    });
+  }
+
+  if (!hasCustomPhoto(logement.photo_principale)) {
+    items.push({
+      id: "photo",
+      label: "Photo principale",
+      detail: "Ajoutez une photo visible du logement.",
+      hash: "?tab=synthese#photos",
+    });
+  }
+
+  if (!capacity) {
+    items.push({
+      id: "capacity",
+      label: "Capacité maximale",
+      detail: "Indiquez le nombre maximal de personnes autorisées.",
+      hash: "?tab=infos#informations",
+    });
+  }
+
+  if (equipments.length === 0) {
+    items.push({
+      id: "equipments",
+      label: "Équipements",
+      detail: "Ajoutez les équipements importants du logement.",
+      hash: "?tab=stocks#stocks",
+    });
+  }
+
+  if (!description) {
+    items.push({
+      id: "description",
+      label: "Description",
+      detail: "Complétez une courte description utile au suivi.",
+      hash: "?tab=infos#informations",
+    });
+  }
+
+  if (logement.statut === "draft") {
+    items.push({
+      id: "status",
+      label: "Publication",
+      detail: "Finalisez la fiche pour la passer en logement actif.",
+      hash: "?tab=infos#informations",
+    });
+  }
+
+  return items;
+}
+
+function isHousingToReview(logement: HousingListItem) {
+  return getHousingReviewItems(logement).length > 0;
 }
 
 export default function HousingListPage({
@@ -63,6 +188,7 @@ export default function HousingListPage({
   const [logements, setLogements] = useState<HousingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ownerFilter, setOwnerFilter] = useState("");
 
   async function loadLogements() {
     try {
@@ -88,6 +214,16 @@ export default function HousingListPage({
     void loadLogements();
   }, []);
 
+  useEffect(() => {
+    const syncFilterFromUrl = () => {
+      setOwnerFilter(new URLSearchParams(window.location.search).get("filter") ?? "");
+    };
+
+    syncFilterFromUrl();
+    window.addEventListener("popstate", syncFilterFromUrl);
+    return () => window.removeEventListener("popstate", syncFilterFromUrl);
+  }, []);
+
   const stats = useMemo(
     () => ({
       total: logements.length,
@@ -100,16 +236,23 @@ export default function HousingListPage({
   );
 
   const isConcierge = persona === "conciergerie";
+  const reviewLogements = useMemo(() => logements.filter(isHousingToReview), [logements]);
+  const isReviewMode = !isConcierge && ownerFilter === "review";
+  const visibleLogements = isReviewMode ? reviewLogements : logements;
   const firstEditableHousingHref =
-    detailHrefBase && logements.length > 0 ? `${detailHrefBase}/${logements[0].id}` : addHref;
+    detailHrefBase && visibleLogements.length > 0 ? `${detailHrefBase}/${visibleLogements[0].id}` : addHref;
+  const firstReviewHref =
+    detailHrefBase && reviewLogements.length > 0
+      ? `${detailHrefBase}/${reviewLogements[0].id}${getHousingReviewItems(reviewLogements[0])[0]?.hash ?? ""}`
+      : addHref;
   const movementCount = stats.arrivees + stats.departs;
   const readinessRate = stats.total > 0 ? Math.round((stats.prets / stats.total) * 100) : 0;
 
   const completedHousingCount = useMemo(
     () =>
       logements.filter((logement) => {
-        const hasCapacity = Boolean(logement.infos?.capacite && logement.infos.capacite > 0);
-        const hasEquipments = Boolean(logement.infos?.equipements?.length);
+        const hasCapacity = Boolean(getHousingCapacity(logement));
+        const hasEquipments = getHousingEquipments(logement).length > 0;
         return Boolean(logement.nom_logement && logement.ville && (hasCapacity || hasEquipments));
       }).length,
     [logements],
@@ -138,7 +281,7 @@ export default function HousingListPage({
       {
         label: "Infos clés",
         value: `${completedHousingCount}/${stats.total}`,
-        detail: "Capacité/équipements",
+        detail: "Capacité maximale/équipements",
         percent: getPercent(completedHousingCount, stats.total),
       },
     ],
@@ -153,7 +296,7 @@ export default function HousingListPage({
     <EditableProfileSection
       styles={profileStyles}
       title={sectionTitle}
-      icon={<FiTarget />}
+      icon={sectionTitle === "Tous les logements" ? <DashboardHousesIcon /> : <FiTarget />}
       canEdit
       collapsible={false}
       isOpen
@@ -173,6 +316,10 @@ export default function HousingListPage({
   const renderHousingCards = (cardClassName?: string) => (
     <div className={cardStyles.logementsGrid}>
       {logements.map((logement) => {
+        const statusClassName = cardStyles[`status-${logement.statut}`] ?? "";
+        const capacity = getHousingCapacity(logement);
+        const equipments = getHousingEquipments(logement);
+        const description = getHousingDescription(logement);
         const cardContent = (
           <>
             <div className={cardStyles.cardImageWrapper}>
@@ -188,25 +335,25 @@ export default function HousingListPage({
             <div className={cardStyles.cardBody}>
               <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
               <p className={cardStyles.cardMeta}>
-                <span className={cardStyles.metaItem}>Type : {logement.infos?.categorie || "Appartement"}</span>
+                <span className={cardStyles.metaItem}>Type : {getHousingCategory(logement)}</span>
                 <span className={cardStyles.metaItem}>Ville : {logement.ville}</span>
                 <span className={cardStyles.metaItem}>
-                  Capacité : {logement.infos?.capacite ?? "-"} voyageur(s)
+                  Capacité maximale : {capacity ?? "-"} personne(s)
                 </span>
                 <span className={cardStyles.metaItem}>
                   Équipements :{" "}
-                  {Array.isArray(logement.infos?.equipements) && logement.infos.equipements.length > 0
-                    ? logement.infos.equipements.slice(0, 3).join(", ")
+                  {equipments.length > 0
+                    ? equipments.slice(0, 3).join(", ")
                     : "-"}
                 </span>
               </p>
 
-              {logement.infos?.description ? (
-                <p className={cardStyles.cardDescription}>{logement.infos.description}</p>
+              {description ? (
+                <p className={cardStyles.cardDescription}>{description}</p>
               ) : null}
 
               <div className={cardStyles.cardFooter}>
-                <span className={`${cardStyles.status} ${cardStyles[`status-${logement.statut}`]}`}>
+                <span className={`${cardStyles.status} ${statusClassName}`}>
                   {renderStatusLabel(logement.statut)}
                 </span>
                 <span className={cardStyles.btnView}>{detailHrefBase ? "Voir" : "Logement"}</span>
@@ -235,12 +382,14 @@ export default function HousingListPage({
 
   const renderOwnerHousingCards = () => (
     <div className={cardStyles.logementsGrid}>
-      {logements.map((logement) => {
-        const equipments = Array.isArray(logement.infos?.equipements)
-          ? logement.infos.equipements.slice(0, 4)
-          : [];
+      {visibleLogements.map((logement) => {
+        const equipments = getHousingEquipments(logement).slice(0, 4);
+        const capacity = getHousingCapacity(logement);
+        const description = getHousingDescription(logement);
+        const reviewItems = getHousingReviewItems(logement);
+        const statusClassName = cardStyles[`status-${logement.statut}`] ?? "";
         const ownerCardClassName = `${cardStyles.logementCard} ${ownerHousingStyles.ownerCard}`;
-        const ownerStatusClassName = `${cardStyles.status} ${cardStyles[`status-${logement.statut}`]} ${ownerHousingStyles.ownerStatus}`;
+        const ownerStatusClassName = `${cardStyles.status} ${statusClassName} ${ownerHousingStyles.ownerStatus}`;
         const cardContent = (
           <>
             <div className={`${cardStyles.cardImageWrapper} ${ownerHousingStyles.ownerImageWrapper}`}>
@@ -265,19 +414,19 @@ export default function HousingListPage({
               <div className={ownerHousingStyles.cardHeading}>
                 <div>
                   <p className={ownerHousingStyles.cardEyebrow}>
-                    {logement.infos?.categorie || "Appartement"}
+                    {getHousingCategory(logement)}
                   </p>
                   <h2 className={cardStyles.cardTitle}>{logement.nom_logement}</h2>
                 </div>
                 <span className={ownerHousingStyles.capacityBadge}>
                   <FiUsers />
-                  {getOccupancyLabel(logement.infos?.capacite)}
+                  {getOccupancyLabel(capacity ?? undefined)}
                 </span>
               </div>
 
-              {logement.infos?.description ? (
+              {description ? (
                 <p className={`${cardStyles.cardDescription} ${ownerHousingStyles.ownerDescription}`}>
-                  {logement.infos.description}
+                  {description}
                 </p>
               ) : null}
 
@@ -291,9 +440,40 @@ export default function HousingListPage({
                 </div>
               ) : null}
 
+              {reviewItems.length > 0 ? (
+                <div className={ownerHousingStyles.reviewChecklist}>
+                  <div className={ownerHousingStyles.reviewChecklistHeader}>
+                    <span>
+                      <FiAlertTriangle />
+                    </span>
+                    <div>
+                      <strong>{reviewItems.length} point(s) à corriger</strong>
+                      <p>Suivez les étapes dans l&apos;ordre pour finaliser la fiche.</p>
+                    </div>
+                  </div>
+                  <ol className={ownerHousingStyles.reviewSteps}>
+                    {reviewItems.slice(0, 4).map((item, index) => (
+                      <li key={`${logement.id}-${item.id}`}>
+                        <span className={ownerHousingStyles.reviewStepNumber}>{index + 1}</span>
+                        <div>
+                          <strong>{item.label}</strong>
+                          <p>{item.detail}</p>
+                        </div>
+                        {detailHrefBase ? <span className={ownerHousingStyles.reviewStepLink}>Corriger</span> : null}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : (
+                <div className={ownerHousingStyles.reviewReady}>
+                  <FiCheckCircle />
+                  <span>Fiche complète</span>
+                </div>
+              )}
+
               <div className={`${cardStyles.cardFooter} ${ownerHousingStyles.ownerFooter}`}>
                 <span className={`${cardStyles.btnView} ${ownerHousingStyles.ownerViewButton}`}>
-                  {detailHrefBase ? "Ouvrir" : "Logement"}
+                  {reviewItems.length > 0 ? "Corriger maintenant" : detailHrefBase ? "Ouvrir" : "Logement"}
                 </span>
               </div>
             </div>
@@ -309,7 +489,11 @@ export default function HousingListPage({
         }
 
         return (
-          <Link key={logement.id} href={`${detailHrefBase}/${logement.id}`} className={ownerCardClassName}>
+          <Link
+            key={logement.id}
+            href={`${detailHrefBase}/${logement.id}${reviewItems[0]?.hash ?? ""}`}
+            className={ownerCardClassName}
+          >
             {cardContent}
           </Link>
         );
@@ -363,7 +547,7 @@ export default function HousingListPage({
                     Aucun logement réel n&apos;est encore enregistré sur votre compte.
                   </p>
                   <Link href={addHref} className={cardStyles.conciergePrimaryAction}>
-                    <FiPlus /> Ajouter mon premier logement
+                    <DashboardHomeIcon /> Ajouter mon premier logement
                   </Link>
                 </div>,
               )
@@ -380,7 +564,7 @@ export default function HousingListPage({
                 </p>
                 <div className={pageStyles.inlineActions}>
                   <Link href={addHref} className={pageStyles.buttonPrimary}>
-                    <FiPlus /> Ajouter mon premier logement
+                    <DashboardHomeIcon /> Ajouter mon premier logement
                   </Link>
                 </div>
               </section>
@@ -393,14 +577,73 @@ export default function HousingListPage({
             : (
               <section className={pageStyles.panel}>
                 <div className={pageStyles.sectionHeading}>
-                  <h2 className={pageStyles.terracottaSectionTitle}>Logements</h2>
+                  <div>
+                    <p className={pageStyles.eyebrow}>{isReviewMode ? "Correction guidée" : "Parc propriétaire"}</p>
+                    <h2 className={pageStyles.terracottaSectionTitle}>
+                      {isReviewMode ? "Logements à revoir" : "Logements"}
+                    </h2>
+                  </div>
                   <div className={pageStyles.inlineActions}>
+                    <Link
+                      href="/dashboard/owner/logements"
+                      className={isReviewMode ? ownerHousingStyles.filterButton : ownerHousingStyles.filterButtonActive}
+                      onClick={() => setOwnerFilter("")}
+                    >
+                      Tous
+                    </Link>
+                    <Link
+                      href="/dashboard/owner/logements?filter=review"
+                      className={isReviewMode ? ownerHousingStyles.filterButtonActive : ownerHousingStyles.filterButton}
+                      onClick={() => setOwnerFilter("review")}
+                    >
+                      À revoir ({reviewLogements.length})
+                    </Link>
                     <Link href={addHref} className={pageStyles.buttonPrimary}>
-                      <FiPlus /> Ajouter
+                      <DashboardHomeIcon /> Ajouter
                     </Link>
                   </div>
                 </div>
-                {renderOwnerHousingCards()}
+                {reviewLogements.length > 0 ? (
+                  <div className={ownerHousingStyles.reviewPanel}>
+                    <span className={ownerHousingStyles.reviewPanelIcon}>
+                      <FiAlertTriangle />
+                    </span>
+                    <div>
+                      <strong>
+                        {reviewLogements.length} logement{reviewLogements.length > 1 ? "s" : ""} à revoir
+                      </strong>
+                      <p>
+                        Ouvrez le premier logement, complétez les points signalés, puis revenez ici pour vérifier que la
+                        liste diminue.
+                      </p>
+                    </div>
+                    <Link href={firstReviewHref} className={ownerHousingStyles.reviewPanelAction}>
+                      Commencer
+                    </Link>
+                  </div>
+                ) : (
+                  <div className={ownerHousingStyles.reviewPanel} data-state="success">
+                    <span className={ownerHousingStyles.reviewPanelIcon}>
+                      <FiCheckCircle />
+                    </span>
+                    <div>
+                      <strong>Aucun logement à revoir</strong>
+                      <p>Toutes les fiches contrôlées disposent des informations essentielles.</p>
+                    </div>
+                  </div>
+                )}
+                {visibleLogements.length > 0 ? (
+                  renderOwnerHousingCards()
+                ) : (
+                  <div className={ownerHousingStyles.reviewEmpty}>
+                    <FiCheckCircle />
+                    <strong>Aucune correction restante</strong>
+                    <p>Vous pouvez revenir à la liste complète des logements.</p>
+                    <Link href="/dashboard/owner/logements" className={ownerHousingStyles.reviewPanelAction}>
+                      Voir tous les logements
+                    </Link>
+                  </div>
+                )}
               </section>
             )
           : null}

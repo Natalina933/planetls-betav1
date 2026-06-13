@@ -190,7 +190,7 @@ export default function CreateHousingForm({ redirectPath }: CreateHousingFormPro
           <section className={pageStyles.panel}>
             <div className={pageStyles.sectionHeading}>
               <div>
-                <p className={pageStyles.eyebrow}>Capacité</p>
+                <p className={pageStyles.eyebrow}>Capacité maximale</p>
                 <h2 className={pageStyles.terracottaSectionTitle}>Configuration d’accueil</h2>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function CreateHousingForm({ redirectPath }: CreateHousingFormPro
               </div>
 
               <div className={formStyles.formGroup}>
-          <label htmlFor="capacity">Capacité</label>
+          <label htmlFor="capacity">Capacité maximale</label>
           <input
             type="number"
             id="capacity"

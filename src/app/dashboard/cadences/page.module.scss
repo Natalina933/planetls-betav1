@@ -1,0 +1,132 @@
+.page {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.4rem);
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.hero {
+  display: grid;
+  gap: 0.65rem;
+  padding: clamp(1rem, 2.4vw, 1.45rem);
+  border: 1px solid color-mix(in srgb, var(--dash-accent, #11845b) 12%, transparent);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(246, 251, 250, 0.94)),
+    var(--dash-bg-panel, #fff);
+  box-shadow: 0 16px 34px rgba(17, 37, 29, 0.07);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--dash-accent-strong, #0d6a49);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--dash-text, #18251f);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.08;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--dash-text-muted, #607067);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.8rem, 1.8vw, 1rem);
+}
+
+.card {
+  display: grid;
+  gap: 0.8rem;
+  padding: clamp(0.85rem, 1.6vw, 1rem);
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--tone, #11845b) 12%, transparent);
+  background:
+    radial-gradient(circle at 35% 18%, color-mix(in srgb, var(--tone, #11845b) 10%, transparent), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 249, 0.92));
+  box-shadow: 0 14px 28px rgba(17, 37, 29, 0.06);
+}
+
+.imageWrap {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 34% 20%, rgba(255, 255, 255, 0.96), transparent 46%),
+    color-mix(in srgb, var(--tone, #11845b) 10%, #ffffff);
+}
+
+.imageWrap img {
+  width: min(78%, 132px);
+  height: auto;
+  display: block;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.cardHeader h2 {
+  margin: 0;
+  color: var(--dash-text, #18251f);
+  font-size: 1rem;
+  line-height: 1.15;
+}
+
+.card p,
+.card small {
+  margin: 0;
+  color: var(--dash-text-muted, #607067);
+  font-size: 0.84rem;
+  line-height: 1.42;
+}
+
+.usage {
+  display: grid;
+  gap: 0.55rem;
+  padding: clamp(0.9rem, 1.8vw, 1.1rem);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--dash-accent, #11845b) 7%, #fff);
+}
+
+.usage h2 {
+  margin: 0;
+  color: var(--dash-text, #18251f);
+  font-size: 1rem;
+}
+
+.usage ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--dash-text-muted, #607067);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

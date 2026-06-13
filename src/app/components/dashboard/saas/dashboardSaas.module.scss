@@ -18,12 +18,14 @@
 
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--dashboard-color-border);
+  border: 1px solid color-mix(in srgb, var(--dashboard-color-primary) 12%, transparent);
   border-radius: var(--dashboard-radius-lg);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 250, 0.94)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 249, 0.9) 48%, rgba(238, 246, 242, 0.82)),
     var(--dashboard-color-surface);
-  box-shadow: var(--dashboard-shadow-soft);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 14px 34px rgba(17, 37, 29, 0.07);
 }
 
 .surfaceMuted {
@@ -75,26 +77,95 @@
 }
 
 .metricCard {
+  --metric-accent: var(--dashboard-color-primary);
+  --metric-accent-strong: var(--dashboard-color-primary-strong);
+  --metric-accent-soft: rgba(17, 132, 91, 0.1);
+  --metric-accent-line: rgba(17, 132, 91, 0.24);
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
-  gap: 0.7rem;
-  min-height: 132px;
-  padding: 1rem;
-  border-radius: 20px;
-  border: 1px solid var(--dashboard-color-border);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(0.62rem, 1.25vw, 0.9rem);
+  min-height: clamp(76px, 9vw, 92px);
+  padding: clamp(0.62rem, 1.1vw, 0.82rem);
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--metric-accent) 14%, rgba(255, 255, 255, 0.7));
   background:
-    radial-gradient(circle at top right, rgba(17, 132, 91, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 249, 0.94)),
+    linear-gradient(135deg, color-mix(in srgb, var(--metric-accent) 13%, #ffffff) 0%, rgba(255, 255, 255, 0.96) 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 247, 0.92)),
     var(--dashboard-color-surface);
-  box-shadow: 0 12px 28px rgba(17, 37, 29, 0.06);
+  color: inherit;
+  text-decoration: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 10px 22px rgba(17, 37, 29, 0.055);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
     border-color 180ms ease;
 }
 
+.metricCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: 3px;
+  background: var(--metric-accent);
+}
+
+.metricCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent 52%);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.metricCard[data-status-tone="success"] {
+  --metric-accent: var(--dashboard-color-success);
+  --metric-accent-strong: #1f7745;
+  --metric-accent-soft: rgba(31, 139, 77, 0.12);
+  --metric-accent-line: rgba(31, 139, 77, 0.24);
+}
+
+.metricCard[data-status-tone="warning"] {
+  --metric-accent: var(--dashboard-color-warning);
+  --metric-accent-strong: #a56512;
+  --metric-accent-soft: rgba(212, 138, 31, 0.16);
+  --metric-accent-line: rgba(212, 138, 31, 0.32);
+}
+
+.metricCard[data-status-tone="danger"] {
+  --metric-accent: var(--dashboard-color-danger);
+  --metric-accent-strong: #b93232;
+  --metric-accent-soft: rgba(214, 69, 69, 0.13);
+  --metric-accent-line: rgba(214, 69, 69, 0.28);
+}
+
+.metricCard[data-status-tone="info"] {
+  --metric-accent: var(--dashboard-color-info);
+  --metric-accent-strong: #2567d1;
+  --metric-accent-soft: rgba(47, 124, 246, 0.12);
+  --metric-accent-line: rgba(47, 124, 246, 0.28);
+}
+
 .metricCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 32px rgba(17, 37, 29, 0.1);
+  transform: translateY(-2px);
+  border-color: var(--metric-accent-line);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 15px 28px rgba(17, 37, 29, 0.095);
+}
+
+.metricCard:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--metric-accent) 38%, transparent);
+  outline-offset: 3px;
 }
 
 .metricTop {
@@ -108,83 +179,251 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 16px;
-  background: rgba(17, 132, 91, 0.1);
-  color: var(--dashboard-color-primary-strong);
+  width: clamp(3rem, 5.8vw, 3.65rem);
+  height: clamp(3rem, 5.8vw, 3.65rem);
+  border-radius: 13px;
+  border: 1px solid color-mix(in srgb, var(--metric-accent) 18%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), transparent),
+    var(--metric-accent-soft);
+  color: var(--metric-accent-strong);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--metric-accent) 11%, transparent);
+}
+
+.metricIcon svg {
+  width: clamp(1.55rem, 3vw, 2rem);
+  height: clamp(1.55rem, 3vw, 2rem);
+  stroke-width: 1.9;
 }
 
 .metricStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
 }
 
+.metricStatus .statusBadge {
+  width: clamp(68px, 8vw, 88px);
+  height: clamp(68px, 8vw, 88px);
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
+    color-mix(in srgb, var(--metric-accent) 14%, #ffffff);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 26px color-mix(in srgb, var(--metric-accent) 16%, transparent);
+}
+
+.metricStatus .statusIcon {
+  width: 100%;
+  height: 100%;
+}
+
+.metricStatus .statusIcon > span:not(:global(.dashboardMissionPaceIcon)) {
+  width: clamp(1.9rem, 4vw, 2.45rem);
+  height: clamp(1.9rem, 4vw, 2.45rem);
+}
+
+.metricMain {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: clamp(0.42rem, 1vw, 0.72rem);
+  min-width: 0;
+  align-self: center;
+}
+
 .metricLabel {
-  margin: 0;
-  color: var(--dashboard-color-text-soft);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .metricValue {
   margin: 0;
+  flex: 0 0 auto;
   color: var(--dashboard-color-text);
-  font-size: clamp(1.6rem, 2.4vw, 2rem);
+  font-size: clamp(1.55rem, 2.25vw, 1.95rem);
   line-height: 0.98;
   font-family: var(--ds-font-heading, var(--font-primary, "Segoe UI", sans-serif));
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .metricDetail {
   margin: 0;
+  min-width: 0;
+  flex: 1 1 min(100%, 10rem);
   color: var(--dashboard-color-text-soft);
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-size: 0.8rem;
+  line-height: 1.32;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.metricStatusText {
+  margin: 0;
+  flex: 1 1 100%;
+  color: var(--metric-accent-strong);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  gap: 0.38rem;
+  min-width: 30px;
   min-height: 30px;
-  padding: 0.24rem 0.58rem;
+  padding: 0.24rem 0.62rem;
   border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
+.statusBadge:has(:global(.dashboardMissionPaceIcon)) {
+  width: clamp(68px, 8vw, 88px);
+  height: clamp(68px, 8vw, 88px);
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 22px;
+  border: 0;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.94), transparent 46%),
+    color-mix(in srgb, var(--metric-accent) 14%, #ffffff);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 26px color-mix(in srgb, var(--metric-accent) 16%, transparent);
+}
+
+.statusBadge:has(:global(.dashboardMissionPaceIcon[data-mission-pace="calm"])) {
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
+    linear-gradient(145deg, #e9fbff, #d8f4f6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 16px 28px rgba(27, 173, 190, 0.16);
+}
+
+.statusBadge:has(:global(.dashboardMissionPaceIcon[data-mission-pace="soft"])) {
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
+    linear-gradient(145deg, #eef7ff, #dcecff);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 16px 28px rgba(91, 147, 210, 0.14);
+}
+
+.statusBadge:has(:global(.dashboardMissionPaceIcon[data-mission-pace="active"])) {
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
+    linear-gradient(145deg, #fff7d7, #ffe7a6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 16px 28px rgba(226, 157, 22, 0.16);
+}
+
+.statusBadge:has(:global(.dashboardMissionPaceIcon[data-mission-pace="high"])) {
+  background:
+    radial-gradient(circle at 35% 24%, rgba(255, 255, 255, 0.96), transparent 48%),
+    linear-gradient(145deg, #eef8ff, #d4e9ff);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 16px 28px rgba(46, 119, 190, 0.16);
+}
+
+.statusIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.statusBadge:has(:global(.dashboardMissionPaceIcon)) .statusIcon {
+  width: 100%;
+  height: 100%;
+}
+
+.statusIcon > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+:global(.dashboardMissionPaceIcon) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: min(78%, var(--mission-pace-icon-size, 62px));
+  height: min(78%, var(--mission-pace-icon-size, 62px));
+  border-radius: 18px;
+  background-image: var(--mission-pace-icon-src);
+  background-position: var(--mission-pace-icon-position, 0% 0%);
+  background-repeat: no-repeat;
+  background-size: var(--mission-pace-icon-background-size, contain);
+  mix-blend-mode: normal;
+}
+
+:global(.dashboardMissionPaceIcon[data-mission-pace="high"]) {
+  border-radius: 18px;
+}
+
 .statusDefault {
   background: rgba(96, 112, 103, 0.12);
   color: #516159;
+  border-color: rgba(96, 112, 103, 0.16);
 }
 
 .statusSuccess {
   background: rgba(31, 139, 77, 0.12);
   color: #1f8b4d;
+  border-color: rgba(31, 139, 77, 0.18);
 }
 
 .statusWarning {
-  background: rgba(212, 138, 31, 0.14);
-  color: #a56512;
+  background: linear-gradient(180deg, rgba(255, 244, 210, 0.92), rgba(212, 138, 31, 0.14));
+  color: #9a640f;
+  border-color: rgba(212, 138, 31, 0.28);
+  box-shadow: 0 8px 18px rgba(212, 138, 31, 0.13);
 }
 
 .statusDanger {
   background: rgba(214, 69, 69, 0.12);
   color: #c63838;
+  border-color: rgba(214, 69, 69, 0.18);
 }
 
 .statusInfo {
   background: rgba(47, 124, 246, 0.12);
   color: #2f7cf6;
+  border-color: rgba(47, 124, 246, 0.18);
 }
 
 .statusPrimary {
   background: rgba(17, 132, 91, 0.12);
   color: var(--dashboard-color-primary-strong);
+  border-color: rgba(17, 132, 91, 0.18);
 }
 
 .emptyState {
@@ -215,9 +454,58 @@
 }
 
 @media (max-width: 720px) {
-  .sectionHeader,
-  .metricTop {
+  .sectionHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .metricCard {
+    min-height: 74px;
+  }
+
+  .metricTop {
+    align-items: center;
+  }
+
+  .metricMain {
+    gap: 0.42rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .metricCard {
+    min-height: 72px;
+    border-radius: 13px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .metricTop {
+    gap: 0.65rem;
+  }
+
+  .metricStatus {
+    max-width: min(30vw, 96px);
+  }
+
+  .metricStatus .statusBadge,
+  .statusBadge:has(:global(.dashboardMissionPaceIcon)) {
+    width: clamp(58px, 16vw, 72px);
+    height: clamp(58px, 16vw, 72px);
+    border-radius: 18px;
+  }
+
+  .metricDetail,
+  .metricStatusText {
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .statusBadge {
+    max-width: 100%;
+  }
+
+  .statusBadge > span:not(.statusIcon) {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

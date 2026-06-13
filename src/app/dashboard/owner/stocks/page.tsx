@@ -11,6 +11,7 @@ import {
   Euro,
   FileDown,
   History,
+  Home,
   PackageCheck,
   Plus,
   Save,
@@ -369,7 +370,7 @@ export default function OwnerStocksPage() {
 
         {!loading && housing.length === 0 ? (
           <Link href="/dashboard/owner/logements/create" className={styles.emptyCard}>
-            <Plus size={18} /> Ajouter un logement pour lancer le suivi de préparation.
+            <Home size={18} /> Ajouter un logement pour lancer le suivi de préparation.
           </Link>
         ) : null}
 

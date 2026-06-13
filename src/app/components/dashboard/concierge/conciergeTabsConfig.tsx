@@ -1,10 +1,10 @@
 import { IconType } from "react-icons";
 import {
-  FiHome,
   FiClipboard,
   FiFileText,
   FiTarget,
 } from "react-icons/fi";
+import { DashboardGaugeIcon } from "@/components/ui/PublicIcon";
 
 export type ConciergeVisibleTabId = "overview" | "fiche" | "missions" | "documents";
 
@@ -37,7 +37,7 @@ export interface ConciergeTab {
 }
 
 export const CONCIERGE_TABS: ConciergeTab[] = [
-  { id: "overview", label: "Vue d'ensemble", icon: FiHome },
+  { id: "overview", label: "Vue d'ensemble", icon: DashboardGaugeIcon },
   { id: "fiche", label: "Fiche & Infos", icon: FiClipboard },
   { id: "missions", label: "Missions", icon: FiTarget },
   { id: "documents", label: "Documents & Avis", icon: FiFileText },

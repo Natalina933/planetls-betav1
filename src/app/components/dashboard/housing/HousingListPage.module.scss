@@ -97,6 +97,91 @@
   line-height: 1.6;
 }
 
+.reviewPanel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 246, 223, 0.94), rgba(255, 252, 247, 0.96)),
+    #fffaf3;
+  color: #5f3d22;
+  box-shadow: 0 12px 28px rgba(92, 58, 24, 0.08);
+}
+
+.reviewPanel[data-state="success"] {
+  background:
+    linear-gradient(135deg, rgba(232, 247, 238, 0.94), rgba(250, 255, 252, 0.96)),
+    #f5fcf8;
+  color: #24593c;
+}
+
+.reviewPanel strong {
+  display: block;
+  margin-bottom: 0.18rem;
+  font-size: 0.98rem;
+}
+
+.reviewPanel p {
+  margin: 0;
+  color: inherit;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  opacity: 0.82;
+}
+
+.reviewPanelIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: currentColor;
+}
+
+.reviewPanelIcon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.reviewPanelAction,
+.filterButton,
+.filterButtonActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.48rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.reviewPanelAction {
+  background: #7c4a21;
+  color: #fffaf3;
+  box-shadow: 0 10px 18px rgba(124, 74, 33, 0.2);
+}
+
+.filterButton {
+  border: 1px solid rgba(126, 75, 55, 0.16);
+  background: rgba(255, 252, 247, 0.7);
+  color: #765247;
+}
+
+.filterButtonActive {
+  border: 1px solid rgba(126, 75, 55, 0.22);
+  background: #6f4638;
+  color: #fffaf3;
+}
+
 .equipmentRow {
   display: flex;
   flex-wrap: wrap;
@@ -121,6 +206,110 @@
   border-top: 1px solid rgba(184, 92, 72, 0.12);
 }
 
+.reviewChecklist {
+  display: grid;
+  gap: 0.68rem;
+  padding: 0.82rem;
+  border-radius: 16px;
+  background: rgba(255, 246, 223, 0.72);
+}
+
+.reviewChecklistHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.62rem;
+}
+
+.reviewChecklistHeader > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #9b6721;
+}
+
+.reviewChecklistHeader strong,
+.reviewSteps strong,
+.reviewReady span,
+.reviewEmpty strong {
+  color: #4b312a;
+}
+
+.reviewChecklistHeader p,
+.reviewSteps p,
+.reviewEmpty p {
+  margin: 0;
+  color: #7b5b51;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.reviewSteps {
+  display: grid;
+  gap: 0.48rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.reviewSteps li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.58rem;
+  padding: 0.58rem;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.reviewStepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #9b6721;
+  color: #fffaf3;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.reviewStepLink {
+  color: #8a541f;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.reviewReady,
+.reviewEmpty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #2f7550;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.reviewEmpty {
+  flex-direction: column;
+  justify-content: center;
+  min-height: 220px;
+  padding: 1.4rem;
+  border-radius: 18px;
+  background: rgba(246, 250, 247, 0.88);
+  text-align: center;
+}
+
+.reviewEmpty svg {
+  width: 2rem;
+  height: 2rem;
+}
+
 .ownerViewButton {
   min-width: 134px;
   justify-content: center;
@@ -135,9 +324,22 @@
 @media (max-width: 640px) {
   .imageTopline,
   .cardHeading,
-  .ownerFooter {
+  .ownerFooter,
+  .reviewPanel,
+  .reviewSteps li {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .reviewPanel,
+  .reviewSteps li {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewPanelAction,
+  .filterButton,
+  .filterButtonActive {
+    width: 100%;
   }
 
   .summaryGrid {

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="highSky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#d7ecff"/>
+      <stop offset=".56" stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#fff6e7"/>
+    </linearGradient>
+    <linearGradient id="highSea" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#4fc5e3"/>
+      <stop offset="1" stop-color="#1f72b2"/>
+    </linearGradient>
+    <linearGradient id="highSun" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff0a8"/>
+      <stop offset="1" stop-color="#e7922d"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="url(#highSky)"/>
+  <circle cx="88" cy="35" r="16" fill="url(#highSun)" opacity=".96"/>
+  <path d="M27 34h30M20 48h42M70 24h18M74 50h32" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="5" opacity=".62"/>
+  <path d="M15 65h98v31a56 56 0 0 1-98 0Z" fill="url(#highSea)"/>
+  <path d="M21 72h86" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4.2" opacity=".78"/>
+  <path d="M25 80h80" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3.4" opacity=".66"/>
+  <path d="M29 88h74" fill="none" stroke="#effcff" stroke-linecap="round" stroke-width="3" opacity=".58"/>
+  <path d="M33 96h68" fill="none" stroke="#d9f5ff" stroke-linecap="round" stroke-width="2.8" opacity=".52"/>
+  <path d="M40 104h52" fill="none" stroke="#c9efff" stroke-linecap="round" stroke-width="2.4" opacity=".48"/>
+  <path d="M46 72l-12 18M66 72l-14 22M88 72 72 98" fill="none" stroke="#ffe2a0" stroke-linecap="round" stroke-width="3" opacity=".5"/>
+</svg>

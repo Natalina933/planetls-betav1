@@ -1,11 +1,6 @@
 ﻿import type { IconType } from "react-icons";
-import {
-  FiClipboard,
-  FiFileText,
-  FiHome,
-  FiMapPin,
-  FiMessageSquare,
-} from "react-icons/fi";
+import { FiClipboard, FiFileText, FiMapPin, FiMessageSquare } from "react-icons/fi";
+import { DashboardGaugeIcon } from "@/components/ui/PublicIcon";
 import type { ProfileShellTab } from "./ProfilePageShell";
 
 export type UnifiedProfileTabId =
@@ -16,7 +11,7 @@ export type UnifiedProfileTabId =
   | "presentation";
 
 export const UNIFIED_PROFILE_TABS: Array<ProfileShellTab<UnifiedProfileTabId>> = [
-  { id: "overview", label: "Vue d'ensemble", icon: FiHome },
+  { id: "overview", label: "Vue d'ensemble", icon: DashboardGaugeIcon },
   { id: "account", label: "Compte", icon: FiClipboard },
   { id: "address", label: "Adresse", icon: FiMapPin },
   { id: "socials", label: "Réseaux", icon: FiMessageSquare },

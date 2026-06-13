@@ -349,7 +349,7 @@ export default function LogementCreateManual({ onCreated }: Props) {
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.eyebrow}>Caractéristiques</p>
-            <h3 className={styles.cardTitle}>Surface, capacité, équipements</h3>
+            <h3 className={styles.cardTitle}>Surface, capacité maximale, équipements</h3>
           </div>
         </div>
         <div className={styles.fieldGrid}>
@@ -358,7 +358,7 @@ export default function LogementCreateManual({ onCreated }: Props) {
           <input className={styles.field} value={form.bedroomCount} onChange={(event) => updateForm("bedroomCount", event.target.value)} placeholder="Chambres" />
           <input className={styles.field} value={form.bathroomCount} onChange={(event) => updateForm("bathroomCount", event.target.value)} placeholder="Salles de bain" />
           <input className={styles.field} value={form.bedCount} onChange={(event) => updateForm("bedCount", event.target.value)} placeholder="Lits" />
-          <input className={styles.field} value={form.guestCapacity} onChange={(event) => updateForm("guestCapacity", event.target.value)} placeholder="Capacité voyageurs" />
+          <input className={styles.field} value={form.guestCapacity} onChange={(event) => updateForm("guestCapacity", event.target.value)} placeholder="Capacité maximale" />
           <input className={`${styles.field} ${styles.fieldFull}`} value={form.amenities} onChange={(event) => updateForm("amenities", event.target.value)} placeholder="Wifi, balcon, serrure connectee" />
           <textarea className={`${styles.textArea} ${styles.fieldFull}`} value={form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="Description d'exploitation, points de vigilance, ambiance du bien..." />
           <label className={styles.label}>

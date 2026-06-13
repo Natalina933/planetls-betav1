@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
-  Building2,
   CalendarClock,
   CircleAlert,
   Clock3,
@@ -13,7 +12,6 @@ import {
   FileText,
   Home,
   MessageSquareText,
-  Plus,
   Search,
   Send,
   ShieldAlert,
@@ -25,6 +23,7 @@ import {
 } from "lucide-react";
 import { DashboardLoadingScreen } from "@/components/dashboard";
 import { AsyncState } from "@/components/ui";
+import { DashboardHomeIcon } from "@/components/ui/PublicIcon";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatCurrencyAmount, formatDateValue } from "@/app/utils/formatters";
 import type { CurrentUser } from "@/app/components/hooks/useCurrentUser";
@@ -37,7 +36,7 @@ import {
   type UnifiedSpotlightItem,
   type UnifiedStatItem,
 } from "@/app/components/dashboard/unified";
-import { DashboardEmptyState, DashboardStatusBadge } from "@/app/components/dashboard/saas";
+import { DashboardEmptyState, DashboardStatusBadge, getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import { useConciergeDashboardData, type ConciergeDashboardRequest } from "./useConciergeDashboardData";
 import {
   buildAvailabilityHoursWithInspirationLibrary,
@@ -46,7 +45,7 @@ import {
 } from "./inspirationVideos";
 import styles from "./Dashboard.module.scss";
 
-function getDateTime(value: string | null | undefined) {
+function getDateTime(value: string | Date | null | undefined) {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -65,10 +64,19 @@ function isToday(value: string | null | undefined) {
   return date ? isSameLocalDay(date, new Date()) : false;
 }
 
+function isWithinNextDays(value: string | Date | null | undefined, days: number) {
+  const date = getDateTime(value);
+  if (!date) return false;
+  const now = new Date();
+  const max = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return date >= now && date <= max;
+}
+
+
 function getGreetingLabel() {
   const hour = new Date().getHours();
   if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon apres-midi";
+  if (hour < 18) return "Bon après-midi";
   return "Bonsoir";
 }
 
@@ -138,11 +146,11 @@ function getPriorityIcon(request: ConciergeDashboardRequest | null): LucideIcon 
 }
 
 function getHousingStatusLabel(status: string) {
-  if (status === "pret") return "Pret";
-  if (status === "menage") return "Menage";
-  if (status === "arrivee") return "Arrivee du jour";
-  if (status === "depart") return "Depart du jour";
-  return "A suivre";
+  if (status === "pret") return "Prêt";
+  if (status === "menage") return "Ménage";
+  if (status === "arrivee") return "Arrivée du jour";
+  if (status === "depart") return "Départ du jour";
+  return "À suivre";
 }
 
 function getActivityDateLabel(value: string | null | undefined) {
@@ -411,6 +419,7 @@ export default function DashboardPage() {
     requestsLoading,
     requestsError,
     missionRows,
+    planningEvents,
     plannedNow,
     housings,
     conversations,
@@ -473,6 +482,19 @@ export default function DashboardPage() {
     [plannedNow],
   );
 
+  const todayPlanningCount = useMemo(
+    () => planningEvents.filter((event) => isSameLocalDay(event.start, new Date())).length,
+    [planningEvents],
+  );
+
+  const weekPlanningCount = useMemo(
+    () => planningEvents.filter((event) => isWithinNextDays(event.start, 7)).length,
+    [planningEvents],
+  );
+
+
+  const missionPaceMeta = useMemo(() => getDashboardMissionPaceMeta(todayPlanningCount), [todayPlanningCount]);
+
   const propertyItems = useMemo<UnifiedPropertyItem[]>(
     () =>
       housings.slice(0, 4).map((housing, index) => {
@@ -488,7 +510,7 @@ export default function DashboardPage() {
           status: getHousingStatusLabel(housing.statut),
           note: relatedMission?.title || "Aucune intervention ouverte pour le moment.",
           href: `/dashboard/concierge/logements/${housing.id}`,
-          icon: <Building2 size={18} />,
+          icon: <DashboardHomeIcon size={22} />,
           tone: toneCycle[index % toneCycle.length],
           metrics: [
             {
@@ -697,7 +719,7 @@ export default function DashboardPage() {
         detail: "Volume de missions terminees remonte par le cockpit.",
       },
       {
-        label: "Arrivees du jour",
+        label: "Arrivées du jour",
         value: `${todayArrivals}`,
         detail: "Voyageurs a coordonner aujourd'hui sur le terrain.",
       },
@@ -722,7 +744,7 @@ export default function DashboardPage() {
       {
         label: "Devis",
         value: `${quotesToSend.length}`,
-        detail: quotesToSend.length > 0 ? "A envoyer ou finaliser" : "A jour",
+        detail: quotesToSend.length > 0 ? "À envoyer ou finaliser" : "À jour",
         icon: <FileText size={16} />,
         tone: "soft",
       },
@@ -741,15 +763,18 @@ export default function DashboardPage() {
     () => [
       {
         label: "Planning du jour",
-        value: `${todayPlanning.length}`,
-        detail: todayPlanning.length > 0 ? "Interventions visibles aujourd'hui" : "Journee plutot calme",
+        value: `${todayPlanningCount}`,
+        detail:
+          todayPlanningCount > 0
+            ? `${todayPlanningCount} aujourd'hui · ${weekPlanningCount} semaine`
+            : "Journée calme · vision semaine disponible",
         icon: <Clock3 size={16} />,
         tone: "accent",
       },
       {
-        label: "Logements a suivre",
+        label: "Logements à suivre",
         value: `${housingActionsCount}`,
-        detail: housingActionsCount > 0 ? "Menages, departs ou arrivees" : "Parc pret",
+        detail: housingActionsCount > 0 ? "Ménages, départs ou arrivées" : "Parc prêt",
         icon: <Home size={16} />,
         tone: "soft",
       },
@@ -761,14 +786,14 @@ export default function DashboardPage() {
         tone: "neutral",
       },
     ],
-    [housingActionsCount, todayPlanning.length, urgentMissionCount, urgentRequests.length],
+    [housingActionsCount, todayPlanningCount, urgentMissionCount, urgentRequests.length, weekPlanningCount],
   );
 
   const quickActions = [
     {
       label: "Ajouter un logement",
       href: "/dashboard/concierge/logements/create",
-      icon: Plus,
+      icon: Home,
     },
     {
       label: "Creer un devis",
@@ -826,37 +851,40 @@ export default function DashboardPage() {
             id: "housings",
             label: "Logements",
             value: `${housings.length}`,
-            detail: housingActionsCount > 0 ? `${housingActionsCount} a suivre` : "Parc pret",
-            icon: <Building2 size={18} />,
-            statusLabel: housingActionsCount > 0 ? "Suivi" : "Stable",
+            detail: housingActionsCount > 0 ? `${housingActionsCount} logement(s) à suivre` : `${housings.length} logement(s) prêt(s)`,
+            icon: <DashboardHomeIcon size={26} />,
+            statusLabel: housingActionsCount > 0 ? `${housingActionsCount} logement(s) à vérifier` : "Logements stables",
             statusTone: housingActionsCount > 0 ? "warning" : "success",
           },
           {
             id: "missions",
             label: "Missions ouvertes",
             value: `${openMissionCount}`,
-            detail: todayPlanning.length > 0 ? `${todayPlanning.length} aujourd'hui` : "Journee legere",
+            detail: todayPlanningCount > 0 ? `${todayPlanningCount} mission(s) aujourd'hui` : "Aucune mission aujourd'hui",
             icon: <CalendarClock size={18} />,
-            statusLabel: pendingValidationCount > 0 ? "Validation" : "Cadence",
-            statusTone: pendingValidationCount > 0 ? "warning" : "primary",
+            statusLabel: pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) à valider` : missionPaceMeta.label,
+            statusTone: pendingValidationCount > 0 ? "warning" : missionPaceMeta.tone,
+            statusIcon: pendingValidationCount > 0 ? undefined : missionPaceMeta.icon,
+            statusIconOnly: pendingValidationCount === 0 && missionPaceMeta.level === "calm",
+            statusText: pendingValidationCount > 0 ? `${pendingValidationCount} mission(s) à valider` : missionPaceMeta.label,
           },
           {
             id: "arrivals",
-            label: "Arrivees",
+            label: "Arrivées",
             value: `${todayArrivals}`,
-            detail: todayArrivals > 0 ? "Coordination voyageurs du jour" : "Aucune arrivee aujourd'hui",
+            detail: todayArrivals > 0 ? `${todayArrivals} arrivée(s) à coordonner` : "0 arrivée aujourd'hui",
             icon: <DoorOpen size={18} />,
-            statusLabel: todayArrivals > 0 ? "Terrain" : "Calme",
+            statusLabel: todayArrivals > 0 ? `${todayArrivals} arrivée(s) terrain` : "Arrivées calmes",
             statusTone: todayArrivals > 0 ? "info" : "default",
           },
           {
             id: "quotes",
             label: "Devis a envoyer",
             value: `${quotesToSend.length}`,
-            detail: unreadConversationCount > 0 ? `${unreadConversationCount} message(s) a lire` : "Messagerie a jour",
+            detail: quotesToSend.length > 0 ? `${quotesToSend.length} devis à envoyer` : "Aucun devis à envoyer",
             icon: <FileText size={18} />,
-            statusLabel: quotesToSend.length > 0 ? "Commercial" : "A jour",
-            statusTone: quotesToSend.length > 0 ? "success" : "default",
+            statusLabel: quotesToSend.length > 0 ? `${quotesToSend.length} devis à envoyer` : "Devis à jour",
+            statusTone: quotesToSend.length > 0 ? "warning" : "success",
           },
         ]}
         leftPrimary={
@@ -864,7 +892,7 @@ export default function DashboardPage() {
             <article className={styles.priorityHeroCard}>
               <div className={styles.priorityTop}>
                 <DashboardStatusBadge
-                  label={priorityRequest?.urgency ? "Mission urgente" : todayArrivals > 0 ? "Arrivee voyageur" : "Point d'attention"}
+                  label={priorityRequest?.urgency ? "Mission urgente" : todayArrivals > 0 ? "Arrivée voyageur" : "Point d'attention"}
                   tone={priorityRequest?.urgency ? "danger" : todayArrivals > 0 ? "warning" : "info"}
                 />
                 <span className={styles.priorityIcon}>
@@ -921,7 +949,7 @@ export default function DashboardPage() {
 
               <section className={styles.contentBlock}>
                 <div className={styles.blockHeader}>
-                  <h3>Sante de l'activite</h3>
+                  <h3>Sante de l&apos;activite</h3>
                   <p>Demandes, devis, validations et messages en une lecture.</p>
                 </div>
                 <div className={styles.healthGrid}>
@@ -964,7 +992,7 @@ export default function DashboardPage() {
                   <div className={styles.panelHeader}>
                     <div>
                       <span className={styles.panelEyebrow}>Planning operationnel</span>
-                      <h3>Aujourd'hui</h3>
+                      <h3>Aujourd&apos;hui</h3>
                     </div>
                     <Link href="/dashboard/concierge/planning" className={styles.inlineLink}>
                       Vue complete
@@ -1015,7 +1043,7 @@ export default function DashboardPage() {
                               <p>{request.property_name || request.city || "Logement a preciser"}</p>
                             </div>
                             <DashboardStatusBadge
-                              label={request.urgency ? "Urgente" : isQuoteToSend(request) ? "Devis" : "A repondre"}
+                              label={request.urgency ? "Urgente" : isQuoteToSend(request) ? "Devis" : "À répondre"}
                               tone={request.urgency ? "danger" : isQuoteToSend(request) ? "success" : "info"}
                             />
                           </div>
@@ -1146,7 +1174,7 @@ export default function DashboardPage() {
                   <MessageSquareText size={20} />
                   <div>
                     <strong>{unreadConversationCount} message(s) non lus</strong>
-                    <p>Les echanges proprietaires peuvent bloquer devis ou mission si rien n'avance.</p>
+                    <p>Les echanges proprietaires peuvent bloquer devis ou mission si rien n&apos;avance.</p>
                   </div>
                 </Link>
               </div>
