@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
-  Euro,
   FileDown,
   History,
   Home,

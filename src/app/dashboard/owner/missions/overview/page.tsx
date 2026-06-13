@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   ArrowRight,
   CalendarClock,
-  CheckCircle2,
   Euro,
   FileText,
   MessageSquareText,
@@ -17,7 +16,6 @@ import { AsyncState } from "@/components/ui";
 import { useCurrentUser } from "@/app/components/hooks/useCurrentUser";
 import { formatDateValue, formatEuroAmountLabel } from "@/app/utils/formatters";
 import {
-  getTravelerMissionGuestName,
   getTravelerMissionPropertyId,
   isTravelerMission,
 } from "../travelerMissionSummary";
@@ -168,7 +166,6 @@ export default function OwnerMissionsOverviewPage() {
     properties,
     missions,
     quotes,
-    invoices,
     conversations,
     ongoingMissions,
     completedMissions,
