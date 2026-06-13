@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { readdir } from "fs/promises";
 import path from "path";
 import Image from "next/image";
@@ -20,6 +21,7 @@ import {
   DashboardStatusBadge,
 } from "@/app/components/dashboard/saas";
 import { sidebarConfig } from "@/app/components/dashboard/Sidebar/sidebarconfig";
+import { PROFILE_VISUAL_KITS, PROFILE_VISUAL_KIT_IMPORT, type VisualKitSlice } from "@/app/lib/profileVisualKit";
 import styles from "./page.module.scss";
 
 export const dynamic = "force-dynamic";
@@ -122,6 +124,45 @@ const ROLE_VISUAL_GROUPS = [
   },
 ];
 
+function getPieSegments(slices: VisualKitSlice[]) {
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0);
+  let cursor = 0;
+
+  return slices.map((slice) => {
+    const percent = total > 0 ? slice.value / total : 0;
+    const dash = `${percent * 100} ${100 - percent * 100}`;
+    const segment = { ...slice, percent, dash, offset: -cursor };
+    cursor += percent * 100;
+    return segment;
+  });
+}
+
+function VisualPieChart({ slices, label }: { slices: VisualKitSlice[]; label: string }) {
+  const segments = getPieSegments(slices);
+
+  return (
+    <div className={styles.pieChart} role="img" aria-label={label}>
+      <svg viewBox="0 0 42 42" aria-hidden="true">
+        <circle className={styles.pieTrack} cx="21" cy="21" r="15.9155" />
+        {segments.map((segment) => (
+          <circle
+            key={segment.label}
+            className={styles.pieSlice}
+            cx="21"
+            cy="21"
+            r="15.9155"
+            stroke={segment.color}
+            strokeDasharray={segment.dash}
+            strokeDashoffset={segment.offset}
+          />
+        ))}
+        <circle className={styles.pieHole} cx="21" cy="21" r="9.4" />
+      </svg>
+      <strong>{slices.reduce((sum, slice) => sum + slice.value, 0)}%</strong>
+    </div>
+  );
+}
+
 function formatIconLabel(fileName: string) {
   return fileName
     .replace(/\.(svg|png|jpg|jpeg|webp)$/i, "")
@@ -222,6 +263,61 @@ export default async function VisualReferencePage() {
                   <span><DashboardHousesIcon size={16} /> Liste logements</span>
                 </div>
               )}
+            </article>
+          ))}
+        </div>
+      </section>
+
+
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.eyebrow}>Kits profils réels</p>
+            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
+          </div>
+          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
+        </div>
+
+        <div className={styles.profileKitGrid}>
+          {PROFILE_VISUAL_KITS.map((kit) => (
+            <article key={kit.id} className={styles.profileKitCard} style={{ "--kit-accent": kit.accent } as CSSProperties}>
+              <div className={styles.profileKitHead}>
+                <Image src={kit.image} alt="" width={86} height={86} className={styles.profileKitImage} unoptimized />
+                <div>
+                  <p className={styles.eyebrow}>{kit.id}</p>
+                  <h3>{kit.title}</h3>
+                  <p>{kit.persona}</p>
+                </div>
+              </div>
+
+              <div className={styles.profileKitSurfaces}>
+                {kit.surfaces.map((surface) => (
+                  <div key={`${kit.id}-${surface.label}`} className={styles.profileKitSurface}>
+                    <strong>{surface.label}</strong>
+                    <p>{surface.description}</p>
+                    <code>{surface.token}</code>
+                    <span>{surface.usage}</span>
+                  </div>
+                ))}
+              </div>
+
+              {kit.charts.map((chart) => (
+                <div key={chart.title} className={styles.profileKitChart}>
+                  <VisualPieChart slices={chart.slices} label={chart.title} />
+                  <div>
+                    <strong>{chart.title}</strong>
+                    <p>{chart.description}</p>
+                    <ul>
+                      {chart.slices.map((slice) => (
+                        <li key={slice.label}>
+                          <span style={{ background: slice.color }} />
+                          {slice.label} <b>{slice.value}%</b>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
             </article>
           ))}
         </div>
