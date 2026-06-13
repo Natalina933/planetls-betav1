@@ -1,27 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Mer agitée avec soleil rouge</title>
+  <desc id="desc">Icône de cadence élevée avec grosses vagues, soleil rouge et halo rouge intense.</desc>
   <defs>
     <linearGradient id="highSky" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#d7ecff"/>
-      <stop offset=".56" stop-color="#f8fbff"/>
-      <stop offset="1" stop-color="#fff6e7"/>
+      <stop offset="0" stop-color="#ffd6c7"/>
+      <stop offset=".42" stop-color="#fff1df"/>
+      <stop offset="1" stop-color="#f8fbff"/>
     </linearGradient>
+    <radialGradient id="redHalo" cx="76%" cy="26%" r="43%">
+      <stop offset="0" stop-color="#ff3d24" stop-opacity=".62"/>
+      <stop offset=".42" stop-color="#f04b33" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#f04b33" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="highSun" cx="36%" cy="30%" r="76%">
+      <stop offset="0" stop-color="#ffb14a"/>
+      <stop offset=".48" stop-color="#f24a2f"/>
+      <stop offset="1" stop-color="#a71920"/>
+    </radialGradient>
     <linearGradient id="highSea" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#4fc5e3"/>
-      <stop offset="1" stop-color="#1f72b2"/>
+      <stop offset="0" stop-color="#2da4d4"/>
+      <stop offset=".54" stop-color="#126fa8"/>
+      <stop offset="1" stop-color="#0c477a"/>
     </linearGradient>
-    <linearGradient id="highSun" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0" stop-color="#fff0a8"/>
-      <stop offset="1" stop-color="#e7922d"/>
+    <linearGradient id="waveFoam" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset=".52" stop-color="#ffe6c2" stop-opacity=".86"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".74"/>
     </linearGradient>
   </defs>
+
   <circle cx="64" cy="64" r="56" fill="url(#highSky)"/>
-  <circle cx="88" cy="35" r="16" fill="url(#highSun)" opacity=".96"/>
-  <path d="M27 34h30M20 48h42M70 24h18M74 50h32" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="5" opacity=".62"/>
-  <path d="M15 65h98v31a56 56 0 0 1-98 0Z" fill="url(#highSea)"/>
-  <path d="M21 72h86" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4.2" opacity=".78"/>
-  <path d="M25 80h80" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3.4" opacity=".66"/>
-  <path d="M29 88h74" fill="none" stroke="#effcff" stroke-linecap="round" stroke-width="3" opacity=".58"/>
-  <path d="M33 96h68" fill="none" stroke="#d9f5ff" stroke-linecap="round" stroke-width="2.8" opacity=".52"/>
-  <path d="M40 104h52" fill="none" stroke="#c9efff" stroke-linecap="round" stroke-width="2.4" opacity=".48"/>
-  <path d="M46 72l-12 18M66 72l-14 22M88 72 72 98" fill="none" stroke="#ffe2a0" stroke-linecap="round" stroke-width="3" opacity=".5"/>
+  <circle cx="88" cy="35" r="34" fill="url(#redHalo)"/>
+  <circle cx="88" cy="35" r="19" fill="url(#highSun)"/>
+  <circle cx="88" cy="35" r="25" fill="none" stroke="#f4432e" stroke-width="6" opacity=".24"/>
+  <path d="M19 40h27M69 22h16M23 51h35M73 53h29" fill="none" stroke="#fff7ef" stroke-linecap="round" stroke-width="4.8" opacity=".54"/>
+
+  <path d="M13 67c10-9 20-9 30 0s20 9 30 0 20-9 30 0 12 8 12 8v22a56 56 0 0 1-100 0Z" fill="url(#highSea)"/>
+  <path d="M14 70c10-12 21-12 32 0s22 12 33 0 22-12 35 0" fill="none" stroke="url(#waveFoam)" stroke-linecap="round" stroke-width="7.4"/>
+  <path d="M20 84c9-10 18-10 27 0s18 10 28 0 19-10 31 0" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="6.6" opacity=".88"/>
+  <path d="M15 97c12-11 24-11 36 0s24 11 36 0 18-9 28-2" fill="none" stroke="#d9f7ff" stroke-linecap="round" stroke-width="5.6" opacity=".82"/>
+  <path d="M34 110c8-6 16-6 24 0s16 6 24 0 14-6 22-1" fill="none" stroke="#bdefff" stroke-linecap="round" stroke-width="4.4" opacity=".72"/>
+  <path d="M38 69l-17 24M63 70 43 99M90 69 66 105" fill="none" stroke="#ffb36c" stroke-linecap="round" stroke-width="4.2" opacity=".52"/>
 </svg>

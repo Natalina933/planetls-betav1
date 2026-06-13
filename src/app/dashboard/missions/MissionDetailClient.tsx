@@ -10,7 +10,6 @@ import {
   FilePlus2,
   FileText,
   Handshake,
-  Home,
   KeyRound,
   MessageSquareText,
   PackageCheck,

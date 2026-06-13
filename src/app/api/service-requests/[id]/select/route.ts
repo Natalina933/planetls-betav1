@@ -3,7 +3,6 @@ import { finalizeAcceptedQuoteWorkflow } from "@/app/api/_shared/acceptedQuoteWo
 import { asLooseSupabaseClient } from "@/app/api/_shared/untypedSupabase";
 import { db } from "@/server/db/dbServer";
 import { requireApiRole } from "@/server/auth/roleGuards";
-import { deriveServiceRequestStatus } from "@/server/service-requests/workflow";
 
 interface SelectRequestBody {
   recipient_id?: string;
@@ -128,13 +127,6 @@ export async function POST(
           })
           .eq("id", recipient.id),
       ),
-    );
-
-    const nextRequestStatus = deriveServiceRequestStatus(
-      Array.from(recipientStatuses.values()) as Array<
-        "sent" | "viewed" | "interested" | "quoted" | "declined" | "selected" | "not_selected"
-      >,
-      selectedRecipient.concierge_profile_id ?? null,
     );
 
     const nextMetadata = isRecord(requestRow.metadata) ? { ...requestRow.metadata } : {};
