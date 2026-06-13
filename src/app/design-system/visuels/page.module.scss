@@ -2,7 +2,11 @@
   min-height: 100vh;
   padding: clamp(1rem, 2.6vw, 2rem);
   background:
-    linear-gradient(180deg, rgba(246, 249, 247, 0.96), rgba(255, 252, 247, 0.92)),
+    linear-gradient(
+      180deg,
+      rgba(246, 249, 247, 0.96),
+      rgba(255, 252, 247, 0.92)
+    ),
     #f7f8f5;
   color: #20302a;
 }
@@ -18,7 +22,11 @@
   border: 1px solid rgba(35, 67, 55, 0.12);
   border-radius: 18px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(239, 247, 242, 0.88)),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(239, 247, 242, 0.88)
+    ),
     #ffffff;
   box-shadow: 0 16px 36px rgba(25, 44, 36, 0.07);
 }
@@ -170,25 +178,41 @@
   border: 1px solid rgba(35, 67, 55, 0.1);
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 250, 247, 0.78)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(248, 250, 247, 0.78)
+    ),
     #ffffff;
 }
 
 .role-owner {
   background:
-    linear-gradient(180deg, rgba(255, 249, 238, 0.92), rgba(255, 255, 255, 0.82)),
+    linear-gradient(
+      180deg,
+      rgba(255, 249, 238, 0.92),
+      rgba(255, 255, 255, 0.82)
+    ),
     #fffaf2;
 }
 
 .role-concierge {
   background:
-    linear-gradient(180deg, rgba(238, 248, 242, 0.94), rgba(255, 255, 255, 0.84)),
+    linear-gradient(
+      180deg,
+      rgba(238, 248, 242, 0.94),
+      rgba(255, 255, 255, 0.84)
+    ),
     #f5fbf7;
 }
 
 .role-provider {
   background:
-    linear-gradient(180deg, rgba(241, 245, 249, 0.94), rgba(255, 255, 255, 0.84)),
+    linear-gradient(
+      180deg,
+      rgba(241, 245, 249, 0.94),
+      rgba(255, 255, 255, 0.84)
+    ),
     #f7f9fb;
 }
 
@@ -317,7 +341,11 @@
   border: 1px solid rgba(35, 67, 55, 0.1);
   border-radius: 14px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 247, 0.78)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.86),
+      rgba(248, 250, 247, 0.78)
+    ),
     #ffffff;
 }
 
@@ -364,7 +392,11 @@
   border: 1px solid rgba(147, 112, 50, 0.18);
   border-radius: 16px;
   background:
-    linear-gradient(135deg, rgba(255, 249, 235, 0.92), rgba(244, 249, 246, 0.9)),
+    linear-gradient(
+      135deg,
+      rgba(255, 249, 235, 0.92),
+      rgba(244, 249, 246, 0.9)
+    ),
     #ffffff;
 }
 
@@ -723,6 +755,285 @@
 @media (max-width: 680px) {
   .profileKitHead,
   .profileKitChart {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tokenGroupGrid,
+.namedElementGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.tokenGroup,
+.namedElementCard {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.tokenGroup h3 {
+  margin: 0;
+  color: #1d2d26;
+  font-size: 0.98rem;
+}
+
+.tokenRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.62rem;
+  align-items: start;
+  padding: 0.62rem;
+  border-radius: 12px;
+  background: rgba(248, 250, 247, 0.9);
+}
+
+.tokenSwatch {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(32, 48, 42, 0.12);
+  border-radius: 11px;
+  background: linear-gradient(135deg, #f7efe1, #fff);
+}
+
+.tokenRow div,
+.profileKitTokens div {
+  display: grid;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.tokenRow strong {
+  color: #20302a;
+  font-size: 0.82rem;
+}
+
+.tokenRow p {
+  margin: 0;
+  color: #63746b;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.profileKitTokens {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.profileKitTokens > div {
+  padding: 0.64rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.profileKitTokens strong {
+  color: #1d2d26;
+  font-size: 0.82rem;
+}
+
+.profileKitTokens span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #5d6f66;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.profileKitTokens i {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(32, 48, 42, 0.12);
+}
+
+.ownerLogementPreview {
+  display: grid;
+  gap: 1rem;
+}
+
+.ownerReviewPanelPreview {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 246, 223, 0.94),
+    rgba(255, 252, 247, 0.96)
+  );
+  color: #5f3d22;
+  box-shadow: 0 12px 28px rgba(92, 58, 24, 0.08);
+}
+
+.ownerReviewPanelPreview strong,
+.ownerHousingBodyPreview h3,
+.ownerChecklistPreview strong {
+  display: block;
+  color: #4b312a;
+}
+
+.ownerReviewPanelPreview p,
+.ownerHousingBodyPreview p,
+.ownerChecklistPreview p {
+  margin: 0;
+  color: #7b5b51;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.ownerPreviewIcon,
+.ownerPreviewAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.ownerPreviewIcon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.ownerPreviewAction {
+  min-height: 38px;
+  padding: 0.48rem 0.85rem;
+  background: #7c4a21;
+  color: #fffaf3;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.ownerHousingCardPreview {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+  overflow: hidden;
+  border: 1px solid rgba(126, 75, 55, 0.14);
+  border-radius: 24px;
+  background: #fffdf8;
+  box-shadow: 0 12px 28px rgba(92, 58, 24, 0.08);
+}
+
+.ownerHousingImagePreview {
+  position: relative;
+  min-height: 100%;
+  background: #f3eadb;
+}
+
+.ownerHousingImagePreview img {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+}
+
+.ownerStatusPreview,
+.ownerCityPreview {
+  position: absolute;
+  top: 0.95rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 252, 247, 0.9);
+  color: #6d4b42;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.ownerStatusPreview {
+  left: 0.95rem;
+}
+
+.ownerCityPreview {
+  right: 0.95rem;
+}
+
+.ownerHousingBodyPreview {
+  display: grid;
+  gap: 0.72rem;
+  padding: 1.1rem;
+}
+
+.ownerHousingEyebrowPreview {
+  color: #8a541f !important;
+  font-size: 0.73rem !important;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ownerCapacityPreview,
+.ownerEquipmentPreview span {
+  width: fit-content;
+  padding: 0.32rem 0.68rem;
+  border-radius: 999px;
+  background: rgba(184, 92, 72, 0.08);
+  color: #7d4b3f;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.ownerEquipmentPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ownerChecklistPreview {
+  display: grid;
+  gap: 0.54rem;
+  padding: 0.82rem;
+  border-radius: 16px;
+  background: rgba(255, 246, 223, 0.72);
+}
+
+.ownerChecklistPreview > div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.58rem;
+  padding: 0.58rem;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.ownerChecklistPreview > div > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #9b6721;
+  color: #fffaf3;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.ownerChecklistPreview b {
+  display: block;
+  margin-top: 0.18rem;
+  color: #4b312a;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1100px) {
+  .tokenGroupGrid,
+  .namedElementGrid,
+  .ownerHousingCardPreview {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .ownerReviewPanelPreview {
     grid-template-columns: 1fr;
   }
 }
