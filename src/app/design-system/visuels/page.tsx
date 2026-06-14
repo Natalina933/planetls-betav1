@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-import { readFile, readdir } from "fs/promises";
 import { readdir } from "fs/promises";
+import { getServiceCatalogGroups } from "./getServiceCatalogGroups";
 import path from "path";
 import Image from "next/image";
 import {
@@ -47,14 +47,14 @@ import styles from "./page.module.scss";
 export const dynamic = "force-dynamic";
 
 const ICONS_DIR = path.join(process.cwd(), "public", "icons");
-const SERVICES_CATALOG_SQL = path.join(
-  process.cwd(),
-  "src",
-  "app",
-  "data",
-  "services",
-  "services_catalog_rows.sql",
-);
+// const SERVICES_CATALOG_SQL = path.join(
+//   process.cwd(),
+//   "src",
+//   "app",
+//   "data",
+//   "services",
+//   "services_catalog_rows.sql",
+// );
 
 const SERVICE_CATEGORIES = [
   "Ménage",
@@ -105,87 +105,46 @@ const DESIGN_TOKEN_GROUPS = [
   {
     title: "Couleurs globales",
     items: [
-      {
-        name: "--color-primary",
-        value: "#d4af37",
-        usage: "Or principal de la marque.",
-      },
+      { name: "--color-primary", value: "#d4af37", usage: "Or principal de la marque." },
       { name: "--color-bg", value: "#f8f9fb", usage: "Fond général clair." },
       { name: "--color-text", value: "#2b2b2b", usage: "Texte courant." },
-      {
-        name: "--color-success",
-        value: "#4caf50",
-        usage: "Validation et succès.",
-      },
+      { name: "--color-success", value: "#4caf50", usage: "Validation et succès." },
       { name: "--color-error", value: "#e53935", usage: "Erreur ou blocage." },
     ],
   },
   {
     title: "Typographies globales",
     items: [
-      {
-        name: "--font-title",
-        value: "Montserrat",
-        usage: "Titres et libellés forts.",
-      },
-      { name: "--font-text", value: "Open Sans", usage: "Textes d’interface." },
-      {
-        name: "--font-primary",
-        value: "Cormorant Garamond",
-        usage: "Accent éditorial Belle Époque.",
-      },
+      { name: "--font-title", value: "Montserrat", usage: "Titres et libellés forts." },
+      { name: "--font-text", value: "Open Sans", usage: "Textes d'interface." },
+      { name: "--font-primary", value: "Cormorant Garamond", usage: "Accent éditorial Belle Époque." },
     ],
   },
 ];
 
 const OWNER_LOGEMENTS_VISUALS = [
-  {
-    name: "OwnerHousingSummaryDonut.Ready",
-    label: "Prêts",
-    value: "2/3",
-    detail: "Disponibles",
-    percent: 66,
-  },
-  {
-    name: "OwnerHousingSummaryDonut.Cleaning",
-    label: "À préparer",
-    value: "1",
-    detail: "Ménage",
-    percent: 33,
-  },
-  {
-    name: "OwnerHousingSummaryDonut.Movement",
-    label: "Mouvements",
-    value: "2",
-    detail: "Arrivées/départs",
-    percent: 67,
-  },
-  {
-    name: "OwnerHousingSummaryDonut.KeyInfo",
-    label: "Infos clés",
-    value: "2/3",
-    detail: "Capacité maximale/équipements",
-    percent: 66,
-  },
+  { name: "OwnerHousingSummaryDonut.Ready", label: "Prêts", value: "2/3", detail: "Disponibles", percent: 66 },
+  { name: "OwnerHousingSummaryDonut.Cleaning", label: "À préparer", value: "1", detail: "Ménage", percent: 33 },
+  { name: "OwnerHousingSummaryDonut.Movement", label: "Mouvements", value: "2", detail: "Arrivées/départs", percent: 67 },
+  { name: "OwnerHousingSummaryDonut.KeyInfo", label: "Infos clés", value: "2/3", detail: "Capacité maximale/équipements", percent: 66 },
 ];
 
 const OWNER_HOUSING_REVIEW_STEPS = [
-  {
-    name: "OwnerHousingReviewStep.Photo",
-    label: "Photo principale",
-    detail: "Ajoutez une photo visible du logement.",
-  },
-  {
-    name: "OwnerHousingReviewStep.Capacity",
-    label: "Capacité maximale",
-    detail: "Indiquez le nombre maximal de personnes autorisées.",
-  },
-  {
-    name: "OwnerHousingReviewStep.Equipments",
-    label: "Équipements",
-    detail: "Ajoutez les équipements importants du logement.",
-  },
+  { name: "OwnerHousingReviewStep.Photo", label: "Photo principale", detail: "Ajoutez une photo visible du logement." },
+  { name: "OwnerHousingReviewStep.Capacity", label: "Capacité maximale", detail: "Indiquez le nombre maximal de personnes autorisées." },
+  { name: "OwnerHousingReviewStep.Equipments", label: "Équipements", detail: "Ajoutez les équipements importants du logement." },
 ];
+
+const OWNER_LOGEMENTS_SOURCE_ELEMENTS: { name: string; source: string; usage: string }[] = [];
+
+const POPUP_VISUAL_REFERENCES: {
+  name: string;
+  route: string;
+  title: string;
+  detail: string;
+  actions: string[];
+  source: string;
+}[] = [];
 
 const ROLE_VISUAL_GROUPS = [
   {
@@ -194,26 +153,10 @@ const ROLE_VISUAL_GROUPS = [
     subtitle: "À garder identique dans tous les espaces",
     image: null,
     items: [
-      {
-        label: "Vue d'ensemble",
-        icon: <DashboardGaugeIcon size={28} />,
-        ref: "DashboardGaugeIcon",
-      },
-      {
-        label: "Logement",
-        icon: <DashboardHomeIcon size={28} />,
-        ref: "DashboardHomeIcon",
-      },
-      {
-        label: "Tous les logements",
-        icon: <DashboardHousesIcon size={32} />,
-        ref: "DashboardHousesIcon",
-      },
-      {
-        label: "Statut SaaS",
-        icon: <CheckCircle2 size={28} />,
-        ref: "DashboardStatusBadge",
-      },
+      { label: "Vue d'ensemble", icon: <DashboardGaugeIcon size={28} />, ref: "DashboardGaugeIcon" },
+      { label: "Logement", icon: <DashboardHomeIcon size={28} />, ref: "DashboardHomeIcon" },
+      { label: "Tous les logements", icon: <DashboardHousesIcon size={32} />, ref: "DashboardHousesIcon" },
+      { label: "Statut SaaS", icon: <CheckCircle2 size={28} />, ref: "DashboardStatusBadge" },
     ],
   },
   {
@@ -222,21 +165,9 @@ const ROLE_VISUAL_GROUPS = [
     subtitle: "Patrimoine, logements, demandes et validation",
     image: "/icons/proprio_belle_epoque.png",
     items: [
-      {
-        label: "Logements",
-        icon: <DashboardHomeIcon size={28} />,
-        ref: "DashboardHomeIcon",
-      },
-      {
-        label: "Conciergeries",
-        icon: <ServiceCategoryIcon category="Conciergerie" size={28} />,
-        ref: "ServiceCategoryIcon",
-      },
-      {
-        label: "Missions voyageurs",
-        icon: <CalendarDays size={28} />,
-        ref: "CalendarDays",
-      },
+      { label: "Logements", icon: <DashboardHomeIcon size={28} />, ref: "DashboardHomeIcon" },
+      { label: "Conciergeries", icon: <ServiceCategoryIcon category="Conciergerie" size={28} />, ref: "ServiceCategoryIcon" },
+      { label: "Missions voyageurs", icon: <CalendarDays size={28} />, ref: "CalendarDays" },
       { label: "À revoir", icon: <AlertTriangle size={28} />, ref: "warning" },
     ],
   },
@@ -246,26 +177,10 @@ const ROLE_VISUAL_GROUPS = [
     subtitle: "Missions, propriétaires, logements et services",
     image: "/icons/concierges_belle_epoque.png",
     items: [
-      {
-        label: "Missions",
-        icon: <CalendarDays size={28} />,
-        ref: "CalendarDays",
-      },
-      {
-        label: "Propriétaires",
-        icon: <ServiceCategoryIcon category="Proprietaire" size={28} />,
-        ref: "ServiceCategoryIcon",
-      },
-      {
-        label: "Services",
-        icon: <ServiceCategoryIcon category="Ménage" size={28} />,
-        ref: "ServiceCategoryIcon",
-      },
-      {
-        label: "Cadence",
-        icon: getDashboardMissionPaceMetaForLevel("soft").icon,
-        ref: "mission pace",
-      },
+      { label: "Missions", icon: <CalendarDays size={28} />, ref: "CalendarDays" },
+      { label: "Propriétaires", icon: <ServiceCategoryIcon category="Proprietaire" size={28} />, ref: "ServiceCategoryIcon" },
+      { label: "Services", icon: <ServiceCategoryIcon category="Ménage" size={28} />, ref: "ServiceCategoryIcon" },
+      { label: "Cadence", icon: getDashboardMissionPaceMetaForLevel("soft").icon, ref: "mission pace" },
     ],
   },
   {
@@ -274,29 +189,15 @@ const ROLE_VISUAL_GROUPS = [
     subtitle: "Interventions, clients, planning et devis",
     image: "/icons/artisans_belle_epoque.png",
     items: [
-      {
-        label: "Interventions",
-        icon: <ServiceCategoryIcon category="Artisan" size={28} />,
-        ref: "ServiceCategoryIcon",
-      },
-      {
-        label: "Clients",
-        icon: <ServiceCategoryIcon category="Conciergerie" size={28} />,
-        ref: "ServiceCategoryIcon",
-      },
-      {
-        label: "Planning",
-        icon: <CalendarDays size={28} />,
-        ref: "CalendarDays",
-      },
-      {
-        label: "Alertes",
-        icon: <AlertTriangle size={28} />,
-        ref: "AlertTriangle",
-      },
+      { label: "Interventions", icon: <ServiceCategoryIcon category="Artisan" size={28} />, ref: "ServiceCategoryIcon" },
+      { label: "Clients", icon: <ServiceCategoryIcon category="Conciergerie" size={28} />, ref: "ServiceCategoryIcon" },
+      { label: "Planning", icon: <CalendarDays size={28} />, ref: "CalendarDays" },
+      { label: "Alertes", icon: <AlertTriangle size={28} />, ref: "AlertTriangle" },
     ],
   },
 ];
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getPieSegments(slices: VisualKitSlice[]) {
   const total = slices.reduce((sum, slice) => sum + slice.value, 0);
@@ -311,13 +212,24 @@ function getPieSegments(slices: VisualKitSlice[]) {
   });
 }
 
-function VisualPieChart({
-  slices,
-  label,
-}: {
-  slices: VisualKitSlice[];
-  label: string;
-}) {
+function formatIconLabel(fileName: string) {
+  return fileName
+    .replace(/\.(svg|png|jpg|jpeg|webp)$/i, "")
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function getPublicIcons() {
+  const files = await readdir(ICONS_DIR);
+  return files
+    .filter((file) => /\.(svg|png|jpg|jpeg|webp)$/i.test(file))
+    .sort((left, right) => left.localeCompare(right, "fr"));
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function VisualPieChart({ slices, label }: { slices: VisualKitSlice[]; label: string }) {
   const segments = getPieSegments(slices);
 
   return (
@@ -343,20 +255,232 @@ function VisualPieChart({
   );
 }
 
-function formatIconLabel(fileName: string) {
-  return fileName
-    .replace(/\.(svg|png|jpg|jpeg|webp)$/i, "")
-    .replace(/[-_]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function ProfileKitCard({ kit }: { kit: (typeof PROFILE_VISUAL_KITS)[number] }) {
+  return (
+    <article
+      key={kit.id}
+      className={styles.profileKitCard}
+      style={{ "--kit-accent": kit.accent } as CSSProperties}
+    >
+      <div className={styles.profileKitHead}>
+        <Image
+          src={kit.image}
+          alt=""
+          width={86}
+          height={86}
+          className={styles.profileKitImage}
+          unoptimized
+        />
+        <div>
+          <p className={styles.eyebrow}>{kit.id}</p>
+          <h3>{kit.title}</h3>
+          <p>{kit.persona}</p>
+        </div>
+      </div>
+
+      <div className={styles.profileKitTokens}>
+        <div>
+          <strong>Couleurs nommées</strong>
+          {kit.colors.map((token) => (
+            <span key={token.name}>
+              <i style={{ background: token.value }} />{" "}
+              <code>{token.name}</code> {token.value}
+            </span>
+          ))}
+        </div>
+        <div>
+          <strong>Typos nommées</strong>
+          {kit.typography.map((token) => (
+            <span key={token.name}>
+              <code>{token.name}</code> {token.value}
+            </span>
+          ))}
+        </div>
+        <div>
+          <strong>Éléments nommés</strong>
+          {kit.components.map((component) => (
+            <span key={component.name}>
+              <code>{component.name}</code> {component.label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.profileKitSurfaces}>
+        {kit.surfaces.map((surface) => (
+          <div key={`${kit.id}-${surface.label}`} className={styles.profileKitSurface}>
+            <strong>{surface.label}</strong>
+            <p>{surface.description}</p>
+            <code>{surface.token}</code>
+            <span>{surface.usage}</span>
+          </div>
+        ))}
+      </div>
+
+      {kit.charts.map((chart) => (
+        <div key={chart.title} className={styles.profileKitChart}>
+          <VisualPieChart slices={chart.slices} label={chart.title} />
+          <div>
+            <strong>{chart.title}</strong>
+            <p>{chart.description}</p>
+            <ul>
+              {chart.slices.map((slice) => (
+                <li key={slice.label}>
+                  <span style={{ background: slice.color }} />
+                  {slice.label} <b>{slice.value}%</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </article>
+  );
 }
 
-async function getPublicIcons() {
-  const files = await readdir(ICONS_DIR);
-  return files
-    .filter((file) => /\.(svg|png|jpg|jpeg|webp)$/i.test(file))
-    .sort((left, right) => left.localeCompare(right, "fr"));
+function DesignTokenSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <div>
+          <p className={styles.eyebrow}>Couleurs & typos</p>
+          <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
+        </div>
+        <code>variables.css + profileVisualKit.ts</code>
+      </div>
+      <div className={styles.tokenGroupGrid}>
+        {DESIGN_TOKEN_GROUPS.map((group) => (
+          <article key={group.title} className={styles.tokenGroup}>
+            <h3>{group.title}</h3>
+            {group.items.map((token) => (
+              <div key={token.name} className={styles.tokenRow}>
+                <span
+                  className={styles.tokenSwatch}
+                  style={{ background: token.value.startsWith("#") ? token.value : undefined }}
+                />
+                <div>
+                  <code>{token.name}</code>
+                  <strong>{token.value}</strong>
+                  <p>{token.usage}</p>
+                </div>
+              </div>
+            ))}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
+
+function ProfileKitSection() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <div>
+          <p className={styles.eyebrow}>Kits profils réels</p>
+          <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
+        </div>
+        <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
+      </div>
+      <div className={styles.profileKitGrid}>
+        {PROFILE_VISUAL_KITS.map((kit) => (
+          <ProfileKitCard key={kit.id} kit={kit} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function OwnerLogementsSection() {
+  return (
+    <section className={styles.section} id="owner-logements-reference">
+      <div className={styles.sectionHeader}>
+        <div>
+          <p className={styles.eyebrow}>Page réelle owner</p>
+          <h2>Visuels de /dashboard/owner/logements</h2>
+        </div>
+        <code>HousingListPage + HousingListPage.module.scss</code>
+      </div>
+
+      <div className={styles.namedElementGrid}>
+        {OWNER_LOGEMENTS_VISUALS.map((card) => (
+          <article key={card.name} className={styles.namedElementCard}>
+            <code>{card.name}</code>
+            <MetricDonut
+              label={card.label}
+              value={card.value}
+              detail={card.detail}
+              percent={card.percent}
+            />
+          </article>
+        ))}
+      </div>
+
+      <div className={styles.ownerLogementPreview}>
+        <div className={styles.ownerReviewPanelPreview}>
+          <span className={styles.ownerPreviewIcon}>
+            <AlertTriangle size={22} />
+          </span>
+          <div>
+            <code>OwnerHousingReviewPanel</code>
+            <strong>1 logement à revoir</strong>
+            <p>
+              Ouvrez le premier logement, complétez les points signalés, puis
+              revenez ici pour vérifier que la liste diminue.
+            </p>
+          </div>
+          <span className={styles.ownerPreviewAction}>Commencer</span>
+        </div>
+
+        <article className={styles.ownerHousingCardPreview}>
+          <div className={styles.ownerHousingImagePreview}>
+            <Image
+              src="/images/default-logement.png"
+              alt="Aperçu logement"
+              width={420}
+              height={260}
+              unoptimized
+            />
+            <span className={styles.ownerStatusPreview}>À revoir</span>
+            <span className={styles.ownerCityPreview}>Paris</span>
+          </div>
+          <div className={styles.ownerHousingBodyPreview}>
+            <code>OwnerHousingCard</code>
+            <p className={styles.ownerHousingEyebrowPreview}>Appartement</p>
+            <h3>Appartement exemple</h3>
+            <span className={styles.ownerCapacityPreview}>
+              Capacité maximale · 4 personnes
+            </span>
+            <p>
+              Carte utilisée sur la page logements propriétaire : image, statut,
+              ville, capacité, équipements et checklist de correction.
+            </p>
+            <div className={styles.ownerEquipmentPreview}>
+              <span>Wifi</span>
+              <span>Linge</span>
+              <span>Climatisation</span>
+            </div>
+            <div className={styles.ownerChecklistPreview}>
+              <strong>Éléments nommés dans la checklist</strong>
+              {OWNER_HOUSING_REVIEW_STEPS.map((step, index) => (
+                <div key={step.name}>
+                  <span>{index + 1}</span>
+                  <div>
+                    <code>{step.name}</code>
+                    <b>{step.label}</b>
+                    <p>{step.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default async function VisualReferencePage() {
   const icons = await getPublicIcons();
@@ -369,6 +493,8 @@ export default async function VisualReferencePage() {
 
   return (
     <main className={styles.page}>
+
+      {/* ── Hero ── */}
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>Design system interne</p>
@@ -385,6 +511,7 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Par espace ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -459,15 +586,9 @@ export default async function VisualReferencePage() {
                 </div>
               ) : (
                 <div className={styles.roleSidebarList}>
-                  <span>
-                    <DashboardGaugeIcon size={16} /> Dashboard
-                  </span>
-                  <span>
-                    <DashboardHomeIcon size={16} /> Logement
-                  </span>
-                  <span>
-                    <DashboardHousesIcon size={16} /> Liste logements
-                  </span>
+                  <span><DashboardGaugeIcon size={16} /> Dashboard</span>
+                  <span><DashboardHomeIcon size={16} /> Logement</span>
+                  <span><DashboardHousesIcon size={16} /> Liste logements</span>
                 </div>
               )}
             </article>
@@ -475,832 +596,80 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Kits profils réels ── */}
+      <ProfileKitSection />
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Kits profils réels</p>
-            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
-          </div>
-          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
-        </div>
+      {/* ── Couleurs & typos ── */}
+      <DesignTokenSection />
 
-        <div className={styles.profileKitGrid}>
-          {PROFILE_VISUAL_KITS.map((kit) => (
-            <article key={kit.id} className={styles.profileKitCard} style={{ "--kit-accent": kit.accent } as CSSProperties}>
-              <div className={styles.profileKitHead}>
-                <Image src={kit.image} alt="" width={86} height={86} className={styles.profileKitImage} unoptimized />
-                <div>
-                  <p className={styles.eyebrow}>{kit.id}</p>
-                  <h3>{kit.title}</h3>
-                  <p>{kit.persona}</p>
-                </div>
-              </div>
+      {/* ── Owner logements ── */}
+      <OwnerLogementsSection />
 
-              <div className={styles.profileKitSurfaces}>
-                {kit.surfaces.map((surface) => (
-                  <div key={`${kit.id}-${surface.label}`} className={styles.profileKitSurface}>
-                    <strong>{surface.label}</strong>
-                    <p>{surface.description}</p>
-                    <code>{surface.token}</code>
-                    <span>{surface.usage}</span>
-                  </div>
-                ))}
-              </div>
-
-              {kit.charts.map((chart) => (
-                <div key={chart.title} className={styles.profileKitChart}>
-                  <VisualPieChart slices={chart.slices} label={chart.title} />
-                  <div>
-                    <strong>{chart.title}</strong>
-                    <p>{chart.description}</p>
-                    <ul>
-                      {chart.slices.map((slice) => (
-                        <li key={slice.label}>
-                          <span style={{ background: slice.color }} />
-                          {slice.label} <b>{slice.value}%</b>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Couleurs & typos</p>
-            <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
-          </div>
-          <code>variables.css + profileVisualKit.ts</code>
-        </div>
-        <div className={styles.tokenGroupGrid}>
-          {DESIGN_TOKEN_GROUPS.map((group) => (
-            <article key={group.title} className={styles.tokenGroup}>
-              <h3>{group.title}</h3>
-              {group.items.map((token) => (
-                <div key={token.name} className={styles.tokenRow}>
-                  <span
-                    className={styles.tokenSwatch}
-                    style={{
-                      background: token.value.startsWith("#")
-                        ? token.value
-                        : undefined,
-                    }}
-                  />
-                  <div>
-                    <code>{token.name}</code>
-                    <strong>{token.value}</strong>
-                    <p>{token.usage}</p>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Kits profils réels</p>
-            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
-          </div>
-          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
-        </div>
-
-        <div className={styles.profileKitGrid}>
-          {PROFILE_VISUAL_KITS.map((kit) => (
-            <article
-              key={kit.id}
-              className={styles.profileKitCard}
-              style={{ "--kit-accent": kit.accent } as CSSProperties}
-            >
-              <div className={styles.profileKitHead}>
-                <Image
-                  src={kit.image}
-                  alt=""
-                  width={86}
-                  height={86}
-                  className={styles.profileKitImage}
-                  unoptimized
-                />
-                <div>
-                  <p className={styles.eyebrow}>{kit.id}</p>
-                  <h3>{kit.title}</h3>
-                  <p>{kit.persona}</p>
-                </div>
-              </div>
-
-              <div className={styles.profileKitTokens}>
-                <div>
-                  <strong>Couleurs nommées</strong>
-                  {kit.colors.map((token) => (
-                    <span key={token.name}>
-                      <i style={{ background: token.value }} />{" "}
-                      <code>{token.name}</code> {token.value}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <strong>Typos nommées</strong>
-                  {kit.typography.map((token) => (
-                    <span key={token.name}>
-                      <code>{token.name}</code> {token.value}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <strong>Éléments nommés</strong>
-                  {kit.components.map((component) => (
-                    <span key={component.name}>
-                      <code>{component.name}</code> {component.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.profileKitSurfaces}>
-                {kit.surfaces.map((surface) => (
-                  <div
-                    key={`${kit.id}-${surface.label}`}
-                    className={styles.profileKitSurface}
-                  >
-                    <strong>{surface.label}</strong>
-                    <p>{surface.description}</p>
-                    <code>{surface.token}</code>
-                    <span>{surface.usage}</span>
-                  </div>
-                ))}
-              </div>
-
-              {kit.charts.map((chart) => (
-                <div key={chart.title} className={styles.profileKitChart}>
-                  <VisualPieChart slices={chart.slices} label={chart.title} />
-                  <div>
-                    <strong>{chart.title}</strong>
-                    <p>{chart.description}</p>
-                    <ul>
-                      {chart.slices.map((slice) => (
-                        <li key={slice.label}>
-                          <span style={{ background: slice.color }} />
-                          {slice.label} <b>{slice.value}%</b>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section} id="owner-logements-reference">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Page réelle owner</p>
-            <h2>Visuels de /dashboard/owner/logements</h2>
-          </div>
-          <code>HousingListPage + HousingListPage.module.scss</code>
-        </div>
-
-        <div className={styles.namedElementGrid}>
-          {OWNER_LOGEMENTS_VISUALS.map((card) => (
-            <article key={card.name} className={styles.namedElementCard}>
-              <code>{card.name}</code>
-              <MetricDonut
-                label={card.label}
-                value={card.value}
-                detail={card.detail}
-                percent={card.percent}
-              />
-            </article>
-          ))}
-        </div>
-
-        <div className={styles.ownerLogementPreview}>
-          <div className={styles.ownerReviewPanelPreview}>
-            <span className={styles.ownerPreviewIcon}>
-              <AlertTriangle size={22} />
-            </span>
+      {/* ── Sources page réelle ── */}
+      {OWNER_LOGEMENTS_SOURCE_ELEMENTS.length > 0 && (
+        <section className={styles.section} id="owner-logements-source-map">
+          <div className={styles.sectionHeader}>
             <div>
-              <code>OwnerHousingReviewPanel</code>
-              <strong>1 logement à revoir</strong>
-              <p>
-                Ouvrez le premier logement, complétez les points signalés, puis
-                revenez ici pour vérifier que la liste diminue.
-              </p>
+              <p className={styles.eyebrow}>Sources page réelle</p>
+              <h2>Tout ce qui compose /dashboard/owner/logements</h2>
             </div>
-            <span className={styles.ownerPreviewAction}>Commencer</span>
+            <code>route + composant partagé + styles owner</code>
           </div>
-
-          <article className={styles.ownerHousingCardPreview}>
-            <div className={styles.ownerHousingImagePreview}>
-              <Image
-                src="/images/default-logement.png"
-                alt="Aperçu logement"
-                width={420}
-                height={260}
-                unoptimized
-              />
-              <span className={styles.ownerStatusPreview}>À revoir</span>
-              <span className={styles.ownerCityPreview}>Paris</span>
-            </div>
-            <div className={styles.ownerHousingBodyPreview}>
-              <code>OwnerHousingCard</code>
-              <p className={styles.ownerHousingEyebrowPreview}>Appartement</p>
-              <h3>Appartement exemple</h3>
-              <span className={styles.ownerCapacityPreview}>
-                Capacité maximale · 4 personnes
-              </span>
-              <p>
-                Carte utilisée sur la page logements propriétaire : image,
-                statut, ville, capacité, équipements et checklist de correction.
-              </p>
-              <div className={styles.ownerEquipmentPreview}>
-                <span>Wifi</span>
-                <span>Linge</span>
-                <span>Climatisation</span>
-              </div>
-              <div className={styles.ownerChecklistPreview}>
-                <strong>Éléments nommés dans la checklist</strong>
-                {OWNER_HOUSING_REVIEW_STEPS.map((step, index) => (
-                  <div key={step.name}>
-                    <span>{index + 1}</span>
-                    <div>
-                      <code>{step.name}</code>
-                      <b>{step.label}</b>
-                      <p>{step.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Couleurs & typos</p>
-            <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
+          <div className={styles.sourceMapGrid}>
+            {OWNER_LOGEMENTS_SOURCE_ELEMENTS.map((item) => (
+              <article key={item.name} className={styles.sourceMapCard}>
+                <code>{item.name}</code>
+                <strong>{item.source}</strong>
+                <p>{item.usage}</p>
+              </article>
+            ))}
           </div>
-          <code>variables.css + profileVisualKit.ts</code>
-        </div>
-        <div className={styles.tokenGroupGrid}>
-          {DESIGN_TOKEN_GROUPS.map((group) => (
-            <article key={group.title} className={styles.tokenGroup}>
-              <h3>{group.title}</h3>
-              {group.items.map((token) => (
-                <div key={token.name} className={styles.tokenRow}>
-                  <span
-                    className={styles.tokenSwatch}
-                    style={{
-                      background: token.value.startsWith("#")
-                        ? token.value
-                        : undefined,
-                    }}
-                  />
-                  <div>
-                    <code>{token.name}</code>
-                    <strong>{token.value}</strong>
-                    <p>{token.usage}</p>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
+        </section>
+      )}
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Kits profils réels</p>
-            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
-          </div>
-          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
-        </div>
-
-        <div className={styles.profileKitGrid}>
-          {PROFILE_VISUAL_KITS.map((kit) => (
-            <article
-              key={kit.id}
-              className={styles.profileKitCard}
-              style={{ "--kit-accent": kit.accent } as CSSProperties}
-            >
-              <div className={styles.profileKitHead}>
-                <Image
-                  src={kit.image}
-                  alt=""
-                  width={86}
-                  height={86}
-                  className={styles.profileKitImage}
-                  unoptimized
-                />
-                <div>
-                  <p className={styles.eyebrow}>{kit.id}</p>
-                  <h3>{kit.title}</h3>
-                  <p>{kit.persona}</p>
-                </div>
-              </div>
-
-              <div className={styles.profileKitTokens}>
-                <div>
-                  <strong>Couleurs nommées</strong>
-                  {kit.colors.map((token) => (
-                    <span key={token.name}>
-                      <i style={{ background: token.value }} />{" "}
-                      <code>{token.name}</code> {token.value}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <strong>Typos nommées</strong>
-                  {kit.typography.map((token) => (
-                    <span key={token.name}>
-                      <code>{token.name}</code> {token.value}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <strong>Éléments nommés</strong>
-                  {kit.components.map((component) => (
-                    <span key={component.name}>
-                      <code>{component.name}</code> {component.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.profileKitSurfaces}>
-                {kit.surfaces.map((surface) => (
-                  <div
-                    key={`${kit.id}-${surface.label}`}
-                    className={styles.profileKitSurface}
-                  >
-                    <strong>{surface.label}</strong>
-                    <p>{surface.description}</p>
-                    <code>{surface.token}</code>
-                    <span>{surface.usage}</span>
-                  </div>
-                ))}
-              </div>
-
-              {kit.charts.map((chart) => (
-                <div key={chart.title} className={styles.profileKitChart}>
-                  <VisualPieChart slices={chart.slices} label={chart.title} />
-                  <div>
-                    <strong>{chart.title}</strong>
-                    <p>{chart.description}</p>
-                    <ul>
-                      {chart.slices.map((slice) => (
-                        <li key={slice.label}>
-                          <span style={{ background: slice.color }} />
-                          {slice.label} <b>{slice.value}%</b>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section} id="owner-logements-reference">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Page réelle owner</p>
-            <h2>Visuels de /dashboard/owner/logements</h2>
-          </div>
-          <code>HousingListPage + HousingListPage.module.scss</code>
-        </div>
-
-        <div className={styles.namedElementGrid}>
-          {OWNER_LOGEMENTS_VISUALS.map((card) => (
-            <article key={card.name} className={styles.namedElementCard}>
-              <code>{card.name}</code>
-              <MetricDonut
-                label={card.label}
-                value={card.value}
-                detail={card.detail}
-                percent={card.percent}
-              />
-            </article>
-          ))}
-        </div>
-
-        <div className={styles.ownerLogementPreview}>
-          <div className={styles.ownerReviewPanelPreview}>
-            <span className={styles.ownerPreviewIcon}>
-              <AlertTriangle size={22} />
-            </span>
+      {/* ── Popups & modales ── */}
+      {POPUP_VISUAL_REFERENCES.length > 0 && (
+        <section className={styles.section} id="popup-reference">
+          <div className={styles.sectionHeader}>
             <div>
-              <code>OwnerHousingReviewPanel</code>
-              <strong>1 logement à revoir</strong>
-              <p>
-                Ouvrez le premier logement, complétez les points signalés, puis
-                revenez ici pour vérifier que la liste diminue.
-              </p>
+              <p className={styles.eyebrow}>Popups & modales utilisées</p>
+              <h2>Inventaire visuel nommé des fenêtres à réutiliser</h2>
             </div>
-            <span className={styles.ownerPreviewAction}>Commencer</span>
-          </div>
-
-          <article className={styles.ownerHousingCardPreview}>
-            <div className={styles.ownerHousingImagePreview}>
-              <Image
-                src="/images/default-logement.png"
-                alt="Aperçu logement"
-                width={420}
-                height={260}
-                unoptimized
-              />
-              <span className={styles.ownerStatusPreview}>À revoir</span>
-              <span className={styles.ownerCityPreview}>Paris</span>
-            </div>
-            <div className={styles.ownerHousingBodyPreview}>
-              <code>OwnerHousingCard</code>
-              <p className={styles.ownerHousingEyebrowPreview}>Appartement</p>
-              <h3>Appartement exemple</h3>
-              <span className={styles.ownerCapacityPreview}>
-                Capacité maximale · 4 personnes
-              </span>
-              <p>
-                Carte utilisée sur la page logements propriétaire : image,
-                statut, ville, capacité, équipements et checklist de correction.
-              </p>
-              <div className={styles.ownerEquipmentPreview}>
-                <span>Wifi</span>
-                <span>Linge</span>
-                <span>Climatisation</span>
-              </div>
-              <div className={styles.ownerChecklistPreview}>
-                <strong>Éléments nommés dans la checklist</strong>
-                {OWNER_HOUSING_REVIEW_STEPS.map((step, index) => (
-                  <div key={step.name}>
-                    <span>{index + 1}</span>
-                    <div>
-                      <code>{step.name}</code>
-                      <b>{step.label}</b>
-                      <p>{step.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className={styles.section} id="owner-logements-source-map">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Sources page réelle</p>
-            <h2>Tout ce qui compose /dashboard/owner/logements</h2>
-          </div>
-          <code>route + composant partagé + styles owner</code>
-        </div>
-        <div className={styles.sourceMapGrid}>
-          {OWNER_LOGEMENTS_SOURCE_ELEMENTS.map((item) => (
-            <article key={item.name} className={styles.sourceMapCard}>
-              <code>{item.name}</code>
-              <strong>{item.source}</strong>
-              <p>{item.usage}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section} id="popup-reference">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Popups & modales utilisées</p>
-            <h2>Inventaire visuel nommé des fenêtres à réutiliser</h2>
-          </div>
-          <span className={styles.smallText}>
-            Chaque popup affiche son nom, sa source et ses actions.
-          </span>
-        </div>
-        <div className={styles.popupReferenceGrid}>
-          {POPUP_VISUAL_REFERENCES.map((popup) => (
-            <article key={popup.name} className={styles.popupReferenceCard}>
-              <div className={styles.popupReferenceTopbar}>
-                <code>{popup.name}</code>
-                <span>{popup.route}</span>
-              </div>
-              <div className={styles.popupReferenceWindow}>
-                <button
-                  type="button"
-                  aria-label={`Aperçu fermeture ${popup.name}`}
-                >
-                  ×
-                </button>
-                <p className={styles.eyebrow}>Popup</p>
-                <h3>{popup.title}</h3>
-                <p>{popup.detail}</p>
-                <div className={styles.popupOptionPreview}>
-                  <span>Option / champ principal</span>
-                  <span>État sélectionné</span>
-                  <span>Message d’aide</span>
-                </div>
-                <div className={styles.popupActionRow}>
-                  {popup.actions.map((action) => (
-                    <span key={`${popup.name}-${action}`}>{action}</span>
-                  ))}
-                </div>
-              </div>
-              <code>{popup.source}</code>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Couleurs & typos</p>
-            <h2>Tokens nommés pour supprimer, remplacer ou réutiliser</h2>
-          </div>
-          <code>variables.css + profileVisualKit.ts</code>
-        </div>
-        <div className={styles.tokenGroupGrid}>
-          {DESIGN_TOKEN_GROUPS.map((group) => (
-            <article key={group.title} className={styles.tokenGroup}>
-              <h3>{group.title}</h3>
-              {group.items.map((token) => (
-                <div key={token.name} className={styles.tokenRow}>
-                  <span
-                    className={styles.tokenSwatch}
-                    style={{
-                      background: token.value.startsWith("#")
-                        ? token.value
-                        : undefined,
-                    }}
-                  />
-                  <div>
-                    <code>{token.name}</code>
-                    <strong>{token.value}</strong>
-                    <p>{token.usage}</p>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Kits profils réels</p>
-            <h2>Propriétaire, concierge et artisan prêts à réutiliser</h2>
-          </div>
-          <code>{PROFILE_VISUAL_KIT_IMPORT}</code>
-        </div>
-
-        <div className={styles.profileKitGrid}>
-          {PROFILE_VISUAL_KITS.map((kit) => (
-            <article
-              key={kit.id}
-              className={styles.profileKitCard}
-              style={{ "--kit-accent": kit.accent } as CSSProperties}
-            >
-              <div className={styles.profileKitHead}>
-                <Image
-                  src={kit.image}
-                  alt=""
-                  width={86}
-                  height={86}
-                  className={styles.profileKitImage}
-                  unoptimized
-                />
-                <div>
-                  <p className={styles.eyebrow}>{kit.id}</p>
-                  <h3>{kit.title}</h3>
-                  <p>{kit.persona}</p>
-                </div>
-              </div>
-
-              <div className={styles.profileKitTokens}>
-                <div>
-                  <strong>Couleurs nommées</strong>
-                  {kit.colors.map((token) => (
-                    <span key={token.name}>
-                      <i style={{ background: token.value }} />{" "}
-                      <code>{token.name}</code> {token.value}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <strong>Typos nommées</strong>
-                  {kit.typography.map((token) => (
-                    <span key={token.name}>
-                      <code>{token.name}</code> {token.value}
-                    </span>
-                  ))}
-                </div>
-                <div>
-                  <strong>Éléments nommés</strong>
-                  {kit.components.map((component) => (
-                    <span key={component.name}>
-                      <code>{component.name}</code> {component.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.profileKitSurfaces}>
-                {kit.surfaces.map((surface) => (
-                  <div
-                    key={`${kit.id}-${surface.label}`}
-                    className={styles.profileKitSurface}
-                  >
-                    <strong>{surface.label}</strong>
-                    <p>{surface.description}</p>
-                    <code>{surface.token}</code>
-                    <span>{surface.usage}</span>
-                  </div>
-                ))}
-              </div>
-
-              {kit.charts.map((chart) => (
-                <div key={chart.title} className={styles.profileKitChart}>
-                  <VisualPieChart slices={chart.slices} label={chart.title} />
-                  <div>
-                    <strong>{chart.title}</strong>
-                    <p>{chart.description}</p>
-                    <ul>
-                      {chart.slices.map((slice) => (
-                        <li key={slice.label}>
-                          <span style={{ background: slice.color }} />
-                          {slice.label} <b>{slice.value}%</b>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section} id="owner-logements-reference">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Page réelle owner</p>
-            <h2>Visuels de /dashboard/owner/logements</h2>
-          </div>
-          <code>HousingListPage + HousingListPage.module.scss</code>
-        </div>
-
-        <div className={styles.namedElementGrid}>
-          {OWNER_LOGEMENTS_VISUALS.map((card) => (
-            <article key={card.name} className={styles.namedElementCard}>
-              <code>{card.name}</code>
-              <MetricDonut
-                label={card.label}
-                value={card.value}
-                detail={card.detail}
-                percent={card.percent}
-              />
-            </article>
-          ))}
-        </div>
-
-        <div className={styles.ownerLogementPreview}>
-          <div className={styles.ownerReviewPanelPreview}>
-            <span className={styles.ownerPreviewIcon}>
-              <AlertTriangle size={22} />
+            <span className={styles.smallText}>
+              Chaque popup affiche son nom, sa source et ses actions.
             </span>
-            <div>
-              <code>OwnerHousingReviewPanel</code>
-              <strong>1 logement à revoir</strong>
-              <p>
-                Ouvrez le premier logement, complétez les points signalés, puis
-                revenez ici pour vérifier que la liste diminue.
-              </p>
-            </div>
-            <span className={styles.ownerPreviewAction}>Commencer</span>
           </div>
-
-          <article className={styles.ownerHousingCardPreview}>
-            <div className={styles.ownerHousingImagePreview}>
-              <Image
-                src="/images/default-logement.png"
-                alt="Aperçu logement"
-                width={420}
-                height={260}
-                unoptimized
-              />
-              <span className={styles.ownerStatusPreview}>À revoir</span>
-              <span className={styles.ownerCityPreview}>Paris</span>
-            </div>
-            <div className={styles.ownerHousingBodyPreview}>
-              <code>OwnerHousingCard</code>
-              <p className={styles.ownerHousingEyebrowPreview}>Appartement</p>
-              <h3>Appartement exemple</h3>
-              <span className={styles.ownerCapacityPreview}>
-                Capacité maximale · 4 personnes
-              </span>
-              <p>
-                Carte utilisée sur la page logements propriétaire : image,
-                statut, ville, capacité, équipements et checklist de correction.
-              </p>
-              <div className={styles.ownerEquipmentPreview}>
-                <span>Wifi</span>
-                <span>Linge</span>
-                <span>Climatisation</span>
-              </div>
-              <div className={styles.ownerChecklistPreview}>
-                <strong>Éléments nommés dans la checklist</strong>
-                {OWNER_HOUSING_REVIEW_STEPS.map((step, index) => (
-                  <div key={step.name}>
-                    <span>{index + 1}</span>
-                    <div>
-                      <code>{step.name}</code>
-                      <b>{step.label}</b>
-                      <p>{step.detail}</p>
-                    </div>
+          <div className={styles.popupReferenceGrid}>
+            {POPUP_VISUAL_REFERENCES.map((popup) => (
+              <article key={popup.name} className={styles.popupReferenceCard}>
+                <div className={styles.popupReferenceTopbar}>
+                  <code>{popup.name}</code>
+                  <span>{popup.route}</span>
+                </div>
+                <div className={styles.popupReferenceWindow}>
+                  <button type="button" aria-label={`Aperçu fermeture ${popup.name}`}>×</button>
+                  <p className={styles.eyebrow}>Popup</p>
+                  <h3>{popup.title}</h3>
+                  <p>{popup.detail}</p>
+                  <div className={styles.popupOptionPreview}>
+                    <span>Option / champ principal</span>
+                    <span>État sélectionné</span>
+                    <span>Message d'aide</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className={styles.section} id="owner-logements-source-map">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Sources page réelle</p>
-            <h2>Tout ce qui compose /dashboard/owner/logements</h2>
-          </div>
-          <code>route + composant partagé + styles owner</code>
-        </div>
-        <div className={styles.sourceMapGrid}>
-          {OWNER_LOGEMENTS_SOURCE_ELEMENTS.map((item) => (
-            <article key={item.name} className={styles.sourceMapCard}>
-              <code>{item.name}</code>
-              <strong>{item.source}</strong>
-              <p>{item.usage}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.section} id="popup-reference">
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.eyebrow}>Popups & modales utilisées</p>
-            <h2>Inventaire visuel nommé des fenêtres à réutiliser</h2>
-          </div>
-          <span className={styles.smallText}>
-            Chaque popup affiche son nom, sa source et ses actions.
-          </span>
-        </div>
-        <div className={styles.popupReferenceGrid}>
-          {POPUP_VISUAL_REFERENCES.map((popup) => (
-            <article key={popup.name} className={styles.popupReferenceCard}>
-              <div className={styles.popupReferenceTopbar}>
-                <code>{popup.name}</code>
-                <span>{popup.route}</span>
-              </div>
-              <div className={styles.popupReferenceWindow}>
-                <button
-                  type="button"
-                  aria-label={`Aperçu fermeture ${popup.name}`}
-                >
-                  ×
-                </button>
-                <p className={styles.eyebrow}>Popup</p>
-                <h3>{popup.title}</h3>
-                <p>{popup.detail}</p>
-                <div className={styles.popupOptionPreview}>
-                  <span>Option / champ principal</span>
-                  <span>État sélectionné</span>
-                  <span>Message d’aide</span>
+                  <div className={styles.popupActionRow}>
+                    {popup.actions.map((action) => (
+                      <span key={`${popup.name}-${action}`}>{action}</span>
+                    ))}
+                  </div>
                 </div>
-                <div className={styles.popupActionRow}>
-                  {popup.actions.map((action) => (
-                    <span key={`${popup.name}-${action}`}>{action}</span>
-                  ))}
-                </div>
-              </div>
-              <code>{popup.source}</code>
-            </article>
-          ))}
-        </div>
-      </section>
+                <code>{popup.source}</code>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
+      {/* ── Composants de base ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -1319,17 +688,14 @@ export default async function VisualReferencePage() {
             <CardBody>
               <div className={styles.buttonGrid}>
                 {BUTTON_VARIANTS.map((variant) => (
-                  <Button key={variant} variant={variant}>
-                    {variant}
-                  </Button>
+                  <Button key={variant} variant={variant}>{variant}</Button>
                 ))}
                 <ButtonLink href="/design-system/visuels" variant="secondary">
                   Lien modèle <ArrowRight size={15} />
                 </ButtonLink>
               </div>
               <p className={styles.note}>
-                Import conseillé : `Button`, `ButtonLink` depuis
-                `@/components/ui`.
+                Import conseillé : `Button`, `ButtonLink` depuis `@/components/ui`.
               </p>
             </CardBody>
           </Card>
@@ -1342,18 +708,12 @@ export default async function VisualReferencePage() {
             <CardBody>
               <div className={styles.badgeRow}>
                 {BADGE_VARIANTS.map((variant) => (
-                  <Badge key={variant} variant={variant}>
-                    {variant}
-                  </Badge>
+                  <Badge key={variant} variant={variant}>{variant}</Badge>
                 ))}
               </div>
               <div className={styles.statusRow}>
                 {STATUS_TONES.map((item) => (
-                  <DashboardStatusBadge
-                    key={item.tone}
-                    tone={item.tone}
-                    label={item.label}
-                  />
+                  <DashboardStatusBadge key={item.tone} tone={item.tone} label={item.label} />
                 ))}
               </div>
             </CardBody>
@@ -1361,51 +721,43 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Icônes dashboard ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.eyebrow}>Navigation</p>
             <h2>Icônes principales du dashboard</h2>
           </div>
-          <span className={styles.smallText}>
-            Même icône, même sens, partout.
-          </span>
+          <span className={styles.smallText}>Même icône, même sens, partout.</span>
         </div>
 
         <div className={styles.iconUseGrid}>
           <article>
-            <span>
-              <DashboardGaugeIcon size={34} />
-            </span>
+            <span><DashboardGaugeIcon size={34} /></span>
             <strong>Tableau de bord / Vue d&apos;ensemble</strong>
             <code>DashboardGaugeIcon</code>
           </article>
           <article>
-            <span>
-              <DashboardHomeIcon size={34} />
-            </span>
+            <span><DashboardHomeIcon size={34} /></span>
             <strong>Logements / Ajouter un logement</strong>
             <code>DashboardHomeIcon</code>
           </article>
           <article>
-            <span>
-              <DashboardHousesIcon size={38} />
-            </span>
+            <span><DashboardHousesIcon size={38} /></span>
             <strong>Tous les logements</strong>
             <code>DashboardHousesIcon</code>
           </article>
         </div>
       </section>
 
+      {/* ── Dashboard SaaS ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.eyebrow}>Dashboard SaaS</p>
             <h2>Cartes, compteurs et statuts</h2>
           </div>
-          <span className={styles.smallText}>
-            Base à reprendre pour les 4 espaces.
-          </span>
+          <span className={styles.smallText}>Base à reprendre pour les 4 espaces.</span>
         </div>
 
         <div className={styles.statsGrid}>
@@ -1448,6 +800,7 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Cadence ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -1509,12 +862,7 @@ export default async function VisualReferencePage() {
             return (
               <article key={level} className={styles.paceCard}>
                 <span className={styles.pacePreview}>
-                  <PublicIcon
-                    src={meta.iconSrc}
-                    label={meta.label}
-                    size={76}
-                    decorative
-                  />
+                  <PublicIcon src={meta.iconSrc} label={meta.label} size={76} decorative />
                 </span>
                 <div>
                   <strong>{meta.label}</strong>
@@ -1527,6 +875,7 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Services ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -1546,23 +895,19 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Catalogue complet ── */}
       <section className={styles.section} id="services-catalog-reference">
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.eyebrow}>Catalogue complet</p>
             <h2>Tous les services et leurs icônes</h2>
           </div>
-          <code>
-            {serviceCatalogCount} services · services_catalog_rows.sql
-          </code>
+          <code>{serviceCatalogCount} services · services_catalog_rows.sql</code>
         </div>
 
         <div className={styles.serviceCatalogGrid}>
           {serviceCatalogGroups.map((group) => (
-            <article
-              key={group.category}
-              className={styles.serviceCatalogGroup}
-            >
+            <article key={group.category} className={styles.serviceCatalogGroup}>
               <div className={styles.serviceCatalogHeader}>
                 <span>
                   <ServiceCategoryIcon category={group.category} size={30} />
@@ -1576,17 +921,12 @@ export default async function VisualReferencePage() {
                 {group.services.map((service) => (
                   <div key={service.id} className={styles.serviceCatalogItem}>
                     <span>
-                      <ServiceCategoryIcon
-                        category={service.category}
-                        size={22}
-                      />
+                      <ServiceCategoryIcon category={service.category} size={22} />
                     </span>
                     <div>
                       <strong>{service.service}</strong>
                       <p>{service.description}</p>
-                      <code>
-                        {service.category} · #{service.id}
-                      </code>
+                      <code>{service.category} · #{service.id}</code>
                     </div>
                   </div>
                 ))}
@@ -1596,6 +936,7 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Inventaire icons ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -1619,13 +960,7 @@ export default async function VisualReferencePage() {
                   {isSvg ? (
                     <PublicIcon src={src} label={label} size={38} decorative />
                   ) : (
-                    <Image
-                      src={src}
-                      alt=""
-                      width={44}
-                      height={44}
-                      unoptimized
-                    />
+                    <Image src={src} alt="" width={44} height={44} unoptimized />
                   )}
                 </span>
                 <strong>{label}</strong>
@@ -1636,6 +971,7 @@ export default async function VisualReferencePage() {
         </div>
       </section>
 
+      {/* ── Règles simples ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <div>
@@ -1647,37 +983,26 @@ export default async function VisualReferencePage() {
           <article>
             <CheckCircle2 />
             <strong>Boutons</strong>
-            <p>
-              Créer avec `Button` ou `ButtonLink`, puis éviter les classes
-              locales type `primaryButton` répétées.
-            </p>
+            <p>Créer avec `Button` ou `ButtonLink`, puis éviter les classes locales type `primaryButton` répétées.</p>
           </article>
           <article>
             <Activity />
             <strong>Statuts</strong>
-            <p>
-              Utiliser `Badge` pour les petits statuts et `DashboardStatusBadge`
-              pour les cartes SaaS.
-            </p>
+            <p>Utiliser `Badge` pour les petits statuts et `DashboardStatusBadge` pour les cartes SaaS.</p>
           </article>
           <article>
             <Home />
             <strong>Icônes dashboard</strong>
-            <p>
-              Garder `DashboardGaugeIcon`, `DashboardHomeIcon`,
-              `DashboardHousesIcon` comme source unique.
-            </p>
+            <p>Garder `DashboardGaugeIcon`, `DashboardHomeIcon`, `DashboardHousesIcon` comme source unique.</p>
           </article>
           <article>
             <AlertTriangle />
             <strong>À revoir</strong>
-            <p>
-              Le ton `warning` doit rester doré, avec pictogramme triangle quand
-              il signale une action.
-            </p>
+            <p>Le ton `warning` doit rester doré, avec pictogramme triangle quand il signale une action.</p>
           </article>
         </div>
       </section>
+
     </main>
   );
 }
