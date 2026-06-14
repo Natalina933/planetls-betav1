@@ -448,7 +448,7 @@ export default function Navbar() {
           )}
         </div>
 
-        <div className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
+        {/* <div className={styles.workspaceSwitcher} ref={workspaceMenuRef}>
           <button
             type="button"
             className={styles.workspaceTrigger}
@@ -492,7 +492,7 @@ export default function Navbar() {
               ))}
             </div>
           ) : null}
-        </div>
+        </div> */}
 
         <button
           className={`${styles.burger} ${menuOpen ? styles.open : ""}`}

@@ -382,6 +382,1151 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.donutGrid,
+.componentUseGrid,
+.sourceAuditGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.donutCard,
+.componentUseGrid article,
+.sourceAuditCard {
+  min-width: 0;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.donutCard {
+  display: grid;
+  gap: 0.72rem;
+  padding: 0.76rem;
+}
+
+.donutCard p,
+.componentUseGrid p,
+.sourceAuditCard p,
+.componentPanel p {
+  margin: 0;
+  color: #64756c;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.donutCard > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.compactDonutRail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0;
+  padding: 0.82rem;
+  border-radius: 16px;
+  background: rgba(244, 249, 246, 0.82);
+}
+
+.componentUseGrid article,
+.sourceAuditCard {
+  display: grid;
+  gap: 0.46rem;
+  padding: 0.82rem;
+}
+
+.componentUseGrid strong,
+.sourceAuditCard strong,
+.componentPanel h3 {
+  color: #1d2d26;
+  font-size: 0.92rem;
+}
+
+.sourceAuditCard span {
+  color: #476158;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.styleInventoryGrid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.styleInventoryPanel {
+  max-width: none;
+}
+
+.styleInventoryPanel h3,
+.categoryReferenceHeader strong,
+.categoryReferenceBody strong {
+  margin: 0;
+  color: #1d2d26;
+  font-size: 0.95rem;
+}
+
+.styleInventoryPanel p,
+.categoryReferenceBody p {
+  margin: 0;
+  color: #64756c;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.buttonMatrix,
+.cardMatrix,
+.statsToneGrid,
+.fieldToneGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.buttonMatrix {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.buttonMatrix > div {
+  display: grid;
+  gap: 0.44rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border-radius: 14px;
+  background: rgba(248, 250, 247, 0.86);
+}
+
+.cardMatrix {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cardMatrix article,
+.statsToneGrid article {
+  max-width: none;
+}
+
+.statsToneGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fieldToneGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fieldToneGrid > div {
+  display: grid;
+  gap: 0.58rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border-radius: 14px;
+  background: rgba(248, 250, 247, 0.86);
+}
+
+.componentShowcaseGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.9rem;
+}
+
+.componentPanel {
+  min-width: 0;
+}
+
+.componentPanel h3 {
+  margin: 0;
+}
+
+.panelPreviewList,
+.statusPreviewStack,
+.formPreview,
+.smallElementsPreview {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.panelPreviewList span {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 38px;
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  background: rgba(39, 87, 68, 0.07);
+  color: #263b32;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.panelPreviewList svg {
+  flex: 0 0 auto;
+  color: #7f642f;
+}
+
+.statusPreviewStack,
+.smallElementsPreview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.statusPreviewStack {
+  gap: 0.48rem;
+}
+
+.smallElementsPreview {
+  gap: 0.6rem;
+}
+
+.formPreview {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.formPreview label:nth-child(3),
+.formPreview label:nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+.siteMockupShell {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(35, 67, 55, 0.12);
+  border-radius: 20px;
+  background: #f6f8f5;
+  box-shadow: 0 16px 34px rgba(25, 44, 36, 0.07);
+}
+
+.elementName {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.18rem 0.42rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #4f6259;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.siteMockupSidebar {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  padding: 1rem;
+  background:
+    linear-gradient(180deg, rgba(32, 48, 42, 0.98), rgba(43, 62, 55, 0.96)),
+    #20302a;
+  color: #f8f4ea;
+}
+
+.siteMockupSidebar > .elementName,
+.siteMockupBrand .elementName,
+.siteMockupNav .elementName {
+  border-color: rgba(245, 238, 218, 0.12);
+  background: rgba(245, 238, 218, 0.1);
+  color: rgba(248, 244, 234, 0.72);
+}
+
+.siteMockupBrand,
+.siteMockupNav span,
+.siteMockupTopbar,
+.siteMockupActions,
+.siteMockupSearch,
+.siteMockupProfileHead,
+.siteMockupProfileFacts span,
+.siteMockupDivPanel > div:first-child,
+.siteMockupChecklist span {
+  display: flex;
+  align-items: center;
+}
+
+.siteMockupBrand {
+  position: relative;
+  gap: 0.56rem;
+  min-height: 42px;
+  padding-top: 1.35rem;
+}
+
+.siteMockupBrand .elementName,
+.siteMockupNav > .elementName,
+.siteMockupTopbar > .elementName,
+.siteMockupSearch .elementName,
+.siteMockupActions .elementName,
+.siteMockupHero > .elementName,
+.siteMockupButtonRow .elementName,
+.siteMockupHeroVisual .elementName,
+.siteMockupProfileCard > .elementName,
+.siteMockupProfileHead .elementName,
+.siteMockupProfileFacts .elementName,
+.siteMockupAvatarRow .elementName,
+.siteMockupDivPanel > .elementName,
+.siteMockupChecklist .elementName,
+.profileMockupCard > .elementName,
+.popupMockupCard > .elementName {
+  position: absolute;
+  top: 0.46rem;
+  left: 0.52rem;
+}
+
+.siteMockupBrand span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(245, 238, 218, 0.12);
+  color: #e4bd5a;
+}
+
+.siteMockupNav {
+  position: relative;
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 1.35rem;
+}
+
+.siteMockupNav span {
+  gap: 0.5rem;
+  min-height: 38px;
+  padding: 0.52rem 0.58rem;
+  border-radius: 12px;
+  color: rgba(248, 244, 234, 0.84);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.siteMockupNav span:first-child {
+  background: rgba(228, 189, 90, 0.16);
+  color: #fff8dc;
+}
+
+.siteMockupContent {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 0.9rem;
+}
+
+.siteMockupTopbar {
+  position: relative;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding-top: 1.45rem;
+}
+
+.siteMockupSearch {
+  position: relative;
+  flex: 1 1 auto;
+  gap: 0.45rem;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.58rem 0.72rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #66766e;
+  font-size: 0.82rem;
+  padding-top: 1.35rem;
+}
+
+.siteMockupSearch span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.siteMockupActions,
+.siteMockupButtonRow,
+.siteMockupAvatarRow {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  padding-top: 1.35rem;
+}
+
+.siteMockupHero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+  align-items: center;
+  gap: 0.9rem;
+  padding: 2.55rem 1rem 1rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 249, 235, 0.94), rgba(239, 247, 242, 0.92)),
+    #ffffff;
+}
+
+.siteMockupHero h3,
+.siteMockupProfileCard h3,
+.profileMockupCard h3 {
+  margin: 0;
+  color: #1d2d26;
+}
+
+.siteMockupHero h3 {
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 1.05;
+}
+
+.siteMockupHero p,
+.siteMockupProfileCard p,
+.siteMockupDivPanel p,
+.profileMockupCard p,
+.popupMockupCard p {
+  margin: 0;
+  color: #64756c;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.siteMockupButtonRow {
+  margin-top: 0.85rem;
+}
+
+.siteMockupHeroVisual {
+  position: relative;
+  min-width: 0;
+  padding-top: 1.4rem;
+}
+
+.namedPreview {
+  position: relative;
+  min-width: 0;
+  padding-top: 1.45rem;
+}
+
+.siteMockupDashboardGrid,
+.siteMockupLowerGrid,
+.siteMockupReferenceGrid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.siteMockupDashboardGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.siteMockupLowerGrid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+}
+
+.siteMockupProfileCard,
+.siteMockupDivPanel,
+.siteMockupReferenceCard {
+  position: relative;
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 2.35rem 0.86rem 0.86rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.siteMockupProfileHead {
+  position: relative;
+  gap: 0.75rem;
+  padding-top: 1.35rem;
+}
+
+.siteMockupProfileHead img,
+.profileMockupCard img {
+  flex: 0 0 auto;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.siteMockupProfileHead > div {
+  display: grid;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.siteMockupProfileFacts {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 1.35rem;
+}
+
+.siteMockupProfileFacts span,
+.siteMockupChecklist span {
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.42rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(39, 87, 68, 0.08);
+  color: #2e4a3d;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.siteMockupDivPanel > div:first-child {
+  gap: 0.68rem;
+}
+
+.siteMockupDivPanel > div:first-child > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.siteMockupIconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  background: rgba(147, 112, 50, 0.12);
+  color: #7f642f;
+}
+
+.siteMockupChecklist {
+  position: relative;
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 1.35rem;
+}
+
+.siteMockupChecklist span:nth-child(2) {
+  background: rgba(147, 112, 50, 0.12);
+  color: #7b5d23;
+}
+
+.siteMockupReferenceGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.9rem;
+}
+
+.profileMockupGrid,
+.popupMockupGrid,
+.surfaceMockupGrid {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.profileMockupCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.62rem;
+  align-items: center;
+  min-width: 0;
+  padding: 2.1rem 0.62rem 0.62rem;
+  border-radius: 14px;
+  background: rgba(248, 250, 247, 0.86);
+}
+
+.profileMockupCard[data-tone="owner"] {
+  background: rgba(255, 249, 235, 0.86);
+}
+
+.profileMockupCard[data-tone="concierge"] {
+  background: rgba(238, 248, 242, 0.9);
+}
+
+.profileMockupCard[data-tone="provider"] {
+  background: rgba(241, 245, 249, 0.9);
+}
+
+.profileMockupCard > div {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.popupMockupCard {
+  position: relative;
+  display: grid;
+  gap: 0.62rem;
+  min-width: 0;
+  padding: 2.1rem 0.72rem 0.72rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 24px rgba(25, 44, 36, 0.06);
+}
+
+.popupMockupCard[data-tone="warning"] {
+  background: rgba(255, 248, 231, 0.96);
+}
+
+.popupMockupCard[data-tone="success"] {
+  background: rgba(239, 248, 241, 0.96);
+}
+
+.popupMockupCard[data-tone="info"] {
+  background: rgba(239, 246, 255, 0.96);
+}
+
+.popupMockupTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  color: #1d2d26;
+  font-weight: 900;
+}
+
+.popupMockupCard > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.44rem;
+}
+
+.surfaceMockupGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.surfaceMockupGrid span {
+  display: grid;
+  gap: 0.28rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 0.58rem;
+  border-radius: 14px;
+  color: #24392f;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.surfaceMockupGrid code {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.14rem 0.34rem;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.62);
+  color: inherit;
+  font-size: 0.64rem;
+  overflow-wrap: anywhere;
+}
+
+.surfaceMockupGrid span[data-tone="soft"] {
+  background: rgba(239, 247, 242, 0.9);
+}
+
+.surfaceMockupGrid span[data-tone="outlined"] {
+  border: 1px solid rgba(35, 67, 55, 0.16);
+  background: #ffffff;
+}
+
+.surfaceMockupGrid span[data-tone="warning"] {
+  background: rgba(255, 246, 223, 0.9);
+  color: #74571e;
+}
+
+.surfaceMockupGrid span[data-tone="success"] {
+  background: rgba(231, 246, 235, 0.9);
+  color: #245c3b;
+}
+
+.surfaceMockupGrid span[data-tone="dark"] {
+  background: #20302a;
+  color: #f8f4ea;
+}
+
+.surfaceMockupGrid span[data-tone="empty"] {
+  border: 1px dashed rgba(35, 67, 55, 0.2);
+  background: rgba(255, 255, 255, 0.58);
+  color: #6b7c73;
+}
+
+.elementDirectoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.78rem;
+}
+
+.elementDirectoryCard {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.82rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.elementDirectoryCard strong {
+  color: #20302a;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.elementDirectoryCard p {
+  margin: 0;
+  color: #64756c;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.themeVisualGrid,
+.businessVisualGrid,
+.realPopupGrid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.themeVisualGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.themeVisualCard,
+.avatarUploadPreview,
+.missionVisualCard,
+.requestVisualCard,
+.profileVisualCard,
+.realPopupCard {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.82rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.themeVisualSurface {
+  display: grid;
+  gap: 0.55rem;
+  min-height: 210px;
+  padding: 0.9rem;
+  border-radius: 15px;
+  background: #f8faf7;
+  color: #20302a;
+}
+
+.themeVisualSurface strong,
+.avatarUploadVisual strong,
+.missionVisualCard h3,
+.requestVisualCard h3,
+.profileVisualCard h3,
+.realPopupWindow h3 {
+  margin: 0;
+  color: inherit;
+  font-size: 1rem;
+}
+
+.themeVisualSurface p,
+.avatarUploadVisual p,
+.missionVisualCard p,
+.requestVisualCard p,
+.profileVisualCard p,
+.realPopupWindow p,
+.realPopupCard > span {
+  margin: 0;
+  color: #64756c;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.themeVisualSurface > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: auto;
+}
+
+.themeVisualCard[data-theme-preview="sepia"] .themeVisualSurface {
+  background:
+    linear-gradient(180deg, rgba(245, 237, 227, 0.96), rgba(237, 229, 219, 0.9)),
+    #f5ede3;
+  color: #5b4636;
+}
+
+.themeVisualCard[data-theme-preview="art-deco"] .themeVisualSurface {
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, rgba(255, 248, 220, 0.96), rgba(246, 241, 229, 0.92)),
+    #fff8e1;
+  color: #1f2933;
+  box-shadow: inset 0 0 0 1px rgba(181, 166, 66, 0.42);
+}
+
+.themeVisualCard[data-theme-preview="mucha-dark"] .themeVisualSurface {
+  background:
+    linear-gradient(135deg, rgba(43, 52, 72, 0.98), rgba(27, 34, 49, 0.98)),
+    #1b2231;
+  color: #f5f2ea;
+}
+
+.themeVisualCard[data-theme-preview="mucha-dark"] .themeVisualSurface p {
+  color: rgba(245, 242, 234, 0.76);
+}
+
+.businessVisualGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.9rem;
+}
+
+.avatarUploadVisual {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.avatarUploadCircle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 130px;
+  height: 130px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(210, 180, 140, 0.9);
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0, #2c3e50, #0b0f1a);
+  box-shadow: 0 20px 45px rgba(20, 24, 32, 0.24);
+}
+
+.avatarUploadCircle img {
+  width: 108px;
+  height: 108px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.avatarCameraButton {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(44, 36, 24, 0.9);
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0, #ffdf9a, #c79a3b);
+  color: #302312;
+  box-shadow: 0 12px 24px rgba(20, 24, 32, 0.22);
+}
+
+.avatarUploadControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  margin-top: 0.6rem;
+}
+
+.avatarUploadControls span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(147, 112, 50, 0.1);
+  color: #6f5520;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.missionVisualCard,
+.requestVisualCard,
+.profileVisualCard {
+  align-content: start;
+}
+
+.missionVisualTop,
+.requestVisualHeader,
+.missionVisualMeta,
+.missionVisualServices,
+.profileVisualTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.48rem;
+}
+
+.missionStatusBadge {
+  padding: 0.32rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(39, 87, 68, 0.12);
+  color: #24543f;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.missionVisualCard p,
+.missionVisualMeta span,
+.profileVisualIdentity p {
+  display: flex;
+  align-items: center;
+  gap: 0.34rem;
+}
+
+.missionVisualMeta span {
+  color: #51645b;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.requestFactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.48rem;
+}
+
+.requestFactGrid span {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.58rem;
+  border-radius: 12px;
+  background: rgba(248, 250, 247, 0.9);
+}
+
+.requestFactGrid strong {
+  color: #20302a;
+  font-size: 0.95rem;
+}
+
+.requestFactGrid small {
+  color: #6a7a71;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.requestWorkflow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 999px;
+  background: rgba(248, 250, 247, 0.86);
+}
+
+.requestWorkflow span {
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  color: #697a70;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.requestWorkflow span[data-state="done"] {
+  background: rgba(39, 87, 68, 0.12);
+  color: #24543f;
+}
+
+.requestWorkflow span[data-state="active"] {
+  background: rgba(147, 112, 50, 0.14);
+  color: #74571e;
+}
+
+.profileVisualCover {
+  position: relative;
+  min-height: 145px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(39, 87, 68, 0.08);
+}
+
+.profileVisualCover img {
+  width: 100%;
+  height: 145px;
+  object-fit: cover;
+}
+
+.profileVisualCover > span {
+  position: absolute;
+  top: 0.68rem;
+  right: 0.68rem;
+}
+
+.profileVisualIdentity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.66rem;
+  align-items: center;
+}
+
+.profileVisualIdentity > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.realPopupGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 0.9rem;
+}
+
+.realPopupCard > span {
+  overflow-wrap: anywhere;
+}
+
+.realPopupWindow {
+  position: relative;
+  display: grid;
+  gap: 0.52rem;
+  min-height: 210px;
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 14px 30px rgba(25, 44, 36, 0.08);
+}
+
+.realPopupCard[data-tone="warning"] .realPopupWindow {
+  background: rgba(255, 248, 231, 0.96);
+}
+
+.realPopupCard[data-tone="success"] .realPopupWindow {
+  background: rgba(239, 248, 241, 0.96);
+}
+
+.realPopupCard[data-tone="info"] .realPopupWindow {
+  background: rgba(239, 246, 255, 0.96);
+}
+
+.realPopupCard[data-tone="dark"] .realPopupWindow {
+  background: linear-gradient(135deg, #2b3448, #1b2231);
+  color: #f5f2ea;
+}
+
+.realPopupCard[data-tone="dark"] .realPopupWindow p {
+  color: rgba(245, 242, 234, 0.76);
+}
+
+.realPopupWindow > button {
+  position: absolute;
+  top: 0.62rem;
+  right: 0.62rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(32, 48, 42, 0.08);
+  color: inherit;
+}
+
+.realPopupWindow > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  margin-top: auto;
+}
+
+.categoryReferenceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.categoryReferenceGroup {
+  display: grid;
+  gap: 0.72rem;
+  min-width: 0;
+  padding: 0.86rem;
+  border: 1px solid rgba(35, 67, 55, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.categoryReferenceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding-bottom: 0.62rem;
+  border-bottom: 1px solid rgba(35, 67, 55, 0.1);
+}
+
+.categoryReferenceHeader span {
+  color: #6b7c73;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.categoryReferenceList {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.categoryReferenceItem {
+  display: grid;
+  grid-template-columns: 106px minmax(0, 1fr);
+  gap: 0.72rem;
+  min-width: 0;
+  padding: 0.62rem;
+  border-radius: 14px;
+  background: rgba(248, 250, 247, 0.86);
+}
+
+.categoryReferenceImage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 106px;
+  min-height: 82px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(39, 87, 68, 0.08);
+  color: #244f3d;
+}
+
+.categoryReferenceImage img {
+  width: 100%;
+  height: 100%;
+  min-height: 82px;
+  object-fit: cover;
+}
+
+.categoryReferenceBody {
+  display: grid;
+  gap: 0.44rem;
+  min-width: 0;
+}
+
+.categoryReferenceBody > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.46rem;
+  min-width: 0;
+}
+
+.categoryReferenceIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: rgba(39, 87, 68, 0.08);
+}
+
+.categoryReferenceMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+}
+
+.categoryReferenceMeta code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .ownerPacePreview {
   display: grid;
   grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.2fr);
@@ -538,8 +1683,46 @@
   .paceGrid,
   .serviceGrid,
   .rulesGrid,
-  .badgePaceGrid {
+  .badgePaceGrid,
+  .donutGrid,
+  .componentUseGrid,
+  .sourceAuditGrid,
+  .buttonMatrix,
+  .cardMatrix,
+  .statsToneGrid,
+  .fieldToneGrid,
+  .categoryReferenceGrid,
+  .siteMockupDashboardGrid,
+  .siteMockupReferenceGrid,
+  .elementDirectoryGrid,
+  .themeVisualGrid,
+  .realPopupGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .componentShowcaseGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .siteMockupShell,
+  .siteMockupHero,
+  .siteMockupLowerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .siteMockupSidebar {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .siteMockupNav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 0.1rem;
+  }
+
+  .siteMockupNav span {
+    flex: 0 0 auto;
   }
 
   .ownerPacePreview {
@@ -570,8 +1753,58 @@
   .paceGrid,
   .serviceGrid,
   .rulesGrid,
-  .badgePaceGrid {
+  .badgePaceGrid,
+  .donutGrid,
+  .compactDonutRail,
+  .componentUseGrid,
+  .sourceAuditGrid,
+  .formPreview,
+  .buttonMatrix,
+  .cardMatrix,
+  .statsToneGrid,
+  .fieldToneGrid,
+  .categoryReferenceGrid,
+  .siteMockupDashboardGrid,
+  .siteMockupReferenceGrid,
+  .surfaceMockupGrid,
+  .elementDirectoryGrid,
+  .themeVisualGrid,
+  .businessVisualGrid,
+  .realPopupGrid,
+  .requestFactGrid {
     grid-template-columns: 1fr;
+  }
+
+  .avatarUploadVisual,
+  .profileVisualIdentity {
+    grid-template-columns: 1fr;
+  }
+
+  .siteMockupTopbar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .siteMockupSearch {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .siteMockupSidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .siteMockupProfileHead,
+  .profileMockupCard {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryReferenceItem {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryReferenceImage {
+    width: 100%;
   }
 }
 
