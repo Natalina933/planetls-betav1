@@ -3,14 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
-import { supabaseBrowser } from "@/app/lib/dbClient";
 import { getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
+import {
+  FiActivity,
+  FiAlertTriangle,
+  FiCheckCircle,
+  FiMessageCircle,
+  FiShield,
+  FiTarget,
+  FiUsers,
+} from "react-icons/fi";
 import {
   AdminAlertList,
   AdminKpiGrid,
-  type AdminKpi,
-  type AdminMissionRow,
-  type AdminRequestRow,
   getElapsedLabel,
   getMissionNextAction,
   getMissionStatus,
@@ -20,13 +25,62 @@ import {
   getRequestStatus,
   getRequestUrgency,
   normalizeAdminText,
+  type AdminKpi,
+  type AdminMissionRow,
+  type AdminRequestRow,
 } from "./AdminOperations";
+import {
+  AdminBubblePanel,
+  AdminDonutCard,
+  AdminGaugeCard,
+  AdminToneLegend,
+} from "./AdminVisuals";
+import { ADMIN_VISUAL_PRESETS } from "./adminVisualPresets";
 import styles from "./AdminDashboard.module.scss";
 
 type DashboardStats = {
   users: number;
-  activeProviders: number;
+  activePartners: number;
   bookings: number;
+  active24h: number;
+  active7d: number;
+  owners: number;
+  concierges: number;
+  providers: number;
+};
+
+type AdminOverviewPayload = {
+  summary: {
+    totalUsers: number;
+    active24h: number;
+    active7d: number;
+    owners: number;
+    concierges: number;
+    providers: number;
+    onboardingComplete: number;
+    emailConfirmed: number;
+    planningEntries: number;
+    workflowEvents: number;
+    onboardingEvents: number;
+  };
+  spotlights: {
+    onboardingAlerts: Array<{
+      id: string;
+      displayName: string;
+      roleBucket: string;
+      healthFlags: string[];
+      lastSignInAt: string | null;
+    }>;
+  };
+};
+
+type AdminControlPayload = {
+  summary: {
+    onboarding: { total: number; healthy: number; warning: number; danger: number };
+    missions: { total: number; healthy: number; warning: number; danger: number };
+    messages: { total: number; healthy: number; warning: number; danger: number };
+    totalProblems: number;
+  };
 };
 
 function getArrayPayload<T>(payload: unknown): T[] {
@@ -51,38 +105,43 @@ function isSameLocalDay(left: Date, right: Date) {
   );
 }
 
+function resolveAdminSegment(roleBucket: string) {
+  if (roleBucket === "owner") return "/dashboard/admin/proprietaires";
+  if (roleBucket === "concierge") return "/dashboard/admin/conciergeries";
+  if (roleBucket === "provider") return "/dashboard/admin/artisans";
+  return "/dashboard/admin/utilisateurs";
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     users: 0,
-    activeProviders: 0,
+    activePartners: 0,
     bookings: 0,
+    active24h: 0,
+    active7d: 0,
+    owners: 0,
+    concierges: 0,
+    providers: 0,
   });
   const [requests, setRequests] = useState<AdminRequestRow[]>([]);
   const [missions, setMissions] = useState<AdminMissionRow[]>([]);
   const [invoiceCount, setInvoiceCount] = useState(0);
+  const [adminOverview, setAdminOverview] = useState<AdminOverviewPayload | null>(null);
+  const [adminControl, setAdminControl] = useState<AdminControlPayload | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchAdminData() {
       try {
-        const supabase = supabaseBrowser();
-        const [{ count: usersCount }, { count: providersCount }, { count: bookingsCount }] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact", head: true }),
-          supabase.from("profiles").select("*", { count: "exact", head: true }).in("type", ["provider", "concierge"]),
-          supabase.from("planning_entries").select("*", { count: "exact", head: true }),
-        ]);
-
-        setStats({
-          users: usersCount ?? 0,
-          activeProviders: providersCount ?? 0,
-          bookings: bookingsCount ?? 0,
-        });
-
-        const [requestsRes, missionsRes, invoicesRes] = await Promise.allSettled([
+        const [requestsRes, missionsRes, invoicesRes, overviewRes, controlRes] = await Promise.allSettled([
           fetch("/api/service-requests?limit=200", { cache: "no-store" }),
           fetch("/api/missions?limit=200", { cache: "no-store" }),
           fetch("/api/invoices?limit=100", { cache: "no-store" }),
+          fetch("/api/admin/overview", { cache: "no-store" }),
+          fetch("/api/admin/control-tower", { cache: "no-store" }),
         ]);
+
+        let overviewPayload: AdminOverviewPayload | null = null;
 
         if (requestsRes.status === "fulfilled" && requestsRes.value.ok) {
           setRequests(getArrayPayload<AdminRequestRow>(await requestsRes.value.json().catch(() => ({}))));
@@ -93,6 +152,24 @@ export default function AdminDashboard() {
         if (invoicesRes.status === "fulfilled" && invoicesRes.value.ok) {
           setInvoiceCount(getArrayPayload<unknown>(await invoicesRes.value.json().catch(() => [])).length);
         }
+        if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
+          overviewPayload = (await overviewRes.value.json().catch(() => null)) as AdminOverviewPayload | null;
+          setAdminOverview(overviewPayload);
+        }
+        if (controlRes.status === "fulfilled" && controlRes.value.ok) {
+          setAdminControl((await controlRes.value.json().catch(() => null)) as AdminControlPayload | null);
+        }
+
+        setStats({
+          users: overviewPayload?.summary.totalUsers ?? 0,
+          activePartners: (overviewPayload?.summary.concierges ?? 0) + (overviewPayload?.summary.providers ?? 0),
+          bookings: overviewPayload?.summary.planningEntries ?? 0,
+          active24h: overviewPayload?.summary.active24h ?? 0,
+          active7d: overviewPayload?.summary.active7d ?? 0,
+          owners: overviewPayload?.summary.owners ?? 0,
+          concierges: overviewPayload?.summary.concierges ?? 0,
+          providers: overviewPayload?.summary.providers ?? 0,
+        });
       } catch (error) {
         console.error("Erreur chargement cockpit admin :", error);
       } finally {
@@ -137,7 +214,10 @@ export default function AdminDashboard() {
   );
   const missionPaceMeta = useMemo(() => getDashboardMissionPaceMeta(todayAdminMissionCount), [todayAdminMissionCount]);
   const completedMissions = useMemo(
-    () => missions.filter((mission) => ["Réalisée", "Facturée", "Réglée", "Clôturée"].includes(getMissionStatus(mission))).length,
+    () =>
+      missions.filter((mission) =>
+        ["Réalisée", "Facturée", "Réglée", "Clôturée"].includes(getMissionStatus(mission)),
+      ).length,
     [missions],
   );
 
@@ -152,9 +232,16 @@ export default function AdminDashboard() {
     {
       id: "blocked",
       label: "Blocages",
-      value: blockedRequests.length + lateMissions.length + acceptedQuotesWithoutMission.length,
+      value:
+        blockedRequests.length +
+        lateMissions.length +
+        acceptedQuotesWithoutMission.length +
+        (adminControl?.summary.totalProblems ?? 0),
       helper: "Actions admin prioritaires",
-      tone: blockedRequests.length + lateMissions.length + acceptedQuotesWithoutMission.length ? "danger" : "positive",
+      tone:
+        blockedRequests.length + lateMissions.length + acceptedQuotesWithoutMission.length + (adminControl?.summary.totalProblems ?? 0)
+          ? "danger"
+          : "positive",
     },
     {
       id: "quotes",
@@ -176,6 +263,13 @@ export default function AdminDashboard() {
       value: completedMissions,
       helper: "Rapport, facture ou clôture à contrôler",
       tone: "positive",
+    },
+    {
+      id: "active-users",
+      label: "Connexions 24 h",
+      value: stats.active24h,
+      helper: "Dernières connexions connues",
+      tone: stats.active24h > 0 ? "positive" : "warning",
     },
   ];
 
@@ -201,6 +295,57 @@ export default function AdminDashboard() {
       href: "/dashboard/admin/missions",
       tone: getMissionUrgency(mission),
     })),
+    ...(adminOverview?.spotlights.onboardingAlerts ?? []).slice(0, 3).map((user) => ({
+      id: `user-${user.id}`,
+      title: `Compte à débloquer · ${user.displayName}`,
+      description: user.healthFlags[0] ?? "Vérification du compte recommandée",
+      href: resolveAdminSegment(user.roleBucket),
+      tone: user.lastSignInAt ? ("warning" as const) : ("danger" as const),
+    })),
+  ];
+
+  const visualBubbles = [
+    {
+      id: "red",
+      label: "Alertes rouges",
+      value:
+        (adminControl?.summary.onboarding.danger ?? 0) +
+        (adminControl?.summary.missions.danger ?? 0) +
+        (adminControl?.summary.messages.danger ?? 0),
+      tone: "danger" as const,
+      icon: FiAlertTriangle,
+      href: "/dashboard/admin/controle?severity=danger",
+    },
+    {
+      id: "orange",
+      label: "Points à suivre",
+      value:
+        (adminControl?.summary.onboarding.warning ?? 0) +
+        (adminControl?.summary.missions.warning ?? 0) +
+        (adminControl?.summary.messages.warning ?? 0),
+      tone: "warning" as const,
+      icon: FiTarget,
+      href: "/dashboard/admin/controle?severity=warning",
+    },
+    {
+      id: "green",
+      label: "Étapes saines",
+      value:
+        (adminControl?.summary.onboarding.healthy ?? 0) +
+        (adminControl?.summary.missions.healthy ?? 0) +
+        (adminControl?.summary.messages.healthy ?? 0),
+      tone: "positive" as const,
+      icon: FiCheckCircle,
+      href: "/dashboard/admin/controle?severity=positive",
+    },
+    {
+      id: "users",
+      label: "Comptes actifs 24 h",
+      value: stats.active24h,
+      tone: stats.active24h > 0 ? ("positive" as const) : ("neutral" as const),
+      icon: FiUsers,
+      href: "/dashboard/admin/utilisateurs",
+    },
   ];
 
   if (loading) return <div className="center">Chargement du cockpit admin...</div>;
@@ -209,19 +354,21 @@ export default function AdminDashboard() {
     <DashboardLayout
       persona="admin"
       title="Cockpit de contrôle"
-      subtitle="Demandes, devis, missions, plannings et paiements : les points à vérifier en priorité."
+      subtitle="Demandes, utilisateurs, devis, missions, plannings et paiements : les points à vérifier en priorité."
       navTitle="Pilotage admin"
       navItems={[
-        { label: "Vue d’ensemble", href: "/dashboard/admin" },
+        { label: "Vue d'ensemble", href: "/dashboard/admin" },
+        { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
+        { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
+        { label: "Propriétaires", href: "/dashboard/admin/proprietaires" },
+        { label: "Conciergeries", href: "/dashboard/admin/conciergeries" },
+        { label: "Artisans", href: "/dashboard/admin/artisans" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
-        { label: "Propriétaires", href: "/dashboard/owner" },
-        { label: "Conciergeries", href: "/dashboard/concierge" },
-        { label: "Prestataires", href: "/dashboard/provider" },
       ]}
       stats={[
         { label: "Utilisateurs", value: String(stats.users), hint: "Profils actifs ou inscrits" },
-        { label: "Partenaires", value: String(stats.activeProviders), hint: "Conciergeries et prestataires" },
+        { label: "Partenaires", value: String(stats.activePartners), hint: "Conciergeries et artisans" },
         {
           label: "Planning",
           value: String(stats.bookings),
@@ -231,12 +378,30 @@ export default function AdminDashboard() {
           visualLabel: missionPaceMeta.label,
         },
         { label: "Factures", value: String(invoiceCount), hint: "Pièces de gestion suivies" },
+        {
+          label: "Problèmes parcours",
+          value: String(adminControl?.summary.totalProblems ?? 0),
+          hint: "Inscriptions, missions et messages",
+        },
+        {
+          label: "Connexions 24 h",
+          value: String(stats.active24h),
+          hint: `${stats.active7d} actif(s) sur 7 jours · ${adminOverview?.summary.workflowEvents ?? 0} événement(s) workflow`,
+        },
       ]}
       actions={[
+        { label: "Contrôler les utilisateurs", href: "/dashboard/admin/utilisateurs" },
+        { label: "Ouvrir le contrôle détaillé", href: "/dashboard/admin/controle" },
         { label: "Contrôler les demandes", href: "/dashboard/admin/demandes" },
         { label: "Contrôler les missions", href: "/dashboard/admin/missions" },
       ]}
       activity={[
+        {
+          id: "admin-users",
+          title: "Base utilisateurs",
+          description: `${stats.owners} propriétaire(s), ${stats.concierges} conciergerie(s), ${stats.providers} artisan(s)`,
+          href: "/dashboard/admin/utilisateurs",
+        },
         {
           id: "admin-requests",
           title: "Demandes et devis",
@@ -249,6 +414,12 @@ export default function AdminDashboard() {
           description: "Synchronisation propriétaire, concierge et réalisation terrain",
           href: "/dashboard/admin/missions",
         },
+        {
+          id: "admin-control",
+          title: "Étapes et anomalies",
+          description: "Feux de contrôle sur inscription, mission et messages",
+          href: "/dashboard/admin/controle",
+        },
       ]}
       notifications={alerts.slice(0, 3).map((alert) => ({
         id: alert.id,
@@ -257,10 +428,13 @@ export default function AdminDashboard() {
         href: alert.href,
       }))}
       shortcuts={[
+        { label: "Contrôle détaillé", href: "/dashboard/admin/controle" },
+        { label: "Utilisateurs", href: "/dashboard/admin/utilisateurs" },
+        { label: "Propriétaires", href: "/dashboard/admin/proprietaires" },
+        { label: "Conciergeries", href: "/dashboard/admin/conciergeries" },
+        { label: "Artisans", href: "/dashboard/admin/artisans" },
         { label: "Demandes", href: "/dashboard/admin/demandes" },
         { label: "Missions", href: "/dashboard/admin/missions" },
-        { label: "Owner", href: "/dashboard/owner" },
-        { label: "Concierge", href: "/dashboard/concierge" },
       ]}
       profile={{
         name: "PlanetLS",
@@ -276,6 +450,114 @@ export default function AdminDashboard() {
         <AdminAlertList alerts={alerts} />
       </DashboardPanel>
 
+      <DashboardPanel title="Vue visuelle">
+        <div className={styles.visualBlock}>
+          <div className={styles.visualDonuts}>
+            <AdminDonutCard
+              title="Inscriptions"
+              subtitle="Lecture immédiate de l'état des créations de comptes."
+              icon={FiUsers}
+              totalLabel="comptes"
+              illustrationSrc={ADMIN_VISUAL_PRESETS.onboarding.illustrationSrc}
+              illustrationAlt={ADMIN_VISUAL_PRESETS.onboarding.illustrationAlt}
+              textureSrc={ADMIN_VISUAL_PRESETS.onboarding.textureSrc}
+              accentColor={ADMIN_VISUAL_PRESETS.onboarding.accentColor}
+              segments={[
+                { label: "Sains", value: adminControl?.summary.onboarding.healthy ?? 0, color: "#1f9d55" },
+                { label: "À suivre", value: adminControl?.summary.onboarding.warning ?? 0, color: "#f59e0b" },
+                { label: "Critiques", value: adminControl?.summary.onboarding.danger ?? 0, color: "#ef4444" },
+              ]}
+            />
+            <AdminDonutCard
+              title="Missions"
+              subtitle="Vue camembert des parcours opérationnels."
+              icon={FiActivity}
+              totalLabel="missions"
+              illustrationSrc={ADMIN_VISUAL_PRESETS.missions.illustrationSrc}
+              illustrationAlt={ADMIN_VISUAL_PRESETS.missions.illustrationAlt}
+              textureSrc={ADMIN_VISUAL_PRESETS.missions.textureSrc}
+              accentColor={ADMIN_VISUAL_PRESETS.missions.accentColor}
+              segments={[
+                { label: "Saines", value: adminControl?.summary.missions.healthy ?? 0, color: "#1f9d55" },
+                { label: "À suivre", value: adminControl?.summary.missions.warning ?? 0, color: "#f59e0b" },
+                { label: "Critiques", value: adminControl?.summary.missions.danger ?? 0, color: "#ef4444" },
+              ]}
+            />
+            <AdminDonutCard
+              title="Messages"
+              subtitle="Réponses et conversations à surveiller."
+              icon={FiMessageCircle}
+              totalLabel="fils"
+              illustrationSrc={ADMIN_VISUAL_PRESETS.messages.illustrationSrc}
+              illustrationAlt={ADMIN_VISUAL_PRESETS.messages.illustrationAlt}
+              textureSrc={ADMIN_VISUAL_PRESETS.messages.textureSrc}
+              accentColor={ADMIN_VISUAL_PRESETS.messages.accentColor}
+              segments={[
+                { label: "Sains", value: adminControl?.summary.messages.healthy ?? 0, color: "#1f9d55" },
+                { label: "À suivre", value: adminControl?.summary.messages.warning ?? 0, color: "#f59e0b" },
+                { label: "Critiques", value: adminControl?.summary.messages.danger ?? 0, color: "#ef4444" },
+              ]}
+            />
+          </div>
+
+          <AdminBubblePanel
+            title="Bulles de signalement"
+            subtitle="Les problèmes ressortent tout de suite, sans lire tout le dashboard."
+            items={visualBubbles}
+            illustrationSrc={ADMIN_VISUAL_PRESETS.alerts.illustrationSrc}
+            illustrationAlt={ADMIN_VISUAL_PRESETS.alerts.illustrationAlt}
+            textureSrc={ADMIN_VISUAL_PRESETS.alerts.textureSrc}
+            accentColor={ADMIN_VISUAL_PRESETS.alerts.accentColor}
+          />
+
+          <div className={styles.visualDonuts}>
+            <AdminGaugeCard
+              title="Fiabilité inscriptions"
+              subtitle="Part des comptes sains sur tout le parcours d'inscription."
+              icon={FiShield}
+              value={adminControl?.summary.onboarding.healthy ?? 0}
+              total={adminControl?.summary.onboarding.total ?? 0}
+              illustrationSrc={ADMIN_VISUAL_PRESETS.reliability.illustrationSrc}
+              illustrationAlt={ADMIN_VISUAL_PRESETS.reliability.illustrationAlt}
+              textureSrc={ADMIN_VISUAL_PRESETS.reliability.textureSrc}
+              accentColor={ADMIN_VISUAL_PRESETS.reliability.accentColor}
+              tone={(adminControl?.summary.onboarding.danger ?? 0) > 0 ? "danger" : (adminControl?.summary.onboarding.warning ?? 0) > 0 ? "warning" : "positive"}
+            />
+            <AdminGaugeCard
+              title="Fiabilité missions"
+              subtitle="Part des missions sans blocage ni retard."
+              icon={FiActivity}
+              value={adminControl?.summary.missions.healthy ?? 0}
+              total={adminControl?.summary.missions.total ?? 0}
+              illustrationSrc={ADMIN_VISUAL_PRESETS.activity.illustrationSrc}
+              illustrationAlt={ADMIN_VISUAL_PRESETS.activity.illustrationAlt}
+              textureSrc={ADMIN_VISUAL_PRESETS.activity.textureSrc}
+              accentColor={ADMIN_VISUAL_PRESETS.activity.accentColor}
+              tone={(adminControl?.summary.missions.danger ?? 0) > 0 ? "danger" : (adminControl?.summary.missions.warning ?? 0) > 0 ? "warning" : "positive"}
+            />
+            <AdminGaugeCard
+              title="Fiabilité messages"
+              subtitle="Part des conversations qui tournent correctement."
+              icon={FiMessageCircle}
+              value={adminControl?.summary.messages.healthy ?? 0}
+              total={adminControl?.summary.messages.total ?? 0}
+              illustrationSrc={ADMIN_VISUAL_PRESETS.messages.illustrationSrc}
+              illustrationAlt={ADMIN_VISUAL_PRESETS.messages.illustrationAlt}
+              textureSrc={ADMIN_VISUAL_PRESETS.messages.textureSrc}
+              accentColor={ADMIN_VISUAL_PRESETS.messages.accentColor}
+              tone={(adminControl?.summary.messages.danger ?? 0) > 0 ? "danger" : (adminControl?.summary.messages.warning ?? 0) > 0 ? "warning" : "positive"}
+            />
+          </div>
+
+          <AdminToneLegend
+            illustrationSrc={ADMIN_VISUAL_PRESETS.legend.illustrationSrc}
+            illustrationAlt={ADMIN_VISUAL_PRESETS.legend.illustrationAlt}
+            textureSrc={ADMIN_VISUAL_PRESETS.legend.textureSrc}
+            accentColor={ADMIN_VISUAL_PRESETS.legend.accentColor}
+          />
+        </div>
+      </DashboardPanel>
+
       <DashboardPanel title="Parcours contrôlé">
         <div className={styles.processStrip}>
           {["Demande", "Devis", "Acceptation", "Mission", "Planning", "Réalisation", "Rapport", "Facture", "Règlement"].map(
@@ -285,19 +567,106 @@ export default function AdminDashboard() {
           )}
         </div>
         <p className={styles.adminNote}>
-          L’objectif admin est simple : repérer ce qui bloque, qui doit répondre et si chaque devis accepté déclenche bien
-          une mission synchronisée dans les plannings.
+          L'objectif admin est double : repérer ce qui bloque dans l'opérationnel et contrôler que la base utilisateurs
+          reste activable, joignable et suffisamment complète pour faire tourner la plateforme.
         </p>
+      </DashboardPanel>
+
+      <DashboardPanel title="Feux de contrôle">
+        <div className={styles.categoryGrid}>
+          <Link href="/dashboard/admin/controle?tab=inscriptions" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Inscriptions</h3>
+              <span className={styles.categoryBadge}>{adminControl?.summary.onboarding.total ?? 0}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              {adminControl?.summary.onboarding.danger ?? 0} rouge(s) · {adminControl?.summary.onboarding.warning ?? 0} orange(s) sur la création, la confirmation et l'onboarding.
+            </p>
+            <span className={styles.categoryLink}>Voir les étapes</span>
+          </Link>
+          <Link href="/dashboard/admin/controle?tab=missions" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Missions</h3>
+              <span className={styles.categoryBadge}>{adminControl?.summary.missions.total ?? 0}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              {adminControl?.summary.missions.danger ?? 0} rouge(s) · {adminControl?.summary.missions.warning ?? 0} orange(s) sur devis, planning, exécution et facture.
+            </p>
+            <span className={styles.categoryLink}>Voir les étapes</span>
+          </Link>
+          <Link href="/dashboard/admin/controle?tab=messages" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Messages</h3>
+              <span className={styles.categoryBadge}>{adminControl?.summary.messages.total ?? 0}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              {adminControl?.summary.messages.danger ?? 0} rouge(s) · {adminControl?.summary.messages.warning ?? 0} orange(s) sur conversations sans réponse ou trop anciennes.
+            </p>
+            <span className={styles.categoryLink}>Voir les étapes</span>
+          </Link>
+        </div>
       </DashboardPanel>
 
       <DashboardPanel title="Accès métier">
         <div className={styles.categoryGrid}>
+          <Link href="/dashboard/admin/controle" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Contrôle détaillé</h3>
+              <span className={styles.categoryBadge}>{adminControl?.summary.totalProblems ?? 0}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              Voir les étapes d'inscription, les missions et les messages avec des couleurs de surveillance.
+            </p>
+            <span className={styles.categoryLink}>Ouvrir l'onglet</span>
+          </Link>
+          <Link href="/dashboard/admin/utilisateurs" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Utilisateurs</h3>
+              <span className={styles.categoryBadge}>{stats.users}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              Voir les connexions, l'onboarding, les e-mails confirmés et la complétude de chaque compte.
+            </p>
+            <span className={styles.categoryLink}>Ouvrir le pilotage</span>
+          </Link>
+          <Link href="/dashboard/admin/proprietaires" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Propriétaires</h3>
+              <span className={styles.categoryBadge}>{stats.owners}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              Contrôler la base propriétaires, leurs logements et leur niveau d'activation.
+            </p>
+            <span className={styles.categoryLink}>Ouvrir le suivi</span>
+          </Link>
+          <Link href="/dashboard/admin/conciergeries" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Conciergeries</h3>
+              <span className={styles.categoryBadge}>{stats.concierges}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              Suivre la préparation des profils concierge, les services et l'activité récente.
+            </p>
+            <span className={styles.categoryLink}>Ouvrir le suivi</span>
+          </Link>
+          <Link href="/dashboard/admin/artisans" className={styles.categoryCard}>
+            <div className={styles.categoryHeader}>
+              <h3>Artisans</h3>
+              <span className={styles.categoryBadge}>{stats.providers}</span>
+            </div>
+            <p className={styles.categoryDescription}>
+              Vérifier les profils prestataires, leurs tarifs reliés et leur niveau d'activation.
+            </p>
+            <span className={styles.categoryLink}>Ouvrir le suivi</span>
+          </Link>
           <Link href="/dashboard/admin/demandes" className={styles.categoryCard}>
             <div className={styles.categoryHeader}>
               <h3>Demandes</h3>
               <span className={styles.categoryBadge}>{requests.length}</span>
             </div>
-            <p className={styles.categoryDescription}>Suivre la demande, les réponses conciergerie, les devis et la génération de mission.</p>
+            <p className={styles.categoryDescription}>
+              Suivre la demande, les réponses conciergerie, les devis et la génération de mission.
+            </p>
             <span className={styles.categoryLink}>Ouvrir le suivi</span>
           </Link>
           <Link href="/dashboard/admin/missions" className={styles.categoryCard}>
@@ -305,7 +674,9 @@ export default function AdminDashboard() {
               <h3>Missions</h3>
               <span className={styles.categoryBadge}>{missions.length}</span>
             </div>
-            <p className={styles.categoryDescription}>Contrôler le planning, la réalisation, le rapport, la facture et le règlement.</p>
+            <p className={styles.categoryDescription}>
+              Contrôler le planning, la réalisation, le rapport, la facture et le règlement.
+            </p>
             <span className={styles.categoryLink}>Ouvrir le suivi</span>
           </Link>
         </div>

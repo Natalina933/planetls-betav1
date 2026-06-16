@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx,.mts",
-    "test": "node --experimental-strip-types --test src/tests/*.test.mts"
+    "test": "node --experimental-strip-types --test src/tests/*.test.mts",
+    "ensure:admin": "node scripts/ensure-admin-profile.mjs"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.13",

@@ -30,9 +30,11 @@ export type UserType = "admin" | "owner" | "concierge" | "provider";
 export const sidebarConfig: Record<UserType, SidebarItem[]> = {
   admin: [
     { label: "Vue plateforme", path: "/dashboard/admin", icon: DashboardGaugeIcon },
-    { label: "Propriétaires", path: "/dashboard/owner", icon: FiUsers },
-    { label: "Conciergeries", path: "/dashboard/concierge", icon: FiClipboard },
-    { label: "Artisans", path: "/dashboard/provider", icon: FiTool },
+    { label: "Contrôle détaillé", path: "/dashboard/admin/controle", icon: FiBell },
+    { label: "Utilisateurs", path: "/dashboard/admin/utilisateurs", icon: FiUser },
+    { label: "Propriétaires", path: "/dashboard/admin/proprietaires", icon: FiUsers },
+    { label: "Conciergeries", path: "/dashboard/admin/conciergeries", icon: FiClipboard },
+    { label: "Artisans", path: "/dashboard/admin/artisans", icon: FiTool },
   ],
 
   owner: [

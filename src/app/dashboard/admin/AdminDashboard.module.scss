@@ -118,3 +118,19 @@
   color: #4b5563;
   line-height: 1.6;
 }
+
+.visualBlock {
+  display: grid;
+  gap: 1rem;
+}
+
+.visualDonuts {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 980px) {
+  .visualDonuts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

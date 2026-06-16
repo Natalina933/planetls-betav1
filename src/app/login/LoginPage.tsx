@@ -23,6 +23,9 @@ const maskEmail = (email: string): string => {
 
 const getDashboardPathFromRole = (role: string | null | undefined): string => {
   switch (role) {
+    case "admin":
+    case "super_admin":
+      return "/dashboard/admin";
     case "concierge":
     case "concierge_pro":
       return "/dashboard/concierge";

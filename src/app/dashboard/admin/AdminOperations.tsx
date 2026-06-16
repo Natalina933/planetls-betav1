@@ -74,6 +74,12 @@ export type AdminKpi = {
   tone?: AdminTone;
 };
 
+export type AdminControlStep = {
+  id: string;
+  label: string;
+  ok: boolean;
+};
+
 export const requestStatusOptions = [
   "Tous",
   "Brouillon",
@@ -302,6 +308,16 @@ export function getRequestAssignee(request: AdminRequestRow) {
 
 export function AdminStatusBadge({ label, tone = getStatusTone(label) }: { label: string; tone?: AdminTone }) {
   return <span className={`${styles.statusBadge} ${styles[`tone-${tone}`]}`}>{label}</span>;
+}
+
+export function getControlToneLabel(tone: AdminTone) {
+  if (tone === "danger") return "Problème";
+  if (tone === "warning") return "Surveillance";
+  return "OK";
+}
+
+export function formatControlStepLabel(step: AdminControlStep) {
+  return `${step.ok ? "OK" : "À vérifier"} · ${step.label}`;
 }
 
 export function AdminProcessTimeline({ steps }: { steps: AdminTimelineStep[] }) {
