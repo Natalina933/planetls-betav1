@@ -179,6 +179,10 @@ $bg: var(--background);
   }
 }
 
+.workspaceTriggerIcon {
+  flex: 0 0 auto;
+}
+
 .workspaceDropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -244,6 +248,9 @@ $bg: var(--background);
   }
 
   strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
     color: var(--color-primary);
     font-size: 0.95rem;
   }
@@ -265,6 +272,16 @@ $bg: var(--background);
     font-weight: 850;
     text-transform: uppercase;
   }
+}
+
+.workspaceOptionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.workspaceOptionIcon {
+  flex: 0 0 auto;
 }
 
 .workspaceOptionActive {

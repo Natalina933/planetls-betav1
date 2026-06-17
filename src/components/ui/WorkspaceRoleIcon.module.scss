@@ -1,0 +1,32 @@
+.icon {
+  --sprite-x: 0%;
+  --icon-size: 2rem;
+  display: inline-flex;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  border-radius: 0.9rem;
+  background-color: rgba(255, 255, 255, 0.88);
+  background-image: url("/icons/ChatGPT Image 16 juin 2026, 17_21_00.png");
+  background-repeat: no-repeat;
+  background-size: 400% 100%;
+  background-position: var(--sprite-x) 50%;
+  box-shadow:
+    0 10px 24px rgba(31, 41, 55, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+}
+
+.owner {
+  --sprite-x: 0%;
+}
+
+.concierge {
+  --sprite-x: 33.333%;
+}
+
+.provider {
+  --sprite-x: 66.666%;
+}
+
+.admin {
+  --sprite-x: 100%;
+}

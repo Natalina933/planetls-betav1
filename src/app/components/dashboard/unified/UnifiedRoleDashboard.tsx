@@ -157,6 +157,7 @@ export default function UnifiedRoleDashboard({
 }: UnifiedRoleDashboardProps) {
   const roleMeta = ROLE_META[role];
   const rootClassName = className ? `${styles.dashboardRoot} ${className}` : styles.dashboardRoot;
+  const kpiCount = Math.max(kpis.length, 1);
 
   return (
     <main className={rootClassName}>
@@ -176,11 +177,7 @@ export default function UnifiedRoleDashboard({
                 icon={<Sparkles size={14} />}
                 className={styles.experienceBadge}
               />
-              <DashboardStatusBadge
-                label={statusLabel}
-                tone="primary"
-                className={styles.statusBadge}
-              />
+              <DashboardStatusBadge label={statusLabel} tone="primary" className={styles.statusBadge} />
             </div>
           </div>
           <p className={styles.heroLead}>{roleMeta.lead}</p>
@@ -193,8 +190,12 @@ export default function UnifiedRoleDashboard({
         </div>
       </section>
 
-      <section className={styles.kpiSection} aria-label="Indicateurs principaux">
-        {kpis.slice(0, 4).map((kpi, index) => (
+      <section
+        className={styles.kpiSection}
+        aria-label="Indicateurs principaux"
+        style={{ ["--kpi-count" as string]: String(kpiCount) }}
+      >
+        {kpis.map((kpi, index) => (
           <DashboardMetricCard
             key={kpi.id}
             label={kpi.label}
@@ -217,9 +218,7 @@ export default function UnifiedRoleDashboard({
             eyebrow="Pilotage métier"
             title="Vue principale"
             description={roleMeta.quickNote}
-            aside={
-              <DashboardStatusBadge label="Lecture unifiee" tone="primary" icon={<MapPinned size={14} />} />
-            }
+            aside={<DashboardStatusBadge label="Lecture unifiée" tone="primary" icon={<MapPinned size={14} />} />}
           >
             {leftPrimary}
           </DashboardSection>
@@ -236,16 +235,16 @@ export default function UnifiedRoleDashboard({
 
           {leftSecondary ? (
             <DashboardSection
-              eyebrow="Complements"
+              eyebrow="Compléments"
               title="Historique et modules contextuels"
-              description="Les informations secondaires sont presentes mais hierarchisees pour eviter la surcharge cognitive."
+              description="Les informations secondaires sont présentes mais hiérarchisées pour éviter la surcharge cognitive."
             >
               {leftSecondary}
             </DashboardSection>
           ) : null}
 
           {mainSections.map((section) => (
-            <DashboardSection key={section.id} eyebrow="Repere visuel" title={section.title} description={section.subtitle}>
+            <DashboardSection key={section.id} title={section.title} description={section.subtitle}>
               {section.content}
             </DashboardSection>
           ))}
@@ -253,9 +252,9 @@ export default function UnifiedRoleDashboard({
 
         <aside className={styles.sidebarColumn}>
           <DashboardSection
-            eyebrow="Reglages rapides"
+            eyebrow="Réglages rapides"
             title="Pilotage opérationnel"
-            description="Les actions frequentes restent a portee de main, avec details avances reveles a la demande."
+            description="Les actions fréquentes restent à portée de main, avec détails avancés révélés à la demande."
             muted
           >
             <div className={styles.sidebarStack}>

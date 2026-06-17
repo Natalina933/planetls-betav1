@@ -40,6 +40,16 @@
   font-size: 1rem;
 }
 
+.categoryTitleWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.roleBadgeIcon {
+  flex: 0 0 auto;
+}
+
 .categoryBadge {
   flex: 0 0 auto;
   padding: 4px 8px;

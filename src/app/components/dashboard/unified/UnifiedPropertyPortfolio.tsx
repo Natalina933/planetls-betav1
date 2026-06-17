@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Building2 } from "lucide-react";
+import { ArrowUpRight, Building2 } from "lucide-react";
 import styles from "./UnifiedPropertyPortfolio.module.scss";
 
 export interface UnifiedPropertyMetric {
@@ -17,9 +18,20 @@ export interface UnifiedPropertyItem {
   status: string;
   note: string;
   href: string;
+  imageSrc?: string | null;
+  imageAlt?: string;
+  eyebrow?: string;
+  nextArrival?: string;
+  nextMission?: string;
+  concierge?: string;
   icon?: ReactNode;
   tone?: "neutral" | "accent" | "soft" | "gold" | "clay" | "ink";
   metrics: UnifiedPropertyMetric[];
+  actions?: Array<{
+    id: string;
+    label: string;
+    href: string;
+  }>;
 }
 
 interface UnifiedPropertyPortfolioProps {
@@ -44,33 +56,84 @@ export default function UnifiedPropertyPortfolio({
   return (
     <div className={styles.grid}>
       {items.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          className={[styles.card, styles[item.tone ?? "neutral"]].join(" ")}
-        >
-          <div className={styles.head}>
-            <span className={styles.icon}>
-              {item.icon ?? <Building2 size={18} />}
-            </span>
-            <div className={styles.identity}>
-              <strong>{item.name}</strong>
-              <p>{item.location}</p>
+        <article key={item.id} className={[styles.card, styles[item.tone ?? "neutral"]].join(" ")}>
+          <Link href={item.href} className={styles.cardMain}>
+            <div className={styles.media}>
+              {item.imageSrc ? (
+                <Image
+                  src={item.imageSrc}
+                  alt={item.imageAlt || item.name}
+                  fill
+                  className={styles.mediaImage}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                />
+              ) : (
+                <div className={styles.mediaFallback} aria-hidden="true">
+                  {item.icon ?? <Building2 size={22} />}
+                </div>
+              )}
+              <span className={styles.status}>{item.status}</span>
             </div>
-            <span className={styles.status}>{item.status}</span>
-          </div>
 
-          <div className={styles.metrics}>
-            {item.metrics.map((metric) => (
-              <div key={`${item.id}-${metric.label}`}>
-                <span>{metric.label}</span>
-                <strong>{metric.value}</strong>
+            <div className={styles.head}>
+              <div className={styles.identityCluster}>
+                <span className={styles.icon}>
+                  {item.icon ?? <Building2 size={18} />}
+                </span>
+                {item.eyebrow ? <span className={styles.eyebrow}>{item.eyebrow}</span> : null}
               </div>
-            ))}
-          </div>
+              <div className={styles.identity}>
+                <strong>{item.name}</strong>
+                <p>{item.location}</p>
+              </div>
+            </div>
 
-          <p className={styles.note}>{item.note}</p>
-        </Link>
+            {(item.nextArrival || item.nextMission || item.concierge) ? (
+              <div className={styles.facts}>
+                {item.nextArrival ? (
+                  <span>
+                    <strong>Arrivee</strong>
+                    {item.nextArrival}
+                  </span>
+                ) : null}
+                {item.nextMission ? (
+                  <span>
+                    <strong>Mission</strong>
+                    {item.nextMission}
+                  </span>
+                ) : null}
+                {item.concierge ? (
+                  <span>
+                    <strong>Concierge</strong>
+                    {item.concierge}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className={styles.metrics}>
+              {item.metrics.map((metric) => (
+                <div key={`${item.id}-${metric.label}`}>
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <p className={styles.note}>{item.note}</p>
+          </Link>
+
+          {item.actions?.length ? (
+            <div className={styles.actions}>
+              {item.actions.map((action) => (
+                <Link key={action.id} href={action.href} className={styles.actionLink}>
+                  <span>{action.label}</span>
+                  <ArrowUpRight size={14} />
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </article>
       ))}
     </div>
   );

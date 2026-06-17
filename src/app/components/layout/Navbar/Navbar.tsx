@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useUserType } from "@/app/context/UserTypeContext";
+import { WorkspaceRoleIcon } from "@/components/ui";
 import { useSearchPopup } from "../../../context/SearchPopupContext";
 import styles from "./Navbar.module.scss";
 
@@ -538,10 +539,18 @@ export default function Navbar() {
                 onClick={() => setWorkspaceMenuOpen((open) => !open)}
                 aria-haspopup="menu"
                 aria-expanded={workspaceMenuOpen}
-              >
-                <Icons.FaExchangeAlt size={17} />
-                <span>{currentWorkspace?.label ?? "Changer d'espace"}</span>
-              </button>
+          >
+            <Icons.FaExchangeAlt size={17} />
+            <span>{currentWorkspace?.label ?? "Changer d'espace"}</span>
+            {currentWorkspace ? (
+              <WorkspaceRoleIcon
+                role={currentWorkspace.id}
+                label={currentWorkspace.label}
+                size={30}
+                className={styles.workspaceTriggerIcon}
+              />
+            ) : null}
+          </button>
 
               {workspaceMenuOpen ? (
                 <div className={styles.workspaceDropdown} role="menu">
@@ -562,7 +571,15 @@ export default function Navbar() {
                       role="menuitem"
                     >
                       <span>
-                        <strong>{workspace.label}</strong>
+                        <strong className={styles.workspaceOptionLabel}>
+                          <WorkspaceRoleIcon
+                            role={workspace.id}
+                            label={workspace.label}
+                            size={28}
+                            className={styles.workspaceOptionIcon}
+                          />
+                          {workspace.label}
+                        </strong>
                         <small>{workspace.description}</small>
                       </span>
                       {workspaceLoadingId === workspace.id ? <em>Connexion...</em> : null}

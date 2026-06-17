@@ -14,6 +14,7 @@ type OwnerHousingRow = {
   nom_logement: string | null;
   ville: string | null;
   statut: string | null;
+  photo_principale?: string | null;
   infos?: {
     equipements?: string[];
   } | null;

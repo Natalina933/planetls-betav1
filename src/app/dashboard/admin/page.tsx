@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout, DashboardPanel } from "@/components/dashboard";
+import { WorkspaceRoleIcon } from "@/components/ui";
 import { getDashboardMissionPaceMeta } from "@/app/components/dashboard/saas";
 import {
   FiActivity,
@@ -611,7 +612,10 @@ export default function AdminDashboard() {
         <div className={styles.categoryGrid}>
           <Link href="/dashboard/admin/controle" className={styles.categoryCard}>
             <div className={styles.categoryHeader}>
-              <h3>Contrôle détaillé</h3>
+              <h3 className={styles.categoryTitleWithIcon}>
+                <WorkspaceRoleIcon role="admin" label="Administrateur" size={34} className={styles.roleBadgeIcon} />
+                Contrôle détaillé
+              </h3>
               <span className={styles.categoryBadge}>{adminControl?.summary.totalProblems ?? 0}</span>
             </div>
             <p className={styles.categoryDescription}>
@@ -631,7 +635,10 @@ export default function AdminDashboard() {
           </Link>
           <Link href="/dashboard/admin/proprietaires" className={styles.categoryCard}>
             <div className={styles.categoryHeader}>
-              <h3>Propriétaires</h3>
+              <h3 className={styles.categoryTitleWithIcon}>
+                <WorkspaceRoleIcon role="owner" label="Proprietaires" size={34} className={styles.roleBadgeIcon} />
+                Propriétaires
+              </h3>
               <span className={styles.categoryBadge}>{stats.owners}</span>
             </div>
             <p className={styles.categoryDescription}>
@@ -641,7 +648,10 @@ export default function AdminDashboard() {
           </Link>
           <Link href="/dashboard/admin/conciergeries" className={styles.categoryCard}>
             <div className={styles.categoryHeader}>
-              <h3>Conciergeries</h3>
+              <h3 className={styles.categoryTitleWithIcon}>
+                <WorkspaceRoleIcon role="concierge" label="Conciergeries" size={34} className={styles.roleBadgeIcon} />
+                Conciergeries
+              </h3>
               <span className={styles.categoryBadge}>{stats.concierges}</span>
             </div>
             <p className={styles.categoryDescription}>
@@ -651,7 +661,10 @@ export default function AdminDashboard() {
           </Link>
           <Link href="/dashboard/admin/artisans" className={styles.categoryCard}>
             <div className={styles.categoryHeader}>
-              <h3>Artisans</h3>
+              <h3 className={styles.categoryTitleWithIcon}>
+                <WorkspaceRoleIcon role="provider" label="Artisans" size={34} className={styles.roleBadgeIcon} />
+                Artisans
+              </h3>
               <span className={styles.categoryBadge}>{stats.providers}</span>
             </div>
             <p className={styles.categoryDescription}>

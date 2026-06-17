@@ -15,6 +15,7 @@ import {
 } from "@/app/components/dashboard/notifications/serviceRequestNotifications";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { ReadabilityControlsIcon } from "@/components/dashboard";
+import { WorkspaceRoleIcon } from "@/components/ui";
 import styles from "./DashboardNavbar.module.scss";
 
 interface DashboardNavbarProps {
@@ -91,6 +92,23 @@ const getRoleLabel = (role?: string | null): string => {
     return ROLE_LABELS[role as keyof typeof ROLE_LABELS];
   }
   return role.charAt(0).toUpperCase() + role.slice(1);
+};
+
+const getWorkspaceRoleIconRole = (
+  role?: string | null,
+): "owner" | "concierge" | "provider" | "admin" | null => {
+  const normalized = String(role ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+  if (!normalized) return null;
+  if (normalized.includes("admin")) return "admin";
+  if (normalized.includes("concierge")) return "concierge";
+  if (normalized.includes("owner") || normalized.includes("proprietaire")) return "owner";
+  if (normalized.includes("provider") || normalized.includes("artisan")) return "provider";
+  return null;
 };
 
 const getTimeBasedGreeting = (): string => {
@@ -208,6 +226,7 @@ export default function DashboardNavbar({
 
   const isPro = useMemo(() => user?.role?.endsWith("_pro"), [user?.role]);
   const roleLabel = useMemo(() => getRoleLabel(user?.role), [user?.role]);
+  const roleIcon = useMemo(() => getWorkspaceRoleIconRole(user?.role), [user?.role]);
 
   const avatarSrc = user?.avatar_url || AVATAR_FALLBACK;
   const userName = user?.username || user?.email?.split("@")[0] || "Utilisateur";
@@ -592,9 +611,14 @@ export default function DashboardNavbar({
           </div>
         </div>
 
-        {roleLabel && (
-          <div className={styles.userRole} aria-label={`Role: ${roleLabel}`}>
-            <span>{roleLabel}</span>
+        {roleLabel && roleIcon && (
+          <div className={styles.userRole} aria-label={`Role : ${roleLabel}`} title={roleLabel}>
+            <WorkspaceRoleIcon
+              role={roleIcon}
+              label={roleLabel}
+              size={34}
+              className={styles.userRoleIcon}
+            />
           </div>
         )}
       </div>
@@ -787,7 +811,17 @@ export default function DashboardNavbar({
               <div className={styles.accountHeader}>
                 <strong className={styles.accountName}>{userName}</strong>
                 {user?.email ? <span className={styles.accountEmail}>{user.email}</span> : null}
-                <span className={styles.accountRole}>{roleLabel}</span>
+                <span className={styles.accountRole}>
+                  {roleIcon ? (
+                    <WorkspaceRoleIcon
+                      role={roleIcon}
+                      label={roleLabel}
+                      size={26}
+                      className={styles.accountRoleIcon}
+                    />
+                  ) : null}
+                  <span>{roleLabel}</span>
+                </span>
               </div>
 
               <div className={styles.accountActions}>

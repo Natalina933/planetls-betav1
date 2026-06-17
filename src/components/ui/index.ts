@@ -19,6 +19,7 @@ export { Tag } from "./Tag";
 export type { TagProps } from "./Tag";
 export { PublicIcon } from "./PublicIcon";
 export type { PublicIconProps } from "./PublicIcon";
+export { WorkspaceRoleIcon } from "./WorkspaceRoleIcon";
 export { ServiceCategoryIcon } from "./ServiceCategoryIcon";
 export type { ServiceCategoryIconProps } from "./ServiceCategoryIcon";
 export { ServiceCatalogPicker } from "./ServiceCatalogPicker";
