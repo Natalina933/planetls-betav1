@@ -120,12 +120,6 @@ function getAgeHours(value: string | null | undefined) {
   return Math.max(0, Math.round((Date.now() - time) / 36e5));
 }
 
-function buildTone(doneCount: number, total: number) {
-  if (doneCount === total) return "positive" as const;
-  if (doneCount <= Math.floor(total / 2)) return "danger" as const;
-  return "warning" as const;
-}
-
 function buildIssueCount(steps: Array<{ ok: boolean }>) {
   return steps.filter((step) => !step.ok).length;
 }
@@ -411,7 +405,6 @@ export async function GET(req: NextRequest) {
         const threadMessages = [...(messageGroups.get(conversation.id) ?? [])].sort((left, right) => {
           return new Date(left.created_at).getTime() - new Date(right.created_at).getTime();
         });
-        const firstMessage = threadMessages[0] ?? null;
         const lastMessage = threadMessages[threadMessages.length - 1] ?? null;
         const distinctSenders = new Set(threadMessages.map((message) => message.sender_profile_id));
         const waitingHours = getAgeHours(lastMessage?.created_at ?? conversation.last_message_at ?? conversation.created_at);

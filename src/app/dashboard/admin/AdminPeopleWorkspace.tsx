@@ -13,7 +13,6 @@ import {
   type AdminKpi,
 } from "./AdminOperations";
 import { AdminBubblePanel, AdminDonutCard, AdminGaugeCard, AdminToneLegend } from "./AdminVisuals";
-import { ADMIN_VISUAL_PRESETS } from "./adminVisualPresets";
 import styles from "./AdminPeopleWorkspace.module.scss";
 
 type RoleBucket = "admin" | "owner" | "concierge" | "provider";
