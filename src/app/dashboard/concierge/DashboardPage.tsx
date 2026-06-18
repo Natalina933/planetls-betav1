@@ -365,14 +365,16 @@ function ConciergeInspirationPanel({
                   <a
                     href={video.watchUrl}
                     target="_blank"
-                    rel="noreferrer"
-                    className={styles.inspirationThumbLink}
-                  >
-                    <div className={styles.inspirationEmbedWrap}>
-                      <img
-                        src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
-                        alt={`Apercu YouTube ${video.id}`}
-                        loading="lazy"
+                  rel="noreferrer"
+                  className={styles.inspirationThumbLink}
+                >
+                  <div className={styles.inspirationEmbedWrap}>
+                    {/* The YouTube thumbnail host is not managed through next/image in this project yet. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
+                      alt={`Apercu YouTube ${video.id}`}
+                      loading="lazy"
                       />
                       <span className={styles.inspirationPlayBadge}>Lecture</span>
                     </div>

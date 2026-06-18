@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Compass, Home, MessageSquareText, Receipt } from "lucide-react";
 import Sidebar from "@/app/components/dashboard/Sidebar/Sidebar";
@@ -81,7 +82,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className={`dashboard-main ${isSidebarOpen ? "with-sidebar" : "no-sidebar"}`}>
         <Navbar isSidebarOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((current) => !current)} />
         <div className={`headerBandeau ${isOwnerPage ? "ownerHeaderBandeau" : ""}`}>
-          <img src="/images/generated/dashboard/dashboard-header-bandeau.png" alt="Bandeau chaleureux du tableau de bord" />
+          <Image
+            src="/images/generated/dashboard/dashboard-header-bandeau.png"
+            alt="Bandeau chaleureux du tableau de bord"
+            fill
+            sizes="100vw"
+            priority={isOwnerPage}
+          />
           <div className="headerOverlay">
             {isOwnerPage ? (
               <div className="headerHero">

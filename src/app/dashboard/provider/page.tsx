@@ -173,9 +173,9 @@ export default function ProviderDashboardPage() {
     locationLabel,
   } = useProviderDashboardData();
 
-  const interventions = dashboard?.interventions ?? [];
-  const clients = dashboard?.clients ?? [];
-  const quotes = dashboard?.quotes ?? [];
+  const interventions = useMemo(() => dashboard?.interventions ?? [], [dashboard?.interventions]);
+  const clients = useMemo(() => dashboard?.clients ?? [], [dashboard?.clients]);
+  const quotes = useMemo(() => dashboard?.quotes ?? [], [dashboard?.quotes]);
 
   const clientsById = useMemo(
     () =>
