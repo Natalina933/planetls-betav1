@@ -64,6 +64,7 @@ const WORKSPACES: Record<
 };
 
 const quickLoginEnabled = process.env.WORKSPACE_QUICK_LOGIN_ENABLED === "true";
+const isProduction = process.env.NODE_ENV === "production";
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const targetEmail = process.env.TARGET_EMAIL || process.env.ADMIN_EMAIL || "admin@planetls.fr";
@@ -227,7 +228,12 @@ async function ensureWorkspaceProfiles() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!quickLoginEnabled) {
+  if (!quickLoginEnabled || isProduction) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const host = req.nextUrl.hostname.toLowerCase();
+  if (!["localhost", "127.0.0.1"].includes(host)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

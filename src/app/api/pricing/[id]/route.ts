@@ -39,7 +39,6 @@ export async function GET(
         service:services_catalog(id, category, service, description)
       `)
       .eq("id", id)
-      .eq("profile_id", auth.userId)
       .maybeSingle();
 
     if (error) {
@@ -49,6 +48,10 @@ export async function GET(
 
     if (!data) {
       return NextResponse.json({ error: "Tarif introuvable" }, { status: 404 });
+    }
+
+    if (!auth.isAdmin && data.profile_id !== auth.userId) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     return NextResponse.json(data);

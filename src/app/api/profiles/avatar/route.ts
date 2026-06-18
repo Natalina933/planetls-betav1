@@ -1,7 +1,7 @@
 // src/app/api/profiles/avatar/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getToken } from "next-auth/jwt";
+import { getApiAuthContext } from "@/server/auth/apiAuth";
 
 function getAdminClient() {
   const supabaseUrl =
@@ -20,16 +20,16 @@ function getAdminClient() {
   });
 }
 
-async function getCurrentUserId(req: NextRequest): Promise<string | null> {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-  return typeof token?.sub === "string" ? token.sub : null;
+function sanitizeStoragePathSegment(value: string) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 120);
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getCurrentUserId(req);
+    const auth = await getApiAuthContext(req);
+    const userId = auth.userId ?? null;
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const supabaseAdmin = getAdminClient();
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Le fichier doit être une image" }, { status: 400 });
+      return NextResponse.json({ error: "Le fichier doit etre une image" }, { status: 400 });
     }
 
     const maxSize = 5 * 1024 * 1024;
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Image trop volumineuse (max 5MB)" }, { status: 400 });
     }
 
-    const fileExt = file.name.split(".").pop() || "bin";
+    const fileExt = sanitizeStoragePathSegment(file.name.split(".").pop() || "bin") || "bin";
     const filePath = `${userId}/${Date.now()}.${fileExt}`;
 
     const { data, error } = await supabaseAdmin.storage
@@ -81,9 +81,10 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const userId = await getCurrentUserId(req);
+    const auth = await getApiAuthContext(req);
+    const userId = auth.userId ?? null;
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -92,9 +93,8 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Path manquant" }, { status: 400 });
     }
 
-    // A user can only delete files in their own folder.
     if (!path.startsWith(`${userId}/`)) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+      return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
     const supabaseAdmin = getAdminClient();
@@ -111,5 +111,3 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
-
-

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getToken } from "next-auth/jwt";
+import { getApiAuthContext } from "@/server/auth/apiAuth";
 
 const HOUSING_PHOTOS_BUCKET = "housing-photos";
 
@@ -20,9 +20,8 @@ function getAdminClient() {
   });
 }
 
-async function getCurrentUserId(req: NextRequest): Promise<string | null> {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
-  return typeof token?.sub === "string" ? token.sub : null;
+function sanitizeStoragePathSegment(value: string) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 120);
 }
 
 async function ensureHousingPhotosBucket() {
@@ -49,22 +48,24 @@ async function ensureHousingPhotosBucket() {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getCurrentUserId(req);
+    const auth = await getApiAuthContext(req);
+    const userId = auth.userId ?? null;
     if (!userId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
     const supabaseAdmin = await ensureHousingPhotosBucket();
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const housingId = String(formData.get("housingId") ?? "draft").trim() || "draft";
+    const rawHousingId = String(formData.get("housingId") ?? "draft").trim() || "draft";
+    const housingId = sanitizeStoragePathSegment(rawHousingId) || "draft";
 
     if (!file) {
       return NextResponse.json({ error: "Fichier manquant" }, { status: 400 });
     }
 
     if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Le fichier doit être une image" }, { status: 400 });
+      return NextResponse.json({ error: "Le fichier doit etre une image" }, { status: 400 });
     }
 
     const maxSize = 8 * 1024 * 1024;
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Image trop volumineuse (max 8MB)" }, { status: 400 });
     }
 
-    const fileExt = file.name.split(".").pop() || "bin";
+    const fileExt = sanitizeStoragePathSegment(file.name.split(".").pop() || "bin") || "bin";
     const filePath = `${userId}/${housingId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
 
     const { data, error } = await supabaseAdmin.storage.from(HOUSING_PHOTOS_BUCKET).upload(filePath, file, {
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("[API Housing Photo Upload] Supabase upload error:", error);
-      return NextResponse.json({ error: "Échec upload photo logement" }, { status: 500 });
+      return NextResponse.json({ error: "Echec upload photo logement" }, { status: 500 });
     }
 
     const { data: publicUrlData } = supabaseAdmin.storage
