@@ -34,6 +34,62 @@
   padding: 0.95rem;
 }
 
+.conciergeOverlay {
+  position: absolute;
+  inset: auto auto 0.95rem 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.62rem;
+  max-width: calc(100% - 1.9rem);
+  padding: 0.58rem 0.78rem;
+  border-radius: 14px;
+  background: rgba(255, 252, 247, 0.92);
+  color: #5b382f;
+  box-shadow: 0 10px 24px rgba(42, 26, 20, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.conciergeOverlay strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.conciergeAvatar,
+.conciergeAvatarFallback {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+}
+
+.conciergeAvatar {
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.conciergeAvatarFallback,
+.conciergeAvatarInlineFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #a2644f;
+  color: #fffaf3;
+  font-weight: 900;
+}
+
+.conciergeOverlayLabel {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a2644f;
+}
+
 .ownerStatus {
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 18px rgba(42, 26, 20, 0.14);
@@ -77,6 +133,29 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--dash-accent-strong);
+}
+
+.cardMetaInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.2rem 0 0;
+  color: #7b5b51;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.conciergeAvatarInline,
+.conciergeAvatarInlineFallback {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 50%;
+}
+
+.conciergeAvatarInline {
+  object-fit: cover;
 }
 
 .capacityBadge {
@@ -348,5 +427,9 @@
 
   .ownerViewButton {
     width: 100%;
+  }
+
+  .conciergeOverlay {
+    inset: auto 0.8rem 0.8rem 0.8rem;
   }
 }

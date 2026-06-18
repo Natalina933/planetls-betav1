@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
-    if (!["admin", "super_admin", "concierge", "concierge_pro"].includes(role)) {
+    if (!["admin", "super_admin", "concierge", "concierge_pro", "owner", "owner_pro"].includes(role)) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 

@@ -40,7 +40,10 @@ test("buildCreateLogementPayload maps the new manual form to legacy-compatible h
     postalCode: "75018",
     city: "Paris",
     surfaceSqm: "45",
+    guestCapacity: "2",
     bedroomCount: "2",
+    photo: "https://cdn.test/photo-2.jpg",
+    photos: ["https://cdn.test/photo-1.jpg", "https://cdn.test/photo-2.jpg"],
     amenities: "Wifi, Balcon",
     owner: {
       ...createInitialManualForm("manager-1").owner,
@@ -70,9 +73,16 @@ test("buildCreateLogementPayload maps the new manual form to legacy-compatible h
   const payload = buildCreateLogementPayload(form);
   assert.equal(payload.nom_logement, "Appart Montmartre");
   assert.equal(payload.ville, "Paris");
+  assert.equal(payload.photo_principale, "https://cdn.test/photo-2.jpg");
   assert.equal((payload.proprietaire as Record<string, unknown>).owner_profile_id, "owner-1");
   assert.equal((payload.proprietaire as Record<string, unknown>).manager_profile_id, "manager-1");
   assert.equal((payload.location as Record<string, unknown>).postal_code, "75018");
+  assert.equal((payload.infos as Record<string, unknown>).guest_capacity, 2);
+  assert.equal((payload.infos as Record<string, unknown>).capacite, 2);
+  assert.deepEqual((payload.infos as Record<string, unknown>).photos, [
+    "https://cdn.test/photo-1.jpg",
+    "https://cdn.test/photo-2.jpg",
+  ]);
   assert.equal(((payload.menage as Record<string, unknown>).services as Array<Record<string, unknown>>)[0]?.label, "Menage hebdo");
 });
 

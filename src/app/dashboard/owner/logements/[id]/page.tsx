@@ -230,6 +230,11 @@ type InspectionMediaItem = {
   created_at: string;
 };
 
+type LinkedConciergeProfile = {
+  displayName: string;
+  avatarUrl: string | null;
+};
+
 const tabs: Array<{ id: OwnerHousingTab; label: string; icon: React.ComponentType }> = [
   { id: "synthese", label: "Synthèse", icon: FiBarChart2 },
   { id: "infos", label: "Informations", icon: FiHome },
@@ -393,6 +398,15 @@ function toNullableNumber(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function getHousingCapacityValue(housing: ConciergeHousing) {
+  return housing.characteristics.guestCapacity ?? housing.characteristics.capacite ?? null;
+}
+
+function formatCapacityLabel(value: number | null | undefined, fallback = "Ã€ complÃ©ter") {
+  if (value == null) return fallback;
+  return `${value} personne${value > 1 ? "s" : ""}`;
+}
+
 function validateOwnerHousingDraft(logement: ConciergeHousing | null) {
   if (!logement) return "Logement introuvable.";
   if (!(logement.nom_logement ?? "").trim()) return "Le nom du logement est obligatoire.";
@@ -425,6 +439,7 @@ export default function OwnerHousingDetailPage() {
   const [draft, setDraft] = useState<ConciergeHousing | null>(null);
   const [missions, setMissions] = useState<MissionRow[]>([]);
   const [serviceRequests, setServiceRequests] = useState<HousingServiceRequestRow[]>([]);
+  const [linkedConciergeProfile, setLinkedConciergeProfile] = useState<LinkedConciergeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -563,6 +578,51 @@ export default function OwnerHousingDetailPage() {
     return () => window.clearTimeout(timeout);
   }, [disputeError, disputeSuccess, success]);
 
+  useEffect(() => {
+    const conciergeProfileId = draft?.owner.managerProfileId;
+    if (!conciergeProfileId) {
+      setLinkedConciergeProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadLinkedConciergeProfile() {
+      try {
+        const response = await fetch(`/api/profiles/public/${conciergeProfileId}`, { cache: "no-store" });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok || !payload?.profile) {
+          if (!cancelled) setLinkedConciergeProfile(null);
+          return;
+        }
+
+        if (!cancelled) {
+          setLinkedConciergeProfile({
+            displayName:
+              typeof payload.profile.display_name === "string" && payload.profile.display_name.trim()
+                ? payload.profile.display_name.trim()
+                : "Concierge",
+            avatarUrl:
+              typeof payload.profile.avatar_url === "string" && payload.profile.avatar_url.trim()
+                ? payload.profile.avatar_url.trim()
+                : typeof payload.profile.image === "string" && payload.profile.image.trim()
+                  ? payload.profile.image.trim()
+                  : null,
+          });
+        }
+      } catch {
+        if (!cancelled) setLinkedConciergeProfile(null);
+      }
+    }
+
+    void loadLinkedConciergeProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [draft?.owner.managerProfileId]);
+
   const relatedMissions = useMemo(
     () => missions.filter((mission) => String(mission.property_id ?? "") === String(id)),
     [id, missions],
@@ -586,6 +646,22 @@ export default function OwnerHousingDetailPage() {
     const quotes = relatedServiceRequests.reduce((total, request) => total + getRequestQuoteCount(request), 0);
     return { active, accepted, quotes };
   }, [relatedServiceRequests]);
+  const acceptedRequestConciergeName = useMemo(() => {
+    const acceptedRequest = relatedServiceRequests.find((request) => request.selected_concierge_name?.trim());
+    return acceptedRequest?.selected_concierge_name?.trim() || null;
+  }, [relatedServiceRequests]);
+  const primaryHousingRequest = useMemo(
+    () =>
+      relatedServiceRequests.find((request) => request.selected_concierge_name?.trim()) ??
+      relatedServiceRequests.find((request) => getRequestQuoteCount(request) > 0) ??
+      relatedServiceRequests[0] ??
+      null,
+    [relatedServiceRequests],
+  );
+  const quotedHousingRequest = useMemo(
+    () => relatedServiceRequests.find((request) => getRequestQuoteCount(request) > 0) ?? null,
+    [relatedServiceRequests],
+  );
 
   const planningEvents = useMemo(() => draft?.timeline ?? [], [draft]);
   const documents = useMemo(() => draft?.documentsList ?? [], [draft]);
@@ -1192,6 +1268,37 @@ export default function OwnerHousingDetailPage() {
         ? "Concierge rattaché au devis signé"
         : "Aucune mission concierge rattachée pour le moment",
   };
+  const resolvedConciergeName =
+    missionWithConcierge?.concierge_name ||
+    acceptedRequestConciergeName ||
+    linkedConciergeProfile?.displayName ||
+    conciergeDisplay.name;
+  const resolvedConciergeAvatarUrl =
+    missionWithConcierge?.concierge_avatar_url ?? linkedConciergeProfile?.avatarUrl ?? conciergeDisplay.avatarUrl;
+  const resolvedConciergeSubtitle = missionWithConcierge
+    ? conciergeDisplay.subtitle
+    : acceptedRequestConciergeName || linkedConciergeProfile?.displayName
+      ? "Concierge accepté pour ce logement"
+      : conciergeDisplay.subtitle;
+  const conciergeRelationshipLabel = missionWithConcierge
+    ? "Mission planifiée"
+    : acceptedRequestConciergeName || linkedConciergeProfile?.displayName
+      ? "Conciergerie confirmée"
+      : relatedServiceRequests.length > 0
+        ? "Rattachement en cours"
+        : "Aucune conciergerie liée";
+  const conciergeActionLabel = missionWithConcierge
+    ? "Suivre la conciergerie et ses demandes"
+    : acceptedRequestConciergeName || linkedConciergeProfile?.displayName
+      ? "Voir la conciergerie et les demandes liées"
+      : relatedServiceRequests.length > 0
+        ? "Relancer ou finaliser le rattachement"
+        : "Créer une demande pour trouver une conciergerie";
+  const conciergeInsights = [
+    `${relatedServiceRequests.length} demande${relatedServiceRequests.length > 1 ? "s" : ""}`,
+    `${requestStats.quotes} devis`,
+    `${requestStats.accepted} validation${requestStats.accepted > 1 ? "s" : ""}`,
+  ];
   const sharedOwnerContact = [
     { label: "Nom partagé", value: draft.owner.fullName || "À compléter", icon: UserRound },
     { label: "Téléphone", value: draft.owner.phone || draft.owner.secondaryPhone || "À compléter", icon: Phone },
@@ -1209,9 +1316,10 @@ export default function OwnerHousingDetailPage() {
     { label: "Wi-Fi", value: draft.characteristics.wifiInfo || "À compléter", icon: Wifi },
     { label: "Clés", value: draft.characteristics.keyCount != null ? `${draft.characteristics.keyCount}` : "À compléter", icon: KeyRound },
   ];
+  const housingCapacity = getHousingCapacityValue(draft);
   const housingFacts = [
     { label: "Type", value: draft.characteristics.propertyType || "À compléter", icon: PropertyTypeIcon },
-    { label: "Capacité maximale", value: draft.characteristics.guestCapacity != null ? `${draft.characteristics.guestCapacity}` : "À compléter", icon: UsersRound },
+    { label: "Capacité maximale", value: formatCapacityLabel(housingCapacity), icon: UsersRound },
     { label: "Chambres", value: draft.characteristics.bedroomCount != null ? `${draft.characteristics.bedroomCount}` : "À compléter", icon: DoorOpen },
     { label: "Lits", value: draft.characteristics.bedCount != null ? `${draft.characteristics.bedCount}` : "À compléter", icon: BedDouble },
   ];
@@ -1226,7 +1334,7 @@ export default function OwnerHousingDetailPage() {
     {
       label: "Capacité maximale",
       icon: UsersRound,
-      value: draft.characteristics.guestCapacity ?? "",
+      value: housingCapacity ?? "",
       field: "guestCapacity" as const,
     },
     {
@@ -1263,7 +1371,12 @@ export default function OwnerHousingDetailPage() {
       city: draft.locationInfo.city ?? draft.ville ?? "",
     },
   };
-
+  const activeRequestHref = primaryHousingRequest
+    ? `/dashboard/owner/demandes?request=${encodeURIComponent(primaryHousingRequest.id)}`
+    : null;
+  const quoteRequestHref = quotedHousingRequest
+    ? `/dashboard/owner/devis?request=${encodeURIComponent(quotedHousingRequest.id)}`
+    : null;
   return (
     <div className={styles.ficheLogement}>
       <div className={styles.header}>
@@ -1300,7 +1413,7 @@ export default function OwnerHousingDetailPage() {
               <div className={styles.heroMeta}>
                 <span className={styles.metaPill}>{draft.characteristics.propertyType || "Bien"}</span>
                 <span className={styles.metaPill}>
-                  {draft.characteristics.guestCapacity || "Capacité maximale à préciser"}
+                  {formatCapacityLabel(housingCapacity, "Capacité maximale à préciser")}
                 </span>
                 <span className={styles.metaPill}>
                   {draft.characteristics.bedroomCount || "Chambres à préciser"}
@@ -1311,24 +1424,42 @@ export default function OwnerHousingDetailPage() {
               </div>
             </div>
           </div>
-          <Link
-            className={styles.headerConciergeCard}
-            href={ownerRequestHref}
-            aria-label={`Faire une demande pour ${draft.nom_logement ?? "ce logement"}`}
-          >
+          <div className={styles.headerConciergeCard}>
             <Avatar
-              src={conciergeDisplay.avatarUrl}
-              name={conciergeDisplay.name}
-              alt={`Avatar de ${conciergeDisplay.name}`}
+              src={resolvedConciergeAvatarUrl}
+              name={resolvedConciergeName}
+              alt={`Avatar de ${resolvedConciergeName}`}
               size="md"
+              className={styles.headerConciergeAvatar}
             />
             <div>
               <span>Concierge du logement</span>
-              <strong>{conciergeDisplay.name}</strong>
-              <small>{conciergeDisplay.subtitle}</small>
-              <small>Faire une demande ou suivre le rattachement</small>
+              <strong>{resolvedConciergeName}</strong>
+              <small>{resolvedConciergeSubtitle}</small>
+              <div className={styles.headerConciergeMeta}>
+                <span>{conciergeRelationshipLabel}</span>
+                {conciergeInsights.map((insight) => (
+                  <span key={insight}>{insight}</span>
+                ))}
+              </div>
+              <small>{conciergeActionLabel}</small>
+              <div className={styles.headerConciergeActions}>
+                <Link className={styles.smallInlineButton} href={ownerRequestHref}>
+                  {relatedServiceRequests.length > 0 ? "Suivre les demandes" : "Faire une demande"}
+                </Link>
+                {activeRequestHref ? (
+                  <Link className={styles.ghostInlineButton} href={activeRequestHref}>
+                    Voir la demande active
+                  </Link>
+                ) : null}
+                {quoteRequestHref ? (
+                  <Link className={styles.ghostInlineButton} href={quoteRequestHref}>
+                    Voir les devis
+                  </Link>
+                ) : null}
+              </div>
             </div>
-          </Link>
+          </div>
           <div className={styles.headerActions}>
             <Link className={styles.cancelBtn} href="/dashboard/owner/logements">
               Retour aux logements
@@ -1383,7 +1514,7 @@ export default function OwnerHousingDetailPage() {
               <div className={styles.statCard}>
                 <p className={styles.statLabel}>Capacité maximale</p>
                 <strong className={styles.statValue}>
-                  {draft.characteristics.guestCapacity ?? "À préciser"}
+                  {formatCapacityLabel(housingCapacity, "À préciser")}
                 </strong>
               </div>
               <div className={styles.statCard}>

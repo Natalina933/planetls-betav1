@@ -694,6 +694,7 @@ export function buildHousingMutationPayload(
       bathroom_count: housing.characteristics.bathroomCount,
       bed_count: housing.characteristics.bedCount,
       guest_capacity: housing.characteristics.guestCapacity,
+      capacite: housing.characteristics.guestCapacity,
       wifi_info: cleanString(housing.characteristics.wifiInfo),
       key_count: housing.characteristics.keyCount,
       terrace: housing.characteristics.terrace,

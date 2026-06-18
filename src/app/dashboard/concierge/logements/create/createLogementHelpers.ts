@@ -28,6 +28,7 @@ export interface ManualCreateFormState {
   platform: string;
   status: string;
   photo: string;
+  photos: string[];
   owner: HousingOwnerInfo;
   services: Array<{
     id: string;
@@ -53,6 +54,7 @@ export interface FormState {
   city: string;
   platform: string;
   photo?: string;
+  photos?: string[];
   status: string;
 }
 
@@ -98,6 +100,7 @@ export function createInitialManualForm(managerProfileId?: string | null): Manua
     platform: "Airbnb",
     status: "Brouillon",
     photo: "",
+    photos: [],
     owner: createEmptyOwner(managerProfileId),
     services: [
       {
@@ -138,6 +141,7 @@ function toManualFormState(
     platform: form.platform,
     status: form.status,
     photo: form.photo ?? "",
+    photos: form.photos ?? (form.photo ? [form.photo] : []),
     owner: {
       ...createEmptyOwner(managerProfileId),
       profileId: managerProfileId ?? null,
@@ -181,6 +185,9 @@ function splitPlatforms(value: string) {
 }
 
 export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeHousing {
+  const normalizedPhotos = form.photos.map((photo) => photo.trim()).filter(Boolean);
+  const primaryPhoto = form.photo.trim() || normalizedPhotos[0] || null;
+
   return {
     id: 0,
     external_id: null,
@@ -189,7 +196,7 @@ export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeH
     adresse: form.addressLine1.trim(),
     plateforme: splitPlatforms(form.platform)[0] ?? form.platform.trim() ?? null,
     statut: form.status.trim() || "Brouillon",
-    photo_principale: form.photo.trim() || null,
+    photo_principale: primaryPhoto,
     created_at: null,
     updated_at: null,
     creationMode: "manual",
@@ -216,7 +223,7 @@ export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeH
     characteristics: {
       propertyType: form.propertyType.trim(),
       platforms: splitPlatforms(form.platform),
-      photos: form.photo.trim() ? [form.photo.trim()] : [],
+      photos: normalizedPhotos.length > 0 ? normalizedPhotos : primaryPhoto ? [primaryPhoto] : [],
       surfaceSqm: toOptionalNumber(form.surfaceSqm),
       roomCount: toOptionalNumber(form.roomCount),
       bedroomCount: toOptionalNumber(form.bedroomCount),
@@ -224,6 +231,7 @@ export function buildManualHousingDraft(form: ManualCreateFormState): ConciergeH
       bathrooms: [],
       bedCount: toOptionalNumber(form.bedCount),
       guestCapacity: toOptionalNumber(form.guestCapacity),
+      capacite: toOptionalNumber(form.guestCapacity),
       wifiInfo: "",
       keyCount: null,
       terrace: false,
