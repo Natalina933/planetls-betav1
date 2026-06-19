@@ -205,12 +205,61 @@ export function buildProfileSavePayload<T extends ProfileIdentityLike>(
   profile: T,
   avatarUrl: string | null,
   markOnboardingComplete: boolean,
-): T & { avatar_url: string | null; onboarding_complete?: boolean } {
-  return {
-    ...profile,
-    avatar_url: avatarUrl,
-    ...(markOnboardingComplete ? { onboarding_complete: true } : {}),
-  };
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+  const allowedFields = [
+    "username",
+    "first_name",
+    "last_name",
+    "phone",
+    "avatar_scale",
+    "avatar_offset_x",
+    "avatar_offset_y",
+    "avatar_rotation",
+    "additional_info",
+    "company_name",
+    "legal_form",
+    "siret",
+    "siren",
+    "vat_number",
+    "street_address",
+    "postal_code",
+    "city",
+    "country",
+    "website",
+    "linkedin",
+    "instagram",
+    "facebook",
+    "insurance_number",
+    "insurance_company",
+    "certifications",
+    "service_area",
+    "service_radius_km",
+    "location",
+    "availability_hours",
+    "emergency_service",
+    "hourly_rate",
+    "monthly_rate",
+    "travel_fee",
+    "years_experience",
+    "experience_level",
+    "iban",
+    "bic",
+  ] as const;
+
+  for (const field of allowedFields) {
+    if (field in profile) {
+      payload[field] = (profile as Record<string, unknown>)[field];
+    }
+  }
+
+  payload.avatar_url = avatarUrl;
+
+  if (markOnboardingComplete) {
+    payload.onboarding_complete = true;
+  }
+
+  return payload;
 }
 
 export function toggleOpenSection(

@@ -44,6 +44,7 @@ import {
   inferRequestTypeFromCollaboration,
 } from "@/app/lib/serviceRequestBrief";
 import type { RequestFormState } from "@/features/owner-concierges/types";
+import { buildOwnerRequestFormDefaults, getOwnerProfilePreferences } from "@/features/owner-preferences/profilePreferences";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 
 const initialFilters: OwnerConciergeSearchFilters = {
@@ -113,6 +114,10 @@ type OwnerServiceRequestRow = {
 type OwnerRequestsPayload = {
   items?: OwnerServiceRequestRow[];
   error?: string;
+};
+
+type CurrentOwnerProfilePayload = {
+  availability_hours?: string | null;
 };
 
 function parseSliderValue(value: string) {
@@ -225,6 +230,8 @@ export default function OwnerConciergesPageClient() {
     city: string;
     recipients: string[];
   } | null>(null);
+  const [profileRequestDefaults, setProfileRequestDefaults] = useState<Partial<RequestFormState>>({});
+  const [profileDefaultsReady, setProfileDefaultsReady] = useState(false);
   const { items, loading, error, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
   const requestPanelRef = useRef<HTMLElement | null>(null);
@@ -438,6 +445,37 @@ export default function OwnerConciergesPageClient() {
   useEffect(() => {
     let cancelled = false;
 
+    async function loadProfileDefaults() {
+      try {
+        const response = await fetch("/api/profiles/current", { cache: "no-store" });
+        const payload = (await response.json()) as CurrentOwnerProfilePayload;
+        if (!response.ok || cancelled) return;
+
+        const defaults = buildOwnerRequestFormDefaults(
+          getOwnerProfilePreferences(payload.availability_hours),
+        );
+
+        if (!cancelled) {
+          setProfileRequestDefaults(defaults);
+        }
+      } catch {
+        // Owner defaults are a convenience layer and should never block the page.
+      } finally {
+        if (!cancelled) {
+          setProfileDefaultsReady(true);
+        }
+      }
+    }
+
+    void loadProfileDefaults();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
     async function loadServiceCatalog() {
       try {
         const response = await fetch("/api/services/services-catalog", { cache: "no-store" });
@@ -496,8 +534,13 @@ export default function OwnerConciergesPageClient() {
   }, [filters.city]);
 
   useEffect(() => {
+    if (!profileDefaultsReady) return;
     if (hydratedFromUrlRef.current) return;
 
+    const baseRequestForm: RequestFormState = {
+      ...initialRequestForm,
+      ...profileRequestDefaults,
+    };
     const nextFilters: OwnerConciergeSearchFilters = {
       region: searchParams.get("region") ?? "",
       city: searchParams.get("city") ?? searchParams.get("postalCode") ?? "",
@@ -515,30 +558,30 @@ export default function OwnerConciergesPageClient() {
       proOnly: searchParams.get("proOnly") === "1",
     };
     const nextRequestForm: RequestFormState = {
-      ...initialRequestForm,
+      ...baseRequestForm,
       requestType:
         searchParams.get("requestType") === "renfort" || searchParams.get("requestType") === "durable"
           ? (searchParams.get("requestType") as RequestFormState["requestType"])
-          : "ponctuel",
+          : baseRequestForm.requestType,
       ownerGoal:
         (searchParams.get("ownerGoal") as RequestFormState["ownerGoal"] | null) ??
-        initialRequestForm.ownerGoal,
+        baseRequestForm.ownerGoal,
       collaborationType:
         (searchParams.get("collaborationType") as RequestFormState["collaborationType"] | null) ??
-        initialRequestForm.collaborationType,
+        baseRequestForm.collaborationType,
       frequency:
         (searchParams.get("frequency") as RequestFormState["frequency"] | null) ??
-        initialRequestForm.frequency,
-      estimatedDuration: searchParams.get("estimatedDuration") ?? "",
+        baseRequestForm.frequency,
+      estimatedDuration: searchParams.get("estimatedDuration") ?? baseRequestForm.estimatedDuration,
       responsibilityLevel:
         (searchParams.get("responsibilityLevel") as RequestFormState["responsibilityLevel"] | null) ??
-        initialRequestForm.responsibilityLevel,
+        baseRequestForm.responsibilityLevel,
       title: searchParams.get("requestTitle") ?? "",
-      description: searchParams.get("requestDescription") ?? "",
+      description: searchParams.get("requestDescription") ?? baseRequestForm.description,
       housingId: searchParams.get("housingId") ?? "",
       propertyName: searchParams.get("propertyName") ?? "",
       propertyAddress: searchParams.get("propertyAddress") ?? "",
-      propertyType: searchParams.get("propertyType") ?? "",
+      propertyType: searchParams.get("propertyType") ?? baseRequestForm.propertyType,
       sleepingCapacity: searchParams.get("sleepingCapacity") ?? "",
       propertyConstraints: searchParams.get("propertyConstraints") ?? "",
       city: searchParams.get("city") ?? "",
@@ -561,17 +604,17 @@ export default function OwnerConciergesPageClient() {
     if (!hasUrlFilters) {
       hydratedFromUrlRef.current = true;
       setEditingAlertId(nextEditingAlertId);
-      if (hasRequestPrefill) setRequestForm(nextRequestForm);
+      setRequestForm(hasRequestPrefill ? nextRequestForm : baseRequestForm);
       return;
     }
 
     hydratedFromUrlRef.current = true;
     setEditingAlertId(nextEditingAlertId);
-    if (hasRequestPrefill) setRequestForm(nextRequestForm);
+    setRequestForm(nextRequestForm);
     setFilters(nextFilters);
     setHasSubmittedSearch(true);
     void search(nextFilters);
-  }, [search, searchParams]);
+  }, [profileDefaultsReady, profileRequestDefaults, search, searchParams]);
 
   useEffect(() => {
     if (!feedback || lastToastMessageRef.current === feedback) return;
@@ -668,12 +711,16 @@ export default function OwnerConciergesPageClient() {
   }
 
   function resetFilters() {
+    const baseRequestForm: RequestFormState = {
+      ...initialRequestForm,
+      ...profileRequestDefaults,
+    };
     setFilters(initialFilters);
     setHasSubmittedSearch(false);
     setFeedback(null);
     setError(null);
     setMobileFiltersOpen(false);
-    setRequestForm(initialRequestForm);
+    setRequestForm(baseRequestForm);
     setEditingAlertId(null);
     setLastSubmittedStatus(null);
     setLastSentSummary(null);
@@ -820,6 +867,7 @@ export default function OwnerConciergesPageClient() {
       setMobileFiltersOpen(false);
       setRequestForm({
         ...initialRequestForm,
+        ...profileRequestDefaults,
         city: /^\d{4,6}$/.test(filters.city.trim()) ? "" : filters.city,
         postalCode: /^\d{4,6}$/.test(filters.city.trim()) ? filters.city : "",
       });

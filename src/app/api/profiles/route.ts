@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuthContext } from "@/server/auth/apiAuth";
 import { db } from "@/server/db/dbServer";
+import {
+  getProfilePatchPolicy,
+  sanitizeProfilePatchBody,
+} from "./pure";
 import { normalizeProfileLocationFields } from "../../lib/profileLocation.ts";
 import { fetchCurrentProfile } from "@/server/profiles/currentProfile";
+import { mergeOwnerPreferencesIntoAvailabilityHours } from "@/features/owner-preferences/profilePreferences";
 
 const VALID_PROFILE_ROLES = new Set([
   "owner",
@@ -17,22 +22,8 @@ const VALID_PROFILE_ROLES = new Set([
   "super_admin",
 ]);
 
-type ProfileUpdateValue = string | number | boolean | null;
-type ProfileUpdatePayload = Partial<Record<string, ProfileUpdateValue>>;
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-
-const assignString = (
-  source: Record<string, unknown>,
-  target: ProfileUpdatePayload,
-  key: string,
-) => {
-  const value = source[key];
-  if (typeof value === "string" || value === null) {
-    target[key] = value;
-  }
-};
 
 const formatFirstName = (value: string) =>
   value
@@ -44,31 +35,9 @@ const formatFirstName = (value: string) =>
 
 const formatLastName = (value: string) => value.trim().toLocaleUpperCase("fr-FR");
 
-const assignNumber = (
-  source: Record<string, unknown>,
-  target: ProfileUpdatePayload,
-  key: string,
-) => {
-  const value = source[key];
-  if ((typeof value === "number" && Number.isFinite(value)) || value === null) {
-    target[key] = value;
-  }
-};
-
-const assignBoolean = (
-  source: Record<string, unknown>,
-  target: ProfileUpdatePayload,
-  key: string,
-) => {
-  const value = source[key];
-  if (typeof value === "boolean" || value === null) {
-    target[key] = value;
-  }
-};
-
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId, isAdmin } = await getApiAuthContext(req);
+    const { userId, role, isAdmin } = await getApiAuthContext(req);
 
     if (!userId) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
@@ -79,58 +48,29 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
     }
 
-    const updateData: ProfileUpdatePayload = {};
+    const policy = getProfilePatchPolicy(role, isAdmin);
+    const {
+      ignoredFields,
+      invalidNumberFields,
+      onboardingCompleteInput,
+      ownerPreferencesInput,
+      updateData,
+    } = sanitizeProfilePatchBody(body, policy);
     let onboardingWasComplete = false;
-    const onboardingCompleteInput =
-      typeof body.onboarding_complete === "boolean" ? body.onboarding_complete : null;
+    let currentProfileForMerge:
+      | {
+          availability_hours?: string | null;
+          onboarding_complete?: boolean | null;
+        }
+      | null
+      | undefined;
 
-    [
-      "username",
-      "first_name",
-      "last_name",
-      "phone",
-      "avatar_url",
-      "image",
-      "additional_info",
-      "category",
-      "location",
-      "option",
-      "search_target",
-      "company_name",
-      "legal_form",
-      "siret",
-      "siren",
-      "vat_number",
-      "street_address",
-      "postal_code",
-      "city",
-      "country",
-      "website",
-      "linkedin",
-      "instagram",
-      "facebook",
-      "insurance_number",
-      "insurance_company",
-      "certifications",
-      "service_area",
-      "availability_hours",
-      "iban",
-      "bic",
-    ].forEach((key) => assignString(body, updateData, key));
-
-    [
-      "avatar_scale",
-      "avatar_offset_x",
-      "avatar_offset_y",
-      "avatar_rotation",
-      "travel_fee",
-      "service_radius_km",
-      "hourly_rate",
-      "monthly_rate",
-      "years_experience",
-    ].forEach((key) => assignNumber(body, updateData, key));
-
-    ["emergency_service"].forEach((key) => assignBoolean(body, updateData, key));
+    if (ignoredFields.length > 0) {
+      console.info("[PATCH /api/profiles] ignored fields:", ignoredFields);
+    }
+    if (invalidNumberFields.length > 0) {
+      console.info("[PATCH /api/profiles] invalid numeric fields ignored:", invalidNumberFields);
+    }
 
     if (
       "location" in updateData ||
@@ -140,18 +80,24 @@ export async function PATCH(req: NextRequest) {
       Object.assign(updateData, normalizeProfileLocationFields(updateData));
     }
 
-    if (typeof body.role === "string" && isAdmin && VALID_PROFILE_ROLES.has(body.role)) {
+    if (
+      typeof body.role === "string" &&
+      policy.allowRoleMutation &&
+      VALID_PROFILE_ROLES.has(body.role)
+    ) {
       updateData.role = body.role;
     }
 
-    if (body.experience_level !== undefined) {
+    if (policy.allowExperienceLevel && body.experience_level !== undefined) {
       const validLevels = ["debutant", "intermediaire", "experimente"];
       if (
-        body.experience_level === null ||
-        (typeof body.experience_level === "string" &&
-          validLevels.includes(body.experience_level))
+        updateData.experience_level === null ||
+        (typeof updateData.experience_level === "string" &&
+          validLevels.includes(updateData.experience_level))
       ) {
-        updateData.experience_level = body.experience_level;
+        updateData.experience_level = updateData.experience_level;
+      } else {
+        delete updateData.experience_level;
       }
     }
 
@@ -163,19 +109,33 @@ export async function PATCH(req: NextRequest) {
       updateData.last_name = formatLastName(updateData.last_name);
     }
 
-    if (onboardingCompleteInput !== null) {
+    if (
+      ownerPreferencesInput !== null ||
+      (policy.booleanFields.has("onboarding_complete") && onboardingCompleteInput !== null)
+    ) {
       const { data: currentProfile, error: onboardingReadError } = await db
         .from("profiles")
-        .select("onboarding_complete")
+        .select("availability_hours, onboarding_complete")
         .eq("id", userId)
         .maybeSingle();
 
       if (onboardingReadError) {
-        console.error("[PATCH /api/profiles] onboarding read error:", onboardingReadError);
-        return NextResponse.json({ error: "Erreur lecture onboarding" }, { status: 500 });
+        console.error("[PATCH /api/profiles] profile read error:", onboardingReadError);
+        return NextResponse.json({ error: "Erreur lecture profil" }, { status: 500 });
       }
 
-      onboardingWasComplete = currentProfile?.onboarding_complete === true;
+      currentProfileForMerge = currentProfile;
+    }
+
+    if (ownerPreferencesInput !== null) {
+      updateData.availability_hours = mergeOwnerPreferencesIntoAvailabilityHours(
+        currentProfileForMerge?.availability_hours ?? null,
+        ownerPreferencesInput,
+      );
+    }
+
+    if (policy.booleanFields.has("onboarding_complete") && onboardingCompleteInput !== null) {
+      onboardingWasComplete = currentProfileForMerge?.onboarding_complete === true;
       updateData.onboarding_complete = onboardingCompleteInput;
       updateData.onboarding_completed_at = onboardingCompleteInput
         ? new Date().toISOString()

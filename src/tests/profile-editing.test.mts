@@ -118,7 +118,8 @@ test("profile save helpers build expected payloads", () => {
   assert.deepEqual(
     buildProfileSavePayload(profile, "/avatar.png", true),
     {
-      ...profile,
+      first_name: "Nathalie",
+      last_name: "Charbonnel",
       avatar_url: "/avatar.png",
       onboarding_complete: true,
     },
@@ -136,6 +137,39 @@ test("profile save helpers build expected payloads", () => {
     firstName: "Nathalie",
     lastName: "Charbonnel",
   });
+});
+
+test("profile save payload excludes transport-only fields and keeps editable profile fields", () => {
+  const profile = {
+    id: "concierge-1",
+    email: "test@example.com",
+    role: "concierge",
+    status: "active",
+    username: "nathalie",
+    first_name: "Nathalie",
+    last_name: "Charbonnel",
+    phone: "0600000000",
+    company_name: "Planet LS",
+    hourly_rate: 42,
+    service_area: "Cannes",
+    availability_hours: "{}",
+    onboarding_complete: false,
+  };
+
+  assert.deepEqual(
+    buildProfileSavePayload(profile, "/avatar.png", false),
+    {
+      username: "nathalie",
+      first_name: "Nathalie",
+      last_name: "Charbonnel",
+      phone: "0600000000",
+      company_name: "Planet LS",
+      service_area: "Cannes",
+      availability_hours: "{}",
+      hourly_rate: 42,
+      avatar_url: "/avatar.png",
+    },
+  );
 });
 
 test("safe profile UI messages avoid corrupted dashboard labels", () => {
