@@ -154,6 +154,7 @@ test("profile save payload excludes transport-only fields and keeps editable pro
     service_area: "Cannes",
     availability_hours: "{}",
     onboarding_complete: false,
+    avatar_url: null,
   };
 
   assert.deepEqual(

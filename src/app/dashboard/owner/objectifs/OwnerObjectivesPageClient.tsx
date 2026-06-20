@@ -73,6 +73,9 @@ export default function OwnerObjectivesPageClient() {
     if (preferences.responsibilityLevel) count += 1;
     if (preferences.frequency && preferences.frequency !== "unknown") count += 1;
     if (preferences.propertyType) count += 1;
+    if (preferences.needVolume.trim()) count += 1;
+    if (preferences.operatingContext.trim()) count += 1;
+    if (preferences.recurringExpectations.trim()) count += 1;
     if (preferences.firstRequestTemplate.trim()) count += 1;
     return count;
   }, [preferences]);
@@ -95,7 +98,7 @@ export default function OwnerObjectivesPageClient() {
     },
     {
       label: "Completude",
-      value: `${completionCount}/6`,
+      value: `${completionCount}/9`,
       hint: "Plus ce bloc est precise, moins vous ressaisissez dans les parcours owner",
     },
   ];
@@ -119,6 +122,8 @@ export default function OwnerObjectivesPageClient() {
             responsibilityLevel: preferences.responsibilityLevel,
             propertyType: preferences.propertyType,
             needVolume: preferences.needVolume,
+            operatingContext: preferences.operatingContext,
+            recurringExpectations: preferences.recurringExpectations,
             firstRequestTemplate: preferences.firstRequestTemplate,
           },
         }),
@@ -205,6 +210,14 @@ export default function OwnerObjectivesPageClient() {
         {success ? <div className={styles.successBox}>{success}</div> : null}
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.eyebrow}>Objectifs</p>
+              <h3>Objectifs de collaboration</h3>
+            </div>
+            <span>Besoin, delegation, rythme</span>
+          </div>
+
           <div className={styles.grid}>
             <label className={styles.field}>
               <span>Objectif principal</span>
@@ -291,7 +304,17 @@ export default function OwnerObjectivesPageClient() {
               </select>
               <small>Permet de repartir sur une base utile avant meme la premiere demande.</small>
             </label>
+          </div>
 
+          <div className={styles.sectionHeader}>
+            <div>
+              <p className={styles.eyebrow}>Contexte</p>
+              <h3>Contexte d'exploitation</h3>
+            </div>
+            <span>Bien, volume, attentes recurrentes</span>
+          </div>
+
+          <div className={styles.grid}>
             <label className={styles.field}>
               <span>Type de bien principal</span>
               <select
@@ -331,6 +354,44 @@ export default function OwnerObjectivesPageClient() {
               <small>Conservez ici le rythme ou le volume qui revient souvent dans vos demandes.</small>
             </label>
           </div>
+
+          <label className={styles.field}>
+            <span>Cadre general d'exploitation</span>
+            <textarea
+              value={preferences.operatingContext}
+              disabled={loading || saving}
+              rows={4}
+              placeholder="Ex : location saisonniere de mai a septembre, arrivees le samedi, acces autonome, linge externalise."
+              onChange={(event) =>
+                setPreferences((current) => ({
+                  ...current,
+                  operatingContext: event.target.value,
+                }))
+              }
+            />
+            <small>
+              Resumez les contraintes stables de votre exploitation pour les reprendre dans vos demandes.
+            </small>
+          </label>
+
+          <label className={styles.field}>
+            <span>Attentes recurrentes</span>
+            <textarea
+              value={preferences.recurringExpectations}
+              disabled={loading || saving}
+              rows={4}
+              placeholder="Ex : menage et linge a chaque depart, controle consommables, photos apres intervention, reactivite en haute saison."
+              onChange={(event) =>
+                setPreferences((current) => ({
+                  ...current,
+                  recurringExpectations: event.target.value,
+                }))
+              }
+            />
+            <small>
+              Listez les attentes qui reviennent souvent pour eviter de les ressaisir a chaque brief.
+            </small>
+          </label>
 
           <label className={styles.field}>
             <span>Duree estimee</span>

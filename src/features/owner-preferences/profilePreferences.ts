@@ -1,6 +1,7 @@
 import {
   getServiceRequestBriefDefaults,
   inferRequestTypeFromCollaboration,
+  OWNER_REQUEST_GOAL_OPTIONS,
   type OwnerCollaborationType,
   type OwnerRequestFrequency,
   type OwnerRequestGoal,
@@ -51,6 +52,8 @@ export type OwnerProfilePreferences = {
   responsibilityLevel: OwnerResponsibilityLevel;
   propertyType: string;
   needVolume: string;
+  operatingContext: string;
+  recurringExpectations: string;
   firstRequestTemplate: string;
   propertyTypes: string[];
 };
@@ -95,6 +98,14 @@ function parseAvailabilityHoursPayload(value?: string | null): Record<string, un
   }
 }
 
+function buildRequestTitle(preferences: OwnerProfilePreferences): string {
+  const goalLabel =
+    OWNER_REQUEST_GOAL_OPTIONS.find((option) => option.value === preferences.ownerGoal)?.label ??
+    "Demande concierge";
+  const propertyLabel = preferences.propertyType || preferences.propertyTypes[0] || "";
+  return [goalLabel, propertyLabel].filter(Boolean).join(" - ");
+}
+
 export function getOwnerProfilePreferences(value?: string | null): OwnerProfilePreferences {
   const payload = parseAvailabilityHoursPayload(value);
   const onboarding = readObject(payload.onboarding);
@@ -127,6 +138,8 @@ export function getOwnerProfilePreferences(value?: string | null): OwnerProfileP
     ),
     propertyType: readString(source.propertyType),
     needVolume: readString(source.needVolume),
+    operatingContext: readString(source.operatingContext ?? source.exploitationContext),
+    recurringExpectations: readString(source.recurringExpectations ?? source.expectedServices),
     firstRequestTemplate: readString(source.firstRequestTemplate),
     propertyTypes: readStringArray(source.propertyTypes),
   };
@@ -169,6 +182,8 @@ export function mergeOwnerPreferencesIntoAvailabilityHours(
     ),
     propertyType: nextPropertyType || null,
     needVolume: nextNeedVolume || null,
+    operatingContext: readString(input.operatingContext) || null,
+    recurringExpectations: readString(input.recurringExpectations) || null,
     firstRequestTemplate: readString(input.firstRequestTemplate) || null,
     propertyTypes: nextPropertyType
       ? [nextPropertyType]
@@ -193,9 +208,20 @@ export function buildOwnerRequestFormDefaults(
   frequency: OwnerRequestFrequency;
   estimatedDuration: string;
   responsibilityLevel: OwnerResponsibilityLevel;
+  title: string;
   propertyType: string;
+  propertyConstraints: string;
   description: string;
 } {
+  const description = [
+    preferences.firstRequestTemplate,
+    preferences.recurringExpectations
+      ? `Attentes recurrentes : ${preferences.recurringExpectations}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
   return {
     requestType: inferRequestTypeFromCollaboration(preferences.collaborationType),
     ownerGoal: preferences.ownerGoal,
@@ -203,7 +229,19 @@ export function buildOwnerRequestFormDefaults(
     frequency: preferences.frequency,
     estimatedDuration: preferences.estimatedDuration,
     responsibilityLevel: preferences.responsibilityLevel,
+    title: buildRequestTitle(preferences),
     propertyType: preferences.propertyType,
-    description: preferences.firstRequestTemplate,
+    propertyConstraints: preferences.operatingContext,
+    description,
+  };
+}
+
+export function buildOwnerConciergeSearchDefaults(
+  preferences: OwnerProfilePreferences,
+): {
+  propertyType: string;
+} {
+  return {
+    propertyType: preferences.propertyType || preferences.propertyTypes[0] || "",
   };
 }

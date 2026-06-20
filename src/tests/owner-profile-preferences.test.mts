@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildOwnerConciergeSearchDefaults,
   buildOwnerRequestFormDefaults,
   getOwnerProfilePreferences,
   mergeOwnerPreferencesIntoAvailabilityHours,
@@ -22,6 +23,8 @@ test("owner profile preferences read merged onboarding and preferences with pref
       responsibilityLevel: "full",
       frequency: "year_round",
       estimatedDuration: "12 mois",
+      operatingContext: "Location saisonniere avec arrivees le samedi",
+      recurringExpectations: "Menage, linge et controle consommables",
       firstRequestTemplate: "Base recurrente",
     },
   });
@@ -34,6 +37,8 @@ test("owner profile preferences read merged onboarding and preferences with pref
     responsibilityLevel: "full",
     propertyType: "Maison",
     needVolume: "seasonal",
+    operatingContext: "Location saisonniere avec arrivees le samedi",
+    recurringExpectations: "Menage, linge et controle consommables",
     firstRequestTemplate: "Base recurrente",
     propertyTypes: [],
   });
@@ -60,6 +65,8 @@ test("owner preference merge preserves payload and updates preferences sub-tree"
     estimatedDuration: "2 semaines",
     propertyType: "Appartement",
     needVolume: "haute saison",
+    operatingContext: "Arrivees autonomes et forte rotation estivale",
+    recurringExpectations: "Menage, linge, photos apres intervention",
     firstRequestTemplate: "Relais a organiser",
   });
   const parsed = JSON.parse(merged) as Record<string, unknown>;
@@ -73,6 +80,8 @@ test("owner preference merge preserves payload and updates preferences sub-tree"
   assert.equal(preferences.responsibilityLevel, "shared");
   assert.equal(preferences.estimatedDuration, "2 semaines");
   assert.equal(preferences.propertyType, "Appartement");
+  assert.equal(preferences.operatingContext, "Arrivees autonomes et forte rotation estivale");
+  assert.equal(preferences.recurringExpectations, "Menage, linge, photos apres intervention");
   assert.deepEqual(preferences.propertyTypes, ["Appartement"]);
 });
 
@@ -85,6 +94,8 @@ test("owner request form defaults reuse saved profile preferences", () => {
     responsibilityLevel: "low",
     propertyType: "Appartement",
     needVolume: "",
+    operatingContext: "Acces autonome et stationnement limite",
+    recurringExpectations: "Menage et linge a chaque depart",
     firstRequestTemplate: "Menage apres depart",
     propertyTypes: ["Appartement"],
   });
@@ -96,9 +107,37 @@ test("owner request form defaults reuse saved profile preferences", () => {
     frequency: "once",
     estimatedDuration: "1 jour",
     responsibilityLevel: "low",
+    title: "Obtenir un devis ponctuel - Appartement",
     propertyType: "Appartement",
-    description: "Menage apres depart",
+    propertyConstraints: "Acces autonome et stationnement limite",
+    description: "Menage apres depart\n\nAttentes recurrentes : Menage et linge a chaque depart",
   });
+});
+
+test("owner concierge search defaults reuse the saved property context", () => {
+  const preferences = getOwnerProfilePreferences(
+    JSON.stringify({
+      preferences: {
+        propertyType: "Villa haut de gamme",
+        propertyTypes: ["Appartement"],
+      },
+    }),
+  );
+
+  assert.deepEqual(buildOwnerConciergeSearchDefaults(preferences), {
+    propertyType: "Villa haut de gamme",
+  });
+
+  assert.deepEqual(
+    buildOwnerConciergeSearchDefaults({
+      ...preferences,
+      propertyType: "",
+      propertyTypes: ["Maison"],
+    }),
+    {
+      propertyType: "Maison",
+    },
+  );
 });
 
 test("parseOnboardingDetails now reads new owner preference aliases", () => {

@@ -118,7 +118,7 @@ export function parseOnboardingDetails(value?: string | null): OnboardingDetails
     const payload = JSON.parse(value) as RawPayload;
     const onboardingSource = isRecord(payload.onboarding) ? payload.onboarding : {};
     const preferencesSource = isRecord(payload.preferences) ? payload.preferences : {};
-    const source = { ...onboardingSource, ...preferencesSource };
+    const source: Record<string, unknown> = { ...onboardingSource, ...preferencesSource };
 
     return {
       availability: asString(source.availability),

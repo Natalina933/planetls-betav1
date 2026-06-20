@@ -65,6 +65,33 @@
   gap: 18px;
 }
 
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  border-top: 1px solid rgba(120, 98, 63, 0.16);
+  padding-top: 18px;
+}
+
+.sectionHeader:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.sectionHeader h3 {
+  margin: 4px 0 0;
+  color: #2f2619;
+  font-size: 1.12rem;
+}
+
+.sectionHeader span {
+  color: rgba(74, 61, 44, 0.74);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: right;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -142,5 +169,14 @@
 
   .panelHeader {
     flex-direction: column;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sectionHeader span {
+    text-align: left;
   }
 }

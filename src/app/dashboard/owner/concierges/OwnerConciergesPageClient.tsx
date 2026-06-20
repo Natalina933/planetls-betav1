@@ -44,7 +44,11 @@ import {
   inferRequestTypeFromCollaboration,
 } from "@/app/lib/serviceRequestBrief";
 import type { RequestFormState } from "@/features/owner-concierges/types";
-import { buildOwnerRequestFormDefaults, getOwnerProfilePreferences } from "@/features/owner-preferences/profilePreferences";
+import {
+  buildOwnerConciergeSearchDefaults,
+  buildOwnerRequestFormDefaults,
+  getOwnerProfilePreferences,
+} from "@/features/owner-preferences/profilePreferences";
 import { focusFirstModalElement, trapFocusInModal } from "../modalAccessibility";
 
 const initialFilters: OwnerConciergeSearchFilters = {
@@ -231,6 +235,7 @@ export default function OwnerConciergesPageClient() {
     recipients: string[];
   } | null>(null);
   const [profileRequestDefaults, setProfileRequestDefaults] = useState<Partial<RequestFormState>>({});
+  const [profileSearchDefaults, setProfileSearchDefaults] = useState<Partial<OwnerConciergeSearchFilters>>({});
   const [profileDefaultsReady, setProfileDefaultsReady] = useState(false);
   const { items, loading, error, serverOptions, search, clear, setError } = useOwnerConciergeSearch();
   const hydratedFromUrlRef = useRef(false);
@@ -451,12 +456,13 @@ export default function OwnerConciergesPageClient() {
         const payload = (await response.json()) as CurrentOwnerProfilePayload;
         if (!response.ok || cancelled) return;
 
-        const defaults = buildOwnerRequestFormDefaults(
-          getOwnerProfilePreferences(payload.availability_hours),
-        );
+        const preferences = getOwnerProfilePreferences(payload.availability_hours);
+        const requestDefaults = buildOwnerRequestFormDefaults(preferences);
+        const searchDefaults = buildOwnerConciergeSearchDefaults(preferences);
 
         if (!cancelled) {
-          setProfileRequestDefaults(defaults);
+          setProfileRequestDefaults(requestDefaults);
+          setProfileSearchDefaults(searchDefaults);
         }
       } catch {
         // Owner defaults are a convenience layer and should never block the page.
@@ -541,7 +547,11 @@ export default function OwnerConciergesPageClient() {
       ...initialRequestForm,
       ...profileRequestDefaults,
     };
-    const nextFilters: OwnerConciergeSearchFilters = {
+    const baseFilters: OwnerConciergeSearchFilters = {
+      ...initialFilters,
+      ...profileSearchDefaults,
+    };
+    const urlFilters: OwnerConciergeSearchFilters = {
       region: searchParams.get("region") ?? "",
       city: searchParams.get("city") ?? searchParams.get("postalCode") ?? "",
       selectedCategories: (searchParams.get("categories") ?? "")
@@ -557,6 +567,15 @@ export default function OwnerConciergesPageClient() {
       radiusKm: searchParams.get("radiusKm") ?? "",
       proOnly: searchParams.get("proOnly") === "1",
     };
+    const hasUrlFilters = hasOwnerConciergeSearchCriteria(urlFilters);
+    const nextFilters: OwnerConciergeSearchFilters = hasUrlFilters
+      ? {
+          ...baseFilters,
+          ...urlFilters,
+          selectedCategories: urlFilters.selectedCategories,
+          selectedServices: urlFilters.selectedServices,
+        }
+      : baseFilters;
     const nextRequestForm: RequestFormState = {
       ...baseRequestForm,
       requestType:
@@ -576,16 +595,16 @@ export default function OwnerConciergesPageClient() {
       responsibilityLevel:
         (searchParams.get("responsibilityLevel") as RequestFormState["responsibilityLevel"] | null) ??
         baseRequestForm.responsibilityLevel,
-      title: searchParams.get("requestTitle") ?? "",
+      title: searchParams.get("requestTitle") ?? baseRequestForm.title,
       description: searchParams.get("requestDescription") ?? baseRequestForm.description,
       housingId: searchParams.get("housingId") ?? "",
       propertyName: searchParams.get("propertyName") ?? "",
       propertyAddress: searchParams.get("propertyAddress") ?? "",
       propertyType: searchParams.get("propertyType") ?? baseRequestForm.propertyType,
       sleepingCapacity: searchParams.get("sleepingCapacity") ?? "",
-      propertyConstraints: searchParams.get("propertyConstraints") ?? "",
-      city: searchParams.get("city") ?? "",
-      postalCode: searchParams.get("postalCode") ?? "",
+      propertyConstraints: searchParams.get("propertyConstraints") ?? baseRequestForm.propertyConstraints,
+      city: searchParams.get("city") ?? baseRequestForm.city,
+      postalCode: searchParams.get("postalCode") ?? baseRequestForm.postalCode,
       budgetMax: searchParams.get("budgetMax") ?? "",
       currency: searchParams.get("requestCurrency") ?? "EUR",
     };
@@ -600,10 +619,10 @@ export default function OwnerConciergesPageClient() {
         nextRequestForm.budgetMax,
     );
 
-    const hasUrlFilters = hasOwnerConciergeSearchCriteria(nextFilters);
     if (!hasUrlFilters) {
       hydratedFromUrlRef.current = true;
       setEditingAlertId(nextEditingAlertId);
+      setFilters(nextFilters);
       setRequestForm(hasRequestPrefill ? nextRequestForm : baseRequestForm);
       return;
     }
@@ -614,7 +633,7 @@ export default function OwnerConciergesPageClient() {
     setFilters(nextFilters);
     setHasSubmittedSearch(true);
     void search(nextFilters);
-  }, [profileDefaultsReady, profileRequestDefaults, search, searchParams]);
+  }, [profileDefaultsReady, profileRequestDefaults, profileSearchDefaults, search, searchParams]);
 
   useEffect(() => {
     if (!feedback || lastToastMessageRef.current === feedback) return;
@@ -715,7 +734,10 @@ export default function OwnerConciergesPageClient() {
       ...initialRequestForm,
       ...profileRequestDefaults,
     };
-    setFilters(initialFilters);
+    setFilters({
+      ...initialFilters,
+      ...profileSearchDefaults,
+    });
     setHasSubmittedSearch(false);
     setFeedback(null);
     setError(null);
